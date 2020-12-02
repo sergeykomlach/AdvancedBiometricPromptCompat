@@ -4,10 +4,11 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import dev.skomlach.common.BuildConfig;
 import timber.log.Timber;
 
 public class LogCat {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = BuildConfig.DEBUG;
 
     static {
         if (DEBUG) {
