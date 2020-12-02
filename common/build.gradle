@@ -18,7 +18,6 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api 'com.github.ajalt:timberkt:1.5.1'
 
     implementation "com.microsoft.device.dualscreen:core:1.0.0-alpha01"
     implementation "com.microsoft.device.dualscreen:fragmentshandler:1.0.0-alpha02"
@@ -40,7 +39,7 @@ dependencies {
 
 
 //region Publish to jCenter
-def libGroupId = groupId
+def libGroupId = libsGroupId
 def libArtifactId = 'common'
 def libVersion = libsVersion
 def libDesc = 'Project contains some helpers and utils.'

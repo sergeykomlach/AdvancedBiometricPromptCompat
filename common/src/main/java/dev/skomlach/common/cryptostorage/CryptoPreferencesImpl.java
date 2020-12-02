@@ -22,7 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import timber.log.Timber;
+import dev.skomlach.common.logging.LogCat;
 
 public class CryptoPreferencesImpl implements SharedPreferences {
     /*
@@ -78,10 +78,10 @@ public class CryptoPreferencesImpl implements SharedPreferences {
     private boolean checkAndDeleteIfNeed(@Nullable String key, @NonNull Throwable e) {
         if (!e.toString().contains("Could not decrypt value")) {
             if (!TextUtils.isEmpty(key)) {
-                Timber.d("Remove broken value for key '" + key + "'");
+                LogCat.log("Remove broken value for key '" + key + "'");
                 edit().remove(key).apply();
             } else {
-                Timber.d("Remove all broken values");
+                LogCat.log("Remove all broken values");
                 edit().clear().apply();
             }
             return true;
@@ -103,7 +103,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getAll();
         } catch (Throwable e) {
             checkException(null, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return null;
     }
@@ -115,7 +115,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getString(key, defValue);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return defValue;
     }
@@ -127,7 +127,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getStringSet(key, defValues);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return defValues;
     }
@@ -138,7 +138,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getInt(key, defValue);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return defValue;
     }
@@ -149,7 +149,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getLong(key, defValue);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return defValue;
     }
@@ -160,7 +160,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getFloat(key, defValue);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return defValue;
     }
@@ -171,7 +171,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.getBoolean(key, defValue);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return defValue;
     }
@@ -182,7 +182,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             return sharedPreferences.contains(key);
         } catch (Throwable e) {
             checkException(key, e);
-            Timber.e(e);
+            LogCat.logException(e);
         }
         return false;
     }
@@ -197,7 +197,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
         try {
             sharedPreferences.registerOnSharedPreferenceChangeListener(listener);
         } catch (Throwable e) {
-            Timber.e(e);
+            LogCat.logException(e);
         }
     }
 
@@ -206,7 +206,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
         try {
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener);
         } catch (Throwable e) {
-            Timber.e(e);
+            LogCat.logException(e);
         }
     }
 
@@ -222,7 +222,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.putString(key, value));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -232,7 +232,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.putStringSet(key, values));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -242,7 +242,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.putInt(key, value));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -252,7 +252,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.putLong(key, value));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -262,7 +262,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.putFloat(key, value));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -272,7 +272,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.putBoolean(key, value));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -282,7 +282,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.remove(key));
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -292,7 +292,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return new CryptoEditor(editor.clear());
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return editor;
             }
         }
@@ -302,7 +302,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 return editor.commit();
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
                 return false;
             }
         }
@@ -312,7 +312,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
             try {
                 editor.apply();
             } catch (Throwable e) {
-                Timber.e(e);
+                LogCat.logException(e);
             }
         }
     }

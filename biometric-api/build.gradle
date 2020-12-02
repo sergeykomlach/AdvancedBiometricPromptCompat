@@ -20,7 +20,7 @@ dependencies {
 
 
 //region Publish to jCenter
-def libGroupId = groupId
+def libGroupId = libsGroupId
 def libArtifactId = 'biometric-api'
 def libVersion = libsVersion
 def libDesc = 'Project allowing you to get access to unofficial biometric API for some device vendors.'

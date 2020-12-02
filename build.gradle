@@ -3,8 +3,8 @@ buildscript {
     ext.kotlin_version = '1.4.20'
     ext.minSDK = 16
     ext.targetSDK = 30
-    ext.groupId = "dev.skomlach"
-    ext.libsVersion = '0.0.3'
+    ext.libsGroupId = "dev.skomlach"
+    ext.libsVersion = '0.0.5'
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }

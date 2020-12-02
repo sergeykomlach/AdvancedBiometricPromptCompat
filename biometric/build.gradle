@@ -24,8 +24,8 @@ android {
 }
 
 dependencies {
-    api 'dev.skomlach:common:0.0.3'
-    compileOnly 'dev.skomlach:biometric-api:0.0.3'
+    implementation 'dev.skomlach:common:0.0.4'
+    compileOnly 'dev.skomlach:biometric-api:0.0.4'
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.biometric:biometric:1.+'
@@ -36,7 +36,7 @@ dependencies {
 
 
 //region Publish to jCenter
-def libGroupId = groupId
+def libGroupId = libsGroupId
 def libArtifactId = 'biometric'
 def libVersion = libsVersion
 def libDesc = 'This is an Android project allowing you to use the advanced biometric authorization features.'

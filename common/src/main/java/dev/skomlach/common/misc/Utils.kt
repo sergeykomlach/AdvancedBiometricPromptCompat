@@ -4,8 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.os.BuildCompat
-import timber.log.Timber
-import java.util.*
+import dev.skomlach.common.logging.LogCat
 
 object Utils {
     @JvmStatic
@@ -23,7 +22,7 @@ object Utils {
                 return true
             }
         } catch (throwable: Throwable) {
-            Timber.e(throwable)
+            LogCat.logException(throwable)
         }
         return false
     }
