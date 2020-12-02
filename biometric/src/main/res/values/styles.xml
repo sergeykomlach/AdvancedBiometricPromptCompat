@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.BiometricPromptDialog" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowMinWidthMajor">75%</item>
+        <item name="android:windowMinWidthMinor">100%</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowTitleStyle">@style/DialogTitle</item>
+    </style>
+
+    <style name="BottomSheetDialogAnimation">
+        <item name="android:interpolator">@android:interpolator/linear</item>
+        <item name="android:windowEnterAnimation">@anim/move_in</item>
+        <item name="android:windowExitAnimation">@anim/move_out</item>
+    </style>
+
+    <style name="DialogTitle" parent="@android:style/TextAppearance.DialogWindowTitle">
+        <item name="android:visibility">gone</item>
+    </style>
+</resources>

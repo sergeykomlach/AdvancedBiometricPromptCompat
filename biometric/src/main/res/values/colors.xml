@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="window_bg">#aa000000</color>
+    <color name="material_blue_500">#3380ea</color>
+
+    <color name="material_red_500">#e51c23</color>
+    <color name="material_grey_100">#fff5f5f5</color>
+    <color name="material_grey_300">#ffe0e0e0</color>
+    <color name="material_grey_50">#fffafafa</color>
+
+    <color name="material_deep_teal_500">#ff009688</color>
+</resources>

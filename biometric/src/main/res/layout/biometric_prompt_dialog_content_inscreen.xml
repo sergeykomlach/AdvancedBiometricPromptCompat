@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/dialogContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@null"
+        android:tag="light_theme"
+        >
+
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:background="@drawable/layout_bg"
+            android:minWidth="400dp"
+            android:orientation="vertical"
+            android:paddingLeft="18dp"
+            android:paddingRight="18dp"
+            >
+
+        <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:textAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title"
+                android:textSize="20sp"
+                tools:text="Title"
+                />
+
+        <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle"
+                android:textSize="16sp"
+                tools:text="Subtitle"
+                />
+
+        <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:textAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle"
+                android:textSize="16sp"
+                tools:text="Description: blabla."
+                />
+
+        <FrameLayout
+                android:id="@+id/auth_content_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/fingerprint_status_layout_margin_vertical_top"
+                    >
+
+                <dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
+                        android:id="@+id/fingerprint_icon"
+                        android:layout_width="@dimen/fingerprint_icon_size"
+                        android:layout_height="@dimen/fingerprint_icon_size"
+                        android:visibility="invisible"
+                        />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/fingerprint_icon_size"
+                        android:gravity="top|center_horizontal"
+                        android:maxLines="2"
+                        android:minHeight="32dp"
+                        android:textAppearance="@android:style/TextAppearance.Small"
+                        android:textSize="12sp"
+                        android:visibility="invisible"
+                        tools:text="Verify your identity"
+                        />
+
+            </LinearLayout>
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    >
+
+                <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:maxLines="2"
+                        android:minHeight="32dp"
+                        android:textAppearance="@android:style/TextAppearance.Small"
+                        android:textSize="12sp"
+                        tools:text="Verify your identity"
+                        />
+            </LinearLayout>
+        </FrameLayout>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                >
+
+            <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    >
+
+                <androidx.appcompat.widget.AppCompatButton
+                        android:id="@android:id/button1"
+                        style="@android:style/Widget.Holo.Button.Borderless.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:textAllCaps="true"
+                        android:textColor="@color/material_deep_teal_500"
+                        android:textStyle="bold"
+                        tools:text="Use password"
+                        />
+            </LinearLayout>
+
+            <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:visibility="invisible"
+                    />
+        </LinearLayout>
+
+    </LinearLayout>
+</FrameLayout>

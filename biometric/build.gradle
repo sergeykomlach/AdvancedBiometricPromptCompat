@@ -1,0 +1,89 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+
+android {
+    compileSdkVersion targetSDK
+    defaultConfig {
+        //vector drawables + scaleType="centerCrop" is broken on Android 5.0 - 5.1
+        vectorDrawables.useSupportLibrary = true
+        minSdkVersion minSDK
+        targetSdkVersion targetSDK
+        versionCode 1
+        versionName libsVersion
+        consumerProguardFiles "proguard-project-biometric.pro"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+}
+configurations.all {
+    exclude module: ':biometric-api'
+}
+
+dependencies {
+    implementation project(':common')
+    compileOnly(project(':biometric-api'))
+
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.biometric:biometric:1.+'
+    implementation "androidx.appcompat:appcompat:1.2.0"
+    implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
+    implementation 'com.tencent.soter:soter-core:2.+'
+}
+
+
+//region Publish to jCenter
+def libGroupId = groupId
+def libArtifactId = 'biometric'
+def libVersion = libsVersion
+def libDesc = 'This is an Android project allowing you to use the advanced biometric authorization features.'
+def libLicenses = ['Apache-2.0']
+def libVCSUrl = 'https://github.com/Salat-Cx65/biometric.git'
+
+// Generate Source Jar
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+// Create the publication with the pom configuration
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+            groupId libGroupId
+            artifactId libArtifactId
+            version libVersion
+            artifact(sourceJar)
+            artifact("$buildDir/outputs/aar/$libArtifactId-release.aar")
+        }
+    }
+}
+
+// Bintray config
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ['MyPublication']
+    pkg {
+        repo = "Maven"
+        name = "$libGroupId:$libArtifactId"
+        desc = libDesc
+        licenses = libLicenses
+        vcsUrl = libVCSUrl
+        version {
+            name = libVersion
+            vcsTag = libVersion
+            released = new Date()
+        }
+    }
+}
+//endregion
