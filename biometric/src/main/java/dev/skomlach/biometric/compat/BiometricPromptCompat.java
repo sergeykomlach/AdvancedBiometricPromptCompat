@@ -265,14 +265,17 @@ public final class BiometricPromptCompat {
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         public MultiWindowSupport multiWindowSupport;
 
+        public Builder(@NonNull FragmentActivity context) {
+            this.api = BiometricApi.AUTO;
+            this.context = context;
+            hardwareAccess = HardwareAccessImpl.getInstance(api);
+            multiWindowSupport = new MultiWindowSupport(context);
+        }
         public Builder(BiometricApi api, @NonNull FragmentActivity context) {
             this.api = api;
             this.context = context;
             hardwareAccess = HardwareAccessImpl.getInstance(api);
             multiWindowSupport = new MultiWindowSupport(context);
-        }
-        public Builder(BiometricType type, @NonNull FragmentActivity context) {
-            throw new IllegalStateException("Not implemented yet");
         }
         @NonNull
         public Builder setTitle(CharSequence title) {
