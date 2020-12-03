@@ -11,7 +11,7 @@ import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
-import dev.skomlach.biometric.compat.engine.BiometricType;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 

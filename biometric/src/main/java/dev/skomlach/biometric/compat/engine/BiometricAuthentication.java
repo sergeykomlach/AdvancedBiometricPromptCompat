@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.Core;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;

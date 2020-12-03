@@ -1,8 +1,5 @@
 package dev.skomlach.biometric.compat;
 
-import androidx.annotation.RestrictTo;
-
-@RestrictTo(RestrictTo.Scope.LIBRARY)
 public enum BiometricApi {
     AUTO, LEGACY_API, BIOMETRIC_API
     //TODO:

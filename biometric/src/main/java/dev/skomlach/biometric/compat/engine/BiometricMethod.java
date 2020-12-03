@@ -2,6 +2,8 @@ package dev.skomlach.biometric.compat.engine;
 
 import androidx.annotation.RestrictTo;
 
+import dev.skomlach.biometric.compat.BiometricType;
+
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public enum BiometricMethod {
 
@@ -30,7 +32,7 @@ public enum BiometricMethod {
     //https://github.com/fonix232/SCoverRE/blob/2374565740e4c7bfc653b3f05bd9be519e722e32/Reversed/framework/com/samsung/android/camera/iris/SemIrisManager.java
     IRIS_SAMSUNG(301, BiometricType.BIOMETRIC_IRIS),
     DUMMY_BIOMETRIC(9999,
-            BiometricType.BIOMETRIC_GENERAL);
+            BiometricType.BIOMETRIC_UNDEFINED);
 
     final int id;
     final BiometricType biometricType;
