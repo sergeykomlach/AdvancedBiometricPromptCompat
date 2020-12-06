@@ -41,7 +41,7 @@ def libArtifactId = 'biometric'
 def libVersion = libsVersion
 def libDesc = 'This is an Android project allowing you to use the advanced biometric authorization features.'
 def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/Salat-Cx65/biometric.git'
+def libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'
 
 // Generate Source Jar
 task sourceJar(type: Jar) {

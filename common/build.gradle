@@ -44,7 +44,7 @@ def libArtifactId = 'common'
 def libVersion = libsVersion
 def libDesc = 'Project contains some helpers and utils.'
 def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/Salat-Cx65/biometric.git'
+def libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'
 
 // Generate Source Jar
 task sourceJar(type: Jar) {

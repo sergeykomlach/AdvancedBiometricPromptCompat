@@ -25,7 +25,7 @@ def libArtifactId = 'biometric-api'
 def libVersion = libsVersion
 def libDesc = 'Project allowing you to get access to unofficial biometric API for some device vendors.'
 def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/Salat-Cx65/biometric.git'
+def libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'
 
 // Generate Source Jar
 task sourceJar(type: Jar) {
