@@ -167,8 +167,8 @@ Full answer:
 It all depends on the specific case. I have come across several options that can be divided into several groups.
 1) We know how the "Manager" defined and can add "dummy manager" into the `biometric-api` module, for example [MiuiFaceManagerImpl](https://github.com/shivatejapeddi/miuiframework/blob/cd456214274c046663aefce4d282bea0151f1f89/sources/android/hardware/miuiface/MiuiFaceManagerImpl.java). Unfortunately, this approach is not always possible to use.
 
-First, starting with Android 9 appears were restrictions [restrictions](
-https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces) on the use of non-public APIs. This limitation can be circumvented, BUT…
+First, starting with Android 9 appears [restrictions](
+https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces) on the use of non-public APIs. This limitation can be [circumvented](https://github.com/tiann/FreeReflection), BUT…
 
 Secondly - anyway, the manager considered here uses system permissions, and as a result, a SecurityException will be thrown when we tried to get "Manager"  instance.
 
