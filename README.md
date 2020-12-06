@@ -102,7 +102,9 @@ BiometricPromptCompat.Builder builder =
   **BiometricApi:**
 
   `BiometricApi.AUTO` - the library will peek at the best-matched API (default)
+  
   `BiometricApi.LEGACY_API` - forced usage of legacy biometric APIs like Fingerprint or FaceUnlock, and custom UI
+  
   `BiometricApi. BIOMETRIC_API` - forced usage of new BiometricPrompt API
   
 
