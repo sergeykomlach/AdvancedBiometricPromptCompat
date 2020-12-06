@@ -38,7 +38,7 @@ Unfortunately, this simplification hides a number of problems.
 
 
 
-#### How to use it in old devices?
+#### How to use BiometricPromptCompat in old devices?
 
 BiometricPromptCompat is designed to be compatible with the largest number of Android devices.
 Its interface is very close to the original `BiometricPrompt`.
