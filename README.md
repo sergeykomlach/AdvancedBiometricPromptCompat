@@ -156,7 +156,7 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
 
 
 
-## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps, even use  AdvancedBiometricCompat. Can  you help?
+## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?
 
 Yes, this is unfortunately often met. Many functions demanded by the market are often implemented by device manufacturers before the same API appears in the official Android SDK.
 
