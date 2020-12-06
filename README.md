@@ -73,6 +73,13 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 Include library in your app:
 
 ```groovy
+allprojects {
+    repositories {
+        ...
+        jcenter()
+    }
+}
+
 dependencies {
      implementation 'dev.skomlach:biometric:X.X.X'
 }
@@ -145,9 +152,6 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   `void onFailed(AuthenticationFailureReason reason)`  - Error happens, see details in *AuthenticationFailureReason*
   
   `void onUIShown()` - Biometric UI on display
-
-
-
 
 
 ## Contact author
