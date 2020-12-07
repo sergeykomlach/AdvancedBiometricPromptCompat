@@ -170,6 +170,11 @@ Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
 
 Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 
+## License
+
+Apache License 2.0
+
+
 ## 
 <p align="center">
 <strong align="center">Buy me a beer, if you wish.</strong>
@@ -181,6 +186,3 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 </p>
 
 
-## License
-
-Apache License 2.0
