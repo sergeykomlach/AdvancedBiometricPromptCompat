@@ -48,7 +48,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |
 | Fingerprint | Android 6+ |Xiomi POCO F1|
 | Fingerprint with In-screen scanner | Android 8+ |OnePlus 6T|
-| Huiwei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
+| Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
 | Samsung Face | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|
 | Samsung Iris | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo Face | Android 9+ and Oppo devices |Not tested yet|
