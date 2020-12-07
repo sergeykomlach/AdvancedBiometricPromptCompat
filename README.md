@@ -1,3 +1,4 @@
+
 ## PLEASE NOTE:
 If your project has minSDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).
 
@@ -164,6 +165,12 @@ Secondly - anyway, the manager considered here uses system permissions, and as a
 3) Biometric auth implemented in the system `com.android.keyguard` package. For example, Meizu uses [Face++](https://github.com/FacePlusPlus) solution. Dependence on implementation, exists a chance to bind to the service as we do for [FaceUnlock](https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/tree/main/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/facelock)
 
 Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.
+
+## TODO
+- Simplify setup
+- Check for the way to start Biometricauth with specified BiometricType
+- Cleanup project and README
+- Migrate to Kotlin
 
 ## Contact author
 
