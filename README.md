@@ -61,13 +61,13 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 Include library in your app:
 
 ```groovy
-allprojects {
+
     repositories {
          maven { url 'https://developer.huawei.com/repo/' }
          maven { url "https://dl.bintray.com/tencent-soter/maven/" }
          maven { url "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1" }
     }
-}
+
 
 dependencies {
      implementation 'dev.skomlach:biometric:X.X.X'
