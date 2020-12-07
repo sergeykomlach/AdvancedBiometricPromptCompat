@@ -49,9 +49,9 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Fingerprint | Android 6+ |Xiomi POCO F1|
 | Fingerprint with In-screen scanner | Android 8+ |OnePlus 6T|
 | Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
-| Samsung Face | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|
-| Samsung Iris | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
-| Oppo Face | Android 9+ and Oppo devices |Not tested yet|
+| Samsung FaceID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|
+| Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
+| Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|
 | BiometricPrompt API | Android 9+ |Xiomi POCO F1|
 
 ## Setup
