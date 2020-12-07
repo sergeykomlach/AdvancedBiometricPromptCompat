@@ -63,8 +63,9 @@ Include library in your app:
 ```groovy
 allprojects {
     repositories {
-        ...
-        jcenter()
+         maven { url 'https://developer.huawei.com/repo/' }
+         maven { url "https://dl.bintray.com/tencent-soter/maven/" }
+         maven { url "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1" }
     }
 }
 

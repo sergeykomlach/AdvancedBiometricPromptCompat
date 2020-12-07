@@ -50,6 +50,16 @@ publishing {
                 artifact("$buildDir/outputs/aar/${libArtifactId}-${variant.name}.aar")
 
                 pom.withXml {
+
+                    def repos = asNode().appendNode('repositories')
+                    project.repositories.each {
+                        def repo = it as MavenArtifactRepository
+                        def repository = repos.appendNode('repository')
+                        repository.appendNode('id',  repo.url.host)
+                        repository.appendNode('name', repo.url.host)
+                        repository.appendNode('url', repo.url)
+                    }
+
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')
 
