@@ -38,7 +38,9 @@ public class PermissionsFragment extends Fragment {
                     BroadcastTools.unregisterGlobalBroadcastIntent(AndroidContext.getAppContext(), this);
                 }
             }, new IntentFilter(INTENT_KEY));
-            activity.getSupportFragmentManager().beginTransaction().add(fragment, fragment.getClass().getName()).commitNowAllowingStateLoss();
+            activity
+                    .getSupportFragmentManager().beginTransaction()
+                    .add(fragment, fragment.getClass().getName()).commitAllowingStateLoss();
         } else {
             if (callback != null)
                 ExecutorHelper.INSTANCE.getHandler().post(callback);
@@ -52,8 +54,8 @@ public class PermissionsFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         List<String> permissions = getArguments().getStringArrayList(LIST_KEY);
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
             this.requestPermissions(permissions.toArray(new String[0]), 100);
