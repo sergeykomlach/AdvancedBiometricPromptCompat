@@ -84,8 +84,9 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
             if (root != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && root.isAttachedToWindow()) {
                     focusListener.hasFocus(root.hasWindowFocus());
-                } else
+                } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
                     focusListener.hasFocus(root.hasWindowFocus());
+                }
             }
         }
     }

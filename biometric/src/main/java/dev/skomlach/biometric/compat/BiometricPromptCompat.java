@@ -31,11 +31,11 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl;
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl;
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl;
 import dev.skomlach.biometric.compat.impl.PermissionsFragment;
+import dev.skomlach.biometric.compat.utils.ActiveWindow;
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver;
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.misc.ActivityToolsKt;
 import dev.skomlach.common.misc.ExecutorHelper;
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport;
 
@@ -153,7 +153,7 @@ public final class BiometricPromptCompat {
 
     private void authenticateInternal(@NonNull Result callback) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            View d = impl.getBuilder().context.findViewById(Window.ID_ANDROID_CONTENT);
+            View d = ActiveWindow.getActiveView(impl.getBuilder().context);
             if (!d.isAttachedToWindow()) {
                 d.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                     @Override
@@ -189,19 +189,18 @@ public final class BiometricPromptCompat {
 
     @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void checkForFocusAndStart(@NonNull Result callback) {
-        Activity activity = impl.getBuilder().context;
-        if (!ActivityToolsKt.hasWindowFocus(activity)) {
-            View d = impl.getBuilder().context.findViewById(Window.ID_ANDROID_CONTENT);
+        View activity = ActiveWindow.getActiveView(impl.getBuilder().context);
+        if (!activity.hasWindowFocus()) {
             ViewTreeObserver.OnWindowFocusChangeListener windowFocusChangeListener = new ViewTreeObserver.OnWindowFocusChangeListener() {
                 @Override
                 public void onWindowFocusChanged(boolean focus) {
-                    if (d.hasWindowFocus()) {
-                        d.getViewTreeObserver().removeOnWindowFocusChangeListener(this);
+                    if (activity.hasWindowFocus()) {
+                        activity.getViewTreeObserver().removeOnWindowFocusChangeListener(this);
                         impl.authenticate(callback);
                     }
                 }
             };
-            d.getViewTreeObserver().addOnWindowFocusChangeListener(windowFocusChangeListener);
+            activity.getViewTreeObserver().addOnWindowFocusChangeListener(windowFocusChangeListener);
         } else {
             impl.authenticate(callback);
         }
