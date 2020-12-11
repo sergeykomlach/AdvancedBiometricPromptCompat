@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import dev.skomlach.biometric.compat.BiometricApi;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -30,6 +31,7 @@ import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError;
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs;
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes;
@@ -104,7 +106,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                             failureReason = AuthenticationFailureReason.TIMEOUT;
                             break;
                         case BiometricCodes.BIOMETRIC_ERROR_LOCKOUT:
-                            compatBuilder.hardwareAccess.lockout();
+                            HardwareAccessImpl.getInstance(BiometricApi.BIOMETRIC_API).lockout();
                             failureReason = AuthenticationFailureReason.LOCKED_OUT;
                             break;
                         case BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED:
@@ -128,7 +130,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                         switch (failureReason) {
                             case SENSOR_FAILED:
                             case AUTHENTICATION_FAILED:
-                                compatBuilder.hardwareAccess.lockout();
+                                HardwareAccessImpl.getInstance(BiometricApi.BIOMETRIC_API).lockout();
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT;
                                 break;
                         }

@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import dev.skomlach.biometric.compat.BiometricApi;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -18,6 +19,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -179,7 +181,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     }
                 });
             } else {
-                compatBuilder.hardwareAccess.lockout();
+                HardwareAccessImpl.getInstance(BiometricApi.BIOMETRIC_API).lockout();
                 ExecutorHelper.INSTANCE.getHandler().postDelayed(() -> {
                     cancelAuthenticate();
                     callback.onFailed(failureReason);

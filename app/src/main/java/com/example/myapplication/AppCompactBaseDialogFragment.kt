@@ -40,8 +40,8 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         )
 
         view.findViewById<Button>(R.id.button_first).setOnClickListener {
-            BiometricPromptCompat.init(Runnable {
-                val biometricPromptCompat = BiometricPromptCompat.Builder(requireActivity())
+
+            val biometricPromptCompat = BiometricPromptCompat.Builder(requireActivity())
                     .setTitle("Test").setNegativeButton("Cancel", null).build()
                 biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
                     override fun onSucceeded() {
@@ -56,7 +56,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                     override fun onUIShown() {
                     }
                 })
-            })
+
         }
     }
 }

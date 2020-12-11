@@ -33,8 +33,8 @@ class FirstFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonFirst.setOnClickListener {
-            BiometricPromptCompat.init(Runnable {
-                val biometricPromptCompat = BiometricPromptCompat.Builder(requireActivity())
+
+            val biometricPromptCompat = BiometricPromptCompat.Builder(requireActivity())
                     .setTitle("Test").setNegativeButton("Cancel", null).build()
                 biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
                     override fun onSucceeded() {
@@ -49,7 +49,6 @@ class FirstFragment : Fragment() {
                     override fun onUIShown() {
                     }
                 })
-            })
         }
     }
 
