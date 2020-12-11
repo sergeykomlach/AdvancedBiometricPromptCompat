@@ -75,8 +75,15 @@ dependencies {
 }
 ```
 ## Usage
+- In `Application.onCreate()` need to call
 
-- At first, you need to create the **BiometricPromptCompat**
+```java
+BiometricPromptCompat.init(null);  
+ ``` 
+You can pass also Runnable - this callback will be called when init will be finished.
+
+
+- Then, you need to create the **BiometricPromptCompat**
 ```java
 BiometricPromptCompat.Builder builder =
  new BiometricPromptCompat.Builder(getActivity())
