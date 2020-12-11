@@ -5,20 +5,20 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
-import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCallback {

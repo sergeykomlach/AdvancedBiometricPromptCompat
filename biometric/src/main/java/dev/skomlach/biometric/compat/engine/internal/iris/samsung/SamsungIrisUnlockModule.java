@@ -6,6 +6,8 @@ import android.os.Build;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
+import com.samsung.android.camera.iris.SemIrisManager;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
@@ -18,7 +20,6 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
-import com.samsung.android.camera.iris.SemIrisManager;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SamsungIrisUnlockModule extends AbstractBiometricModule {

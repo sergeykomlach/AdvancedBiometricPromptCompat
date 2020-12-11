@@ -29,15 +29,15 @@ import com.microsoft.device.dualscreen.core.ScreenHelper;
 import com.microsoft.device.dualscreen.core.manager.ScreenModeListener;
 import com.microsoft.device.dualscreen.core.manager.SurfaceDuoScreenManager;
 import com.microsoft.device.dualscreen.fragmentshandler.FragmentManagerStateHandler;
-import dev.skomlach.common.contextprovider.AndroidContext;
-import dev.skomlach.common.logging.LogCat;
-import dev.skomlach.common.misc.ActivityToolsKt;
-import dev.skomlach.common.misc.ExecutorHelper;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.skomlach.common.contextprovider.AndroidContext;
+import dev.skomlach.common.logging.LogCat;
+import dev.skomlach.common.misc.ActivityToolsKt;
+import dev.skomlach.common.misc.ExecutorHelper;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 
@@ -422,7 +422,7 @@ public class MultiWindowSupport {
     private Point getRealScreenSize() {
         Configuration configuration = activity.getResources().getConfiguration();
         Point point = realScreenSize.get(configuration);
-        if (point!=null) {
+        if (point != null) {
             return point;
         } else {
             try {
@@ -543,50 +543,6 @@ public class MultiWindowSupport {
         }
     }
 
-    private class MyCoverDisplayCallback extends DisplayManagerHelper.CoverDisplayCallback {
-
-        @Override
-
-        public void onCoverDisplayEnabledChangedCallback(int state) {
-//
-//// Example of calling API which can check Dual Screen State in real-time.
-//
-//            SpLog.log("MultiWindowSupport: SmartCoverCallback - get Current DualScreen Callback state :" +
-//
-//                    coverDisplayStateToString(mDisplayManagerHelper.getCoverDisplayState()));
-//
-//// Start operating when received Dual Screen State is actually changed.
-//
-            if (mPrevDualScreenState != state) {
-
-                switch (state) {
-
-                    case DisplayManagerHelper.STATE_UNMOUNT:
-
-                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_UNMOUNT");
-
-                        break;
-
-                    case DisplayManagerHelper.STATE_DISABLED:
-
-                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_DISABLED");
-
-                        break;
-
-                    case DisplayManagerHelper.STATE_ENABLED:
-
-                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_ENABLED");
-
-                        break;
-                }
-
-// Save previous status value in order to check whether there are changes in status value being received at present.
-
-                mPrevDualScreenState = state;
-            }
-        }
-    }
-
     private static class MySmartCoverCallback extends DisplayManagerHelper.SmartCoverCallback {
 
         @Override
@@ -632,6 +588,50 @@ public class MultiWindowSupport {
                     LogCat.log("MultiWindowSupport: SmartCoverCallback - received  STATE_COVER_FLIPPED_OVER");
 
                     break;
+            }
+        }
+    }
+
+    private class MyCoverDisplayCallback extends DisplayManagerHelper.CoverDisplayCallback {
+
+        @Override
+
+        public void onCoverDisplayEnabledChangedCallback(int state) {
+//
+//// Example of calling API which can check Dual Screen State in real-time.
+//
+//            SpLog.log("MultiWindowSupport: SmartCoverCallback - get Current DualScreen Callback state :" +
+//
+//                    coverDisplayStateToString(mDisplayManagerHelper.getCoverDisplayState()));
+//
+//// Start operating when received Dual Screen State is actually changed.
+//
+            if (mPrevDualScreenState != state) {
+
+                switch (state) {
+
+                    case DisplayManagerHelper.STATE_UNMOUNT:
+
+                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_UNMOUNT");
+
+                        break;
+
+                    case DisplayManagerHelper.STATE_DISABLED:
+
+                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_DISABLED");
+
+                        break;
+
+                    case DisplayManagerHelper.STATE_ENABLED:
+
+                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_ENABLED");
+
+                        break;
+                }
+
+// Save previous status value in order to check whether there are changes in status value being received at present.
+
+                mPrevDualScreenState = state;
             }
         }
     }

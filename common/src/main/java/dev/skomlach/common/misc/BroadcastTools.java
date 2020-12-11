@@ -6,9 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.text.TextUtils;
 
-import dev.skomlach.common.logging.LogCat;
-
 import java.util.Iterator;
+
+import dev.skomlach.common.logging.LogCat;
 
 public class BroadcastTools {
     private final static String androidIntentAction = "android.";

@@ -6,9 +6,6 @@ import android.content.pm.PackageManager;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.BuildCompat;
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -16,6 +13,8 @@ import java.util.Arrays;
 import java.util.WeakHashMap;
 
 import dalvik.system.PathClassLoader;
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.common.contextprovider.AndroidContext;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class ReflectionTools {

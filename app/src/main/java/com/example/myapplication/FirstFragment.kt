@@ -1,12 +1,10 @@
 package com.example.myapplication
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.FragmentActivity
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
@@ -23,13 +21,12 @@ class FirstFragment : Fragment() {
     private val binding get() = _binding!!
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -38,22 +35,18 @@ class FirstFragment : Fragment() {
         binding.buttonFirst.setOnClickListener {
             BiometricPromptCompat.init(Runnable {
                 val biometricPromptCompat = BiometricPromptCompat.Builder(requireActivity())
-                        .setTitle("Test").setNegativeButton("Cancel", null).build()
-                biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result{
+                    .setTitle("Test").setNegativeButton("Cancel", null).build()
+                biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
                     override fun onSucceeded() {
-
                     }
 
                     override fun onCanceled() {
-
                     }
 
                     override fun onFailed(reason: AuthenticationFailureReason?) {
-
                     }
 
                     override fun onUIShown() {
-
                     }
                 })
             })

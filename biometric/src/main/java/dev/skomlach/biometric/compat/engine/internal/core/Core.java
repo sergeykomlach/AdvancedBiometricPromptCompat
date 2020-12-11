@@ -3,15 +3,15 @@ package dev.skomlach.biometric.compat.engine.internal.core;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class Core {

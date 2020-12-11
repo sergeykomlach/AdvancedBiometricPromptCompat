@@ -13,6 +13,11 @@ import androidx.annotation.RestrictTo;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -30,11 +35,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes;
 import dev.skomlach.common.misc.ExecutorHelper;
 import dev.skomlach.common.misc.Utils;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @TargetApi(Build.VERSION_CODES.P)
 @RestrictTo(RestrictTo.Scope.LIBRARY)

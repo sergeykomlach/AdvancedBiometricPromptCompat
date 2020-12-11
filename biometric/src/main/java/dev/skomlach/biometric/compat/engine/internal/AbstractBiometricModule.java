@@ -5,13 +5,13 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.RestrictTo;
 
+import java.util.concurrent.TimeUnit;
+
 import dev.skomlach.biometric.compat.engine.BiometricCodes;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
-
-import java.util.concurrent.TimeUnit;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public abstract class AbstractBiometricModule implements BiometricModule, BiometricCodes {

@@ -4,9 +4,9 @@ import android.util.Log;
 
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.BuildConfig;
-
 import java.util.Arrays;
+
+import dev.skomlach.biometric.compat.BuildConfig;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class BiometricLoggerImpl {

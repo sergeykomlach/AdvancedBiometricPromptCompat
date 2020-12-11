@@ -5,6 +5,9 @@ import android.content.Context;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
+import com.samsung.android.sdk.pass.Spass;
+import com.samsung.android.sdk.pass.SpassFingerprint;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
@@ -12,8 +15,6 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import com.samsung.android.sdk.pass.Spass;
-import com.samsung.android.sdk.pass.SpassFingerprint;
 
 import static com.samsung.android.sdk.pass.SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS;
 

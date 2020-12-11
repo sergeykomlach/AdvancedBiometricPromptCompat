@@ -3,9 +3,9 @@ package dev.skomlach.biometric.compat.impl;
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.BiometricPromptCompat;
-
 import java.util.List;
+
+import dev.skomlach.biometric.compat.BiometricPromptCompat;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public interface IBiometricPromptImpl {

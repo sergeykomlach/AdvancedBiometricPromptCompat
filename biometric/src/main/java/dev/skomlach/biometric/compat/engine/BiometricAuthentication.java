@@ -11,6 +11,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.Core;
@@ -29,16 +39,6 @@ import dev.skomlach.biometric.compat.engine.internal.fingerprint.SupportFingerpr
 import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static dev.skomlach.common.misc.Utils.startActivity;
 

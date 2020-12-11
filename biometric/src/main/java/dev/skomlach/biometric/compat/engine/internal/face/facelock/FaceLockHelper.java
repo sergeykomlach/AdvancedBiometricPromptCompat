@@ -12,9 +12,9 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
 import java.lang.reflect.InvocationTargetException;
+
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class FaceLockHelper {

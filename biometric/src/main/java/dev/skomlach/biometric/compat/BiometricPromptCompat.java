@@ -9,7 +9,6 @@ import android.os.Build;
 import android.provider.Settings;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 
 import androidx.annotation.ColorRes;
 import androidx.annotation.MainThread;
@@ -20,7 +19,8 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.FragmentActivity;
 
-import dev.skomlach.biometric.compat.R;
+import java.util.ArrayList;
+import java.util.List;
 
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
@@ -39,15 +39,12 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static dev.skomlach.common.misc.Utils.startActivity;
 
 public final class BiometricPromptCompat {
+    private static final List<Runnable> pendingTasks = new ArrayList<>();
     private volatile static boolean init = false;
     private volatile static boolean initInProgress = false;
-    private static final List<Runnable> pendingTasks = new ArrayList<>();
 
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -270,12 +267,14 @@ public final class BiometricPromptCompat {
             hardwareAccess = HardwareAccessImpl.getInstance(api);
             multiWindowSupport = new MultiWindowSupport(context);
         }
+
         public Builder(BiometricApi api, @NonNull FragmentActivity context) {
             this.api = api;
             this.context = context;
             hardwareAccess = HardwareAccessImpl.getInstance(api);
             multiWindowSupport = new MultiWindowSupport(context);
         }
+
         @NonNull
         public Builder setTitle(CharSequence title) {
             this.title = title;

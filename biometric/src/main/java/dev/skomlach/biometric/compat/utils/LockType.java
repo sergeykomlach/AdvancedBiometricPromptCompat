@@ -10,11 +10,11 @@ import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.common.contextprovider.AndroidContext;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import dev.skomlach.common.contextprovider.AndroidContext;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class LockType {

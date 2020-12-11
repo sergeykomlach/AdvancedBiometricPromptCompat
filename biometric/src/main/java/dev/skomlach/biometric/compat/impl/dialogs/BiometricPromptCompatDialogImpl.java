@@ -14,14 +14,14 @@ import androidx.annotation.RestrictTo;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.impl.AuthCallback;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class BiometricPromptCompatDialogImpl {

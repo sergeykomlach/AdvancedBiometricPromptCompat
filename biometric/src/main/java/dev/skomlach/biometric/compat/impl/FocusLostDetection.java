@@ -4,10 +4,13 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewTreeObserver;
+
 import androidx.annotation.NonNull;
 import androidx.collection.LruCache;
+
 import java.lang.ref.SoftReference;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
@@ -45,7 +48,6 @@ class FocusLostDetection {
     }
 
     private static void checkForFocusAndStart(@NonNull final SoftReference<View> activityRef, final WindowFocusChangedListener listener) {
-
 
         if (!activityRef.get().hasWindowFocus()) {
             ViewTreeObserver.OnWindowFocusChangeListener windowFocusChangeListener = new ViewTreeObserver.OnWindowFocusChangeListener() {

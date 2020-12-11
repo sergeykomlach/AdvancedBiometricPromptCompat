@@ -1,6 +1,5 @@
 package dev.skomlach.biometric.compat.impl;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,13 +11,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.misc.BroadcastTools;
 import dev.skomlach.common.misc.ExecutorHelper;
 import dev.skomlach.common.permissions.PermissionUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PermissionsFragment extends Fragment {
     private static final String LIST_KEY = "permissions_list";

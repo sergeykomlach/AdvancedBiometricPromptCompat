@@ -1,12 +1,13 @@
 package dev.skomlach.biometric.compat.utils;
 
-import android.app.Activity;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewParent;
 import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.annotation.RestrictTo;
+import androidx.fragment.app.FragmentActivity;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -18,34 +19,35 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 @SuppressWarnings("unchecked")
 public class ActiveWindow {
-    public static View getActiveView(Activity activity) {
+    public static View getActiveView(FragmentActivity activity) {
         List<ViewParent> list = getViewRoots();
+        View topView = null;
         for (int i = 0; i < list.size(); i++) {
             ViewParent viewParent = list.get(i);
             try {
                 Class<?> clazz = Class.forName("android.view.ViewRootImpl");
                 View view = (View) clazz.getMethod("getView").invoke(viewParent);
-
-                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && view.isAttachedToWindow())
-                        && view.hasWindowFocus()) {
-                    return view;
-                } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT && view.hasWindowFocus()) {
-                    return view;
-                }
-
-                if (i == list.size() - 1) {
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && view.isAttachedToWindow()) {
-                        return view;
-                    } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                        return view;
+                if (topView == null) {
+                    topView = view;
+                } else {
+                    int type = ((WindowManager.LayoutParams) view.getLayoutParams()).type;
+                    int topViewType = ((WindowManager.LayoutParams) topView.getLayoutParams()).type;
+                    if (type > topViewType) {
+                        topView = view;
+                    }
+                    else if(view.hasWindowFocus() && !topView.hasWindowFocus()) {
+                        topView = view;
                     }
                 }
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, "ActiveWindow");
             }
         }
-        return activity.findViewById(Window.ID_ANDROID_CONTENT);
+        if (topView != null) {
+            return topView;
+        } else {
+            return activity.findViewById(Window.ID_ANDROID_CONTENT);
+        }
     }
 
     private static List<ViewParent> getViewRoots() {

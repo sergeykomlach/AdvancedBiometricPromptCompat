@@ -1,10 +1,10 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.4.20'
+    ext.kotlin_version = '1.4.21'
     ext.minSDK = 16
     ext.targetSDK = 30
     ext.libsGroupId = "dev.skomlach"
-    ext.libsVersion = '0.0.91'
+    ext.libsVersion = '0.0.95'
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }

@@ -50,7 +50,7 @@ fun getIsOsDarkTheme(context: Context): DarkThemeCheckResult {
         val wallpaperColors =
             wallpaperManager.getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
                 ?: return DarkThemeCheckResult.UNDEFINED
-        var darkHints:Int
+        var darkHints: Int
         try {
             val m = WallpaperColors::class.java.getMethod("getColorHints")
             val isAccessible = m.isAccessible

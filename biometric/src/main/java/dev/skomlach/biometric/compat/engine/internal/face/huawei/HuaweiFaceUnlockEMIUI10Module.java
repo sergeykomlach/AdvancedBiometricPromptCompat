@@ -5,6 +5,7 @@ import androidx.core.os.CancellationSignal;
 
 import com.huawei.facerecognition.FaceManager;
 import com.huawei.facerecognition.HwFaceManagerFactory;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;

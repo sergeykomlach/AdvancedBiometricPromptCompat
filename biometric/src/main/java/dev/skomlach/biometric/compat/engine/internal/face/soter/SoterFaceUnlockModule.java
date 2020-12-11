@@ -5,6 +5,9 @@ import android.annotation.SuppressLint;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
+import com.tencent.soter.core.biometric.BiometricManagerCompat;
+import com.tencent.soter.core.model.ConstantsSoter;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
@@ -17,8 +20,6 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
-import com.tencent.soter.core.biometric.BiometricManagerCompat;
-import com.tencent.soter.core.model.ConstantsSoter;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SoterFaceUnlockModule extends AbstractBiometricModule {

@@ -11,12 +11,6 @@ import android.security.keystore.KeyProperties;
 
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
-import dev.skomlach.biometric.compat.utils.LockType;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.security.KeyStore;
@@ -26,6 +20,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.KeyGenerator;
+
+import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
+import dev.skomlach.biometric.compat.utils.LockType;
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.common.contextprovider.AndroidContext;
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
 
 //Set of tools that tried to behave like BiometricManager API from Android 10
 @TargetApi(Build.VERSION_CODES.P)

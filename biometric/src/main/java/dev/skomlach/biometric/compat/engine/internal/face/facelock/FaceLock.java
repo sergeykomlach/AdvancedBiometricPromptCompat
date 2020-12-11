@@ -20,16 +20,16 @@ import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.utils.LockType;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.misc.ExecutorHelper;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
+
+import dev.skomlach.biometric.compat.utils.LockType;
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.common.misc.ExecutorHelper;
 
 import static dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg;
 

@@ -134,7 +134,7 @@ public final class PermissionUtils {
             try {
                 noteOp = AppOpsManagerCompat.noteOpNoThrow(AndroidContext.getAppContext(), permissionToOp, Process.myUid(), AndroidContext.getAppContext().getPackageName());
             } catch (Throwable ignored) {
-                noteOp = Build.VERSION.SDK_INT >=  Build.VERSION_CODES.KITKAT ?
+                noteOp = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ?
                         appOpPermissionsCheckMiui(permissionToOp, Process.myUid(), AndroidContext.getAppContext().getPackageName()) : AppOpsManagerCompat.MODE_IGNORED;
             }
 
@@ -249,7 +249,7 @@ public final class PermissionUtils {
         try {
             return isAllowedOverlayPermission = isOverlayGrantedUseCheckOp();
         } finally {
-            if(Build.VERSION.SDK_INT >= 19) {
+            if (Build.VERSION.SDK_INT >= 19) {
                 startWatchingByPermission(Manifest.permission.SYSTEM_ALERT_WINDOW, new Runnable() {
                     @Override
                     public void run() {

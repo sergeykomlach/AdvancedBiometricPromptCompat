@@ -37,5 +37,4 @@ public class LogCat {
         if (BuildConfig.DEBUG)
             Log.e(getMethod(), msg, e);
     }
-
 }

@@ -36,8 +36,6 @@ dependencies {
 }
 
 
-
-
 //region Publish to jCenter
 def libGroupId = libsGroupId
 def libArtifactId = 'common'
@@ -74,12 +72,12 @@ publishing {
                     project.repositories.each {
                         def repo = it as MavenArtifactRepository
                         def repository = repos.appendNode('repository')
-                        repository.appendNode('id',  repo.url.host)
+                        repository.appendNode('id', repo.url.host)
                         repository.appendNode('name', repo.name)
                         repository.appendNode('url', repo.url)
 
                         def release = repository.appendNode('releases')
-                        release.appendNode('enabled',  true)
+                        release.appendNode('enabled', true)
                         release.appendNode('updatePolicy', "always")
                         release.appendNode('checksumPolicy', "ignore")
 

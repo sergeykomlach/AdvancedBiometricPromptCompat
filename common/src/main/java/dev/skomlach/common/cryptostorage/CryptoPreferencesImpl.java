@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.security.crypto.EncryptedSharedPreferences;
 import androidx.security.crypto.MasterKeys;
 
-import dev.skomlach.common.contextprovider.AndroidContext;
 import com.securepreferences.SecurePreferences;
 
 import java.io.IOException;
@@ -22,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.logging.LogCat;
 
 public class CryptoPreferencesImpl implements SharedPreferences {

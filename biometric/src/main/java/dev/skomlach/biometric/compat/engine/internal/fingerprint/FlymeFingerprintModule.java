@@ -6,6 +6,9 @@ import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
 import com.fingerprints.service.FingerprintManager;
+
+import java.lang.reflect.Method;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
@@ -13,8 +16,6 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import java.lang.reflect.Method;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class FlymeFingerprintModule extends AbstractBiometricModule {

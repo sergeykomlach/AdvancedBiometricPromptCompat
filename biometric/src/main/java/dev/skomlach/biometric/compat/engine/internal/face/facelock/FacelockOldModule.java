@@ -8,6 +8,8 @@ import android.view.View;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
+import java.lang.ref.WeakReference;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
@@ -18,8 +20,6 @@ import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPred
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.LockType;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import java.lang.ref.WeakReference;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class FacelockOldModule extends AbstractBiometricModule {

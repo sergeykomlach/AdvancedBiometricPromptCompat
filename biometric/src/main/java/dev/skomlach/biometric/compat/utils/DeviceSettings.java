@@ -6,14 +6,14 @@ import android.util.Base64;
 
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.common.contextprovider.AndroidContext;
 
 //Dev tool
 @RestrictTo(RestrictTo.Scope.LIBRARY)

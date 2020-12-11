@@ -2,12 +2,12 @@ package dev.skomlach.biometric.compat.utils;
 
 import androidx.annotation.RestrictTo;
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class ReflectionUtils {

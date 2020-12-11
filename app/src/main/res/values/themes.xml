@@ -22,13 +22,14 @@
     <style name="Theme.MyApplication.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.MyApplication.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-    <style name="Theme.App.Dialog.FullScreen"
-            parent="Theme.MaterialComponents.Dialog">
+
+    <style name="Theme.App.Dialog.FullScreen" parent="Theme.MaterialComponents.Dialog">
         <!-- (1)-->
         <item name="android:windowIsFloating">false</item>
         <!-- (2) -->
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
+
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">
             @anim/enter_slide_up
