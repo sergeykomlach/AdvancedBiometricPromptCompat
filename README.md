@@ -80,7 +80,8 @@ dependencies {
 ```java
 BiometricPromptCompat.init(null);  
  ``` 
-You can pass also Runnable - this callback will be called when init will be finished.
+This will start the asynchronous initialization process. 
+If you want to do something after initialization - you can also pass a Runnable object - it will be called when initialization is complete.
 
 
 - Then, you need to create the **BiometricPromptCompat**
