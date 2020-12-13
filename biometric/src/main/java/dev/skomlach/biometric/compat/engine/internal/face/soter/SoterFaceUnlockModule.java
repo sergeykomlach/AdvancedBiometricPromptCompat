@@ -29,7 +29,7 @@ public class SoterFaceUnlockModule extends AbstractBiometricModule {
 
     @SuppressLint("WrongConstant")
     public SoterFaceUnlockModule(final BiometricInitListener listener) {
-        super(BiometricMethod.FACE_SOTERAPI.getId());
+        super(BiometricMethod.FACE_SOTERAPI);
 
         this.listener = listener;
         try {
@@ -147,7 +147,7 @@ public class SoterFaceUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

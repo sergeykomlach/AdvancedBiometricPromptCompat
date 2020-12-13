@@ -1,9 +1,11 @@
 package dev.skomlach.biometric.compat.utils;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.core.os.BuildCompat;
 
 import dev.skomlach.biometric.compat.BiometricApi;
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
 import dev.skomlach.biometric.compat.utils.hardware.Android28Hardware;
 import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware;
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo;
@@ -11,21 +13,29 @@ import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class HardwareAccessImpl {
-    private HardwareInfo hardwareInfo;
+    @Nullable private HardwareInfo hardwareInfo = null;
 
-    private HardwareAccessImpl(BiometricApi api) {
-        if (api == BiometricApi.LEGACY_API || DevicesWithKnownBugs.isLGWithBiometricBug()) {
-            hardwareInfo = new LegacyHardware();//Android 4+
-        } else {
+    private HardwareAccessImpl(BiometricAuthRequest biometricAuthRequest) {
+        if (biometricAuthRequest.getApi() == BiometricApi.LEGACY_API
+                || DevicesWithKnownBugs.isLGWithBiometricBug()) {
+            hardwareInfo = new LegacyHardware(biometricAuthRequest);//Android 4+
+        } else if (biometricAuthRequest.getApi() == BiometricApi.BIOMETRIC_API) {
             if (BuildCompat.isAtLeastQ()) {
-                hardwareInfo = new Android29Hardware();//new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
+                hardwareInfo = new Android29Hardware(biometricAuthRequest);//new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
             } else if (BuildCompat.isAtLeastP()) {
-                hardwareInfo = new Android28Hardware(); //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
-            } else {
-                hardwareInfo = new LegacyHardware();//Android 4+
+                hardwareInfo = new Android28Hardware(biometricAuthRequest); //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
             }
-            if (api == BiometricApi.AUTO && !(hardwareInfo instanceof LegacyHardware)) {
-                LegacyHardware info = new LegacyHardware();
+        }  else {
+            if (BuildCompat.isAtLeastQ()) {
+                hardwareInfo = new Android29Hardware(biometricAuthRequest);//new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
+            } else if (BuildCompat.isAtLeastP()) {
+                hardwareInfo = new Android28Hardware(biometricAuthRequest); //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+            } else {
+                hardwareInfo = new LegacyHardware(biometricAuthRequest);//Android 4+
+            }
+            if (biometricAuthRequest.getApi() == BiometricApi.AUTO &&
+                    !(hardwareInfo instanceof LegacyHardware)) {
+                LegacyHardware info = new LegacyHardware(biometricAuthRequest);
                 if (info.getAvailableBiometricsCount() > 1 || (!isHardwareReady(hardwareInfo) && isHardwareReady(info))) {
                     hardwareInfo = info;
                 }
@@ -33,7 +43,7 @@ public class HardwareAccessImpl {
         }
     }
 
-    public static HardwareAccessImpl getInstance(BiometricApi api) {
+    public static HardwareAccessImpl getInstance(BiometricAuthRequest api) {
         return new HardwareAccessImpl(api);
     }
 
@@ -46,19 +56,19 @@ public class HardwareAccessImpl {
     }
 
     public boolean isHardwareAvailable() {
-        return hardwareInfo.isHardwareAvailable();
+        return hardwareInfo!=null && hardwareInfo.isHardwareAvailable();
     }
 
     public boolean isBiometricEnrolled() {
-        return hardwareInfo.isBiometricEnrolled();
+        return hardwareInfo!=null &&hardwareInfo.isBiometricEnrolled();
     }
 
     public boolean isLockedOut() {
-        return hardwareInfo.isLockedOut();
+        return hardwareInfo!=null && hardwareInfo.isLockedOut();
     }
 
     public void lockout() {
-        if (!(hardwareInfo instanceof LegacyHardware)) {
+        if (hardwareInfo!=null && !(hardwareInfo instanceof LegacyHardware)) {
             ((Android28Hardware) hardwareInfo).lockout();
         }
     }

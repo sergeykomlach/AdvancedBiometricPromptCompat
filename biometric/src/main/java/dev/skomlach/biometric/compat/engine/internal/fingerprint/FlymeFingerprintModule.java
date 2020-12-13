@@ -24,7 +24,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
     private boolean isFingerprintServiceSupported = false;
 
     public FlymeFingerprintModule(BiometricInitListener listener) {
-        super(BiometricMethod.FINGERPRINT_FLYME.getId());
+        super(BiometricMethod.FINGERPRINT_FLYME);
 
         try {
             Class<?> servicemanager = Class.forName("android.os.ServiceManager");

@@ -7,7 +7,9 @@ import androidx.annotation.RestrictTo;
 
 import java.util.concurrent.TimeUnit;
 
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.BiometricCodes;
+import dev.skomlach.biometric.compat.engine.BiometricMethod;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
@@ -22,9 +24,15 @@ public abstract class AbstractBiometricModule implements BiometricModule, Biomet
     private final int tag;
     private final SharedPreferences preferences;
 
-    public AbstractBiometricModule(int tag) {
-        this.tag = tag;
+    private final BiometricMethod biometricMethod;
+    public AbstractBiometricModule(BiometricMethod biometricMethod) {
+        this.biometricMethod = biometricMethod;
+        this.tag = biometricMethod.getId();
         preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricModules");
+    }
+
+    public final BiometricType getType() {
+        return biometricMethod.getBiometricType();
     }
 
     public Context getContext() {

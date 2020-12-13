@@ -25,7 +25,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
     private SpassFingerprint mSpassFingerprint = null;
 
     public SamsungFingerprintModule(BiometricInitListener listener) {
-        super(BiometricMethod.FINGERPRINT_SAMSUNG.getId());
+        super(BiometricMethod.FINGERPRINT_SAMSUNG);
 
         try {
             mSpass = new Spass();

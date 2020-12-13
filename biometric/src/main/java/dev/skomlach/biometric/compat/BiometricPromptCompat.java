@@ -94,57 +94,37 @@ public final class BiometricPromptCompat {
         }
     }
 
-    public static boolean isBiometricSensorPermanentlyLocked() {
+    public static boolean isBiometricSensorPermanentlyLocked(BiometricAuthRequest api) {
         if (!isInit())
             throw new IllegalStateException("Please call BiometricPromptCompat.init(null);  first");
-        return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked();
+        return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.getType());
     }
 
-    public static boolean isHardwareDetected() {
-        return isHardwareDetected(BiometricApi.AUTO);
-    }
-
-    public static boolean hasEnrolled() {
-        return hasEnrolled(BiometricApi.AUTO);
-    }
-
-    public static boolean isLockOut() {
-        return isLockOut(BiometricApi.AUTO);
-    }
-
-    public static boolean isNewBiometricApi() {
-        return isNewBiometricApi(BiometricApi.AUTO);
-    }
-
-    public static void openSettings(Activity activity) {
-        openSettings(activity, BiometricApi.AUTO);
-    }
-
-    public static boolean isHardwareDetected(BiometricApi api) {
+    public static boolean isHardwareDetected(BiometricAuthRequest api) {
         if (!isInit())
             throw new IllegalStateException("Please call BiometricPromptCompat.init(null);  first");
         return HardwareAccessImpl.getInstance(api).isHardwareAvailable();
     }
 
-    public static boolean hasEnrolled(BiometricApi api) {
+    public static boolean hasEnrolled(BiometricAuthRequest api) {
         if (!isInit())
             throw new IllegalStateException("Please call BiometricPromptCompat.init(null);  first");
         return HardwareAccessImpl.getInstance(api).isBiometricEnrolled();
     }
 
-    public static boolean isLockOut(BiometricApi api) {
+    public static boolean isLockOut(BiometricAuthRequest api) {
         if (!isInit())
             throw new IllegalStateException("Please call BiometricPromptCompat.init(null);  first");
         return HardwareAccessImpl.getInstance(api).isLockedOut();
     }
 
-    public static boolean isNewBiometricApi(BiometricApi api) {
+    public static boolean isNewBiometricApi(BiometricAuthRequest api) {
         if (!isInit())
             throw new IllegalStateException("Please call BiometricPromptCompat.init(null);  first");
         return HardwareAccessImpl.getInstance(api).isNewBiometricApi();
     }
 
-    public static void openSettings(Activity activity, BiometricApi api) {
+    public static void openSettings(Activity activity, BiometricAuthRequest api) {
         if (!isInit())
             throw new IllegalStateException("Please call BiometricPromptCompat.init(null);  first");
 
@@ -173,6 +153,25 @@ public final class BiometricPromptCompat {
     }
 
     public void authenticate(@NonNull Result callback) {
+
+        if (!isHardwareDetected(impl.getBuilder().biometricAuthRequest)) {
+            callback.onFailed(AuthenticationFailureReason.NO_HARDWARE);
+            return;
+        }
+        if (!hasEnrolled(impl.getBuilder().biometricAuthRequest)) {
+            callback.onFailed(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED);
+            return;
+        }
+        if (isLockOut(impl.getBuilder().biometricAuthRequest)) {
+            callback.onFailed(AuthenticationFailureReason.LOCKED_OUT);
+            return;
+        }
+
+        if (isBiometricSensorPermanentlyLocked(impl.getBuilder().biometricAuthRequest)) {
+            callback.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE);
+            return;
+        }
+
         PermissionsFragment.askForPermissions(impl.getBuilder().context, impl.getUsedPermissions(), new Runnable() {
             @Override
             public void run() {
@@ -273,7 +272,9 @@ public final class BiometricPromptCompat {
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         @NonNull
         public final FragmentActivity context;
-        private final BiometricApi api;
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @NonNull
+        public final BiometricAuthRequest biometricAuthRequest;
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         @Nullable
         public CharSequence title;
@@ -293,15 +294,11 @@ public final class BiometricPromptCompat {
         public MultiWindowSupport multiWindowSupport;
 
         public Builder(@NonNull FragmentActivity context) {
-
-            this.api = BiometricApi.AUTO;
-            this.context = context;
-            multiWindowSupport = new MultiWindowSupport(context);
+            this(new BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED), context);
         }
 
-        public Builder(BiometricApi api, @NonNull FragmentActivity context) {
-
-            this.api = api;
+        public Builder(@NonNull BiometricAuthRequest request, @NonNull FragmentActivity context) {
+            this.biometricAuthRequest = request;
             this.context = context;
             multiWindowSupport = new MultiWindowSupport(context);
         }
@@ -369,8 +366,9 @@ public final class BiometricPromptCompat {
             if (negativeButtonText == null) {
                 throw new IllegalArgumentException("You should set a negativeButtonText for BiometricPrompt.");
             }
-            if (api == BiometricApi.BIOMETRIC_API
-                    || (api == BiometricApi.AUTO && isNewBiometricApi())) {
+            if (biometricAuthRequest.getApi() == BiometricApi.BIOMETRIC_API
+                    || (biometricAuthRequest.getApi() == BiometricApi.AUTO
+                    && isNewBiometricApi(biometricAuthRequest))) {
                 return new BiometricPromptCompat(new BiometricPromptApi28Impl(this));
             } else {
                 return new BiometricPromptCompat(new BiometricPromptGenericImpl(this));

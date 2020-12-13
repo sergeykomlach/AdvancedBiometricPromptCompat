@@ -6,6 +6,7 @@ import android.os.Build;
 
 import androidx.annotation.RestrictTo;
 
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.misc.Utils;
@@ -18,6 +19,10 @@ import static androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS;
 @TargetApi(Build.VERSION_CODES.Q)
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class Android29Hardware extends Android28Hardware {
+
+    public Android29Hardware(BiometricAuthRequest authRequest) {
+        super(authRequest);
+    }
 
     private int canAuthenticate() {
         int code = BIOMETRIC_ERROR_NO_HARDWARE;
@@ -38,7 +43,7 @@ public class Android29Hardware extends Android28Hardware {
     }
 
     @Override
-    public boolean isHardwareAvailable() {
+    public boolean isAnyHardwareAvailable() {
         int canAuthenticate = canAuthenticate();
         if (canAuthenticate == BIOMETRIC_SUCCESS) {
             return true;
@@ -48,7 +53,7 @@ public class Android29Hardware extends Android28Hardware {
     }
 
     @Override
-    public boolean isBiometricEnrolled() {
+    public boolean isAnyBiometricEnrolled() {
         int canAuthenticate = canAuthenticate();
         if (canAuthenticate == BIOMETRIC_SUCCESS) {
             return true;

@@ -32,7 +32,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
     private boolean isConnected = false;
 
     public FacelockOldModule(BiometricInitListener initlistener) {
-        super(BiometricMethod.FACELOCK.getId());
+        super(BiometricMethod.FACELOCK);
         this.listener = initlistener;
         if (!isHardwarePresent()) {
             if (listener != null) {
@@ -219,7 +219,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

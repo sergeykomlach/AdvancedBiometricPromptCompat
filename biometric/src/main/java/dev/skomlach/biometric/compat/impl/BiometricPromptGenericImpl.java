@@ -6,11 +6,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import dev.skomlach.biometric.compat.BiometricApi;
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -66,7 +68,17 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     @Override
     public List<String> getUsedPermissions() {
         final Set<String> permission = new HashSet<>();
-        for (BiometricMethod method : BiometricAuthentication.getAvailableBiometricMethods()) {
+        List<BiometricMethod> biometricMethodList = new ArrayList<>();
+        if (compatBuilder.biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED) {
+            biometricMethodList.addAll(BiometricAuthentication.getAvailableBiometricMethods());
+        } else {
+            for (BiometricMethod m : BiometricAuthentication.getAvailableBiometricMethods()) {
+                if (m.getBiometricType() == compatBuilder.biometricAuthRequest.getType()) {
+                    biometricMethodList.add(m);
+                }
+            }
+        }
+        for (BiometricMethod method : biometricMethodList) {
             switch (method) {
 
                 case DUMMY_BIOMETRIC:
@@ -121,7 +133,11 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public void startAuth() {
-        BiometricAuthentication.authenticate(dialog.getContainer(), BiometricAuthentication.getAvailableBiometrics(), fmAuthCallback);
+        final List<BiometricType> types = compatBuilder.biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED ?
+                BiometricAuthentication.getAvailableBiometrics() :
+                Collections.singletonList(compatBuilder.biometricAuthRequest.getType());
+
+        BiometricAuthentication.authenticate(dialog.getContainer(), types, fmAuthCallback);
     }
 
     @Override
@@ -181,7 +197,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     }
                 });
             } else {
-                HardwareAccessImpl.getInstance(BiometricApi.BIOMETRIC_API).lockout();
+                HardwareAccessImpl.getInstance(compatBuilder.biometricAuthRequest).lockout();
                 ExecutorHelper.INSTANCE.getHandler().postDelayed(() -> {
                     cancelAuthenticate();
                     callback.onFailed(failureReason);

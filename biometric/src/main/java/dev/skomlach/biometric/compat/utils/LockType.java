@@ -67,6 +67,55 @@ public class LockType {
         }
     }
 
+    public static boolean isBiometricEnabledInSettings(Context context, String type) {
+
+        try {
+
+            List<String> keyValue = new ArrayList<>();
+
+            Uri u = Uri.parse("content://settings/secure");
+
+            Cursor mCur = context
+                    .getContentResolver()
+                    .query(u, null,
+                            null,
+                            null,
+                            null);
+            if (mCur != null) {
+
+                for (mCur.moveToFirst(); !mCur.isAfterLast(); mCur.moveToNext()) {
+                    int nameIndex = mCur
+                            .getColumnIndex("name");
+                    if (!mCur.isNull(nameIndex)) {
+                        String name = mCur.getString(nameIndex);
+                        if (TextUtils.isEmpty(name))
+                            continue;
+
+                        String s = name.toLowerCase();
+
+                        if (s.contains(type)) {
+                            if (s.contains("_unl") && s.contains("_enable")) {
+                                keyValue.add(name);
+                            }
+                        }
+                    }
+                }
+
+                mCur.close();
+                mCur = null;
+            }
+
+            for (String s : keyValue) {
+                if (SettingsHelper.getInt(context, s, -1) == 1) {
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {
+
+        }
+        return false;
+    }
+
     private static boolean isBiometricEnabledInSettings(Context context) {
 
         try {

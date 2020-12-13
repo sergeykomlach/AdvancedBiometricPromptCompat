@@ -21,7 +21,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.crypto.KeyGenerator;
 
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 import dev.skomlach.biometric.compat.utils.LockType;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
@@ -30,17 +33,35 @@ import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
 //Set of tools that tried to behave like BiometricManager API from Android 10
 @TargetApi(Build.VERSION_CODES.P)
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class Android28Hardware implements HardwareInfo {
+public class Android28Hardware extends AbstractHardware {
     private static final String TS_PREF = "timestamp_";
     private static final long timeout = TimeUnit.SECONDS.toMillis(31);
     private final SharedPreferences preferences;
 
-    public Android28Hardware() {
+    public Android28Hardware(BiometricAuthRequest authRequest) {
+        super(authRequest);
         preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricModules");
     }
 
-    private static int tag() {
-        return Integer.MAX_VALUE;
+    @Override
+    public boolean isHardwareAvailable() {
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return isAnyHardwareAvailable();
+        return isHardwareAvailableForType();
+    }
+
+    @Override
+    public boolean isBiometricEnrolled() {
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return isAnyBiometricEnrolled();
+        return isBiometricEnrolledForType();
+    }
+
+    @Override
+    public boolean isLockedOut() {
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return isAnyLockedOut();
+        return isLockedOutForType();
     }
 
     private ArrayList<String> biometricFeatures() {
@@ -71,8 +92,7 @@ public class Android28Hardware implements HardwareInfo {
         return list;
     }
 
-    @Override
-    public boolean isHardwareAvailable() {
+    boolean isAnyHardwareAvailable() {
         if (BiometricAuthentication.isHardwareDetected())
             return true;
 
@@ -87,8 +107,7 @@ public class Android28Hardware implements HardwareInfo {
         return false;
     }
 
-    @Override
-    public boolean isBiometricEnrolled() {
+    boolean isAnyBiometricEnrolled() {
         KeyguardManager keyguardManager =
                 (KeyguardManager) AndroidContext.getAppContext().getSystemService(Context.KEYGUARD_SERVICE);
         if (keyguardManager != null && keyguardManager.isDeviceSecure()) {
@@ -157,23 +176,91 @@ public class Android28Hardware implements HardwareInfo {
 
     public void lockout() {
         if (!isLockedOut()) {
-            preferences.edit().putLong(TS_PREF + tag(), System.currentTimeMillis()).apply();
+            preferences.edit().putLong(TS_PREF + "-" + getBiometricAuthRequest().getType().name(), System.currentTimeMillis()).apply();
         }
     }
 
-    @Override
-    public boolean isLockedOut() {
-        long ts = preferences.getLong(TS_PREF + tag(), 0);
+    boolean isAnyLockedOut() {
+        try {
+            for (String key : preferences.getAll().keySet()) {
+                long ts = preferences.getLong(key, 0);
+                if (ts > 0) {
+                    if (System.currentTimeMillis() - ts > timeout) {
+                        preferences.edit().putLong(key, 0).apply();
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            }
+        } catch (Throwable ignore) {
 
+        }
+        return false;
+    }
+
+    //OK to check in this way
+    private boolean isHardwareAvailableForType() {
+        //legacy
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+            BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT);
+            if (biometricModule != null && biometricModule.isHardwarePresent())
+                return true;
+        }
+
+        ArrayList<String> list = biometricFeatures();
+        PackageManager packageManager = AndroidContext.getAppContext().getPackageManager();
+        for (String f : list) {
+            if (packageManager != null && packageManager.hasSystemFeature(f)) {
+                if (f.endsWith(".face") && getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FACE)
+                    return true;
+                if (f.endsWith(".iris") && getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_IRIS)
+                    return true;
+                if (f.endsWith(".fingerprint") && getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    //More or less ok this one
+
+    private boolean isLockedOutForType() {
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+            BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT);
+            if (biometricModule != null && biometricModule.isLockOut())
+                return true;
+        }
+        long ts = preferences.getLong(TS_PREF + "-" + getBiometricAuthRequest().getType().name(), 0);
         if (ts > 0) {
             if (System.currentTimeMillis() - ts > timeout) {
-                preferences.edit().putLong(TS_PREF + tag(), 0).apply();
+                preferences.edit().putLong(TS_PREF + "-" + getBiometricAuthRequest().getType().name(), 0).apply();
                 return false;
             } else {
                 return true;
             }
         } else {
             return false;
+        }
+    }
+
+    //Unexpected how this will work
+    private boolean isBiometricEnrolledForType() {
+        BiometricModule biometricModule =
+                BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT);
+        boolean fingersEnrolled = biometricModule != null && biometricModule.hasEnrolled();
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+            return fingersEnrolled;
+        } else {
+            if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FACE &&
+                    LockType.isBiometricEnabledInSettings(AndroidContext.getAppContext(), "face"))
+                return true;
+            if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_IRIS &&
+                    LockType.isBiometricEnabledInSettings(AndroidContext.getAppContext(), "iris"))
+                return true;
+
+            return !fingersEnrolled && isHardwareAvailableForType()
+                    && isAnyBiometricEnrolled();
         }
     }
 }

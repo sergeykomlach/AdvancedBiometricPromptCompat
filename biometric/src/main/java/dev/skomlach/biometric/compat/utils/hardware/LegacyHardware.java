@@ -2,27 +2,49 @@ package dev.skomlach.biometric.compat.utils.hardware;
 
 import androidx.annotation.RestrictTo;
 
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class LegacyHardware implements HardwareInfo {
+public class LegacyHardware extends AbstractHardware {
+    public LegacyHardware(BiometricAuthRequest authRequest) {
+        super(authRequest);
+    }
 
     public int getAvailableBiometricsCount() {
-        return BiometricAuthentication.getAvailableBiometrics().size();
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return BiometricAuthentication.getAvailableBiometrics().size();
+
+        BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
+        return biometricModule != null ? 1 : 0;
     }
 
     @Override
     public boolean isHardwareAvailable() {
-        return BiometricAuthentication.isReady() && BiometricAuthentication.isHardwareDetected();
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return BiometricAuthentication.isHardwareDetected();
+
+        BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
+        return biometricModule != null && biometricModule.isHardwarePresent();
     }
 
     @Override
     public boolean isBiometricEnrolled() {
-        return BiometricAuthentication.hasEnrolled();
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return BiometricAuthentication.hasEnrolled();
+
+        BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
+        return biometricModule != null && biometricModule.hasEnrolled();
     }
 
     @Override
     public boolean isLockedOut() {
-        return BiometricAuthentication.isLockOut();
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+            return BiometricAuthentication.isLockOut();
+
+        BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
+        return biometricModule != null && biometricModule.isLockOut();
     }
 }

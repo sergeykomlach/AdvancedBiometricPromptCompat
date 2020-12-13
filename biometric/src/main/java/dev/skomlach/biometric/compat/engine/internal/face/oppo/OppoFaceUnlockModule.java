@@ -27,7 +27,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
 
     @SuppressLint("WrongConstant")
     public OppoFaceUnlockModule(BiometricInitListener listener) {
-        super(BiometricMethod.FACE_OPPO.getId());
+        super(BiometricMethod.FACE_OPPO);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 manager = getContext().getSystemService(FaceManager.class);
@@ -153,7 +153,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

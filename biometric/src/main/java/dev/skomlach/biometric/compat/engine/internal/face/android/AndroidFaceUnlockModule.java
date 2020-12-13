@@ -26,7 +26,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
 
     @SuppressLint("WrongConstant")
     public AndroidFaceUnlockModule(BiometricInitListener listener) {
-        super(BiometricMethod.FACE_ANDROIDAPI.getId());
+        super(BiometricMethod.FACE_ANDROIDAPI);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 manager = getContext().getSystemService(FaceAuthenticationManager.class);
@@ -151,7 +151,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

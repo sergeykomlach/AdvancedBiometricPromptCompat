@@ -25,7 +25,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
     private FingerprintManagerCompat managerCompat = null;
 
     public SupportFingerprintModule(BiometricInitListener listener) {
-        super(BiometricMethod.FINGERPRINT_SUPPORT.getId());
+        super(BiometricMethod.FINGERPRINT_SUPPORT);
 
         try {
             managerCompat = FingerprintManagerCompat.from(getContext());
@@ -136,7 +136,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

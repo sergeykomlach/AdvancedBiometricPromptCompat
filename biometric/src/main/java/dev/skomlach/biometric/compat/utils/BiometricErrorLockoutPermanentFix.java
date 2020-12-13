@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.RestrictTo;
 
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -16,15 +17,15 @@ public class BiometricErrorLockoutPermanentFix {
         sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("BiometricErrorLockoutPermanentFix");
     }
 
-    public void setBiometricSensorPermanentlyLocked() {
-        sharedPreferences.edit().putBoolean(TS_PREF, false).apply();
+    public void setBiometricSensorPermanentlyLocked(BiometricType type) {
+        sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name(), false).apply();
     }
 
     void resetBiometricSensorPermanentlyLocked() {
-        sharedPreferences.edit().putBoolean(TS_PREF, true).apply();
+        sharedPreferences.edit().clear().apply();
     }
 
-    public boolean isBiometricSensorPermanentlyLocked() {
-        return !sharedPreferences.getBoolean(TS_PREF, true);
+    public boolean isBiometricSensorPermanentlyLocked(BiometricType type) {
+        return !sharedPreferences.getBoolean(TS_PREF + "-" + type.name(), true);
     }
 }

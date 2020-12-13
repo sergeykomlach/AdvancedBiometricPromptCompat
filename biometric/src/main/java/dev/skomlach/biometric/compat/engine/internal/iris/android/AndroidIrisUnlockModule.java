@@ -26,7 +26,7 @@ public class AndroidIrisUnlockModule extends AbstractBiometricModule {
 
     @SuppressLint("WrongConstant")
     public AndroidIrisUnlockModule(BiometricInitListener listener) {
-        super(BiometricMethod.IRIS_ANDROIDAPI.getId());
+        super(BiometricMethod.IRIS_ANDROIDAPI);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 manager = getContext().getSystemService(IrisManager.class);
@@ -149,7 +149,7 @@ public class AndroidIrisUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

@@ -29,7 +29,7 @@ public class API23FingerprintModule extends AbstractBiometricModule {
 
     @SuppressLint("WrongConstant")
     public API23FingerprintModule(BiometricInitListener listener) {
-        super(BiometricMethod.FINGERPRINT_API23.getId());
+        super(BiometricMethod.FINGERPRINT_API23);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 manager = getContext().getSystemService(FingerprintManager.class);
@@ -153,7 +153,7 @@ public class API23FingerprintModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

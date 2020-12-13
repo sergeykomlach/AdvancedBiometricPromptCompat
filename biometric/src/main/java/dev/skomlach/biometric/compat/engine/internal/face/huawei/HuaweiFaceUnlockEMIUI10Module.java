@@ -25,7 +25,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
     private FaceManager manager = null;
 
     public HuaweiFaceUnlockEMIUI10Module(BiometricInitListener listener) {
-        super(BiometricMethod.FACE_HUAWEI_EMUI_10.getId());
+        super(BiometricMethod.FACE_HUAWEI_EMUI_10);
 
         try {
             manager = HwFaceManagerFactory.getFaceManager(getContext());
@@ -143,7 +143,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:

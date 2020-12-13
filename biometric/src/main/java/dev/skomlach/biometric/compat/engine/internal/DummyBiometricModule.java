@@ -17,7 +17,7 @@ public class DummyBiometricModule extends AbstractBiometricModule {
     private BiometricInitListener listener = null;
 
     public DummyBiometricModule(BiometricInitListener listener) {
-        super(BiometricMethod.DUMMY_BIOMETRIC.getId());
+        super(BiometricMethod.DUMMY_BIOMETRIC);
         this.listener = listener;
         if (listener != null) {
             listener

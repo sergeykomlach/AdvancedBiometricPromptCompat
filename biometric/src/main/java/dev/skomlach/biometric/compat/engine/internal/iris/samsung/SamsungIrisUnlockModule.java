@@ -27,7 +27,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
 
     @SuppressLint("WrongConstant")
     public SamsungIrisUnlockModule(BiometricInitListener listener) {
-        super(BiometricMethod.IRIS_SAMSUNG.getId());
+        super(BiometricMethod.IRIS_SAMSUNG);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 manager = getContext().getSystemService(SemIrisManager.class);
@@ -157,7 +157,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked();
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
