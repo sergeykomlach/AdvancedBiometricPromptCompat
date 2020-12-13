@@ -90,19 +90,6 @@ public class AndroidIrisUnlockModule extends AbstractBiometricModule {
             }
         }
 
-        if (!isHardwarePresent()) {
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.HARDWARE_UNAVAILABLE, tag());
-            }
-            return;
-        }
-        if (!hasEnrolled()) {
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, tag());
-            }
-            return;
-        }
-
         if (manager != null) {
             try {
 

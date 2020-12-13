@@ -18,7 +18,9 @@ public class Core {
 
     private static final Map<BiometricModule, CancellationSignal> cancellationSignals = Collections.synchronizedMap(new HashMap<>());
     private static final Map<Integer, BiometricModule> reprintModuleHashMap = Collections.synchronizedMap(new HashMap<>());
-
+    public static void cleanModules() {
+        reprintModuleHashMap.clear();
+    }
     public static void registerModule(BiometricModule module) {
         if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
             return;
@@ -63,46 +65,11 @@ public class Core {
      */
     public static void authenticate(final AuthenticationListener listener, RestartPredicate restartPredicate) {
 
-        boolean atLeastOneAuthenticate = false;
+
         for (BiometricModule module : reprintModuleHashMap.values()) {
-            try {
-                if (module.isHardwarePresent() && module.hasEnrolled() && !module.isLockOut()) {
-                    authenticate(module, listener, restartPredicate);
-                    atLeastOneAuthenticate = true;
-                }
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
-            }
+            authenticate(module, listener, restartPredicate);
         }
 
-        if (!atLeastOneAuthenticate) {
-            if (!isHardwareDetected()) {
-                for (BiometricModule module : reprintModuleHashMap.values()) {
-                    if (!module.isHardwarePresent()) {
-                        listener.onFailure(AuthenticationFailureReason.NO_HARDWARE, module.tag());
-                    }
-                }
-                return;
-            }
-
-            if (!hasEnrolled()) {
-                for (BiometricModule module : reprintModuleHashMap.values()) {
-                    if (!module.hasEnrolled()) {
-                        listener.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, module.tag());
-                    }
-                }
-                return;
-            }
-
-            if (isLockOut()) {
-                for (BiometricModule module : reprintModuleHashMap.values()) {
-                    if (module.isLockOut()) {
-                        listener.onFailure(AuthenticationFailureReason.LOCKED_OUT, module.tag());
-                    }
-                }
-                return;
-            }
-        }
     }
 
     public static void authenticate(BiometricModule module, final AuthenticationListener listener, RestartPredicate restartPredicate) {

@@ -237,6 +237,7 @@ public class BiometricAuthentication {
 
         boolean isAtLeastOneFired = false;
         final HashMap<Integer, BiometricType> hashMap = new HashMap<>();
+        Core.cleanModules();
         for (BiometricType type : requestedMethods) {
 
             BiometricModule biometricModule = getAvailableBiometricModule(type);

@@ -79,20 +79,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
                 BiometricLoggerImpl.d("SupportBiometricModule.authenticate - " + method.toString());
             }
         }
-        if (!isHardwarePresent()) {
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                        tag());
-            }
-            return;
-        }
-        if (!hasEnrolled()) {
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                        tag());
-            }
-            return;
-        }
+
 
         if (managerCompat != null)
             try {

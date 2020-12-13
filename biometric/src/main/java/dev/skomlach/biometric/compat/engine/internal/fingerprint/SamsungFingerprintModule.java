@@ -92,19 +92,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
                 BiometricLoggerImpl.d("SamsungBiometricModule.authenticate - " + method.toString());
             }
         }
-        if (!isHardwarePresent()) {
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.HARDWARE_UNAVAILABLE, tag());
-            }
-            return;
-        }
-        if (!hasEnrolled()) {
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                        tag());
-            }
-            return;
-        }
+
 
         if (mSpassFingerprint != null) {
             try {

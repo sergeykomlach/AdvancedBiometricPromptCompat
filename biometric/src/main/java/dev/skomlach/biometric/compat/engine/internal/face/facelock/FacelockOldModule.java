@@ -163,22 +163,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        if (!isHardwarePresent()) {
-            BiometricLoggerImpl.d("FaceIdModule" + " hardware unavailable");
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                        tag());
-            }
-            return;
-        }
-        if (!hasEnrolled()) {
-            BiometricLoggerImpl.d("FaceIdModule" + " biometric data unavailable");
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                        tag());
-            }
-            return;
-        }
+
 
         try {
             BiometricLoggerImpl.d("FaceIdModule" + "Facelock call authorize");
