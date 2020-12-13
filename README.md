@@ -92,7 +92,7 @@ BiometricPromptCompat.Builder builder =
  .setNegativeButton("Cancel", null);  
 BiometricPromptCompat biometricPromptCompat = builder.build();  
  ``` 
- ***Please note:**
+ ***Please note:***
  Methods `builder.setTitle()` and `builder.setNegativeButton()`   are mandatory.*
 
 
@@ -177,7 +177,7 @@ Anyway, research and testing required for each case, so feel free to create issu
 ## TODO
 - Simplify setup
 - Add more devices/manufacturers
-- Check for the way to start BiometricAuth with specified BiometricType
+- Check for the way to start BiometricAuth with specified BiometricType **(IN PROGRESS)**
 - Cleanup project and README
 - Migrate to Kotlin
 
