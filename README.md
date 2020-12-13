@@ -175,7 +175,7 @@ Secondly - anyway, the manager considered here uses system permissions, and as a
 Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.
 
 ## TODO
-- Simplify setup
+- Simplify setup **(IN PROGRESS)**
 - Add more devices/manufacturers
 - Check for the way to start BiometricAuth with specified BiometricType **(IN PROGRESS)**
 - Cleanup project and README
