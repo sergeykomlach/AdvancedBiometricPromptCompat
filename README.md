@@ -75,8 +75,16 @@ dependencies {
 }
 ```
 ## Usage
+- In `Application.onCreate()` need to call
 
-- At first, you need to create the **BiometricPromptCompat**
+```java
+BiometricPromptCompat.init(null);  
+ ``` 
+This will start the asynchronous initialization process. 
+If you want to do something after initialization - you can also pass a Runnable object - it will be called when initialization is complete.
+
+
+- Then, you need to create the **BiometricPromptCompat**
 ```java
 BiometricPromptCompat.Builder builder =
  new BiometricPromptCompat.Builder(getActivity())
