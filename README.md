@@ -191,15 +191,3 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 
 Apache License 2.0
 
-
-## 
-<p align="center">
-<strong align="center">Buy me a beer, if you wish.</strong>
-</p>
-<p align="center">
-  <a href="https://www.paypal.com/donate?hosted_button_id=53PV7V25NG292">
-  <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate" />
-  </a>
-</p>
-
-
