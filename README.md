@@ -84,7 +84,50 @@ This will start the asynchronous initialization process.
 If you want to do something after initialization - you can also pass a Runnable object - it will be called when initialization is complete.
 
 
-- Then, you need to create the **BiometricPromptCompat**
+
+ **BiometricApi:**
+
+  `BiometricApi.AUTO` - the library will peek at the best-matched API (default)
+  
+  `BiometricApi.LEGACY_API` - forced usage of legacy biometric APIs like Fingerprint or FaceUnlock, and custom UI
+  
+  `BiometricApi.BIOMETRIC_API` - forced usage of new BiometricPrompt API
+  
+ **BiometricType:**
+
+  `BiometricType.BIOMETRIC_FINGERPRINT` - Use only **Fingerprint** biometric, ignore others
+  
+  `BiometricType.BIOMETRIC_FACE` -  Use only **FaceId** biometric, ignore others
+  
+  `BiometricType.BIOMETRIC_IRIS` -  Use only **Iris** biometric, ignore others
+  
+  `BiometricType.BIOMETRIC_UNDEFINED` - use any available biometric (multiple types supported)
+
+
+**BiometricAuthRequest** 
+Allows you to configure the type of target biometrics.
+It can be any combination of BiometricApi and BiometricType;
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED)` means any available BiometricApi or BiometricType
+
+
+**BiometricPromptCompat API**
+##
+ 
+ `static boolean hasEnrolled(BiometricAuthRequest)`  - returns `true` if specified biometric enrolled
+ 
+ `static boolean isBiometricSensorPermanentlyLocked(BiometricAuthRequest)`  - returns `true` if specified biometric permanently locked; Device lock-unlock or reboot required from the user
+ 
+ `static boolean isHardwareDetected(BiometricAuthRequest)`   - returns `true` if specified biometric hardware available
+ 
+ `static boolean isLockOut(BiometricAuthRequest)`   - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock
+ 
+ `static boolean isNewBiometricApi(BiometricAuthRequest)`   - returns `true` if BiometricPrompt API used for specified BiometricAuthRequest 
+ 
+ `static void openSettings(Activity, BiometricAuthRequest)`  - Attempting to open the "Enroll biometric" settings screen for specified BiometricAuthRequest 
+##
+
+**BiometricPromptCompat.Builder**
+
 ```java
 BiometricPromptCompat.Builder builder =
  new BiometricPromptCompat.Builder(getActivity())
@@ -96,27 +139,16 @@ BiometricPromptCompat biometricPromptCompat = builder.build();
  Methods `builder.setTitle()` and `builder.setNegativeButton()`   are mandatory.*
 
 
-
-- You also able to specify the desired implementation use the next builder:
+- You also able to specify desired BiometricAuthRequest use the next builder:
 ```java
 BiometricPromptCompat.Builder builder =
- new BiometricPromptCompat.Builder(BiometricApi, getActivity());     
+ new BiometricPromptCompat.Builder(BiometricAuthRequest, getActivity());     
  ``` 
  
-
-  **BiometricApi:**
-
-  `BiometricApi.AUTO` - the library will peek at the best-matched API (default)
-  
-  `BiometricApi.LEGACY_API` - forced usage of legacy biometric APIs like Fingerprint or FaceUnlock, and custom UI
-  
-  `BiometricApi. BIOMETRIC_API` - forced usage of new BiometricPrompt API
-  
-
  **BiometricPromptCompat:**
  
+ 
  `void authenticate(BiometricPromptCompat.Result resultCallback)` - start biometric auth workflow
-
 
  `void cancelAuthenticate()` - cancel active biometric auth workflow
  
@@ -124,22 +156,7 @@ BiometricPromptCompat.Builder builder =
 Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true` and cancel active biometric auth otherwise
 
   `@ColorRes int getDialogMainColor()`  - returns dialog background color
-  
- `boolean hasEnrolled()`  - returns `true` if any biometric enrolled
  
- `boolean isBiometricSensorPermanentlyLocked()`  - returns `true` if biometric permanently locked; Device lock-unlock or reboot required from the user
- 
- `boolean isHardwareDetected()`   - returns `true` if any biometric hardware available
- 
- `boolean isLockOut()`   - returns `true` if biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock
- 
- `boolean isNewBiometricApi()`   - returns `true` if  BiometricPrompt API used
- 
- `void openSettings(Activity)`  - Attempting to open the "Enroll biometric" settings screen
-
-
-
-
 
 **BiometricPromptCompat.Result**
 
@@ -177,7 +194,7 @@ Anyway, research and testing required for each case, so feel free to create issu
 ## TODO
 - Simplify setup **(IN PROGRESS)**
 - Add more devices/manufacturers
-- Check for the way to start BiometricAuth with specified BiometricType **(IN PROGRESS)**
+- ~~Check for the way to start BiometricAuth with specified BiometricType **(IN PROGRESS)**~~
 - Cleanup project and README
 - Migrate to Kotlin
 
