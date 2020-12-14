@@ -198,7 +198,7 @@ Anyway, research and testing required for each case, so feel free to create issu
 ## TODO
 - Simplify setup **(IN PROGRESS)**
 - Add more devices/manufacturers
-- ~~Check for the way to start BiometricAuth with specified BiometricType **(IN PROGRESS)**~~
+- ~~Check for the way to start BiometricAuth with specified BiometricType~~
 - Cleanup project and README
 - Migrate to Kotlin
 
