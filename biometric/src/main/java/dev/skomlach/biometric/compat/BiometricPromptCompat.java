@@ -184,30 +184,7 @@ public final class BiometricPromptCompat {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             View d = ActiveWindow.getActiveView(impl.getBuilder().context);
             if (!d.isAttachedToWindow()) {
-                d.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-                    @Override
-                    public void onViewAttachedToWindow(View v) {
-                        d.removeOnAttachStateChangeListener(this);
-                        checkForFocusAndStart(callback);
-                        d.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
-                            @Override
-                            public void onViewAttachedToWindow(View v) {
-
-                            }
-
-                            @Override
-                            public void onViewDetachedFromWindow(View v) {
-                                d.removeOnAttachStateChangeListener(this);
-                                impl.cancelAuthenticate();
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onViewDetachedFromWindow(View v) {
-                        d.removeOnAttachStateChangeListener(this);
-                    }
-                });
+                checkForAttachAndStart(d, callback);
             } else {
                 checkForFocusAndStart(callback);
             }
@@ -216,6 +193,33 @@ public final class BiometricPromptCompat {
         }
     }
 
+    @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void checkForAttachAndStart(@NonNull View d, @NonNull Result callback) {
+        d.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                d.removeOnAttachStateChangeListener(this);
+                checkForFocusAndStart(callback);
+                d.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                    @Override
+                    public void onViewAttachedToWindow(View v) {
+
+                    }
+
+                    @Override
+                    public void onViewDetachedFromWindow(View v) {
+                        d.removeOnAttachStateChangeListener(this);
+                        impl.cancelAuthenticate();
+                    }
+                });
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                d.removeOnAttachStateChangeListener(this);
+            }
+        });
+    }
     @TargetApi(android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
     private void checkForFocusAndStart(@NonNull Result callback) {
         View activity = ActiveWindow.getActiveView(impl.getBuilder().context);
