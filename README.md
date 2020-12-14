@@ -111,7 +111,7 @@ If you want to do something after initialization - you can also pass a Runnable 
 
 Allows you to configure the type of target biometrics.
 It can be any combination of BiometricApi and BiometricType;
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED)` means any available BiometricApi or BiometricType
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED)` - means any available BiometricApi and BiometricType
 
 
 **BiometricPromptCompat API**
