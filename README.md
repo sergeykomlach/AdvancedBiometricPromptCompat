@@ -80,14 +80,16 @@ dependencies {
 ```java
 BiometricPromptCompat.init(null);  
  ``` 
-This will start the asynchronous initialization process. 
+This will start the initialization process. 
 If you want to do something after initialization - you can also pass a Runnable object - it will be called when initialization is complete.
+
+
 
 
 
  **BiometricApi:**
 
-  `BiometricApi.AUTO` - the library will peek at the best-matched API (default)
+  `BiometricApi.AUTO` - the library will peek at the best-matched API
   
   `BiometricApi.LEGACY_API` - forced usage of legacy biometric APIs like Fingerprint or FaceUnlock, and custom UI
   
