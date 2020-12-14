@@ -6,6 +6,7 @@ import androidx.core.os.BuildCompat;
 
 import dev.skomlach.biometric.compat.BiometricApi;
 import dev.skomlach.biometric.compat.BiometricAuthRequest;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.utils.hardware.Android28Hardware;
 import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware;
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo;
@@ -25,7 +26,7 @@ public class HardwareAccessImpl {
             } else if (BuildCompat.isAtLeastP()) {
                 hardwareInfo = new Android28Hardware(biometricAuthRequest); //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
             }
-        }  else {
+        }  else {//AUTO
             if (BuildCompat.isAtLeastQ()) {
                 hardwareInfo = new Android29Hardware(biometricAuthRequest);//new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
             } else if (BuildCompat.isAtLeastP()) {
@@ -33,10 +34,13 @@ public class HardwareAccessImpl {
             } else {
                 hardwareInfo = new LegacyHardware(biometricAuthRequest);//Android 4+
             }
-            if (biometricAuthRequest.getApi() == BiometricApi.AUTO &&
-                    !(hardwareInfo instanceof LegacyHardware)) {
+            if (!(hardwareInfo instanceof LegacyHardware)) {
                 LegacyHardware info = new LegacyHardware(biometricAuthRequest);
-                if (info.getAvailableBiometricsCount() > 1 || (!isHardwareReady(hardwareInfo) && isHardwareReady(info))) {
+                if (biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED && info.getAvailableBiometricsCount() > 1) {
+                    hardwareInfo = info;
+                }
+                else
+                if (!isHardwareReady(hardwareInfo) && isHardwareReady(info)) {
                     hardwareInfo = info;
                 }
             }
