@@ -24,8 +24,8 @@ android {
 }
 
 dependencies {
-    implementation 'dev.skomlach:common:0.0.95'
-    compileOnly 'dev.skomlach:biometric-api:0.0.95'
+    implementation 'dev.skomlach:common:1.0.0'
+    compileOnly 'dev.skomlach:biometric-api:1.0.0'
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.biometric:biometric:+'
