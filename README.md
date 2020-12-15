@@ -75,16 +75,40 @@ dependencies {
 }
 ```
 ## Usage
-- In `Application.onCreate()` need to call
+
+
+
+**BiometricPromptCompat API**
+##
+At first, better in `Application.onCreate()`, call
 
 ```java
-BiometricPromptCompat.init(null);  
+BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }   
  ``` 
-This will start the initialization process. 
-If you want to do something after initialization - you can also pass a Runnable object - it will be called when initialization is complete.
+
+##
+
+ `static boolean hasEnrolled(BiometricAuthRequest)`  - returns `true` if specified biometric enrolled
+ 
+ `static boolean isBiometricSensorPermanentlyLocked(BiometricAuthRequest)`  - returns `true` if specified biometric permanently locked; Device lock-unlock or reboot required from the user
+ 
+ `static boolean isHardwareDetected(BiometricAuthRequest)`   - returns `true` if specified biometric hardware available
+ 
+ `static boolean isLockOut(BiometricAuthRequest)`   - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock
+ 
+ `static boolean isNewBiometricApi(BiometricAuthRequest)`   - returns `true` if BiometricPrompt API used for specified biometric
+ 
+ `static void openSettings(Activity, BiometricAuthRequest)`  - Attempting to open the "Enroll biometric" settings screen for specified biometric
+##
 
 
 
+ **BiometricAuthRequest** 
+
+
+Allows you to configure the type of target biometrics.
+It can be any combination of BiometricApi and BiometricType;
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED)` - means any available BiometricApi and BiometricType
 
 
  **BiometricApi:**
@@ -105,29 +129,6 @@ If you want to do something after initialization - you can also pass a Runnable 
   
   `BiometricType.BIOMETRIC_UNDEFINED` - use any available biometric (multiple types supported)
 
-
-**BiometricAuthRequest** 
-
-
-Allows you to configure the type of target biometrics.
-It can be any combination of BiometricApi and BiometricType;
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED)` - means any available BiometricApi and BiometricType
-
-
-**BiometricPromptCompat API**
-##
- 
- `static boolean hasEnrolled(BiometricAuthRequest)`  - returns `true` if specified biometric enrolled
- 
- `static boolean isBiometricSensorPermanentlyLocked(BiometricAuthRequest)`  - returns `true` if specified biometric permanently locked; Device lock-unlock or reboot required from the user
- 
- `static boolean isHardwareDetected(BiometricAuthRequest)`   - returns `true` if specified biometric hardware available
- 
- `static boolean isLockOut(BiometricAuthRequest)`   - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock
- 
- `static boolean isNewBiometricApi(BiometricAuthRequest)`   - returns `true` if BiometricPrompt API used for specified biometric
- 
- `static void openSettings(Activity, BiometricAuthRequest)`  - Attempting to open the "Enroll biometric" settings screen for specified biometric
 ##
 
 **BiometricPromptCompat.Builder**
@@ -143,7 +144,7 @@ BiometricPromptCompat biometricPromptCompat = builder.build();
  Methods `builder.setTitle()` and `builder.setNegativeButton()`   are mandatory.
 
 
-- You also able to specify desired BiometricAuthRequest use the next builder:
+You also able to specify desired BiometricAuthRequest use the next builder:
 ```java
 BiometricPromptCompat.Builder builder =
  new BiometricPromptCompat.Builder(BiometricAuthRequest, getActivity());     
@@ -151,7 +152,7 @@ BiometricPromptCompat.Builder builder =
  
  **BiometricPromptCompat:**
  
- 
+
  `void authenticate(BiometricPromptCompat.Result resultCallback)` - start biometric auth workflow
 
  `void cancelAuthenticate()` - cancel active biometric auth workflow
@@ -164,7 +165,7 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
 
 **BiometricPromptCompat.Result**
 
-`void onSucceeded()` - User successfully authenticated 
+  `void onSucceeded()` - User successfully authenticated 
   
   `void onCanceled()` - Biometric authentification was canceled
   
