@@ -125,9 +125,9 @@ Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDE
  
  `static boolean isLockOut(BiometricAuthRequest)`   - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock
  
- `static boolean isNewBiometricApi(BiometricAuthRequest)`   - returns `true` if BiometricPrompt API used for specified BiometricAuthRequest 
+ `static boolean isNewBiometricApi(BiometricAuthRequest)`   - returns `true` if BiometricPrompt API used for specified biometric
  
- `static void openSettings(Activity, BiometricAuthRequest)`  - Attempting to open the "Enroll biometric" settings screen for specified BiometricAuthRequest 
+ `static void openSettings(Activity, BiometricAuthRequest)`  - Attempting to open the "Enroll biometric" settings screen for specified biometric
 ##
 
 **BiometricPromptCompat.Builder**
