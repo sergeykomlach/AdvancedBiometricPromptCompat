@@ -1,3 +1,19 @@
+## Screenshots:
+
+Pocophone F1
+![Pocophone F1](https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg)
+
+
+Pixel 4XL
+![Pixel 4XL](https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pixel_4.png)
+
+
+
+Huawei Mate P30 Pro
+![Huawei Mate P30 Pro](https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.png)
+
+
+
 
 ## PLEASE NOTE:
 If your project has minSDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).
