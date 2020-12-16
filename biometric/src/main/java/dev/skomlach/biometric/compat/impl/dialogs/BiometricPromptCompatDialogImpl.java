@@ -75,12 +75,12 @@ public class BiometricPromptCompatDialogImpl {
         this.isInScreen = isInScreen;
         this.authCallback = authCallback;
         this.compatBuilder = compatBuilder;
-        this.promptText = compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor);
-        this.too_many_attempts = compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_error_lockout);
-        this.not_recognized = compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_not_recognized);
+        this.promptText = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor);
+        this.too_many_attempts = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_error_lockout);
+        this.not_recognized = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized);
 
         this.animateHandler = new AnimateHandler(Looper.getMainLooper());
-        this.dialog = new BiometricPromptCompatDialog(new ContextThemeWrapper(compatBuilder.context, R.style.Theme_BiometricPromptDialog), isInScreen);
+        this.dialog = new BiometricPromptCompatDialog(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), isInScreen);
 
         dialog.setOnDismissListener(dialogInterface -> {
             detachWindowListeners();
@@ -257,7 +257,7 @@ public class BiometricPromptCompatDialogImpl {
                     dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
                 }
                 dialog.getStatus().setText(msg);
-                dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.context, R.color.material_red_500));
+                dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.getContext(), R.color.material_red_500));
 
                 animateHandler.sendEmptyMessageDelayed(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE, 2000);
             }
@@ -273,7 +273,7 @@ public class BiometricPromptCompatDialogImpl {
                     dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
                 }
                 dialog.getStatus().setText(isLockout ? too_many_attempts : not_recognized);
-                dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.context, R.color.material_red_500));
+                dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.getContext(), R.color.material_red_500));
 
                 animateHandler.sendEmptyMessageDelayed(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE, 2000);
             }

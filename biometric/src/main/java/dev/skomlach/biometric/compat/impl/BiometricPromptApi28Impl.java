@@ -97,7 +97,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                             break;
                         case BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                            BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(compatBuilder.biometricAuthRequest.getType());
+                            BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(compatBuilder.getBiometricAuthRequest().getType());
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                             break;
                         case BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -108,7 +108,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                             failureReason = AuthenticationFailureReason.TIMEOUT;
                             break;
                         case BiometricCodes.BIOMETRIC_ERROR_LOCKOUT:
-                            HardwareAccessImpl.getInstance(compatBuilder.biometricAuthRequest).lockout();
+                            HardwareAccessImpl.getInstance(compatBuilder.getBiometricAuthRequest()).lockout();
                             failureReason = AuthenticationFailureReason.LOCKED_OUT;
                             break;
                         case BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED:
@@ -132,7 +132,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                         switch (failureReason) {
                             case SENSOR_FAILED:
                             case AUTHENTICATION_FAILED:
-                                HardwareAccessImpl.getInstance(compatBuilder.biometricAuthRequest).lockout();
+                                HardwareAccessImpl.getInstance(compatBuilder.getBiometricAuthRequest()).lockout();
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT;
                                 break;
                         }
@@ -181,7 +181,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
 
         this.compatBuilder = compatBuilder;
 
-        activeWindow = ActiveWindow.getActiveView(compatBuilder.context);
+        activeWindow = ActiveWindow.getActiveView(compatBuilder.getContext());
         BiometricPrompt.PromptInfo.Builder builder = new BiometricPrompt.PromptInfo.Builder();
         builder.setTitle(compatBuilder.title);
         if (compatBuilder.subtitle != null) {
@@ -195,10 +195,10 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                 builder.setNegativeButtonText(compatBuilder.negativeButtonText);
             else
                 builder.setNegativeButtonText(
-                        getFixedString(compatBuilder.negativeButtonText, ContextCompat.getColor(compatBuilder.context, R.color.material_deep_teal_500)));
+                        getFixedString(compatBuilder.negativeButtonText, ContextCompat.getColor(compatBuilder.getContext(), R.color.material_deep_teal_500)));
         }
         this.biometricPromptInfo = builder.build();
-        this.biometricPrompt = new BiometricPrompt(compatBuilder.context,
+        this.biometricPrompt = new BiometricPrompt(compatBuilder.getContext(),
                 ExecutorHelper.INSTANCE.getExecutor(), authCallback);
     }
 
@@ -257,7 +257,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         if (dialog != null)
             return dialog.isNightMode();
         else {
-            return DarkLightThemes.isNightMode(compatBuilder.context);
+            return DarkLightThemes.isNightMode(compatBuilder.getContext());
         }
     }
 

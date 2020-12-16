@@ -69,11 +69,11 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     public List<String> getUsedPermissions() {
         final Set<String> permission = new HashSet<>();
         List<BiometricMethod> biometricMethodList = new ArrayList<>();
-        if (compatBuilder.biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED) {
+        if (compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED) {
             biometricMethodList.addAll(BiometricAuthentication.getAvailableBiometricMethods());
         } else {
             for (BiometricMethod m : BiometricAuthentication.getAvailableBiometricMethods()) {
-                if (m.getBiometricType() == compatBuilder.biometricAuthRequest.getType()) {
+                if (m.getBiometricType() == compatBuilder.getBiometricAuthRequest().getType()) {
                     biometricMethodList.add(m);
                 }
             }
@@ -133,9 +133,9 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public void startAuth() {
-        final List<BiometricType> types = compatBuilder.biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED ?
+        final List<BiometricType> types = compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED ?
                 BiometricAuthentication.getAvailableBiometrics() :
-                Collections.singletonList(compatBuilder.biometricAuthRequest.getType());
+                Collections.singletonList(compatBuilder.getBiometricAuthRequest().getType());
 
         BiometricAuthentication.authenticate(dialog.getContainer(), types, fmAuthCallback);
     }
@@ -197,7 +197,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     }
                 });
             } else {
-                HardwareAccessImpl.getInstance(compatBuilder.biometricAuthRequest).lockout();
+                HardwareAccessImpl.getInstance(compatBuilder.getBiometricAuthRequest()).lockout();
                 ExecutorHelper.INSTANCE.getHandler().postDelayed(() -> {
                     cancelAuthenticate();
                     callback.onFailed(failureReason);
