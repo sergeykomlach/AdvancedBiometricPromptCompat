@@ -87,7 +87,6 @@ public class SoterFaceUnlockModule extends AbstractBiometricModule {
             }
         }
 
-
         if (manager != null) {
             try {
 

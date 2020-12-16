@@ -66,50 +66,62 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             }
         }
 
-        fun isBiometricSensorPermanentlyLocked(api: BiometricAuthRequest = BiometricAuthRequest(
+        fun isBiometricSensorPermanentlyLocked(
+            api: BiometricAuthRequest = BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_UNDEFINED
-            )): Boolean {
+            )
+        ): Boolean {
             check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
             return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
         }
 
-        fun isHardwareDetected(api: BiometricAuthRequest = BiometricAuthRequest(
+        fun isHardwareDetected(
+            api: BiometricAuthRequest = BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_UNDEFINED
-            )): Boolean {
+            )
+        ): Boolean {
             check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
             return HardwareAccessImpl.getInstance(api).isHardwareAvailable
         }
 
-        fun hasEnrolled(api: BiometricAuthRequest = BiometricAuthRequest(
+        fun hasEnrolled(
+            api: BiometricAuthRequest = BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_UNDEFINED
-            )): Boolean {
+            )
+        ): Boolean {
             check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
             return HardwareAccessImpl.getInstance(api).isBiometricEnrolled
         }
 
-        fun isLockOut(api: BiometricAuthRequest = BiometricAuthRequest(
+        fun isLockOut(
+            api: BiometricAuthRequest = BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_UNDEFINED
-            )): Boolean {
+            )
+        ): Boolean {
             check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
             return HardwareAccessImpl.getInstance(api).isLockedOut
         }
 
-        fun isNewBiometricApi(api: BiometricAuthRequest = BiometricAuthRequest(
+        fun isNewBiometricApi(
+            api: BiometricAuthRequest = BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_UNDEFINED
-            )): Boolean {
+            )
+        ): Boolean {
             check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
             return HardwareAccessImpl.getInstance(api).isNewBiometricApi
         }
 
-        fun openSettings(activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_UNDEFINED
-        )) {
+        fun openSettings(
+            activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
+                BiometricApi.AUTO,
+                BiometricType.BIOMETRIC_UNDEFINED
+            )
+        ) {
             check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
             if (!HardwareAccessImpl.getInstance(api).isNewBiometricApi) {
                 BiometricAuthentication.openSettings(activity)
@@ -238,14 +250,15 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         return impl.cancelAuthenticateBecauseOnPause()
     }
 
-    @ColorRes fun getDialogMainColor(): Int {
+    @ColorRes
+    fun getDialogMainColor(): Int {
         return if (impl.isNightMode) {
             android.R.color.black
         } else {
             R.color.material_grey_50
         }
     }
-    
+
     interface Result {
         @MainThread
         fun onSucceeded()

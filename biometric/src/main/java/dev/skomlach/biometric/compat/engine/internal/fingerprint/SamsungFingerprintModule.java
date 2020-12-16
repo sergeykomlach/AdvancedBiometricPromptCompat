@@ -93,7 +93,6 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
             }
         }
 
-
         if (mSpassFingerprint != null) {
             try {
                 cancelFingerprintRequest();

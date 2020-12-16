@@ -93,7 +93,6 @@ public class API23FingerprintModule extends AbstractBiometricModule {
             }
         }
 
-
         if (manager != null) {
             try {
 

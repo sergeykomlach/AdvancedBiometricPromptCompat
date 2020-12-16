@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion minSDK
         targetSdkVersion targetSDK
-        versionCode 1
-        versionName libsVersion
+        versionCode libsMinorVersion
+        versionName libsMajorVersion + "." + libsMinorVersion
 
     }
 }
@@ -22,7 +22,7 @@ dependencies {
 //region Publish to jCenter
 def libGroupId = libsGroupId
 def libArtifactId = 'biometric-api'
-def libVersion = libsVersion
+def libVersion = libsMajorVersion + "." + libsMinorVersion
 def libDesc = 'Project allowing you to get access to unofficial biometric API for some device vendors.'
 def libLicenses = ['Apache-2.0']
 def libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'

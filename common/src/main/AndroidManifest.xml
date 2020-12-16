@@ -1,8 +1,49 @@
-<manifest xmlns:tools="http://schemas.android.com/tools"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.common">
 
+    <uses-permission android:name="huawei.android.permission.MULTIWINDOW_SDK" />
     <uses-sdk tools:overrideLibrary="com.microsoft.device.dualscreen.core,com.microsoft.device.dualscreen.fragmentshandler,androidx.security" />
     <application>
+        <!--        &lt;!&ndash;-->
+        <!--      https://android-developers.googleblog.com/2018/11/get-your-app-ready-for-foldable-phones.html-->
+        <!--      https://developer.samsung.com/galaxy/foldable-->
+        <!--      Doesn't have affect to the devices with Android 9 (except Samsung) and lower-->
+        <!--      &ndash;&gt;-->
+        <!--        <meta-data-->
+        <!--                android:name="android.allow_multiple_resumed_activities"-->
+        <!--                android:value="true" />-->
+
+        <!--        &lt;!&ndash; Google suggest use ration 2.1 or higher for displays like on S8&ndash;&gt;-->
+        <!--        <meta-data-->
+        <!--                android:name="android.max_aspect"-->
+        <!--                android:value="3.0" />-->
+
+        <!--        &lt;!&ndash; Samsung's multiwindow &ndash;&gt;-->
+        <!--        <uses-library-->
+        <!--                android:name="com.sec.android.support.multiwindow"-->
+        <!--                android:required="false" />-->
+
+        <!--        <meta-data-->
+        <!--                android:name="com.samsung.android.sdk.multiwindow.enable"-->
+        <!--                android:value="true" />-->
+        <!--        <meta-data-->
+        <!--                android:name="com.sec.android.support.multiwindow"-->
+        <!--                android:value="true" />-->
+
+        <!--        <meta-data-->
+        <!--                android:name="com.lge.support.SPLIT_WINDOW"-->
+        <!--                android:value="true" />-->
+
+        <!--        <meta-data-->
+        <!--                android:name="android.intent.category.MULTIWINDOW_LAUNCHER"-->
+        <!--                android:value="true" />-->
+        <!--        <meta-data-->
+        <!--                android:name="com.sec.android.intent.category.MULTIWINDOW_LAUNCHER"-->
+        <!--                android:value="true" />-->
+        <!--        <meta-data-->
+        <!--                android:name="com.lge.support.SPLIT_WINDOW.SUPPORT_SPLIT"-->
+        <!--                android:value="true" />-->
 
     </application>
 </manifest>

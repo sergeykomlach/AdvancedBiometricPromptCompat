@@ -28,7 +28,7 @@ public class ActiveWindow {
                 Class<?> clazz = Class.forName("android.view.ViewRootImpl");
                 View view = (View) clazz.getMethod("getView").invoke(viewParent);
                 int type = ((WindowManager.LayoutParams) view.getLayoutParams()).type;
-                if(type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
+                if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
                     continue;
                 }
                 if (topView == null) {
@@ -37,8 +37,7 @@ public class ActiveWindow {
                     int topViewType = ((WindowManager.LayoutParams) topView.getLayoutParams()).type;
                     if (type > topViewType) {
                         topView = view;
-                    }
-                    else if(view.hasWindowFocus() && !topView.hasWindowFocus()) {
+                    } else if (view.hasWindowFocus() && !topView.hasWindowFocus()) {
                         topView = view;
                     }
                 }

@@ -91,7 +91,6 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
             }
         }
 
-
         if (manager != null) {
             try {
 

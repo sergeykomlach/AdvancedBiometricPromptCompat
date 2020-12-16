@@ -26,7 +26,7 @@ public class HardwareAccessImpl {
             } else if (BuildCompat.isAtLeastP()) {
                 hardwareInfo = new Android28Hardware(biometricAuthRequest); //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
             }
-        }  else {//AUTO
+        } else {//AUTO
             if (BuildCompat.isAtLeastQ()) {
                 hardwareInfo = new Android29Hardware(biometricAuthRequest);//new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
             } else if (BuildCompat.isAtLeastP()) {
@@ -38,9 +38,7 @@ public class HardwareAccessImpl {
                 LegacyHardware info = new LegacyHardware(biometricAuthRequest);
                 if (biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED && info.getAvailableBiometricsCount() > 1) {
                     hardwareInfo = info;
-                }
-                else
-                if (!isHardwareReady(hardwareInfo) && isHardwareReady(info)) {
+                } else if (!isHardwareReady(hardwareInfo) && isHardwareReady(info)) {
                     hardwareInfo = info;
                 }
             }
@@ -60,19 +58,19 @@ public class HardwareAccessImpl {
     }
 
     public boolean isHardwareAvailable() {
-        return hardwareInfo!=null && hardwareInfo.isHardwareAvailable();
+        return hardwareInfo != null && hardwareInfo.isHardwareAvailable();
     }
 
     public boolean isBiometricEnrolled() {
-        return hardwareInfo!=null &&hardwareInfo.isBiometricEnrolled();
+        return hardwareInfo != null && hardwareInfo.isBiometricEnrolled();
     }
 
     public boolean isLockedOut() {
-        return hardwareInfo!=null && hardwareInfo.isLockedOut();
+        return hardwareInfo != null && hardwareInfo.isLockedOut();
     }
 
     public void lockout() {
-        if (hardwareInfo!=null && !(hardwareInfo instanceof LegacyHardware)) {
+        if (hardwareInfo != null && !(hardwareInfo instanceof LegacyHardware)) {
             ((Android28Hardware) hardwareInfo).lockout();
         }
     }

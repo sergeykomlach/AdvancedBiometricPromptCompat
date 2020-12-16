@@ -90,8 +90,6 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
             }
         }
 
-
-
         if (manager != null) {
             try {
 

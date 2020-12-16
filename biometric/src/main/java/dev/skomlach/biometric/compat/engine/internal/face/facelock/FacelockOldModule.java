@@ -163,8 +163,6 @@ public class FacelockOldModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-
-
         try {
             BiometricLoggerImpl.d("FaceIdModule" + "Facelock call authorize");
             authorize(new ProxyListener(restartPredicate, cancellationSignal, listener));

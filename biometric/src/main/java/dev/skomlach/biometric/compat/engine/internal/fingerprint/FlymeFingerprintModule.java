@@ -97,7 +97,6 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
             }
         }
 
-
         if (isFingerprintServiceSupported) {
             try {
                 cancelFingerprintServiceFingerprintRequest();

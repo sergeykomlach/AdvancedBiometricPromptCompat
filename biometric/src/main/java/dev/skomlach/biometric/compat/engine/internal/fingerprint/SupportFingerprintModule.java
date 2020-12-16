@@ -80,7 +80,6 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
             }
         }
 
-
         if (managerCompat != null)
             try {
 

@@ -7,20 +7,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class Core {
 
     private static final Map<BiometricModule, CancellationSignal> cancellationSignals = Collections.synchronizedMap(new HashMap<>());
     private static final Map<Integer, BiometricModule> reprintModuleHashMap = Collections.synchronizedMap(new HashMap<>());
+
     public static void cleanModules() {
         reprintModuleHashMap.clear();
     }
+
     public static void registerModule(BiometricModule module) {
         if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
             return;
@@ -65,11 +65,9 @@ public class Core {
      */
     public static void authenticate(final AuthenticationListener listener, RestartPredicate restartPredicate) {
 
-
         for (BiometricModule module : reprintModuleHashMap.values()) {
             authenticate(module, listener, restartPredicate);
         }
-
     }
 
     public static void authenticate(BiometricModule module, final AuthenticationListener listener, RestartPredicate restartPredicate) {

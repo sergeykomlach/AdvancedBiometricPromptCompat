@@ -97,7 +97,6 @@ public class SamsungFaceUnlockModule extends AbstractBiometricModule {
             }
         }
 
-
         if (manager != null) {
             try {
 

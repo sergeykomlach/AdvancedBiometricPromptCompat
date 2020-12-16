@@ -11,8 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import dev.skomlach.biometric.compat.BiometricApi;
-import dev.skomlach.biometric.compat.BiometricAuthRequest;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;

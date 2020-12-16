@@ -97,7 +97,6 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
             }
         }
 
-
         if (manager != null) {
             try {
 

@@ -25,6 +25,7 @@ public abstract class AbstractBiometricModule implements BiometricModule, Biomet
     private final SharedPreferences preferences;
 
     private final BiometricMethod biometricMethod;
+
     public AbstractBiometricModule(BiometricMethod biometricMethod) {
         this.biometricMethod = biometricMethod;
         this.tag = biometricMethod.getId();
