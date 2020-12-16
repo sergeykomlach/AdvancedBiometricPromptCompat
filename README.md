@@ -110,6 +110,7 @@ At first, better in `Application.onCreate()`, call
 ```java  
 BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
 ```   
+
 ##  
   
   `static boolean hasEnrolled(BiometricAuthRequest)` - returns `true` if specified biometric enrolled  
@@ -167,7 +168,8 @@ BiometricPromptCompat.Builder builder =
 You also able to specify desired BiometricAuthRequest use the next builder:  
 ```java  
 BiometricPromptCompat.Builder builder =  
- new BiometricPromptCompat.Builder(BiometricAuthRequest, getActivity()); ```   
+ new BiometricPromptCompat.Builder(BiometricAuthRequest, getActivity());
+ ```   
    
  **BiometricPromptCompat:**  
     
@@ -214,9 +216,9 @@ Secondly - anyway, the manager considered here uses system permissions, and as a
 Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.  
   
 ## TODO  
-- Simplify setup **(IN PROGRESS)**  
+- ~~Simplify setup
 - Add more devices/manufacturers  
-- ~~Check for the way to start BiometricAuth with specified BiometricType~~  
+- ~~Check for the way to start BiometricAuth with specified BiometricType
 - Cleanup project and README  
 - Migrate to Kotlin  
   
