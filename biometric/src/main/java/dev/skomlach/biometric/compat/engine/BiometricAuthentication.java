@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.provider.Settings;
 import android.view.View;
 
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.skomlach.biometric.compat.BiometricType;
@@ -40,6 +42,7 @@ import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnl
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
+import static dev.skomlach.common.misc.Utils.isAtLeastR;
 import static dev.skomlach.common.misc.Utils.startActivity;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -112,69 +115,86 @@ public class BiometricAuthentication {
             };
 
             for (BiometricMethod method : list) {
-                BiometricModule biometricModule = null;
-                try {
-                    switch (method) {
+                startTask(() -> {
+                    BiometricModule biometricModule = null;
+                    try {
+                        switch (method) {
 
-                        case DUMMY_BIOMETRIC:
-                            biometricModule = new DummyBiometricModule(initListener);
-                            break;
+                            case DUMMY_BIOMETRIC:
+                                biometricModule = new DummyBiometricModule(initListener);
+                                break;
 
-                        case FACELOCK:
-                            biometricModule = new FacelockOldModule(initListener);
-                            break;
+                            case FACELOCK:
+                                biometricModule = new FacelockOldModule(initListener);
+                                break;
 
-                        ///****///
-                        case FINGERPRINT_API23:
-                            biometricModule = new API23FingerprintModule(initListener);
-                            break;
-                        case FINGERPRINT_SUPPORT:
-                            biometricModule = new SupportFingerprintModule(initListener);
-                            break;
-                        case FINGERPRINT_SAMSUNG:
-                            biometricModule = new SamsungFingerprintModule(initListener);
-                            break;
-                        case FINGERPRINT_FLYME:
-                            biometricModule = new FlymeFingerprintModule(initListener);
-                            break;
+                            ///****///
+                            case FINGERPRINT_API23:
+                                biometricModule = new API23FingerprintModule(initListener);
+                                break;
+                            case FINGERPRINT_SUPPORT:
+                                biometricModule = new SupportFingerprintModule(initListener);
+                                break;
+                            case FINGERPRINT_SAMSUNG:
+                                biometricModule = new SamsungFingerprintModule(initListener);
+                                break;
+                            case FINGERPRINT_FLYME:
+                                biometricModule = new FlymeFingerprintModule(initListener);
+                                break;
 
-                        ///****//
-                        case FACE_SOTERAPI:
-                            biometricModule = new SoterFaceUnlockModule(initListener);
-                            break;
-                        case FACE_HUAWEI_EMUI_10:
-                            biometricModule = new HuaweiFaceUnlockEMIUI10Module(initListener);
-                            break;
-                        case FACE_OPPO:
-                            biometricModule = new OppoFaceUnlockModule(initListener);
-                            break;
-                        case FACE_SAMSUNG:
-                            biometricModule = new SamsungFaceUnlockModule(initListener);
-                            break;
-                        case FACE_ANDROIDAPI:
-                            biometricModule = new AndroidFaceUnlockModule(initListener);
-                            break;
+                            ///****//
+                            case FACE_SOTERAPI:
+                                biometricModule = new SoterFaceUnlockModule(initListener);
+                                break;
+                            case FACE_HUAWEI_EMUI_10:
+                                biometricModule = new HuaweiFaceUnlockEMIUI10Module(initListener);
+                                break;
+                            case FACE_OPPO:
+                                biometricModule = new OppoFaceUnlockModule(initListener);
+                                break;
+                            case FACE_SAMSUNG:
+                                biometricModule = new SamsungFaceUnlockModule(initListener);
+                                break;
+                            case FACE_ANDROIDAPI:
+                                biometricModule = new AndroidFaceUnlockModule(initListener);
+                                break;
 ///****//
-                        case IRIS_SAMSUNG:
-                            biometricModule = new SamsungIrisUnlockModule(initListener);
-                            break;
-                        case IRIS_ANDROIDAPI:
-                            biometricModule = new AndroidIrisUnlockModule(initListener);
-                            break;
-                        ///****//
-                        default:
-                            throw new IllegalStateException("Uknowon biometric type - " + method);
+                            case IRIS_SAMSUNG:
+                                biometricModule = new SamsungIrisUnlockModule(initListener);
+                                break;
+                            case IRIS_ANDROIDAPI:
+                                biometricModule = new AndroidIrisUnlockModule(initListener);
+                                break;
+                            ///****//
+                            default:
+                                throw new IllegalStateException("Uknowon biometric type - " + method);
+                        }
+                    } catch (Throwable e) {
+                        BiometricLoggerImpl.e(e);
+                        initListener.initFinished(method, biometricModule);
                     }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
-                    initListener.initFinished(method, biometricModule);
-                }
+                });
+
             }
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);
         }
     }
 
+    private static void startTask(Runnable task){
+        if(isAtLeastR()){
+            Executors.newCachedThreadPool().execute(task);
+        }else{
+            //AsyncTask Deprecated in API 30
+            new AsyncTask<Void, Void, Void>(){
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    task.run();
+                    return null;
+                }
+            }.executeOnExecutor(Executors.newCachedThreadPool());
+        }
+    }
     public static List<BiometricType> getAvailableBiometrics() {
         HashSet<BiometricType> biometricMethodListInternal = new HashSet<>();
         for (BiometricMethod method : moduleHashMap.keySet()) {

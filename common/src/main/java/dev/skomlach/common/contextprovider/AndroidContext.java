@@ -2,6 +2,8 @@ package dev.skomlach.common.contextprovider;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.core.os.ConfigurationCompat;
 import androidx.core.os.LocaleListCompat;
@@ -10,26 +12,49 @@ import java.io.IOException;
 import java.util.Locale;
 
 public class AndroidContext {
-    private static Application application;
+    private static Application application = null;
 
-    public static Application getAppContext() {
-        if (application != null) {
-            fixDirAccess(application);
-            return application;
-        }
-        try {
-            application = (Application) Class.forName("android.app.ActivityThread")
-                    .getMethod("currentApplication").invoke(null, (Object[]) null);
-        } catch (Throwable ignored) {
-            try {
-                application = (Application) Class.forName("android.app.AppGlobals")
-                        .getMethod("getInitialApplication").invoke(null, (Object[]) null);
-            } catch (Throwable e) {
-                throw new RuntimeException(e);
+    public static synchronized Application getAppContext() {
+        if (application == null) {
+            initApplication();
+            while (application == null) {
+                try {
+                    Thread.sleep(50);
+                } catch (Throwable ignore) {
+
+                }
             }
         }
         fixDirAccess(application);
         return application;
+    }
+
+    //we should use Main Thread to get correct Application reference
+    private static void initApplication() {
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final Runnable initTask = new Runnable() {
+            @Override
+            public void run() {
+                Application application = null;
+                try {
+                    application = (Application) Class.forName("android.app.ActivityThread")
+                            .getMethod("currentApplication").invoke(null, (Object[]) null);
+                } catch (Throwable ignored) {
+                    try {
+                        application = (Application) Class.forName("android.app.AppGlobals")
+                                .getMethod("getInitialApplication").invoke(null, (Object[]) null);
+                    } catch (Throwable e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                if (application != null) {
+                    AndroidContext.application = application;
+                } else {
+                    handler.postDelayed(this, 50);
+                }
+            }
+        };
+        handler.post(initTask);
     }
 
     //Solution from

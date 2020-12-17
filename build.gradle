@@ -5,7 +5,7 @@ buildscript {
     ext.targetSDK = 30
     ext.libsGroupId = "dev.skomlach"
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 1
+    ext.libsMinorVersion = 2
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
