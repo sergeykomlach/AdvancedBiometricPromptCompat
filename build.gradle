@@ -5,13 +5,11 @@ buildscript {
     ext.targetSDK = 30
     ext.libsGroupId = "dev.skomlach"
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 3
+    ext.libsMinorVersion = 4
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
-        maven { url 'https://developer.huawei.com/repo/' }
-        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
-        maven { url "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1" }
+//        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
         google()
         jcenter()
 
@@ -31,9 +29,7 @@ allprojects {
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
-        maven { url 'https://developer.huawei.com/repo/' }
-        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
-        maven { url "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1" }
+//        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
         google()
         jcenter()
 

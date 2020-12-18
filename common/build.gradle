@@ -19,10 +19,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation "com.microsoft.device.dualscreen:core:1.0.0-alpha01"
-    implementation "com.microsoft.device.dualscreen:fragmentshandler:1.0.0-alpha02"
-
-    implementation "androidx.security:security-crypto:1.1.0-alpha02"
+    implementation "androidx.security:security-crypto:1.1.0-alpha03"
     implementation 'com.scottyab:secure-preferences-lib:0.1.7'
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
@@ -67,21 +64,6 @@ publishing {
                 artifact("$buildDir/outputs/aar/${libArtifactId}-${variant.name}.aar")
 
                 pom.withXml {
-
-                    def repos = asNode().appendNode('repositories')
-                    project.repositories.each {
-                        def repo = it as MavenArtifactRepository
-                        def repository = repos.appendNode('repository')
-                        repository.appendNode('id', repo.url.host)
-                        repository.appendNode('name', repo.name)
-                        repository.appendNode('url', repo.url)
-
-                        def release = repository.appendNode('releases')
-                        release.appendNode('enabled', true)
-                        release.appendNode('updatePolicy', "always")
-                        release.appendNode('checksumPolicy', "ignore")
-
-                    }
 
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')

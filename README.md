@@ -86,18 +86,9 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
   
   
-Include library in your app:  
-  
+Add livvarry to Gradle:  
 ```groovy  
-  
- repositories {  
- maven { url 'https://developer.huawei.com/repo/' }  
- maven { url "https://dl.bintray.com/tencent-soter/maven/" }  
- maven { url "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1" }  
- }  
-  
-dependencies {  
- implementation 'dev.skomlach:biometric:X.X.X'}  
+ implementation 'dev.skomlach:biometric:X.X.X' 
 ```  
 ## Usage  
   

@@ -38,13 +38,16 @@ public class CryptoPreferencesImpl implements SharedPreferences {
        at androidx.security.crypto.EncryptedSharedPreferences.getLong(EncryptedSharedPreferences.java:437)"
     *
     */
-    private final SharedPreferences sharedPreferences;
+    private SharedPreferences sharedPreferences;
 
     CryptoPreferencesImpl(@NonNull Context context, @NonNull String name) {
         Locale defaultLocale = AndroidContext.getLocale();
         setLocale(context, Locale.US);
+        final SharedPreferences fallbackCheck = context.getSharedPreferences( "FallbackCheck", Context.MODE_PRIVATE);
+        boolean forceToFallback = fallbackCheck.getBoolean("forceToFallback", false);
         //AndroidX Security impl.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        //may produce exceptions on some devices (Huawei)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !forceToFallback) {
             try {
                 final KeyGenParameterSpec keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC;
                 final String masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec);
@@ -56,13 +59,15 @@ public class CryptoPreferencesImpl implements SharedPreferences {
                                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
                         );
-            } catch (GeneralSecurityException | IOException e) {
+                return;
+            } catch (Exception e) {
                 setLocale(context, defaultLocale);
-                throw new SecurityException("EncryptedPreferencesProvider23Plus", e);
+                fallbackCheck.edit().putBoolean("forceToFallback", true).apply();
             }
-        } else { //fallback for API 16-22
-            sharedPreferences = new SecurePreferences(context, null, name, 10000);
         }
+
+        //fallback
+        sharedPreferences = new SecurePreferences(context, null, name, 5000);
         setLocale(context, defaultLocale);
     }
 

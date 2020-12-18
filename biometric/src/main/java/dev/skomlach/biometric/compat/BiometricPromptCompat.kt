@@ -64,7 +64,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                 pendingTasks.add(execute)
                 BiometricLoggerImpl.e("BiometricPromptCompat.init()")
                 BiometricAuthentication.init(object : BiometricInitListener {
-                    override fun initFinished(method: BiometricMethod, module: BiometricModule) {}
+                    override fun initFinished(method: BiometricMethod, module: BiometricModule?) {}
                     override fun onBiometricReady() {
                         isInit = true
                         initInProgress = false

@@ -18,21 +18,10 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-
 import androidx.collection.LruCache;
 import androidx.core.util.ObjectsCompat;
-import androidx.lifecycle.LifecycleOwner;
-
 import com.jakewharton.rxrelay2.PublishRelay;
-import com.lge.display.DisplayManagerHelper;
-import com.microsoft.device.dualscreen.core.ScreenHelper;
-import com.microsoft.device.dualscreen.core.manager.ScreenModeListener;
-import com.microsoft.device.dualscreen.core.manager.SurfaceDuoScreenManager;
-import com.microsoft.device.dualscreen.fragmentshandler.FragmentManagerStateHandler;
-
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.logging.LogCat;
@@ -47,12 +36,6 @@ public class MultiWindowSupport {
     private static final PublishRelay<Activity> activityResumedRelay = PublishRelay.create();
     private static final PublishRelay<Activity> activityDestroyedRelay = PublishRelay.create();
     private static DisplayManager displayManager;
-    //https://docs.microsoft.com/en-us/dual-screen/android/api-reference/dualscreen-library/
-    private static SurfaceDuoScreenManager surfaceDuoScreenManager;
-    //https://mobile.developer.lge.com/develop/lgdual/lgdual_sdk/
-    //Create object in order to use API within DisplayManagerHelper.
-    private static DisplayManagerHelper mDisplayManagerHelper;
-    //https://medium.com/@huuphuoc1396/display-your-app-on-multi-screen-at-the-same-time-in-android-88b4c57a81
 
     static {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -61,26 +44,12 @@ public class MultiWindowSupport {
             } catch (Throwable ignore) {
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                surfaceDuoScreenManager = SurfaceDuoScreenManager.getInstance(AndroidContext.getAppContext());
-                FragmentManagerStateHandler.initialize(AndroidContext.getAppContext(), surfaceDuoScreenManager);
-            } catch (Throwable ignore) {
 
-            }
-        }
-        try {
-            mDisplayManagerHelper = new DisplayManagerHelper(AndroidContext.getAppContext());
-        } catch (Throwable ignore) {
-
-        }
         AndroidContext.getAppContext()
                 .registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
                     @Override
                     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
 
-                        if (surfaceDuoScreenManager != null)
-                            surfaceDuoScreenManager.onActivityCreated(activity, savedInstanceState);
                     }
 
                     @Override
@@ -120,11 +89,7 @@ public class MultiWindowSupport {
     private boolean isMultiWindow = false;
     private boolean isWindowOnScreenBottom = false;
     private DisplayManager.DisplayListener displayListener;
-    private ScreenModeListener screenModeListener;
-    // Callback object which will be used for obtaining DualScreen State.
-    private DisplayManagerHelper.CoverDisplayCallback mCoverDisplayCallback;
-    // Callback object which will be used for obtaining SmartCover status value.
-    private DisplayManagerHelper.SmartCoverCallback mSmartCoverCallback;
+
     private final Consumer<Activity> onDestroyListener = new Consumer<Activity>() {
         @Override
         public void accept(Activity activity1) {
@@ -139,7 +104,7 @@ public class MultiWindowSupport {
             }
         }
     };
-    private int mPrevDualScreenState = DisplayManagerHelper.STATE_UNMOUNT;
+
     private Configuration currentConfiguration = null;
     private final Consumer<Activity> onResumedListener = new Consumer<Activity>() {
         @Override
@@ -176,18 +141,7 @@ public class MultiWindowSupport {
         unregisterDualScreenListeners();
         try {
             if (displayManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                displayListener = new MyDisplayListener();
                 displayManager.registerDisplayListener(displayListener, ExecutorHelper.INSTANCE.getHandler());
-            }
-            if (surfaceDuoScreenManager != null && activity instanceof LifecycleOwner) {
-                screenModeListener = new MyScreenModeListener();
-                surfaceDuoScreenManager.addScreenModeListener((LifecycleOwner) activity, screenModeListener);
-            }
-            if (mDisplayManagerHelper != null) {
-                mCoverDisplayCallback = new MyCoverDisplayCallback();
-                mDisplayManagerHelper.registerCoverDisplayEnabledCallback(activity.getPackageName(), mCoverDisplayCallback);
-                mSmartCoverCallback = new MySmartCoverCallback();
-                mDisplayManagerHelper.registerSmartCoverCallback(mSmartCoverCallback);
             }
         } catch (Throwable e) {
             LogCat.logException(e);
@@ -199,22 +153,12 @@ public class MultiWindowSupport {
             if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 displayManager.unregisterDisplayListener(displayListener);
             }
-            if (surfaceDuoScreenManager != null && screenModeListener != null && activity instanceof LifecycleOwner)
-                surfaceDuoScreenManager.removeScreenModeListener((LifecycleOwner) activity);
-            if (mDisplayManagerHelper != null) {
-                if (mCoverDisplayCallback != null)
-                    mDisplayManagerHelper.unregisterCoverDisplayEnabledCallback(activity.getPackageName());
-                if (mSmartCoverCallback != null)
-                    mDisplayManagerHelper.unregisterSmartCoverCallback(mSmartCoverCallback);
-            }
+
         } catch (Throwable e) {
             LogCat.logException(e);
         }
 
         displayListener = null;
-        screenModeListener = null;
-        mCoverDisplayCallback = null;
-        mSmartCoverCallback = null;
     }
 
     private void updateState() {
@@ -229,42 +173,13 @@ public class MultiWindowSupport {
     //Unlike Android N method, this one support also non-Nougat+ multiwindow modes (like Samsung/LG/Huawei/etc solutions)
     private void checkIsInMultiWindow() {
 
-        Rect rect = null;
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && ScreenHelper.isDeviceSurfaceDuo(activity)) {
-                if (ScreenHelper.isDualMode(activity)) {
-                    List<Rect> list = new ArrayList<>();
-                    list.addAll(ScreenHelper.getScreenRectangles(activity));
-                    list.add(ScreenHelper.getHinge(activity));
-                    int top = Integer.MAX_VALUE, left = Integer.MAX_VALUE, right = 0, bottom = 0;
-                    for (Rect rct : list) {
-                        if (top >= rct.top)
-                            top = rct.top;
-                        if (left >= rct.left)
-                            left = rct.left;
-                        if (right <= rct.right)
-                            right = rct.right;
-                        if (bottom <= rct.bottom)
-                            bottom = rct.bottom;
-                    }
-                    rect = new Rect(left, top, right, bottom);
-                } else {
-                    rect = ScreenHelper.getScreenRectangles(activity).get(0);
-                }
-            }
-        } catch (Throwable e) {
-            LogCat.logException(e);
-        }
-
-        if (rect == null) {
-            rect = new Rect();
+        Rect rect =  new Rect();
             final ViewGroup decorView = activity.findViewById(Window.ID_ANDROID_CONTENT);
             decorView.getGlobalVisibleRect(rect);
             if (rect.width() == 0 && rect.height() == 0) {
                 return;
             }
-        }
+
         Point realScreenSize = getRealScreenSize();
 
         int statusBarHeight = getStatusBarHeight();
@@ -425,16 +340,6 @@ public class MultiWindowSupport {
         if (point != null) {
             return point;
         } else {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && ScreenHelper.isDeviceSurfaceDuo(activity)) {
-                    Rect rect = ScreenHelper.getWindowRect(activity);
-                    final Point size = new Point(rect.width(), rect.height());
-                    realScreenSize.put(configuration, size);
-                    return size;
-                }
-            } catch (Throwable e) {
-                LogCat.logException(e);
-            }
             WindowManager windowManager = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
             Display display = windowManager.getDefaultDisplay();
             int realWidth;
@@ -470,16 +375,8 @@ public class MultiWindowSupport {
     }
 
     private int getScreenOrientation() {
-        int orientation;
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && ScreenHelper.isDeviceSurfaceDuo(activity)) {
-                orientation = ScreenHelper.getCurrentRotation(activity);
-            } else {
-                orientation = activity.getResources().getConfiguration().orientation;
-            }
-        } catch (Throwable e) {
-            orientation = activity.getResources().getConfiguration().orientation;
-        }
+        int orientation = activity.getResources().getConfiguration().orientation;
+
 
         if (orientation == Configuration.ORIENTATION_UNDEFINED) {
             WindowManager windowManager = (WindowManager) activity
@@ -510,129 +407,5 @@ public class MultiWindowSupport {
         float screenHeight = realSize.y / dm.ydpi;
 
         return Math.sqrt(Math.pow(screenWidth, 2) + Math.pow(screenHeight, 2));
-    }
-
-    private static class MyScreenModeListener implements ScreenModeListener {
-
-        @Override
-        public void onSwitchToSingleScreen() {
-            LogCat.log("MultiWindowSupport: onSwitchToSingleScreen");
-        }
-
-        @Override
-        public void onSwitchToDualScreen() {
-            LogCat.log("MultiWindowSupport: onSwitchToDualScreen");
-        }
-    }
-
-    @SuppressWarnings("NewApi")
-    private static class MyDisplayListener implements DisplayManager.DisplayListener {
-        @Override
-        public void onDisplayAdded(int displayId) {
-            LogCat.log("MultiWindowSupport: onDisplayAdded-" + displayId);
-        }
-
-        @Override
-        public void onDisplayRemoved(int displayId) {
-            LogCat.log("MultiWindowSupport: onDisplayRemoved-" + displayId);
-        }
-
-        @Override
-        public void onDisplayChanged(int displayId) {
-            LogCat.log("MultiWindowSupport: onDisplayChanged-" + displayId);
-        }
-    }
-
-    private static class MySmartCoverCallback extends DisplayManagerHelper.SmartCoverCallback {
-
-        @Override
-
-        public void onTypeChanged(int type) {
-
-//
-//// In case of Dual Screen, fix default cover type = 0
-//
-//// Example of calling API which can check Smart Cover Type in real-time.
-//
-            LogCat.log("MultiWindowSupport: SmartCoverCallback - get SmartCoverCallback type : " + mDisplayManagerHelper.getCoverType() + "]");
-        }
-
-        @Override
-
-        public void onStateChanged(int state) {
-//
-//// Example of calling API which can check the Smart Cover value in rea-time.
-//
-//            SpLog.log("MultiWindowSupport: SmartCoverCallback - get Current SmartCoverCallback state : " +
-//
-//                    smartCoverStateToString(mDisplayManagerHelper.getCoverState()));
-//
-//// Operation process based on received Smart Cover status value.
-//
-            switch (mDisplayManagerHelper.getCoverState()) {
-
-                case DisplayManagerHelper.STATE_COVER_OPENED:
-
-                    LogCat.log("MultiWindowSupport: SmartCoverCallback - received  STATE_COVER_OPENED");
-
-                    break;
-
-                case DisplayManagerHelper.STATE_COVER_CLOSED:
-
-                    LogCat.log("MultiWindowSupport: SmartCoverCallback - received  STATE_COVER_CLOSED");
-
-                    break;
-
-                case DisplayManagerHelper.STATE_COVER_FLIPPED_OVER:
-
-                    LogCat.log("MultiWindowSupport: SmartCoverCallback - received  STATE_COVER_FLIPPED_OVER");
-
-                    break;
-            }
-        }
-    }
-
-    private class MyCoverDisplayCallback extends DisplayManagerHelper.CoverDisplayCallback {
-
-        @Override
-
-        public void onCoverDisplayEnabledChangedCallback(int state) {
-//
-//// Example of calling API which can check Dual Screen State in real-time.
-//
-//            SpLog.log("MultiWindowSupport: SmartCoverCallback - get Current DualScreen Callback state :" +
-//
-//                    coverDisplayStateToString(mDisplayManagerHelper.getCoverDisplayState()));
-//
-//// Start operating when received Dual Screen State is actually changed.
-//
-            if (mPrevDualScreenState != state) {
-
-                switch (state) {
-
-                    case DisplayManagerHelper.STATE_UNMOUNT:
-
-                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_UNMOUNT");
-
-                        break;
-
-                    case DisplayManagerHelper.STATE_DISABLED:
-
-                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_DISABLED");
-
-                        break;
-
-                    case DisplayManagerHelper.STATE_ENABLED:
-
-                        LogCat.log("MultiWindowSupport: CoverDisplayCallback - changed DualScreen State to STATE_ENABLED");
-
-                        break;
-                }
-
-// Save previous status value in order to check whether there are changes in status value being received at present.
-
-                mPrevDualScreenState = state;
-            }
-        }
     }
 }

@@ -31,7 +31,6 @@ dependencies {
     implementation 'androidx.biometric:biometric:+'
     implementation "androidx.appcompat:appcompat:1.2.0"
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
-    implementation 'com.tencent.soter:soter-core:+'
 }
 
 
@@ -66,21 +65,6 @@ publishing {
                 artifact("$buildDir/outputs/aar/${libArtifactId}-${variant.name}.aar")
 
                 pom.withXml {
-
-                    def repos = asNode().appendNode('repositories')
-                    project.repositories.each {
-                        def repo = it as MavenArtifactRepository
-                        def repository = repos.appendNode('repository')
-                        repository.appendNode('id', repo.url.host)
-                        repository.appendNode('name', repo.name)
-                        repository.appendNode('url', repo.url)
-
-                        def release = repository.appendNode('releases')
-                        release.appendNode('enabled', true)
-                        release.appendNode('updatePolicy', "always")
-                        release.appendNode('checksumPolicy', "ignore")
-
-                    }
 
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')

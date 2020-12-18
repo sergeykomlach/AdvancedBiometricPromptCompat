@@ -70,6 +70,7 @@ public class BiometricAuthentication {
         //any API
         allMethods.add(BiometricMethod.DUMMY_BIOMETRIC);
         allMethods.add(BiometricMethod.FACELOCK);
+        allMethods.add(BiometricMethod.FACE_SOTERAPI);
 
         //Samsung Pass appears on Kitkat
         if(Build.VERSION.SDK_INT >= 19) {
@@ -84,11 +85,10 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.FINGERPRINT_API23);
             allMethods.add(BiometricMethod.FINGERPRINT_SUPPORT);
         }
-        //Samsung, Oppo ans Soter seems like starts from Oreo
+        //Samsung, Oppo seems like starts from Oreo
         if(Build.VERSION.SDK_INT >= 26) {
             allMethods.add(BiometricMethod.FACE_SAMSUNG);
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
-            allMethods.add(BiometricMethod.FACE_SOTERAPI);
             allMethods.add(BiometricMethod.FACE_OPPO);
         }
         //Android biometric - Pie
