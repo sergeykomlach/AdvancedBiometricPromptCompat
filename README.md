@@ -158,12 +158,6 @@ BiometricPromptCompat.Builder builder =
  ***Please note:***  
   Methods `builder.setTitle()` and `builder.setNegativeButton()` are mandatory.  
   
-  
-You also able to specify desired BiometricAuthRequest use the next builder:  
-```java  
-BiometricPromptCompat.Builder builder =  
- new BiometricPromptCompat.Builder(BiometricAuthRequest, getActivity());
- ```   
    
  **BiometricPromptCompat:**  
     
