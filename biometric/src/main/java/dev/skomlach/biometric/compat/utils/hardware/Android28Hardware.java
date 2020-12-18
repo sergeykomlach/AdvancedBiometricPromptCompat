@@ -45,21 +45,21 @@ public class Android28Hardware extends AbstractHardware {
 
     @Override
     public boolean isHardwareAvailable() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return isAnyHardwareAvailable();
         return isHardwareAvailableForType();
     }
 
     @Override
     public boolean isBiometricEnrolled() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return isAnyBiometricEnrolled();
         return isBiometricEnrolledForType();
     }
 
     @Override
     public boolean isLockedOut() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return isAnyLockedOut();
         return isLockedOutForType();
     }

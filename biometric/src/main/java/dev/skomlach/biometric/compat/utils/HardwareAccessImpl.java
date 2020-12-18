@@ -36,7 +36,7 @@ public class HardwareAccessImpl {
             }
             if (!(hardwareInfo instanceof LegacyHardware)) {
                 LegacyHardware info = new LegacyHardware(biometricAuthRequest);
-                if (biometricAuthRequest.getType() == BiometricType.BIOMETRIC_UNDEFINED && info.getAvailableBiometricsCount() > 1) {
+                if (biometricAuthRequest.getType() == BiometricType.BIOMETRIC_ANY && info.getAvailableBiometricsCount() > 1) {
                     hardwareInfo = info;
                 } else if (!isHardwareReady(hardwareInfo) && isHardwareReady(info)) {
                     hardwareInfo = info;

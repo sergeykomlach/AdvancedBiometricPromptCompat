@@ -111,19 +111,22 @@ At first, better in `Application.onCreate()`, call
 BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
 ```   
 
+
+**BiometricManagerCompat**
+
 ##  
   
-  `static boolean hasEnrolled(BiometricAuthRequest)` - returns `true` if specified biometric enrolled  
+ `static boolean hasEnrolled()` - returns `true` if specified biometric enrolled  
    
- `static boolean isBiometricSensorPermanentlyLocked(BiometricAuthRequest)` - returns `true` if specified biometric permanently locked; Device lock-unlock or reboot required from the user  
+ `static boolean isBiometricSensorPermanentlyLocked()` - returns `true` if specified biometric permanently locked; Device lock-unlock or reboot required from the user  
    
- `static boolean isHardwareDetected(BiometricAuthRequest)` - returns `true` if specified biometric hardware available  
+ `static boolean isHardwareDetected()` - returns `true` if specified biometric hardware available  
    
- `static boolean isLockOut(BiometricAuthRequest)` - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock  
+ `static boolean isLockOut()` - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock  
    
- `static boolean isNewBiometricApi(BiometricAuthRequest)` - returns `true` if BiometricPrompt API used for specified biometric  
+ `static boolean isNewBiometricApi()` - returns `true` if BiometricPrompt API used for specified biometric  
    
- `static void openSettings(Activity, BiometricAuthRequest)` - Attempting to open the "Enroll biometric" settings screen for specified biometric  
+ `static void openSettings(Activity)` - Attempting to open the "Enroll biometric" settings screen for specified biometric  
 ##  
   
   
@@ -132,7 +135,7 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
   
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi and BiometricType;  
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDEFINED)` - means any available BiometricApi and BiometricType  
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY)` - means any available BiometricApi and BiometricType  
   
   
  **BiometricApi:**  
@@ -151,7 +154,7 @@ Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_UNDE
     
   `BiometricType.BIOMETRIC_IRIS` -  Use only **Iris** biometric, ignore others  
     
-  `BiometricType.BIOMETRIC_UNDEFINED` - use any available biometric (multiple types supported)  
+  `BiometricType.BIOMETRIC_ANY` - use any available biometric (multiple types supported)  
   
 ##  
   

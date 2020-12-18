@@ -1,12 +1,9 @@
 package dev.skomlach.biometric.compat
 
 import android.annotation.TargetApi
-import android.app.Activity
-import android.content.ComponentName
 import android.content.DialogInterface
-import android.content.Intent
 import android.os.Build
-import android.provider.Settings
+import android.os.Looper
 import android.view.View
 import android.view.ViewTreeObserver.OnWindowFocusChangeListener
 import androidx.annotation.ColorRes
@@ -15,6 +12,11 @@ import androidx.annotation.RestrictTo
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.FragmentActivity
+import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
+import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
+import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
+import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
+import dev.skomlach.biometric.compat.BiometricManagerCompat.isNewBiometricApi
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
@@ -25,29 +27,39 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.ActiveWindow
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
-import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils.startActivity
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
 
 class BiometricPromptCompat private constructor(private val impl: IBiometricPromptImpl) {
     companion object {
+        init {
+            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+        }
+        @JvmStatic
+        val availableAuthRequests = ArrayList<BiometricAuthRequest>()
+
         private val pendingTasks: MutableList<Runnable?> = ArrayList()
         @Volatile var isInit = false
             private set
 
         @Volatile
         private var initInProgress = false
-        fun init(execute: Runnable?) {
+        @MainThread
+        @JvmStatic
+        fun init(execute: Runnable? = null) {
+            if (Looper.getMainLooper().thread !== Thread.currentThread())
+                throw IllegalThreadStateException("Main Thread required")
+
             if (isInit) {
                 if (initInProgress) {
                     pendingTasks.add(execute)
                 } else execute?.let { ExecutorHelper.INSTANCE.handler.post(it) }
             } else {
+                AndroidContext.getAppContext()
                 initInProgress = true
                 pendingTasks.add(execute)
                 BiometricLoggerImpl.e("BiometricPromptCompat.init()")
@@ -56,6 +68,23 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                     override fun onBiometricReady() {
                         isInit = true
                         initInProgress = false
+                        //Add default first
+                        var biometricAuthRequest = BiometricAuthRequest()
+                        if (isHardwareDetected(biometricAuthRequest)) {
+                            availableAuthRequests.add(biometricAuthRequest)
+                        }
+
+                        for (api in BiometricApi.values()) {
+                            for (type in BiometricType.values()) {
+                                if (type == BiometricType.BIOMETRIC_ANY)
+                                    continue
+                                biometricAuthRequest = BiometricAuthRequest(api, type)
+                                if (isHardwareDetected(biometricAuthRequest)) {
+                                    availableAuthRequests.add(biometricAuthRequest)
+                                }
+                            }
+                        }
+
                         for (task in pendingTasks) {
                             task?.let { ExecutorHelper.INSTANCE.handler.post(it) }
                         }
@@ -66,104 +95,6 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             }
         }
 
-        fun isBiometricSensorPermanentlyLocked(
-            api: BiometricAuthRequest = BiometricAuthRequest(
-                BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
-            )
-        ): Boolean {
-            check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-            return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
-        }
-
-        fun isHardwareDetected(
-            api: BiometricAuthRequest = BiometricAuthRequest(
-                BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
-            )
-        ): Boolean {
-            check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-            return HardwareAccessImpl.getInstance(api).isHardwareAvailable
-        }
-
-        fun hasEnrolled(
-            api: BiometricAuthRequest = BiometricAuthRequest(
-                BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
-            )
-        ): Boolean {
-            check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-            return HardwareAccessImpl.getInstance(api).isBiometricEnrolled
-        }
-
-        fun isLockOut(
-            api: BiometricAuthRequest = BiometricAuthRequest(
-                BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
-            )
-        ): Boolean {
-            check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-            return HardwareAccessImpl.getInstance(api).isLockedOut
-        }
-
-        fun isNewBiometricApi(
-            api: BiometricAuthRequest = BiometricAuthRequest(
-                BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
-            )
-        ): Boolean {
-            check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-            return HardwareAccessImpl.getInstance(api).isNewBiometricApi
-        }
-
-        fun openSettings(
-            activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
-                BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
-            )
-        ) {
-            check(isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-            if (!HardwareAccessImpl.getInstance(api).isNewBiometricApi) {
-                BiometricAuthentication.openSettings(activity)
-            } else {
-                //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
-                if (startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
-                    return
-                }
-                if (startActivity(Intent("android.settings.BIOMETRIC_SETTINGS"), activity)) {
-                    return
-                }
-                if (startActivity(
-                        Intent().setComponent(
-                            ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
-                            )
-                        ), activity
-                    )
-                ) {
-                    return
-                }
-                if (startActivity(
-                        Intent().setComponent(
-                            ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings\$SecuritySettingsActivity"
-                            )
-                        ), activity
-                    )
-                ) {
-                    return
-                }
-                startActivity(
-                    Intent(Settings.ACTION_SETTINGS), activity
-                )
-            }
-        }
-
-        init {
-            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-        }
     }
 
     fun authenticate(callback: Result) {
@@ -300,7 +231,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(
                 BiometricApi.AUTO,
-                BiometricType.BIOMETRIC_UNDEFINED
+                BiometricType.BIOMETRIC_ANY
             ), context
         ) {
         }

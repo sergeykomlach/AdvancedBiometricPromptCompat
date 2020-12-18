@@ -5,6 +5,7 @@ import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.provider.Settings;
 import android.view.View;
 
@@ -63,7 +64,43 @@ public class BiometricAuthentication {
     public static void init(BiometricInitListener globalInitListener, Collection<BiometricType> mlist) {
         BiometricLoggerImpl.e("BiometricAuthentication.init()");
         //main thread required
-        final List<BiometricMethod> allMethods = Arrays.asList(BiometricMethod.values());
+        final ArrayList<BiometricMethod> allMethods = new ArrayList<>();
+
+
+        //any API
+        allMethods.add(BiometricMethod.DUMMY_BIOMETRIC);
+        allMethods.add(BiometricMethod.FACELOCK);
+
+        //Samsung Pass appears on Kitkat
+        if(Build.VERSION.SDK_INT >= 19) {
+            allMethods.add(BiometricMethod.FINGERPRINT_SAMSUNG);
+        }
+        //Meizu fingerprint - seems like starts Lollipop
+        if(Build.VERSION.SDK_INT >= 21) {
+            allMethods.add(BiometricMethod.FINGERPRINT_FLYME);
+        }
+        //Fingerprint API - Marshmallow
+        if(Build.VERSION.SDK_INT >= 23) {
+            allMethods.add(BiometricMethod.FINGERPRINT_API23);
+            allMethods.add(BiometricMethod.FINGERPRINT_SUPPORT);
+        }
+        //Samsung, Oppo ans Soter seems like starts from Oreo
+        if(Build.VERSION.SDK_INT >= 26) {
+            allMethods.add(BiometricMethod.FACE_SAMSUNG);
+            allMethods.add(BiometricMethod.IRIS_SAMSUNG);
+            allMethods.add(BiometricMethod.FACE_SOTERAPI);
+            allMethods.add(BiometricMethod.FACE_OPPO);
+        }
+        //Android biometric - Pie
+        if(Build.VERSION.SDK_INT >= 28) {
+            allMethods.add(BiometricMethod.FACE_ANDROIDAPI);
+            allMethods.add(BiometricMethod.IRIS_ANDROIDAPI);
+        }
+        //Huawei 3D Face - Android Q
+        if(Build.VERSION.SDK_INT >= 29) {
+            allMethods.add(BiometricMethod.FACE_HUAWEI_EMUI_10);
+        }
+
         moduleHashMap.clear();
         //launch in BG because for init needed about 2-3 seconds
 
@@ -116,6 +153,7 @@ public class BiometricAuthentication {
 
             for (BiometricMethod method : list) {
                 startTask(() -> {
+                    BiometricLoggerImpl.e("BiometricAuthentication.check started for "+method);
                     BiometricModule biometricModule = null;
                     try {
                         switch (method) {
@@ -170,14 +208,14 @@ public class BiometricAuthentication {
                                 throw new IllegalStateException("Uknowon biometric type - " + method);
                         }
                     } catch (Throwable e) {
-                        BiometricLoggerImpl.e(e);
+                        BiometricLoggerImpl.e(e, "BiometricAuthentication" );
                         initListener.initFinished(method, biometricModule);
                     }
                 });
 
             }
         } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            BiometricLoggerImpl.e(e, "BiometricAuthentication" );
         }
     }
 

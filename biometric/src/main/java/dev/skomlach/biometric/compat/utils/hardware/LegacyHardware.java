@@ -14,7 +14,7 @@ public class LegacyHardware extends AbstractHardware {
     }
 
     public int getAvailableBiometricsCount() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return BiometricAuthentication.getAvailableBiometrics().size();
 
         BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
@@ -23,7 +23,7 @@ public class LegacyHardware extends AbstractHardware {
 
     @Override
     public boolean isHardwareAvailable() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return BiometricAuthentication.isHardwareDetected();
 
         BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
@@ -32,7 +32,7 @@ public class LegacyHardware extends AbstractHardware {
 
     @Override
     public boolean isBiometricEnrolled() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return BiometricAuthentication.hasEnrolled();
 
         BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
@@ -41,7 +41,7 @@ public class LegacyHardware extends AbstractHardware {
 
     @Override
     public boolean isLockedOut() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED)
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
             return BiometricAuthentication.isLockOut();
 
         BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());

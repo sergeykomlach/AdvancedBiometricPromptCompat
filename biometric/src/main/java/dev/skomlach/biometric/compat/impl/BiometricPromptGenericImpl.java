@@ -67,7 +67,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     public List<String> getUsedPermissions() {
         final Set<String> permission = new HashSet<>();
         List<BiometricMethod> biometricMethodList = new ArrayList<>();
-        if (compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED) {
+        if (compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
             biometricMethodList.addAll(BiometricAuthentication.getAvailableBiometricMethods());
         } else {
             for (BiometricMethod m : BiometricAuthentication.getAvailableBiometricMethods()) {
@@ -131,7 +131,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public void startAuth() {
-        final List<BiometricType> types = compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_UNDEFINED ?
+        final List<BiometricType> types = compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY ?
                 BiometricAuthentication.getAvailableBiometrics() :
                 Collections.singletonList(compatBuilder.getBiometricAuthRequest().getType());
 
