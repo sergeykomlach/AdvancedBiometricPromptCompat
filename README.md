@@ -86,7 +86,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
   
   
-Add livvarry to Gradle:  
+Add dependency to Gradle:  
 ```groovy  
  implementation 'dev.skomlach:biometric:X.X.X' 
 ```  
