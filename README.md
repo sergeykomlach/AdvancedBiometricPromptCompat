@@ -74,13 +74,13 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
 | Fingerprint (Samsung Pass)  | Android 4.4+ and Samsung devices | Samsung Galaxy S5 |  
 | Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |  
-| Fingerprint | Android 6+ |Xiomi POCO F1|  
+| Fingerprint | Android 6+ |Xiaomi POCO F1|  
 | Fingerprint with In-screen scanner | Android 8+ |OnePlus 6T|  
 | Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|    
 | Samsung FaceID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|    
 | Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|  
-| BiometricPrompt API | Android 9+ |Xiomi POCO F1|  
+| BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
   
 ## Setup  
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
@@ -88,7 +88,13 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   
 Add dependency to Gradle:  
 ```groovy  
+repositories {
+   maven { url  "https://dl.bintray.com/salat-cx65/Maven" }
+}
+
+dependencies {
  implementation 'dev.skomlach:biometric:X.X.X' 
+}
 ```  
 ## Usage  
   

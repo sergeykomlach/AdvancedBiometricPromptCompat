@@ -51,5 +51,10 @@
       <option name="name" value="maven6" />
       <option name="url" value="https://dl.bintray.com/tencent-soter/maven/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven3" />
+      <option name="name" value="maven3" />
+      <option name="url" value="https://dl.bintray.com/salat-cx65/Maven" />
+    </remote-repository>
   </component>
 </project>

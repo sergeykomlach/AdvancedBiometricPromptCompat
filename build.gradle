@@ -5,11 +5,12 @@ buildscript {
     ext.targetSDK = 30
     ext.libsGroupId = "dev.skomlach"
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 4
+    ext.libsMinorVersion = 5
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
 //        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
+        maven { url  "https://dl.bintray.com/salat-cx65/Maven" }
         google()
         jcenter()
 
@@ -30,6 +31,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
 //        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
+        maven { url  "https://dl.bintray.com/salat-cx65/Maven" }
         google()
         jcenter()
 
