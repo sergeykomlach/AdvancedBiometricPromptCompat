@@ -88,6 +88,10 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   
 Add dependency to Gradle:  
 ```groovy  
+
+//NOTE: At the moment I am experiencing some problems with publishing one of the libraries on JCenter, so as a temporary solution, please use a mirror.
+//I will try to solve all the problems with JCenter ASAP.
+
 repositories {
    maven { url  "https://dl.bintray.com/salat-cx65/Maven" }
 }
@@ -96,6 +100,8 @@ dependencies {
  implementation 'dev.skomlach:biometric:X.X.X' 
 }
 ```  
+
+
 ## Usage  
   
   
