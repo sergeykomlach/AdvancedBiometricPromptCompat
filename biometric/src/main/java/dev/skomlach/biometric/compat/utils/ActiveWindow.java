@@ -1,12 +1,19 @@
 package dev.skomlach.biometric.compat.utils;
 
+import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
+import androidx.core.util.ObjectsCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import java.lang.reflect.Field;
@@ -31,6 +38,10 @@ public class ActiveWindow {
                 if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
                     continue;
                 }
+
+                if(getTopView(view, activity) == null)
+                    continue;
+
                 if (topView == null) {
                     topView = view;
                 } else {
@@ -47,8 +58,50 @@ public class ActiveWindow {
         }
         if (topView != null) {
             return topView;
-        } else {
-            return activity.findViewById(Window.ID_ANDROID_CONTENT);
+        }
+
+        throw new IllegalStateException("Unable to find Active Window to attach");
+    }
+
+    private static View getTopView(@Nullable View view, @NonNull Activity activity) {
+        if (view == null)
+            return null;
+        Context context = extractActivity(view.getContext());
+        if (context == null)
+            context = view.getContext();
+
+        if (ObjectsCompat.equals(activity, context)) {
+            return view;
+        }
+        else if (view instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) view;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                View v = getTopView(vg.getChildAt(i), activity);
+                if (v != null)
+                    return v;
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    private static Activity extractActivity(@NonNull Context context) {
+        while (true) {
+            if (context instanceof Application) {
+                return null;
+            } else if (context instanceof Activity) {
+                return (Activity) context;
+            } else if (context instanceof ContextWrapper) {
+                Context baseContext = ((ContextWrapper) context).getBaseContext();
+                // Prevent Stack Overflow.
+                if (baseContext == context) {
+                    return null;
+                }
+                context = baseContext;
+            } else {
+                return null;
+            }
         }
     }
 
