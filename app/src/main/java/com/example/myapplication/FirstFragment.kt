@@ -13,6 +13,7 @@ import com.example.myapplication.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -59,31 +60,6 @@ class FirstFragment : Fragment() {
         }
     }
 
-    fun startBiometric(biometricAuthRequest: BiometricAuthRequest) {
-
-        val biometricPromptCompat = BiometricPromptCompat.Builder(
-            biometricAuthRequest,
-            requireActivity()
-        )
-            .setTitle("Biometric for Fragment").setNegativeButton("Cancel", null).build()
-
-        biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
-            override fun onSucceeded() {
-                Toast.makeText(activity, "Succeeded", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onCanceled() {
-                Toast.makeText(activity, "Canceled", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onFailed(reason: AuthenticationFailureReason?) {
-                Toast.makeText(activity, "Error: $reason", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onUIShown() {
-            }
-        })
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

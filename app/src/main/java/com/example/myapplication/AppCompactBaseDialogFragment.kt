@@ -71,28 +71,5 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         )
     }
 
-    fun startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
-        val biometricPromptCompat = BiometricPromptCompat.Builder(
-            biometricAuthRequest,
-            requireActivity()
-        )
-            .setTitle("Biometric for DialogFragment").setNegativeButton("Cancel", null).build()
-        biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
-            override fun onSucceeded() {
-                Toast.makeText(activity, "Succeeded", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onCanceled() {
-                Toast.makeText(activity, "Canceled", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onFailed(reason: AuthenticationFailureReason?) {
-                Toast.makeText(activity, "Error: $reason", Toast.LENGTH_LONG).show()
-            }
-
-            override fun onUIShown() {
-            }
-        })
-    }
 }

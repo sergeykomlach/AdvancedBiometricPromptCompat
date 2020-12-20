@@ -122,7 +122,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
 
     private fun authenticateInternal(callback: Result) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            val d = ActiveWindow.getActiveView(impl.builder.context)
+            val d = impl.builder.activeWindow
             if (!d.isAttachedToWindow) {
                 checkForAttachAndStart(d, callback)
             } else {
@@ -227,6 +227,9 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var multiWindowSupport: MultiWindowSupport = MultiWindowSupport(context)
+
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        var activeWindow: View = ActiveWindow.getActiveView(context)
 
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(

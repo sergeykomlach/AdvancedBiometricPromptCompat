@@ -23,7 +23,6 @@ import java.util.List;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-
 @SuppressWarnings("unchecked")
 public class ActiveWindow {
     public static View getActiveView(FragmentActivity activity) {
@@ -39,7 +38,7 @@ public class ActiveWindow {
                     continue;
                 }
 
-                if(getTopView(view, activity) == null)
+                if(!viewBelongActivity(view, activity))
                     continue;
 
                 if (topView == null) {
@@ -63,26 +62,25 @@ public class ActiveWindow {
         throw new IllegalStateException("Unable to find Active Window to attach");
     }
 
-    private static View getTopView(@Nullable View view, @NonNull Activity activity) {
+    private static boolean viewBelongActivity(@Nullable View view, @NonNull Activity activity) {
         if (view == null)
-            return null;
+            return false;
         Context context = extractActivity(view.getContext());
         if (context == null)
             context = view.getContext();
 
         if (ObjectsCompat.equals(activity, context)) {
-            return view;
+            return true;
         }
         else if (view instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) view;
             for (int i = 0; i < vg.getChildCount(); i++) {
-                View v = getTopView(vg.getChildAt(i), activity);
-                if (v != null)
-                    return v;
+                if (viewBelongActivity(vg.getChildAt(i), activity))
+                    return true;
             }
         }
 
-        return null;
+        return false;
     }
 
     @Nullable

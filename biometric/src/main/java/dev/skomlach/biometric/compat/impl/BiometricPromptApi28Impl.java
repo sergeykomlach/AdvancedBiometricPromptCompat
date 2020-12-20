@@ -46,7 +46,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
     private final RestartPredicate restartPredicate = RestartPredicatesImpl.defaultPredicate();
     private BiometricPromptCompatDialogImpl dialog = null;
     private BiometricPromptCompat.Result callback;
-    private View activeWindow = null;
+    
     final BiometricPrompt.AuthenticationCallback authCallback = new BiometricPrompt.AuthenticationCallback() {
         //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
         private Boolean onePlusWithBiometricBugFailure = false;
@@ -76,7 +76,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             }
             //...present normal failed screen...
 
-            FocusLostDetection.stopListener(activeWindow);
+            FocusLostDetection.stopListener(compatBuilder.activeWindow);
 
             ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
                 @Override
@@ -160,7 +160,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
             BiometricLoggerImpl.d("BiometricPromptApi28Impl.onAuthenticationSucceeded:");
             this.onePlusWithBiometricBugFailure = false;
-            FocusLostDetection.stopListener(activeWindow);
+            FocusLostDetection.stopListener(compatBuilder.activeWindow);
 
             ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
                 @Override
@@ -178,7 +178,6 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
 
         this.compatBuilder = compatBuilder;
 
-        activeWindow = ActiveWindow.getActiveView(compatBuilder.getContext());
         BiometricPrompt.PromptInfo.Builder builder = new BiometricPrompt.PromptInfo.Builder();
         builder.setTitle(compatBuilder.title);
         if (compatBuilder.subtitle != null) {
@@ -212,7 +211,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             this.callback = cbk;
 
             //One Plus devices (6T and newer) - Activity do not lost the focus
-            FocusLostDetection.attachListener(activeWindow, new WindowFocusChangedListener() {
+            FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
                 @Override
                 public void onStartWatching() {
                     onUiShown();
@@ -238,7 +237,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         BiometricLoggerImpl.d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():");
         if (dialog != null) {
             if (dialog.cancelAuthenticateBecauseOnPause()) {
-                FocusLostDetection.stopListener(activeWindow);
+                FocusLostDetection.stopListener(compatBuilder.activeWindow);
                 return true;
             } else {
                 return false;
@@ -281,7 +280,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         else {
             biometricPrompt.cancelAuthentication();
         }
-        FocusLostDetection.stopListener(activeWindow);
+        FocusLostDetection.stopListener(compatBuilder.activeWindow);
     }
 
     @Override
