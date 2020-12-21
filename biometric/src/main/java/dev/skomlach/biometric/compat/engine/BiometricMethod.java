@@ -23,6 +23,8 @@ public enum BiometricMethod {
     FACE_HUAWEI_EMUI_10(205, BiometricType.BIOMETRIC_FACE),
     //https://github.com/Tencent/soter
     FACE_SOTERAPI(206, BiometricType.BIOMETRIC_FACE),
+
+    FACE_MIUI(207, BiometricType.BIOMETRIC_FACE),
     //old FaceLock impl
     //https://forum.xda-developers.com/showthread.php?p=25572510#post25572510
     FACELOCK(299, BiometricType.BIOMETRIC_FACE),
