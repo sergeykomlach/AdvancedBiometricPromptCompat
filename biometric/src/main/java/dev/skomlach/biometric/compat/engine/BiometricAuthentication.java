@@ -39,6 +39,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockM
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.API23FingerprintModule;
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.FlymeFingerprintModule;
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.SamsungFingerprintModule;
+import dev.skomlach.biometric.compat.engine.internal.fingerprint.SoterFingerprintUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.SupportFingerprintModule;
 import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule;
@@ -71,7 +72,7 @@ public class BiometricAuthentication {
         //any API
         allMethods.add(BiometricMethod.DUMMY_BIOMETRIC);
         allMethods.add(BiometricMethod.FACELOCK);
-        allMethods.add(BiometricMethod.FACE_SOTERAPI);
+
 
         //Samsung Pass appears on Kitkat
         if(Build.VERSION.SDK_INT >= 19) {
@@ -80,6 +81,9 @@ public class BiometricAuthentication {
         //Meizu fingerprint - seems like starts Lollipop
         if(Build.VERSION.SDK_INT >= 21) {
             allMethods.add(BiometricMethod.FINGERPRINT_FLYME);
+
+            allMethods.add(BiometricMethod.FACE_SOTERAPI);
+            allMethods.add(BiometricMethod.FINGERPRINT_SOTERAPI);
         }
         //Fingerprint API - Marshmallow
         if(Build.VERSION.SDK_INT >= 23) {
@@ -181,7 +185,9 @@ public class BiometricAuthentication {
                             case FINGERPRINT_FLYME:
                                 biometricModule = new FlymeFingerprintModule(initListener);
                                 break;
-
+                            case FINGERPRINT_SOTERAPI:
+                                biometricModule = new SoterFingerprintUnlockModule(initListener);
+                                break;
                             ///****//
                             case FACE_MIUI:
                                 biometricModule = new MiuiFaceUnlockModule(initListener);

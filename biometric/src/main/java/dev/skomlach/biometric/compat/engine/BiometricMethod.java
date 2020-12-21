@@ -12,6 +12,7 @@ public enum BiometricMethod {
     FINGERPRINT_SAMSUNG(102, BiometricType.BIOMETRIC_FINGERPRINT),
     //http://open-wiki.flyme.cn/index.php?title=%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%ABAPI
     FINGERPRINT_FLYME(103, BiometricType.BIOMETRIC_FINGERPRINT),
+    FINGERPRINT_SOTERAPI(104, BiometricType.BIOMETRIC_FINGERPRINT),
     //https://android-review.googlesource.com/c/platform/frameworks/base/+/640360/2/core/java/android/hardware/face/FaceAuthenticationManager.java#498
     FACE_ANDROIDAPI(201, BiometricType.BIOMETRIC_FACE),
     //https://github.com/fonix232/SCoverRE/blob/2374565740e4c7bfc653b3f05bd9be519e722e32/Reversed/framework/com/samsung/android/bio/face/SemBioFaceManager.java
