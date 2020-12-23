@@ -207,6 +207,11 @@ Secondly - anyway, the manager considered here uses system permissions, and as a
   
 Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.  
   
+##HOWTO SETUP 
+FaceUnlock: https://www.xda-developers.com/face-unlock/
+Fingerprint: TODO
+IrisUnlock: TODO
+  
 ## TODO  
 - ~~Simplify setup~~
 - Add more devices/manufacturers  

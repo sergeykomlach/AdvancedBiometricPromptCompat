@@ -45,7 +45,7 @@ public class ReflectionTools {
         try {
             return Class.forName(cls, true, getPathClassLoaderForPkg(pkg));
         } catch (Throwable e) {
-            throw new ClassNotFoundException("Class '" + pkg + "/" + cls + "' not found - " + e.getMessage());
+            throw new ClassNotFoundException("Class '" + pkg + "/" + cls + "' not found", e);
         }
     }
 
