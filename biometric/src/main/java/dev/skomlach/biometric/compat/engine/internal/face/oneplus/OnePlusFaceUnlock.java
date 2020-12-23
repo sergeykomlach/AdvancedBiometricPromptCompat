@@ -5,14 +5,14 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ServiceInfo;
+import android.content.pm.ResolveInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Process;
 import android.os.RemoteException;
+import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 
@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 
-import dev.skomlach.biometric.compat.utils.ReflectionTools;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
@@ -58,48 +57,26 @@ public class OnePlusFaceUnlock {
         mContext = context;
         // Retrieve all services that can match the given intent
         PackageManager pm = context.getPackageManager();
-        List<PackageInfo> pkgs = pm.getInstalledPackages(PackageManager.GET_SERVICES);
-        for (PackageInfo pkgInfo : pkgs) {
-            try {
-                String pkg = pkgInfo.packageName;
+        List<ResolveInfo> resolveInfo = pm.queryIntentServices(new Intent().setPackage("com.oneplus.faceunlock"), 0);
 
-                flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-                flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-                flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
-                flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
+        if (resolveInfo != null) {
+            for (ResolveInfo info : resolveInfo) {
+                try {
+                    String pkg = !TextUtils.isEmpty(info.resolvePackageName) ? info.resolvePackageName : info.serviceInfo.packageName;
 
-                for (ServiceInfo info : pkgInfo.services) {
-                    try {
-                        Class<?> serviceClazz = ReflectionTools.getClassFromPkg(pkg, info.name);
-                        Field[] fields = serviceClazz.getDeclaredFields();
-                        for (Field f : fields) {
-                            Class<?> type = f.getType();
-                            boolean isAccessible = f.isAccessible();
-                            try {
-                                if (!isAccessible)
-                                    f.setAccessible(true);
-                                if (type.equals(flInterface) ||
-                                        type.equals(flInterfaceStub) ||
-                                        type.equals(flCallbackInterface) ||
-                                        type.equals(flCallbackInterfaceStub)) {
+                        flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
+                        flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
+                        flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
+                        flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
 
-                                    SERVICE_PKG = new ComponentName(pkg, info.name);
-                                    BiometricLoggerImpl.d(TAG + " found for service " + SERVICE_PKG.flattenToString());
-                                    return;
-                                }
-                            } finally {
-                                if (!isAccessible)
-                                    f.setAccessible(false);
-                            }
-                        }
-                    } catch (Throwable ignore) {
-
-                    }
+                    SERVICE_PKG = new ComponentName(pkg, info.serviceInfo.name);
+                    return;
+                } catch (Throwable e) {
+                    BiometricLoggerImpl.e(e);
                 }
-            } catch (Throwable ignore) {
-
             }
         }
+
 
         throw new RuntimeException(TAG + " not supported");
     }

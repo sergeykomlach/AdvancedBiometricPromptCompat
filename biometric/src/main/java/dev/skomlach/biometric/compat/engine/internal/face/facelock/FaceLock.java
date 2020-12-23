@@ -10,13 +10,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ServiceInfo;
+import android.content.pm.ResolveInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 
@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import dev.skomlach.biometric.compat.utils.LockType;
-import dev.skomlach.biometric.compat.utils.ReflectionTools;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
@@ -66,53 +65,30 @@ public class FaceLock {
         mContext = context;
         // Retrieve all services that can match the given intent
         PackageManager pm = context.getPackageManager();
-        List<PackageInfo> pkgs = pm.getInstalledPackages(PackageManager.GET_SERVICES);
-        for (PackageInfo pkgInfo : pkgs) {
-            try {
-                String pkg = pkgInfo.packageName;
+        List<ResolveInfo> resolveInfo = pm.queryIntentServices(new Intent().setPackage("com.android.facelock"), 0);
+
+        if (resolveInfo != null) {
+            for (ResolveInfo info : resolveInfo) {
                 try {
-                    flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-                    flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-                    flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
-                    flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
-                } catch (Throwable ignored) {
-                    flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE);
-                    flInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE + "$Stub");
-                    flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK);
-                    flCallbackInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK + "$Stub");
-                }
+                    String pkg = !TextUtils.isEmpty(info.resolvePackageName) ? info.resolvePackageName : info.serviceInfo.packageName;
 
-                for (ServiceInfo info : pkgInfo.services) {
                     try {
-                        Class<?> serviceClazz = ReflectionTools.getClassFromPkg(pkg, info.name);
-                        Field[] fields = serviceClazz.getDeclaredFields();
-                        for (Field f : fields) {
-                            Class<?> type = f.getType();
-                            //private final com.android.internal.policy.IFaceLockInterface$Stub binder;
-                            boolean isAccessible = f.isAccessible();
-                            try {
-                                if (!isAccessible)
-                                    f.setAccessible(true);
-                                if (type.equals(flInterface) ||
-                                        type.equals(flInterfaceStub) ||
-                                        type.equals(flCallbackInterface) ||
-                                        type.equals(flCallbackInterfaceStub)) {
-
-                                    SERVICE_PKG = new ComponentName(pkg, info.name);
-                                    BiometricLoggerImpl.d(TAG + " found for service " + SERVICE_PKG.flattenToString());
-                                    return;
-                                }
-                            } finally {
-                                if (!isAccessible)
-                                    f.setAccessible(false);
-                            }
-                        }
-                    } catch (Throwable ignore) {
-
+                        flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
+                        flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
+                        flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
+                        flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
+                    } catch (Throwable ignored) {
+                        flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE);
+                        flInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE + "$Stub");
+                        flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK);
+                        flCallbackInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK + "$Stub");
                     }
-                }
-            } catch (Throwable ignore) {
 
+                    SERVICE_PKG = new ComponentName(pkg, info.serviceInfo.name);
+                    return;
+                } catch (Throwable e) {
+                    BiometricLoggerImpl.e(e);
+                }
             }
         }
 
