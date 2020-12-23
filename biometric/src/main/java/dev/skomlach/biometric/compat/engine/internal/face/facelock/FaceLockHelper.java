@@ -40,8 +40,19 @@ public class FaceLockHelper {
     protected FaceLockHelper(Context context, FaceLockInterface faceLockInterface) {
         this.context = context;
         this.faceLockInterface = faceLockInterface;
+
+        try {
+            if (mFaceLock == null) {
+                mFaceLock = new FaceLock(context);
+            }
+        } catch (Throwable e){
+            mFaceLock = null;
+        }
     }
 
+    public boolean faceUnlockAvailable(){
+        return mFaceLock != null;
+    }
     public static String getMessage(int code) {
 
         switch (code) {
@@ -77,9 +88,6 @@ public class FaceLockHelper {
         BiometricLoggerImpl.d(TAG + ".initFacelock");
         try {
 
-            if (mFaceLock == null) {
-                mFaceLock = new FaceLock(context);
-            }
             mCallback = new IFaceLockCallback() {
 
                 private boolean mStarted = false;

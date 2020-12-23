@@ -34,13 +34,6 @@ public class FacelockOldModule extends AbstractBiometricModule {
     public FacelockOldModule(BiometricInitListener initlistener) {
         super(BiometricMethod.FACELOCK);
         this.listener = initlistener;
-        if (!isHardwarePresent()) {
-            if (listener != null) {
-                listener.initFinished(BiometricMethod.FACELOCK, FacelockOldModule.this);
-                listener = null;
-            }
-            return;
-        }
 
         final FaceLockInterface faceLockInterface = new FaceLockInterface() {
             @Override
@@ -118,7 +111,15 @@ public class FacelockOldModule extends AbstractBiometricModule {
         };
 
         faceLockHelper = new FaceLockHelper(getContext(), faceLockInterface);
-        faceLockHelper.initFacelock();
+        if (!isHardwarePresent()) {
+            if (listener != null) {
+                listener.initFinished(BiometricMethod.FACELOCK, FacelockOldModule.this);
+                listener = null;
+            }
+            return;
+        } else {
+            faceLockHelper.initFacelock();
+        }
     }
 
     public void stopAuth() {
@@ -134,13 +135,10 @@ public class FacelockOldModule extends AbstractBiometricModule {
     @Override
     public boolean isHardwarePresent() {
         // Retrieve all services that can match the given intent
-        final PackageManager pm = getContext().getPackageManager();
-        try {
-            pm.getPackageInfo("com.android.facelock", PackageManager.GET_ACTIVITIES);
-        } catch (PackageManager.NameNotFoundException e) {
+        if (!faceLockHelper.faceUnlockAvailable())
             return false;
-        }
 
+        final PackageManager pm = getContext().getPackageManager();
         if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
             return false;
         }
