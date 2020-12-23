@@ -234,7 +234,7 @@ public class FaceLockHelper {
                 BiometricLoggerImpl.d(TAG + ".Starting FaceId");
                 Rect rect = new Rect();
                 targetView.getGlobalVisibleRect(rect);
-                BiometricLoggerImpl.d(TAG + ("FaceId rect: " + rect));
+                BiometricLoggerImpl.d(TAG + (" rect: " + rect));
                 mFaceLock.startUi(targetView.getWindowToken(),
                         rect.left, rect.top,
                         rect.width(), rect.height()
