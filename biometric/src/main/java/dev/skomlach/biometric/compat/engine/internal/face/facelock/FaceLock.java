@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import dev.skomlach.biometric.compat.utils.LockType;
+import dev.skomlach.biometric.compat.utils.ReflectionTools;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
@@ -66,31 +67,52 @@ public class FaceLock {
         // Retrieve all services that can match the given intent
         PackageManager pm = context.getPackageManager();
         List<ResolveInfo> resolveInfo = pm.queryIntentServices(new Intent().setPackage("com.android.facelock"), 0);
-
         if (resolveInfo != null) {
+            BiometricLoggerImpl.d(TAG + " services list - "+resolveInfo.size());
             for (ResolveInfo info : resolveInfo) {
                 try {
                     String pkg = !TextUtils.isEmpty(info.resolvePackageName) ? info.resolvePackageName : info.serviceInfo.packageName;
 
-                    try {
-                        flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-                        flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-                        flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
-                        flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
-                    } catch (Throwable ignored) {
-                        flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE);
-                        flInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE + "$Stub");
-                        flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK);
-                        flCallbackInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK + "$Stub");
+                    if(flCallbackInterfaceStub == null) {
+                        try {
+                            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
+                            flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
+                            flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
+                            flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
+                        } catch (Throwable ignored) {
+                            flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE);
+                            flInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE + "$Stub");
+                            flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK);
+                            flCallbackInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK + "$Stub");
+                        }
                     }
-
-                    SERVICE_PKG = new ComponentName(pkg, info.serviceInfo.name);
-                    return;
+                    Class<?> serviceClazz = ReflectionTools.getClassFromPkg(pkg, info.serviceInfo.name);
+                    Field[] fields = serviceClazz.getDeclaredFields();
+                    for (Field f : fields) {
+                        Class<?> type = f.getType();
+                        //private final com.android.internal.policy.IFaceLockInterface$Stub binder;
+                        boolean isAccessible = f.isAccessible();
+                        try {
+                            if (!isAccessible)
+                                f.setAccessible(true);
+                            if (type.equals(flInterface) ||
+                                    type.equals(flInterfaceStub) ||
+                                    type.equals(flCallbackInterface) ||
+                                    type.equals(flCallbackInterfaceStub)) {
+                                SERVICE_PKG = new ComponentName(pkg, info.serviceInfo.name);
+                                return;
+                            }
+                        } finally {
+                            if (!isAccessible)
+                                f.setAccessible(false);
+                        }
+                    }
                 } catch (Throwable e) {
                     BiometricLoggerImpl.e(e);
                 }
             }
-        }
+        } else
+            BiometricLoggerImpl.d(TAG + " services list is empty");
 
         throw new RuntimeException(TAG + " not supported");
     }

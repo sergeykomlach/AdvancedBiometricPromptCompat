@@ -46,6 +46,7 @@ public class FaceLockHelper {
                 mFaceLock = new FaceLock(context);
             }
         } catch (Throwable e){
+            BiometricLoggerImpl.e(e);
             mFaceLock = null;
         }
     }
