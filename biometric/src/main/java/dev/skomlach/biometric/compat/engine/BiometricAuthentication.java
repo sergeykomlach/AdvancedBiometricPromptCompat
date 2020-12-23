@@ -90,12 +90,13 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.FINGERPRINT_API23);
             allMethods.add(BiometricMethod.FINGERPRINT_SUPPORT);
         }
-        //Samsung, Oppo seems like starts from Oreo
+        //Samsung and others - seems like starts from Oreo
         if(Build.VERSION.SDK_INT >= 26) {
             allMethods.add(BiometricMethod.FACE_SAMSUNG);
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
             allMethods.add(BiometricMethod.FACE_OPPO);
             allMethods.add(BiometricMethod.FACE_MIUI);
+            allMethods.add(BiometricMethod.FACE_ONEPLUS);
         }
         //Android biometric - Pie
         if(Build.VERSION.SDK_INT >= 28) {

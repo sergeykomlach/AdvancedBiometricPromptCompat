@@ -1,9 +1,4 @@
-/*
-See original thread
-https://forum.xda-developers.com/showthread.php?p=25572510#post25572510
-*/
-
-package dev.skomlach.biometric.compat.engine.internal.face.facelock;
+package dev.skomlach.biometric.compat.engine.internal.face.oneplus;
 
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
@@ -16,6 +11,7 @@ import android.content.pm.ServiceInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
+import android.os.Process;
 import android.os.RemoteException;
 
 import androidx.annotation.RestrictTo;
@@ -27,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 
-import dev.skomlach.biometric.compat.utils.LockType;
 import dev.skomlach.biometric.compat.utils.ReflectionTools;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
@@ -36,33 +31,30 @@ import static dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPk
 
 @SuppressLint("PrivateApi")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class FaceLock {
+public class OnePlusFaceUnlock {
 
-    private static final String TAG = "FaceId";
+    private static final String TAG = "OnePlusFaceUnlock";
 
-    //START u0 {act=miui.intent.action.CHECK_ACCESS_CONTROL flg=0x18800000 pkg=com.miui.securitycenter cmp=com.miui.securitycenter/com.miui.applicationlock.ConfirmAccessControl (has extras)} from uid 10060
+    //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
 
-    //Intent intent = new Intent("com.xiaomi.biometric.BiometricService");
-    //intent.setPackage("com.xiaomi.biometric");
+    //String FACEUNLOCK_PACKAGE = "com.oneplus.faceunlock";
+    //String FACEUNLOCK_SERVICE = "com.oneplus.faceunlock.FaceUnlockService";
+    //"com.oneplus.faceunlock.internal.IOPFacelockService"
 
+    private static final String FACELOCK_INTERFACE = "com.oneplus.faceunlock.internal.IOPFacelockService";
+    private static final String FACELOCK_CALLBACK = "com.oneplus.faceunlock.internal.IOPFacelockCallback";
 
-    private static final String FACELOCK_INTERFACE = "com.android.internal.policy.IFaceLockInterface";
-    private static final String FACELOCK_CALLBACK = "com.android.internal.policy.IFaceLockCallback";
-
-    private static final String TRUSTEDFACE_INTERFACE = "com.android.facelock.ITrustedFaceInterface";
-    private static final String TRUSTEDFACE_CALLBACK = "com.android.facelock.ITrustedFaceCallback";
     private final Context mContext;
     protected Object mFaceLockService;
     protected ServiceConnectionWrapper mServiceConnection;
-    protected HashMap<IFaceLockCallback, Object> mMap = new HashMap<>();
+    protected HashMap<IOPFacelockCallback, Object> mMap = new HashMap<>();
     private ComponentName SERVICE_PKG = null;
     private Class<?> flInterface;
     private Class<?> flInterfaceStub;
     private Class<?> flCallbackInterface;
     private Class<?> flCallbackInterfaceStub;
 
-
-    public FaceLock(Context context) throws Exception {
+    public OnePlusFaceUnlock(Context context) throws Exception {
         mContext = context;
         // Retrieve all services that can match the given intent
         PackageManager pm = context.getPackageManager();
@@ -70,17 +62,11 @@ public class FaceLock {
         for (PackageInfo pkgInfo : pkgs) {
             try {
                 String pkg = pkgInfo.packageName;
-                try {
-                    flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-                    flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-                    flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
-                    flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
-                } catch (Throwable ignored) {
-                    flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE);
-                    flInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE + "$Stub");
-                    flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK);
-                    flCallbackInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK + "$Stub");
-                }
+
+                flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
+                flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
+                flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
+                flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
 
                 for (ServiceInfo info : pkgInfo.services) {
                     try {
@@ -88,7 +74,6 @@ public class FaceLock {
                         Field[] fields = serviceClazz.getDeclaredFields();
                         for (Field f : fields) {
                             Class<?> type = f.getType();
-                            //private final com.android.internal.policy.IFaceLockInterface$Stub binder;
                             boolean isAccessible = f.isAccessible();
                             try {
                                 if (!isAccessible)
@@ -138,43 +123,23 @@ public class FaceLock {
         mServiceConnection = null;
     }
 
-    public void startUi(IBinder token, int x, int y, int width, int height)
-            throws android.os.RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    public void startFaceUnlock()
+            throws RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         BiometricLoggerImpl.d(TAG + " startUi");
 
-        try {
-            Method method = flInterface.getMethod("start");
-            method.invoke(mFaceLockService);
-            return;
-        } catch (InvocationTargetException e) {}
-        //newer API
-        try {
-            Method method = flInterface.getMethod("startUi", IBinder.class, int.class, int.class, int.class, int.class,
-                    boolean.class);
-            method.invoke(mFaceLockService, token, x, y, width, height, LockType.isBiometricWeakLivelinessEnabled(mContext));
-            return;
-        } catch (InvocationTargetException ignore) {}
-        try {
-            //older API's
-            Method method = flInterface.getMethod("startUi", IBinder.class, int.class, int.class, int.class, int.class);
-            method.invoke(mFaceLockService, token, x, y, width, height);
-        } catch (InvocationTargetException e) { }
+        Method method = flInterface.getMethod("startFaceUnlock", int.class);
+        method.invoke(mFaceLockService, Process.myUid());
     }
 
-    public void stopUi()
-            throws android.os.RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    public void stopFaceUnlock()
+            throws RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         BiometricLoggerImpl.d(TAG + " stopUi");
-        try {
-            if (flInterface != null)
-                flInterface.getMethod("stop").invoke(mFaceLockService);
-            return;
-        } catch (InvocationTargetException e) {}
 
         if (flInterface != null)
-            flInterface.getMethod("stopUi").invoke(mFaceLockService);
+            flInterface.getMethod("stopFaceUnlock", int.class).invoke(mFaceLockService, Process.myUid());
     }
 
-    public void registerCallback(IFaceLockCallback cb)
+    public void registerCallback(IOPFacelockCallback cb)
             throws NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
         BiometricLoggerImpl.d(TAG + " registerCallback");
 
@@ -195,8 +160,8 @@ public class FaceLock {
         }
     }
 
-    public void unregisterCallback(IFaceLockCallback cb)
-            throws android.os.RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+    public void unregisterCallback(IOPFacelockCallback cb)
+            throws RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         BiometricLoggerImpl.d(TAG + " unregisterCallback");
         flInterface.getMethod("unregisterCallback", flCallbackInterface)
                 .invoke(mFaceLockService, mMap.get(cb));
@@ -219,6 +184,9 @@ public class FaceLock {
             try {
                 mFaceLockService = flInterfaceStub.getMethod("asInterface", IBinder.class)
                         .invoke(null, service);
+                if (flInterface != null)
+                    flInterface.getMethod("prepare").invoke(mFaceLockService);
+
                 mServiceConnection.onServiceConnected(name, service);
             } catch (IllegalArgumentException e) {
                 mFaceLockService = null;
@@ -238,7 +206,12 @@ public class FaceLock {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             BiometricLoggerImpl.d(TAG + " service disconnected");
-
+            try {
+                if (flInterface != null)
+                    flInterface.getMethod("release").invoke(mFaceLockService);
+            } catch (Throwable e) {
+                BiometricLoggerImpl.e(e, TAG + e.getMessage());
+            }
             mServiceConnection.onServiceDisconnected(name);
             mFaceLockService = null;
         }
@@ -246,14 +219,14 @@ public class FaceLock {
 
     private class CallBackBinder extends Binder {
 
-        private final IFaceLockCallback mCallback;
+        private final IOPFacelockCallback mCallback;
         private final HashMap<Integer, String> mMap = new HashMap<>();
 
-        CallBackBinder(IFaceLockCallback callback) {
+        CallBackBinder(IOPFacelockCallback callback) {
             mCallback = callback;
 
             // Find matching TRANSACTION_**** values
-            Method[] methods = IFaceLockCallback.class.getMethods();
+            Method[] methods = IOPFacelockCallback.class.getMethods();
 
             for (Method m : methods) {
                 try {
@@ -287,7 +260,7 @@ public class FaceLock {
                 // Callback may be called outside the UI thread
                 ExecutorHelper.INSTANCE.getHandler().post(() -> {
                     try {
-                        IFaceLockCallback.class.getMethod(mMap.get(code)).invoke(mCallback);
+                        IOPFacelockCallback.class.getMethod(mMap.get(code)).invoke(mCallback);
                     } catch (IllegalArgumentException e) {
 
                         BiometricLoggerImpl.e(e, TAG + e.getMessage());
