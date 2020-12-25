@@ -42,7 +42,6 @@ public class OnePlusFaceUnlockHelper {
                 mOnePlusFaceUnlock = new OnePlusFaceUnlock(context);
             }
         } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
             mOnePlusFaceUnlock = null;
         }
     }
