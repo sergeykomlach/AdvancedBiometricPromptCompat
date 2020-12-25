@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnl
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule;
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockEMIUI10Module;
 import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockModule;
+import dev.skomlach.biometric.compat.engine.internal.face.oneplus.OnePlusFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule;
@@ -95,7 +96,8 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_SAMSUNG);
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
             allMethods.add(BiometricMethod.FACE_OPPO);
-            allMethods.add(BiometricMethod.FACE_MIUI);
+
+//            allMethods.add(BiometricMethod.FACE_MIUI);
             allMethods.add(BiometricMethod.FACE_ONEPLUS);
         }
         //Android biometric - Pie
@@ -190,6 +192,9 @@ public class BiometricAuthentication {
                                 biometricModule = new SoterFingerprintUnlockModule(initListener);
                                 break;
                             ///****//
+                            case FACE_ONEPLUS:
+                                biometricModule = new OnePlusFaceUnlockModule(initListener);
+                                break;
                             case FACE_MIUI:
                                 biometricModule = new MiuiFaceUnlockModule(initListener);
                                 break;
@@ -386,6 +391,12 @@ public class BiometricAuthentication {
         }
 
         if (biometricModule instanceof FacelockOldModule && startActivity(new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)) {
+            return;
+        }
+
+        if(biometricModule instanceof OnePlusFaceUnlockModule && startActivity(
+                new Intent().setClassName("com.android.settings", "com.android.settings.Settings$OPFaceUnlockSettings"),
+                context)){
             return;
         }
 

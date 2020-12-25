@@ -15,12 +15,13 @@ import dev.skomlach.biometric.compat.engine.internal.core.Core;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
-import dev.skomlach.biometric.compat.utils.LockType;
+import dev.skomlach.biometric.compat.utils.SettingsHelper;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
-
+    private static final String ONEPLUS_AUTO_FACE_UNLOCK_ENABLE = "oneplus_auto_face_unlock_enable";
+    private static final String ONEPLUS_FACE_UNLOCK_ENABLE = "oneplus_face_unlock_enable";
     public static final int BIOMETRIC_AUTHENTICATION_FAILED = 1001;
     private OnePlusFaceUnlockHelper onePlusFaceUnlockHelper = null;
     private ProxyListener facelockProxyListener = null;
@@ -151,7 +152,9 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
 
     @Override
     public boolean hasEnrolled() throws SecurityException {
-        return LockType.isBiometricWeakEnabled(getContext());
+        return SettingsHelper.getInt(getContext(), ONEPLUS_FACE_UNLOCK_ENABLE, 0) == 1
+//                ||SettingsHelper.getInt(getContext(), ONEPLUS_AUTO_FACE_UNLOCK_ENABLE, 0) == 1
+                ;
     }
 
     @Override
