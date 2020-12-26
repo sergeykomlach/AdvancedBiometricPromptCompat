@@ -32,7 +32,6 @@ import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricMo
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule;
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockEMIUI10Module;
-import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.oneplus.OnePlusFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule;
@@ -96,8 +95,6 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_SAMSUNG);
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
             allMethods.add(BiometricMethod.FACE_OPPO);
-
-//            allMethods.add(BiometricMethod.FACE_MIUI);
             allMethods.add(BiometricMethod.FACE_ONEPLUS);
         }
         //Android biometric - Pie
@@ -194,9 +191,6 @@ public class BiometricAuthentication {
                             ///****//
                             case FACE_ONEPLUS:
                                 biometricModule = new OnePlusFaceUnlockModule(initListener);
-                                break;
-                            case FACE_MIUI:
-                                biometricModule = new MiuiFaceUnlockModule(initListener);
                                 break;
                             case FACE_SOTERAPI:
                                 biometricModule = new SoterFaceUnlockModule(initListener);
