@@ -121,7 +121,7 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
    
  `static boolean isNewBiometricApi()` - returns `true` if BiometricPrompt API used for specified biometric  
    
- `static void openSettings(Activity)` - Attempting to open the "Enroll biometric" settings screen for specified biometric  
+ `static boolean openSettings(Activity)` -  returns `true` if open the "Enroll biometric" settings screen for specified biometric  
 ##  
   
   
