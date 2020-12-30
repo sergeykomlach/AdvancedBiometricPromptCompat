@@ -359,86 +359,59 @@ public class BiometricAuthentication {
         Core.cancelAuthentication();
     }
 
-    public static void openSettings(Activity context) {
-        if (getAvailableBiometrics().isEmpty()) {
-            openSettings(context, null, null);
-            return;
+    public static boolean openSettings(Activity context, BiometricType type) {
+        if (getAvailableBiometricMethods().isEmpty()) {
+            return false;
         }
-
-        //at first, try to open not enrolled settings
-        for (BiometricType method : getAvailableBiometrics()) {
-            BiometricModule biometricModule = getAvailableBiometricModule(method);
-            if (biometricModule.isHardwarePresent() && biometricModule.hasEnrolled())
-                continue;
-            openSettings(context, method, biometricModule);
-            return;
-        }
-        //in case user planing add new finger/face/iris
-        openSettings(context, getAvailableBiometrics().get(0), getAvailableBiometricModule(getAvailableBiometrics().get(0)));
+        return openSettings(context, type, getAvailableBiometricModule(type));
     }
 
-    private static void openSettings(Activity context, BiometricType method, BiometricModule biometricModule) {
+    private static boolean openSettings(Activity context, BiometricType method, BiometricModule biometricModule) {
 
         if (biometricModule instanceof SamsungFingerprintModule) {
             if (((SamsungFingerprintModule) biometricModule).openSettings(context))
-                return;
+                return true;
         }
 
         if (biometricModule instanceof FacelockOldModule && startActivity(new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)) {
-            return;
+            return true;
         }
 
         if(biometricModule instanceof OnePlusFaceUnlockModule && startActivity(
                 new Intent().setClassName("com.android.settings", "com.android.settings.Settings$OPFaceUnlockSettings"),
                 context)){
-            return;
+            return true;
         }
 
         //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_FINGERPRINT required" - but not should be
         if (BiometricType.BIOMETRIC_FINGERPRINT == method
                 && startActivity(new Intent("android.settings.FINGERPRINT_ENROLL"), context)) {
-            return;
+            return true;
         }
         if (method == BiometricType.BIOMETRIC_FINGERPRINT
                 && startActivity(new Intent("android.settings.FINGERPRINT_SETTINGS"), context)) {
-            return;
+            return true;
         }
 
         if (BiometricType.BIOMETRIC_FACE == method
                 && startActivity(new Intent("android.settings.FACE_ENROLL"), context)) {
-            return;
+            return true;
         }
         if (method == BiometricType.BIOMETRIC_FACE
                 && startActivity(new Intent("android.settings.FACE_SETTINGS"), context)) {
-            return;
+            return true;
         }
 
         if (BiometricType.BIOMETRIC_IRIS == method
                 && startActivity(new Intent("android.settings.IRIS_ENROLL"), context)) {
-            return;
+            return true;
         }
         if (method == BiometricType.BIOMETRIC_IRIS
                 && startActivity(new Intent("android.settings.IRIS_SETTINGS"), context)) {
-            return;
+            return true;
         }
 
-        if (startActivity(new Intent("android.settings.BIOMETRIC_ENROLL"), context)) {
-            return;
-        }
-        if (startActivity(new Intent("android.settings.BIOMETRIC_SETTINGS"), context)) {
-            return;
-        }
-        if (startActivity(new Intent().setComponent(
-                new ComponentName("com.android.settings", "com.android.settings.Settings$BiometricsAndSecuritySettingsActivity")), context)) {
-            return;
-        }
-        if (startActivity(new Intent().setComponent(
-                new ComponentName("com.android.settings", "com.android.settings.Settings$SecuritySettingsActivity")), context)) {
-            return;
-        }
-
-        startActivity(
-                new Intent(Settings.ACTION_SETTINGS), context);
+        return false;
     }
 
     public static BiometricModule getAvailableBiometricModule(BiometricType biometricMethod) {

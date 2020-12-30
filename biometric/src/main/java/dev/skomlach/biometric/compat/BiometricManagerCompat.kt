@@ -63,13 +63,14 @@ object BiometricManagerCompat {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
         return HardwareAccessImpl.getInstance(api).isNewBiometricApi
     }
+
     @JvmStatic
     fun openSettings(
         activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
         )
-    ) {
+    ): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
 
         try {
@@ -78,6 +79,7 @@ object BiometricManagerCompat {
             val authType = when (api.type) {
                 BiometricType.BIOMETRIC_FINGERPRINT -> 1
                 BiometricType.BIOMETRIC_IRIS -> 2
+                BiometricType.BIOMETRIC_FACE -> 3
                 else -> 0
             }
             val ifaamanager = IFAAManagerFactory.getIFAAManager(
@@ -88,20 +90,25 @@ object BiometricManagerCompat {
 
             if (ifaamanager.startBIOManager(activity, authType) == 0
             ) {
-                return
+                return true
             }
         } catch (ignore: Throwable) {
         }
 
-        if (!HardwareAccessImpl.getInstance(api).isNewBiometricApi) {
-            BiometricAuthentication.openSettings(activity)
-        } else {
+        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricAuthentication.openSettings(
+                activity,
+                api.type
+            )
+        )
+            return true
+
+        if (BiometricType.BIOMETRIC_ANY == api.type) {
             //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
             if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
-                return
+                return true
             }
             if (Utils.startActivity(Intent("android.settings.BIOMETRIC_SETTINGS"), activity)) {
-                return
+                return true
             }
             if (Utils.startActivity(
                     Intent().setComponent(
@@ -112,7 +119,7 @@ object BiometricManagerCompat {
                     ), activity
                 )
             ) {
-                return
+                return true
             }
             if (Utils.startActivity(
                     Intent().setComponent(
@@ -123,12 +130,14 @@ object BiometricManagerCompat {
                     ), activity
                 )
             ) {
-                return
+                return true
             }
-            Utils.startActivity(
+            return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )
         }
+        return false
     }
+
 
 }
