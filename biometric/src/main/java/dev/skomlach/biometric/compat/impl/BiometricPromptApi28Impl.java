@@ -193,6 +193,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                 builder.setNegativeButtonText(
                         getFixedString(compatBuilder.negativeButtonText, ContextCompat.getColor(compatBuilder.getContext(), R.color.material_deep_teal_500)));
         }
+        builder.setConfirmationRequired(false);
         this.biometricPromptInfo = builder.build();
         this.biometricPrompt = new BiometricPrompt(compatBuilder.getContext(),
                 ExecutorHelper.INSTANCE.getExecutor(), authCallback);
