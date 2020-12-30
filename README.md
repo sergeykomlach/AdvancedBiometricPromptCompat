@@ -89,7 +89,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 Add dependency to Gradle:  
 ```groovy  
 dependencies {
- implementation 'dev.skomlach:biometric:X.X.X' 
+ implementation 'dev.skomlach:biometric:1.0.7' 
 }
 ```  
 
@@ -169,7 +169,7 @@ BiometricPromptCompat.Builder builder =
   
  `void cancelAuthenticate()` - cancel active biometric auth workflow  
    
- `boolean cancelAuthenticateBecauseOnPause()` - Useful if you need to allow biometric auth in Split-Screen mode; Recommended to call this method in `onResume()` and use returned value to avoid biometric auth restart.   
+ `boolean cancelAuthenticateBecauseOnPause()` - Useful if you need to allow biometric auth in Split-Screen mode; Recommended to call this method in `onPause()` and use returned value to avoid biometric auth restart.   
 Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true` and cancel active biometric auth otherwise  
   
   `@ColorRes int getDialogMainColor()` - returns dialog background color  
