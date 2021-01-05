@@ -2,11 +2,9 @@ package dev.skomlach.biometric.compat.engine;
 
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.provider.Settings;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -14,7 +12,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,7 +50,6 @@ public class BiometricAuthentication {
 
     private static final Map<BiometricMethod, BiometricModule> moduleHashMap = Collections
             .synchronizedMap(new HashMap<>());
-    private static boolean isReady = false;
 
     public static void init() {
         init(null);
@@ -141,9 +137,7 @@ public class BiometricAuthentication {
                     if (globalInitListener != null)
                         globalInitListener.initFinished(method, module);
 
-                    if (remains == 0)
-                        isReady = true;
-                    if (isReady) {
+                    if (remains == 0) {
                         if (globalInitListener != null)
                             globalInitListener.onBiometricReady();
 
@@ -260,10 +254,6 @@ public class BiometricAuthentication {
             biometricMethodListInternal.add(method);
         }
         return new ArrayList<>(biometricMethodListInternal);
-    }
-
-    public static boolean isReady() {
-        return isReady;
     }
 
     public static boolean isLockOut() {
