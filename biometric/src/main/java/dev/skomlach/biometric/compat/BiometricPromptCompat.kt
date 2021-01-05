@@ -47,7 +47,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             private set
 
         @Volatile
-        private var initInProgress = false
+        private var initInProgress = true
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -60,6 +60,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                 } else execute?.let { ExecutorHelper.INSTANCE.handler.post(it) }
             } else {
                 AndroidContext.getAppContext()
+                isInit = false
                 initInProgress = true
                 pendingTasks.add(execute)
                 BiometricLoggerImpl.e("BiometricPromptCompat.init()")
