@@ -110,6 +110,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
     }
 
     fun authenticate(callback: Result) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
         if (!isHardwareDetected(impl.builder.biometricAuthRequest)) {
             callback.onFailed(AuthenticationFailureReason.NO_HARDWARE)
             return
@@ -126,6 +127,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             callback.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
             return
         }
+        BiometricLoggerImpl.e("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
         PermissionsFragment.askForPermissions(
             impl.builder.context,
             impl.usedPermissions
@@ -133,6 +135,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
     }
 
     private fun authenticateInternal(callback: Result) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal()")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             val d = impl.builder.activeWindow
             if (!d.isAttachedToWindow) {
@@ -141,12 +144,14 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                 checkForFocusAndStart(callback)
             }
         } else {
+            BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
             impl.authenticate(callback)
         }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun checkForAttachAndStart(d: View, callback: Result) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.checkForAttachAndStart() - started")
         d.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
                 d.removeOnAttachStateChangeListener(this)
@@ -168,6 +173,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun checkForFocusAndStart(callback: Result) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.checkForFocusAndStart() - started")
         val activity = ActiveWindow.getActiveView(impl.builder.context)
         if (!activity.hasWindowFocus()) {
             val windowFocusChangeListener: OnWindowFocusChangeListener =

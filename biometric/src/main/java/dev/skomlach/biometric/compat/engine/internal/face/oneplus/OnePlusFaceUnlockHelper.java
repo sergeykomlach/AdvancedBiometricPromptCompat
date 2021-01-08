@@ -24,7 +24,7 @@ public class OnePlusFaceUnlockHelper {
     public static final int FACEUNLOCK_NO_PERMISSION = 4;
     public static final int FACEUNLOCK_FAILED_ATTEMPT = 5;
 
-    protected static final String TAG = "OnePlusFaceUnlockHelper";
+    protected static final String TAG = OnePlusFaceUnlockHelper.class.getSimpleName();
     private final OnePlusFaceUnlockInterface onePlusFaceUnlockInterface;
     private Context context = null;
     private OnePlusFaceUnlock mOnePlusFaceUnlock;
@@ -32,18 +32,18 @@ public class OnePlusFaceUnlockHelper {
     private boolean mBoundToOnePlusFaceUnlockService;
     private IOPFacelockCallback mCallback;
     private ServiceConnection mServiceConnection;
+    private final boolean hasHardware;
 
     protected OnePlusFaceUnlockHelper(Context context, OnePlusFaceUnlockInterface onePlusFaceUnlockInterface) {
         this.context = context;
         this.onePlusFaceUnlockInterface = onePlusFaceUnlockInterface;
 
         try {
-            if (mOnePlusFaceUnlock == null) {
-                mOnePlusFaceUnlock = new OnePlusFaceUnlock(context);
-            }
+            mOnePlusFaceUnlock = new OnePlusFaceUnlock(context);
         } catch (Throwable e) {
             mOnePlusFaceUnlock = null;
         }
+        hasHardware = mOnePlusFaceUnlock !=null;
     }
 
     public static String getMessage(int code) {
@@ -69,11 +69,11 @@ public class OnePlusFaceUnlockHelper {
     }
 
     public boolean faceUnlockAvailable() {
-        return mOnePlusFaceUnlock != null;
+        return hasHardware;
     }
 
     synchronized void destroy() {
-        mOnePlusFaceUnlock = null;
+        
         mCallback = null;
         mServiceConnection = null;
     }
@@ -129,7 +129,7 @@ public class OnePlusFaceUnlockHelper {
                             BiometricLoggerImpl.e(e, TAG + ("Caught exception registering callback: " + e.toString()));
                         }
                     }
-                    mOnePlusFaceUnlock = null;
+                    
                     mOnePlusFaceUnlockServiceRunning = false;
                     mBoundToOnePlusFaceUnlockService = false;
                     onePlusFaceUnlockInterface.onDisconnected();
@@ -149,7 +149,7 @@ public class OnePlusFaceUnlockHelper {
                         } else {
                             BiometricLoggerImpl.e(e, TAG + ("Caught exception registering callback: " + e.toString()));
                         }
-                        mOnePlusFaceUnlock = null;
+                        
                         mBoundToOnePlusFaceUnlockService = false;
                     }
                     onePlusFaceUnlockInterface.onConnected();

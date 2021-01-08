@@ -45,7 +45,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
         }
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.FACE_ANDROIDAPI, AndroidFaceUnlockModule.this);
+                    .initFinished(getBiometricMethod(), AndroidFaceUnlockModule.this);
         }
     }
 
@@ -62,7 +62,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -75,7 +75,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
             try {
                 return manager.isHardwareDetected() && manager.hasEnrolledFace();
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -87,11 +87,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("AndroidFaceUnlockModule.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (manager != null) {
             try {
@@ -114,7 +110,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
                 manager.authenticate(null, signalObject, 0, callback, ExecutorHelper.INSTANCE.getHandler());
                 return;
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "AndroidFaceUnlockModule: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
         }
 
@@ -139,7 +135,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            BiometricLoggerImpl.d("AndroidFaceUnlockModule.onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
             AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
             switch (errMsgId) {
                 case BIOMETRIC_ERROR_NO_BIOMETRICS:
@@ -152,7 +148,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -196,7 +192,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            BiometricLoggerImpl.d("AndroidFaceUnlockModule.onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
             if (listener != null) {
                 listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString.toString());
             }
@@ -204,7 +200,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationSucceeded(FaceAuthenticationManager.AuthenticationResult result) {
-            BiometricLoggerImpl.d("AndroidFaceUnlockModule.onAuthenticationSucceeded: " + result);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: " + result);
             if (listener != null) {
                 listener.onSuccess(tag());
             }
@@ -212,7 +208,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d("AndroidFaceUnlockModule.onAuthenticationFailed: ");
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
             if (listener != null) {
                 listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag());
             }

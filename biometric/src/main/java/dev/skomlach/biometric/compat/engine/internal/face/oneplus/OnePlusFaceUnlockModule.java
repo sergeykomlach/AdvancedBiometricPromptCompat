@@ -35,7 +35,7 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
         final OnePlusFaceUnlockInterface onePlusFaceUnlockInterface = new OnePlusFaceUnlockInterface() {
             @Override
             public void onError(int code, String msg) {
-                BiometricLoggerImpl.d("OnePlusFaceUnlockModule.OnePlusFaceUnlockInterface.onError " + code + " " + msg);
+                BiometricLoggerImpl.d(getName() + ".OnePlusFaceUnlockInterface.onError " + code + " " + msg);
                 if (facelockProxyListener != null) {
                     int failureReason = BIOMETRIC_ERROR_CANCELED;
                     switch (code) {
@@ -70,7 +70,7 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
 
             @Override
             public void onAuthorized() {
-                BiometricLoggerImpl.d("OnePlusFaceUnlockModule.OnePlusFaceUnlockInterface.onAuthorized");
+                BiometricLoggerImpl.d(getName() + ".OnePlusFaceUnlockInterface.onAuthorized");
                 if (facelockProxyListener != null) {
                     facelockProxyListener.onAuthenticationSucceeded(null);
                 }
@@ -78,31 +78,31 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
 
             @Override
             public void onConnected() {
-                BiometricLoggerImpl.d("OnePlusFaceUnlockModule.OnePlusFaceUnlockInterface.onConnected");
+                BiometricLoggerImpl.d(getName() + ".OnePlusFaceUnlockInterface.onConnected");
                 if (facelockProxyListener != null) {
                     facelockProxyListener.onAuthenticationAcquired(0);
                 }
 
                 if (listener != null) {
                     isConnected = true;
-                    listener.initFinished(BiometricMethod.FACE_ONEPLUS, OnePlusFaceUnlockModule.this);
+                    listener.initFinished(getBiometricMethod(), OnePlusFaceUnlockModule.this);
                     listener = null;
                     onePlusFaceUnlockHelper.stopFaceLock();
                 } else {
-                    BiometricLoggerImpl.d("OnePlusFaceUnlockModule.authorize:");
+                    BiometricLoggerImpl.d(getName() + ".authorize:");
                     onePlusFaceUnlockHelper.startFaceLock();
                 }
             }
 
             @Override
             public void onDisconnected() {
-                BiometricLoggerImpl.d("OnePlusFaceUnlockModule.OnePlusFaceUnlockInterface.onDisconnected");
+                BiometricLoggerImpl.d(getName() + ".OnePlusFaceUnlockInterface.onDisconnected");
                 if (facelockProxyListener != null) {
                     facelockProxyListener.onAuthenticationError(BIOMETRIC_ERROR_CANCELED,
                             OnePlusFaceUnlockHelper.getMessage(BIOMETRIC_ERROR_CANCELED));
                 }
                 if (listener != null) {
-                    listener.initFinished(BiometricMethod.FACE_ONEPLUS, OnePlusFaceUnlockModule.this);
+                    listener.initFinished(getBiometricMethod(), OnePlusFaceUnlockModule.this);
                     listener = null;
                     onePlusFaceUnlockHelper.stopFaceLock();
                 }
@@ -112,7 +112,7 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
         onePlusFaceUnlockHelper = new OnePlusFaceUnlockHelper(getContext(), onePlusFaceUnlockInterface);
         if (!isHardwarePresent()) {
             if (listener != null) {
-                listener.initFinished(BiometricMethod.FACE_ONEPLUS, OnePlusFaceUnlockModule.this);
+                listener.initFinished(getBiometricMethod(), OnePlusFaceUnlockModule.this);
                 listener = null;
             }
             return;
@@ -163,7 +163,7 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
                              final RestartPredicate restartPredicate) throws SecurityException {
 
         try {
-            BiometricLoggerImpl.d("OnePlusFaceUnlockModule.Facelock call authorize");
+            BiometricLoggerImpl.d(getName() + ".Facelock call authorize");
             authorize(new ProxyListener(restartPredicate, cancellationSignal, listener));
             return;
         } catch (Throwable e) {
@@ -211,7 +211,7 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -265,7 +265,7 @@ public class OnePlusFaceUnlockModule extends AbstractBiometricModule {
         }
 
         public Void onAuthenticationAcquired(int acquireInfo) {
-            BiometricLoggerImpl.d("OnePlusFaceUnlockModule.OnePlusFaceUnlockInterface.ProxyListener " + acquireInfo);
+            BiometricLoggerImpl.d(getName() + ".OnePlusFaceUnlockInterface.ProxyListener " + acquireInfo);
             return null;
         }
 

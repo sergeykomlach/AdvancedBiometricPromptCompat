@@ -35,7 +35,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
 
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.FACE_HUAWEI_EMUI_10, HuaweiFaceUnlockEMIUI10Module.this);
+                    .initFinished(getBiometricMethod(), HuaweiFaceUnlockEMIUI10Module.this);
         }
     }
     //[HuaweiFaceUnlockEMIUI10Module.onAuthenticationError: BIOMETRIC_ERROR_HW_UNAVAILABLE-face_error_hw_not_available]
@@ -53,7 +53,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -66,7 +66,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
             try {
                 return manager.isHardwareDetected() && manager.hasEnrolledTemplates();
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -78,11 +78,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("HuaweiFaceUnlockEMIUI10Module.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (manager != null) {
             try {
@@ -105,7 +101,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
                 manager.authenticate(null, signalObject, 0, callback, ExecutorHelper.INSTANCE.getHandler());
                 return;
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "HuaweiFaceUnlockEMIUI10Module: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
         }
 
@@ -130,7 +126,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            BiometricLoggerImpl.d("HuaweiFaceUnlockEMIUI10Module.onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
             AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
             switch (errMsgId) {
                 case BIOMETRIC_ERROR_NO_BIOMETRICS:
@@ -143,7 +139,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -187,7 +183,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            BiometricLoggerImpl.d("HuaweiFaceUnlockEMIUI10Module.onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
             if (listener != null) {
                 listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString.toString());
             }
@@ -195,7 +191,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationSucceeded(FaceManager.AuthenticationResult result) {
-            BiometricLoggerImpl.d("HuaweiFaceUnlockEMIUI10Module.onAuthenticationSucceeded: " + result);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: " + result);
             if (listener != null) {
                 listener.onSuccess(tag());
             }
@@ -203,7 +199,7 @@ public class HuaweiFaceUnlockEMIUI10Module extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d("HuaweiFaceUnlockEMIUI10Module.onAuthenticationFailed: ");
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
             if (listener != null) {
                 listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag());
             }

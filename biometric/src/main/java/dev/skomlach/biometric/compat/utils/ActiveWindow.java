@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
@@ -127,23 +128,19 @@ public class ActiveWindow {
                 if (!isAccessible)
                     stoppedField.setAccessible(true);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    List<ViewParent> viewParents = (List<ViewParent>) rootsField.get(windowManager);
-                    // Filter out inactive view roots
-                    for (ViewParent viewParent : viewParents) {
-                        boolean stopped = (boolean) stoppedField.get(viewParent);
-                        if (!stopped) {
-                            viewRoots.add(viewParent);
-                        }
-                    }
-                } else {
-                    ViewParent[] viewParents = (ViewParent[]) rootsField.get(windowManager);
-                    // Filter out inactive view roots
-                    for (ViewParent viewParent : viewParents) {
-                        boolean stopped = (boolean) stoppedField.get(viewParent);
-                        if (!stopped) {
-                            viewRoots.add(viewParent);
-                        }
+                Object lst =  rootsField.get(windowManager);
+                List<ViewParent> viewParents = new ArrayList<>();
+                try {
+                    viewParents.addAll((List<ViewParent>) lst);
+                } catch (ClassCastException ignore){
+                    ViewParent[] parents = (ViewParent[]) lst;
+                    viewParents.addAll(Arrays.asList(parents));
+                }
+                // Filter out inactive view roots
+                for (ViewParent viewParent : viewParents) {
+                    boolean stopped = (boolean) stoppedField.get(viewParent);
+                    if (!stopped) {
+                        viewRoots.add(viewParent);
                     }
                 }
             } finally {

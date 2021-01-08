@@ -40,7 +40,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
         }
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.FINGERPRINT_FLYME, FlymeFingerprintModule.this);
+                    .initFinished(getBiometricMethod(), FlymeFingerprintModule.this);
         }
     }
 
@@ -57,7 +57,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
                 return mFingerprintServiceFingerprintManager
                         .isFingerEnable();
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             } finally {
                 cancelFingerprintServiceFingerprintRequest();
             }
@@ -77,7 +77,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
 
                 return (fingerprintIds != null && fingerprintIds.length > 0);
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             } finally {
                 cancelFingerprintServiceFingerprintRequest();
             }
@@ -91,11 +91,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("FlymeBiometricModule.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (isFingerprintServiceSupported) {
             try {
@@ -140,7 +136,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
                         }, mFingerprintServiceFingerprintManager.getIds());
                 cancellationSignal.setOnCancelListener(() -> cancelFingerprintServiceFingerprintRequest());
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "FlymeBiometricModule: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
         }
 
@@ -158,7 +154,7 @@ public class FlymeFingerprintModule extends AbstractBiometricModule {
                 mFingerprintServiceFingerprintManager = null;
             }
         } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            BiometricLoggerImpl.e(e, getName());
             // There's no way to query if there's an active identify request,
             // so just try to cancel and ignore any exceptions.
         }

@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.misc.BroadcastTools;
 import dev.skomlach.common.misc.ExecutorHelper;
@@ -24,6 +25,7 @@ public class PermissionsFragment extends Fragment {
     private static final String INTENT_KEY = "intent_key";
 
     public static void askForPermissions(@NonNull FragmentActivity activity, @NonNull List<String> permissions, @Nullable Runnable callback) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.askForPermissions()");
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
             PermissionsFragment fragment = new PermissionsFragment();
             Bundle bundle = new Bundle();

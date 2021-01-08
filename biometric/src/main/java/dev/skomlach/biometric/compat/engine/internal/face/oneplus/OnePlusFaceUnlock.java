@@ -33,7 +33,7 @@ import static dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPk
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OnePlusFaceUnlock {
 
-    private static final String TAG = "OnePlusFaceUnlock";
+    private static final String TAG = OnePlusFaceUnlock.class.getSimpleName();
 
     //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
 
@@ -93,7 +93,7 @@ public class OnePlusFaceUnlock {
                         }
                     }
                 } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
+                    BiometricLoggerImpl.e(e, TAG);
                 }
             }
         } else
@@ -125,16 +125,19 @@ public class OnePlusFaceUnlock {
             throws RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         BiometricLoggerImpl.d(TAG + " startUi");
 
-        Method method = flInterface.getMethod("startFaceUnlock", int.class);
-        method.invoke(mFaceLockService, Process.myUid());
+        try {
+            Method method = flInterface.getMethod("startFaceUnlock", int.class);
+            method.invoke(mFaceLockService, Process.myUid());
+        } catch (Throwable ignore) { }
     }
 
     public void stopFaceUnlock()
             throws RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         BiometricLoggerImpl.d(TAG + " stopUi");
-
-        if (flInterface != null)
-            flInterface.getMethod("stopFaceUnlock", int.class).invoke(mFaceLockService, Process.myUid());
+        try {
+            if (flInterface != null)
+                flInterface.getMethod("stopFaceUnlock", int.class).invoke(mFaceLockService, Process.myUid());
+        } catch (Throwable ignore) { }
     }
 
     public void registerCallback(IOPFacelockCallback cb)
@@ -241,9 +244,9 @@ public class OnePlusFaceUnlock {
                     }
                 } catch (NoSuchFieldException ignore) {
                 } catch (IllegalArgumentException e) {
-                    BiometricLoggerImpl.e(e);
+                    BiometricLoggerImpl.e(e, TAG);
                 } catch (IllegalAccessException e) {
-                    BiometricLoggerImpl.e(e);
+                    BiometricLoggerImpl.e(e, TAG);
                 }
             }
         }

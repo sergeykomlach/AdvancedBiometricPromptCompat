@@ -52,7 +52,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
         }
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.IRIS_SAMSUNG, SamsungIrisUnlockModule.this);
+                    .initFinished(getBiometricMethod(), SamsungIrisUnlockModule.this);
         }
     }
 
@@ -69,7 +69,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -82,7 +82,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
             try {
                 return manager.isHardwareDetected() && manager.hasEnrolledIrises();
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -94,11 +94,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("SamsungIrisUnlockModule.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (manager != null) {
             try {
@@ -121,7 +117,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
                 manager.authenticate(null, signalObject, 0, callback, ExecutorHelper.INSTANCE.getHandler(), null);
                 return;
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "SamsungIrisUnlockModule: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
         }
 
@@ -146,7 +142,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            BiometricLoggerImpl.d("SamsungIrisUnlockModule.onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
             AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
             switch (errMsgId) {
                 case BIOMETRIC_ERROR_NO_BIOMETRICS:
@@ -159,7 +155,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -203,7 +199,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            BiometricLoggerImpl.d("SamsungIrisUnlockModule.onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
             if (listener != null) {
                 listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString.toString());
             }
@@ -211,7 +207,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationSucceeded(SemIrisManager.AuthenticationResult result) {
-            BiometricLoggerImpl.d("SamsungIrisUnlockModule.onAuthenticationSucceeded: " + result);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: " + result);
             if (listener != null) {
                 listener.onSuccess(tag());
             }
@@ -219,7 +215,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d("SamsungIrisUnlockModule.onAuthenticationFailed: ");
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
             if (listener != null) {
                 listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag());
             }

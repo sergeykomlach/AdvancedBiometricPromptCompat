@@ -7,7 +7,6 @@ import androidx.annotation.RestrictTo;
 
 import java.util.concurrent.TimeUnit;
 
-import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.BiometricCodes;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
@@ -32,8 +31,11 @@ public abstract class AbstractBiometricModule implements BiometricModule, Biomet
         preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricModules");
     }
 
-    public final BiometricType getType() {
-        return biometricMethod.getBiometricType();
+    public final String getName() {
+        return getClass().getSimpleName();
+    }
+    public final BiometricMethod getBiometricMethod() {
+        return biometricMethod;
     }
 
     public Context getContext() {
@@ -42,7 +44,7 @@ public abstract class AbstractBiometricModule implements BiometricModule, Biomet
 
     public void lockout() {
         if (!isLockOut()) {
-            BiometricLoggerImpl.d("AbstractBiometricModule: setLockout for " + tag());
+            BiometricLoggerImpl.d(getName() + ": setLockout for " + tag());
             preferences.edit().putLong(TS_PREF + tag(), System.currentTimeMillis()).apply();
         }
     }
@@ -59,14 +61,14 @@ public abstract class AbstractBiometricModule implements BiometricModule, Biomet
         if (ts > 0) {
             if (System.currentTimeMillis() - ts >= timeout) {
                 preferences.edit().putLong(TS_PREF + tag(), 0).apply();
-                BiometricLoggerImpl.d("AbstractBiometricModule: lockout is FALSE(1) for " + tag());
+                BiometricLoggerImpl.d(getName() + ": lockout is FALSE(1) for " + tag());
                 return false;
             } else {
-                BiometricLoggerImpl.d("AbstractBiometricModule: lockout is TRUE for " + tag());
+                BiometricLoggerImpl.d(getName() + ": lockout is TRUE for " + tag());
                 return true;
             }
         } else {
-            BiometricLoggerImpl.d("AbstractBiometricModule: lockout is FALSE(2) for " + tag());
+            BiometricLoggerImpl.d(getName() + ": lockout is FALSE(2) for " + tag());
             return false;
         }
     }

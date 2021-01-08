@@ -38,7 +38,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
         final FaceLockInterface faceLockInterface = new FaceLockInterface() {
             @Override
             public void onError(int code, String msg) {
-                BiometricLoggerImpl.d("FaceIdModule" + ("FaceIdInterface.onError " + code + " " + msg));
+                BiometricLoggerImpl.d(getName() + ":FaceIdInterface.onError " + code + " " + msg);
                 if (facelockProxyListener != null) {
                     int failureReason = BIOMETRIC_ERROR_CANCELED;
                     switch (code) {
@@ -71,7 +71,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
 
             @Override
             public void onAuthorized() {
-                BiometricLoggerImpl.d("FaceIdModule" + "FaceIdInterface.onAuthorized");
+                BiometricLoggerImpl.d(getName() + ".FaceIdInterface.onAuthorized");
                 if (facelockProxyListener != null) {
                     facelockProxyListener.onAuthenticationSucceeded(null);
                 }
@@ -79,31 +79,31 @@ public class FacelockOldModule extends AbstractBiometricModule {
 
             @Override
             public void onConnected() {
-                BiometricLoggerImpl.d("FaceIdModule" + "FaceIdInterface.onConnected");
+                BiometricLoggerImpl.d(getName() + ".FaceIdInterface.onConnected");
                 if (facelockProxyListener != null) {
                     facelockProxyListener.onAuthenticationAcquired(0);
                 }
 
                 if (listener != null) {
                     isConnected = true;
-                    listener.initFinished(BiometricMethod.FACELOCK, FacelockOldModule.this);
+                    listener.initFinished(getBiometricMethod(), FacelockOldModule.this);
                     listener = null;
                     faceLockHelper.stopFaceLock();
                 } else {
-                    BiometricLoggerImpl.d("FaceIdModule" + ("authorize: " + viewWeakReference.get()));
+                    BiometricLoggerImpl.d(getName() + ".authorize: " + viewWeakReference.get());
                     faceLockHelper.startFaceLockWithUi(viewWeakReference.get());
                 }
             }
 
             @Override
             public void onDisconnected() {
-                BiometricLoggerImpl.d("FaceIdModule" + "FaceIdInterface.onDisconnected");
+                BiometricLoggerImpl.d(getName() + ".FaceIdInterface.onDisconnected");
                 if (facelockProxyListener != null) {
                     facelockProxyListener.onAuthenticationError(BIOMETRIC_ERROR_CANCELED,
                             FaceLockHelper.getMessage(BIOMETRIC_ERROR_CANCELED));
                 }
                 if (listener != null) {
-                    listener.initFinished(BiometricMethod.FACELOCK, FacelockOldModule.this);
+                    listener.initFinished(getBiometricMethod(), FacelockOldModule.this);
                     listener = null;
                     faceLockHelper.stopFaceLock();
                 }
@@ -113,7 +113,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
         faceLockHelper = new FaceLockHelper(getContext(), faceLockInterface);
         if (!isHardwarePresent()) {
             if (listener != null) {
-                listener.initFinished(BiometricMethod.FACELOCK, FacelockOldModule.this);
+                listener.initFinished(getBiometricMethod(), FacelockOldModule.this);
                 listener = null;
             }
             return;
@@ -162,11 +162,11 @@ public class FacelockOldModule extends AbstractBiometricModule {
                              final RestartPredicate restartPredicate) throws SecurityException {
 
         try {
-            BiometricLoggerImpl.d("FaceIdModule" + "Facelock call authorize");
+            BiometricLoggerImpl.d(getName() + ": Facelock call authorize");
             authorize(new ProxyListener(restartPredicate, cancellationSignal, listener));
             return;
         } catch (Throwable e) {
-            BiometricLoggerImpl.e(e, "BiometricGenericModule: authenticate failed unexpectedly");
+            BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
         }
 
         if (listener != null) {
@@ -176,7 +176,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
     }
 
     public void setCallerView(View targetView) {
-        BiometricLoggerImpl.d("FaceIdModule" + ("setCallerView: " + targetView));
+        BiometricLoggerImpl.d(getName() + ".setCallerView: " + targetView);
         viewWeakReference = new WeakReference<>(targetView);
     }
 
@@ -215,7 +215,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -269,7 +269,7 @@ public class FacelockOldModule extends AbstractBiometricModule {
         }
 
         public Void onAuthenticationAcquired(int acquireInfo) {
-            BiometricLoggerImpl.d("FaceIdModule" + ("FaceIdInterface.ProxyListener " + acquireInfo));
+            BiometricLoggerImpl.d(getName() + ".FaceIdInterface.ProxyListener " + acquireInfo);
             return null;
         }
 

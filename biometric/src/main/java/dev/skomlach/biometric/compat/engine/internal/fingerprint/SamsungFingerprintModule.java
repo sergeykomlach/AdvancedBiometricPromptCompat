@@ -42,7 +42,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
 
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.FINGERPRINT_SAMSUNG, SamsungFingerprintModule.this);
+                    .initFinished(getBiometricMethod(), SamsungFingerprintModule.this);
         }
     }
 
@@ -60,7 +60,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -76,7 +76,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -87,11 +87,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
     public void authenticate(final CancellationSignal cancellationSignal,
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("SamsungBiometricModule.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (mSpassFingerprint != null) {
             try {
@@ -166,7 +162,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
 
                 return;
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "SamsungBiometricModule: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
         }
 
@@ -198,7 +194,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
             });
             return true;
         } catch (Exception e) {
-            BiometricLoggerImpl.e(e);
+            BiometricLoggerImpl.e(e, getName());
             return false;
         }
     }

@@ -27,7 +27,7 @@ public class FaceLockHelper {
     public static final int FACELOCK_NO_FACE_FOUND = 6;
     public static final int FACELOCK_FAILED_ATTEMPT = 7;
     public static final int FACELOCK_TIMEOUT = 8;
-    protected static final String TAG = "FaceIdHelper";
+    protected static final String TAG = FaceLockHelper.class.getSimpleName();
     private final FaceLockInterface faceLockInterface;
     private Context context = null;
     private View targetView = null;
@@ -36,22 +36,23 @@ public class FaceLockHelper {
     private boolean mBoundToFaceLockService;
     private IFaceLockCallback mCallback;
     private ServiceConnection mServiceConnection;
+    private final boolean hasHardware;
 
     protected FaceLockHelper(Context context, FaceLockInterface faceLockInterface) {
         this.context = context;
         this.faceLockInterface = faceLockInterface;
 
         try {
-            if (mFaceLock == null) {
-                mFaceLock = new FaceLock(context);
-            }
-        } catch (Throwable e){
+
+            mFaceLock = new FaceLock(context);
+        } catch (Throwable e) {
             mFaceLock = null;
         }
+        hasHardware = mFaceLock != null;
     }
 
     public boolean faceUnlockAvailable(){
-        return mFaceLock != null;
+        return hasHardware;
     }
     public static String getMessage(int code) {
 
@@ -79,7 +80,7 @@ public class FaceLockHelper {
 
     synchronized void destroy() {
         targetView = null;
-        mFaceLock = null;
+        
         mCallback = null;
         mServiceConnection = null;
     }
@@ -146,7 +147,7 @@ public class FaceLockHelper {
                             screenLock.release();
                         }
                     } catch (Throwable e) {
-                        BiometricLoggerImpl.e(e);
+                        BiometricLoggerImpl.e(e, TAG);
                     }
                 }
             };
@@ -167,7 +168,7 @@ public class FaceLockHelper {
                             BiometricLoggerImpl.e(e, TAG + ("Caught exception registering callback: " + e.toString()));
                         }
                     }
-                    mFaceLock = null;
+                    
                     mFaceLockServiceRunning = false;
                     mBoundToFaceLockService = false;
                     faceLockInterface.onDisconnected();
@@ -188,7 +189,7 @@ public class FaceLockHelper {
                         } else {
                             BiometricLoggerImpl.e(e, TAG + ("Caught exception registering callback: " + e.toString()));
                         }
-                        mFaceLock = null;
+                        
                         mBoundToFaceLockService = false;
                     }
                     faceLockInterface.onConnected();

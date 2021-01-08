@@ -21,7 +21,7 @@ public class DummyBiometricModule extends AbstractBiometricModule {
         this.listener = listener;
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.DUMMY_BIOMETRIC, DummyBiometricModule.this);
+                    .initFinished(getBiometricMethod(), DummyBiometricModule.this);
         }
     }
 
@@ -45,16 +45,13 @@ public class DummyBiometricModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("DummyBiometricModule.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
+
         ExecutorHelper.INSTANCE.getHandler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (listener != null) {
-                    listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, BiometricMethod.DUMMY_BIOMETRIC.getId());
+                    listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, getBiometricMethod().getId());
                 }
             }
         }, 2500);

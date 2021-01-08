@@ -35,7 +35,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
 
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.FINGERPRINT_SUPPORT, SupportFingerprintModule.this);
+                    .initFinished(getBiometricMethod(), SupportFingerprintModule.this);
         }
     }
 
@@ -53,7 +53,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
         return false;
@@ -65,7 +65,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
         try {
             return managerCompat.isHardwareDetected() && managerCompat.hasEnrolledFingerprints();
         } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            BiometricLoggerImpl.e(e, getName());
         }
         return false;
     }
@@ -74,11 +74,8 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
     public void authenticate(final CancellationSignal cancellationSignal,
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("SupportBiometricModule.authenticate - " + method.toString());
-            }
-        }
+
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (managerCompat != null)
             try {
@@ -97,7 +94,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
                 managerCompat.authenticate(null, 0, cancellationSignal, callback, ExecutorHelper.INSTANCE.getHandler());
                 return;
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "SupportBiometricModule: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
 
         if (listener != null) {
@@ -122,7 +119,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            BiometricLoggerImpl.d("SupportBiometricModule.onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
             AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
             switch (errMsgId) {
                 case BIOMETRIC_ERROR_NO_BIOMETRICS:
@@ -135,7 +132,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -178,7 +175,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            BiometricLoggerImpl.d("SupportBiometricModule.onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
             if (listener != null) {
                 listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString.toString());
             }
@@ -186,7 +183,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
-            BiometricLoggerImpl.d("SupportBiometricModule.onAuthenticationSucceeded: %s", result);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: %s", result);
             if (listener != null) {
                 listener.onSuccess(tag());
             }
@@ -194,7 +191,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d("SupportBiometricModule.onAuthenticationFailed: ");
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
             if (listener != null) {
                 listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED,
                         tag());

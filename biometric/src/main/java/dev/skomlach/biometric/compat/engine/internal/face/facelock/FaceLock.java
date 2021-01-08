@@ -38,7 +38,7 @@ import static dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPk
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class FaceLock {
 
-    private static final String TAG = "FaceId";
+    private static final String TAG = FaceLock.class.getSimpleName();
 
     //START u0 {act=miui.intent.action.CHECK_ACCESS_CONTROL flg=0x18800000 pkg=com.miui.securitycenter cmp=com.miui.securitycenter/com.miui.applicationlock.ConfirmAccessControl (has extras)} from uid 10060
 
@@ -108,7 +108,7 @@ public class FaceLock {
                         }
                     }
                 } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
+                    BiometricLoggerImpl.e(e, TAG);
                 }
             }
         } else
@@ -144,19 +144,19 @@ public class FaceLock {
             Method method = flInterface.getMethod("start");
             method.invoke(mFaceLockService);
             return;
-        } catch (InvocationTargetException e) {}
+        } catch (Throwable ignore) { }
         //newer API
         try {
             Method method = flInterface.getMethod("startUi", IBinder.class, int.class, int.class, int.class, int.class,
                     boolean.class);
             method.invoke(mFaceLockService, token, x, y, width, height, LockType.isBiometricWeakLivelinessEnabled(mContext));
             return;
-        } catch (InvocationTargetException ignore) {}
+        } catch (Throwable ignore) { }
         try {
             //older API's
             Method method = flInterface.getMethod("startUi", IBinder.class, int.class, int.class, int.class, int.class);
             method.invoke(mFaceLockService, token, x, y, width, height);
-        } catch (InvocationTargetException e) { }
+        } catch (Throwable ignore) { }
     }
 
     public void stopUi()
@@ -166,10 +166,12 @@ public class FaceLock {
             if (flInterface != null)
                 flInterface.getMethod("stop").invoke(mFaceLockService);
             return;
-        } catch (InvocationTargetException e) {}
+        } catch (Throwable ignore) { }
 
+        try{
         if (flInterface != null)
             flInterface.getMethod("stopUi").invoke(mFaceLockService);
+        } catch (Throwable ignore) { }
     }
 
     public void registerCallback(IFaceLockCallback cb)
@@ -268,9 +270,9 @@ public class FaceLock {
                     }
                 } catch (NoSuchFieldException ignore) {
                 } catch (IllegalArgumentException e) {
-                    BiometricLoggerImpl.e(e);
+                    BiometricLoggerImpl.e(e, TAG);
                 } catch (IllegalAccessException e) {
-                    BiometricLoggerImpl.e(e);
+                    BiometricLoggerImpl.e(e, TAG);
                 }
             }
         }

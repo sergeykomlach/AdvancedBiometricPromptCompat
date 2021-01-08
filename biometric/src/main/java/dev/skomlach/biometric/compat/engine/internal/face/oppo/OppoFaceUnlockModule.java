@@ -46,7 +46,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
         }
         if (listener != null) {
             listener
-                    .initFinished(BiometricMethod.FACE_OPPO, OppoFaceUnlockModule.this);
+                    .initFinished(getBiometricMethod(), OppoFaceUnlockModule.this);
         }
     }
 
@@ -63,7 +63,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
                     return true;
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -76,7 +76,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
             try {
                 return manager.isHardwareDetected() && manager.hasEnrolledTemplates();
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                BiometricLoggerImpl.e(e, getName());
             }
         }
 
@@ -88,11 +88,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
                              final AuthenticationListener listener,
                              final RestartPredicate restartPredicate) throws SecurityException {
 
-        for (BiometricMethod method : BiometricMethod.values()) {
-            if (method.getId() == tag()) {
-                BiometricLoggerImpl.d("OppoFaceUnlockModule.authenticate - " + method.toString());
-            }
-        }
+        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
 
         if (manager != null) {
             try {
@@ -117,7 +113,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
 
                 return;
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "OppoFaceUnlockModule: authenticate failed unexpectedly");
+                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
             }
         }
 
@@ -142,7 +138,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            BiometricLoggerImpl.d("OppoFaceUnlockModule.onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
             AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
             switch (errMsgId) {
                 case BIOMETRIC_ERROR_NO_BIOMETRICS:
@@ -155,7 +151,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getType());
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
                     break;
                 case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
@@ -199,7 +195,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            BiometricLoggerImpl.d("OppoFaceUnlockModule.onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
             if (listener != null) {
                 listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString.toString());
             }
@@ -207,7 +203,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationSucceeded(FaceManager.AuthenticationResult result) {
-            BiometricLoggerImpl.d("OppoFaceUnlockModule.onAuthenticationSucceeded: " + result);
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: " + result);
             if (listener != null) {
                 listener.onSuccess(tag());
             }
@@ -215,7 +211,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
 
         @Override
         public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d("OppoFaceUnlockModule.onAuthenticationFailed: ");
+            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
             if (listener != null) {
                 listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag());
             }
