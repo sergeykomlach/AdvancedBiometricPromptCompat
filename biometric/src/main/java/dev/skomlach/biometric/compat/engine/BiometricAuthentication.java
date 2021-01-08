@@ -129,7 +129,8 @@ public class BiometricAuthentication {
                     boolean moduleReady = (module != null && module.isManagerAccessible() && module.isHardwarePresent());
                     int remains = counter.decrementAndGet();
                     BiometricLoggerImpl.d("BiometricAuthentication" + ("BiometricInitListener.initListener: '" + method
-                            + "' moduleReady: " + moduleReady + " remains: " + remains));
+                            + "' hasManager: " + (module != null && module.isManagerAccessible())+
+                            " hasHardware: " + (module != null && module.isHardwarePresent()) + " remains: " + remains));
 
                     if (moduleReady) {
                         moduleHashMap.put(method, module);
