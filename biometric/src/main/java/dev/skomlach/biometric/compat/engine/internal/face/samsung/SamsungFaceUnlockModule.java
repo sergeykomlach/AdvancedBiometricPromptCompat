@@ -8,6 +8,7 @@ import androidx.core.os.CancellationSignal;
 
 import com.samsung.android.bio.face.SemBioFaceManager;
 
+import java.util.Collections;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
@@ -20,6 +21,7 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
+import me.weishu.reflection.Reflection;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class SamsungFaceUnlockModule extends AbstractBiometricModule {
@@ -28,6 +30,7 @@ public class SamsungFaceUnlockModule extends AbstractBiometricModule {
     @SuppressLint("WrongConstant")
     public SamsungFaceUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.FACE_SAMSUNG);
+        Reflection.unseal(getContext(), Collections.singletonList("com.samsung.android.bio.face"));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 manager = getContext().getSystemService(SemBioFaceManager.class);

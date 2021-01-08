@@ -9,7 +9,9 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
+import me.weishu.reflection.Reflection
 import org.ifaa.android.manager.IFAAManagerFactory
+import java.util.*
 
 object BiometricManagerCompat {
 
@@ -74,6 +76,7 @@ object BiometricManagerCompat {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
 
         try {
+            Reflection.unseal(activity, Collections.singletonList("org.ifaa.android.manager"))
             //https://git.aicp-rom.com/device_oneplus_oneplus3.git/tree/org.ifaa.android.manager/src/org/ifaa/android/manager/IFAAManagerFactory.java?h=refs/changes/03/28003/1
             //https://github.com/shivatejapeddi/android_device_xiaomi_sdm845-common/tree/10.x-vendor/org.ifaa.android.manager/src/org/ifaa/android/manager
             val authType = when (api.type) {
