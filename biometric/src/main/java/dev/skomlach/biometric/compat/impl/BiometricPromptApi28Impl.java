@@ -5,11 +5,11 @@ import android.os.Build;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.view.View;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
+import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
@@ -25,7 +25,6 @@ import dev.skomlach.biometric.compat.engine.BiometricCodes;
 import dev.skomlach.biometric.compat.engine.internal.core.RestartPredicatesImpl;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
-import dev.skomlach.biometric.compat.utils.ActiveWindow;
 import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError;
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
@@ -193,7 +192,14 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                 builder.setNegativeButtonText(
                         getFixedString(compatBuilder.negativeButtonText, ContextCompat.getColor(compatBuilder.getContext(), R.color.material_deep_teal_500)));
         }
-        builder.setConfirmationRequired(false);
+        if (Utils.isAtLeastR()) {
+            builder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK);
+        } else {
+            builder.setDeviceCredentialAllowed(false);
+        }
+        builder.setConfirmationRequired(true);
+
+
         this.biometricPromptInfo = builder.build();
         this.biometricPrompt = new BiometricPrompt(compatBuilder.getContext(),
                 ExecutorHelper.INSTANCE.getExecutor(), authCallback);
