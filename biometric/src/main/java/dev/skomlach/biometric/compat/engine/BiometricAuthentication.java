@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.oneplus.OnePlusFaceUnl
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule;
+import dev.skomlach.biometric.compat.engine.internal.face.vivo.VivoFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.API23FingerprintModule;
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.FlymeFingerprintModule;
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.SamsungFingerprintModule;
@@ -92,6 +93,7 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
             allMethods.add(BiometricMethod.FACE_OPPO);
             allMethods.add(BiometricMethod.FACE_ONEPLUS);
+            allMethods.add(BiometricMethod.FACE_VIVO);
         }
         //Android biometric - Pie
         if(Build.VERSION.SDK_INT >= 28) {
@@ -201,6 +203,9 @@ public class BiometricAuthentication {
                                 break;
                             case FACE_ANDROIDAPI:
                                 biometricModule = new AndroidFaceUnlockModule(initListener);
+                                break;
+                            case FACE_VIVO:
+                                biometricModule = new VivoFaceUnlockModule(initListener);
                                 break;
                             ///****//
                             case IRIS_SAMSUNG:
