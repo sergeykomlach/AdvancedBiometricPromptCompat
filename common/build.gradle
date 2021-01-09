@@ -13,6 +13,13 @@ android {
         versionName libsMajorVersion + "." + libsMinorVersion
         consumerProguardFiles "proguard-project-common.pro"
     }
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
 }
 
 dependencies {

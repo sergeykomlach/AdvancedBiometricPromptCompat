@@ -81,7 +81,8 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|    
 | Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|  
 | BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
-| OnePlus FaceId | Android 8+ and OnePlus devices |Not tested yet|  
+| OnePlus FaceId | Android 8+ and OnePlus devices |Not tested yet|
+| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|    
 ## Setup  
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
   
