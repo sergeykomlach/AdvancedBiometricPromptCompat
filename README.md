@@ -71,7 +71,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   
 |  Type | Details | Tested on  
 |--|--|--|  
-| BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
+| BiometricPrompt API | Android 9+ |Xiaomi POCO F1 && Pixel 4XL|  
 | Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
 | Fingerprint (Samsung Pass)  | Android 4.4+ and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
