@@ -212,9 +212,9 @@ Anyway, research and testing required for each case, so feel free to create issu
 
 FaceUnlock: https://www.xda-developers.com/face-unlock/
 
-Fingerprint: TODO
+Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Android-Device
 
-IrisUnlock: TODO
+IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
 
   
 ## TODO  
