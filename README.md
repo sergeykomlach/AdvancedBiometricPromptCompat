@@ -71,16 +71,16 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   
 |  Type | Details | Tested on  
 |--|--|--|  
+| BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
 | Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
 | Fingerprint (Samsung Pass)  | Android 4.4+ and Samsung devices | Samsung Galaxy S5 |  
-| Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
 | Fingerprint with In-screen scanner | Android 8+ |OnePlus 6T|  
 | Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|    
 | Samsung FaceID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|    
+| Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |
 | Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|  
-| BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
 | OnePlus FaceId | Android 8+ and OnePlus devices |Not tested yet|
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|    
 ## Setup  
