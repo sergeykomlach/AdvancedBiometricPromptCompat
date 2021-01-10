@@ -1,7 +1,8 @@
 package com.example.myapplication
 
 import androidx.multidex.MultiDexApplication
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricPromptCompat
 import java.util.*
 
 class App : MultiDexApplication() {
@@ -19,14 +20,20 @@ class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        BiometricPromptCompat.init {
-            authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
-            for (listener in onInitListeners) {
-                listener.onFinished()
+        LogCat.getInstance().setLog2ViewCallback {
+            LogCat.getInstance().setLog2ViewCallback(null)
+            BiometricPromptCompat.logging(true)
+            BiometricPromptCompat.init {
+                authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
+                for (listener in onInitListeners) {
+                    listener.onFinished()
+                }
+                onInitListeners.clear()
+                isReady = true
             }
-            onInitListeners.clear()
-            isReady = true
         }
+
+        LogCat.getInstance().start()
     }
 
     interface OnInitFinished {

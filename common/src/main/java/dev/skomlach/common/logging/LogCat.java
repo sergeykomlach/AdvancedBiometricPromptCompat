@@ -6,6 +6,7 @@ import dev.skomlach.common.BuildConfig;
 
 public class LogCat {
 
+    public static boolean DEBUG = BuildConfig.DEBUG;
     private LogCat() {
 
     }
@@ -17,24 +18,24 @@ public class LogCat {
     }
 
     public static void log(String msg) {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.d(getMethod(), msg);
         }
     }
 
     public static void logError(String msg) {
-        if (BuildConfig.DEBUG) {
+        if (DEBUG) {
             Log.e(getMethod(), msg);
         }
     }
 
     public static void logException(Throwable e) {
-        if (BuildConfig.DEBUG)
+        if (DEBUG)
             Log.e(getMethod(), e.getMessage(), e);
     }
 
     public static void logException(String msg, Throwable e) {
-        if (BuildConfig.DEBUG)
+        if (DEBUG)
             Log.e(getMethod(), msg, e);
     }
 }

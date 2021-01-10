@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.utils.ActiveWindow
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
@@ -42,7 +43,11 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         }
         @JvmStatic
         val availableAuthRequests = ArrayList<BiometricAuthRequest>()
-
+        @JvmStatic
+        fun logging(enabled : Boolean){
+            LogCat.DEBUG = enabled
+            BiometricLoggerImpl.DEBUG = enabled
+        }
         private val pendingTasks: MutableList<Runnable?> = Collections.synchronizedList(ArrayList<Runnable?>())
         private var isBiometricInit = AtomicBoolean(false)
         var isInit = false

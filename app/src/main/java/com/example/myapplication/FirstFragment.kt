@@ -7,13 +7,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentFirstBinding
-import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -43,7 +39,10 @@ class FirstFragment : Fragment() {
         } else {
             fillList(inflater, binding.buttonsList)
         }
-
+        binding.buttonFirst.setOnClickListener {
+            NavHostFragment.findNavController(this@FirstFragment)
+                .navigate(R.id.action_FirstFragment_to_SecondFragment)
+        }
         return binding.root
     }
 

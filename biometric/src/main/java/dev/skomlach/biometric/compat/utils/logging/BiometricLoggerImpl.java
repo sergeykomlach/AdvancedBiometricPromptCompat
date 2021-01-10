@@ -10,9 +10,9 @@ import dev.skomlach.biometric.compat.BuildConfig;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class BiometricLoggerImpl {
-
+    public static boolean DEBUG = BuildConfig.DEBUG;
     public static void e(Object... msgs) {
-        if (BuildConfig.DEBUG)
+        if (DEBUG)
             Log.e("BiometricLogging", Arrays.asList(msgs).toString());
     }
 
@@ -21,12 +21,12 @@ public class BiometricLoggerImpl {
     }
 
     public static void e(Throwable e, Object... msgs) {
-        if (BuildConfig.DEBUG)
+        if (DEBUG)
             Log.e("BiometricLogging", Arrays.asList(msgs).toString(), e);
     }
 
     public static void d(Object... msgs) {
-        if (BuildConfig.DEBUG)
+        if (DEBUG)
             Log.d("BiometricLogging", Arrays.asList(msgs).toString());
     }
 }
