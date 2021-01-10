@@ -107,6 +107,10 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                 case FACE_OPPO:
                     permission.add("oppo.permission.USE_FACE");
                     break;
+                 //TODO: check permissions
+//                case FACE_VIVO: break;
+//                case FACE_ONEPLUS: break;
+
 
                 case FINGERPRINT_API23:
                 case FINGERPRINT_SUPPORT:
@@ -118,6 +122,8 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                 case FINGERPRINT_SAMSUNG:
                     permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY");
                     break;
+                //TODO: check permissions
+//                case FINGERPRINT_SOTERAPI: break
             }
         }
         return new ArrayList<>(permission);
