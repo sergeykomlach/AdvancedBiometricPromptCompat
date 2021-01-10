@@ -176,6 +176,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         }
     };
 
+    private final AtomicBoolean isFingerprint = new AtomicBoolean(false);
     public BiometricPromptApi28Impl(@NonNull BiometricPromptCompat.Builder compatBuilder) {
 
         this.compatBuilder = compatBuilder;
@@ -206,6 +207,16 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         this.biometricPromptInfo = builder.build();
         this.biometricPrompt = new BiometricPrompt(compatBuilder.getContext(),
                 ExecutorHelper.INSTANCE.getExecutor(), authCallback);
+
+        isFingerprint.set(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT);
+        if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
+            for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
+                if (request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+                    isFingerprint.set(true);
+                    break;
+                }
+            }
+        }
     }
 
     private CharSequence getFixedString(CharSequence str, @ColorInt int color) {
@@ -219,16 +230,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         try {
             BiometricLoggerImpl.d("BiometricPromptApi28Impl.authenticate():");
             this.callback = cbk;
-            final AtomicBoolean isFingerprint = new AtomicBoolean(
-                    compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT);
-            if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
-                for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
-                    if (request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
-                        isFingerprint.set(true);
-                        break;
-                    }
-                }
-            }
+
 
             FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
                 @Override
