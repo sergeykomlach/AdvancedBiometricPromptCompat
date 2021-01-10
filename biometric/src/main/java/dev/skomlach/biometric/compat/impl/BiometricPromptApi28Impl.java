@@ -18,7 +18,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.BiometricCodes;
@@ -217,22 +219,37 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             BiometricLoggerImpl.d("BiometricPromptApi28Impl.authenticate():");
             this.callback = cbk;
 
-            //One Plus devices (6T and newer) - Activity do not lost the focus
-            FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
-                @Override
-                public void onStartWatching() {
-                    onUiShown();
-                    startAuth();
-                }
-
-                @Override
-                public void hasFocus(boolean hasFocus) {
-                    if (hasFocus) {
-                        dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, true);
-                        dialog.showDialog();
+            boolean isFingerprint = compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT;
+            if (!isFingerprint && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
+                for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
+                    if (request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+                        isFingerprint = true;
+                        break;
                     }
                 }
-            });
+            }
+
+            if (isFingerprint) {
+                //One Plus devices (6T and newer) - Activity do not lost the focus
+                FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
+                    @Override
+                    public void onStartWatching() {
+                        onUiShown();
+                        startAuth();
+                    }
+
+                    @Override
+                    public void hasFocus(boolean hasFocus) {
+                        if (hasFocus) {
+                            dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, true);
+                            dialog.showDialog();
+                        }
+                    }
+                });
+            } else {//face/iris
+                onUiShown();
+                startAuth();
+            }
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);
             callback.onFailed(AuthenticationFailureReason.UNKNOWN);
