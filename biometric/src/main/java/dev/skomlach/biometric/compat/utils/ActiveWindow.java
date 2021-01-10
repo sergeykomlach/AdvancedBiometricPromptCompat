@@ -26,13 +26,33 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("unchecked")
 public class ActiveWindow {
+    private static Class<?> clazz;
+    private static Object windowManager;
+    private static Class<?> windowManagerClazz;
+
+    static {
+        try {
+            clazz = Class.forName("android.view.ViewRootImpl");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                windowManagerClazz = Class.forName("android.view.WindowManagerGlobal");
+                windowManager = windowManagerClazz.getMethod("getInstance").invoke(null);
+            } else {
+                windowManagerClazz = Class.forName("android.view.WindowManagerImpl");
+                windowManager = windowManagerClazz.getMethod("getDefault").invoke(null);
+            }
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
+    }
+
     public static View getActiveView(FragmentActivity activity) {
         List<ViewParent> list = getViewRoots();
         View topView = null;
         for (int i = 0; i < list.size(); i++) {
             ViewParent viewParent = list.get(i);
             try {
-                Class<?> clazz = Class.forName("android.view.ViewRootImpl");
+
                 View view = (View) clazz.getMethod("getView").invoke(viewParent);
                 int type = ((WindowManager.LayoutParams) view.getLayoutParams()).type;
                 if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
@@ -53,10 +73,11 @@ public class ActiveWindow {
                     }
                 }
             } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "ActiveWindow");
+                BiometricLoggerImpl.e(e, "ActiveWindow.getActiveView");
             }
         }
         if (topView != null) {
+            BiometricLoggerImpl.e("ActiveWindow.getActiveView-" + topView);
             return topView;
         }
 
@@ -109,43 +130,41 @@ public class ActiveWindow {
         List<ViewParent> viewRoots = new ArrayList<>();
 
         try {
-            Object windowManager;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                windowManager = Class.forName("android.view.WindowManagerGlobal")
-                        .getMethod("getInstance").invoke(null);
-            } else {
-                windowManager = Class.forName("android.view.WindowManagerImpl")
-                        .getMethod("getDefault").invoke(null);
-            }
 
-            Field rootsField = windowManager.getClass().getDeclaredField("mRoots");
-            rootsField.setAccessible(true);
-
-            Field stoppedField = Class.forName("android.view.ViewRootImpl")
-                    .getDeclaredField("mStopped");
-            boolean isAccessible = stoppedField.isAccessible();
+            Field rootsField = windowManagerClazz.getDeclaredField("mRoots");
+            boolean isAccessibleRootsField = rootsField.isAccessible();
             try {
-                if (!isAccessible)
-                    stoppedField.setAccessible(true);
+                if (!isAccessibleRootsField)
+                    rootsField.setAccessible(true);
 
-                Object lst =  rootsField.get(windowManager);
-                List<ViewParent> viewParents = new ArrayList<>();
+                Field stoppedField = clazz.getDeclaredField("mStopped");
+                boolean isAccessible = stoppedField.isAccessible();
                 try {
-                    viewParents.addAll((List<ViewParent>) lst);
-                } catch (ClassCastException ignore){
-                    ViewParent[] parents = (ViewParent[]) lst;
-                    viewParents.addAll(Arrays.asList(parents));
-                }
-                // Filter out inactive view roots
-                for (ViewParent viewParent : viewParents) {
-                    boolean stopped = (boolean) stoppedField.get(viewParent);
-                    if (!stopped) {
-                        viewRoots.add(viewParent);
+                    if (!isAccessible)
+                        stoppedField.setAccessible(true);
+
+                    Object lst = rootsField.get(windowManager);
+                    List<ViewParent> viewParents = new ArrayList<>();
+                    try {
+                        viewParents.addAll((List<ViewParent>) lst);
+                    } catch (ClassCastException ignore) {
+                        ViewParent[] parents = (ViewParent[]) lst;
+                        viewParents.addAll(Arrays.asList(parents));
                     }
+                    // Filter out inactive view roots
+                    for (ViewParent viewParent : viewParents) {
+                        boolean stopped = (boolean) stoppedField.get(viewParent);
+                        if (!stopped) {
+                            viewRoots.add(viewParent);
+                        }
+                    }
+                } finally {
+                    if (!isAccessible)
+                        stoppedField.setAccessible(false);
                 }
             } finally {
-                if (!isAccessible)
-                    stoppedField.setAccessible(false);
+                if (!isAccessibleRootsField)
+                    rootsField.setAccessible(false);
             }
         } catch (Exception e) {
             BiometricLoggerImpl.e(e, "ActiveWindow");
