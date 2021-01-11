@@ -109,7 +109,9 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     break;
                  //TODO: check permissions
 //                case FACE_VIVO: break;
-//                case FACE_ONEPLUS: break;
+                case FACE_ONEPLUS:
+                    permission.add("com.oneplus.faceunlock.permission.FACE_UNLOCK");
+                    break;
 
 
                 case FINGERPRINT_API23:
