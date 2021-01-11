@@ -212,7 +212,8 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         isFingerprint.set(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT);
         if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
             for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
-                if (request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+                if (request.getApi() == compatBuilder.getBiometricAuthRequest().getApi()
+                        && request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
                     isFingerprint.set(BiometricManagerCompat.hasEnrolled(request));
                     break;
                 }
