@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.skomlach.biometric.compat.BiometricAuthRequest;
+import dev.skomlach.biometric.compat.BiometricManagerCompat;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.R;
@@ -212,7 +213,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
             for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
                 if (request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
-                    isFingerprint.set(true);
+                    isFingerprint.set(BiometricManagerCompat.hasEnrolled(request));
                     break;
                 }
             }
