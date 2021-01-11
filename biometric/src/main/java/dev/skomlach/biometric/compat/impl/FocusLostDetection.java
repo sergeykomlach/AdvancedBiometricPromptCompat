@@ -1,21 +1,22 @@
 package dev.skomlach.biometric.compat.impl;
 
-import android.annotation.TargetApi;
+
 import android.os.Build;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.collection.LruCache;
+import androidx.core.view.ViewCompat;
 
 import java.lang.ref.SoftReference;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
-@TargetApi(Build.VERSION_CODES.P)
 class FocusLostDetection {
     private static final LruCache<String, Runnable> lruMap = new LruCache<>(10);
 
@@ -29,7 +30,7 @@ class FocusLostDetection {
 
     static void attachListener(View activityContext, final WindowFocusChangedListener listener) {
         final SoftReference<View> activityRef = new SoftReference<>(activityContext);
-        if (!activityRef.get().isAttachedToWindow()) {
+        if (!ViewCompat.isAttachedToWindow(activityRef.get())) {
             activityRef.get().addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View v) {
@@ -49,7 +50,7 @@ class FocusLostDetection {
 
     private static void checkForFocusAndStart(@NonNull final SoftReference<View> activityRef, final WindowFocusChangedListener listener) {
 
-        if (!activityRef.get().hasWindowFocus()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && !activityRef.get().hasWindowFocus()) {
             ViewTreeObserver.OnWindowFocusChangeListener windowFocusChangeListener = new ViewTreeObserver.OnWindowFocusChangeListener() {
                 @Override
                 public void onWindowFocusChanged(boolean focus) {
@@ -72,42 +73,61 @@ class FocusLostDetection {
 
             final AtomicBoolean catchFocus = new AtomicBoolean(false);
             final AtomicBoolean currentFocus = new AtomicBoolean(activityRef.get().hasWindowFocus());
-            ViewTreeObserver.OnWindowFocusChangeListener windowFocusChangeListener = new ViewTreeObserver.OnWindowFocusChangeListener() {
-                @Override
-                public void onWindowFocusChanged(boolean focus) {
-                    try {
+            final AtomicReference<Runnable> task = new AtomicReference<>(null);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                ViewTreeObserver.OnWindowFocusChangeListener windowFocusChangeListener = new ViewTreeObserver.OnWindowFocusChangeListener() {
+                    @Override
+                    public void onWindowFocusChanged(boolean focus) {
+                        try {
 
-                        boolean hasFocus = activityRef.get().hasWindowFocus();
-                        if (currentFocus.get() != hasFocus) {
-                            stopListener(activityRef.get());
+                            boolean hasFocus = activityRef.get().hasWindowFocus();
+                            if (currentFocus.get() != hasFocus) {
+                                stopListener(activityRef.get());
+                                //focus was changed
+                                BiometricLoggerImpl.e("WindowFocusChangedListener" + ("View.hasFocus(1) - " + hasFocus));
+                                catchFocus.set(true);
+                                activityRef.get().getViewTreeObserver().removeOnWindowFocusChangeListener(this);
+                                listener.hasFocus(hasFocus);
+                            }
+                        } catch (Throwable e) {
+                            BiometricLoggerImpl.e(e);
+                        }
+                    }
+                };
+
+                activityRef.get().getViewTreeObserver().addOnWindowFocusChangeListener(windowFocusChangeListener);
+                task.set(() -> {
+                    try {
+                        if (!catchFocus.get()) {
+
+                            boolean hasFocus = activityRef.get().hasWindowFocus();
                             //focus was changed
-                            BiometricLoggerImpl.e("WindowFocusChangedListener" + ("View.hasFocus(1) - " + hasFocus));
-                            catchFocus.set(true);
-                            activityRef.get().getViewTreeObserver().removeOnWindowFocusChangeListener(this);
+                            BiometricLoggerImpl.e("WindowFocusChangedListener" + ("View.hasFocus(2) - " + hasFocus));
+                            activityRef.get().getViewTreeObserver().removeOnWindowFocusChangeListener(windowFocusChangeListener);
                             listener.hasFocus(hasFocus);
+                            stopListener(activityRef.get());
                         }
                     } catch (Throwable e) {
                         BiometricLoggerImpl.e(e);
                     }
-                }
-            };
-
-            activityRef.get().getViewTreeObserver().addOnWindowFocusChangeListener(windowFocusChangeListener);
-            executeWithDelay(activityRef.get(), () -> {
-                try {
-                    if (!catchFocus.get()) {
-
-                        boolean hasFocus = activityRef.get().hasWindowFocus();
-                        //focus was changed
-                        BiometricLoggerImpl.e("WindowFocusChangedListener" + ("View.hasFocus(2) - " + hasFocus));
-                        activityRef.get().getViewTreeObserver().removeOnWindowFocusChangeListener(windowFocusChangeListener);
-                        listener.hasFocus(hasFocus);
-                        stopListener(activityRef.get());
+                });//wait when show animation end
+            } else {
+                task.set(() -> {
+                    try {
+                        if (!catchFocus.get()) {
+                            boolean hasFocus = activityRef.get().hasWindowFocus();
+                            //focus was changed
+                            BiometricLoggerImpl.e("WindowFocusChangedListener" + ("View.hasFocus(2) - " + hasFocus));
+                            listener.hasFocus(hasFocus);
+                            stopListener(activityRef.get());
+                        }
+                    } catch (Throwable e) {
+                        BiometricLoggerImpl.e(e);
                     }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
-                }
-            });//wait when show animation end
+                });//wait when show animation end
+            }
+
+            executeWithDelay(activityRef.get(), task.get());
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);
         }

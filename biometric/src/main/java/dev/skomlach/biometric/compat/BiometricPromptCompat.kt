@@ -11,6 +11,7 @@ import androidx.annotation.MainThread
 import androidx.annotation.RestrictTo
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
@@ -44,7 +45,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         @JvmStatic
         val availableAuthRequests = ArrayList<BiometricAuthRequest>()
         @JvmStatic
-        fun logging(enabled : Boolean){
+        fun logging(enabled: Boolean){
             LogCat.DEBUG = enabled
             BiometricLoggerImpl.DEBUG = enabled
         }
@@ -141,9 +142,9 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
 
     private fun authenticateInternal(callback: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal()")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             val d = impl.builder.activeWindow
-            if (!d.isAttachedToWindow) {
+            if (!ViewCompat.isAttachedToWindow(d)) {
                 checkForAttachAndStart(d, callback)
             } else {
                 checkForFocusAndStart(callback)

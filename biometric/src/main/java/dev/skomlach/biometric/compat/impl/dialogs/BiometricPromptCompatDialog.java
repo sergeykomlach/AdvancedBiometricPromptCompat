@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.app.AppCompatDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.os.BuildCompat;
+import androidx.core.view.ViewCompat;
 
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
@@ -82,9 +83,7 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
         if (focusListener != null) {
             View root = findViewById(Window.ID_ANDROID_CONTENT);
             if (root != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && root.isAttachedToWindow()) {
-                    focusListener.hasFocus(root.hasWindowFocus());
-                } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                if (ViewCompat.isAttachedToWindow(root)) {
                     focusListener.hasFocus(root.hasWindowFocus());
                 }
             }
