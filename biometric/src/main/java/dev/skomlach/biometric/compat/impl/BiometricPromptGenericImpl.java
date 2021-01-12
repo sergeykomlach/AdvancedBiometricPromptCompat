@@ -10,7 +10,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
+import dev.skomlach.biometric.compat.BiometricManagerCompat;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -19,6 +22,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication;
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener;
 import dev.skomlach.biometric.compat.engine.BiometricMethod;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs;
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
@@ -30,11 +34,24 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
             = new BiometricAuthenticationCallbackImpl();
     private final BiometricPromptCompat.Builder compatBuilder;
     private BiometricPromptCompat.Result callback;
-
+    private final AtomicBoolean isFingerprint = new AtomicBoolean(false);
     public BiometricPromptGenericImpl(BiometricPromptCompat.Builder compatBuilder) {
 
         this.compatBuilder = compatBuilder;
-        dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptGenericImpl.this, false);
+
+        isFingerprint.set(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT);
+        if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
+            for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
+                if (request.getApi() == compatBuilder.getBiometricAuthRequest().getApi()
+                        && request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
+                    isFingerprint.set(BiometricManagerCompat.hasEnrolled(request));
+                    break;
+                }
+            }
+        }
+        dialog = new BiometricPromptCompatDialogImpl(compatBuilder,
+                BiometricPromptGenericImpl.this,
+                isFingerprint.get() && DevicesWithKnownBugs.isShouldShowInScreenDialogInstantly());
     }
 
     @Override
