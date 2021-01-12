@@ -3,6 +3,7 @@ package dev.skomlach.biometric.compat.impl;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import java.util.ArrayList;
@@ -24,12 +25,14 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs;
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes;
 import dev.skomlach.common.misc.ExecutorHelper;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCallback {
 
-    private final BiometricPromptCompatDialogImpl dialog;
+    @Nullable
+    private BiometricPromptCompatDialogImpl dialog;
     private final BiometricAuthenticationListener fmAuthCallback
             = new BiometricAuthenticationCallbackImpl();
     private final BiometricPromptCompat.Builder compatBuilder;
@@ -49,9 +52,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                 }
             }
         }
-        dialog = new BiometricPromptCompatDialogImpl(compatBuilder,
-                BiometricPromptGenericImpl.this,
-                isFingerprint.get() && DevicesWithKnownBugs.isShouldShowInScreenDialogInstantly());
+
     }
 
     @Override
@@ -60,19 +61,35 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
             this.callback = callback;
         }
 
-        dialog.showDialog();
+        final boolean doNotShowDialog = isFingerprint.get() && DevicesWithKnownBugs.isHideDialogInstantly();
+        if(!doNotShowDialog) {
+            dialog = new BiometricPromptCompatDialogImpl(compatBuilder,
+                    BiometricPromptGenericImpl.this,
+                    isFingerprint.get() && DevicesWithKnownBugs.isShouldShowInScreenDialogInstantly());
+            dialog.showDialog();
+        } else{
+           onUiShown();
+           startAuth();
+        }
     }
 
     @Override
     public void cancelAuthenticate() {
 
-        dialog.dismissDialog();
+        if (dialog != null)
+            dialog.dismissDialog();
+        else {
+           stopAuth();
+        }
     }
 
     @Override
     public boolean isNightMode() {
-
-        return dialog.isNightMode();
+        if (dialog != null)
+            return dialog.isNightMode();
+        else {
+            return DarkLightThemes.isNightMode(compatBuilder.getContext());
+        }
     }
 
     @Override
@@ -150,8 +167,16 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public boolean cancelAuthenticateBecauseOnPause() {
-
-        return dialog.cancelAuthenticateBecauseOnPause();
+        if (dialog != null) {
+            if (dialog.cancelAuthenticateBecauseOnPause()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            cancelAuthenticate();
+            return true;
+        }
     }
 
     @Override
@@ -160,7 +185,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                 BiometricAuthentication.getAvailableBiometrics() :
                 Collections.singletonList(compatBuilder.getBiometricAuthRequest().getType());
 
-        BiometricAuthentication.authenticate(dialog.getContainer(), types, fmAuthCallback);
+        BiometricAuthentication.authenticate(dialog!= null ? dialog.getContainer() : null, types, fmAuthCallback);
     }
 
     @Override
@@ -197,13 +222,14 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
         public void onHelp(AuthenticationHelpReason helpReason, String msg) {
             if (helpReason != AuthenticationHelpReason.BIOMETRIC_ACQUIRED_GOOD && !TextUtils.isEmpty(msg)) {
 
+                if(dialog !=null)
                 dialog.onHelp(msg);
             }
         }
 
         @Override
         public void onFailure(AuthenticationFailureReason failureReason, BiometricType module) {
-
+            if(dialog !=null)
             dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT);
             if (failureReason != AuthenticationFailureReason.LOCKED_OUT) {
                 //non fatal

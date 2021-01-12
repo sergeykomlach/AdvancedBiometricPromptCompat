@@ -35,7 +35,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         }
 
         override fun onUIShown() {
-            BiometricLoggerImpl.e("CheckBiometric.onUIShown(), t: ${System.currentTimeMillis() - start}")
+            Toast.makeText(activity, "onUIShown", Toast.LENGTH_LONG).show()
         }
     })
 }

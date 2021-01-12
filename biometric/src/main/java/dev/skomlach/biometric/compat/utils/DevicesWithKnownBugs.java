@@ -54,15 +54,16 @@ public class DevicesWithKnownBugs {
         return false;
     }
     public static boolean isShouldShowInScreenDialogInstantly() {
-        if(Build.BRAND.equalsIgnoreCase("OnePlus") ){
-            //OnePlus One - 6 OR Nord
-           if(Arrays.asList(onePlusModelsWithoutBiometricBug).contains(Build.MODEL)
-                   || Arrays.asList(onePlusNord).contains(Build.MODEL))
-               return false;
-
-           return true;
-        }
-        return false;
+        return true;
+//        if(Build.BRAND.equalsIgnoreCase("OnePlus") ){
+//            //OnePlus One - 6 OR Nord
+//           if(Arrays.asList(onePlusModelsWithoutBiometricBug).contains(Build.MODEL)
+//                   || Arrays.asList(onePlusNord).contains(Build.MODEL))
+//               return false;
+//
+//           return true;
+//        }
+//        return false;
     }
     public static boolean isLGWithBiometricBug() {
         return Build.BRAND.equalsIgnoreCase("LG") &&
