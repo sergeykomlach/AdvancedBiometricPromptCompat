@@ -6,7 +6,7 @@ buildscript {
     ext.javaVersion = JavaVersion.VERSION_1_8
     ext.libsGroupId = "dev.skomlach"
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 10
+    ext.libsMinorVersion = 11
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
