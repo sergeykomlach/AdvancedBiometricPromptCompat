@@ -17,8 +17,7 @@ public class HardwareAccessImpl {
     @Nullable private HardwareInfo hardwareInfo = null;
 
     private HardwareAccessImpl(BiometricAuthRequest biometricAuthRequest) {
-        if (biometricAuthRequest.getApi() == BiometricApi.LEGACY_API
-                || DevicesWithKnownBugs.isLGWithBiometricBug()) {
+        if (biometricAuthRequest.getApi() == BiometricApi.LEGACY_API) {
             hardwareInfo = new LegacyHardware(biometricAuthRequest);//Android 4+
         } else if (biometricAuthRequest.getApi() == BiometricApi.BIOMETRIC_API) {
             if (BuildCompat.isAtLeastQ()) {

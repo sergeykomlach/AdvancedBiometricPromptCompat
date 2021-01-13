@@ -233,24 +233,33 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             BiometricLoggerImpl.d("BiometricPromptApi28Impl.authenticate():");
             this.callback = cbk;
 
+            if(DevicesWithKnownBugs.isLGWithBiometricBug() && isFingerprint.get()){
+                //LG G8 do not have BiometricPrompt UI
+                dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, false);
+                dialog.showDialog();
+                startAuth();
+                onUiShown();
+            }
+            else {
 
-            FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
-                @Override
-                public void onStartWatching() {
-                    onUiShown();
-                    startAuth();
-                }
-
-                @Override
-                public void hasFocus(boolean hasFocus) {
-                    if (hasFocus) {
-                        //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
-                        //For other types of biometric that do not have UI - use regular Fingerprint UI
-                        dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, isFingerprint.get());
-                        dialog.showDialog();
+                FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
+                    @Override
+                    public void onStartWatching() {
+                        startAuth();
+                        onUiShown();
                     }
-                }
-            });
+
+                    @Override
+                    public void hasFocus(boolean hasFocus) {
+                        if (hasFocus) {
+                            //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
+                            //For other types of biometric that do not have UI - use regular Fingerprint UI
+                            dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, isFingerprint.get());
+                            dialog.showDialog();
+                        }
+                    }
+                });
+            }
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);
             callback.onFailed(AuthenticationFailureReason.UNKNOWN);
