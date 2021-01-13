@@ -233,14 +233,14 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             BiometricLoggerImpl.d("BiometricPromptApi28Impl.authenticate():");
             this.callback = cbk;
 
-            if(DevicesWithKnownBugs.isLGWithBiometricBug() && isFingerprint.get()){
+            if(DevicesWithKnownBugs.isLGWithMissedBiometricUI() && isFingerprint.get()){
                 //LG G8 do not have BiometricPrompt UI
                 dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, false);
                 dialog.showDialog();
                 startAuth();
                 onUiShown();
             }
-            else {
+            else if(isFingerprint.get()){
 
                 FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
                     @Override
@@ -259,6 +259,9 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                         }
                     }
                 });
+            } else{
+                startAuth();
+                onUiShown();
             }
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);

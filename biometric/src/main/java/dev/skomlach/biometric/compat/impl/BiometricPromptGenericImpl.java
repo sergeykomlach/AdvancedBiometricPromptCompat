@@ -65,7 +65,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
         if(!doNotShowDialog) {
             dialog = new BiometricPromptCompatDialogImpl(compatBuilder,
                     BiometricPromptGenericImpl.this,
-                    isFingerprint.get() && DevicesWithKnownBugs.isShouldShowInScreenDialogInstantly());
+                    isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly());
             dialog.showDialog();
         } else{
            onUiShown();

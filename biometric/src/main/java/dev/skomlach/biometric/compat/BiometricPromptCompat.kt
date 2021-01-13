@@ -29,11 +29,15 @@ import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.ActiveWindow
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.device.DeviceInfo
+import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -55,6 +59,15 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
+        var deviceInfo: DeviceInfo? = null
+        get() {
+            if(field == null){
+                GlobalScope.launch {
+                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
+                    }
+            }
+            return field
+        }
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -74,6 +87,9 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                     initInProgress.set(true)
                     pendingTasks.add(execute)
                     AndroidContext.getAppContext()
+                    GlobalScope.launch {
+                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> deviceInfo = info }
+                    }
                     BiometricAuthentication.init(object : BiometricInitListener {
                         override fun initFinished(
                             method: BiometricMethod,
