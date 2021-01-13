@@ -58,7 +58,15 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
-        var deviceInfo: DeviceInfo = DeviceInfo()
+        var deviceInfo: DeviceInfo?=null
+        get() {
+            if(field == null){
+                AsyncTask.THREAD_POOL_EXECUTOR.execute{
+                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
+                    }
+            }
+            return field
+        }
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {

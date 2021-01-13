@@ -70,8 +70,6 @@ public class DeviceInfoManager {
                 BiometricLoggerImpl.e("DeviceInfoManager: " + m +" -> "+ info);
                 if(info!=null) {
                     setCachedDeviceInfo(info);
-                } else {
-                    info = new DeviceInfo();
                 }
                 onDeviceInfoListener.onReady(info);
             });
@@ -262,6 +260,6 @@ public class DeviceInfoManager {
     }
 
     public interface OnDeviceInfoListener {
-        void onReady(DeviceInfo deviceInfo);
+        void onReady(@Nullable DeviceInfo deviceInfo);
     }
 }
