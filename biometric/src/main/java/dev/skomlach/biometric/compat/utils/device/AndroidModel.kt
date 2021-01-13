@@ -141,7 +141,7 @@ object AndroidModel {
         }
     }
 
-    private fun capitalize(s: String?): String {
+    fun capitalize(s: String?): String {
         if (s.isNullOrEmpty()) {
             return ""
         }

@@ -3,6 +3,7 @@ package dev.skomlach.biometric.compat.utils.device;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Looper;
 import android.text.TextUtils;
 
@@ -37,7 +38,8 @@ import static dev.skomlach.biometric.compat.utils.device.Network.resolveUrl;
 public class DeviceInfoManager {
 
     public static DeviceInfoManager INSTANCE = new DeviceInfoManager();
-    private String model = null;
+    private final String deviceModel = AndroidModel.INSTANCE.capitalize(Build.BRAND) + " " + Build.MODEL;
+
     private final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -57,47 +59,43 @@ public class DeviceInfoManager {
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
             throw new IllegalThreadStateException("Worker thread required");
 
-        if (model == null) {
+        DeviceInfo deviceInfo = getCachedDeviceInfo();
+        if (deviceInfo == null) {
+            deviceInfo = loadDeviceInfo(deviceModel);
+        }
+
+        if (deviceInfo == null || !deviceInfo.getExistsInDatabase()) {
             AndroidModel.INSTANCE.getAsync(AndroidContext.getAppContext(), m -> {
-                model = m;
-                BiometricLoggerImpl.e("DeviceInfoManager: Device Mode: " + model);
-                if (model != null) {
-                    DeviceInfo deviceInfo = getCachedDeviceInfo();
-                    if (deviceInfo == null) {
-                        deviceInfo = loadDeviceInfo(model);
-                    }
-                    BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo);
-                    onDeviceInfoListener.onReady(deviceInfo);
-                } else {
-                    onDeviceInfoListener.onReady(null);
-                }
+                DeviceInfo info = loadDeviceInfo(m);
+                BiometricLoggerImpl.e("DeviceInfoManager: " + m +" -> "+ info);
+                setCachedDeviceInfo(info);
+                onDeviceInfoListener.onReady(info);
             });
         } else {
-            DeviceInfo deviceInfo = getCachedDeviceInfo();
-            if (deviceInfo == null) {
-                deviceInfo = loadDeviceInfo(model);
-            }
-            BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo);
+            BiometricLoggerImpl.e("DeviceInfoManager: " + deviceModel +" -> "+ deviceInfo);
+            setCachedDeviceInfo(deviceInfo);
             onDeviceInfoListener.onReady(deviceInfo);
         }
     }
 
     @Nullable
     private DeviceInfo getCachedDeviceInfo() {
-        SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo-"+model);
+        SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo");
         if (sharedPreferences.getBoolean("checked", false)) {
             boolean hasIris = sharedPreferences.getBoolean("hasIris", false);
             boolean hasFace = sharedPreferences.getBoolean("hasFace", false);
             boolean hasFingerprint = sharedPreferences.getBoolean("hasFingerprint", false);
             boolean hasUnderDisplayFingerprint = sharedPreferences.getBoolean("hasUnderDisplayFingerprint", false);
-            return new DeviceInfo(hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
+            boolean existsInDatabase = sharedPreferences.getBoolean("existsInDatabase", false);
+            return new DeviceInfo(existsInDatabase, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
         }
         return null;
     }
 
     private void setCachedDeviceInfo(@NonNull DeviceInfo deviceInfo) {
-        SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo-"+model).edit();
+        SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo").edit();
         sharedPreferences.putBoolean("hasIris", deviceInfo.getHasIris())
+                .putBoolean("existsInDatabase", deviceInfo.getExistsInDatabase())
                 .putBoolean("hasFace", deviceInfo.getHasFace())
                 .putBoolean("hasFingerprint", deviceInfo.getHasFingerprint())
                 .putBoolean("hasUnderDisplayFingerprint", deviceInfo.getHasUnderDisplayFingerprint())
@@ -106,7 +104,8 @@ public class DeviceInfoManager {
 
     @Nullable
     private DeviceInfo loadDeviceInfo(String model) {
-
+        if(TextUtils.isEmpty(model))
+            return null;
         try {
 
             String url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model);
@@ -119,9 +118,7 @@ public class DeviceInfoManager {
 
             //not found
             if (detailsLink == null) {
-                final DeviceInfo deviceInfo = new DeviceInfo();
-                setCachedDeviceInfo(deviceInfo);
-                return deviceInfo;
+                return new DeviceInfo();
             }
 
             BiometricLoggerImpl.e("DeviceInfoManager: Link: " + detailsLink);
@@ -157,10 +154,7 @@ public class DeviceInfoManager {
                     }
                 }
             }
-            final DeviceInfo deviceInfo = new DeviceInfo(hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
-            setCachedDeviceInfo(deviceInfo);
-
-            return deviceInfo;
+            return new DeviceInfo(true, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
         } catch (Throwable e) {
             return null;
         }
