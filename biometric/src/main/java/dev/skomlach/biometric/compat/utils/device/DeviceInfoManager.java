@@ -68,7 +68,9 @@ public class DeviceInfoManager {
             AndroidModel.INSTANCE.getAsync(AndroidContext.getAppContext(), m -> {
                 DeviceInfo info = loadDeviceInfo(m);
                 BiometricLoggerImpl.e("DeviceInfoManager: " + m +" -> "+ info);
-                setCachedDeviceInfo(info);
+                if(info!=null) {
+                    setCachedDeviceInfo(info);
+                }
                 onDeviceInfoListener.onReady(info);
             });
         } else {
