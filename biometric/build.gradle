@@ -31,7 +31,8 @@ dependencies {
     compileOnly "dev.skomlach:biometric-api:${libsMajorVersion + "." + libsMinorVersion}"
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2"
+
+    implementation 'com.jaredrummler:android-device-names:2.0.0'
     implementation "org.jsoup:jsoup:1.13.1"
     implementation 'androidx.biometric:biometric:+'
     implementation "androidx.appcompat:appcompat:1.2.0"

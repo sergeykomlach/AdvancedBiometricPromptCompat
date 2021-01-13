@@ -3,7 +3,6 @@ package dev.skomlach.biometric.compat.utils.device;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
-import android.os.Build;
 import android.os.Looper;
 import android.text.TextUtils;
 
@@ -17,32 +16,28 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLHandshakeException;
 
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
 
+import static dev.skomlach.biometric.compat.utils.device.Network.createConnection;
+import static dev.skomlach.biometric.compat.utils.device.Network.fastCopy;
+import static dev.skomlach.biometric.compat.utils.device.Network.resolveUrl;
+
 public class DeviceInfoManager {
 
     public static DeviceInfoManager INSTANCE = new DeviceInfoManager();
-    final String model = Build.BRAND + " " + Build.MODEL;
+    private String model = null;
     private final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -55,7 +50,6 @@ public class DeviceInfoManager {
             "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"};
 
     private DeviceInfoManager() {
-        BiometricLoggerImpl.e("DevicesWithKnownBugs: Device Mode: " + model);
     }
 
     @WorkerThread
@@ -63,12 +57,29 @@ public class DeviceInfoManager {
         if (Looper.getMainLooper().getThread() == Thread.currentThread())
             throw new IllegalThreadStateException("Worker thread required");
 
-        DeviceInfo deviceInfo = getCachedDeviceInfo();
-        if (deviceInfo == null) {
-            deviceInfo = loadDeviceInfo(model);
+        if (model == null) {
+            AndroidModel.INSTANCE.getAsync(AndroidContext.getAppContext(), m -> {
+                model = m;
+                BiometricLoggerImpl.e("DeviceInfoManager: Device Mode: " + model);
+                if (model != null) {
+                    DeviceInfo deviceInfo = getCachedDeviceInfo();
+                    if (deviceInfo == null) {
+                        deviceInfo = loadDeviceInfo(model);
+                    }
+                    BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo);
+                    onDeviceInfoListener.onReady(deviceInfo);
+                } else {
+                    onDeviceInfoListener.onReady(null);
+                }
+            });
+        } else {
+            DeviceInfo deviceInfo = getCachedDeviceInfo();
+            if (deviceInfo == null) {
+                deviceInfo = loadDeviceInfo(model);
+            }
+            BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo);
+            onDeviceInfoListener.onReady(deviceInfo);
         }
-        BiometricLoggerImpl.e("DevicesWithKnownBugs: " + deviceInfo);
-        onDeviceInfoListener.onReady(deviceInfo);
     }
 
     @Nullable
@@ -113,7 +124,7 @@ public class DeviceInfoManager {
                 return deviceInfo;
             }
 
-            BiometricLoggerImpl.e("DevicesWithKnownBugs: Link: " + detailsLink);
+            BiometricLoggerImpl.e("DeviceInfoManager: Link: " + detailsLink);
 
             html = getHtml(detailsLink);
 
@@ -122,7 +133,7 @@ public class DeviceInfoManager {
 
             List<String> l = getSensorDetails(html);
 
-            BiometricLoggerImpl.e("DevicesWithKnownBugs: Sensors: " + l);
+            BiometricLoggerImpl.e("DeviceInfoManager: Sensors: " + l);
 
             boolean hasIris = false;
             boolean hasFace = false;
@@ -208,7 +219,7 @@ public class DeviceInfoManager {
         try {
             HttpURLConnection urlConnection = null;
             ConnectivityManager connectivityManager = (ConnectivityManager) AndroidContext.getAppContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting()) {
+            if (connectivityManager.getActiveNetworkInfo()!=null && connectivityManager.getActiveNetworkInfo().isConnectedOrConnecting()) {
                 try {
                     urlConnection = createConnection(url, (int) TimeUnit.SECONDS.toMillis(30));
 
@@ -243,55 +254,13 @@ public class DeviceInfoManager {
                 }
             }
         } catch (Throwable e) {
+            //ignore - old device cannt resolve SSL connection
+            if(e instanceof SSLHandshakeException){
+                return "<html></html>";
+            }
             BiometricLoggerImpl.e(e);
         }
         return null;
-    }
-
-    public HttpURLConnection createConnection(String link, int timeout) throws Exception {
-
-        URL url = new URL(link).toURI().normalize().toURL();
-        HttpURLConnection conn = null;
-
-        if (url.getProtocol().equalsIgnoreCase("https"))
-            conn = (HttpsURLConnection) url.openConnection();
-        else
-            conn = (HttpURLConnection) url.openConnection();
-        conn.setInstanceFollowRedirects(true);
-        conn.setConnectTimeout(timeout);
-        conn.setReadTimeout(timeout);
-        return conn;
-    }
-
-    public void fastCopy(final InputStream src, final OutputStream dest) throws IOException {
-        final ReadableByteChannel inputChannel = Channels.newChannel(src);
-        final WritableByteChannel outputChannel = Channels.newChannel(dest);
-        fastCopy(inputChannel, outputChannel);
-        inputChannel.close();
-        outputChannel.close();
-    }
-
-    public void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest) throws IOException {
-        final ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
-
-        while (src.read(buffer) != -1) {
-            buffer.flip();
-            dest.write(buffer);
-            buffer.compact();
-        }
-
-        buffer.flip();
-
-        while (buffer.hasRemaining()) {
-            dest.write(buffer);
-        }
-    }
-
-    private String resolveUrl(String baseUrl, String relativeUrl) {
-        try {
-            return new URI(baseUrl).resolve(relativeUrl).toString();
-        } catch (Throwable ignore) {}
-        return relativeUrl;
     }
 
     public interface OnDeviceInfoListener {

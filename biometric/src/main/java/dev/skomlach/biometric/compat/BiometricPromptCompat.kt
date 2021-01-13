@@ -2,6 +2,7 @@ package dev.skomlach.biometric.compat
 
 import android.annotation.TargetApi
 import android.content.DialogInterface
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Looper
 import android.view.View
@@ -36,8 +37,6 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -62,7 +61,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         var deviceInfo: DeviceInfo? = null
         get() {
             if(field == null){
-                GlobalScope.launch {
+                AsyncTask.THREAD_POOL_EXECUTOR.execute{
                         DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
                     }
             }
@@ -87,7 +86,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                     initInProgress.set(true)
                     pendingTasks.add(execute)
                     AndroidContext.getAppContext()
-                    GlobalScope.launch {
+                    AsyncTask.THREAD_POOL_EXECUTOR.execute{
                         DeviceInfoManager.INSTANCE.getDeviceInfo { info -> deviceInfo = info }
                     }
                     BiometricAuthentication.init(object : BiometricInitListener {
