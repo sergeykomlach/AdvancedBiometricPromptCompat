@@ -4,10 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.DialogFragment
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -39,6 +36,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
                     fillList(inflater, buttonsList)
+                    checkDeviceInfo()
                 }
             })
         } else {
@@ -47,7 +45,11 @@ class AppCompactBaseDialogFragment : DialogFragment() {
 
         return view
     }
+    private fun checkDeviceInfo(){
+        val deviceInfo = BiometricPromptCompat.deviceInfo
+        view?.findViewById<TextView>(R.id.text)?.text = deviceInfo.toString()
 
+    }
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout) {
         for (authRequest in App.authRequestList) {
             val container: FrameLayout =

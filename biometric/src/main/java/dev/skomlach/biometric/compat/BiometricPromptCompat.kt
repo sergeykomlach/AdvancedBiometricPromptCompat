@@ -58,15 +58,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
-        var deviceInfo: DeviceInfo? = null
-        get() {
-            if(field == null){
-                AsyncTask.THREAD_POOL_EXECUTOR.execute{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
-                    }
-            }
-            return field
-        }
+        var deviceInfo: DeviceInfo = DeviceInfo()
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -87,47 +79,54 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                     pendingTasks.add(execute)
                     AndroidContext.getAppContext()
                     AsyncTask.THREAD_POOL_EXECUTOR.execute{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> deviceInfo = info }
+                        DeviceInfoManager.INSTANCE.getDeviceInfo { info ->
+                            deviceInfo = info
+                            startBiometricInit()
+                        }
                     }
-                    BiometricAuthentication.init(object : BiometricInitListener {
-                        override fun initFinished(
-                            method: BiometricMethod,
-                            module: BiometricModule?
-                        ) {
-                        }
 
-                        override fun onBiometricReady() {
-                            BiometricLoggerImpl.e("BiometricPromptCompat.init() - finished")
-                            isBiometricInit.set(true)
-                            initInProgress.set(false)
-                            //Add default first
-                            var biometricAuthRequest = BiometricAuthRequest()
-                            if (isHardwareDetected(biometricAuthRequest)) {
-                                availableAuthRequests.add(biometricAuthRequest)
-                            }
-
-                            for (api in BiometricApi.values()) {
-                                for (type in BiometricType.values()) {
-                                    if (type == BiometricType.BIOMETRIC_ANY)
-                                        continue
-                                    biometricAuthRequest = BiometricAuthRequest(api, type)
-                                    if (isHardwareDetected(biometricAuthRequest)) {
-                                        availableAuthRequests.add(biometricAuthRequest)
-                                    }
-                                }
-                            }
-
-                            for (task in pendingTasks) {
-                                task?.let { ExecutorHelper.INSTANCE.handler.post(it) }
-                            }
-                            pendingTasks.clear()
-                        }
-                    })
-                    DeviceUnlockedReceiver.registerDeviceUnlockListener()
                 }
             }
         }
+        @MainThread
+        @JvmStatic
+        private fun startBiometricInit(){
+            BiometricAuthentication.init(object : BiometricInitListener {
+                override fun initFinished(
+                    method: BiometricMethod,
+                    module: BiometricModule?
+                ) {
+                }
 
+                override fun onBiometricReady() {
+                    BiometricLoggerImpl.e("BiometricPromptCompat.init() - finished")
+                    isBiometricInit.set(true)
+                    initInProgress.set(false)
+                    //Add default first
+                    var biometricAuthRequest = BiometricAuthRequest()
+                    if (isHardwareDetected(biometricAuthRequest)) {
+                        availableAuthRequests.add(biometricAuthRequest)
+                    }
+
+                    for (api in BiometricApi.values()) {
+                        for (type in BiometricType.values()) {
+                            if (type == BiometricType.BIOMETRIC_ANY)
+                                continue
+                            biometricAuthRequest = BiometricAuthRequest(api, type)
+                            if (isHardwareDetected(biometricAuthRequest)) {
+                                availableAuthRequests.add(biometricAuthRequest)
+                            }
+                        }
+                    }
+
+                    for (task in pendingTasks) {
+                        task?.let { ExecutorHelper.INSTANCE.handler.post(it) }
+                    }
+                    pendingTasks.clear()
+                }
+            })
+            DeviceUnlockedReceiver.registerDeviceUnlockListener()
+        }
     }
 
     fun authenticate(callback: Result) {

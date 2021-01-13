@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentFirstBinding
+import dev.skomlach.biometric.compat.BiometricPromptCompat
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -34,6 +35,7 @@ class FirstFragment : Fragment() {
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
                     fillList(inflater, binding.buttonsList)
+                    checkDeviceInfo()
                 }
             })
         } else {
@@ -45,7 +47,10 @@ class FirstFragment : Fragment() {
         }
         return binding.root
     }
-
+    private fun checkDeviceInfo(){
+        val deviceInfo = BiometricPromptCompat.deviceInfo
+        binding.text.text = deviceInfo.toString()
+    }
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout) {
         for (authRequest in App.authRequestList) {
             val container: FrameLayout =
