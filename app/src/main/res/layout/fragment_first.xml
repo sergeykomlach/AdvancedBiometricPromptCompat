@@ -9,8 +9,6 @@
 
     <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/text"
-            android:textColor="@color/black"
-            android:text="Some Test string"
             android:gravity="center"
             android:layout_centerInParent="true"
             android:layout_alignParentTop="true"
