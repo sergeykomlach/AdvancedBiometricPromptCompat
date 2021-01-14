@@ -27,7 +27,7 @@ object AndroidModel {
         fun onModel(model: String?)
     }
 
-    fun getAsync(context: Context, onModelNameExtracted: OnModelNameExtracted) {
+    fun getAsync(context: Context, brand : String, model: String, codename : String?,  onModelNameExtracted: OnModelNameExtracted) {
         AsyncTask.THREAD_POOL_EXECUTOR.execute {
             BiometricLoggerImpl.e("AndroidModel.getAsync started")
             val sharedPreferences =
@@ -48,7 +48,7 @@ object AndroidModel {
                 }
                 modelPair.clear()
                 modelPair.putAll(stringHashMap)
-                prefetchData(context, onModelNameExtracted)
+                prefetchData(context, brand , model, codename, onModelNameExtracted)
                 return@execute
             }
             val connectivityManager = context
@@ -86,7 +86,7 @@ object AndroidModel {
                             .putLong("models_lastChecked", System.currentTimeMillis()).apply()
                         modelPair.clear()
                         modelPair.putAll(stringHashMap)
-                        prefetchData(context, onModelNameExtracted)
+                        prefetchData(context, brand , model, codename, onModelNameExtracted)
                         return@execute
                     }
                 } catch (e: Throwable) {
@@ -111,13 +111,12 @@ object AndroidModel {
             }
 
             BiometricLoggerImpl.e("AndroidModel some error")
-            prefetchData(context, onModelNameExtracted)
+            prefetchData(context, brand , model, codename, onModelNameExtracted)
 
         }
     }
 
-    private fun prefetchData(context: Context, onModelNameExtracted: OnModelNameExtracted) {
-        val model = Build.MODEL
+    private fun prefetchData(context: Context, brand : String, model: String, codename : String?, onModelNameExtracted: OnModelNameExtracted) {
         val modelFromFile = modelPair[model]
         val connectivityManager = context
             .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -125,19 +124,27 @@ object AndroidModel {
                 modelFromFile
             )
         ) {
-            DeviceName.with(context).request { info, _ ->
+            var deviceName = DeviceName.with(context)
+             if(model.isNotEmpty() && codename?.isNotEmpty() == true)
+                 deviceName = deviceName.setModel(model).setCodename(codename)
+
+            deviceName.request { info, _ ->
                 AsyncTask.THREAD_POOL_EXECUTOR.execute {
                     onModelNameExtracted.onModel(
                         if (info != null) {
-                            capitalize(if (!TextUtils.isEmpty(info.manufacturer)) info.manufacturer else Build.BRAND) + " " + info.name
+                            val modelParts = model.split(" ")
+                            val nameParts = info.name.split(" ")
+                            val name = if(modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(nameParts[0], true)) model else info.name
+
+                            capitalize(if (!TextUtils.isEmpty(info.manufacturer)) info.manufacturer else brand) + " " + name
                         } else {
-                            capitalize(Build.BRAND) + " " + model
+                            capitalize(brand) + " " + model
                         }
                     )
                 }
             }
         } else {
-            onModelNameExtracted.onModel(modelFromFile ?: capitalize(Build.BRAND) + " " + model)
+            onModelNameExtracted.onModel(modelFromFile ?: capitalize(brand) + " " + model)
         }
     }
 

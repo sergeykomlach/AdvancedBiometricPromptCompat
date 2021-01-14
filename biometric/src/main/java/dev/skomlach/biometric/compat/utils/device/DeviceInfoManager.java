@@ -38,7 +38,10 @@ import static dev.skomlach.biometric.compat.utils.device.Network.resolveUrl;
 public class DeviceInfoManager {
 
     public static DeviceInfoManager INSTANCE = new DeviceInfoManager();
-    private final String deviceModel = AndroidModel.INSTANCE.capitalize(Build.BRAND) + " " + Build.MODEL;
+    private final String brand = Build.BRAND;
+    private final String model = Build.MODEL;
+    private final String device = Build.DEVICE;
+    private final String deviceModel = AndroidModel.INSTANCE.capitalize(brand) + " " + model;
 
     private final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -52,6 +55,7 @@ public class DeviceInfoManager {
             "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"};
 
     private DeviceInfoManager() {
+
     }
 
     @WorkerThread
@@ -65,7 +69,7 @@ public class DeviceInfoManager {
         }
 
         if (deviceInfo == null || !deviceInfo.getExistsInDatabase()) {
-            AndroidModel.INSTANCE.getAsync(AndroidContext.getAppContext(), m -> {
+            AndroidModel.INSTANCE.getAsync(AndroidContext.getAppContext(), brand, model, device,  m -> {
                 DeviceInfo info = loadDeviceInfo(m);
                 BiometricLoggerImpl.e("DeviceInfoManager: " + m +" -> "+ info);
                 if(info!=null) {
@@ -106,6 +110,7 @@ public class DeviceInfoManager {
 
     @Nullable
     private DeviceInfo loadDeviceInfo(String model) {
+        BiometricLoggerImpl.e("DeviceInfoManager: loadDeviceInfo for " + model);
         if(TextUtils.isEmpty(model))
             return null;
         try {
