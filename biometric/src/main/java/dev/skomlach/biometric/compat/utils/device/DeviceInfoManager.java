@@ -3,7 +3,6 @@ package dev.skomlach.biometric.compat.utils.device;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
-import android.os.Build;
 import android.os.Looper;
 import android.text.TextUtils;
 
@@ -38,10 +37,6 @@ import static dev.skomlach.biometric.compat.utils.device.Network.resolveUrl;
 public class DeviceInfoManager {
 
     public static DeviceInfoManager INSTANCE = new DeviceInfoManager();
-    private final String brand = Build.BRAND;
-    private final String model = Build.MODEL;
-    private final String device = Build.DEVICE;
-    private final String deviceModel = AndroidModel.INSTANCE.capitalize(brand) + " " + model;
 
     private final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -64,24 +59,52 @@ public class DeviceInfoManager {
             throw new IllegalThreadStateException("Worker thread required");
 
         DeviceInfo deviceInfo = getCachedDeviceInfo();
-        if (deviceInfo == null) {
-            deviceInfo = loadDeviceInfo(deviceModel);
+        if (deviceInfo != null) {
+            onDeviceInfoListener.onReady(deviceInfo);
+            return;
         }
 
-        if (deviceInfo == null || !deviceInfo.getExistsInDatabase()) {
-            AndroidModel.INSTANCE.getAsync(AndroidContext.getAppContext(), brand, model, device,  m -> {
-                DeviceInfo info = loadDeviceInfo(m);
-                BiometricLoggerImpl.e("DeviceInfoManager: " + m +" -> "+ info);
-                if(info!=null) {
-                    setCachedDeviceInfo(info);
-                }
-                onDeviceInfoListener.onReady(info);
-            });
-        } else {
-            BiometricLoggerImpl.e("DeviceInfoManager: " + deviceModel +" -> "+ deviceInfo);
+        String m = AndroidModel.INSTANCE.getSimpleDeviceName();
+        deviceInfo = loadDeviceInfo(m);
+
+        if (deviceInfo != null && deviceInfo.getExistsInDatabase()) {
+            BiometricLoggerImpl.e("DeviceInfoManager#1: " + m + " -> " + deviceInfo);
             setCachedDeviceInfo(deviceInfo);
             onDeviceInfoListener.onReady(deviceInfo);
+        } else {
+            checkInDb(onDeviceInfoListener);
         }
+    }
+
+    private void checkInAssets(OnDeviceInfoListener onDeviceInfoListener) {
+        AndroidModel.INSTANCE.checkInAssets(m -> {
+            if (TextUtils.isEmpty(m)) {
+                onDeviceInfoListener.onReady(null);
+                return;
+            }
+            DeviceInfo info = loadDeviceInfo(m);
+            BiometricLoggerImpl.e("DeviceInfoManager#2: " + m + " -> " + info);
+            if (info != null) {
+                setCachedDeviceInfo(info);
+            }
+            onDeviceInfoListener.onReady(info);
+        });
+    }
+
+    private void checkInDb(OnDeviceInfoListener onDeviceInfoListener) {
+        AndroidModel.INSTANCE.checkInDb(m -> {
+            if (TextUtils.isEmpty(m)) {
+                checkInAssets(onDeviceInfoListener);
+                return;
+            }
+            DeviceInfo info = loadDeviceInfo(m);
+            BiometricLoggerImpl.e("DeviceInfoManager#3: " + m + " -> " + info);
+            if (info != null && info.getExistsInDatabase()) {
+                setCachedDeviceInfo(info);
+                onDeviceInfoListener.onReady(info);
+            } else
+                checkInAssets(onDeviceInfoListener);
+        });
     }
 
     @Nullable
@@ -93,7 +116,8 @@ public class DeviceInfoManager {
             boolean hasFingerprint = sharedPreferences.getBoolean("hasFingerprint", false);
             boolean hasUnderDisplayFingerprint = sharedPreferences.getBoolean("hasUnderDisplayFingerprint", false);
             boolean existsInDatabase = sharedPreferences.getBoolean("existsInDatabase", false);
-            return new DeviceInfo(existsInDatabase, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
+            String model = sharedPreferences.getString("model", null);
+            return new DeviceInfo(model, existsInDatabase, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
         }
         return null;
     }
@@ -105,7 +129,9 @@ public class DeviceInfoManager {
                 .putBoolean("hasFace", deviceInfo.getHasFace())
                 .putBoolean("hasFingerprint", deviceInfo.getHasFingerprint())
                 .putBoolean("hasUnderDisplayFingerprint", deviceInfo.getHasUnderDisplayFingerprint())
-                .putBoolean("checked", true).apply();
+                .putString("model", deviceInfo.getModel())
+                .putBoolean("checked", true)
+                .apply();
     }
 
     @Nullable
@@ -161,7 +187,7 @@ public class DeviceInfoManager {
                     }
                 }
             }
-            return new DeviceInfo(true, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
+            return new DeviceInfo(model, true, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
         } catch (Throwable e) {
             return null;
         }
