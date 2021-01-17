@@ -22,6 +22,7 @@ import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLHandshakeException;
@@ -64,47 +65,22 @@ public class DeviceInfoManager {
             return;
         }
 
-        String m = AndroidModel.INSTANCE.getSimpleDeviceName();
-        deviceInfo = loadDeviceInfo(m);
-
-        if (deviceInfo != null && deviceInfo.getExistsInDatabase()) {
-            BiometricLoggerImpl.e("DeviceInfoManager#1: " + m + " -> " + deviceInfo);
-            setCachedDeviceInfo(deviceInfo);
-            onDeviceInfoListener.onReady(deviceInfo);
-        } else {
-            checkInDb(onDeviceInfoListener);
+        Set<String> strings = DeviceModel.INSTANCE.getNames();
+        for (String m : strings) {
+            deviceInfo = loadDeviceInfo(m);
+            if (deviceInfo != null && deviceInfo.getExistsInDatabase()) {
+                BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo.getModel() + " -> " + deviceInfo);
+                setCachedDeviceInfo(deviceInfo);
+                onDeviceInfoListener.onReady(deviceInfo);
+                return;
+            }
         }
-    }
 
-    private void checkInAssets(OnDeviceInfoListener onDeviceInfoListener) {
-        AndroidModel.INSTANCE.checkInAssets(m -> {
-            if (TextUtils.isEmpty(m)) {
-                onDeviceInfoListener.onReady(null);
-                return;
-            }
-            DeviceInfo info = loadDeviceInfo(m);
-            BiometricLoggerImpl.e("DeviceInfoManager#2: " + m + " -> " + info);
-            if (info != null) {
-                setCachedDeviceInfo(info);
-            }
-            onDeviceInfoListener.onReady(info);
-        });
-    }
-
-    private void checkInDb(OnDeviceInfoListener onDeviceInfoListener) {
-        AndroidModel.INSTANCE.checkInDb(m -> {
-            if (TextUtils.isEmpty(m)) {
-                checkInAssets(onDeviceInfoListener);
-                return;
-            }
-            DeviceInfo info = loadDeviceInfo(m);
-            BiometricLoggerImpl.e("DeviceInfoManager#3: " + m + " -> " + info);
-            if (info != null && info.getExistsInDatabase()) {
-                setCachedDeviceInfo(info);
-                onDeviceInfoListener.onReady(info);
-            } else
-                checkInAssets(onDeviceInfoListener);
-        });
+        if (deviceInfo != null) {
+            BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo.getModel() + " -> " + deviceInfo);
+            setCachedDeviceInfo(deviceInfo);
+        }
+        onDeviceInfoListener.onReady(deviceInfo);
     }
 
     @Nullable
@@ -151,7 +127,7 @@ public class DeviceInfoManager {
 
             //not found
             if (detailsLink == null) {
-                return new DeviceInfo();
+                return new DeviceInfo(model, false, false, false, false, false);
             }
 
             BiometricLoggerImpl.e("DeviceInfoManager: Link: " + detailsLink);
