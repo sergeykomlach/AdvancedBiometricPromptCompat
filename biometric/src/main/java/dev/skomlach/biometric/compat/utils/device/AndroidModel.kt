@@ -24,7 +24,11 @@ object AndroidModel {
     }
 
     fun getSimpleDeviceName(): String {
-        return getName(brand, model)
+        val s = SystemPropertiesProxy.get(AndroidContext.getAppContext(), "ro.config.marketing_name")
+        return if(!s.isNullOrEmpty())
+            getName(brand, s)
+        else
+            getName(brand, model)
     }
 
     fun checkInAssets(onModelNameExtracted: OnModelNameExtracted) {
