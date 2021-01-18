@@ -81,7 +81,8 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|    
 | Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |
 | Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|  
-| OnePlus FaceId | Android 8+ and OnePlus devices |Not tested yet|
+| ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~Not tested yet~~|
+| ~~Xiomi FaceUnlock~~ | ~~Android 8+ and Xiaomi devices~~ |~~Xiaomi POCO F1~~|
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|    
 ## Setup  
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
@@ -180,7 +181,7 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   
   `void onSucceeded()` - User successfully authenticated   
     
-  `void onCanceled()` - Biometric authentification was canceled  
+  `void onCanceled()` - Biometric authentication was canceled  
     
   `void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*  
   `void onUIShown()` - Biometric UI on display  

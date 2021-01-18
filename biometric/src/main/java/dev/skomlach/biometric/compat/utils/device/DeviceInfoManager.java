@@ -75,7 +75,7 @@ public class DeviceInfoManager {
         for (String s : deviceInfo.getSensors()) {
             s = s.toLowerCase();
 
-            if (s.contains("fingerprint") && s.contains("display")) {
+            if (s.contains("fingerprint") && s.contains("under display")) {
                 return true;
             }
         }
