@@ -16,7 +16,7 @@
   
 **Huawei Mate P40 Pro**  
 <p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.png" alt="Huawei Mate P40 Pro" width="500px"  />  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
   </a>  
 </p>  
   
