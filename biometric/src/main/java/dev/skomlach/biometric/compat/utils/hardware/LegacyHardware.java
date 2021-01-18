@@ -14,9 +14,16 @@ public class LegacyHardware extends AbstractHardware {
     }
 
     public int getAvailableBiometricsCount() {
-        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY)
-            return BiometricAuthentication.getAvailableBiometrics().size();
-
+        if (getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
+            int count = 0;
+            for (BiometricType type : BiometricAuthentication.getAvailableBiometrics()) {
+                BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(type);
+                if (biometricModule != null && biometricModule.isHardwarePresent() && biometricModule.hasEnrolled()) {
+                    count++;
+                }
+            }
+            return count;
+        }
         BiometricModule biometricModule = BiometricAuthentication.getAvailableBiometricModule(getBiometricAuthRequest().getType());
         return biometricModule != null ? 1 : 0;
     }
