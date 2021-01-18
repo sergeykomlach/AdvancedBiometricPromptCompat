@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo;
+import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager;
 import dev.skomlach.common.contextprovider.AndroidContext;
 
 public class DevicesWithKnownBugs {
@@ -57,12 +58,7 @@ public class DevicesWithKnownBugs {
                 Arrays.asList(lgWithMissedBiometricUI).contains(Build.MODEL);
     }
     public static boolean isShowInScreenDialogInstantly() {
-        DeviceInfo deviceInfo = BiometricPromptCompat.Companion.getDeviceInfo();
-        if(deviceInfo!=null){
-            return  deviceInfo.getHasUnderDisplayFingerprint();
-        } else {
-            return false;
-        }
+       return DeviceInfoManager.INSTANCE.hasUnderDisplayFingerprint(BiometricPromptCompat.Companion.getDeviceInfo());
     }
 
 }

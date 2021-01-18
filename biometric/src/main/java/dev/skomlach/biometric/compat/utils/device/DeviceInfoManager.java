@@ -20,10 +20,11 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLHandshakeException;
 
@@ -39,6 +40,7 @@ public class DeviceInfoManager {
 
     public static DeviceInfoManager INSTANCE = new DeviceInfoManager();
 
+    private Pattern pattern = Pattern.compile("\\((.*?)\\)+");
     private final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -52,6 +54,59 @@ public class DeviceInfoManager {
 
     private DeviceInfoManager() {
 
+    }
+
+    public boolean hasFingerprint(DeviceInfo deviceInfo) {
+        if (deviceInfo == null || deviceInfo.getSensors() == null)
+            return false;
+
+        for (String s : deviceInfo.getSensors()) {
+            s = s.toLowerCase();
+            if (s.contains("fingerprint")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasUnderDisplayFingerprint(DeviceInfo deviceInfo) {
+        if (deviceInfo == null || deviceInfo.getSensors() == null)
+            return false;
+        for (String s : deviceInfo.getSensors()) {
+            s = s.toLowerCase();
+
+            if (s.contains("fingerprint") && s.contains("display")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasIrisScanner(DeviceInfo deviceInfo) {
+        if (deviceInfo == null || deviceInfo.getSensors() == null)
+            return false;
+        for (String s : deviceInfo.getSensors()) {
+            s = s.toLowerCase();
+            if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(" auth")) {
+                if (s.contains("iris")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    public boolean hasFaceID(DeviceInfo deviceInfo){
+        if(deviceInfo == null || deviceInfo.getSensors() == null)
+            return false;
+        for (String s : deviceInfo.getSensors()) {
+            s = s.toLowerCase();
+            if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(" auth")) {
+                if (s.contains("face")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @WorkerThread
@@ -68,7 +123,7 @@ public class DeviceInfoManager {
         Set<String> strings = DeviceModel.INSTANCE.getNames();
         for (String m : strings) {
             deviceInfo = loadDeviceInfo(m);
-            if (deviceInfo != null && deviceInfo.getExistsInDatabase()) {
+            if (deviceInfo != null && deviceInfo.getSensors()!=null) {
                 BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo.getModel() + " -> " + deviceInfo);
                 setCachedDeviceInfo(deviceInfo);
                 onDeviceInfoListener.onReady(deviceInfo);
@@ -87,24 +142,17 @@ public class DeviceInfoManager {
     private DeviceInfo getCachedDeviceInfo() {
         SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo");
         if (sharedPreferences.getBoolean("checked", false)) {
-            boolean hasIris = sharedPreferences.getBoolean("hasIris", false);
-            boolean hasFace = sharedPreferences.getBoolean("hasFace", false);
-            boolean hasFingerprint = sharedPreferences.getBoolean("hasFingerprint", false);
-            boolean hasUnderDisplayFingerprint = sharedPreferences.getBoolean("hasUnderDisplayFingerprint", false);
-            boolean existsInDatabase = sharedPreferences.getBoolean("existsInDatabase", false);
             String model = sharedPreferences.getString("model", null);
-            return new DeviceInfo(model, existsInDatabase, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
+            Set<String> sensors = sharedPreferences.getStringSet("sensors", null);
+            return new DeviceInfo(model, sensors);
         }
         return null;
     }
 
     private void setCachedDeviceInfo(@NonNull DeviceInfo deviceInfo) {
         SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo").edit();
-        sharedPreferences.putBoolean("hasIris", deviceInfo.getHasIris())
-                .putBoolean("existsInDatabase", deviceInfo.getExistsInDatabase())
-                .putBoolean("hasFace", deviceInfo.getHasFace())
-                .putBoolean("hasFingerprint", deviceInfo.getHasFingerprint())
-                .putBoolean("hasUnderDisplayFingerprint", deviceInfo.getHasUnderDisplayFingerprint())
+        sharedPreferences
+                .putStringSet("sensors", deviceInfo.getSensors())
                 .putString("model", deviceInfo.getModel())
                 .putBoolean("checked", true)
                 .apply();
@@ -127,7 +175,7 @@ public class DeviceInfoManager {
 
             //not found
             if (detailsLink == null) {
-                return new DeviceInfo(model, false, false, false, false, false);
+                return new DeviceInfo(model, null);
             }
 
             BiometricLoggerImpl.e("DeviceInfoManager: Link: " + detailsLink);
@@ -137,42 +185,20 @@ public class DeviceInfoManager {
             if (html == null)
                 return null;
 
-            List<String> l = getSensorDetails(html);
+            Set<String> l = getSensorDetails(html);
 
             BiometricLoggerImpl.e("DeviceInfoManager: Sensors: " + l);
 
-            boolean hasIris = false;
-            boolean hasFace = false;
-            boolean hasFingerprint = false;
-            boolean hasUnderDisplayFingerprint = false;
-
-            for (String s : l) {
-                s = s.toLowerCase();
-
-                if (s.contains("fingerprint")) {
-                    hasFingerprint = true;
-                    if (s.contains("display")) {
-                        hasUnderDisplayFingerprint = true;
-                    }
-                } else if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(" auth")) {
-                    if (s.contains("iris")) {
-                        hasIris = true;
-                    }
-                    if (s.contains("face")) {
-                        hasFace = true;
-                    }
-                }
-            }
-            return new DeviceInfo(model, true, hasIris, hasFace, hasFingerprint, hasUnderDisplayFingerprint);
+            return new DeviceInfo(model, l);
         } catch (Throwable e) {
             return null;
         }
     }
 
     //parser
-    private List<String> getSensorDetails(String html) {
+    private Set<String> getSensorDetails(String html) {
 
-        List<String> list = new ArrayList<>();
+        Set<String> list = new HashSet<>();
         if (html != null) {
             Document doc = Jsoup.parse(html);
             Element body = doc.body().getElementById("content");
@@ -182,9 +208,16 @@ public class DeviceInfoManager {
                 if (element.attr("data-spec").equals("sensors")) {
                     String name = element.text();
                     if (!TextUtils.isEmpty(name)) {
+
+                        Matcher matcher = pattern.matcher(name);
+                        while (matcher.find()) {
+                            String s = matcher.group();
+                            name = name.replace(s, s.replace(",", ";"));
+                        }
+
                         String[] split = name.split(",");
                         for (String s : split) {
-                            list.add(s.trim());
+                            list.add(capitalize(s.trim()));
                         }
                     }
                 }
@@ -266,6 +299,17 @@ public class DeviceInfoManager {
         return null;
     }
 
+    private static String capitalize(String s) {
+        if (s == null || s.length() == 0) {
+            return "";
+        }
+        char first = s.charAt(0);
+        if (Character.isUpperCase(first)) {
+            return s;
+        } else {
+            return Character.toUpperCase(first) + s.substring(1);
+        }
+    }
     public interface OnDeviceInfoListener {
         void onReady(@Nullable DeviceInfo deviceInfo);
     }

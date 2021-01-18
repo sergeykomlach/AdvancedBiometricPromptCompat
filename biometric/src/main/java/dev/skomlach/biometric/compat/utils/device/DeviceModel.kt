@@ -11,6 +11,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
 object DeviceModel {
@@ -19,20 +20,20 @@ object DeviceModel {
     private val model = Build.MODEL
 
     fun getNames(): Set<String> {
-        val strings = HashSet<String>()
+        val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
         s?.let {
-            strings.add(it.toLowerCase())
+            strings.put(it.toLowerCase(), it)
         }
         s = getNameFromAssets()
         s?.let {
-            strings.add(it.toLowerCase())
+            strings.put(it.toLowerCase(), it)
         }
         s = getNameFromDatabase()
         s?.let {
-            strings.add(it.toLowerCase())
+            strings.put(it.toLowerCase(), it)
         }
-        return strings
+        return HashSet<String>(strings.values)
     }
 
     private fun getSimpleDeviceName(): String {
@@ -130,15 +131,4 @@ object DeviceModel {
         return "$vendor $model"
     }
 
-    private fun capitalize(s: String?): String {
-        if (s.isNullOrEmpty()) {
-            return ""
-        }
-        val first = s[0]
-        return if (Character.isUpperCase(first)) {
-            s
-        } else {
-            Character.toUpperCase(first).toString() + s.substring(1)
-        }
-    }
 }
