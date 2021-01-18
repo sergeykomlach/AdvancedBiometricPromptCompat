@@ -30,15 +30,6 @@ dependencies {
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.1.1'
 }
 
-
-//region Publish to jCenter
-def libGroupId = libsGroupId
-def libArtifactId = 'common'
-def libVersion = libsMajorVersion + "." + libsMinorVersion
-def libDesc = 'Project contains some helpers and utils.'
-def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'
-
 // Generate Source Jar
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
@@ -56,10 +47,10 @@ publishing {
                 // Artifact properties
                 groupId libsGroupId
                 version = libVersion
-                artifactId variant.name == 'debug' ? libArtifactId + '-dev' : libArtifactId
+                artifactId libArtifactId_common
 
                 // Tell maven to prepare the generated "*.aar" file for publishing
-                artifact("$buildDir/outputs/aar/${libArtifactId}-${variant.name}.aar")
+                artifact("$buildDir/outputs/aar/${artifactId}-${variant.name}.aar")
 
                 pom.withXml {
 
@@ -71,7 +62,7 @@ publishing {
 
                     configurationNames.each { configurationName ->
                         configurations[configurationName].allDependencies.each {
-                            if (it.group != null && it.name != null) {
+                            if (it.version != null && it.version != 'unspecified') {
                                 def dependencyNode = dependenciesNode.appendNode('dependency')
                                 dependencyNode.appendNode('groupId', it.group)
                                 dependencyNode.appendNode('artifactId', it.name)
@@ -105,7 +96,7 @@ bintray {
     publications = ['releaseAar']
     pkg {
         repo = "Maven"
-        name = "$libGroupId:$libArtifactId"
+        name = "$libsGroupId:$libArtifactId_common"
         desc = libDesc
         licenses = libLicenses
         vcsUrl = libVCSUrl

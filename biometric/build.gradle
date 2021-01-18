@@ -27,9 +27,8 @@ android {
 }
 
 dependencies {
-    implementation "dev.skomlach:common:${libsMajorVersion + "." + libsMinorVersion}"
-    compileOnly "dev.skomlach:biometric-api:${libsMajorVersion + "." + libsMinorVersion}"
-
+    implementation project(":"+libArtifactId_common)
+    compileOnly project(":"+libArtifactId_biometric_api)
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     implementation 'com.jaredrummler:android-device-names:2.0.0'
@@ -40,13 +39,6 @@ dependencies {
 }
 
 
-//region Publish to jCenter
-def libGroupId = libsGroupId
-def libArtifactId = 'biometric'
-def libVersion = libsMajorVersion + "." + libsMinorVersion
-def libDesc = 'This is an Android project allowing you to use the advanced biometric authorization features.'
-def libLicenses = ['Apache-2.0']
-def libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'
 
 // Generate Source Jar
 task sourceJar(type: Jar) {
@@ -65,22 +57,33 @@ publishing {
                 // Artifact properties
                 groupId libsGroupId
                 version = libVersion
-                artifactId variant.name == 'debug' ? libArtifactId + '-dev' : libArtifactId
+                artifactId libArtifactId_biometric
 
                 // Tell maven to prepare the generated "*.aar" file for publishing
-                artifact("$buildDir/outputs/aar/${libArtifactId}-${variant.name}.aar")
+                artifact("$buildDir/outputs/aar/${artifactId}-${variant.name}.aar")
 
                 pom.withXml {
 
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')
 
+                    def dependencyBiometricApi = dependenciesNode.appendNode('dependency')
+                    dependencyBiometricApi.appendNode('groupId', libsGroupId)
+                    dependencyBiometricApi.appendNode('artifactId', libArtifactId_biometric_api + (variant.name == 'debug' ? '-debug' : ''))
+                    dependencyBiometricApi.appendNode('version', version)
+
+                    def dependencyComponent = dependenciesNode.appendNode('dependency')
+                    dependencyComponent.appendNode('groupId', libsGroupId)
+                    dependencyComponent.appendNode('artifactId', libArtifactId_common + (variant.name == 'debug' ? '-debug' : ''))
+                    dependencyComponent.appendNode('version', version)
+
+
                     //Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
                     def configurationNames = ["${variant.name}Implementation", 'implementation']
 
                     configurationNames.each { configurationName ->
                         configurations[configurationName].allDependencies.each {
-                            if (it.group != null && it.name != null) {
+                            if (it.version != null && it.version != 'unspecified') {
                                 def dependencyNode = dependenciesNode.appendNode('dependency')
                                 dependencyNode.appendNode('groupId', it.group)
                                 dependencyNode.appendNode('artifactId', it.name)
@@ -115,7 +118,7 @@ bintray {
     publications = ['releaseAar']
     pkg {
         repo = "Maven"
-        name = "$libGroupId:$libArtifactId"
+        name = "$libsGroupId:$libArtifactId_biometric"
         desc = libDesc
         licenses = libLicenses
         vcsUrl = libVCSUrl
