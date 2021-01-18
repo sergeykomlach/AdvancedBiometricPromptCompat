@@ -81,7 +81,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|    
 | Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |
 | Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|  
-| ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~Not tested yet~~|
+| ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~One Plus 7 Pro~~|
 | ~~Xiomi FaceUnlock~~ | ~~Android 8+ and Xiaomi devices~~ |~~Xiaomi POCO F1~~|
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|    
 ## Setup  
