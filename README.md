@@ -8,15 +8,15 @@
 </p>  
   
   
-**Pixel 4XL**  
+**Samsung Galaxy S5**  
 <p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pixel_4.png" alt="Pixel 4XL" width="500px"  />  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
   </a>  
 </p>  
   
-**Huawei Mate P30 Pro**  
+**Huawei Mate P40 Pro**  
 <p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.png" alt="Huawei Mate P30 Pro" width="500px"  />  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.png" alt="Huawei Mate P40 Pro" width="500px"  />  
   </a>  
 </p>  
   
@@ -71,7 +71,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   
 |  Type | Details | Tested on  
 |--|--|--|  
-| BiometricPrompt API | Android 9+ |Xiaomi POCO F1 && Pixel 4XL|  
+| BiometricPrompt API | Android 9+ |Xiaomi POCO F1 && Samsung Galaxy S5|  
 | Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
 | Fingerprint (Samsung Pass)  | Android 4.4+ and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  

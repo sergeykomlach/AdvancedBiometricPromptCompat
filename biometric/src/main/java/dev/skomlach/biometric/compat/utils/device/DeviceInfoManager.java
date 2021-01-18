@@ -140,7 +140,7 @@ public class DeviceInfoManager {
 
     @Nullable
     private DeviceInfo getCachedDeviceInfo() {
-        SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo");
+        SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("StoredDeviceInfo");
         if (sharedPreferences.getBoolean("checked", false)) {
             String model = sharedPreferences.getString("model", null);
             Set<String> sensors = sharedPreferences.getStringSet("sensors", null);
@@ -150,7 +150,7 @@ public class DeviceInfoManager {
     }
 
     private void setCachedDeviceInfo(@NonNull DeviceInfo deviceInfo) {
-        SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("DeviceInfo").edit();
+        SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("StoredDeviceInfo").edit();
         sharedPreferences
                 .putStringSet("sensors", deviceInfo.getSensors())
                 .putString("model", deviceInfo.getModel())
