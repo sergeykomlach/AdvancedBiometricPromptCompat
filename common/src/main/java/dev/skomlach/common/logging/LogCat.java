@@ -7,6 +7,7 @@ import dev.skomlach.common.BuildConfig;
 public class LogCat {
 
     public static boolean DEBUG = BuildConfig.DEBUG;
+
     private LogCat() {
 
     }

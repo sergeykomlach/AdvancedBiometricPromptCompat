@@ -56,9 +56,7 @@ public class SamsungFingerprintModule extends AbstractBiometricModule {
 
         if (mSpass != null) {
             try {
-                if (mSpass.isFeatureEnabled(Spass.DEVICE_FINGERPRINT)) {
-                    return true;
-                }
+                return mSpass.isFeatureEnabled(Spass.DEVICE_FINGERPRINT);
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
             }

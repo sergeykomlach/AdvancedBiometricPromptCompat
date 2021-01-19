@@ -33,7 +33,7 @@ public class CryptoWrapper {
         Locale defaultLocale = AndroidContext.getLocale();
         setLocale(AndroidContext.getAppContext(), Locale.US);
         try {
-            final SharedPreferences fallbackCheck = AndroidContext.getAppContext().getSharedPreferences( "FallbackCheck", Context.MODE_PRIVATE);
+            final SharedPreferences fallbackCheck = AndroidContext.getAppContext().getSharedPreferences("FallbackCheck", Context.MODE_PRIVATE);
             boolean forceToFallback = fallbackCheck.getBoolean("forceToFallback", false);
             //AndroidX Security impl.
             //may produce exceptions on some devices (Huawei)

@@ -18,9 +18,12 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+
 import androidx.collection.LruCache;
 import androidx.core.util.ObjectsCompat;
+
 import com.jakewharton.rxrelay2.PublishRelay;
+
 import java.lang.reflect.Method;
 
 import dev.skomlach.common.contextprovider.AndroidContext;
@@ -140,7 +143,7 @@ public class MultiWindowSupport {
     private void registerDualScreenListeners() {
         unregisterDualScreenListeners();
         try {
-            if (displayManager != null && displayListener != null  && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 displayManager.registerDisplayListener(displayListener, ExecutorHelper.INSTANCE.getHandler());
             }
         } catch (Throwable e) {
@@ -153,7 +156,6 @@ public class MultiWindowSupport {
             if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 displayManager.unregisterDisplayListener(displayListener);
             }
-
         } catch (Throwable e) {
             LogCat.logException(e);
         }
@@ -173,12 +175,12 @@ public class MultiWindowSupport {
     //Unlike Android N method, this one support also non-Nougat+ multiwindow modes (like Samsung/LG/Huawei/etc solutions)
     private void checkIsInMultiWindow() {
 
-        Rect rect =  new Rect();
-            final ViewGroup decorView = activity.findViewById(Window.ID_ANDROID_CONTENT);
-            decorView.getGlobalVisibleRect(rect);
-            if (rect.width() == 0 && rect.height() == 0) {
-                return;
-            }
+        Rect rect = new Rect();
+        final ViewGroup decorView = activity.findViewById(Window.ID_ANDROID_CONTENT);
+        decorView.getGlobalVisibleRect(rect);
+        if (rect.width() == 0 && rect.height() == 0) {
+            return;
+        }
 
         Point realScreenSize = getRealScreenSize();
 
@@ -376,7 +378,6 @@ public class MultiWindowSupport {
 
     private int getScreenOrientation() {
         int orientation = activity.getResources().getConfiguration().orientation;
-
 
         if (orientation == Configuration.ORIENTATION_UNDEFINED) {
             WindowManager windowManager = (WindowManager) activity

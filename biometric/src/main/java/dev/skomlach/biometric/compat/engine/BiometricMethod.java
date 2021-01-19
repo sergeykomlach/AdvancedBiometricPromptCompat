@@ -24,8 +24,8 @@ public enum BiometricMethod {
     FACE_HUAWEI_EMUI_10(205, BiometricType.BIOMETRIC_FACE),
     //https://github.com/Tencent/soter
     FACE_SOTERAPI(206, BiometricType.BIOMETRIC_FACE),
-//
-//    FACE_MIUI(207, BiometricType.BIOMETRIC_FACE),
+
+    FACE_MIUI(207, BiometricType.BIOMETRIC_FACE),
 
     FACE_ONEPLUS(208, BiometricType.BIOMETRIC_FACE),
 

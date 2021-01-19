@@ -15,8 +15,6 @@ import androidx.security.crypto.MasterKeys;
 
 import com.securepreferences.SecurePreferences;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +41,7 @@ public class CryptoPreferencesImpl implements SharedPreferences {
     CryptoPreferencesImpl(@NonNull Context context, @NonNull String name) {
         Locale defaultLocale = AndroidContext.getLocale();
         setLocale(context, Locale.US);
-        final SharedPreferences fallbackCheck = context.getSharedPreferences( "FallbackCheck", Context.MODE_PRIVATE);
+        final SharedPreferences fallbackCheck = context.getSharedPreferences("FallbackCheck", Context.MODE_PRIVATE);
         boolean forceToFallback = fallbackCheck.getBoolean("forceToFallback", false);
         //AndroidX Security impl.
         //may produce exceptions on some devices (Huawei)

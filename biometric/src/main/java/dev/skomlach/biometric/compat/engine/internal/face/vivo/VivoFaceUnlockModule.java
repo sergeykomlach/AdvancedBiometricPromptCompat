@@ -59,9 +59,7 @@ public class VivoFaceUnlockModule extends AbstractBiometricModule {
     public boolean isHardwarePresent() {
         if (manager != null) {
             try {
-                if (manager.isFaceUnlockEnable()) {
-                    return true;
-                }
+                return manager.isFaceUnlockEnable();
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
             }

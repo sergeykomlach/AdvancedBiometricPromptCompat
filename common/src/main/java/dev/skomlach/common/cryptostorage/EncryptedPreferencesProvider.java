@@ -2,6 +2,7 @@ package dev.skomlach.common.cryptostorage;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ public class EncryptedPreferencesProvider implements CryptoPreferencesProvider {
     @Override
     public SharedPreferences getCryptoPreferences(String name) {
         SharedPreferences preferences = cache.get(name);
-        if(preferences == null) {
+        if (preferences == null) {
             preferences = new CryptoPreferencesImpl(application, name);
             cache.put(name, preferences);
         }

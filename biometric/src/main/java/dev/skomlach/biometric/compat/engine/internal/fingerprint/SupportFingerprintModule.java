@@ -49,9 +49,7 @@ public class SupportFingerprintModule extends AbstractBiometricModule {
 
         if (managerCompat != null) {
             try {
-                if (managerCompat.isHardwareDetected()) {
-                    return true;
-                }
+                return managerCompat.isHardwareDetected();
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
             }

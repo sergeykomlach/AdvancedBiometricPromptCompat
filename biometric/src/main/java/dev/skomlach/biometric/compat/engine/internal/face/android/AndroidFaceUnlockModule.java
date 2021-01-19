@@ -58,9 +58,7 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
     public boolean isHardwarePresent() {
         if (manager != null) {
             try {
-                if (manager.isHardwareDetected()) {
-                    return true;
-                }
+               return manager.isHardwareDetected();
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
             }
