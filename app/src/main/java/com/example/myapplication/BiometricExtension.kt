@@ -9,7 +9,7 @@ import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
-    if(!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)){
+    if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
         BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
         return
     }

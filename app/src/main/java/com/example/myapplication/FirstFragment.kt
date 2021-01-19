@@ -47,10 +47,12 @@ class FirstFragment : Fragment() {
         }
         return binding.root
     }
-    private fun checkDeviceInfo(){
+
+    private fun checkDeviceInfo() {
         val deviceInfo = BiometricPromptCompat.deviceInfo
         binding.text.text = deviceInfo.toString()
     }
+
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout) {
         for (authRequest in App.authRequestList) {
             val container: FrameLayout =
@@ -63,7 +65,6 @@ class FirstFragment : Fragment() {
             buttonsList.addView(container)
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

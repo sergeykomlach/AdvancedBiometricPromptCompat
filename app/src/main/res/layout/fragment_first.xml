@@ -3,24 +3,24 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         tools:context=".FirstFragment"
         >
 
     <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/text"
-            android:gravity="center"
-            android:layout_centerInParent="true"
-            android:layout_alignParentTop="true"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            />
 
     <LinearLayout
-            android:layout_below="@+id/text"
-            android:layout_above="@+id/button_first"
             android:id="@+id/buttons_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_above="@+id/button_first"
+            android:layout_below="@+id/text"
             android:orientation="vertical"
             />
 
@@ -28,9 +28,9 @@
             android:id="@+id/button_first"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/logging"
-            android:layout_centerInParent="true"
             android:layout_alignParentBottom="true"
+            android:layout_centerInParent="true"
+            android:text="@string/logging"
             />
 
 </RelativeLayout>
