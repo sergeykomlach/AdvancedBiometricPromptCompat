@@ -89,7 +89,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
                     AsyncTask.THREAD_POOL_EXECUTOR.execute{
                         DeviceInfoManager.INSTANCE.getDeviceInfo { info ->
                             deviceInfo = info
-                            startBiometricInit()
+                            ExecutorHelper.INSTANCE.handler.post { startBiometricInit() }
                         }
                     }
 

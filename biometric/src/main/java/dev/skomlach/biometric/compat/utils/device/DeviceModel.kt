@@ -23,19 +23,29 @@ object DeviceModel {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
         s?.let {
-            strings.put(it.toLowerCase(), it)
+            strings.put(it.toLowerCase(), fixVendorName(it))
         }
         s = getNameFromAssets()
         s?.let {
-            strings.put(it.toLowerCase(), it)
+            strings.put(it.toLowerCase(), fixVendorName(it))
         }
         s = getNameFromDatabase()
         s?.let {
-            strings.put(it.toLowerCase(), it)
+            strings.put(it.toLowerCase(), fixVendorName(it))
         }
         return HashSet<String>(strings.values)
     }
 
+    private fun fixVendorName(string: String) :String{
+        val parts = string.split(" ")
+
+        var vendor = parts[0]
+        if(vendor[0].isLowerCase()) {
+            vendor = Character.toUpperCase(vendor[0]).toString() + vendor.substring(1)
+        }
+        return vendor + string.substring(vendor.length, string.length)
+
+    }
     private fun getSimpleDeviceName(): String {
         val s =
             SystemPropertiesProxy.get(AndroidContext.getAppContext(), "ro.config.marketing_name")

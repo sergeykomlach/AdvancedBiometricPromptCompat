@@ -30,6 +30,7 @@ public enum BiometricMethod {
     FACE_ONEPLUS(208, BiometricType.BIOMETRIC_FACE),
 
     FACE_VIVO(209, BiometricType.BIOMETRIC_FACE),
+    FACE_HUAWEI_LEGACY(210, BiometricType.BIOMETRIC_FACE),
 
     //old FaceLock impl
     //https://forum.xda-developers.com/showthread.php?p=25572510#post25572510
