@@ -14,6 +14,8 @@ import androidx.annotation.RestrictTo;
 import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
 
+import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
@@ -21,14 +23,16 @@ import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.impl.AuthCallback;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.misc.ExecutorHelper;
+import me.weishu.reflection.Reflection;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class BiometricPromptCompatDialogImpl {
     private final boolean isInScreen;
     private final Handler animateHandler;
     private final BiometricPromptCompatDialog dialog;
-    private final CharSequence promptText;
+    private CharSequence promptText;
     private final CharSequence too_many_attempts;
     private final CharSequence not_recognized;
     private final AtomicBoolean inProgress = new AtomicBoolean(false);
@@ -78,6 +82,27 @@ public class BiometricPromptCompatDialogImpl {
         this.promptText = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor);
         this.too_many_attempts = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_error_lockout);
         this.not_recognized = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized);
+
+        try{
+            Reflection.unseal(AndroidContext.getAppContext(), Collections.singletonList("com.android.internal"));
+            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
+            for(Field field : fields) {
+                if (field.getName().contains("biometric") && field.getName().contains("dialog")) {
+                    boolean isAccessible = field.isAccessible();
+                    try {
+                        if (!isAccessible)
+                            field.setAccessible(true);
+                        this.promptText = compatBuilder.getContext().getString((int) field.get(null));
+                    } finally {
+                        if (!isAccessible)
+                            field.setAccessible(false);
+                    }
+                }
+            }
+        } catch (Throwable e){
+            BiometricLoggerImpl.e(e);
+        }
+
 
         this.animateHandler = new AnimateHandler(Looper.getMainLooper());
         this.dialog = new BiometricPromptCompatDialog(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), isInScreen);
