@@ -2,6 +2,7 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.os.Process;
 
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
@@ -100,8 +101,6 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
         if (manager == null)
             try {
                 manager = new FaceRecognizeManager(getContext(), this);
-                if (manager.init() != 0)
-                    throw new IllegalStateException();
             } catch (Throwable ignore) {
                 manager = null;
             }
@@ -196,6 +195,8 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
 
     @Override
     public void onCallbackEvent(int reqId, int type, int code, int errorCode) {
+        BiometricLoggerImpl.d(getName() + ".onCallbackEvent - reqId: " + reqId +"; type:"+type+"; code:"+code +"; errorCode:"+errorCode);
+
         if (type == FaceRecognizeManager.TYPE_CALLBACK_AUTH) {
             int vendorCode;
             int error;
@@ -291,9 +292,29 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                     throw new IllegalArgumentException("Executor cann't be null");
                 if (ExecutorHelper.INSTANCE.getHandler() == null)
                     throw new IllegalArgumentException("Handler cann't be null");
-
+                signalObject.setOnCancelListener(new android.os.CancellationSignal.OnCancelListener() {
+                    @Override
+                    public void onCancel() {
+                        try {
+                            manager.cancelAuthenticate(Process.myPid());
+                            if (manager.release() != 0)
+                                throw new IllegalStateException();
+                        } catch (Throwable e) {
+                            BiometricLoggerImpl.e(e, getName() + ": release failed unexpectedly");
+                        }
+                    }
+                });
+                try {
+                    manager.cancelAuthenticate(Process.myPid());
+                    if (manager.release() != 0)
+                        throw new IllegalStateException();
+                } catch (Throwable e) {
+                    BiometricLoggerImpl.e(e, getName() + ": release failed unexpectedly");
+                }
+                if (manager.init() != 0)
+                    throw new IllegalStateException();
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                manager.authenticate(0, 0, null);
+                manager.authenticate(Process.myPid(), 0, null);
                 return;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
