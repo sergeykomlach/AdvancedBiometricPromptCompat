@@ -2,7 +2,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
-import android.os.Process;
 
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
@@ -296,7 +295,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                     @Override
                     public void onCancel() {
                         try {
-                            manager.cancelAuthenticate(Process.myPid());
+                            manager.cancelAuthenticate(1);
                             if (manager.release() != 0)
                                 throw new IllegalStateException();
                         } catch (Throwable e) {
@@ -305,7 +304,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                     }
                 });
                 try {
-                    manager.cancelAuthenticate(Process.myPid());
+                    manager.cancelAuthenticate(1);
                     if (manager.release() != 0)
                         throw new IllegalStateException();
                 } catch (Throwable e) {
@@ -314,7 +313,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                 if (manager.init() != 0)
                     throw new IllegalStateException();
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                manager.authenticate(Process.myPid(), 0, null);
+                manager.authenticate(1, 1, null);
                 return;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");

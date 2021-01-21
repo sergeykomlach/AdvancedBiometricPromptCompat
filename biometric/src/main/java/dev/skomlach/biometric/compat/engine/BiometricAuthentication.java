@@ -394,6 +394,10 @@ public class BiometricAuthentication {
                 && startActivity(new Intent("android.settings.FACE_SETTINGS"), context)) {
             return true;
         }
+        if (method == BiometricType.BIOMETRIC_FACE
+                && startActivity(new Intent().setClassName("com.android.settings", "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"), context)) {
+            return true;
+        }
 
         if (BiometricType.BIOMETRIC_IRIS == method
                 && startActivity(new Intent("android.settings.IRIS_ENROLL"), context)) {
