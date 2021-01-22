@@ -127,16 +127,16 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
         //[HuaweiFaceUnlockLegacyModule.onCallbackEvent - reqId: 1; type:2; code:2; errorCode:0]
         BiometricLoggerImpl.d(getName() + ".onCallbackEvent - : " + "reqId(" + reqId + "), type(" + codeToString.getTypeString(type) + "), code(" + codeToString.getCodeString(code) + "), result(" + codeToString.getErrorCodeString(code, errorCode) + ")");
         if (type == 2) {
-            synchronized (HuaweiFaceUnlockLegacyModule.this.mAuthenticationLock) {
-                if (HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback != null) {
+            synchronized (mAuthenticationLock) {
+                if (mAuthenticationCallback != null) {
                     int vendorCode;
                     int error;
                     Integer result;
                     if (1 == code) {
                         if (errorCode == 0) {
-                            HuaweiFaceUnlockLegacyModule.this.mHandler.obtainMessage(102).sendToTarget();
+                            mHandler.obtainMessage(102).sendToTarget();
                         } else if (3 == errorCode) {
-                            HuaweiFaceUnlockLegacyModule.this.mHandler.obtainMessage(103).sendToTarget();
+                            mHandler.obtainMessage(103).sendToTarget();
                         } else {
                             vendorCode = errorCode;
                             error = 8;
@@ -144,7 +144,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                             if (result != null) {
                                 error = result;
                             }
-                            HuaweiFaceUnlockLegacyModule.this.mHandler.obtainMessage(104, error, vendorCode).sendToTarget();
+                            mHandler.obtainMessage(104, error, vendorCode).sendToTarget();
                         }
                     } else if (3 == code) {
                         vendorCode = errorCode;
@@ -153,7 +153,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                         if (result != null) {
                             error = result;
                         }
-                        HuaweiFaceUnlockLegacyModule.this.mHandler.obtainMessage(101, error, vendorCode).sendToTarget();
+                        mHandler.obtainMessage(101, error, vendorCode).sendToTarget();
                     }
                 }
             }
@@ -365,28 +365,28 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
 
         private void sendErrorResult(int errMsgId, int vendorCode) {
             int clientErrMsgId = errMsgId == 8 ? vendorCode + 1000 : errMsgId;
-            synchronized (HuaweiFaceUnlockLegacyModule.this.mAuthenticationLock) {
-                if (HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback != null) {
-                    HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback.onAuthenticationError(clientErrMsgId, codeToString.getErrorString(errMsgId, vendorCode));
-                    HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback = null;
+            synchronized (mAuthenticationLock) {
+                if (mAuthenticationCallback != null) {
+                    mAuthenticationCallback.onAuthenticationError(clientErrMsgId, codeToString.getErrorString(errMsgId, vendorCode));
+                    mAuthenticationCallback = null;
                 }
             }
         }
 
         private void sendAuthenticatedSucceeded() {
-            synchronized (HuaweiFaceUnlockLegacyModule.this.mAuthenticationLock) {
-                if (HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback != null) {
-                    HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback.onAuthenticationSucceeded();
-                    HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback = null;
+            synchronized (mAuthenticationLock) {
+                if (mAuthenticationCallback != null) {
+                    mAuthenticationCallback.onAuthenticationSucceeded();
+                    mAuthenticationCallback = null;
                 }
             }
         }
 
         private void sendAuthenticatedFailed() {
-            synchronized (HuaweiFaceUnlockLegacyModule.this.mAuthenticationLock) {
-                if (HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback != null) {
-                    HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback.onAuthenticationFailed();
-                    HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback = null;
+            synchronized (mAuthenticationLock) {
+                if (mAuthenticationCallback != null) {
+                    mAuthenticationCallback.onAuthenticationFailed();
+                    mAuthenticationCallback = null;
                 }
             }
         }
@@ -395,10 +395,10 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
             String msg = codeToString.getAcquiredString(acquireInfo, vendorCode);
             if (msg != null) {
                 int clientInfo = acquireInfo == 13 ? vendorCode + 1000 : acquireInfo;
-                synchronized (HuaweiFaceUnlockLegacyModule.this.mAuthenticationLock) {
-                    if (HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback != null) {
-//                        HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback.onAuthenticationAcquired(acquireInfo);
-                        HuaweiFaceUnlockLegacyModule.this.mAuthenticationCallback.onAuthenticationHelp(clientInfo, msg);
+                synchronized (mAuthenticationLock) {
+                    if (mAuthenticationCallback != null) {
+//                        mAuthenticationCallback.onAuthenticationAcquired(acquireInfo);
+                        mAuthenticationCallback.onAuthenticationHelp(clientInfo, msg);
                     }
                 }
             }
