@@ -32,7 +32,7 @@ public class BiometricPromptCompatDialogImpl {
     private final boolean isInScreen;
     private final Handler animateHandler;
     private final BiometricPromptCompatDialog dialog;
-    private CharSequence promptText;
+    private final CharSequence promptText;
     private final CharSequence too_many_attempts;
     private final CharSequence not_recognized;
     private final AtomicBoolean inProgress = new AtomicBoolean(false);
@@ -79,30 +79,9 @@ public class BiometricPromptCompatDialogImpl {
         this.isInScreen = isInScreen;
         this.authCallback = authCallback;
         this.compatBuilder = compatBuilder;
-        this.promptText = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor);
+        this.promptText = getDialogTitle();
         this.too_many_attempts = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_error_lockout);
         this.not_recognized = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized);
-
-        try{
-            Reflection.unseal(AndroidContext.getAppContext(), Collections.singletonList("com.android.internal"));
-            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
-            for(Field field : fields) {
-                if (field.getName().contains("biometric") && field.getName().contains("dialog")) {
-                    boolean isAccessible = field.isAccessible();
-                    try {
-                        if (!isAccessible)
-                            field.setAccessible(true);
-                        this.promptText = compatBuilder.getContext().getString((int) field.get(null));
-                    } finally {
-                        if (!isAccessible)
-                            field.setAccessible(false);
-                    }
-                }
-            }
-        } catch (Throwable e){
-            BiometricLoggerImpl.e(e);
-        }
-
 
         this.animateHandler = new AnimateHandler(Looper.getMainLooper());
         this.dialog = new BiometricPromptCompatDialog(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), isInScreen);
@@ -171,6 +150,47 @@ public class BiometricPromptCompatDialogImpl {
         });
     }
 
+    private String getDialogTitle() {
+        Reflection.unseal(AndroidContext.getAppContext(), Collections.singletonList("com.android.internal"));
+        try {
+            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
+            for (Field field : fields) {
+                if (field.getName().contains("biometric") && field.getName().contains("dialog")) {
+                    boolean isAccessible = field.isAccessible();
+                    try {
+                        if (!isAccessible)
+                            field.setAccessible(true);
+                        return compatBuilder.getContext().getString((int) field.get(null));
+                    } finally {
+                        if (!isAccessible)
+                            field.setAccessible(false);
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
+        try {
+            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
+            for (Field field : fields) {
+                if (field.getName().contains("fingerprint") && field.getName().contains("dialog")) {
+                    boolean isAccessible = field.isAccessible();
+                    try {
+                        if (!isAccessible)
+                            field.setAccessible(true);
+                        return compatBuilder.getContext().getString((int) field.get(null));
+                    } finally {
+                        if (!isAccessible)
+                            field.setAccessible(false);
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
+
+        return compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor);
+    }
     public boolean isNightMode() {
         return dialog.isNightMode();
     }
