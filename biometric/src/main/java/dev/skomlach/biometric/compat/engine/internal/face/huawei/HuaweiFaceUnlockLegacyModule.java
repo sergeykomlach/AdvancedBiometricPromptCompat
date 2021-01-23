@@ -204,7 +204,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
 
         if (manager != null) {
             try {
-
+                final int reqId = (int) Class.forName("android.os.UserHandle").getDeclaredMethod("myUserId").invoke(null);
                 mAuthenticationCallback = new AuthCallback(restartPredicate, cancellationSignal, listener);
                 // Why getCancellationSignalObject returns an Object is unexplained
                 final android.os.CancellationSignal signalObject = cancellationSignal == null ? null :
@@ -220,7 +220,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                     @Override
                     public void onCancel() {
                         try {
-                            manager.cancelAuthenticate(0);
+                            manager.cancelAuthenticate(reqId);
                         } catch (Throwable e) {
                             BiometricLoggerImpl.e(e, getName() + ": release failed unexpectedly");
                         }
@@ -231,7 +231,7 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
                     return;
                 }
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                manager.authenticate(0, 1, null);
+                manager.authenticate(reqId, 1, null);
                 return;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
