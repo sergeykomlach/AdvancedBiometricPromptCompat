@@ -94,20 +94,6 @@ public class HuaweiFaceUnlockLegacyModule extends AbstractBiometricModule implem
 
         mHandler = new MyHandler(ExecutorHelper.INSTANCE.getHandler().getLooper());
         Reflection.unseal(getContext(), Collections.singletonList("com.huawei.facerecognition"));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                manager = getContext().getSystemService(FaceRecognizeManager.class);
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        } else {
-            try {
-                manager = (FaceRecognizeManager) getContext().getSystemService("facerecognition");
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        }
-        if (manager == null)
             try {
                 manager = new FaceRecognizeManager(getContext(), this);
             } catch (Throwable ignore) {
