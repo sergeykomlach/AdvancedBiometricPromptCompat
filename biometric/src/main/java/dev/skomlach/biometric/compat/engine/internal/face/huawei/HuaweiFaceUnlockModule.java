@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.huawei;
 
+import android.text.TextUtils;
+
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
@@ -53,11 +55,11 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             }
             BiometricLoggerImpl.d(getName() + ".EMUI version - '" + versionEmui + "'");
 
-            //it seems like EMUI 10.1 has a bug with FaceRecognition
-//            if(!Version("10.1").isEqual(versionEmui))
+            //it seems like on EMUI 10.1 only system apps allowed
+            if (!compareVersions("10.1", versionEmui)) {
                 huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(getContext());
-                BiometricLoggerImpl.d(getName() + ".huaweiFaceManagerLegacy - " + huaweiFaceManagerLegacy);
-
+            }
+            BiometricLoggerImpl.d(getName() + ".huaweiFaceManagerLegacy - " + huaweiFaceManagerLegacy);
         } catch (Throwable ignore) {
             huaweiFaceManagerLegacy = null;
         }
@@ -66,6 +68,17 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             listener
                     .initFinished(getBiometricMethod(), HuaweiFaceUnlockModule.this);
         }
+    }
+
+    private boolean compareVersions(String str1, String str2) {
+        String[] parts1 = str1.split("\\.");
+        String[] parts2 = str2.split("\\.");
+        int min = Math.min(parts1.length, parts2.length);
+        for (int i = 0; i < min; i++) {
+            if (!TextUtils.equals(parts1[i], parts2[i]))
+                return false;
+        }
+        return true;
     }
 
     @Override

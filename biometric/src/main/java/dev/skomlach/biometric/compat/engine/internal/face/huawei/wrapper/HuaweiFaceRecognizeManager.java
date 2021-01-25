@@ -42,6 +42,13 @@ public class HuaweiFaceRecognizeManager {
     private static HuaweiFaceRecognizeManager mHuaweiFrManager = null;
     private static FaceRecognizeManager mManager = null;
     private HuaweiFaceManager.AuthenticatorCallback mAuthenticatorCallback = null;
+//    EMUI 10/0/0
+//    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 14 type 2 code 1 errCode 9]
+//    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 14 type 2 code 2 errCode 0]
+//    EMUI 9/1/0
+//    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 1 errCode 9]
+//     [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 2 errCode 0]
+
     private final FaceRecognizeCallback mFRCallback = new FaceRecognizeCallback() {
         public void onCallbackEvent(int reqId, int type, int code, int errorCode) {
             String str = HuaweiFaceRecognizeManager.TAG;
@@ -72,25 +79,27 @@ public class HuaweiFaceRecognizeManager {
                 stringBuilder.append(" errCode ");
                 stringBuilder.append(errorCode);
                 BiometricLoggerImpl.e(str, stringBuilder.toString());
-            } else if (code == CODE_CALLBACK_CANCEL) {
-                int result = HuaweiFaceRecognizeManager.converHwErrorCodeToHuawei(errorCode);
-                String str2 = HuaweiFaceRecognizeManager.TAG;
-                StringBuilder stringBuilder2 = new StringBuilder();
-                stringBuilder2.append(" result ");
-                stringBuilder2.append(result);
-                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
-                if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationError(result);
-                } else {
-                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationFailed();
-                    str2 = HuaweiFaceRecognizeManager.TAG;
-                    stringBuilder2 = new StringBuilder();
-                    stringBuilder2.append(" fail reason ");
-                    stringBuilder2.append(result);
-                    BiometricLoggerImpl.e(str2, stringBuilder2.toString());
-                }
-                HuaweiFaceRecognizeManager.this.release();
-            } else if (code == CODE_CALLBACK_ACQUIRE) {
+            } else
+//                if (code == CODE_CALLBACK_CANCEL) {
+//                int result = HuaweiFaceRecognizeManager.converHwErrorCodeToHuawei(errorCode);
+//                String str2 = HuaweiFaceRecognizeManager.TAG;
+//                StringBuilder stringBuilder2 = new StringBuilder();
+//                stringBuilder2.append(" result ");
+//                stringBuilder2.append(result);
+//                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
+//                if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
+//                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationError(result);
+//                } else {
+//                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationFailed();
+//                    str2 = HuaweiFaceRecognizeManager.TAG;
+//                    stringBuilder2 = new StringBuilder();
+//                    stringBuilder2.append(" fail reason ");
+//                    stringBuilder2.append(result);
+//                    BiometricLoggerImpl.e(str2, stringBuilder2.toString());
+//                }
+//                HuaweiFaceRecognizeManager.this.release();
+//            } else
+                if (code == CODE_CALLBACK_ACQUIRE) {
                 int result = HuaweiFaceRecognizeManager.converHwAcquireInfoToHuawei(errorCode);
                 String str2 = HuaweiFaceRecognizeManager.TAG;
                 StringBuilder stringBuilder2 = new StringBuilder();
@@ -99,13 +108,6 @@ public class HuaweiFaceRecognizeManager {
                 BiometricLoggerImpl.d(str2, stringBuilder2.toString());
                 if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
                     HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationStatus(result);
-                } else {
-                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationFailed();
-                    str2 = HuaweiFaceRecognizeManager.TAG;
-                    stringBuilder2 = new StringBuilder();
-                    stringBuilder2.append(" fail reason ");
-                    stringBuilder2.append(result);
-                    BiometricLoggerImpl.e(str2, stringBuilder2.toString());
                 }
             } else if (code == CODE_CALLBACK_RESULT) {
                 int result = HuaweiFaceRecognizeManager.converHwErrorCodeToHuawei(errorCode);
@@ -144,39 +146,36 @@ public class HuaweiFaceRecognizeManager {
         stringBuilder.append(" converHwhwAcquireInfoToHuawei hwAcquireInfo is ");
         stringBuilder.append(hwAcquireInfo);
         BiometricLoggerImpl.e(str, stringBuilder.toString());
-        if (hwAcquireInfo == 0) {
-            return HUAWEI_FACE_AUTHENTICATOR_SUCCESS;
-        }
-        if (hwAcquireInfo == 22) {
-            return HUAWEI_FACE_AUTH_STATUS_EYE_CLOSED;
-        }
+
+
         switch (hwAcquireInfo) {
-            case 4://HuaweiManagerV2.HUAWEI_AUTH_FACE /*4*/:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_OK:
+                return HUAWEI_FACE_AUTHENTICATOR_SUCCESS;
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_EYE_CLOSE:
+                return HUAWEI_FACE_AUTH_STATUS_EYE_CLOSED;
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_BAD_QUALITY://HuaweiManagerV2.HUAWEI_AUTH_FACE /*4*/:
                 return HUAWEI_FACE_AUTH_STATUS_QUALITY;
-            case 5:
-            case 6:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_NOT_FOUND:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_SCALE_TOO_SMALL:
                 return HUAWEI_FACE_AUTH_STATUS_INSUFFICIENT;
-            case 7:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_SCALE_TOO_LARGE:
                 return HUAWEI_FACE_AUTH_STATUS_FAR_FACE;
-            case 8://HuaweiManagerV2.HUAWEI_AUTH_PIN /*8*/:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_LEFT://HuaweiManagerV2.HUAWEI_AUTH_PIN /*8*/:
                 return HUAWEI_FACE_AUTH_STATUS_FACE_OFFET_LEFT;
-            case 9:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_TOP:
                 return HUAWEI_FACE_AUTH_STATUS_FACE_OFFET_TOP;
-            case 10:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_RIGHT:
                 return HUAWEI_FACE_AUTH_STATUS_FACE_OFFET_RIGHT;
-            case 11:
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_OFFSET_BOTTOM:
                 return HUAWEI_FACE_AUTH_STATUS_FACE_OFFET_BOTTOM;
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_NOT_COMPLETE:
+                return HUAWEI_FACE_AUTH_STATUS_PARTIAL;
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_DARKLIGHT:
+                return HUAWEI_FACE_AUTH_STATUS_DARK;
+            case FaceRecognizeManager.AcquireInfo.FACE_UNLOCK_FACE_HIGHTLIGHT:
+                return HUAWEI_FACE_AUTH_STATUS_BRIGHT;
             default:
-                switch (hwAcquireInfo) {
-                    case 29:
-                        return HUAWEI_FACE_AUTH_STATUS_PARTIAL;
-                    case 30:
-                        return HUAWEI_FACE_AUTH_STATUS_DARK;
-                    case 31:
-                        return HUAWEI_FACE_AUTH_STATUS_BRIGHT;
-                    default:
-                        return HUAWEI_FACE_AUTHENTICATOR_FAIL;
-                }
+                return HUAWEI_FACE_AUTHENTICATOR_FAIL;
         }
     }
 
@@ -186,24 +185,32 @@ public class HuaweiFaceRecognizeManager {
         stringBuilder.append(" converHwErrorCodeToHuawei hwErrorCode is ");
         stringBuilder.append(hwErrorCode);
         BiometricLoggerImpl.e(str, stringBuilder.toString());
-        if (hwErrorCode == FaceRecognizeManager.FaceErrorCode.SUCCESS) {
-            return HUAWEI_FACE_AUTHENTICATOR_SUCCESS;
+        switch (hwErrorCode) {
+            case FaceRecognizeManager.FaceErrorCode.SUCCESS:
+                return HUAWEI_FACE_AUTHENTICATOR_SUCCESS;
+
+            case FaceRecognizeManager.FaceErrorCode.CANCELED:
+                return BiometricCodes.BIOMETRIC_ERROR_CANCELED;
+
+            case FaceRecognizeManager.FaceErrorCode.TIMEOUT:
+                return BiometricCodes.BIOMETRIC_ERROR_TIMEOUT;
+
+            case FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE:
+                return BiometricCodes.BIOMETRIC_ERROR_LOCKOUT;
+
+            case FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE:
+            case FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS:
+            case FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT:
+                return BiometricCodes.BIOMETRIC_ERROR_VENDOR;
+
+            case FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL:
+            case FaceRecognizeManager.FaceErrorCode.FAILED:
+            case FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA:
+            case FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES:
+            default:
+                return HUAWEI_FACE_AUTHENTICATOR_FAIL;
         }
 
-        if (hwErrorCode == FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL ||
-                hwErrorCode == FaceRecognizeManager.FaceErrorCode.FAILED ||
-                hwErrorCode == FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA ||
-                hwErrorCode == FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES)
-            return HUAWEI_FACE_AUTHENTICATOR_FAIL;
-
-        if (hwErrorCode == FaceRecognizeManager.FaceErrorCode.CANCELED)
-            return BiometricCodes.BIOMETRIC_ERROR_CANCELED;
-        if (hwErrorCode == FaceRecognizeManager.FaceErrorCode.TIMEOUT)
-            return BiometricCodes.BIOMETRIC_ERROR_TIMEOUT;
-        if (hwErrorCode == FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE)
-            return BiometricCodes.BIOMETRIC_ERROR_LOCKOUT;
-
-        return BiometricCodes.BIOMETRIC_ERROR_VENDOR;
     }
 
     public static synchronized void createInstance(Context context) {

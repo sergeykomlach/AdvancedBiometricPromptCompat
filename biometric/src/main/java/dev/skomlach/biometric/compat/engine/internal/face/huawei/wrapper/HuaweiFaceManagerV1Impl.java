@@ -67,6 +67,6 @@ public class HuaweiFaceManagerV1Impl extends HuaweiFaceManagerV1 {
 
     @Override
     public boolean hasEnrolledTemplates() {
-        return true;//HuaweiFaceRecognizeManager.getFRManager().getEnrolledFaceIDs().length > 0;
+        return HuaweiFaceRecognizeManager.getFRManager().getEnrolledFaceIDs().length > 0;
     }
 }
