@@ -3,7 +3,6 @@ package dev.skomlach.biometric.compat.engine;
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.view.View;
 
@@ -18,7 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.skomlach.biometric.compat.BiometricType;
@@ -28,8 +26,7 @@ import dev.skomlach.biometric.compat.engine.internal.core.interfaces.Authenticat
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule;
-import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockEMIUI10Module;
-import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockLegacyModule;
+import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.oneplus.OnePlusFaceUnlockModule;
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule;
@@ -46,7 +43,6 @@ import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
-import static dev.skomlach.common.misc.Utils.isAtLeastR;
 import static dev.skomlach.common.misc.Utils.startActivity;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -98,16 +94,12 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_ONEPLUS);
             allMethods.add(BiometricMethod.FACE_VIVO);
             allMethods.add(BiometricMethod.FACE_MIUI);
-            allMethods.add(BiometricMethod.FACE_HUAWEI_LEGACY);
+            allMethods.add(BiometricMethod.FACE_HUAWEI);
         }
         //Android biometric - Pie
         if(Build.VERSION.SDK_INT >= 28) {
             allMethods.add(BiometricMethod.FACE_ANDROIDAPI);
             allMethods.add(BiometricMethod.IRIS_ANDROIDAPI);
-        }
-        //Huawei 3D Face - Android Q
-        if(Build.VERSION.SDK_INT >= 29) {
-            allMethods.add(BiometricMethod.FACE_HUAWEI_EMUI_10);
         }
 
         moduleHashMap.clear();
@@ -191,8 +183,8 @@ public class BiometricAuthentication {
                                 biometricModule = new SoterFingerprintUnlockModule(initListener);
                                 break;
                             ///****//
-                            case FACE_HUAWEI_LEGACY:
-                                biometricModule = new HuaweiFaceUnlockLegacyModule(initListener);
+                            case FACE_HUAWEI:
+                                biometricModule = new HuaweiFaceUnlockModule(initListener);
                                 break;
                             case FACE_MIUI:
                                 biometricModule = new MiuiFaceUnlockModule(initListener);
@@ -202,9 +194,6 @@ public class BiometricAuthentication {
                                 break;
                             case FACE_SOTERAPI:
                                 biometricModule = new SoterFaceUnlockModule(initListener);
-                                break;
-                            case FACE_HUAWEI_EMUI_10:
-                                biometricModule = new HuaweiFaceUnlockEMIUI10Module(initListener);
                                 break;
                             case FACE_OPPO:
                                 biometricModule = new OppoFaceUnlockModule(initListener);

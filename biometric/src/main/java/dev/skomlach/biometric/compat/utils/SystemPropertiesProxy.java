@@ -1,4 +1,4 @@
-package dev.skomlach.biometric.compat.utils.device;
+package dev.skomlach.biometric.compat.utils;
 import android.content.Context;
 
 import java.io.File;
@@ -8,7 +8,7 @@ import dalvik.system.DexFile;
 /**
  * This class cannot be instantiated
  */
-class SystemPropertiesProxy {
+public class SystemPropertiesProxy {
 
     /**
      * Get the value for the given key.

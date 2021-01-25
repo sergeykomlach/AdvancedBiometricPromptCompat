@@ -21,7 +21,7 @@ public enum BiometricMethod {
     FACE_OPPO(203, BiometricType.BIOMETRIC_FACE),
 
     //https://developer.huawei.com/consumer/en/doc/development/system-Guides/32002
-    FACE_HUAWEI_EMUI_10(205, BiometricType.BIOMETRIC_FACE),
+    FACE_HUAWEI(205, BiometricType.BIOMETRIC_FACE),
     //https://github.com/Tencent/soter
     FACE_SOTERAPI(206, BiometricType.BIOMETRIC_FACE),
 
@@ -30,7 +30,6 @@ public enum BiometricMethod {
     FACE_ONEPLUS(208, BiometricType.BIOMETRIC_FACE),
 
     FACE_VIVO(209, BiometricType.BIOMETRIC_FACE),
-    FACE_HUAWEI_LEGACY(210, BiometricType.BIOMETRIC_FACE),
 
     //old FaceLock impl
     //https://forum.xda-developers.com/showthread.php?p=25572510#post25572510

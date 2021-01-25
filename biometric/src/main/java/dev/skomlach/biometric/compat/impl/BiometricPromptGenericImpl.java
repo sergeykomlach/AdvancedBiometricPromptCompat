@@ -128,12 +128,11 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     permission.add("android.permission.WAKE_LOCK");
                     break;
 
-                case FACE_HUAWEI_EMUI_10:
+                case FACE_HUAWEI:
                     permission.add("android.permission.CAMERA");
                     permission.add("android.permission.USE_FACERECOGNITION");
                     break;
                 case FACE_SOTERAPI:
-                case FACE_HUAWEI_LEGACY:
                     permission.add("android.permission.USE_FACERECOGNITION");
                     break;
                 case FACE_ANDROIDAPI:
