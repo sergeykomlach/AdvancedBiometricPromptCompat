@@ -30,14 +30,6 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
     //EMUI 10.1.0
     private HuaweiFaceManager huaweiFaceManagerLegacy = null;
     private FaceManager huawei3DFaceManager = null;
-    private static int reqId = 0;
-    static {
-        try {
-            reqId = (int) Class.forName("android.os.UserHandle").getDeclaredMethod("myUserId").invoke(null);
-        } catch (Throwable e){
-            BiometricLoggerImpl.e(e);
-        }
-    }
     public HuaweiFaceUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.FACE_HUAWEI);
         try {
@@ -56,9 +48,9 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             BiometricLoggerImpl.d(getName() + ".EMUI version - '" + versionEmui + "'");
 
             //it seems like on EMUI 10.1 only system apps allowed
-            if (!compareVersions("10.1", versionEmui)) {
+//            if (!compareVersions("10.1", versionEmui))
                 huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(getContext());
-            }
+
             BiometricLoggerImpl.d(getName() + ".huaweiFaceManagerLegacy - " + huaweiFaceManagerLegacy);
         } catch (Throwable ignore) {
             huaweiFaceManagerLegacy = null;
@@ -181,11 +173,11 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
                 signalObject.setOnCancelListener(new android.os.CancellationSignal.OnCancelListener() {
                     @Override
                     public void onCancel() {
-                        huaweiFaceManagerLegacy.cancel(reqId);
+                        huaweiFaceManagerLegacy.cancel(1);
                     }
                 });
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                huaweiFaceManagerLegacy.authenticate(reqId, HuaweiFaceRecognizeManager.DEFAULT_FLAG, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
+                huaweiFaceManagerLegacy.authenticate(1, HuaweiFaceRecognizeManager.DEFAULT_FLAG, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
                 return;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");

@@ -48,6 +48,8 @@ public class HuaweiFaceRecognizeManager {
 //    EMUI 9/1/0
 //    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 1 errCode 9]
 //     [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 2 errCode 0]
+//    EMUI 11/0/0
+//    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 174 type 2 code 1 errCode 1]
 
     private final FaceRecognizeCallback mFRCallback = new FaceRecognizeCallback() {
         public void onCallbackEvent(int reqId, int type, int code, int errorCode) {
@@ -201,10 +203,10 @@ public class HuaweiFaceRecognizeManager {
             case FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE:
             case FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS:
             case FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT:
+            case FaceRecognizeManager.FaceErrorCode.FAILED://emui11
                 return BiometricCodes.BIOMETRIC_ERROR_VENDOR;
 
             case FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL:
-            case FaceRecognizeManager.FaceErrorCode.FAILED:
             case FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA:
             case FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES:
             default:
