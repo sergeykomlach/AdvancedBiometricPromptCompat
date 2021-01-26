@@ -7,6 +7,7 @@
     <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_UNLOCK" />
     <!-- Huawei FaceUnlock-->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION"/>
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
