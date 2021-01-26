@@ -34,20 +34,6 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
     public MiuiFaceUnlockModule(final BiometricInitListener listener) {
         super(BiometricMethod.FACE_MIUI);
         Reflection.unseal(getContext(), Collections.singletonList("android.hardware.miuiface"));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                manager = getContext().getSystemService(IMiuiFaceManager.class);
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        } else {
-            try {
-                manager = (IMiuiFaceManager) getContext().getSystemService("face");
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        }
-        if (manager == null)
         try {
             manager = MiuiFaceFactory.getFaceManager(getContext(), MiuiFaceFactory.getCurrentAuthType(getContext()));
         } catch (Throwable ignore) {

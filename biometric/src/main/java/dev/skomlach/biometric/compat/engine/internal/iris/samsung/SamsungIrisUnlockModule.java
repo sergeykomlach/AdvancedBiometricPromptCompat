@@ -31,21 +31,7 @@ public class SamsungIrisUnlockModule extends AbstractBiometricModule {
     public SamsungIrisUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.IRIS_SAMSUNG);
         Reflection.unseal(getContext(), Collections.singletonList("com.samsung.android.camera.iris"));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                manager = getContext().getSystemService(SemIrisManager.class);
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        } else {
-            try {
-                manager = (SemIrisManager) getContext().getSystemService("iris");
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        }
-
-        if (manager == null) try {
+        try {
             manager = SemIrisManager.getSemIrisManager(getContext());
         } catch (Throwable ignore) {
             manager = null;

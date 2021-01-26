@@ -25,20 +25,6 @@ public class VivoFaceUnlockModule extends AbstractBiometricModule {
     public VivoFaceUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.FACE_VIVO);
         Reflection.unseal(getContext(), Collections.singletonList("com.vivo.framework.facedetect"));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                manager = getContext().getSystemService(FaceDetectManager.class);
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        } else {
-            try {
-                manager = (FaceDetectManager) getContext().getSystemService("face_detect_service");
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        }
-        if (manager == null)
             try {
                 manager = FaceDetectManager.getInstance();
             } catch (Throwable ignore) {

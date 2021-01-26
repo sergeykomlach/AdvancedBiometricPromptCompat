@@ -31,20 +31,6 @@ public class SamsungFaceUnlockModule extends AbstractBiometricModule {
     public SamsungFaceUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.FACE_SAMSUNG);
         Reflection.unseal(getContext(), Collections.singletonList("com.samsung.android.bio.face"));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                manager = getContext().getSystemService(SemBioFaceManager.class);
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        } else {
-            try {
-                manager = (SemBioFaceManager) getContext().getSystemService("face");
-            } catch (Throwable ignore) {
-                manager = null;
-            }
-        }
-        if (manager == null)
             try {
                 manager = SemBioFaceManager.getInstance(getContext());
             } catch (Throwable ignore) {
