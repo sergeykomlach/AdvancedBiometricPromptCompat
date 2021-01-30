@@ -1,12 +1,15 @@
 package dev.skomlach.biometric.compat.engine.internal.face.huawei;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
 import com.huawei.facerecognition.FaceManager;
-import com.huawei.facerecognition.HwFaceManagerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
@@ -18,7 +21,6 @@ import dev.skomlach.biometric.compat.engine.internal.core.interfaces.Authenticat
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.wrapper.HuaweiFaceManager;
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.wrapper.HuaweiFaceManagerFactory;
-import dev.skomlach.biometric.compat.engine.internal.face.huawei.wrapper.HuaweiFaceRecognizeManager;
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
 import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy;
@@ -33,7 +35,7 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
     public HuaweiFaceUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.FACE_HUAWEI);
         try {
-            huawei3DFaceManager = HwFaceManagerFactory.getFaceManager(getContext());
+            huawei3DFaceManager = getFaceManager();
             BiometricLoggerImpl.d(getName() + ".huawei3DFaceManager - " + huawei3DFaceManager);
         } catch (Throwable ignore) {
             huawei3DFaceManager = null;
@@ -60,6 +62,23 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             listener
                     .initFinished(getBiometricMethod(), HuaweiFaceUnlockModule.this);
         }
+    }
+
+    private FaceManager getFaceManager() {
+        try {
+            Class<?> t = Class.forName("com.huawei.facerecognition.FaceManagerFactory");
+            Method method = t.getDeclaredMethod("getFaceManager", Context.class);
+            return (FaceManager) method.invoke(null, getContext());
+        } catch (ClassNotFoundException var3) {
+            BiometricLoggerImpl.d(getName() + ".Throw exception: ClassNotFoundException");
+        } catch (NoSuchMethodException var4) {
+            BiometricLoggerImpl.d(getName() + ".Throw exception: NoSuchMethodException");
+        } catch (IllegalAccessException var5) {
+            BiometricLoggerImpl.d(getName() + ".Throw exception: IllegalAccessException");
+        } catch (InvocationTargetException var6) {
+            BiometricLoggerImpl.d(getName() + ".Throw exception: InvocationTargetException");
+        }
+        return null;
     }
 
     private boolean compareVersions(String str1, String str2) {
