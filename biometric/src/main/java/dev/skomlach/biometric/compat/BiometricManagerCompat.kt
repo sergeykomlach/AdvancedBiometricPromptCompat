@@ -82,7 +82,7 @@ object BiometricManagerCompat {
             val authType = when (api.type) {
                 BiometricType.BIOMETRIC_FINGERPRINT -> 1
                 BiometricType.BIOMETRIC_IRIS -> 2
-                BiometricType.BIOMETRIC_FACE -> 3
+                BiometricType.BIOMETRIC_FACE -> 4
                 else -> 0
             }
             val ifaamanager = IFAAManagerFactory.getIFAAManager(
