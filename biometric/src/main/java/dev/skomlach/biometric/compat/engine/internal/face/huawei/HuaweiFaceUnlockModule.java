@@ -196,7 +196,7 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
                     }
                 });
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                huaweiFaceManagerLegacy.authenticate(0, 0, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
+                huaweiFaceManagerLegacy.authenticate(0, 1, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
                 return;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
