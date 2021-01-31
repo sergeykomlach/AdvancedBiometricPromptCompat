@@ -69,7 +69,7 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
     public boolean hasEnrolled() {
         if (manager != null) {
             try {
-                return manager.isFaceFeatureSupport() && manager.hasEnrolledFaces() == 1;
+                return manager.isFaceFeatureSupport() && manager.hasEnrolledFaces() > 0;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
             }
