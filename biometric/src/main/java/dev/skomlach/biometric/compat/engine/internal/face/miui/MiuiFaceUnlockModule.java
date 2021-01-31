@@ -1,15 +1,12 @@
 package dev.skomlach.biometric.compat.engine.internal.face.miui;
 
 import android.annotation.SuppressLint;
-import android.hardware.miuiface.IMiuiFaceManager;
-import android.hardware.miuiface.MiuiFaceFactory;
-import android.hardware.miuiface.Miuiface;
-import android.os.Build;
 
 import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -20,6 +17,9 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule;
 import dev.skomlach.biometric.compat.engine.internal.core.Core;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.IMiuiFaceManager;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceFactory;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface;
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
 import dev.skomlach.biometric.compat.utils.CodeToString;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
@@ -33,11 +33,29 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
     @SuppressLint("WrongConstant")
     public MiuiFaceUnlockModule(final BiometricInitListener listener) {
         super(BiometricMethod.FACE_MIUI);
-        Reflection.unseal(getContext(), Collections.singletonList("android.hardware.miuiface"));
+
+        List<String> list = new ArrayList<>();
+        list.add("android.miui");
+        list.add("miui.os");
+        list.add("miui.util");
+        list.add("android.util");
+        Reflection.unseal(getContext(), list);
         try {
-            manager = MiuiFaceFactory.getFaceManager(getContext(), MiuiFaceFactory.getCurrentAuthType(getContext()));
-        } catch (Throwable ignore) {
-            manager = null;
+            manager = MiuiFaceFactory.getFaceManager(getContext(), MiuiFaceFactory.TYPE_3D);
+            if (!manager.isFaceFeatureSupport()) {
+                throw new RuntimeException("Miui 3DFace not supported");
+            }
+        } catch (Throwable e1) {
+            BiometricLoggerImpl.e(e1, e1.getMessage(), getName());
+            try {
+                manager = MiuiFaceFactory.getFaceManager(getContext(), MiuiFaceFactory.TYPE_2D);
+                if (!manager.isFaceFeatureSupport()) {
+                    throw new RuntimeException("Miui 2DFace not supported");
+                }
+            } catch (Throwable e2) {
+                BiometricLoggerImpl.e(e2, e2.getMessage(), getName());
+                manager = null;
+            }
         }
         BiometricLoggerImpl.e("MiuiFaceUnlockModule - " + manager);
 
@@ -69,7 +87,7 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
     public boolean hasEnrolled() {
         if (manager != null) {
             try {
-                return manager.isFaceFeatureSupport() && manager.hasEnrolledFaces() > 0;
+                return manager.isFaceFeatureSupport() && manager.getEnrolledFaces().size() > 0;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
             }
@@ -102,6 +120,8 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
                 if (ExecutorHelper.INSTANCE.getHandler() == null)
                     throw new IllegalArgumentException("Handler cann't be null");
 
+                if (!manager.isFaceUnlockInited())
+                    manager.preInitAuthen();
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 manager.authenticate(signalObject, 0, callback, ExecutorHelper.INSTANCE.getHandler(), (int) TimeUnit.SECONDS.toMillis(30));
                 return;
@@ -183,6 +203,8 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
                 if (listener != null) {
                     listener.onFailure(failureReason, tag());
                 }
+                if (manager != null && !manager.isReleased())
+                    manager.release();
             }
         }
 
@@ -200,6 +222,8 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
             if (listener != null) {
                 listener.onSuccess(tag());
             }
+            if (manager != null && !manager.isReleased())
+                manager.release();
         }
 
         @Override

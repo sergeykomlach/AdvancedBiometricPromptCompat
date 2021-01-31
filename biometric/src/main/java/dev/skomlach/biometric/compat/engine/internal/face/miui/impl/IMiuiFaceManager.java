@@ -1,10 +1,11 @@
-package android.hardware.miuiface;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
 
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.CancellationSignal;
 import android.os.Handler;
 import android.view.Surface;
+
 import java.util.List;
 
 public interface IMiuiFaceManager {
