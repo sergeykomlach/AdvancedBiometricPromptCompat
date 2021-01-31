@@ -186,7 +186,7 @@ public class SoterFingerprintUnlockModule extends AbstractBiometricModule {
         public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
             BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
             if (listener != null) {
-                listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString.toString());
+                listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString);
             }
         }
 

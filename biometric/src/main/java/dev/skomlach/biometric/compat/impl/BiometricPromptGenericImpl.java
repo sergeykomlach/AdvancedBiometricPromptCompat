@@ -222,7 +222,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
         }
 
         @Override
-        public void onHelp(AuthenticationHelpReason helpReason, String msg) {
+        public void onHelp(AuthenticationHelpReason helpReason, CharSequence msg) {
             if (helpReason != AuthenticationHelpReason.BIOMETRIC_ACQUIRED_GOOD && !TextUtils.isEmpty(msg)) {
 
                 if(dialog !=null)

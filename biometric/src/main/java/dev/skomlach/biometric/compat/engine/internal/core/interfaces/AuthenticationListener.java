@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.core.interfaces;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -11,7 +12,7 @@ import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public interface AuthenticationListener {
 
-    void onHelp(AuthenticationHelpReason helpReason, String msg);
+    void onHelp(AuthenticationHelpReason helpReason,@Nullable CharSequence msg);
 
     /**
      * Called after a fingerprint is successfully authenticated.

@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import androidx.annotation.WorkerThread;
 
@@ -13,7 +14,7 @@ public interface BiometricAuthenticationListener {
     void onSuccess(BiometricType module);
 
     @WorkerThread
-    void onHelp(AuthenticationHelpReason helpReason, String msg);
+    void onHelp(AuthenticationHelpReason helpReason, @Nullable CharSequence msg);
 
     //failure happens in module
     @WorkerThread

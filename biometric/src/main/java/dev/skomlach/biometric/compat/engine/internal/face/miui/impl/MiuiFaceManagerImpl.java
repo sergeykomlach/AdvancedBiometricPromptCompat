@@ -939,7 +939,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
     }
 
     private void sendErrorResult(long deviceId, int errMsgId, int vendorCode) {
-        String errorMsg = getMessageInfo(errMsgId);
+        String errorMsg = MiuiCodeToString.getErrorString(errMsgId, vendorCode);//getMessageInfo(errMsgId);
         EnrollmentCallback enrollmentCallback = this.mEnrollmentCallback;
         if (enrollmentCallback != null) {
             enrollmentCallback.onEnrollmentError(errMsgId, errorMsg);
@@ -985,7 +985,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
     }
 
     private void sendAcquiredResult(long deviceId, int clientInfo, int vendorCode) {
-        String msg = getMessageInfo(clientInfo);
+        String msg = MiuiCodeToString.getAcquiredString(clientInfo, vendorCode);//getMessageInfo(clientInfo);
         EnrollmentCallback enrollmentCallback = this.mEnrollmentCallback;
         if (enrollmentCallback != null) {
             enrollmentCallback.onEnrollmentHelp(clientInfo, msg);

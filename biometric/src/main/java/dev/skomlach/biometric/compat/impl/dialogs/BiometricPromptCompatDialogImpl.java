@@ -291,7 +291,7 @@ public class BiometricPromptCompatDialogImpl {
         }
     }
 
-    public void onHelp(String msg) {
+    public void onHelp(CharSequence msg) {
 
         ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
             @Override

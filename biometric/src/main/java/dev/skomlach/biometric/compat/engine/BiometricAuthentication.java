@@ -311,7 +311,7 @@ public class BiometricAuthentication {
         } else {
             Core.authenticate(new AuthenticationListener() {
                 @Override
-                public void onHelp(AuthenticationHelpReason helpReason, String msg) {
+                public void onHelp(AuthenticationHelpReason helpReason, CharSequence msg) {
                     listener.onHelp(helpReason, msg);
                 }
 
