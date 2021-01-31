@@ -49,8 +49,9 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             }
             BiometricLoggerImpl.d(getName() + ".EMUI version - '" + versionEmui + "'");
 
-            //it seems like on EMUI 10.1 only system apps allowed
-//            if (!compareVersions("10.1", versionEmui))
+            //it seems like on EMUI 10.1 only system apps allowed:
+            //for some reasons callback never fired
+            if (!compareVersions("10.1", versionEmui))
                 huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(getContext());
 
             BiometricLoggerImpl.d(getName() + ".huaweiFaceManagerLegacy - " + huaweiFaceManagerLegacy);
