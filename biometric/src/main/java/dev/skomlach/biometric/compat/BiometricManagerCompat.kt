@@ -80,10 +80,10 @@ object BiometricManagerCompat {
             //https://git.aicp-rom.com/device_oneplus_oneplus3.git/tree/org.ifaa.android.manager/src/org/ifaa/android/manager/IFAAManagerFactory.java?h=refs/changes/03/28003/1
             //https://github.com/shivatejapeddi/android_device_xiaomi_sdm845-common/tree/10.x-vendor/org.ifaa.android.manager/src/org/ifaa/android/manager
             val authType = when (api.type) {
-                BiometricType.BIOMETRIC_FINGERPRINT -> 1
-                BiometricType.BIOMETRIC_IRIS -> 2
-                BiometricType.BIOMETRIC_FACE -> 4
-                else -> 0
+                BiometricType.BIOMETRIC_FINGERPRINT -> BiometricAuthenticator.TYPE_FINGERPRINT
+                BiometricType.BIOMETRIC_IRIS -> BiometricAuthenticator.TYPE_IRIS
+                BiometricType.BIOMETRIC_FACE -> BiometricAuthenticator.TYPE_FACE
+                else -> BiometricAuthenticator.TYPE_NONE
             }
             val ifaamanager = IFAAManagerFactory.getIFAAManager(
                 activity,
