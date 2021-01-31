@@ -82,7 +82,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Meizu Fingerprint | Android 5+ and Meizu devices | Not tested yet |
 | Oppo FaceID | Android 9+ and Oppo devices |Not tested yet|  
 | ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~One Plus 7 Pro~~|
-| ~~Xiomi FaceUnlock~~ | ~~Android 8+ and Xiaomi devices~~ |~~Xiaomi POCO F1~~|
+| Xiomi FaceUnlock | Android 8+ and Xiaomi devices |Xiaomi POCO F1|
 | Huawei FaceID | Android 8+ and Huawei devices |Not tested yet|   
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|    
 ## Setup  
