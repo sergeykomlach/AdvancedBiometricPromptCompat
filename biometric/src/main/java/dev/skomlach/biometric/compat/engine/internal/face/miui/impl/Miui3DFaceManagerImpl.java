@@ -1,6 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
 
 import android.content.Context;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Point;
@@ -13,6 +14,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Parcelable;
+import android.provider.Settings;
 import android.view.Surface;
 
 import java.io.File;
@@ -24,7 +26,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.BiometricConnect;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.ContentResolverHelper;
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.MiuiBuild;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSecure;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSystem;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.ServiceCallback {
@@ -119,17 +124,20 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
     private final Object mBinderLock = new Object();
     private final Context mContext;
     private final EnrollParam mEnrollParam = new EnrollParam();
-    //    ContentObserver mSuperPowerOpenObserver = new ContentObserver(this.mHandler) {
-//        public void onChange(boolean selfChange) {
-//            super.onChange(selfChange);
-//            Miui3DFaceManagerImpl miui3DFaceManagerImpl = Miui3DFaceManagerImpl.this;
-//            boolean z = false;
-//            if (System.getIntForUser(miui3DFaceManagerImpl.mContext.getContentResolver(), "power_supersave_mode_open", 0, 0) != 0) {
-//                z = true;
-//            }
-//            miui3DFaceManagerImpl.mIsSuperPower = z;
-//        }
-//    };
+    private final ContentObserver mSuperPowerOpenObserver = new ContentObserver(this.mHandler) {
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            mIsSuperPower = SettingsSystem.getIntForUser(mContext.getContentResolver(), POWERMODE_SUPERSAVE_OPEN, 0, 0) != 0;
+        }
+    };
+    private final ContentObserver mHasFaceDataObserver = new ContentObserver(this.mHandler) {
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            mHasFaceData =
+                    SettingsSecure.getIntForUser(mContext.getContentResolver(),
+                            Miui3DFaceManagerImpl.FACE_UNLOCK_HAS_FEATURE, 0, 0) != 0;
+        }
+    };
     private final List<Miuiface> mMiuifaceList = null;
     private Object boostFramework = null;
     private AuthenticationCallback mAuthenticationCallback;
@@ -143,17 +151,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
     private List<GroupItem> mGroupItemList = null;
     private Handler mHandler;
     private boolean mHasFaceData;
-    //    ContentObserver mHasFaceDataObserver = new ContentObserver(this.mHandler) {
-//        public void onChange(boolean selfChange) {
-//            super.onChange(selfChange);
-//            Miui3DFaceManagerImpl miui3DFaceManagerImpl = Miui3DFaceManagerImpl.this;
-//            boolean z = false;
-//            if (Secure.getIntForUser(miui3DFaceManagerImpl.mContext.getContentResolver(), Miui3DFaceManagerImpl.FACE_UNLOCK_HAS_FEATURE, 0, 0) != 0) {
-//                z = true;
-//            }
-//            miui3DFaceManagerImpl.mHasFaceData = z;
-//        }
-//    };
+
     private boolean mIsSuperPower;
     private boolean mReleased = false;
     private RemovalCallback mRemovalCallback;
@@ -174,11 +172,18 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         this.mRemovalCallback = null;
         this.mAuthenticationCallback = null;
         this.mEnrollmentCallback = null;
+        try {
+
 //        Secure.putIntForUser(this.mContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
-//        this.mContext.getContentResolver().registerContentObserver(Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE), false, this.mHasFaceDataObserver, 0);
-//        this.mHasFaceDataObserver.onChange(false);
-//        this.mContext.getContentResolver().registerContentObserver(System.getUriFor("power_supersave_mode_open"), false, this.mSuperPowerOpenObserver, 0);
-//        this.mSuperPowerOpenObserver.onChange(false);
+            ContentResolverHelper.registerContentObserver(this.mContext.getContentResolver(), Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE),
+                    false, this.mHasFaceDataObserver, 0);
+            this.mHasFaceDataObserver.onChange(false);
+            ContentResolverHelper.registerContentObserver(this.mContext.getContentResolver(), Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN),
+                    false, this.mSuperPowerOpenObserver, 0);
+            this.mSuperPowerOpenObserver.onChange(false);
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
         this.mHandler = new ClientHandler(ctx);
         this.mBiometricClient = new BiometricClient(ctx);
         this.mBiometricClient.startService(this);

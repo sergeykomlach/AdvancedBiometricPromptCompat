@@ -1,8 +1,10 @@
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
 
 import android.content.Context;
+import android.database.ContentObserver;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.CancellationSignal;
 import android.os.CancellationSignal.OnCancelListener;
@@ -13,14 +15,18 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.provider.Settings;
 import android.view.Surface;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.ContentResolverHelper;
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.FeatureParser;
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.MiuiBuild;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSecure;
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSystem;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 public class MiuiFaceManagerImpl implements IMiuiFaceManager {
@@ -182,9 +188,9 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
                         int groupId = data.readInt();
                         int remaining = data.readInt();
                         Miuiface miuiface = new Miuiface(null, groupId, faceId, devId2);
-                        Handler access$1300 = MiuiFaceManagerImpl.this.mHandler;
+
                         i = 206;
-                        access$1300.obtainMessage(i, remaining, 0, miuiface).sendToTarget();
+                        MiuiFaceManagerImpl.this.mHandler.obtainMessage(i, remaining, 0, miuiface).sendToTarget();
                         reply.writeNoException();
                         return true;
                     case 207:
@@ -221,30 +227,58 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
     private MiuiFaceManagerImpl(Context con) {
         this.mContext = con.getApplicationContext();
         this.mHandler = new ClientHandler(this.mContext);
-//        boolean equals = "ursa".equals(Build.DEVICE);
-//        String str = FACE_UNLOCK_VALID_FEATURE;
-//        String str2 = FACE_UNLOCK_HAS_FEATURE;
-//        if (equals) {
+
+        try {
+//        if ("ursa".equals(Build.DEVICE)) {
 //            ContentResolver contentResolver = this.mContext.getContentResolver();
-//            String str3 = FACE_UNLOCK_MODEL;
-//            this.mFaceUnlockModel = Secure.getIntForUser(contentResolver, str3, 1, -2);
+//            this.mFaceUnlockModel = SettingsSecure.getIntForUser(contentResolver, FACE_UNLOCK_MODEL, 1, -2);
 //            if (this.mFaceUnlockModel != 2) {
-//                Secure.putIntForUser(this.mContext.getContentResolver(), str3, 2, -2);
+//                Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_MODEL, 2, -2);
 //                if (this.mFaceUnlockModel == 0) {
-//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_3D_HAS_FEATURE, Secure.getIntForUser(this.mContext.getContentResolver(), str2, 0, -2), -2);
-//                    Secure.putIntForUser(this.mContext.getContentResolver(), str2, 0, -2);
-//                    Secure.putIntForUser(this.mContext.getContentResolver(), str, 1, -2);
+//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_3D_HAS_FEATURE,
+//                            SettingsSecure.getIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2), -2);
+//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2);
+//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_VALID_FEATURE, 1, -2);
 //                }
 //            }
 //        }
 //        Secure.putIntForUser(this.mContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
-//        FaceObserver faceObserver = new FaceObserver(this.mHandler);
-//        this.mContext.getContentResolver().registerContentObserver(Secure.getUriFor(str2), false, faceObserver, 0);
-//        faceObserver.onChange(false, Uri.parse(FACE_UNLOCK_HAS_FEATURE_URI));
-//        this.mContext.getContentResolver().registerContentObserver(Secure.getUriFor(str), false, faceObserver, 0);
-//        faceObserver.onChange(false, Uri.parse(FACE_UNLOCK_VALID_FEATURE_URI));
-//        this.mContext.getContentResolver().registerContentObserver(System.getUriFor("power_supersave_mode_open"), false, faceObserver, 0);
-//        faceObserver.onChange(false, Uri.parse(POWERMODE_SUPERSAVE_OPEN_URI));
+
+            FaceObserver faceObserver = new FaceObserver(this.mHandler);
+            ContentResolverHelper.registerContentObserver(
+                    this.mContext.getContentResolver(), Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE), false, faceObserver, 0);
+            faceObserver.onChange(false, Uri.parse(FACE_UNLOCK_HAS_FEATURE_URI));
+            ContentResolverHelper.registerContentObserver(
+                    this.mContext.getContentResolver(), Settings.Secure.getUriFor(FACE_UNLOCK_VALID_FEATURE), false, faceObserver, 0);
+            faceObserver.onChange(false, Uri.parse(FACE_UNLOCK_VALID_FEATURE_URI));
+            ContentResolverHelper.registerContentObserver(
+                    this.mContext.getContentResolver(), Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN), false, faceObserver, 0);
+            faceObserver.onChange(false, Uri.parse(POWERMODE_SUPERSAVE_OPEN_URI));
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
+    }
+
+    private class FaceObserver extends ContentObserver {
+        public FaceObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            super.onChange(selfChange, uri);
+            try {
+                if (POWERMODE_SUPERSAVE_OPEN.equals(uri.getLastPathSegment())) {
+                    mIsSuperPower = SettingsSystem.getIntForUser(mContext.getContentResolver(), POWERMODE_SUPERSAVE_OPEN, 0, 0) != 0;
+                } else if (FACE_UNLOCK_VALID_FEATURE.equals(uri.getLastPathSegment())) {
+                    mIsValid = SettingsSecure.getIntForUser(mContext.getContentResolver(), FACE_UNLOCK_VALID_FEATURE, 1, 0) != 0;
+                } else if (FACE_UNLOCK_HAS_FEATURE.equals(uri.getLastPathSegment())) {
+                    mHasFaceData = SettingsSecure.getIntForUser(mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, 0) != 0;
+                }
+            } catch (Throwable e) {
+                BiometricLoggerImpl.e(e);
+            }
+        }
     }
 
     public static IMiuiFaceManager getInstance(Context con) {
@@ -288,7 +322,6 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             res = true;
         }
         if (DEBUG) {
-
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("inernational:");
             stringBuilder.append(MiuiBuild.IS_INTERNATIONAL_BUILD);
