@@ -13,7 +13,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Parcelable;
-import android.util.Log;
 import android.view.Surface;
 
 import java.io.File;
@@ -203,16 +202,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
     private void preloadBoostFramework() {
         try {
             this.sPerfClass = Class.forName("android.util.BoostFramework");
-
             Constructor<?> constuctor = this.sPerfClass.getConstructor();
-            if (constuctor != null) {
-                this.boostFramework = constuctor.newInstance();
-            }
+            this.boostFramework = constuctor.newInstance();
             this.sAcquireFunc = this.sPerfClass.getMethod("perfLockAcquire", Integer.TYPE, int[].class);
             this.sReleaseFunc = this.sPerfClass.getMethod("perfLockRelease");
-            Log.d(LOG_TAG, "preload BoostFramework succeed.");
+            BiometricLoggerImpl.d(LOG_TAG, "preload BoostFramework succeed.");
         } catch (Exception e) {
-            Log.e(LOG_TAG, "preload class android.util.BoostFramework failed");
+            BiometricLoggerImpl.e(LOG_TAG, "preload class android.util.BoostFramework failed");
         }
     }
 
@@ -221,7 +217,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("onBiometricServiceConnected ");
         stringBuilder.append(this);
-        Log.d(str, stringBuilder.toString());
+        BiometricLoggerImpl.d(str, stringBuilder.toString());
         this.mDisonnected = false;
         prepareDatabase();
     }
@@ -231,13 +227,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("onBiometricServiceDisconnected ");
         stringBuilder.append(this);
-        Log.d(str, stringBuilder.toString());
+        BiometricLoggerImpl.d(str, stringBuilder.toString());
         if (!this.mDisonnected) {
             str = LOG_TAG;
             stringBuilder = new StringBuilder();
             stringBuilder.append("xiaomi--> set mDisonnected true ");
             stringBuilder.append(this);
-            Log.d(str, stringBuilder.toString());
+            BiometricLoggerImpl.d(str, stringBuilder.toString());
             this.mDisonnected = true;
             release();
         }
@@ -245,7 +241,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
 
     public void onBiometricEventClassLoader(Bundle bundle) {
         if (BiometricConnect.DEBUG_LOG) {
-            Log.d(LOG_TAG, "onBiometricEventClassLoader");
+            BiometricLoggerImpl.d(LOG_TAG, "onBiometricEventClassLoader");
         }
         bundle.setClassLoader(BiometricConnect.class.getClassLoader());
     }
@@ -262,7 +258,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder = new StringBuilder();
             stringBuilder.append("release ignore ");
             stringBuilder.append(this);
-            Log.e(str, stringBuilder.toString());
+            BiometricLoggerImpl.e(str, stringBuilder.toString());
             return;
         }
         str = LOG_TAG;
@@ -271,7 +267,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         stringBuilder.append(this.mContext);
         stringBuilder.append(", this:");
         stringBuilder.append(this);
-        Log.d(str, stringBuilder.toString());
+        BiometricLoggerImpl.d(str, stringBuilder.toString());
         this.mReleased = true;
     }
 
@@ -289,7 +285,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(arg1);
             stringBuilder.append(", arg2:");
             stringBuilder.append(arg2);
-            Log.e(str, stringBuilder.toString());
+            BiometricLoggerImpl.e(str, stringBuilder.toString());
         } else if (this.mDisonnected) {
             str = LOG_TAG;
             stringBuilder = new StringBuilder();
@@ -301,7 +297,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(arg1);
             stringBuilder.append(", arg2:");
             stringBuilder.append(arg2);
-            Log.e(str, stringBuilder.toString());
+            BiometricLoggerImpl.e(str, stringBuilder.toString());
         } else {
             String str2;
             StringBuilder stringBuilder2;
@@ -314,7 +310,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                 stringBuilder2.append(arg1);
                 stringBuilder2.append(", arg2:");
                 stringBuilder2.append(arg2);
-                Log.d(str2, stringBuilder2.toString());
+                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
             }
             if (event == 0) {
                 EnrollmentCallback enrollmentCallback = this.mEnrollmentCallback;
@@ -341,14 +337,14 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                                     stringBuilder.append(arg1);
                                     stringBuilder.append(",arg2:");
                                     stringBuilder.append(arg2);
-                                    Log.d(str, stringBuilder.toString());
+                                    BiometricLoggerImpl.d(str, stringBuilder.toString());
                                     break;
                                 }
                                 break;
                             case 22:
                                 break;
                             case 23:
-                                Log.d(LOG_TAG, "MSG_CB_EVENT_IR_CAM_CLOSED");
+                                BiometricLoggerImpl.d(LOG_TAG, "MSG_CB_EVENT_IR_CAM_CLOSED");
                                 break;
                             case 24:
                                 enrollmentCallback2 = this.mEnrollmentCallback;
@@ -365,7 +361,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                                         stringBuilder2 = new StringBuilder();
                                         stringBuilder2.append("onBiometricEventCallback  MSG_CB_EVENT_ENROLL_SUCCESS mEnrollmentCallback:");
                                         stringBuilder2.append(this.mEnrollmentCallback);
-                                        Log.d(str2, stringBuilder2.toString());
+                                        BiometricLoggerImpl.d(str2, stringBuilder2.toString());
                                         EnrollmentCallback enrollmentCallback3 = this.mEnrollmentCallback;
                                         if (enrollmentCallback3 != null) {
                                             enrollmentCallback3.onEnrollmentProgress(0, arg1);
@@ -385,7 +381,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                                             stringBuilder = new StringBuilder();
                                             stringBuilder.append("MSG_CB_EVENT_ENROLL_ERROR arg1 = ");
                                             stringBuilder.append(arg1);
-                                            Log.d(str, stringBuilder.toString());
+                                            BiometricLoggerImpl.d(str, stringBuilder.toString());
                                             break;
                                         }
                                         break;
@@ -394,7 +390,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                                         stringBuilder2 = new StringBuilder();
                                         stringBuilder2.append("MSG_CB_EVENT_ENROLL_INFO arg1 = ");
                                         stringBuilder2.append(arg1);
-                                        Log.d(str, stringBuilder2.toString());
+                                        BiometricLoggerImpl.d(str, stringBuilder2.toString());
                                         enrollmentCallback2 = this.mEnrollmentCallback;
                                         if (enrollmentCallback2 != null) {
                                             enrollmentCallback2.onEnrollmentHelp(arg1, null);
@@ -409,7 +405,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                                                 stringBuilder2 = new StringBuilder();
                                                 stringBuilder2.append("onBiometricEventCallback  MSG_CB_EVENT_VERIFY_SUCCESS mAuthenticationCallback:");
                                                 stringBuilder2.append(this.mAuthenticationCallback);
-                                                Log.d(str, stringBuilder2.toString());
+                                                BiometricLoggerImpl.d(str, stringBuilder2.toString());
                                                 authenticationCallback = this.mAuthenticationCallback;
                                                 if (authenticationCallback != null) {
                                                     authenticationCallback.onAuthenticationSucceeded(null);
@@ -460,7 +456,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                 stringBuilder.append(arg1);
                 stringBuilder.append(",arg2:");
                 stringBuilder.append(arg2);
-                Log.d(str, stringBuilder.toString());
+                BiometricLoggerImpl.d(str, stringBuilder.toString());
             }
         }
     }
@@ -475,7 +471,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(module_id);
             stringBuilder.append(", key:");
             stringBuilder.append(key);
-            Log.e(str, stringBuilder.toString());
+            BiometricLoggerImpl.e(str, stringBuilder.toString());
         } else if (this.mDisonnected) {
             str = LOG_TAG;
             stringBuilder = new StringBuilder();
@@ -483,14 +479,14 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(this.mDisonnected);
             stringBuilder.append(" ignore key:");
             stringBuilder.append(key);
-            Log.e(str, stringBuilder.toString());
+            BiometricLoggerImpl.e(str, stringBuilder.toString());
         } else {
             if (BiometricConnect.DEBUG_LOG) {
                 str = LOG_TAG;
                 stringBuilder = new StringBuilder();
                 stringBuilder.append("onBiometricBundleCallback key:");
                 stringBuilder.append(key);
-                Log.d(str, stringBuilder.toString());
+                BiometricLoggerImpl.d(str, stringBuilder.toString());
             }
             if (key == 2) {
                 handlerFace(bundle);
@@ -530,11 +526,11 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
 
     private void handlerDatabase(Bundle bundle) {
         if (this.mDatabaseStatus != 1) {
-            Log.e(LOG_TAG, "handlerDatabase mDatabaseStatus ignore");
+            BiometricLoggerImpl.e(LOG_TAG, "handlerDatabase mDatabaseStatus ignore");
             return;
         }
         if (BiometricConnect.DEBUG_LOG) {
-            Log.d(LOG_TAG, "handlerDatabase ");
+            BiometricLoggerImpl.d(LOG_TAG, "handlerDatabase ");
         }
         this.mTemplateIdMax = bundle.getInt(BiometricConnect.MSG_CB_BUNDLE_DB_TEMPLATE_ID_MAX);
         this.mGroupIdMax = bundle.getInt(BiometricConnect.MSG_CB_BUNDLE_DB_GROUP_ID_MAX);
@@ -544,7 +540,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("handlerDatabase listGroup:");
             stringBuilder.append(listGroup.size());
-            Log.d(str, stringBuilder.toString());
+            BiometricLoggerImpl.d(str, stringBuilder.toString());
         }
         ArrayList<Parcelable> listTemplate = bundle.getParcelableArrayList(BiometricConnect.MSG_CB_BUNDLE_DB_TEMPLATE);
         if (BiometricConnect.DEBUG_LOG) {
@@ -552,24 +548,28 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             StringBuilder stringBuilder2 = new StringBuilder();
             stringBuilder2.append("handlerDatabase list:");
             stringBuilder2.append(listTemplate.size());
-            Log.d(str2, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder2.toString());
         }
         initClientDB(listGroup, listTemplate);
     }
 
     private void initClientDB(ArrayList<Parcelable> listGroup, ArrayList<Parcelable> list) {
         if (this.mDatabaseStatus != 2 || this.mDatabaseChanged) {
-            Log.d(LOG_TAG, "initClientDB begin");
+            BiometricLoggerImpl.d(LOG_TAG, "initClientDB begin");
             this.mTemplateItemList = new ArrayList();
             Iterator it = list.iterator();
+            Class<?> clazz = null;
             while (it.hasNext()) {
                 Object i = it.next();
                 try {
+                    if (clazz == null) {
+                        clazz = i.getClass();
+                    }
                     TemplateItem item = new TemplateItem();
-                    item.id = i.getClass().getField("mId").getInt(i);
-                    item.name = (String) i.getClass().getField("mName").get(i);
-                    item.group_id = i.getClass().getField("mGroupId").getInt(i);
-                    item.data = (String) i.getClass().getField("mData").get(i);
+                    item.id = clazz.getField("mId").getInt(i);
+                    item.name = (String) clazz.getField("mName").get(i);
+                    item.group_id = clazz.getField("mGroupId").getInt(i);
+                    item.data = (String) clazz.getField("mData").get(i);
                     this.mTemplateItemList.add(item);
                 } catch (Throwable e) {
                     BiometricLoggerImpl.e(e);
@@ -577,48 +577,53 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             }
             this.mGroupItemList = new ArrayList();
             it = listGroup.iterator();
+            clazz = null;
             while (it.hasNext()) {
                 Object group = it.next();
                 try {
+                    if (clazz == null) {
+                        clazz = group.getClass();
+                    }
                     GroupItem groupItem = new GroupItem();
-                    groupItem.id = group.getClass().getField("mId").getInt(group);
-                    groupItem.name = (String) group.getClass().getField("mName").get(group);
+                    groupItem.id = clazz.getField("mId").getInt(group);
+                    groupItem.name = (String) clazz.getField("mName").get(group);
                     this.mGroupItemList.add(groupItem);
                 } catch (Throwable e) {
                     BiometricLoggerImpl.e(e);
                 }
             }
+            clazz = null;
             this.mDatabaseStatus = 2;
             this.mDatabaseChanged = false;
-            Log.d(LOG_TAG, "initClientDB ok");
+            BiometricLoggerImpl.d(LOG_TAG, "initClientDB ok");
         }
     }
 
     private void prepareDatabase() {
         if (this.mDatabaseStatus != 0) {
-            Log.e(LOG_TAG, "prepareDatabase ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "prepareDatabase ignore!");
             return;
         }
-        Log.d(LOG_TAG, "prepareDatabase");
+        BiometricLoggerImpl.d(LOG_TAG, "prepareDatabase");
         this.mDatabaseStatus = 1;
         this.mBiometricClient.sendCommand(9);
     }
 
     private void resetDatabase() {
         if (this.mDatabaseStatus != 2) {
-            Log.e(LOG_TAG, "resetDatabase ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "resetDatabase ignore!");
             return;
         }
-        Log.d(LOG_TAG, "resetDatabase");
+        BiometricLoggerImpl.d(LOG_TAG, "resetDatabase");
         this.mDatabaseStatus = 1;
         this.mBiometricClient.sendCommand(10);
     }
 
     private void commitDatabase() {
         if (this.mReleased) {
-            Log.e(LOG_TAG, "commitDatabase ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "commitDatabase ignore!");
         } else if (this.mDatabaseChanged) {
-            Log.d(LOG_TAG, "commitDatabase");
+            BiometricLoggerImpl.d(LOG_TAG, "commitDatabase");
             Bundle out_bundle = new Bundle();
             out_bundle.setClassLoader(BiometricConnect.class.getClassLoader());
             ArrayList<Parcelable> listGroup = new ArrayList();
@@ -638,7 +643,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
     private void handlerFace(Bundle bundle) {
         if (this.mEnrollmentCallback != null) {
             if (BiometricConnect.DEBUG_LOG) {
-                Log.d(LOG_TAG, "handlerFace ");
+                BiometricLoggerImpl.d(LOG_TAG, "handlerFace ");
             }
             boolean is_ir_detect = bundle.getBoolean(BiometricConnect.MSG_CB_BUNDLE_FACE_IS_IR);
             if (bundle.getBoolean(BiometricConnect.MSG_CB_BUNDLE_FACE_HAS_FACE)) {
@@ -653,7 +658,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                         StringBuilder stringBuilder = new StringBuilder();
                         stringBuilder.append("handlerFace detect face:");
                         stringBuilder.append(this.mFaceInfo.bounds.toString());
-                        Log.d(str, stringBuilder.toString());
+                        BiometricLoggerImpl.d(str, stringBuilder.toString());
                     }
                 }
                 this.mFaceInfo.yaw = bundle.getFloat(BiometricConnect.MSG_CB_BUNDLE_FACE_FLOAT_YAW);
@@ -700,13 +705,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
 
     public void remove(Miuiface face, RemovalCallback callback) {
         if (this.mReleased) {
-            Log.e(LOG_TAG, "removeTemplate ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "removeTemplate ignore!");
         } else if (this.mDatabaseStatus != 2) {
             String str = LOG_TAG;
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("removeTemplate error mDatabaseStatus :");
             stringBuilder.append(this.mDatabaseStatus);
-            Log.d(str, stringBuilder.toString());
+            BiometricLoggerImpl.d(str, stringBuilder.toString());
         } else {
             TemplateItem templateItem = findTemplate(face.getMiuifaceId());
             if (templateItem == null) {
@@ -715,10 +720,10 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                 stringBuilder2.append("removeTemplate findTemplate ");
                 stringBuilder2.append(face.getMiuifaceId());
                 stringBuilder2.append(" is null");
-                Log.d(str2, stringBuilder2.toString());
+                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
                 return;
             }
-            Log.d(LOG_TAG, "removeTemplate");
+            BiometricLoggerImpl.d(LOG_TAG, "removeTemplate");
             this.mTemplateItemList.remove(templateItem);
 //            Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2);
             this.mDatabaseChanged = true;
@@ -740,13 +745,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
     public int getTemplatepath() {
         File dbFile = new File(TEMPLATE_PATH, "biometric.db");
         if (dbFile.exists()) {
-            Log.d(LOG_TAG, "getTemplatepath");
+            BiometricLoggerImpl.d(LOG_TAG, "getTemplatepath");
             this.myDB = SQLiteDatabase.openDatabase(dbFile.getPath(), null, 0);
             this.myTemplateItemList = new ArrayList();
-            Log.d(LOG_TAG, "selectTemplate");
+            BiometricLoggerImpl.d(LOG_TAG, "selectTemplate");
             Cursor cursor = this.myDB.rawQuery("select _id,data,template_name,group_id from _template where valid=1", null);
             if (cursor.moveToFirst()) {
-                Log.e(LOG_TAG, "xiaomi -->4.3 test");
+                BiometricLoggerImpl.e(LOG_TAG, "xiaomi -->4.3 test");
                 TemplateItem t = new TemplateItem();
                 t.id = cursor.getInt(cursor.getColumnIndex("_id"));
                 t.name = cursor.getString(cursor.getColumnIndex(TABLE_TEMPLATE_COLUMN_NAME));
@@ -757,7 +762,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             cursor.close();
             return this.myTemplateItemList.size();
         }
-        Log.d(LOG_TAG, "getTemplatepath faild");
+        BiometricLoggerImpl.d(LOG_TAG, "getTemplatepath faild");
         return 0;
     }
 
@@ -770,13 +775,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("default msgId: ");
         stringBuilder.append(msgId);
-        Log.d(str, stringBuilder.toString());
+        BiometricLoggerImpl.d(str, stringBuilder.toString());
         return msg;
     }
 
     private void tryConnectService() {
         if (this.mDisonnected) {
-            Log.e(LOG_TAG, "mDisonnected is true ");
+            BiometricLoggerImpl.e(LOG_TAG, "mDisonnected is true ");
             this.mDatabaseStatus = 0;
             this.mBiometricClient.startService(this);
         }
@@ -784,13 +789,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
 
     public void rename(int faceId, String name) {
         if (this.mReleased) {
-            Log.e(LOG_TAG, "setTemplateName ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "setTemplateName ignore!");
         } else if (this.mDatabaseStatus != 2) {
             String str = LOG_TAG;
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("setTemplateName error mPrepareDbStatus:");
             stringBuilder.append(this.mDatabaseStatus);
-            Log.d(str, stringBuilder.toString());
+            BiometricLoggerImpl.d(str, stringBuilder.toString());
         } else {
             TemplateItem templateItem = findTemplate(faceId);
             if (templateItem == null) {
@@ -799,10 +804,10 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                 stringBuilder2.append("setTemplateName findTemplate ");
                 stringBuilder2.append(faceId);
                 stringBuilder2.append(" is null");
-                Log.d(str2, stringBuilder2.toString());
+                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
                 return;
             }
-            Log.d(LOG_TAG, "setTemplateName");
+            BiometricLoggerImpl.d(LOG_TAG, "setTemplateName");
             templateItem.name = name;
             this.mDatabaseChanged = true;
             commitDatabase();
@@ -811,7 +816,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
 
     public List<Miuiface> getEnrolledFaces() {
         List<Miuiface> res = new ArrayList();
-        Log.e(LOG_TAG, " xiaomi getEnrolledFaces!");
+        BiometricLoggerImpl.e(LOG_TAG, " xiaomi getEnrolledFaces!");
         for (TemplateItem i : this.mTemplateItemList) {
             res.add(new Miuiface(i.name, i.group_id, i.id, 0));
         }
@@ -831,7 +836,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append("stopVerify ctx:");
             stringBuilder.append(this.mContext);
             stringBuilder.append(" ignore!");
-            Log.e(str, stringBuilder.toString());
+            BiometricLoggerImpl.e(str, stringBuilder.toString());
             return;
         }
         if (this.mcancelStatus != 0) {
@@ -851,7 +856,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         stringBuilder = new StringBuilder();
         stringBuilder.append("cancelAuthentication ctx:");
         stringBuilder.append(this.mContext);
-        Log.d(str, stringBuilder.toString());
+        BiometricLoggerImpl.d(str, stringBuilder.toString());
         this.mAuthenticationCallback = null;
         this.mBiometricClient.sendCommand(6);
         this.mHandler.removeMessages(1);
@@ -868,18 +873,18 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(str2);
             stringBuilder.append(this.mContext);
             stringBuilder.append(str);
-            Log.e(str3, stringBuilder.toString());
+            BiometricLoggerImpl.e(str3, stringBuilder.toString());
         } else if (hasEnrolledFaces() == 0) {
             str3 = LOG_TAG;
             StringBuilder stringBuilder2 = new StringBuilder();
             stringBuilder2.append("has no enrolled face ctx:");
             stringBuilder2.append(this.mContext);
             stringBuilder2.append(str);
-            Log.e(str3, stringBuilder2.toString());
+            BiometricLoggerImpl.e(str3, stringBuilder2.toString());
         } else if (callback != null) {
             if (cancel != null) {
                 if (cancel.isCanceled()) {
-                    Log.w(LOG_TAG, "authentication already canceled");
+                    BiometricLoggerImpl.d(LOG_TAG, "authentication already canceled");
                     return;
                 }
                 cancel.setOnCancelListener(new OnAuthenticationCancelListener());
@@ -902,7 +907,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder = new StringBuilder();
             stringBuilder.append(str2);
             stringBuilder.append(this.mContext);
-            Log.d(str, stringBuilder.toString());
+            BiometricLoggerImpl.d(str, stringBuilder.toString());
             useHandler(handler);
             this.mAuthenticationCallback = callback;
             tryConnectService();
@@ -916,10 +921,10 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
 
     private void cancelEnrollment() {
         if (this.mReleased) {
-            Log.e(LOG_TAG, "stopEnroll ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "stopEnroll ignore!");
             return;
         }
-        Log.d(LOG_TAG, "stopEnroll");
+        BiometricLoggerImpl.d(LOG_TAG, "stopEnroll");
         this.mBiometricClient.sendCommand(8);
         this.mBiometricClient.sendCommand(4);
         this.mHandler.removeMessages(0);
@@ -953,7 +958,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                 stringBuilder.append(temp);
                 stringBuilder.append(" to ");
                 stringBuilder.append(detect_zone[i]);
-                Log.d(str, stringBuilder.toString());
+                BiometricLoggerImpl.d(str, stringBuilder.toString());
             }
         }
     }
@@ -982,7 +987,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
         RectF rectF = detectArea;
         RectF rectF2 = enrollArea;
         if (this.mReleased) {
-            Log.e(LOG_TAG, "enroll ignore!");
+            BiometricLoggerImpl.e(LOG_TAG, "enroll ignore!");
         }
         if (timeout == 0) {
             timeout2 = 180000;
@@ -990,7 +995,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             timeout2 = timeout;
         }
         if (surface2 == null || timeout2 < 2000) {
-            Log.e(LOG_TAG, "enroll error!");
+            BiometricLoggerImpl.e(LOG_TAG, "enroll error!");
         }
         String str2 = "]";
         String str3 = ",";
@@ -1008,7 +1013,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(str3);
             stringBuilder.append(rectF.bottom);
             stringBuilder.append(str2);
-            Log.e(str4, stringBuilder.toString());
+            BiometricLoggerImpl.e(str4, stringBuilder.toString());
             str4 = LOG_TAG;
             stringBuilder = new StringBuilder();
             stringBuilder.append("xiaomi enrollArea data:[");
@@ -1022,11 +1027,11 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder.append(str3);
             stringBuilder.append(rectF2.bottom);
             stringBuilder.append(str2);
-            Log.e(str4, stringBuilder.toString());
+            BiometricLoggerImpl.e(str4, stringBuilder.toString());
         }
         if (cancellationSignal != null) {
             if (cancel.isCanceled()) {
-                Log.w(LOG_TAG, "enrollment already canceled");
+                BiometricLoggerImpl.d(LOG_TAG, "enrollment already canceled");
                 return;
             }
             cancellationSignal.setOnCancelListener(new OnEnrollCancelListener());
@@ -1069,7 +1074,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder2.append(str3);
             stringBuilder2.append(detect_zone[3]);
             stringBuilder2.append(str2);
-            Log.d(str5, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str5, stringBuilder2.toString());
             str = LOG_TAG;
             StringBuilder stringBuilder3 = new StringBuilder();
             stringBuilder3.append("startEnroll rectEnrollZones:[");
@@ -1089,7 +1094,7 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             stringBuilder3.append(str3);
             stringBuilder3.append(detect_zone[7]);
             stringBuilder3.append(str2);
-            Log.d(str, stringBuilder3.toString());
+            BiometricLoggerImpl.d(str, stringBuilder3.toString());
         }
         Bundle bundle_enroll = new Bundle();
         bundle_enroll.putFloatArray(BiometricConnect.MSG_CB_BUNDLE_ENROLL_PARAM_DETECT_ZONE, detect_zone);
@@ -1133,13 +1138,13 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("addLockoutResetCallback  callback:");
             stringBuilder.append(callback);
-            Log.d(str, stringBuilder.toString());
+            BiometricLoggerImpl.d(str, stringBuilder.toString());
         }
     }
 
     public void resetTimeout(byte[] token) {
         if (DEBUG) {
-            Log.d(LOG_TAG, "resetTimeout");
+            BiometricLoggerImpl.d(LOG_TAG, "resetTimeout");
         }
     }
 
@@ -1203,18 +1208,18 @@ public class Miui3DFaceManagerImpl implements IMiuiFaceManager, BiometricClient.
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(" handleMessage  callback what:");
                 stringBuilder.append(msg.what);
-                Log.d(access$1100, stringBuilder.toString());
+                BiometricLoggerImpl.d(access$1100, stringBuilder.toString());
             }
             int i = msg.what;
             if (i != 0) {
                 if (i == 1 && Miui3DFaceManagerImpl.this.mAuthenticationCallback != null) {
-                    Log.d(Miui3DFaceManagerImpl.LOG_TAG, "xiaomi ---> RECEIVER_ON_AUTHENTICATION_TIMEOUT");
+                    BiometricLoggerImpl.d(Miui3DFaceManagerImpl.LOG_TAG, "xiaomi ---> RECEIVER_ON_AUTHENTICATION_TIMEOUT");
                     Miui3DFaceManagerImpl.this.mAuthenticationCallback.onAuthenticationFailed();
                     Miui3DFaceManagerImpl.this.cancelAuthentication();
                 }
             } else if (Miui3DFaceManagerImpl.this.mEnrollmentCallback != null) {
                 Miui3DFaceManagerImpl.this.mEnrollmentCallback.onEnrollmentError(66, null);
-                Log.d(Miui3DFaceManagerImpl.LOG_TAG, "RECEIVER_ON_ENROLL_TIMEOUT");
+                BiometricLoggerImpl.d(Miui3DFaceManagerImpl.LOG_TAG, "RECEIVER_ON_ENROLL_TIMEOUT");
                 Miui3DFaceManagerImpl.this.cancelEnrollment();
             }
         }

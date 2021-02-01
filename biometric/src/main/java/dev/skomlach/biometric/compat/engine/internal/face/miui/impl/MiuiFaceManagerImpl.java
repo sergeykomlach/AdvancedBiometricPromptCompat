@@ -13,7 +13,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.RemoteException;
-import android.util.Log;
 import android.view.Surface;
 
 import java.util.ArrayList;
@@ -134,7 +133,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("mServiceReceiver callback: ");
             stringBuilder.append(i);
-            Log.d(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(TAG, stringBuilder.toString());
             if (i == 261) {
                 parcel.enforceInterface(MiuiFaceManagerImpl.RECEIVER_DESCRIPTOR);
                 MiuiFaceManagerImpl.this.mHandler.obtainMessage(261, data.readInt()).sendToTarget();
@@ -211,7 +210,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
     private final DeathRecipient mBinderDied = new DeathRecipient() {
         public void binderDied() {
             synchronized (MiuiFaceManagerImpl.this.mBinderLock) {
-                Log.e(MiuiFaceManagerImpl.TAG, "mMiuiFaceService Service Died.");
+                BiometricLoggerImpl.e(MiuiFaceManagerImpl.TAG, "mMiuiFaceService Service Died.");
                 MiuiFaceManagerImpl.this.mMiuiFaceService = null;
             }
         }
@@ -297,7 +296,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             stringBuilder.append(Arrays.toString(supportRegion));
             stringBuilder.append(" nowR:");
             stringBuilder.append(MiuiBuild.getRegion());
-            Log.d(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(TAG, stringBuilder.toString());
         }
         return res;
     }
@@ -309,7 +308,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("isSupportScreenOnDelayed:");
             stringBuilder.append(res);
-            Log.d(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(TAG, stringBuilder.toString());
         }
         return res;
     }
@@ -362,7 +361,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("transact fail. ");
             stringBuilder.append(e);
-            Log.e(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder.toString());
         }
         if (DEBUG) {
 
@@ -404,7 +403,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
                     authenticationCallback.onAuthenticationError(2100, getMessageInfo(2100));
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Remote exception while authenticating: ", e);
+                BiometricLoggerImpl.e(TAG, "Remote exception while authenticating: ", e);
                 authenticationCallback.onAuthenticationError(2100, getMessageInfo(2100));
             }
             return;
@@ -438,7 +437,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
                         binderCallEnroll(this.mMiuiFaceService, this.mToken, cryptoToken, 0, this.mServiceReceiver, flags, this.mContext.getPackageName(), surface, enrollArea, timeout);
                     } catch (RemoteException e2) {
                         e = e2;
-                        Log.e(TAG, "exception in enroll: ", e);
+                        BiometricLoggerImpl.e(TAG, "exception in enroll: ", e);
                         enrollmentCallback.onEnrollmentError(i, getMessageInfo(i));
                         return;
                     }
@@ -449,7 +448,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             } catch (RemoteException e3) {
                 e = e3;
                 i = 2100;
-                Log.e(TAG, "exception in enroll: ", e);
+                BiometricLoggerImpl.e(TAG, "exception in enroll: ", e);
                 enrollmentCallback.onEnrollmentError(i, getMessageInfo(i));
                 return;
             }
@@ -470,7 +469,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("transact fail. ");
             stringBuilder.append(e);
-            Log.e(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder.toString());
         }
         if (DEBUG) {
 
@@ -513,7 +512,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder2 = new StringBuilder();
             stringBuilder2.append("transact fail. ");
             stringBuilder2.append(e);
-            Log.e(TAG, stringBuilder2.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder2.toString());
         }
     }
 
@@ -537,7 +536,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder2 = new StringBuilder();
             stringBuilder2.append("transact fail. ");
             stringBuilder2.append(e);
-            Log.e(TAG, stringBuilder2.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder2.toString());
         }
     }
 
@@ -560,7 +559,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder2 = new StringBuilder();
             stringBuilder2.append("transact fail. ");
             stringBuilder2.append(e);
-            Log.e(TAG, stringBuilder2.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder2.toString());
         }
     }
 
@@ -578,7 +577,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("transact fail. ");
             stringBuilder.append(e);
-            Log.e(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder.toString());
         }
     }
 
@@ -595,7 +594,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             stringBuilder = new StringBuilder();
             stringBuilder.append("transact fail. ");
             stringBuilder.append(e);
-            Log.e(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder.toString());
         }
         if (DEBUG) {
             String str2;
@@ -630,7 +629,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("transact fail. ");
             stringBuilder.append(e);
-            Log.e(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder.toString());
             return -2;
         }
     }
@@ -647,7 +646,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("transact fail. ");
             stringBuilder.append(e);
-            Log.e(TAG, stringBuilder.toString());
+            BiometricLoggerImpl.e(TAG, stringBuilder.toString());
         }
     }
 
@@ -1084,7 +1083,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append("default msgId: ");
                 stringBuilder.append(msgId);
-                Log.d(TAG, stringBuilder.toString());
+                BiometricLoggerImpl.d(TAG, stringBuilder.toString());
                 return msg;
         }
     }
@@ -1104,7 +1103,7 @@ public class MiuiFaceManagerImpl implements IMiuiFaceManager {
                 StringBuilder stringBuilder = new StringBuilder();
                 stringBuilder.append(" handleMessage  callback what:");
                 stringBuilder.append(msg.what);
-                Log.d(TAG, stringBuilder.toString());
+                BiometricLoggerImpl.d(TAG, stringBuilder.toString());
             }
             int i = msg.what;
             if (i == 261) {

@@ -1,4 +1,4 @@
-package dev.skomlach.biometric.compat.engine.internal.face.huawei.wrapper;
+package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl;
 
 public abstract class HuaweiFaceManager {
 

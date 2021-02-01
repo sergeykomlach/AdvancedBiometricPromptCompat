@@ -1,6 +1,5 @@
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
 
-import android.content.Context;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -11,13 +10,22 @@ import me.weishu.reflection.Reflection;
 
 public class MiuiCodeToString {
 
+    private static Field[] stringFields = null;
+    private static Field[] stringArrayFields = null;
+
     static {
         Reflection.unseal(AndroidContext.getAppContext(), Collections.singletonList("com.android.internal"));
+        try {
+            stringFields = Class.forName("com.android.internal.R$string").getDeclaredFields();
+            stringArrayFields = Class.forName("com.android.internal.R$array").getDeclaredFields();
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
     }
+
     private static String getString(String s) {
         try {
-            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
-            for (Field field : fields) {
+            for (Field field : stringFields) {
                 if (s.equals(field.getName())) {
                     boolean isAccessible = field.isAccessible();
                     try {
@@ -38,8 +46,7 @@ public class MiuiCodeToString {
     }
     private static String[] getStringArray(String s) {
         try {
-            Field[] fields = Class.forName("com.android.internal.R$array").getDeclaredFields();
-            for (Field field : fields) {
+            for (Field field : stringArrayFields) {
                 if (s.equals(field.getName())) {
                     boolean isAccessible = field.isAccessible();
                     try {
@@ -156,34 +163,6 @@ public class MiuiCodeToString {
         stringBuilder.append(vendorCode);
         BiometricLoggerImpl.d(stringBuilder.toString());
         return null;
-    }
-
-    public static int getMappedAcquiredInfo(int acquireInfo, int vendorCode) {
-        if (acquireInfo == 22) {
-            return vendorCode + 1000;
-        }
-        switch (acquireInfo) {
-            case 0:
-                return 0;
-            case 1:
-            case 2:
-            case 3:
-                return 2;
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-                return 1;
-            case 10:
-            case 11:
-            case 12:
-            case 13:
-                return 2;
-            default:
-                return 0;
-        }
     }
 
 }

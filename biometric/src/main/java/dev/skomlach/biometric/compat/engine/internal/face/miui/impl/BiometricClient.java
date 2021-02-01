@@ -13,7 +13,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
@@ -21,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.BiometricConnect;
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 
 public class BiometricClient {
     private static final String LOG_TAG = "BiometricClient";
@@ -79,7 +79,7 @@ public class BiometricClient {
         stringBuilder2.append(this.mMainThread.getId());
         stringBuilder2.append(" CallbackThread id:");
         stringBuilder2.append(this.mCallbackThread.getId());
-        Log.d(LOG_TAG, stringBuilder2.toString());
+        BiometricLoggerImpl.d(LOG_TAG, stringBuilder2.toString());
     }
 
     /* Access modifiers changed, original: protected */
@@ -89,7 +89,7 @@ public class BiometricClient {
         stringBuilder.append(":");
         stringBuilder.append(this.mTagInfo);
         stringBuilder.append(":finalize");
-        Log.d(LOG_TAG, stringBuilder.toString());
+        BiometricLoggerImpl.d(LOG_TAG, stringBuilder.toString());
         release();
     }
 
@@ -99,7 +99,7 @@ public class BiometricClient {
             stringBuilder.append(":");
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":release");
-            Log.d(LOG_TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(LOG_TAG, stringBuilder.toString());
             HandlerThread handlerThread = this.mCallbackThread;
             if (handlerThread != null) {
                 if (handlerThread.getLooper() != null) {
@@ -130,7 +130,7 @@ public class BiometricClient {
         stringBuilder.append(":");
         stringBuilder.append(this.mTagInfo);
         stringBuilder.append(":startService");
-        Log.d(LOG_TAG, stringBuilder.toString());
+        BiometricLoggerImpl.d(LOG_TAG, stringBuilder.toString());
         this.mHandler.sendEmptyMessage(5000);
         Bundle bundle = new Bundle();
         bundle.putString("info", this.mTagInfo);
@@ -146,7 +146,7 @@ public class BiometricClient {
             stringBuilder.append(":removeAllMessage");
             String stringBuilder2 = stringBuilder.toString();
             String str2 = LOG_TAG;
-            Log.d(str2, stringBuilder2);
+            BiometricLoggerImpl.d(str2, stringBuilder2);
             for (int arg = 5000; arg <= 5003; arg++) {
                 while (this.mHandler.hasMessages(arg)) {
                     StringBuilder stringBuilder3 = new StringBuilder();
@@ -154,7 +154,7 @@ public class BiometricClient {
                     stringBuilder3.append(this.mTagInfo);
                     stringBuilder3.append(":removeAllMessage arg：");
                     stringBuilder3.append(arg);
-                    Log.d(str2, stringBuilder3.toString());
+                    BiometricLoggerImpl.d(str2, stringBuilder3.toString());
                     this.mHandler.removeMessages(arg);
                 }
             }
@@ -167,7 +167,7 @@ public class BiometricClient {
         stringBuilder.append(this.mTagInfo);
         stringBuilder.append(":releaseService  mServiceConnectStatus:");
         stringBuilder.append(this.mServiceConnectStatus);
-        Log.d(LOG_TAG, stringBuilder.toString());
+        BiometricLoggerImpl.d(LOG_TAG, stringBuilder.toString());
         removeAllMessage();
         sendCommand(2);
         this.mHandler.sendEmptyMessage(5001);
@@ -180,7 +180,7 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":getServiceVersion module_id:");
             stringBuilder.append(module_id);
-            Log.d(LOG_TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(LOG_TAG, stringBuilder.toString());
         }
         this.mClientLister = l;
         Message msg = Message.obtain(this.mHandler);
@@ -197,14 +197,14 @@ public class BiometricClient {
         stringBuilder.append(":onServiceBind begin");
         String stringBuilder2 = stringBuilder.toString();
         String str2 = LOG_TAG;
-        Log.d(str2, stringBuilder2);
+        BiometricLoggerImpl.d(str2, stringBuilder2);
         this.accessLock_.lock();
         if (this.mTagInfo == null) {
             stringBuilder = new StringBuilder();
             stringBuilder.append(str);
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":onServiceBind mTagInfo is null");
-            Log.d(str2, stringBuilder.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder.toString());
             this.accessLock_.unlock();
             return;
         }
@@ -212,7 +212,7 @@ public class BiometricClient {
         this.mSendMessager = new Messenger(service);
         this.serviceReadyLatch_.countDown();
         if (this.mServiceCallback != null) {
-            Log.d(str2, "mServiceCallback yes");
+            BiometricLoggerImpl.d(str2, "mServiceCallback yes");
             this.mServiceCallback.onBiometricServiceConnected();
         }
         this.accessLock_.unlock();
@@ -220,7 +220,7 @@ public class BiometricClient {
         stringBuilder.append(str);
         stringBuilder.append(this.mTagInfo);
         stringBuilder.append(":onServiceBind end");
-        Log.d(str2, stringBuilder.toString());
+        BiometricLoggerImpl.d(str2, stringBuilder.toString());
     }
 
     private void onServiceUnbind(boolean lock) {
@@ -237,7 +237,7 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":onServiceUnbind ignore mServiceConnectStatus:");
             stringBuilder.append(this.mServiceConnectStatus);
-            Log.d(str2, stringBuilder.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder.toString());
             if (lock) {
                 this.accessLock_.unlock();
             }
@@ -248,7 +248,7 @@ public class BiometricClient {
         stringBuilder.append(this.mTagInfo);
         stringBuilder.append(":onServiceUnbind mServiceConnectStatus:");
         stringBuilder.append(this.mServiceConnectStatus);
-        Log.d(str2, stringBuilder.toString());
+        BiometricLoggerImpl.d(str2, stringBuilder.toString());
         this.mServiceConnectStatus = 4;
         ServiceCallback serviceCallback = this.mServiceCallback;
         if (serviceCallback != null) {
@@ -276,7 +276,7 @@ public class BiometricClient {
             stringBuilder.append(cmd);
             stringBuilder.append(",arg:");
             stringBuilder.append(arg);
-            Log.d(str3, stringBuilder.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder.toString());
         }
         Message msg = Message.obtain();
         msg.what = 1001;
@@ -292,7 +292,7 @@ public class BiometricClient {
             stringBuilder2.append(str);
             stringBuilder2.append(cmd);
             stringBuilder2.append(" ok");
-            Log.d(str3, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder2.toString());
         }
     }
 
@@ -303,7 +303,7 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":Send MSG: sendBundle key:");
             stringBuilder.append(key);
-            Log.d(LOG_TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(LOG_TAG, stringBuilder.toString());
         }
         Message msg = Message.obtain();
         msg.what = 1002;
@@ -326,7 +326,7 @@ public class BiometricClient {
             stringBuilder3.append(str);
             stringBuilder3.append(this.mTagInfo);
             stringBuilder3.append(":handle_startService");
-            Log.d(str2, stringBuilder3.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder3.toString());
         }
         this.accessLock_.lock();
         this.mServiceConnectStatus = 1;
@@ -342,7 +342,7 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_startService - bindService Exception ERROR: ");
             stringBuilder.append(e);
-            Log.d(str2, stringBuilder.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder.toString());
             e.printStackTrace();
         }
         this.accessLock_.unlock();
@@ -351,7 +351,7 @@ public class BiometricClient {
             stringBuilder2.append(str);
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_startService await...");
-            Log.d(str2, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder2.toString());
         }
         try {
             if (!this.serviceReadyLatch_.await(2, TimeUnit.SECONDS)) {
@@ -359,7 +359,7 @@ public class BiometricClient {
                 stringBuilder2.append(str);
                 stringBuilder2.append(this.mTagInfo);
                 stringBuilder2.append(":handle_startService - ERROR: tmeout!");
-                Log.d(str2, stringBuilder2.toString());
+                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
                 this.accessLock_.lock();
                 this.mServiceConnectStatus = 11;
                 this.accessLock_.unlock();
@@ -370,7 +370,7 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_startService - ERROR: ");
             stringBuilder.append(e2);
-            Log.d(str2, stringBuilder.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder.toString());
             e2.printStackTrace();
             this.accessLock_.lock();
             this.mServiceConnectStatus = 12;
@@ -381,7 +381,7 @@ public class BiometricClient {
             stringBuilder2.append(str);
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_startService ok");
-            Log.d(str2, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder2.toString());
         }
     }
 
@@ -397,7 +397,7 @@ public class BiometricClient {
             stringBuilder2.append(str2);
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_releaseService mClientInfoList is null");
-            Log.e(str3, stringBuilder2.toString());
+            BiometricLoggerImpl.e(str3, stringBuilder2.toString());
             this.accessLock_.unlock();
             return;
         }
@@ -407,7 +407,7 @@ public class BiometricClient {
         stringBuilder2.append(":handle_releaseService mServiceConnectStatus:");
         stringBuilder2.append(this.mServiceConnectStatus);
         stringBuilder2.append(" ");
-        Log.d(str3, stringBuilder2.toString());
+        BiometricLoggerImpl.d(str3, stringBuilder2.toString());
         if (4 != this.mServiceConnectStatus) {
             onServiceUnbind(false);
         }
@@ -419,21 +419,21 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_releaseService IllegalArgumentException:");
             stringBuilder.append(e.toString());
-            Log.d(str3, stringBuilder.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder.toString());
         } catch (NullPointerException e2) {
             stringBuilder = new StringBuilder();
             stringBuilder.append(str2);
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_releaseService NullPointerException:");
             stringBuilder.append(e2.toString());
-            Log.d(str3, stringBuilder.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder.toString());
         } catch (Exception e3) {
             stringBuilder = new StringBuilder();
             stringBuilder.append(str2);
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_releaseService Exception:");
             stringBuilder.append(e3.toString());
-            Log.d(str3, stringBuilder.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder.toString());
         }
         this.mServiceConnectStatus = 5;
         this.mServiceConnection = null;
@@ -444,7 +444,7 @@ public class BiometricClient {
             stringBuilder2.append(str2);
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_releaseService end");
-            Log.d(str3, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder2.toString());
         }
     }
 
@@ -459,7 +459,7 @@ public class BiometricClient {
             stringBuilder.append(str);
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_getServiceVersion error: service not Connected");
-            Log.d(str2, stringBuilder.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder.toString());
             this.accessLock_.unlock();
             return;
         }
@@ -470,7 +470,7 @@ public class BiometricClient {
                 stringBuilder.append(str);
                 stringBuilder.append(this.mTagInfo);
                 stringBuilder.append(":handle_getServiceVersion");
-                Log.d(str2, stringBuilder.toString());
+                BiometricLoggerImpl.d(str2, stringBuilder.toString());
             }
             Message msg = Message.obtain(null, 1000, module_id, 0);
             msg.replyTo = this.mReplyMessager;
@@ -483,7 +483,7 @@ public class BiometricClient {
                     stringBuilder2.append(str);
                     stringBuilder2.append(this.mTagInfo);
                     stringBuilder2.append(":handle_getServiceVersion - ERROR: timeout!");
-                    Log.d(str2, stringBuilder2.toString());
+                    BiometricLoggerImpl.d(str2, stringBuilder2.toString());
                 }
             } catch (InterruptedException ex) {
                 StringBuilder stringBuilder3 = new StringBuilder();
@@ -491,7 +491,7 @@ public class BiometricClient {
                 stringBuilder3.append(this.mTagInfo);
                 stringBuilder3.append(":handle_getServiceVersion - ERROR: ");
                 stringBuilder3.append(ex);
-                Log.d(str2, stringBuilder3.toString());
+                BiometricLoggerImpl.d(str2, stringBuilder3.toString());
                 ex.printStackTrace();
             }
         } catch (RemoteException e) {
@@ -500,7 +500,7 @@ public class BiometricClient {
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_getServiceVersion - RemoteException ERROR: ");
             stringBuilder2.append(e);
-            Log.d(str2, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder2.toString());
             e.printStackTrace();
         } catch (Exception e2) {
             stringBuilder2 = new StringBuilder();
@@ -508,7 +508,7 @@ public class BiometricClient {
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_getServiceVersion - Exception ERROR: ");
             stringBuilder2.append(e2);
-            Log.d(str2, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder2.toString());
             e2.printStackTrace();
         }
         if (BiometricConnect.DEBUG_LOG) {
@@ -516,7 +516,7 @@ public class BiometricClient {
             stringBuilder.append(str);
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(":handle_getServiceVersion end");
-            Log.d(str2, stringBuilder.toString());
+            BiometricLoggerImpl.d(str2, stringBuilder.toString());
         }
     }
 
@@ -533,7 +533,7 @@ public class BiometricClient {
             stringBuilder2.append(str2);
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_sendService error: service not Connected");
-            Log.d(str3, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder2.toString());
             this.accessLock_.unlock();
             return;
         }
@@ -543,7 +543,7 @@ public class BiometricClient {
             stringBuilder3.append(str2);
             stringBuilder3.append(this.mTagInfo);
             stringBuilder3.append(":handle_sendService");
-            Log.d(str3, stringBuilder3.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder3.toString());
         }
         try {
             msg.replyTo = this.mReplyMessager;
@@ -559,7 +559,7 @@ public class BiometricClient {
                     stringBuilder3.append(msg.arg1);
                     stringBuilder3.append(" arg:");
                     stringBuilder3.append(msg.arg2);
-                    Log.d(str3, stringBuilder3.toString());
+                    BiometricLoggerImpl.d(str3, stringBuilder3.toString());
                 }
             } catch (InterruptedException ex) {
                 stringBuilder = new StringBuilder();
@@ -567,7 +567,7 @@ public class BiometricClient {
                 stringBuilder.append(this.mTagInfo);
                 stringBuilder.append(str);
                 stringBuilder.append(ex);
-                Log.d(str3, stringBuilder.toString());
+                BiometricLoggerImpl.d(str3, stringBuilder.toString());
                 ex.printStackTrace();
             }
         } catch (RemoteException ex2) {
@@ -576,7 +576,7 @@ public class BiometricClient {
             stringBuilder.append(this.mTagInfo);
             stringBuilder.append(str);
             stringBuilder.append(ex2);
-            Log.d(str3, stringBuilder.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder.toString());
             ex2.printStackTrace();
         } catch (Exception e) {
             stringBuilder3 = new StringBuilder();
@@ -584,7 +584,7 @@ public class BiometricClient {
             stringBuilder3.append(this.mTagInfo);
             stringBuilder3.append(":handle_sendService - Exception ERROR: ");
             stringBuilder3.append(e);
-            Log.d(str3, stringBuilder3.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder3.toString());
             e.printStackTrace();
         }
         if (BiometricConnect.DEBUG_LOG) {
@@ -592,7 +592,7 @@ public class BiometricClient {
             stringBuilder2.append(str2);
             stringBuilder2.append(this.mTagInfo);
             stringBuilder2.append(":handle_sendService end");
-            Log.d(str3, stringBuilder2.toString());
+            BiometricLoggerImpl.d(str3, stringBuilder2.toString());
         }
     }
 
@@ -619,7 +619,7 @@ public class BiometricClient {
             stringBuilder.append(":");
             stringBuilder.append(BiometricClient.this.mTagInfo);
             stringBuilder.append(":ConnectHandler");
-            Log.d(BiometricClient.LOG_TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(BiometricClient.LOG_TAG, stringBuilder.toString());
         }
 
         public void handleMessage(Message msg) {
@@ -636,10 +636,10 @@ public class BiometricClient {
                 stringBuilder.append(msg.what);
                 stringBuilder.append(str);
                 stringBuilder.append(msg.arg1);
-                Log.d(str3, stringBuilder.toString());
+                BiometricLoggerImpl.d(str3, stringBuilder.toString());
             }
             if (msg.what == 9999) {
-                Log.d(str3, "MSG_CONNECT_TEST ok");
+                BiometricLoggerImpl.d(str3, "MSG_CONNECT_TEST ok");
                 if (BiometricClient.this.replayReadyLatch_ != null) {
                     BiometricClient.this.replayReadyLatch_.countDown();
                 }
@@ -654,7 +654,7 @@ public class BiometricClient {
                 stringBuilder.append(msg.what);
                 stringBuilder.append(str);
                 stringBuilder.append(msg.arg1);
-                Log.e(str3, stringBuilder.toString());
+                BiometricLoggerImpl.e(str3, stringBuilder.toString());
                 BiometricClient.this.accessLock_.unlock();
                 return;
             }
@@ -679,7 +679,7 @@ public class BiometricClient {
                 stringBuilder2.append(moduleVerMaj_);
                 stringBuilder2.append(str2);
                 stringBuilder2.append(moduleVerMin_);
-                Log.d(str3, stringBuilder2.toString());
+                BiometricLoggerImpl.d(str3, stringBuilder2.toString());
                 if (BiometricClient.this.mClientLister != null) {
                     BiometricClient.this.mClientLister.onVersion(((float) ((serviceVerMaj_ * 100) + i)) / 100.0f, ((float) ((moduleVerMaj_ * 100) + moduleVerMin_)) / 100.0f);
                 }
@@ -696,7 +696,7 @@ public class BiometricClient {
                         stringBuilder3.append(msg.what);
                         stringBuilder3.append(str);
                         stringBuilder3.append(msg.arg1);
-                        Log.e(str3, stringBuilder3.toString());
+                        BiometricLoggerImpl.e(str3, stringBuilder3.toString());
                     } else {
                         BiometricClient.this.mServiceCallback.onBiometricEventCallback(in_bundle.getInt(str4), in_bundle.getInt("event"), in_bundle.getInt(BiometricConnect.MSG_REPLY_ARG1), in_bundle.getInt(BiometricConnect.MSG_REPLY_ARG2));
                     }
@@ -712,7 +712,7 @@ public class BiometricClient {
                         stringBuilder3.append(msg.what);
                         stringBuilder3.append(str);
                         stringBuilder3.append(msg.arg1);
-                        Log.e(str3, stringBuilder3.toString());
+                        BiometricLoggerImpl.e(str3, stringBuilder3.toString());
                     } else {
                         BiometricClient.this.mServiceCallback.onBiometricBundleCallback(in_bundle.getInt(str4), in_bundle.getInt("key"), in_bundle);
                     }
@@ -726,7 +726,7 @@ public class BiometricClient {
                         stringBuilder4.append(str2);
                         stringBuilder4.append(BiometricClient.this.mTagInfo);
                         stringBuilder4.append(":handleMessage cb - MSG_COMMAND_DEINIT_CALLBACK");
-                        Log.d(str3, stringBuilder4.toString());
+                        BiometricLoggerImpl.d(str3, stringBuilder4.toString());
                     }
                     BiometricClient.this.onServiceUnbind(false);
                 } else if (1 == msg.arg1 && BiometricConnect.DEBUG_LOG) {
@@ -734,7 +734,7 @@ public class BiometricClient {
                     stringBuilder4.append(str2);
                     stringBuilder4.append(BiometricClient.this.mTagInfo);
                     stringBuilder4.append(":handleMessage cb - MSG_COMMAND_INIT_CALLBACK");
-                    Log.d(str3, stringBuilder4.toString());
+                    BiometricLoggerImpl.d(str3, stringBuilder4.toString());
                 }
                 BiometricClient.this.accessLock_.unlock();
             }
@@ -756,7 +756,7 @@ public class BiometricClient {
                 stringBuilder.append(BiometricClient.this.mTagInfo);
                 stringBuilder.append(":handleMessage main what:");
                 stringBuilder.append(msg.what);
-                Log.d(BiometricClient.LOG_TAG, stringBuilder.toString());
+                BiometricLoggerImpl.d(BiometricClient.LOG_TAG, stringBuilder.toString());
             }
             switch (msg.what) {
                 case 5000:
@@ -787,7 +787,7 @@ public class BiometricClient {
             stringBuilder.append(BiometricClient.this.mTagInfo);
             stringBuilder.append(":onServiceConnected mServiceConnectStatus:");
             stringBuilder.append(BiometricClient.this.mServiceConnectStatus);
-            Log.d(BiometricClient.LOG_TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(BiometricClient.LOG_TAG, stringBuilder.toString());
             BiometricClient.this.onServiceBind(service);
         }
 
@@ -797,7 +797,7 @@ public class BiometricClient {
             stringBuilder.append(BiometricClient.this.mTagInfo);
             stringBuilder.append(":onServiceDisconnected mServiceConnectStatus:");
             stringBuilder.append(BiometricClient.this.mServiceConnectStatus);
-            Log.d(BiometricClient.LOG_TAG, stringBuilder.toString());
+            BiometricLoggerImpl.d(BiometricClient.LOG_TAG, stringBuilder.toString());
             BiometricClient.this.onServiceUnbind(true);
             BiometricClient.this.handle_releaseService();
         }

@@ -1,5 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper;
 
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+
 public class FeatureParser {
     private static Class<?> clazz;
 
@@ -7,7 +9,7 @@ public class FeatureParser {
         try {
             clazz = Class.forName("miui.util.FeatureParser");
         } catch (Throwable e) {
-
+            BiometricLoggerImpl.e(e);
         }
     }
 
@@ -16,6 +18,7 @@ public class FeatureParser {
             return (String[]) clazz.getMethod("getStringArray", String.class).
                     invoke(null, s);
         } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
             return null;
         }
     }
@@ -25,6 +28,7 @@ public class FeatureParser {
             return (boolean) clazz.getMethod("getBoolean", boolean.class).
                     invoke(null, s);
         } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
             return def;
         }
     }

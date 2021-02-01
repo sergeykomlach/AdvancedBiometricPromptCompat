@@ -2,6 +2,8 @@ package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper;
 
 import android.os.Parcelable;
 
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+
 public class BiometricConnect {
     public static boolean DEBUG_LOG = false;
     public static String MSG_VER_SER_MAJ = null;
@@ -30,15 +32,20 @@ public class BiometricConnect {
     public static String MSG_CB_BUNDLE_FACE_FLOAT_EYE_DIST = null;
     public static String MSG_CB_BUNDLE_FACE_POINTS_ARRAY = null;
     private static Class<?> clazz;
+    private static Class<?> dbtemplateClass = null;
+    private static Class<?> dbgroupClass = null;
 
     static {
-
         try {
             clazz = Class.forName("android.miui.BiometricConnect");
+            dbtemplateClass = Class.forName("android.miui.BiometricConnect$DBTemplate");
+            dbgroupClass = Class.forName("android.miui.BiometricConnect$DBGroup");
         } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
         }
         try {
             DEBUG_LOG = clazz.getField("DEBUG_LOG").getBoolean(null);
+
             MSG_VER_SER_MAJ = (String) clazz.getField("MSG_VER_SER_MAJ").get(null);
             MSG_VER_SER_MIN = (String) clazz.getField("MSG_VER_SER_MIN").get(null);
 
@@ -72,29 +79,33 @@ public class BiometricConnect {
             MSG_CB_BUNDLE_FACE_FLOAT_ROLL = (String) clazz.getField("MSG_CB_BUNDLE_FACE_FLOAT_ROLL").get(null);
             MSG_CB_BUNDLE_FACE_FLOAT_EYE_DIST = (String) clazz.getField("MSG_CB_BUNDLE_FACE_FLOAT_EYE_DIST").get(null);
             MSG_CB_BUNDLE_FACE_POINTS_ARRAY = (String) clazz.getField("MSG_CB_BUNDLE_FACE_POINTS_ARRAY").get(null);
-        } catch (Throwable e) {}
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
     }
 
     public static void syncDebugLog() {
         try {
             clazz.getMethod("syncDebugLog").invoke(null);
-        } catch (Throwable e) {}
+        } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
+        }
     }
 
     public static Parcelable getDBTemplate(int id, String name, String Data, int group_id) {
         try {
-            Class<?> c = Class.forName("android.miui.BiometricConnect$DBTemplate");
-            return (Parcelable) c.getConstructor(int.class, String.class, String.class, int.class).newInstance(id, name, Data, group_id);
+            return (Parcelable) dbtemplateClass.getConstructor(int.class, String.class, String.class, int.class).newInstance(id, name, Data, group_id);
         } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
             return null;
         }
     }
 
     public static Parcelable getDBGroup(int id, String name) {
         try {
-            Class<?> c = Class.forName("android.miui.BiometricConnect$DBGroup");
-            return (Parcelable) c.getConstructor(int.class, String.class).newInstance(id, name);
+            return (Parcelable) dbgroupClass.getConstructor(int.class, String.class).newInstance(id, name);
         } catch (Throwable e) {
+            BiometricLoggerImpl.e(e);
             return null;
         }
     }
