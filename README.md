@@ -185,30 +185,21 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   `void onCanceled()` - Biometric authentication was canceled  
     
   `void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*  
+  
   `void onUIShown()` - Biometric UI on display  
   
   
   
 ## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?  
   
-Yes, this is unfortunately happens very often. Many functions demanded by the market are often implemented by device manufacturers before the same API appears in the official Android SDK.  
+Yes, this is, unfortunately, happening very often. Many functions demanded by the market are often implemented by device manufacturers before the same API appears in the official Android SDK.  
   
-In short:  
 The device manufacturer has implemented biometric authentication via fingerprint/face/iris, but "forgot" to provide access to this implementation for third-party developers. Therefore, preinstalled (system) applications developed by the device manufacturer can use biometrics, while banking applications, password managers, and other third-party applications cannot.  
-  
-Full answer:  
-It all depends on the specific case. I have come across several options that can be divided into several groups.  
-1) We know how the "Manager" defined and can add "dummy manager" into the `biometric-api` module, for example [MiuiFaceManagerImpl](https://github.com/shivatejapeddi/miuiframework/blob/cd456214274c046663aefce4d282bea0151f1f89/sources/android/hardware/miuiface/MiuiFaceManagerImpl.java). Unfortunately, this approach is not always possible to use.  
-  
-First, starting with Android 9 appears [restrictions](  
-https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces) on the use of non-public APIs. This limitation can be [circumvented](https://github.com/tiann/FreeReflection), BUT…  
-  
-Secondly - anyway, the manager considered here uses system permissions, and as a result, a SecurityException will be thrown when we tried to get "Manager"  instance.  
-  
-2) We know how the "Manager" defined and can add "dummy manager" into the `biometric-api` module, like `FaceID` on [EMUI 8.0](https://github.com/SivanLiu/HwFrameWorkSource/blob/5a49561c33945b022dcecbd25453c88cf6eec9e5/P9_8_0_0/src/main/java/com/huawei/facerecognition/FaceRecognizeManager.java)  , [EMUI 8.1](https://github.com/SivanLiu/HwFrameWorkSource/blob/fe9e34e997762d44e832b1022c14c36c10dd714f/Mate10_8_1_0/src/main/java/huawei/android/security/facerecognition/FaceRecognizeManagerImpl.java) or [EMUI 9.0](https://github.com/SivanLiu/HwFrameWorkSource/blob/54f8e90b0aa54196b39ea89c7cbf0aa6ce4ccf1f/Mate20_9_0_0/src/main/java/com/huawei/hardware/face/FaceManager.java) , and even able to get the “manager” instance. In this case, we will face the situation when working, for the first look, API, will not work in 3rd party apps properly.  
-3) Biometric auth implemented in the system `com.android.keyguard` package. For example, Meizu uses [Face++](https://github.com/FacePlusPlus) solution. Dependence on implementation, exists a chance to bind to the service as we do for [FaceUnlock](https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/tree/main/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/facelock)  
-  
-Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.  
+
+And unfortunately, sometimes manufacturers create such implementations that it is impossible to access using any known technic.
+
+Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.
+
   
 ## HOWTO SETUP 
 
