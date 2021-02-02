@@ -81,6 +81,7 @@ public class FaceLock {
         }
         mServiceConnection = new ServiceConnectionWrapper(connection);
         Intent intent = new Intent(flInterface.getName());
+        intent.setPackage(pkg);
         return mContext
                 .bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }

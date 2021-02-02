@@ -5,14 +5,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Process;
 import android.os.RemoteException;
-import android.text.TextUtils;
 
 import androidx.annotation.RestrictTo;
 
@@ -21,9 +18,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
-import java.util.List;
 
-import dev.skomlach.biometric.compat.utils.ReflectionTools;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
@@ -37,67 +32,29 @@ public class OnePlusFaceUnlock {
 
     //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
 
-    //String FACEUNLOCK_PACKAGE = "com.oneplus.faceunlock";
-    //String FACEUNLOCK_SERVICE = "com.oneplus.faceunlock.FaceUnlockService";
-    //"com.oneplus.faceunlock.internal.IOPFacelockService"
-
-    private static final String FACELOCK_INTERFACE = "com.oneplus.faceunlock.internal.IOPFacelockService";
-    private static final String FACELOCK_CALLBACK = "com.oneplus.faceunlock.internal.IOPFacelockCallback";
-
     private final Context mContext;
     protected Object mFaceLockService;
     protected ServiceConnectionWrapper mServiceConnection;
     protected HashMap<IOPFacelockCallback, Object> mMap = new HashMap<>();
-    private ComponentName SERVICE_PKG = null;
+
     private Class<?> flInterface;
     private Class<?> flInterfaceStub;
     private Class<?> flCallbackInterface;
     private Class<?> flCallbackInterfaceStub;
+    private final String pkg = "com.oneplus.faceunlock";
 
     public OnePlusFaceUnlock(Context context) throws Exception {
         mContext = context;
-        PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> resolveInfo = pm.queryIntentServices(new Intent().setPackage("com.oneplus.faceunlock"), 0);
+        final String FACELOCK_INTERFACE = "com.oneplus.faceunlock.internal.IOPFacelockService";
+        final String FACELOCK_CALLBACK = "com.oneplus.faceunlock.internal.IOPFacelockCallback";
 
-        if (resolveInfo != null) {
-            BiometricLoggerImpl.d(TAG + " services list - "+resolveInfo.size());
-            for (ResolveInfo info : resolveInfo) {
-                try {
-                    String pkg = !TextUtils.isEmpty(info.resolvePackageName) ? info.resolvePackageName : info.serviceInfo.packageName;
-
-                    if(flCallbackInterfaceStub == null) {
-                            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-                            flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-                            flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
-                            flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
-                    }
-                    Class<?> serviceClazz = ReflectionTools.getClassFromPkg(pkg, info.serviceInfo.name);
-                    Field[] fields = serviceClazz.getDeclaredFields();
-                    for (Field f : fields) {
-                        Class<?> type = f.getType();
-                        //private final com.android.internal.policy.IFaceLockInterface$Stub binder;
-                        boolean isAccessible = f.isAccessible();
-                        try {
-                            if (!isAccessible)
-                                f.setAccessible(true);
-                            if (type.equals(flInterface) ||
-                                    type.equals(flInterfaceStub) ||
-                                    type.equals(flCallbackInterface) ||
-                                    type.equals(flCallbackInterfaceStub)) {
-                                SERVICE_PKG = new ComponentName(pkg, info.serviceInfo.name);
-                                return;
-                            }
-                        } finally {
-                            if (!isAccessible)
-                                f.setAccessible(false);
-                        }
-                    }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e, TAG);
-                }
-            }
-        } else
-            BiometricLoggerImpl.d(TAG + " services list is empty");
+        try {
+            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
+            flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
+            flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
+            flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
+            return;
+        } catch (Throwable ignored) {}
 
         throw new RuntimeException(TAG + " not supported");
     }
@@ -109,8 +66,8 @@ public class OnePlusFaceUnlock {
             return false;
         }
         mServiceConnection = new ServiceConnectionWrapper(connection);
-        Intent intent = new Intent();
-        intent.setComponent(SERVICE_PKG);
+        Intent intent = new Intent(flInterface.getName());
+        intent.setPackage(pkg);
         return mContext
                 .bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
@@ -144,7 +101,7 @@ public class OnePlusFaceUnlock {
             throws NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
         BiometricLoggerImpl.d(TAG + " registerCallback");
 
-        Constructor<?> c = getClassFromPkg(SERVICE_PKG.getPackageName(), FACELOCK_CALLBACK + "$Stub$Proxy")
+        Constructor<?> c = getClassFromPkg(pkg, flCallbackInterface.getName() + "$Stub$Proxy")
                 .getDeclaredConstructor(IBinder.class);
         boolean isAccessible = c.isAccessible();
         try {
