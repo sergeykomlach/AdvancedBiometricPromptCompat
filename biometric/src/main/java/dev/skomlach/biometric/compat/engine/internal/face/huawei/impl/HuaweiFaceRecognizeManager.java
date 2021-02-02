@@ -7,6 +7,7 @@ import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback;
 
 import dev.skomlach.biometric.compat.engine.BiometricCodes;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.common.contextprovider.AndroidContext;
 
 public class HuaweiFaceRecognizeManager {
     public static final int DEFAULT_FLAG = 1;
@@ -235,6 +236,7 @@ public class HuaweiFaceRecognizeManager {
 
     public int init() {
         if (mManager != null) {
+            mManager = new FaceRecognizeManager(AndroidContext.getAppContext(), this.mFRCallback);
             return mManager.init();
         }
         return -1;
@@ -244,6 +246,7 @@ public class HuaweiFaceRecognizeManager {
         if (mManager != null) {
             mManager.release();
         }
+        mManager = new FaceRecognizeManager(AndroidContext.getAppContext(), this.mFRCallback);
     }
 
     public void setAuthCallback(HuaweiFaceManager.AuthenticatorCallback authCallback) {
