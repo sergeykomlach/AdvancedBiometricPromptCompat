@@ -3,6 +3,7 @@ package dev.skomlach.biometric.compat.engine;
 import android.app.Activity;
 import android.app.admin.DevicePolicyManager;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.view.View;
 
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.skomlach.biometric.compat.BiometricType;
@@ -43,6 +45,7 @@ import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.misc.ExecutorHelper;
 
+import static dev.skomlach.common.misc.Utils.isAtLeastR;
 import static dev.skomlach.common.misc.Utils.startActivity;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -152,7 +155,7 @@ public class BiometricAuthentication {
             };
 
             for (BiometricMethod method : list) {
-                ExecutorHelper.INSTANCE.getHandler().post(() -> {
+                startTask(() -> {
                     BiometricLoggerImpl.e("BiometricAuthentication.check started for "+method);
                     BiometricModule biometricModule = null;
                     try {
@@ -229,7 +232,20 @@ public class BiometricAuthentication {
             BiometricLoggerImpl.e(e, "BiometricAuthentication" );
         }
     }
-
+    private static void startTask(Runnable task){
+        if(isAtLeastR()){
+            Executors.newCachedThreadPool().execute(task);
+        }else{
+            //AsyncTask Deprecated in API 30
+            new AsyncTask<Void, Void, Void>(){
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    task.run();
+                    return null;
+                }
+            }.executeOnExecutor(Executors.newCachedThreadPool());
+        }
+    }
     public static List<BiometricType> getAvailableBiometrics() {
         HashSet<BiometricType> biometricMethodListInternal = new HashSet<>();
         for (BiometricMethod method : moduleHashMap.keySet()) {

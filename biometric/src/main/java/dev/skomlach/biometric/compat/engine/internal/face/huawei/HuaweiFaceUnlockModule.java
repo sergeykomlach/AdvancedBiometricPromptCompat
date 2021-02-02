@@ -34,6 +34,14 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
     private FaceManager huawei3DFaceManager = null;
     public HuaweiFaceUnlockModule(BiometricInitListener listener) {
         super(BiometricMethod.FACE_HUAWEI);
+        String versionEmui = SystemPropertiesProxy.get(getContext(), "ro.build.version.emui");
+        final String emuiTag = "EmotionUI_";
+        if (versionEmui != null && versionEmui.startsWith(emuiTag)) {
+            versionEmui = versionEmui.substring(emuiTag.length());
+        }
+        BiometricLoggerImpl.d(getName() + ".EMUI version - '" + versionEmui + "'");
+
+        ExecutorHelper.INSTANCE.getHandler().post(()->{
         try {
             huawei3DFaceManager = getFaceManager();
             BiometricLoggerImpl.d(getName() + ".huawei3DFaceManager - " + huawei3DFaceManager);
@@ -42,18 +50,7 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
         }
 
         try {
-            String versionEmui = SystemPropertiesProxy.get(getContext(), "ro.build.version.emui");
-            final String emuiTag = "EmotionUI_";
-            if (versionEmui.startsWith(emuiTag)) {
-                versionEmui = versionEmui.substring(emuiTag.length());
-            }
-            BiometricLoggerImpl.d(getName() + ".EMUI version - '" + versionEmui + "'");
-
-            //it seems like on EMUI 10.1 only system apps allowed:
-            //for some reasons callback never fired
-            if (!compareVersions("10.1", versionEmui))
-                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(getContext());
-
+            huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(getContext());
             BiometricLoggerImpl.d(getName() + ".huaweiFaceManagerLegacy - " + huaweiFaceManagerLegacy);
         } catch (Throwable ignore) {
             huaweiFaceManagerLegacy = null;
@@ -63,6 +60,7 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             listener
                     .initFinished(getBiometricMethod(), HuaweiFaceUnlockModule.this);
         }
+        });
     }
 
     private FaceManager getFaceManager() {
@@ -80,17 +78,6 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
             BiometricLoggerImpl.d(getName() + ".Throw exception: InvocationTargetException");
         }
         return null;
-    }
-
-    private boolean compareVersions(String str1, String str2) {
-        String[] parts1 = str1.split("\\.");
-        String[] parts2 = str2.split("\\.");
-        int min = Math.min(parts1.length, parts2.length);
-        for (int i = 0; i < min; i++) {
-            if (!TextUtils.equals(parts1[i], parts2[i]))
-                return false;
-        }
-        return true;
     }
 
     @Override
@@ -197,7 +184,7 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
                     }
                 });
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                huaweiFaceManagerLegacy.authenticate(0, 1, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
+                huaweiFaceManagerLegacy.authenticate(0, 0, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
                 return;
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
