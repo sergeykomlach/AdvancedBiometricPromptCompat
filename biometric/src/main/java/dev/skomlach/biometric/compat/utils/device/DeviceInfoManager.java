@@ -41,7 +41,7 @@ public class DeviceInfoManager {
     public static DeviceInfoManager INSTANCE = new DeviceInfoManager();
 
     private Pattern pattern = Pattern.compile("\\((.*?)\\)+");
-    private final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+    static final String[] agents = new String[]{"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
@@ -281,7 +281,7 @@ public class DeviceInfoManager {
                     byte[] data = byteArrayOutputStream.toByteArray();
                     byteArrayOutputStream.close();
 
-                    return new String(data, "UTF-8");
+                    return new String(data);
                 } finally {
                     if (urlConnection != null) {
                         urlConnection.disconnect();

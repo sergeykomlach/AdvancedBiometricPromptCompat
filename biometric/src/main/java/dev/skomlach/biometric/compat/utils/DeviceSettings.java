@@ -87,7 +87,7 @@ public class DeviceSettings {
         Matcher m;
         try {
             Process p = Runtime.getRuntime().exec("getprop");
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream(), "UTF-8"));
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = input.readLine()) != null) {
                 m = pattern.matcher(line);
                 if (m.find()) {
