@@ -94,7 +94,7 @@ public class BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_SAMSUNG);
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
             allMethods.add(BiometricMethod.FACE_OPPO);
-            allMethods.add(BiometricMethod.FACE_ONEPLUS);
+//            allMethods.add(BiometricMethod.FACE_ONEPLUS);
             allMethods.add(BiometricMethod.FACE_VIVO);
             allMethods.add(BiometricMethod.FACE_MIUI);
             allMethods.add(BiometricMethod.FACE_HUAWEI);
