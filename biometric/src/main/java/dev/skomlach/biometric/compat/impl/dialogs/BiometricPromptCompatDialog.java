@@ -223,7 +223,7 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
         biometrics_layout.findViewById(R.id.heartrate).setVisibility(list.contains(BiometricType.BIOMETRIC_HEARTRATE) ? View.VISIBLE : View.GONE);
         biometrics_layout.findViewById(R.id.voice).setVisibility(list.contains(BiometricType.BIOMETRIC_VOICE) ? View.VISIBLE : View.GONE);
         biometrics_layout.findViewById(R.id.palm).setVisibility(list.contains(BiometricType.BIOMETRIC_PALMPRINT) ? View.VISIBLE : View.GONE);
-
+        biometrics_layout.findViewById(R.id.typing).setVisibility(list.contains(BiometricType.BIOMETRIC_BEHAVIOR) ? View.VISIBLE : View.GONE);
         if (list.size() < 1 || (list.size() == 1 && list.contains(BiometricType.BIOMETRIC_FINGERPRINT))) {
             biometrics_layout.setVisibility(View.GONE);
         } else {
