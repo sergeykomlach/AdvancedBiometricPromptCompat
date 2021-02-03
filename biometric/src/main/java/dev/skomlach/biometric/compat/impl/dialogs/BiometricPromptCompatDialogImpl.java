@@ -11,14 +11,18 @@ import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RestrictTo;
-import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import dev.skomlach.biometric.compat.BiometricAuthRequest;
+import dev.skomlach.biometric.compat.BiometricManagerCompat;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.impl.AuthCallback;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
@@ -84,7 +88,18 @@ public class BiometricPromptCompatDialogImpl {
         this.not_recognized = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized);
 
         this.animateHandler = new AnimateHandler(Looper.getMainLooper());
-        this.dialog = new BiometricPromptCompatDialog(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), isInScreen);
+        List<BiometricType> list = new ArrayList<>();
+        if(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY){
+            for(BiometricType type : BiometricType.values()) {
+                BiometricAuthRequest request = new BiometricAuthRequest(compatBuilder.getBiometricAuthRequest().getApi(), type);
+                if(BiometricManagerCompat.isHardwareDetected(request) && BiometricManagerCompat.hasEnrolled(request)) {
+                    list.add(type);
+                }
+            }
+        } else {
+            list.add(compatBuilder.getBiometricAuthRequest().getType());
+        }
+        this.dialog = new BiometricPromptCompatDialog(compatBuilder, isInScreen, list);
 
         dialog.setOnDismissListener(dialogInterface -> {
             detachWindowListeners();

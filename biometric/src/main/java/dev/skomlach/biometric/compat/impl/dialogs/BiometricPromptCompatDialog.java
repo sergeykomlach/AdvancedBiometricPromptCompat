@@ -1,14 +1,13 @@
 package dev.skomlach.biometric.compat.impl.dialogs;
 
 import android.app.UiModeManager;
-import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -20,10 +19,15 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.app.AppCompatDialog;
+import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
 import androidx.core.os.BuildCompat;
 import androidx.core.view.ViewCompat;
 
+import java.util.ArrayList;
+import java.util.List;
+import dev.skomlach.biometric.compat.BiometricPromptCompat;
+import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.R;
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
@@ -38,10 +42,13 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
     private FingerprintIconView mFingerprintIcon;
     private View container = null;
     private View rootView = null;
+    private View biometrics_layout = null;
     private WindowFocusChangedListener focusListener;
+    private List<BiometricType> list;
 
-    BiometricPromptCompatDialog(@NonNull Context context, boolean isInscreenLayout) {
-        super(context, R.style.Theme_BiometricPromptDialog);
+    BiometricPromptCompatDialog(@NonNull BiometricPromptCompat.Builder compatBuilder, boolean isInscreenLayout, @NonNull List<BiometricType> list) {
+        super(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), R.style.Theme_BiometricPromptDialog);
+        this.list = new ArrayList<>(list);
         res = (isInscreenLayout ?
                 R.layout.biometric_prompt_dialog_content_inscreen :
                 R.layout.biometric_prompt_dialog_content);
@@ -141,6 +148,8 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
             }
         });
 
+        biometrics_layout = rootView.findViewById(R.id.biometrics_layout);
+        updateBiometricIconsLayout();
         mTitle = rootView.findViewById(R.id.title);
         mSubtitle = rootView.findViewById(R.id.subtitle);
         mDescription = rootView.findViewById(R.id.description);
@@ -205,5 +214,20 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
 
     public View getRootView() {
         return rootView;
+    }
+
+    private void updateBiometricIconsLayout() {
+        biometrics_layout.findViewById(R.id.face).setVisibility(list.contains(BiometricType.BIOMETRIC_FACE) ? View.VISIBLE : View.GONE);
+        biometrics_layout.findViewById(R.id.iris).setVisibility(list.contains(BiometricType.BIOMETRIC_IRIS) ? View.VISIBLE : View.GONE);
+        biometrics_layout.findViewById(R.id.fingerprint).setVisibility(list.contains(BiometricType.BIOMETRIC_FINGERPRINT) ? View.VISIBLE : View.GONE);
+        biometrics_layout.findViewById(R.id.heartrate).setVisibility(list.contains(BiometricType.BIOMETRIC_HEARTRATE) ? View.VISIBLE : View.GONE);
+        biometrics_layout.findViewById(R.id.voice).setVisibility(list.contains(BiometricType.BIOMETRIC_VOICE) ? View.VISIBLE : View.GONE);
+        biometrics_layout.findViewById(R.id.palm).setVisibility(list.contains(BiometricType.BIOMETRIC_PALMPRINT) ? View.VISIBLE : View.GONE);
+
+        if (list.size() < 1 || (list.size() == 1 && list.contains(BiometricType.BIOMETRIC_FINGERPRINT))) {
+            biometrics_layout.setVisibility(View.GONE);
+        } else {
+            biometrics_layout.setVisibility(View.VISIBLE);
+        }
     }
 }
