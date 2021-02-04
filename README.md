@@ -1,4 +1,4 @@
-##Types of Biometrics
+## Types of Biometrics
 https://www.biometricsinstitute.org/what-is-biometrics/types-of-biometrics/
 
 
