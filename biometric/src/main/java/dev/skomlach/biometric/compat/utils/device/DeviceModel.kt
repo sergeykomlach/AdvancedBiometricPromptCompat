@@ -96,47 +96,7 @@ object DeviceModel {
     //tools
     private fun getJSON(): String? {
         try {
-            var urlConnection: HttpURLConnection? = null
-            val connectivityManager = AndroidContext.getAppContext()
-                .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            if (connectivityManager.activeNetworkInfo != null && connectivityManager.activeNetworkInfo!!
-                    .isConnectedOrConnecting
-            ) {
-                return try {
-                    urlConnection = Network.createConnection(
-                        "https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true",
-                        TimeUnit.SECONDS.toMillis(30).toInt()
-                    )
-                    urlConnection.requestMethod = "GET"
-                    urlConnection.setRequestProperty("Content-Language", "en-US")
-                    urlConnection.setRequestProperty("Accept-Language", "en-US")
-                    urlConnection.setRequestProperty(
-                        "User-Agent",
-                        agents[SecureRandom().nextInt(agents.size)]
-                    )
-                    urlConnection.connect()
-                    val byteArrayOutputStream = ByteArrayOutputStream()
-                    var inputStream: InputStream? = null
-                    inputStream = urlConnection.inputStream
-                    if (inputStream == null) inputStream = urlConnection.errorStream
-                    Network.fastCopy(inputStream, byteArrayOutputStream)
-                    inputStream.close()
-                    val data = byteArrayOutputStream.toByteArray()
-                    byteArrayOutputStream.close()
-                    String(data)
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect()
-                        urlConnection = null
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            //ignore - old device cannt resolve SSL connection
-            BiometricLoggerImpl.e(e)
-        }
-
-        try {
+           //https://github.com/androidtrackers/certified-android-devices/
            val inputStream =
                 AndroidContext.getAppContext().assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()

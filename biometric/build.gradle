@@ -38,8 +38,22 @@ dependencies {
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
 }
 
+afterEvaluate {
+    android.libraryVariants.all { v ->
+        if (v.buildType.name == "release") {
+            v.assemble.doFirst {
+                def f = new File("$projectDir/src/main/assets/by_brand.json")
+                println("Path" + f.absolutePath)
+                if (f.exists()) {
+                    f.delete()
+                }
+                new URL("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
+                        .withInputStream { i -> f.withOutputStream { it << i } }
 
-
+            }
+        }
+    }
+}
 // Generate Source Jar
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
