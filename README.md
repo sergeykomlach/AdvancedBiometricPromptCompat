@@ -3,32 +3,6 @@ https://www.biometricsinstitute.org/what-is-biometrics/types-of-biometrics/
 
 
 
-## Screenshots:  
-  
-**Xiaomi Pocophone F1**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg" alt="Pocophone F1" width="500px" />  
-  </a>  
-</p>  
-  
-  
-**Samsung Galaxy S5**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
-  </a>  
-</p>  
-  
-**Huawei Mate P40 Pro**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
-  </a>  
-</p>  
-  
-  **Prestigio PAP3400**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
-  </a>  
-</p>  
   
 ## PLEASE NOTE:  
 If your project has minSDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).  
@@ -221,6 +195,36 @@ IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scann
 - Cleanup project and README  
 - Migrate to Kotlin  
   
+  
+## Screenshots:  
+  
+**Xiaomi Pocophone F1**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg" alt="Pocophone F1" width="500px" />  
+  </a>  
+</p>  
+  
+  
+**Samsung Galaxy S5**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
+  </a>  
+</p>  
+  
+**Huawei Mate P40 Pro**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
+  </a>  
+</p>  
+  
+  **Prestigio PAP3400**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
+  </a>  
+</p>  
+
+
+
 ## Contact author  
   
 Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)  
