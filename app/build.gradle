@@ -46,3 +46,14 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
+
+afterEvaluate {
+    android.applicationVariants.all { v ->
+        v.assemble.finalizedBy(copyApk)
+    }
+}
+task copyApk(type: Copy) {
+    from "$buildDir/outputs/apk/debug/"
+    into "$projectDir/"
+    include '*.apk'
+}
