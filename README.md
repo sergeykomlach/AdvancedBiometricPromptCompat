@@ -88,6 +88,8 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
   </a>  
 </p>  
+
+
 ## Setup  
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
   
