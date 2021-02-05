@@ -1,30 +1,4 @@
 
-## Screenshots:  
-  
-**Xiaomi Pocophone F1**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg" alt="Pocophone F1" width="500px" />  
-  </a>  
-</p>  
-  
-  
-**Samsung Galaxy S5**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
-  </a>  
-</p>  
-  
-**Huawei Mate P40 Pro**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
-  </a>  
-</p>  
-  
-  **Prestigio PAP3400**  
-<p align="center">  
-  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
-  </a>  
-</p>  
 
 ## PLEASE NOTE:  
 If your project has minSDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).  
@@ -73,6 +47,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 |--|--|--|  
 | BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
 | Samsung IrisID | Android 8+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|   
+| ~~HTC IrisID~~ | ~~Android 9+ and HTC devices ~~| ~~???~~|
 | Samsung Pass Fingerprint| Android 4.4+ and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
 | In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro|
@@ -85,6 +60,34 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
 | ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~One Plus 7 Pro~~|
+
+
+## Screenshots:  
+  
+**Xiaomi Pocophone F1**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg" alt="Pocophone F1" width="500px" />  
+  </a>  
+</p>  
+  
+  
+**Samsung Galaxy S5**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
+  </a>  
+</p>  
+  
+**Huawei Mate P40 Pro**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
+  </a>  
+</p>  
+  
+  **Prestigio PAP3400**  
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
+  </a>  
+</p>  
 ## Setup  
 [![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
   
