@@ -73,33 +73,34 @@ public class BiometricAuthentication {
         allMethods.add(BiometricMethod.FACELOCK);
 
 
-        //Samsung Pass appears on Kitkat
-        if(Build.VERSION.SDK_INT >= 19) {
+        //Samsung Pass on Kitkat-Marshmallow (4.4/5.x/6.x), then deprecated
+        if(Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 24) {
             allMethods.add(BiometricMethod.FINGERPRINT_SAMSUNG);
         }
-        //Meizu fingerprint - seems like starts Lollipop
-        if(Build.VERSION.SDK_INT >= 21) {
+        //Meizu - Lollipop (5.0-5.1),then deprecated
+        if(Build.VERSION.SDK_INT >= 21 && Build.VERSION.SDK_INT < 23) {
             allMethods.add(BiometricMethod.FINGERPRINT_FLYME);
-
-            allMethods.add(BiometricMethod.FACE_SOTERAPI);
-            allMethods.add(BiometricMethod.FINGERPRINT_SOTERAPI);
         }
-        //Fingerprint API - Marshmallow
+        //Fingerprint API - Marshmallow (6.0)
         if(Build.VERSION.SDK_INT >= 23) {
+            allMethods.add(BiometricMethod.FINGERPRINT_SOTERAPI);
             allMethods.add(BiometricMethod.FINGERPRINT_API23);
             allMethods.add(BiometricMethod.FINGERPRINT_SUPPORT);
         }
+        //Miui and Samsung Face/Iris - Nougat (7.0)
         if(Build.VERSION.SDK_INT >= 24) {
+            allMethods.add(BiometricMethod.FACE_SOTERAPI);
             allMethods.add(BiometricMethod.FACE_SAMSUNG);
             allMethods.add(BiometricMethod.IRIS_SAMSUNG);
             allMethods.add(BiometricMethod.FACE_MIUI);
         }
+        //Vivo and Huawei Face - Oreo (8.0)
         if(Build.VERSION.SDK_INT >= 26) {
 //            allMethods.add(BiometricMethod.FACE_ONEPLUS);
             allMethods.add(BiometricMethod.FACE_VIVO);
             allMethods.add(BiometricMethod.FACE_HUAWEI);
         }
-        //Android biometric - Pie
+        //Android biometric - Pie (9.0)
         if(Build.VERSION.SDK_INT >= 28) {
             allMethods.add(BiometricMethod.FACE_ANDROIDAPI);
             allMethods.add(BiometricMethod.IRIS_ANDROIDAPI);
