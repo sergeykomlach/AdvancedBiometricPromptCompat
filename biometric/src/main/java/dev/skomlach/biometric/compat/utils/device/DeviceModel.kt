@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream
 object DeviceModel {
 
     private val brand = Build.BRAND?:""
-    private val model = Build.MODEL?:""
+    private val model = (Build.MODEL?:"").replace("  ", " ")
 
     fun getNames(): Set<String> {
         val strings = HashMap<String, String>()
@@ -69,17 +69,17 @@ object DeviceModel {
                         val name = jsonObject.getString("name")
                         if (m.isNullOrEmpty() && name.isNullOrEmpty()) {
                             continue
-                        } else if (m == model) {
+                        } else if (model.equals(m, ignoreCase = true)) {
                             BiometricLoggerImpl.e("AndroidModel - $jsonObject")
                             val modelParts = model.split(" ")
-                            val nameParts = name.split(" ")
+                            val nameParts = name.replace("  ", " ").split(" ")
                             val fullName =
                                 if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
                                         nameParts[0],
                                         true
                                     )
                                 ) model else name
-                            return getName(brand, fullName).replace("  ", " ")
+                            return getName(brand, fullName)
                         }
                     }
                 }
@@ -115,7 +115,7 @@ object DeviceModel {
         BiometricLoggerImpl.e("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
             val modelParts = model.split(" ")
-            val nameParts = info.name.split(" ")
+            val nameParts = info.name.replace("  ", " ").split(" ")
             val fullName =
                 if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
                         nameParts[0],
