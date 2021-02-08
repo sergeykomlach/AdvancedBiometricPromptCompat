@@ -1,32 +1,24 @@
 package dev.skomlach.biometric.compat.utils.device
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Build
 import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import com.jaredrummler.android.device.DeviceName
 import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy
-import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager.agents
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.nio.charset.Charset
-import java.security.SecureRandom
-import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLHandshakeException
 
 object DeviceModel {
 
-    private val brand = Build.BRAND
-    private val model = Build.MODEL
+    private val brand = Build.BRAND?:""
+    private val model = Build.MODEL?:""
 
     fun getNames(): Set<String> {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
+        BiometricLoggerImpl.e("AndroidModel - $s")
         s?.let {
             strings.put(it.toLowerCase(), fixVendorName(it))
         }
@@ -38,6 +30,7 @@ object DeviceModel {
         s?.let {
             strings.put(it.toLowerCase(), fixVendorName(it))
         }
+        BiometricLoggerImpl.e("AndroidModel.names ${strings.values}")
         return HashSet<String>(strings.values)
     }
 
@@ -67,24 +60,28 @@ object DeviceModel {
 
         try {
             val json = JSONObject(getJSON())
-            val details = json.getJSONArray(brand)
-            for (i in 0 until details.length()) {
-                val jsonObject = details.getJSONObject(i)
-                val m = jsonObject.getString("model")
-                val name = jsonObject.getString("name")
-                if (m.isNullOrEmpty() && name.isNullOrEmpty()) {
-                    continue
-                } else if(m == model){
-                    BiometricLoggerImpl.e("AndroidModel - $jsonObject")
-                    val modelParts = model.split(" ")
-                    val nameParts = name.split(" ")
-                    val fullName =
-                        if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
-                                nameParts[0],
-                                true
-                            )
-                        ) model else name
-                    return getName(brand, fullName).replace("  ", " ")
+            for (key in json.keys()) {
+                if (brand.equals(key, ignoreCase = true)) {
+                    val details = json.getJSONArray(key)
+                    for (i in 0 until details.length()) {
+                        val jsonObject = details.getJSONObject(i)
+                        val m = jsonObject.getString("model")
+                        val name = jsonObject.getString("name")
+                        if (m.isNullOrEmpty() && name.isNullOrEmpty()) {
+                            continue
+                        } else if (m == model) {
+                            BiometricLoggerImpl.e("AndroidModel - $jsonObject")
+                            val modelParts = model.split(" ")
+                            val nameParts = name.split(" ")
+                            val fullName =
+                                if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
+                                        nameParts[0],
+                                        true
+                                    )
+                                ) model else name
+                            return getName(brand, fullName).replace("  ", " ")
+                        }
+                    }
                 }
             }
         } catch (e: Throwable) {
@@ -115,6 +112,7 @@ object DeviceModel {
     private fun getNameFromDatabase(): String? {
         val info = DeviceName
             .getDeviceInfo(AndroidContext.getAppContext())
+        BiometricLoggerImpl.e("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
             val modelParts = model.split(" ")
             val nameParts = info.name.split(" ")
