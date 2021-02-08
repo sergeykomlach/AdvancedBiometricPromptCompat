@@ -97,16 +97,29 @@ public class AndroidFaceUnlockModule extends AbstractBiometricModule {
         if (faceAuthenticationManager != null) {
             try {
                 faceAuthenticationManagerHasEnrolled =
-                        faceAuthenticationManager.isHardwareDetected() && faceAuthenticationManager.hasEnrolledFace();
+                        (boolean)faceAuthenticationManager.getClass().getMethod("hasEnrolledFace").invoke(faceAuthenticationManager);
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
+                try {
+                    faceAuthenticationManagerHasEnrolled =
+                            (boolean)faceAuthenticationManager.getClass().getMethod("hasEnrolledTemplates").invoke(faceAuthenticationManager);
+                } catch (Throwable e2) {
+                    BiometricLoggerImpl.e(e2, getName());
+                }
             }
         }
         if (faceManager != null) {
             try {
-                faceManagerHasEnrolled = faceManager.isHardwareDetected() && faceManager.hasEnrolledTemplates();
+                faceManagerHasEnrolled =
+                        (boolean)faceManager.getClass().getMethod("hasEnrolledFace").invoke(faceManager);
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
+                try {
+                    faceManagerHasEnrolled =
+                            (boolean)faceManager.getClass().getMethod("hasEnrolledTemplates").invoke(faceManager);
+                } catch (Throwable e2) {
+                    BiometricLoggerImpl.e(e2, getName());
+                }
             }
         }
         return faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled;

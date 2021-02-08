@@ -8,6 +8,7 @@ import androidx.annotation.RestrictTo;
 import androidx.core.os.CancellationSignal;
 
 import java.util.Collections;
+
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
 import dev.skomlach.biometric.compat.engine.BiometricInitListener;
@@ -71,12 +72,16 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
     public boolean hasEnrolled() {
         if (manager != null) {
             try {
-                return manager.isHardwareDetected() && manager.hasEnrolledTemplates();
+                return (boolean) manager.getClass().getMethod("hasEnrolledFace").invoke(manager);
             } catch (Throwable e) {
                 BiometricLoggerImpl.e(e, getName());
+                try {
+                    return (boolean) manager.getClass().getMethod("hasEnrolledTemplates").invoke(manager);
+                } catch (Throwable e2) {
+                    BiometricLoggerImpl.e(e2, getName());
+                }
             }
         }
-
         return false;
     }
 
