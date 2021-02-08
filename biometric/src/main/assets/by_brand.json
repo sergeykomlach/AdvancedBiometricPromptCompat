@@ -850,6 +850,18 @@
    "model": "UTBook_EEA"
   }
  ],
+ "AXSTV": [
+  {
+   "device": "SEI130PTS",
+   "name": "AXSTV130",
+   "model": "AXSTV130"
+  },
+  {
+   "device": "SEI530PTS",
+   "name": "AXSTV530",
+   "model": "AXSTV530"
+  }
+ ],
  "AXXA": [
   {
    "device": "AXXA_S45",
@@ -13455,16 +13467,6 @@
    "device": "mobius",
    "name": "MBU-H0",
    "model": "SHARK MBU-H0"
-  },
-  {
-   "device": "kaiser",
-   "name": "SHARK KSR-A0",
-   "model": "SHARK KSR-A0"
-  },
-  {
-   "device": "penrose",
-   "name": "SHARK PRS-A0",
-   "model": "SHARK PRS-A0"
   },
   {
    "device": "shark",
@@ -85760,11 +85762,6 @@
   {
    "device": "guamna",
    "name": "moto g play (2021)",
-   "model": "moto E"
-  },
-  {
-   "device": "guamna",
-   "name": "moto g play (2021)",
    "model": "moto g play (2021)"
   },
   {
@@ -86198,6 +86195,11 @@
    "device": "lexl11g_64",
    "name": "LEX L11",
    "model": "LEX L11"
+  },
+  {
+   "device": "mkz_sdm660_64",
+   "name": "MOTOTRBO ION",
+   "model": "MSLB-MKZ900"
   },
   {
    "device": "mkz_sdm660_64",
