@@ -1,7 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.oppo;
 
 import android.annotation.SuppressLint;
-import android.hardware.face.FaceManager;
+import android.hardware.face.OppoMirrorFaceManager;
 import android.os.Build;
 
 import androidx.annotation.RestrictTo;
@@ -24,8 +24,7 @@ import me.weishu.reflection.Reflection;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class OppoFaceUnlockModule extends AbstractBiometricModule {
-    //https://github.com/dstmath/OppoFramework/blob/ab8096fb1fc84325f2b7095353b58756465535ca/A92s_10_0_0/src/main/java/android/hardware/face/FaceManager.java
-    private FaceManager manager = null;
+    private OppoMirrorFaceManager manager = null;
 
     @SuppressLint("WrongConstant")
     public OppoFaceUnlockModule(BiometricInitListener listener) {
@@ -33,13 +32,13 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
         Reflection.unseal(getContext(), Collections.singletonList("android.hardware.face"));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                manager = getContext().getSystemService(FaceManager.class);
+                manager = getContext().getSystemService(OppoMirrorFaceManager.class);
             } catch (Throwable ignore) {
                 manager = null;
             }
         } else {
             try {
-                manager = (FaceManager) getContext().getSystemService("face");
+                manager = (OppoMirrorFaceManager) getContext().getSystemService("face");
             } catch (Throwable ignore) {
                 manager = null;
             }
@@ -91,7 +90,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
         if (manager != null) {
             try {
 
-                final FaceManager.AuthenticationCallback callback =
+                final OppoMirrorFaceManager.AuthenticationCallback callback =
                         new AuthCallback(restartPredicate, cancellationSignal, listener);
 
                 // Why getCancellationSignalObject returns an Object is unexplained
@@ -121,7 +120,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
         return;
     }
 
-    class AuthCallback extends FaceManager.AuthenticationCallback {
+    class AuthCallback extends OppoMirrorFaceManager.AuthenticationCallback {
 
         private final RestartPredicate restartPredicate;
         private final CancellationSignal cancellationSignal;
@@ -200,7 +199,7 @@ public class OppoFaceUnlockModule extends AbstractBiometricModule {
         }
 
         @Override
-        public void onAuthenticationSucceeded(FaceManager.AuthenticationResult result) {
+        public void onAuthenticationSucceeded(OppoMirrorFaceManager.AuthenticationResult result) {
             BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: " + result);
             if (listener != null) {
                 listener.onSuccess(tag());
