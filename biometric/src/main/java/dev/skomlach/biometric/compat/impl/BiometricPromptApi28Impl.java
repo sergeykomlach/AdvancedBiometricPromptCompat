@@ -208,17 +208,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         this.biometricPromptInfo = builder.build();
         this.biometricPrompt = new BiometricPrompt(compatBuilder.getContext(),
                 ExecutorHelper.INSTANCE.getExecutor(), authCallback);
-
-        isFingerprint.set(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT);
-        if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
-            for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
-                if (request.getApi() == compatBuilder.getBiometricAuthRequest().getApi()
-                        && request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
-                    isFingerprint.set(BiometricManagerCompat.hasEnrolled(request));
-                    break;
-                }
-            }
-        }
+        isFingerprint.set(compatBuilder.getAllTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT));
     }
 
     private CharSequence getFixedString(CharSequence str, @ColorInt int color) {
@@ -238,7 +228,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                 dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, false);
                 dialog.showDialog();
                 startAuth();
-                onUiShown();
+                onUiOpened();
             }
             else if(isFingerprint.get()){
 
@@ -246,7 +236,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                     @Override
                     public void onStartWatching() {
                         startAuth();
-                        onUiShown();
+                        onUiOpened();
                     }
 
                     @Override
@@ -261,7 +251,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                 });
             } else{
                 startAuth();
-                onUiShown();
+                onUiOpened();
             }
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);
@@ -318,6 +308,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             biometricPrompt.cancelAuthentication();
         }
         FocusLostDetection.stopListener(compatBuilder.activeWindow);
+        onUiClosed();
     }
 
     @Override
@@ -339,8 +330,13 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
     }
 
     @Override
-    public void onUiShown() {
+    public void onUiOpened() {
         if (callback != null)
-            callback.onUIShown();
+            callback.onUIOpened();
+    }
+    @Override
+    public void onUiClosed() {
+        if (callback != null)
+            callback.onUIClosed();
     }
 }

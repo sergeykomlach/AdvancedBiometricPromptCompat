@@ -44,11 +44,11 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
     private View rootView = null;
     private View biometrics_layout = null;
     private WindowFocusChangedListener focusListener;
-    private List<BiometricType> list;
+    private final List<BiometricType> list;
 
-    BiometricPromptCompatDialog(@NonNull BiometricPromptCompat.Builder compatBuilder, boolean isInscreenLayout, @NonNull List<BiometricType> list) {
+    BiometricPromptCompatDialog(@NonNull BiometricPromptCompat.Builder compatBuilder, boolean isInscreenLayout) {
         super(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), R.style.Theme_BiometricPromptDialog);
-        this.list = new ArrayList<>(list);
+        this.list = new ArrayList<>(compatBuilder.getAllTypes());
         res = (isInscreenLayout ?
                 R.layout.biometric_prompt_dialog_content_inscreen :
                 R.layout.biometric_prompt_dialog_content);

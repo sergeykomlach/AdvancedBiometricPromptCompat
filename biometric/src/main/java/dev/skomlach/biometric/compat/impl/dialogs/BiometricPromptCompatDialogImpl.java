@@ -88,18 +88,7 @@ public class BiometricPromptCompatDialogImpl {
         this.not_recognized = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized);
 
         this.animateHandler = new AnimateHandler(Looper.getMainLooper());
-        List<BiometricType> list = new ArrayList<>();
-        if(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY){
-            for(BiometricType type : BiometricType.values()) {
-                BiometricAuthRequest request = new BiometricAuthRequest(compatBuilder.getBiometricAuthRequest().getApi(), type);
-                if(BiometricManagerCompat.isHardwareDetected(request) && BiometricManagerCompat.hasEnrolled(request)) {
-                    list.add(type);
-                }
-            }
-        } else {
-            list.add(compatBuilder.getBiometricAuthRequest().getType());
-        }
-        this.dialog = new BiometricPromptCompatDialog(compatBuilder, isInScreen, list);
+        this.dialog = new BiometricPromptCompatDialog(compatBuilder, isInScreen);
 
         dialog.setOnDismissListener(dialogInterface -> {
             detachWindowListeners();
@@ -126,7 +115,7 @@ public class BiometricPromptCompatDialogImpl {
         dialog.setOnShowListener(d -> {
             BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.");
             if (authCallback != null)
-                authCallback.onUiShown();
+                authCallback.onUiOpened();
 
             if (compatBuilder.title == null) {
                 dialog.getTitle().setVisibility(View.GONE);

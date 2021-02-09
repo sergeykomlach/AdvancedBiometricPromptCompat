@@ -10,5 +10,7 @@ public interface AuthCallback {
 
     void cancelAuth();
 
-    void onUiShown();
+    void onUiOpened();
+
+    void onUiClosed();
 }

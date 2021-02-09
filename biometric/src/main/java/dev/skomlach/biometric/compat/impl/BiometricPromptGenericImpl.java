@@ -13,8 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import dev.skomlach.biometric.compat.BiometricAuthRequest;
-import dev.skomlach.biometric.compat.BiometricManagerCompat;
+
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -41,18 +40,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     public BiometricPromptGenericImpl(BiometricPromptCompat.Builder compatBuilder) {
 
         this.compatBuilder = compatBuilder;
-
-        isFingerprint.set(compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT);
-        if (!isFingerprint.get() && compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
-            for (BiometricAuthRequest request : BiometricPromptCompat.getAvailableAuthRequests()) {
-                if (request.getApi() == compatBuilder.getBiometricAuthRequest().getApi()
-                        && request.getType() == BiometricType.BIOMETRIC_FINGERPRINT) {
-                    isFingerprint.set(BiometricManagerCompat.hasEnrolled(request));
-                    break;
-                }
-            }
-        }
-
+        isFingerprint.set(compatBuilder.getAllTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT));
     }
 
     @Override
@@ -68,7 +56,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly());
             dialog.showDialog();
         } else{
-           onUiShown();
+           onUiOpened();
            startAuth();
         }
     }
@@ -101,13 +89,10 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     public List<String> getUsedPermissions() {
         final Set<String> permission = new HashSet<>();
         List<BiometricMethod> biometricMethodList = new ArrayList<>();
-        if (compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY) {
-            biometricMethodList.addAll(BiometricAuthentication.getAvailableBiometricMethods());
-        } else {
-            for (BiometricMethod m : BiometricAuthentication.getAvailableBiometricMethods()) {
-                if (m.getBiometricType() == compatBuilder.getBiometricAuthRequest().getType()) {
-                    biometricMethodList.add(m);
-                }
+
+        for (BiometricMethod m : BiometricAuthentication.getAvailableBiometricMethods()) {
+            if (compatBuilder.getAllTypes().contains(m.getBiometricType())) {
+                biometricMethodList.add(m);
             }
         }
         for (BiometricMethod method : biometricMethodList) {
@@ -181,16 +166,14 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public void startAuth() {
-        final List<BiometricType> types = compatBuilder.getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_ANY ?
-                BiometricAuthentication.getAvailableBiometrics() :
-                Collections.singletonList(compatBuilder.getBiometricAuthRequest().getType());
-
+        final List<BiometricType> types = new ArrayList<>(compatBuilder.getAllTypes());
         BiometricAuthentication.authenticate(dialog!= null ? dialog.getContainer() : null, types, fmAuthCallback);
     }
 
     @Override
     public void stopAuth() {
         BiometricAuthentication.cancelAuthentication();
+        onUiClosed();
     }
 
     @Override
@@ -200,9 +183,15 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     }
 
     @Override
-    public void onUiShown() {
+    public void onUiOpened() {
         if (callback != null)
-            callback.onUIShown();
+            callback.onUIOpened();
+    }
+
+    @Override
+    public void onUiClosed() {
+        if (callback != null)
+            callback.onUIClosed();
     }
 
     private class BiometricAuthenticationCallbackImpl implements BiometricAuthenticationListener {

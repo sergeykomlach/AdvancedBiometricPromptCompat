@@ -23,19 +23,23 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
         override fun onSucceeded() {
-            Toast.makeText(activity, "Succeeded", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, "Succeeded", Toast.LENGTH_SHORT).show()
         }
 
         override fun onCanceled() {
-            Toast.makeText(activity, "Canceled", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show()
         }
 
         override fun onFailed(reason: AuthenticationFailureReason?) {
-            Toast.makeText(activity, "Error: $reason", Toast.LENGTH_LONG).show()
+            Toast.makeText(activity, "Error: $reason", Toast.LENGTH_SHORT).show()
         }
 
-        override fun onUIShown() {
-            Toast.makeText(activity, "onUIShown", Toast.LENGTH_LONG).show()
+        override fun onUIOpened() {
+            Toast.makeText(activity, "onUIOpened", Toast.LENGTH_SHORT).show()
+        }
+
+        override fun onUIClosed() {
+            Toast.makeText(activity, "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
 }

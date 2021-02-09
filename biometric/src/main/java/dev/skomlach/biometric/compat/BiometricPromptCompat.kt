@@ -247,7 +247,9 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         fun onFailed(reason: AuthenticationFailureReason?)
 
         @MainThread
-        fun onUIShown()
+        fun onUIOpened()
+        @MainThread
+        fun onUIClosed()
     }
 
     class Builder(
@@ -256,6 +258,21 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             RestrictTo.Scope.LIBRARY
         ) val context: FragmentActivity
     ) {
+        val allTypes = HashSet<BiometricType>()
+        init {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                for (type in BiometricType.values()) {
+                    val request = BiometricAuthRequest(
+                        biometricAuthRequest.api,
+                        type)
+                    if (isHardwareDetected(request) && hasEnrolled(request)) {
+                        allTypes.add(type)
+                    }
+                }
+            } else {
+                allTypes.add(biometricAuthRequest.type)
+            }
+        }
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var title: CharSequence? = null
 
