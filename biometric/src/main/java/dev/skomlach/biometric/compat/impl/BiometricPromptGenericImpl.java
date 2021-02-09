@@ -69,6 +69,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
         else {
            stopAuth();
         }
+        onUiClosed();
     }
 
     @Override
@@ -173,7 +174,6 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     @Override
     public void stopAuth() {
         BiometricAuthentication.cancelAuthentication();
-        onUiClosed();
     }
 
     @Override

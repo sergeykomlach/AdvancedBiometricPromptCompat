@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -137,7 +138,38 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         }
     }
 
-    fun authenticate(callback: Result) {
+    fun authenticate(callbackOuter: Result) {
+        val callback = object : Result {
+            override fun onSucceeded() {
+                callbackOuter.onSucceeded()
+            }
+
+            override fun onCanceled() {
+                callbackOuter.onCanceled()
+            }
+
+            override fun onFailed(reason: AuthenticationFailureReason?) {
+                callbackOuter.onFailed(reason)
+            }
+
+            override fun onUIOpened() {
+                callbackOuter.onUIOpened()
+                if (impl.builder.notificationEnabled) {
+                    BiometricNotificationManager.INSTANCE.showNotification(
+                        impl.builder.title,
+                        impl.builder.description,
+                        impl.builder.allTypes
+                    )
+                }
+            }
+
+            override fun onUIClosed() {
+                if (impl.builder.notificationEnabled) {
+                    BiometricNotificationManager.INSTANCE.dismiss(impl.builder.allTypes)
+                }
+                callbackOuter.onUIClosed()
+            }
+        }
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
         if (!isHardwareDetected(impl.builder.biometricAuthRequest)) {
             callback.onFailed(AuthenticationFailureReason.NO_HARDWARE)
@@ -293,6 +325,8 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var activeWindow: View = ActiveWindow.getActiveView(context)
+
+        var notificationEnabled = false
 
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(

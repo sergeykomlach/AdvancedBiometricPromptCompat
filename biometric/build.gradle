@@ -14,6 +14,8 @@ android {
         versionCode libsMinorVersion
         versionName libsMajorVersion + "." + libsMinorVersion
         consumerProguardFiles "proguard-project-biometric.pro"
+        if(minSDK < 21)
+            vectorDrawables.generatedDensities = ['mdpi','hdpi','xhdpi', 'xxhdpi']
     }
 
     compileOptions {
