@@ -294,6 +294,8 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         init {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 for (type in BiometricType.values()) {
+                    if(type == BiometricType.BIOMETRIC_ANY)
+                        continue
                     val request = BiometricAuthRequest(
                         biometricAuthRequest.api,
                         type)

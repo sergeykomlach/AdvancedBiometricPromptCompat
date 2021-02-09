@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
+import dev.skomlach.biometric.compat.BiometricConfirmation;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
@@ -195,16 +195,25 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
     }
 
     private class BiometricAuthenticationCallbackImpl implements BiometricAuthenticationListener {
+        private final Set<BiometricType> confirmed = new HashSet<>();
         @Override
         public void onSuccess(BiometricType module) {
+            confirmed.add(module);
 
-            ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    cancelAuthenticate();
-                    callback.onSucceeded();
-                }
-            });
+            List<BiometricType> confirmedList = new ArrayList<>(confirmed);
+            List<BiometricType> allList = new ArrayList<>(compatBuilder.getAllTypes());
+            allList.removeAll(confirmedList);
+
+            if(compatBuilder.getBiometricAuthRequest().getConfirmation() == BiometricConfirmation.ANY ||
+                    (compatBuilder.getBiometricAuthRequest().getConfirmation() == BiometricConfirmation.ALL && allList.isEmpty())) {
+                ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        cancelAuthenticate();
+                        callback.onSucceeded();
+                    }
+                });
+            }
         }
 
         @Override
