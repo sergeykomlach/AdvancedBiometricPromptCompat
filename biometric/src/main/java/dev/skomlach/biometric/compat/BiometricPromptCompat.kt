@@ -165,7 +165,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
 
             override fun onUIClosed() {
                 if (impl.builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.dismiss(impl.builder.allTypes)
+                    BiometricNotificationManager.INSTANCE.dismissAll()
                 }
                 callbackOuter.onUIClosed()
             }
@@ -328,7 +328,8 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var activeWindow: View = ActiveWindow.getActiveView(context)
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY) var notificationEnabled = false
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        var notificationEnabled = true
 
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(

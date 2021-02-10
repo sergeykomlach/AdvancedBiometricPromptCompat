@@ -24,6 +24,7 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod;
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs;
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes;
 import dev.skomlach.common.misc.ExecutorHelper;
 
@@ -45,6 +46,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public void authenticate(@NonNull BiometricPromptCompat.Result callback) {
+        BiometricLoggerImpl.d("BiometricPromptGenericImpl.authenticate():");
         if (this.callback == null) {
             this.callback = callback;
         }
@@ -56,20 +58,18 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
                     isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly());
             dialog.showDialog();
         } else{
-           onUiOpened();
            startAuth();
         }
     }
 
     @Override
     public void cancelAuthenticate() {
-
+        BiometricLoggerImpl.d("BiometricPromptGenericImpl.cancelAuthenticate():");
         if (dialog != null)
             dialog.dismissDialog();
         else {
            stopAuth();
         }
-        onUiClosed();
     }
 
     @Override
@@ -153,6 +153,7 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public boolean cancelAuthenticateBecauseOnPause() {
+        BiometricLoggerImpl.d("BiometricPromptGenericImpl.cancelAuthenticateBecauseOnPause():");
         if (dialog != null) {
             if (dialog.cancelAuthenticateBecauseOnPause()) {
                 return true;
@@ -167,13 +168,17 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
     @Override
     public void startAuth() {
+        onUiOpened();
+        BiometricLoggerImpl.d("BiometricPromptGenericImpl.startAuth():");
         final List<BiometricType> types = new ArrayList<>(compatBuilder.getAllTypes());
         BiometricAuthentication.authenticate(dialog!= null ? dialog.getContainer() : null, types, fmAuthCallback);
     }
 
     @Override
     public void stopAuth() {
+        BiometricLoggerImpl.d("BiometricPromptGenericImpl.stopAuth():");
         BiometricAuthentication.cancelAuthentication();
+        onUiClosed();
     }
 
     @Override

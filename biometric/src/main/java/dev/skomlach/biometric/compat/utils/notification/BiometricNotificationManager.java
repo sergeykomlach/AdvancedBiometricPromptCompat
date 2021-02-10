@@ -47,7 +47,7 @@ public class BiometricNotificationManager {
     }
 
     public void showNotification(@Nullable CharSequence title, @Nullable CharSequence description, Set<BiometricType> list) {
-        dismiss(list);
+        dismissAll();
         try {
             Intent clickIntent = new Intent();
             for (BiometricType type : list) {
@@ -94,9 +94,9 @@ public class BiometricNotificationManager {
         }
     }
 
-    public void dismiss(Set<BiometricType> list) {
+    public void dismissAll() {
         try {
-            for (BiometricType type : list) {
+            for (BiometricType type : BiometricType.values()) {
                 notificationManagerCompat.cancel(type.hashCode());
             }
         } catch (Throwable e) {

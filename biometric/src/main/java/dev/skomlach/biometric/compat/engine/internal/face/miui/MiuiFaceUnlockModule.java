@@ -182,6 +182,7 @@ public class MiuiFaceUnlockModule extends AbstractBiometricModule {
                     Core.cancelAuthentication(MiuiFaceUnlockModule.this);
                     return;
                 case BIOMETRIC_ERROR_CANCELED:
+                case 123456:
                     // Don't send a cancelled message.
                     return;
             }

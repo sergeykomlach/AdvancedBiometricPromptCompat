@@ -95,9 +95,7 @@ public class BiometricPromptCompatDialogImpl {
             if (inProgress.get()) {
                 inProgress.set(false);
                 authCallback.stopAuth();
-                authCallback.onUiClosed();
             }
-
         });
 
         dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -111,7 +109,6 @@ public class BiometricPromptCompatDialogImpl {
                     inProgress.set(false);
                     if (authCallback != null) {
                         authCallback.stopAuth();
-                        authCallback.onUiClosed();
                     }
                 }
 
@@ -119,9 +116,6 @@ public class BiometricPromptCompatDialogImpl {
         });
         dialog.setOnShowListener(d -> {
             BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.");
-            if (authCallback != null)
-                authCallback.onUiOpened();
-
             if (compatBuilder.title == null) {
                 dialog.getTitle().setVisibility(View.GONE);
             } else {
@@ -278,7 +272,6 @@ public class BiometricPromptCompatDialogImpl {
         if (inProgress.get() && dialog.isShowing()) {
             inProgress.set(false);
             this.authCallback.stopAuth();
-            this.authCallback.onUiClosed();
         }
     }
 
