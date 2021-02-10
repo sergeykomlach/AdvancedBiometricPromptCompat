@@ -14,13 +14,9 @@ import androidx.annotation.RestrictTo;
 import androidx.core.content.ContextCompat;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import dev.skomlach.biometric.compat.BiometricAuthRequest;
-import dev.skomlach.biometric.compat.BiometricManagerCompat;
 import dev.skomlach.biometric.compat.BiometricPromptCompat;
 import dev.skomlach.biometric.compat.BiometricType;
 import dev.skomlach.biometric.compat.R;
@@ -312,10 +308,11 @@ public class BiometricPromptCompatDialogImpl {
         });
     }
 
-    public void onFailure(boolean isLockout) {
+    public void onFailure(boolean isLockout, BiometricType type) {
         ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
             @Override
             public void run() {
+                dialog.errorType(type);
                 animateHandler.removeMessages(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE);
                 if (dialog.getFingerprintIcon() != null) {
                     dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
@@ -328,6 +325,14 @@ public class BiometricPromptCompatDialogImpl {
         });
     }
 
+    public void onSuccess(BiometricType type) {
+        ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                dialog.successType(type);
+            }
+        });
+    }
     private class AnimateHandler extends Handler {
 
         static final int WHAT_RESTORE_NORMAL_STATE = 0;
@@ -340,6 +345,7 @@ public class BiometricPromptCompatDialogImpl {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case WHAT_RESTORE_NORMAL_STATE:
+                    dialog.resetIcons();
                     if (dialog.getFingerprintIcon() != null) {
                         dialog.getFingerprintIcon().setState(FingerprintIconView.State.ON);
                     }

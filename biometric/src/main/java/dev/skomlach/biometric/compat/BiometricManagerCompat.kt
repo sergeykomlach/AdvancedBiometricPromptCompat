@@ -72,7 +72,7 @@ object BiometricManagerCompat {
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
         )
-    ): Boolean {
+    , forced : Boolean = false): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
 
         try {
@@ -105,7 +105,7 @@ object BiometricManagerCompat {
         )
             return true
 
-        if (BiometricType.BIOMETRIC_ANY == api.type) {
+        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
             //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
             if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
                 return true

@@ -63,7 +63,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             } else {
                 //...normal failed processing...//
                 if (dialog != null)
-                    dialog.onFailure(false);
+                    dialog.onFailure(false, compatBuilder.getBiometricAuthRequest().getType());
             }
         }
 
@@ -125,7 +125,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
                             if (dialog != null)
-                                dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT);
+                                dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, compatBuilder.getBiometricAuthRequest().getType());
                             authenticate(callback);
                         }
                     } else {
@@ -138,7 +138,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
                         }
 
                         if (dialog != null)
-                            dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT);
+                            dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, compatBuilder.getBiometricAuthRequest().getType());
                         if (callback != null)
                             callback.onFailed(failureReason);
                         BiometricAuthWasCanceledByError.INSTANCE.setCanceledByError();

@@ -204,7 +204,8 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
         @Override
         public void onSuccess(BiometricType module) {
             confirmed.add(module);
-
+            if(dialog !=null)
+            dialog.onSuccess(module);
             List<BiometricType> confirmedList = new ArrayList<>(confirmed);
             List<BiometricType> allList = new ArrayList<>(compatBuilder.getAllTypes());
             allList.removeAll(confirmedList);
@@ -232,8 +233,9 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
 
         @Override
         public void onFailure(AuthenticationFailureReason failureReason, BiometricType module) {
-            if(dialog !=null)
-            dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT);
+            if(dialog !=null) {
+                dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, module);
+            }
             if (failureReason != AuthenticationFailureReason.LOCKED_OUT) {
                 //non fatal
                 switch (failureReason) {

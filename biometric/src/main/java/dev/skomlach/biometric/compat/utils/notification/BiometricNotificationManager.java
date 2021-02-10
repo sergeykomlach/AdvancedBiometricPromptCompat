@@ -79,6 +79,7 @@ public class BiometricNotificationManager {
                 NotificationCompat.Builder notif = new NotificationCompat.Builder(context, CHANNEL_ID)
                         .setAutoCancel(false)
                         .setOngoing(true)
+                        .setLocalOnly(true)
                         .setContentTitle(title)
                         .setContentText(description)
                         .setStyle(new NotificationCompat.BigTextStyle()
