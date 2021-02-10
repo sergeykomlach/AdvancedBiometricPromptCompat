@@ -72,7 +72,7 @@ object BiometricManagerCompat {
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
         )
-    , forced : Boolean = false): Boolean {
+    , forced : Boolean = true): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
 
         try {
