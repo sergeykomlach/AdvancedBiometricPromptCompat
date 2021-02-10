@@ -4,15 +4,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- OnePlus FaceUnlock-->
-    <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_UNLOCK" />
+<!--    <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_UNLOCK" />-->
     <!-- Huawei FaceUnlock-->
-    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION"/>
-
-    <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
-
-    <uses-permission android:name="com.soter.permission.ACCESS_SOTER_KEYSTORE" />
     <uses-permission android:name="android.permission.USE_FACERECOGNITION" />
 
     <!-- Oppo -->

@@ -23,6 +23,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_fingerprint"
                 />
 
@@ -31,6 +32,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_face"
                 />
 
@@ -39,6 +41,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_iris"
                 />
 
@@ -47,6 +50,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_voice"
                 />
 
@@ -55,6 +59,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_heartrate"
                 />
 
@@ -63,6 +68,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_palm"
                 />
         <androidx.appcompat.widget.AppCompatImageView
@@ -70,6 +76,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
+                app:tint="#fff"
                 app:srcCompat="@drawable/ic_typing"
                 />
     </LinearLayout>

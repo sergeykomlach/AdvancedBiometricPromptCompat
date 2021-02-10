@@ -328,7 +328,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var activeWindow: View = ActiveWindow.getActiveView(context)
 
-        var notificationEnabled = false
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY) var notificationEnabled = false
 
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(
@@ -337,7 +337,10 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
             ), context
         ) {
         }
-
+        fun setEnabledNotification(enabled: Boolean): Builder {
+            this.notificationEnabled = enabled
+            return this
+        }
         fun setTitle(title: CharSequence?): Builder {
             this.title = title
             return this
