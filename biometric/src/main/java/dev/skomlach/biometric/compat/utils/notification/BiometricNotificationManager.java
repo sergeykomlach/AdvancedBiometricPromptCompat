@@ -54,26 +54,26 @@ public class BiometricNotificationManager {
                 @DrawableRes int icon;
                 switch (type) {
                     case BIOMETRIC_FACE:
-                        icon = R.drawable.ic_face;
+                        icon = R.drawable.bio_ic_face;
                         break;
                     case BIOMETRIC_IRIS:
-                        icon = R.drawable.ic_iris;
+                        icon = R.drawable.bio_ic_iris;
                         break;
                     case BIOMETRIC_HEARTRATE:
-                        icon = R.drawable.ic_heartrate;
+                        icon = R.drawable.bio_ic_heartrate;
                         break;
                     case BIOMETRIC_VOICE:
-                        icon = R.drawable.ic_voice;
+                        icon = R.drawable.bio_ic_voice;
                         break;
                     case BIOMETRIC_PALMPRINT:
-                        icon = R.drawable.ic_palm;
+                        icon = R.drawable.bio_ic_palm;
                         break;
                     case BIOMETRIC_BEHAVIOR:
-                        icon = R.drawable.ic_typing;
+                        icon = R.drawable.bio_ic_behavior;
                         break;
                     case BIOMETRIC_FINGERPRINT:
                     default:
-                        icon = R.drawable.ic_fingerprint;
+                        icon = R.drawable.bio_ic_fingerprint;
                         break;
                 }
                 NotificationCompat.Builder notif = new NotificationCompat.Builder(context, CHANNEL_ID)
