@@ -7,11 +7,9 @@ import android.os.Build
 import android.os.Looper
 import android.view.View
 import android.view.ViewTreeObserver.OnWindowFocusChangeListener
-import androidx.annotation.ColorRes
-import androidx.annotation.MainThread
-import androidx.annotation.RestrictTo
-import androidx.annotation.StringRes
+import androidx.annotation.*
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
@@ -34,6 +32,7 @@ import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
+import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -180,6 +179,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             override fun onUIOpened() {
                 callbackOuter.onUIOpened()
+                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
+                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context,
+                        ContextCompat.getColor(impl.builder.context, getDialogMainColor()), impl.builder.colorStatusBar)
+                }
                 if (impl.builder.notificationEnabled) {
                     BiometricNotificationManager.INSTANCE.showNotification(
                         impl.builder.title,
@@ -192,6 +195,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onUIClosed() {
                 if (impl.builder.notificationEnabled) {
                     BiometricNotificationManager.INSTANCE.dismissAll()
+                }
+                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
+                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context, impl.builder.colorNavBar, impl.builder.colorStatusBar)
                 }
                 callbackOuter.onUIClosed()
             }
@@ -385,12 +391,24 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var notificationEnabled = true
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var showBiometricIcons = false
+
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @ColorInt
+        var colorNavBar: Int = 0
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @ColorInt
+        var colorStatusBar: Int = 0
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_ANY
             ), context
         ) {
+        }
+        fun allowToManageSystemBars( @ColorInt  activityNavBarColor: Int, @ColorInt  activityStatusBarColor: Int): Builder {
+            this.colorNavBar = activityNavBarColor
+            this.colorStatusBar = activityStatusBarColor
+            return this
         }
         fun setShowBiometricIcons(enabled: Boolean): Builder {
             this.showBiometricIcons = enabled

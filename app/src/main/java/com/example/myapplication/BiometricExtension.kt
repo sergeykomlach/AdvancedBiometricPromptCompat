@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.graphics.Color
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.BiometricAuthRequest
@@ -19,7 +20,10 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         biometricAuthRequest,
         requireActivity()
     )
-        .setTitle("Biometric for Fragment").setNegativeButton("Cancel", null).build()
+        .setTitle("Biometric for Fragment")
+        .setNegativeButton("Cancel", null)
+        .allowToManageSystemBars(Color.BLUE, Color.RED)
+        .build()
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
         override fun onSucceeded() {
