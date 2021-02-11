@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.utils.hardware;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.hardware.biometrics.BiometricManager;
 import android.os.Build;
@@ -11,7 +12,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
 import dev.skomlach.common.contextprovider.AndroidContext;
 import dev.skomlach.common.misc.Utils;
 
-import static android.hardware.biometrics.BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
+import static androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
 import static androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED;
 import static androidx.biometric.BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED;
 import static androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS;
@@ -24,6 +25,7 @@ public class Android29Hardware extends Android28Hardware {
         super(authRequest);
     }
 
+    @SuppressLint("WrongConstant")
     private int canAuthenticate() {
         int code = BIOMETRIC_ERROR_NO_HARDWARE;
         try {

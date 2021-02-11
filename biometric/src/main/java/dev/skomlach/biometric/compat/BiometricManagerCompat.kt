@@ -75,70 +75,73 @@ object BiometricManagerCompat {
     , forced : Boolean = true): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
 
-        try {
-            Reflection.unseal(activity, Collections.singletonList("org.ifaa.android.manager"))
-            //https://git.aicp-rom.com/device_oneplus_oneplus3.git/tree/org.ifaa.android.manager/src/org/ifaa/android/manager/IFAAManagerFactory.java?h=refs/changes/03/28003/1
-            //https://github.com/shivatejapeddi/android_device_xiaomi_sdm845-common/tree/10.x-vendor/org.ifaa.android.manager/src/org/ifaa/android/manager
-            val authType = when (api.type) {
-                BiometricType.BIOMETRIC_FINGERPRINT -> BiometricAuthenticator.TYPE_FINGERPRINT
-                BiometricType.BIOMETRIC_IRIS -> BiometricAuthenticator.TYPE_IRIS
-                BiometricType.BIOMETRIC_FACE -> BiometricAuthenticator.TYPE_FACE
-                else -> BiometricAuthenticator.TYPE_NONE
-            }
-            val ifaamanager = IFAAManagerFactory.getIFAAManager(
-                activity,
-                authType
-            )
-            BiometricLoggerImpl.e("IFAA details: ${ifaamanager.deviceModel}/${ifaamanager.version}")
-
-            if (ifaamanager.startBIOManager(activity, authType) == 0
-            ) {
-                return true
-            }
-        } catch (ignore: Throwable) {
-        }
-
-        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricAuthentication.openSettings(
-                activity,
-                api.type
-            )
-        )
-            return true
-
-        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
-            if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
-                return true
-            }
-            if (Utils.startActivity(Intent("android.settings.BIOMETRIC_SETTINGS"), activity)) {
-                return true
-            }
-            if (Utils.startActivity(
-                    Intent().setComponent(
-                        ComponentName(
-                            "com.android.settings",
-                            "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
-                        )
-                    ), activity
+        if (BiometricType.BIOMETRIC_ANY != api.type) {
+            try {
+                Reflection.unseal(activity, Collections.singletonList("org.ifaa.android.manager"))
+                //https://git.aicp-rom.com/device_oneplus_oneplus3.git/tree/org.ifaa.android.manager/src/org/ifaa/android/manager/IFAAManagerFactory.java?h=refs/changes/03/28003/1
+                //https://github.com/shivatejapeddi/android_device_xiaomi_sdm845-common/tree/10.x-vendor/org.ifaa.android.manager/src/org/ifaa/android/manager
+                val authType = when (api.type) {
+                    BiometricType.BIOMETRIC_FINGERPRINT -> BiometricAuthenticator.TYPE_FINGERPRINT
+                    BiometricType.BIOMETRIC_IRIS -> BiometricAuthenticator.TYPE_IRIS
+                    BiometricType.BIOMETRIC_FACE -> BiometricAuthenticator.TYPE_FACE
+                    else -> BiometricAuthenticator.TYPE_NONE
+                }
+                val ifaamanager = IFAAManagerFactory.getIFAAManager(
+                    activity,
+                    authType
                 )
-            ) {
-                return true
+                BiometricLoggerImpl.e("IFAA details: ${ifaamanager.deviceModel}/${ifaamanager.version}")
+
+                if (ifaamanager.startBIOManager(activity, authType) == 0
+                ) {
+                    return true
+                }
+            } catch (ignore: Throwable) {
             }
-            if (Utils.startActivity(
-                    Intent().setComponent(
-                        ComponentName(
-                            "com.android.settings",
-                            "com.android.settings.Settings\$SecuritySettingsActivity"
-                        )
-                    ), activity
+
+            if (BiometricAuthentication.openSettings(
+                    activity,
+                    api.type
                 )
-            ) {
-                return true
-            }
-            return Utils.startActivity(
-                Intent(Settings.ACTION_SETTINGS), activity
             )
-        }
+                return true
+
+            if (forced)
+                return Utils.startActivity(
+                    Intent(Settings.ACTION_SETTINGS), activity
+                )
+        } else
+            if (BiometricType.BIOMETRIC_ANY == api.type) {
+                //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
+                if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
+                    return true
+                }
+                if (Utils.startActivity(
+                        Intent().setComponent(
+                            ComponentName(
+                                "com.android.settings",
+                                "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
+                            )
+                        ), activity
+                    )
+                ) {
+                    return true
+                }
+                if (Utils.startActivity(
+                        Intent().setComponent(
+                            ComponentName(
+                                "com.android.settings",
+                                "com.android.settings.Settings\$SecuritySettingsActivity"
+                            )
+                        ), activity
+                    )
+                ) {
+                    return true
+                }
+                return Utils.startActivity(
+                    Intent(Settings.ACTION_SETTINGS), activity
+                )
+            }
         return false
     }
 

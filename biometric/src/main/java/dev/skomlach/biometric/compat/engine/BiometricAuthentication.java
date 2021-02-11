@@ -387,30 +387,17 @@ public class BiometricAuthentication {
                 && startActivity(new Intent("android.settings.FINGERPRINT_ENROLL"), context)) {
             return true;
         }
-        if (method == BiometricType.BIOMETRIC_FINGERPRINT
-                && startActivity(new Intent("android.settings.FINGERPRINT_SETTINGS"), context)) {
-            return true;
-        }
 
         if (BiometricType.BIOMETRIC_FACE == method
                 && startActivity(new Intent("android.settings.FACE_ENROLL"), context)) {
             return true;
         }
         if (method == BiometricType.BIOMETRIC_FACE
-                && startActivity(new Intent("android.settings.FACE_SETTINGS"), context)) {
+                && startActivity(new Intent().setClassName("com.android.settings", "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"), context)) {
             return true;
         }
-//        if (method == BiometricType.BIOMETRIC_FACE
-//                && startActivity(new Intent().setClassName("com.android.settings", "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"), context)) {
-//            return true;
-//        }
-
         if (BiometricType.BIOMETRIC_IRIS == method
                 && startActivity(new Intent("android.settings.IRIS_ENROLL"), context)) {
-            return true;
-        }
-        if (method == BiometricType.BIOMETRIC_IRIS
-                && startActivity(new Intent("android.settings.IRIS_SETTINGS"), context)) {
             return true;
         }
 
