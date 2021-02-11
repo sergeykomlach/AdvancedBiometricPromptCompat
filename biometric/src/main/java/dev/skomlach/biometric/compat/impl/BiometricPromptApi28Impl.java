@@ -79,7 +79,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             }
             //...present normal failed screen...
 
-            FocusLostDetection.stopListener(compatBuilder.activeWindow);
+            FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
 
             ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
                 @Override
@@ -163,7 +163,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
             BiometricLoggerImpl.d("BiometricPromptApi28Impl.onAuthenticationSucceeded:");
             this.onePlusWithBiometricBugFailure = false;
-            FocusLostDetection.stopListener(compatBuilder.activeWindow);
+            FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
 
             ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
                 @Override
@@ -231,7 +231,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
             }
             else if(isFingerprint.get()){
 
-                FocusLostDetection.attachListener(compatBuilder.activeWindow, new WindowFocusChangedListener() {
+                FocusLostDetection.attachListener(compatBuilder.getActiveWindow(), new WindowFocusChangedListener() {
                     @Override
                     public void onStartWatching() {
                         startAuth();
@@ -261,7 +261,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         BiometricLoggerImpl.d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():");
         if (dialog != null) {
             if (dialog.cancelAuthenticateBecauseOnPause()) {
-                FocusLostDetection.stopListener(compatBuilder.activeWindow);
+                FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
                 return true;
             } else {
                 return false;
@@ -304,7 +304,7 @@ public class BiometricPromptApi28Impl implements IBiometricPromptImpl, Biometric
         else {
             stopAuth();
         }
-        FocusLostDetection.stopListener(compatBuilder.activeWindow);
+        FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
 
     }
 
