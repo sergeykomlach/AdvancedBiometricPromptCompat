@@ -329,7 +329,7 @@ class BiometricPromptCompat private constructor(private val impl: IBiometricProm
         var activeWindow: View = ActiveWindow.getActiveView(context)
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
-        var notificationEnabled = false
+        var notificationEnabled = true
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var showBiometricIcons = false
         constructor(context: FragmentActivity) : this(
