@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -9,6 +10,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
+import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         binding.fab.setOnClickListener { _ ->
             showDialog()
         }
+        StatusBarTools.setNavBarAndStatusBarColors(this, Color.BLUE, Color.RED)
     }
 
     private fun showDialog() {
