@@ -367,18 +367,32 @@ public class BiometricAuthentication {
 
     private static boolean openSettings(Activity context, BiometricType method, BiometricModule biometricModule) {
 
-        if (biometricModule instanceof SamsungFingerprintModule) {
+        if (biometricModule instanceof SamsungFingerprintModule && method == BiometricType.BIOMETRIC_FINGERPRINT) {
             if (((SamsungFingerprintModule) biometricModule).openSettings(context))
                 return true;
         }
 
-        if (biometricModule instanceof FacelockOldModule && startActivity(new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)) {
+        if (biometricModule instanceof FacelockOldModule && method == BiometricType.BIOMETRIC_FACE &&
+                startActivity(new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)) {
             return true;
         }
 
-        if(biometricModule instanceof OnePlusFaceUnlockModule && startActivity(
+        if(biometricModule instanceof OnePlusFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE && startActivity(
                 new Intent().setClassName("com.android.settings", "com.android.settings.Settings$OPFaceUnlockSettings"),
                 context)){
+            return true;
+        }
+
+        if(biometricModule instanceof MiuiFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE && startActivity(
+                new Intent().setClassName("com.android.settings", "com.android.settings.Settings")
+                        .putExtra(":android:show_fragment", "com.android.settings.security.MiuiSecurityAndPrivacySettings"),
+                context)){
+            return true;
+        }
+
+        if (biometricModule instanceof HuaweiFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE
+                && startActivity(new Intent().setClassName("com.android.settings",
+                "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"), context)) {
             return true;
         }
 
@@ -392,10 +406,7 @@ public class BiometricAuthentication {
                 && startActivity(new Intent("android.settings.FACE_ENROLL"), context)) {
             return true;
         }
-        if (method == BiometricType.BIOMETRIC_FACE
-                && startActivity(new Intent().setClassName("com.android.settings", "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"), context)) {
-            return true;
-        }
+
         if (BiometricType.BIOMETRIC_IRIS == method
                 && startActivity(new Intent("android.settings.IRIS_ENROLL"), context)) {
             return true;
