@@ -8,12 +8,22 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
 import me.weishu.reflection.Reflection
 import org.ifaa.android.manager.IFAAManagerFactory
 import java.util.*
 
 object BiometricManagerCompat {
+
+    private fun getLastKnown(name: String): Boolean {
+        return SharedPreferenceProvider.getCryptoPreferences(name).getBoolean(name, false)
+    }
+
+    private fun setLastKnown(name: String, value: Boolean) {
+        return SharedPreferenceProvider.getCryptoPreferences(name).edit().putBoolean(name, value)
+            .apply()
+    }
 
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
@@ -22,8 +32,13 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
+        return if (BiometricPromptCompat.isInit) {
+            val result =
+                BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
+            setLastKnown("isBiometricSensorPermanentlyLocked-${api.api}-${api.type}", result)
+            result
+        } else
+            getLastKnown("isBiometricSensorPermanentlyLocked-${api.api}-${api.type}")
     }
     @JvmStatic
     fun isHardwareDetected(
@@ -32,8 +47,13 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isHardwareAvailable
+        return if (BiometricPromptCompat.isInit) {
+            val result =
+                HardwareAccessImpl.getInstance(api).isHardwareAvailable
+            setLastKnown("isHardwareAvailable-${api.api}-${api.type}", result)
+            result
+        } else
+            getLastKnown("isHardwareAvailable-${api.api}-${api.type}")
     }
     @JvmStatic
     fun hasEnrolled(
@@ -42,8 +62,13 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isBiometricEnrolled
+        return if (BiometricPromptCompat.isInit) {
+            val result =
+                HardwareAccessImpl.getInstance(api).isBiometricEnrolled
+            setLastKnown("isBiometricEnrolled-${api.api}-${api.type}", result)
+            result
+        } else
+            getLastKnown("isBiometricEnrolled-${api.api}-${api.type}")
     }
     @JvmStatic
     fun isLockOut(
@@ -52,8 +77,13 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isLockedOut
+        return if (BiometricPromptCompat.isInit) {
+            val result =
+                HardwareAccessImpl.getInstance(api).isLockedOut
+            setLastKnown("isLockedOut-${api.api}-${api.type}", result)
+            result
+        } else
+            getLastKnown("isLockedOut-${api.api}-${api.type}")
     }
     @JvmStatic
     fun isNewBiometricApi(
@@ -62,8 +92,13 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isNewBiometricApi
+        return if (BiometricPromptCompat.isInit) {
+            val result =
+                HardwareAccessImpl.getInstance(api).isNewBiometricApi
+            setLastKnown("isNewBiometricApi-${api.api}-${api.type}", result)
+            result
+        } else
+            getLastKnown("isNewBiometricApi-${api.api}-${api.type}")
     }
 
     @JvmStatic
@@ -73,7 +108,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     , forced : Boolean = true): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
+        if (!BiometricPromptCompat.isInit)
+            return false
 
         if (BiometricType.BIOMETRIC_ANY != api.type) {
             try {
