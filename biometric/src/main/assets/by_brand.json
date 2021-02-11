@@ -7237,6 +7237,11 @@
    "model": "ASANZO A2"
   },
   {
+   "device": "SW4H",
+   "name": "Asanzo",
+   "model": "ASG 4K TV"
+  },
+  {
    "device": "ASANZO_S3_PLUS",
    "name": "S3 Plus",
    "model": "ASANZO_S3_PLUS"
@@ -31182,16 +31187,6 @@
  ],
  "Fossil": [
   {
-   "device": "triggerfish",
-   "name": "Fossil Gen 5",
-   "model": "Julianna HR"
-  },
-  {
-   "device": "triggerfish",
-   "name": "Fossil Gen 5",
-   "model": "Lexington 2"
-  },
-  {
    "device": "gila",
    "name": "Fossil Gen 5 LTE",
    "model": "Fossil Gen 5 LTE"
@@ -31205,6 +31200,11 @@
    "device": "sole",
    "name": "Fossil Gen 5e",
    "model": "Fossil SS"
+  },
+  {
+   "device": "triggerfish",
+   "name": "Fossil Gen5",
+   "model": "Julianna HR"
   },
   {
    "device": "triggerfish",
@@ -84727,6 +84727,11 @@
    "model": "FlipkartTV"
   },
   {
+   "device": "SW4H_FF",
+   "name": "FlipkartTVPro",
+   "model": "FlipkartTVPro"
+  },
+  {
    "device": "umts_ruth",
    "name": "Flipout",
    "model": "MB511"
@@ -107201,6 +107206,11 @@
    "model": "SWTV-20SA"
   },
   {
+   "device": "SW4H_FF",
+   "name": "SWTV-20SA-PRO",
+   "model": "SWTV-20SA-PRO"
+  },
+  {
    "device": "SW3_ATV",
    "name": "South America",
    "model": "SWTV"
@@ -107766,6 +107776,41 @@
    "device": "a01core",
    "name": "Galaxy A01 Core",
    "model": "SM-A013M"
+  },
+  {
+   "device": "a02",
+   "name": "Galaxy A02",
+   "model": "SM-A022F"
+  },
+  {
+   "device": "a02",
+   "name": "Galaxy A02",
+   "model": "SM-A022G"
+  },
+  {
+   "device": "a02",
+   "name": "Galaxy A02",
+   "model": "SM-A022M"
+  },
+  {
+   "device": "a02q",
+   "name": "Galaxy A02",
+   "model": "SM-A025A"
+  },
+  {
+   "device": "a02q",
+   "name": "Galaxy A02",
+   "model": "SM-A025AZ"
+  },
+  {
+   "device": "a02q",
+   "name": "Galaxy A02",
+   "model": "SM-A025G"
+  },
+  {
+   "device": "a02q",
+   "name": "Galaxy A02",
+   "model": "SM-A025V"
   },
   {
    "device": "a02q",
@@ -129140,6 +129185,11 @@
    "device": "Transformer",
    "name": "TCL 10 TABMAX",
    "model": "9296G"
+  },
+  {
+   "device": "Transformer",
+   "name": "TCL 10 TABMAX",
+   "model": "9296G_TR"
   },
   {
    "device": "Transformer_WIFI",
