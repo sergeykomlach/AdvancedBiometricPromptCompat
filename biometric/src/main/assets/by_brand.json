@@ -7220,6 +7220,13 @@
    "model": "Artizlee_S9"
   }
  ],
+ "Arçelik": [
+  {
+   "device": "sinchon",
+   "name": "Arçelik Android TV",
+   "model": "Arcelik Android TV"
+  }
+ ],
  "Asanzo": [
   {
    "device": "A1",
@@ -12656,6 +12663,13 @@
    "model": "Beeline_Tab_Fast"
   }
  ],
+ "Beko": [
+  {
+   "device": "sinchon",
+   "name": "Beko Android TV",
+   "model": "Beko Android TV"
+  }
+ ],
  "Bell Canada": [
   {
    "device": "sti6130d324",
@@ -15690,6 +15704,11 @@
    "device": "EF550R",
    "name": "EF550R",
    "model": "EF550R"
+  },
+  {
+   "device": "EK430",
+   "name": "EK430",
+   "model": "EK430"
   },
   {
    "device": "HF450",
@@ -146511,6 +146530,11 @@
    "device": "ihu_abl_car",
    "name": "Volvo",
    "model": "Volvo"
+  },
+  {
+   "device": "ihu_emulator",
+   "name": "Volvo XC40 Emulator",
+   "model": "Volvo XC40"
   }
  ],
  "Vonino": [
