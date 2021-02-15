@@ -1,17 +1,17 @@
-package dev.skomlach.common.cryptostorage;
+package dev.skomlach.common.cryptostorage
 
-import android.content.SharedPreferences;
+import android.content.SharedPreferences
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
-import dev.skomlach.common.contextprovider.AndroidContext;
+object SharedPreferenceProvider {
+    private var dependencies: CryptoPreferencesProvider? = null
 
-public class SharedPreferenceProvider {
-
-    private static CryptoPreferencesProvider dependencies;
-
-    public static synchronized SharedPreferences getCryptoPreferences(String name) {
+    @JvmStatic
+    @Synchronized
+    fun getCryptoPreferences(name: String): SharedPreferences? {
         if (dependencies == null) {
-            dependencies = new EncryptedPreferencesProvider(AndroidContext.getAppContext());
+            dependencies = EncryptedPreferencesProvider(appContext)
         }
-        return dependencies.getCryptoPreferences(name);
+        return (dependencies as CryptoPreferencesProvider).getCryptoPreferences(name)
     }
 }

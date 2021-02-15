@@ -1,7 +1,7 @@
-package dev.skomlach.common.cryptostorage;
+package dev.skomlach.common.cryptostorage
 
-import android.content.SharedPreferences;
+import android.content.SharedPreferences
 
-public interface CryptoPreferencesProvider {
-    SharedPreferences getCryptoPreferences(String name);
+interface CryptoPreferencesProvider {
+    fun getCryptoPreferences(name: String): SharedPreferences
 }

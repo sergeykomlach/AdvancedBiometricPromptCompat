@@ -1,42 +1,38 @@
-package dev.skomlach.common.logging;
+package dev.skomlach.common.logging
 
-import android.util.Log;
+import android.util.Log
+import dev.skomlach.common.BuildConfig
 
-import dev.skomlach.common.BuildConfig;
+object LogCat {
+    var DEBUG = BuildConfig.DEBUG
+    private val method: String
+        get() {
+            val elements = Thread.currentThread().stackTrace
+            val el = elements[3]
+            return el.className + ":" + el.methodName + ", " + el.fileName + ":" + el.lineNumber
+        }
 
-public class LogCat {
-
-    public static boolean DEBUG = BuildConfig.DEBUG;
-
-    private LogCat() {
-
-    }
-
-    private static String getMethod() {
-        StackTraceElement[] elements = Thread.currentThread().getStackTrace();
-        StackTraceElement el = elements[3];
-        return el.getClassName() + ":" + el.getMethodName() + ", " + el.getFileName() + ":" + el.getLineNumber();
-    }
-
-    public static void log(String msg) {
+    @JvmStatic
+    fun log(msg: String?) {
         if (DEBUG) {
-            Log.d(getMethod(), msg);
+            Log.d(method, msg ?: "")
         }
     }
 
-    public static void logError(String msg) {
+    @JvmStatic
+    fun logError(msg: String?) {
         if (DEBUG) {
-            Log.e(getMethod(), msg);
+            Log.e(method, msg ?: "")
         }
     }
 
-    public static void logException(Throwable e) {
-        if (DEBUG)
-            Log.e(getMethod(), e.getMessage(), e);
+    @JvmStatic
+    fun logException(e: Throwable) {
+        if (DEBUG) Log.e(method, e.message, e)
     }
 
-    public static void logException(String msg, Throwable e) {
-        if (DEBUG)
-            Log.e(getMethod(), msg, e);
+    @JvmStatic
+    fun logException(msg: String?, e: Throwable?) {
+        if (DEBUG) Log.e(method, msg, e)
     }
 }

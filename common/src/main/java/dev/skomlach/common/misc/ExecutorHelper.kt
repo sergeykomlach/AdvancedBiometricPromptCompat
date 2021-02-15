@@ -1,42 +1,42 @@
-package dev.skomlach.common.misc;
+package dev.skomlach.common.misc
 
-import android.os.Handler;
-import android.os.Looper;
+import android.annotation.SuppressLint
+import android.os.AsyncTask
+import android.os.Handler
+import android.os.Looper
+import dev.skomlach.common.misc.Utils.isAtLeastR
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
-import java.util.concurrent.Executor;
-
-public class ExecutorHelper {
-    public static ExecutorHelper INSTANCE = new ExecutorHelper();
-    private final Executor executor;
-    private final Handler handler;
-
-    //hide
-    private ExecutorHelper() {
-        handler = new Handler(Looper.getMainLooper());
-        executor = new HandlerExecutor(handler);
+class ExecutorHelper private constructor() {
+    companion object {
+        @JvmField var INSTANCE = ExecutorHelper()
     }
 
-    public Handler getHandler() {
-        return handler;
-    }
+    val handler: Handler = Handler(Looper.getMainLooper())
+    val executor: Executor = HandlerExecutor(handler)
 
-    public Executor getExecutor() {
-        return executor;
+    @SuppressLint("StaticFieldLeak")
+    fun startOnBackground(task: Runnable) {
+        if (isAtLeastR) {
+            Executors.newCachedThreadPool().execute(task)
+        } else {
+            //AsyncTask Deprecated in API 30
+            object : AsyncTask<Void?, Void?, Void?>() {
+                override fun doInBackground(vararg params: Void?): Void? {
+                    task.run()
+                    return null
+                }
+            }.executeOnExecutor(Executors.newCachedThreadPool())
+        }
     }
 
     /**
-     * An {@link Executor} which posts to a {@link Handler}.
+     * An [Executor] which posts to a [Handler].
      */
-    public static class HandlerExecutor implements Executor {
-        private final Handler mHandler;
-
-        public HandlerExecutor(Handler handler) {
-            mHandler = handler;
-        }
-
-        @Override
-        public void execute(Runnable runnable) {
-            mHandler.post(runnable);
+    class HandlerExecutor(private val mHandler: Handler) : Executor {
+        override fun execute(runnable: Runnable) {
+            mHandler.post(runnable)
         }
     }
 }

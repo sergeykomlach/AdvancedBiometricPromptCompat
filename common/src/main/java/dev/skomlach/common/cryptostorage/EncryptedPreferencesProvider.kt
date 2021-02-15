@@ -1,27 +1,21 @@
-package dev.skomlach.common.cryptostorage;
+package dev.skomlach.common.cryptostorage
 
-import android.app.Application;
-import android.content.SharedPreferences;
+import android.app.Application
+import android.content.SharedPreferences
+import java.util.*
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class EncryptedPreferencesProvider implements CryptoPreferencesProvider {
-    private static Map<String, SharedPreferences> cache = new HashMap<>();
-    private final Application application;
-
-    public EncryptedPreferencesProvider(Application application) {
-        this.application = application;
+class EncryptedPreferencesProvider(private val application: Application) :
+    CryptoPreferencesProvider {
+    override fun getCryptoPreferences(name: String): SharedPreferences {
+        var preferences = cache[name]
+        if (preferences == null) {
+            preferences = CryptoPreferencesImpl(application, name)
+            cache[name] = preferences
+        }
+        return preferences
     }
 
-    @Override
-    public SharedPreferences getCryptoPreferences(String name) {
-        SharedPreferences preferences = cache.get(name);
-        if (preferences == null) {
-            preferences = new CryptoPreferencesImpl(application, name);
-            cache.put(name, preferences);
-        }
-
-        return preferences;
+    companion object {
+        private val cache: MutableMap<String, SharedPreferences> = HashMap()
     }
 }

@@ -1,41 +1,42 @@
-package dev.skomlach.common.misc;
+package dev.skomlach.common.misc
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.text.TextUtils;
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.text.TextUtils
+import dev.skomlach.common.logging.LogCat.logError
 
-import java.util.Iterator;
+object BroadcastTools {
+    private const val androidIntentAction = "android."
 
-import dev.skomlach.common.logging.LogCat;
-
-public class BroadcastTools {
-    private final static String androidIntentAction = "android.";
-
-    public static void sendGlobalBroadcastIntent(Context context, Intent intent) {
-
-        String action = intent.getAction();
-        if (!TextUtils.isEmpty(action) && !action.startsWith(androidIntentAction)) {
-            LogCat.logError("BroadcastTools: You tried to send custom global BroadcastIntent. Make sure that action `" + action + "` contains package-specific name");
+    @JvmStatic
+    fun sendGlobalBroadcastIntent(context: Context, intent: Intent) {
+        val action = intent.action
+        if (!TextUtils.isEmpty(action) && action?.startsWith(androidIntentAction) == false) {
+            logError("BroadcastTools: You tried to send custom global BroadcastIntent. Make sure that action `$action` contains package-specific name")
         }
-
-        context.sendBroadcast(intent);
+        context.sendBroadcast(intent)
     }
 
-    public static void registerGlobalBroadcastIntent(Context context, BroadcastReceiver broadcastReceiver, IntentFilter filter) {
-        Iterator<String> actionsIterator = filter.actionsIterator();
+    @JvmStatic
+    fun registerGlobalBroadcastIntent(
+        context: Context,
+        broadcastReceiver: BroadcastReceiver?,
+        filter: IntentFilter
+    ) {
+        val actionsIterator = filter.actionsIterator()
         while (actionsIterator.hasNext()) {
-            String action = actionsIterator.next();
+            val action = actionsIterator.next()
             if (!TextUtils.isEmpty(action) && !action.startsWith(androidIntentAction)) {
-                LogCat.logError("BroadcastTools: You tried to register custom global BroadcastReceiver. Make sure that action `" + action + "` contains package-specific name");
+                logError("BroadcastTools: You tried to register custom global BroadcastReceiver. Make sure that action `$action` contains package-specific name")
             }
         }
-
-        context.registerReceiver(broadcastReceiver, filter);
+        context.registerReceiver(broadcastReceiver, filter)
     }
 
-    public static void unregisterGlobalBroadcastIntent(Context context, BroadcastReceiver broadcastReceiver) {
-        context.unregisterReceiver(broadcastReceiver);
+    @JvmStatic
+    fun unregisterGlobalBroadcastIntent(context: Context, broadcastReceiver: BroadcastReceiver?) {
+        context.unregisterReceiver(broadcastReceiver)
     }
 }

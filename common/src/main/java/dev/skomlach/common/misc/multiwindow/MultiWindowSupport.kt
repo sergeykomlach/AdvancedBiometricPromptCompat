@@ -1,412 +1,372 @@
-package dev.skomlach.common.misc.multiwindow;
+package dev.skomlach.common.misc.multiwindow
 
-import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.hardware.display.DisplayManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.view.Display;
-import android.view.KeyCharacterMap;
-import android.view.KeyEvent;
-import android.view.ViewConfiguration;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
+import android.app.Activity
+import android.app.Application.ActivityLifecycleCallbacks
+import android.content.Context
+import android.content.res.Configuration
+import android.graphics.Point
+import android.graphics.Rect
+import android.hardware.display.DisplayManager
+import android.hardware.display.DisplayManager.DisplayListener
+import android.os.Build
+import android.os.Bundle
+import android.util.DisplayMetrics
+import android.view.*
+import androidx.collection.LruCache
+import androidx.core.util.ObjectsCompat
+import com.jakewharton.rxrelay2.PublishRelay
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.logging.LogCat.logException
+import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.isActivityFinished
+import io.reactivex.disposables.Disposable
+import io.reactivex.functions.Consumer
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-import androidx.collection.LruCache;
-import androidx.core.util.ObjectsCompat;
+class MultiWindowSupport(private val activity: Activity) {
+    companion object {
+        private val realScreenSize = LruCache<Configuration, Point>(1)
+        private val activityResumedRelay = PublishRelay.create<Activity>()
+        private val activityDestroyedRelay = PublishRelay.create<Activity>()
+        private var displayManager: DisplayManager? = null
 
-import com.jakewharton.rxrelay2.PublishRelay;
+        init {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                try {
+                    displayManager =
+                        appContext.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+                } catch (ignore: Throwable) {
+                }
+            }
+            appContext
+                .registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+                    override fun onActivityCreated(
+                        activity: Activity,
+                        savedInstanceState: Bundle?
+                    ) {
+                    }
 
-import java.lang.reflect.Method;
+                    override fun onActivityStarted(activity: Activity) {}
+                    override fun onActivityResumed(activity: Activity) {
+                        activityResumedRelay.accept(activity)
+                    }
 
-import dev.skomlach.common.contextprovider.AndroidContext;
-import dev.skomlach.common.logging.LogCat;
-import dev.skomlach.common.misc.ActivityToolsKt;
-import dev.skomlach.common.misc.ExecutorHelper;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
+                    override fun onActivityPaused(activity: Activity) {}
+                    override fun onActivityStopped(activity: Activity) {}
+                    override fun onActivitySaveInstanceState(
+                        activity: Activity,
+                        outState: Bundle
+                    ) {
+                    }
 
-public class MultiWindowSupport {
+                    override fun onActivityDestroyed(activity: Activity) {
+                        activityDestroyedRelay.accept(activity)
+                    }
+                })
+        }
+    }
 
-    private static final LruCache<Configuration, Point> realScreenSize = new LruCache<>(1);
-    private static final PublishRelay<Activity> activityResumedRelay = PublishRelay.create();
-    private static final PublishRelay<Activity> activityDestroyedRelay = PublishRelay.create();
-    private static DisplayManager displayManager;
-
-    static {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+    private lateinit var subscribeOnResume: Disposable
+    private lateinit var subscribeOnDestroy: Disposable
+    private var isMultiWindow = false
+    private var isWindowOnScreenBottom = false
+    private var displayListener: DisplayListener? = null
+    private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
+        if (ObjectsCompat.equals(activity1, activity)) {
             try {
-                displayManager = (DisplayManager) AndroidContext.getAppContext().getSystemService(Context.DISPLAY_SERVICE);
-            } catch (Throwable ignore) {
+                unregisterDualScreenListeners()
+                subscribeOnResume.dispose()
+                subscribeOnDestroy.dispose()
+            } catch (e: Exception) {
+                logException(e)
             }
         }
-
-        AndroidContext.getAppContext()
-                .registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-                    @Override
-                    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
-                    }
-
-                    @Override
-                    public void onActivityStarted(Activity activity) {
-
-                    }
-
-                    @Override
-                    public void onActivityResumed(Activity activity) {
-                        activityResumedRelay.accept(activity);
-                    }
-
-                    @Override
-                    public void onActivityPaused(Activity activity) {
-                    }
-
-                    @Override
-                    public void onActivityStopped(Activity activity) {
-
-                    }
-
-                    @Override
-                    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-                    }
-
-                    @Override
-                    public void onActivityDestroyed(Activity activity) {
-                        activityDestroyedRelay.accept(activity);
-                    }
-                });
     }
-
-    private final Activity activity;
-    private final Disposable subscribeOnResume;
-    private final Disposable subscribeOnDestroy;
-    private boolean isMultiWindow = false;
-    private boolean isWindowOnScreenBottom = false;
-    private DisplayManager.DisplayListener displayListener;
-
-    private final Consumer<Activity> onDestroyListener = new Consumer<Activity>() {
-        @Override
-        public void accept(Activity activity1) {
-            if (ObjectsCompat.equals(activity1, activity)) {
-                try {
-                    unregisterDualScreenListeners();
-                    subscribeOnResume.dispose();
-                    subscribeOnDestroy.dispose();
-                } catch (Exception e) {
-                    LogCat.logException(e);
+    private var currentConfiguration: Configuration? = null
+    private val onResumedListener: Consumer<Activity> = Consumer { activity1 ->
+        if (ObjectsCompat.equals(activity1, activity)) {
+            try {
+                if (!isActivityFinished(activity)) {
+                    updateState()
                 }
+            } catch (e: Exception) {
+                logException(e)
             }
         }
-    };
-
-    private Configuration currentConfiguration = null;
-    private final Consumer<Activity> onResumedListener = new Consumer<Activity>() {
-        @Override
-        public void accept(Activity activity1) {
-            if (ObjectsCompat.equals(activity1, activity)) {
-                try {
-                    if (!ActivityToolsKt.isActivityFinished(activity)) {
-                        updateState();
-                    }
-                } catch (Exception e) {
-                    LogCat.logException(e);
-                }
-            }
-        }
-    };
-
-    public MultiWindowSupport(Activity activity) {
-        this.activity = activity;
-
-        registerDualScreenListeners();
-        this.subscribeOnResume = subscribeOnResume();
-        this.subscribeOnDestroy = subscribeOnDestroy();
     }
 
-    private Disposable subscribeOnResume() {
-        return activityResumedRelay.subscribe(onResumedListener);
+    init {
+        registerDualScreenListeners()
+        subscribeOnResume = subscribeOnResume()
+        subscribeOnDestroy = subscribeOnDestroy()
     }
 
-    private Disposable subscribeOnDestroy() {
-        return activityDestroyedRelay.subscribe(onDestroyListener);
+    private fun subscribeOnResume(): Disposable {
+        return activityResumedRelay.subscribe(onResumedListener)
     }
 
-    private void registerDualScreenListeners() {
-        unregisterDualScreenListeners();
+    private fun subscribeOnDestroy(): Disposable {
+        return activityDestroyedRelay.subscribe(onDestroyListener)
+    }
+
+    private fun registerDualScreenListeners() {
+        unregisterDualScreenListeners()
         try {
             if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                displayManager.registerDisplayListener(displayListener, ExecutorHelper.INSTANCE.getHandler());
+                displayManager?.registerDisplayListener(
+                    displayListener,
+                    ExecutorHelper.INSTANCE.handler
+                )
             }
-        } catch (Throwable e) {
-            LogCat.logException(e);
+        } catch (e: Throwable) {
+            logException(e)
         }
     }
 
-    private void unregisterDualScreenListeners() {
+    private fun unregisterDualScreenListeners() {
         try {
             if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                displayManager.unregisterDisplayListener(displayListener);
+                displayManager?.unregisterDisplayListener(displayListener)
             }
-        } catch (Throwable e) {
-            LogCat.logException(e);
+        } catch (e: Throwable) {
+            logException(e)
         }
-
-        displayListener = null;
+        displayListener = null
     }
 
-    private void updateState() {
-        if (!ActivityToolsKt.isActivityFinished(activity)) {
-            checkIsInMultiWindow();
+    private fun updateState() {
+        if (!isActivityFinished(activity)) {
+            checkIsInMultiWindow()
         } else {
-            isMultiWindow = false;
-            isWindowOnScreenBottom = false;
+            isMultiWindow = false
+            isWindowOnScreenBottom = false
         }
     }
 
     //Unlike Android N method, this one support also non-Nougat+ multiwindow modes (like Samsung/LG/Huawei/etc solutions)
-    private void checkIsInMultiWindow() {
-
-        Rect rect = new Rect();
-        final ViewGroup decorView = activity.findViewById(Window.ID_ANDROID_CONTENT);
-        decorView.getGlobalVisibleRect(rect);
+    private fun checkIsInMultiWindow() {
+        val rect = Rect()
+        val decorView = activity.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
+        decorView.getGlobalVisibleRect(rect)
         if (rect.width() == 0 && rect.height() == 0) {
-            return;
+            return
         }
-
-        Point realScreenSize = getRealScreenSize();
-
-        int statusBarHeight = getStatusBarHeight();
-
-        int navigationBarHeight = getNavigationBarHeight();
-        int navigationBarWidth = getNavigationBarWidth();
-
-        int h = realScreenSize.y - rect.height() - statusBarHeight - navigationBarHeight;
-
-        int w = realScreenSize.x - rect.width();
-
-        boolean isSmartphone = diagonalSize() < 7.0d;
-
-        if (isSmartphone && getScreenOrientation() == Configuration.ORIENTATION_LANDSCAPE) {
-            h = h + navigationBarHeight;
-            w = w - navigationBarWidth;
+        val realScreenSize = realScreenSize
+        val statusBarHeight = statusBarHeight
+        val navigationBarHeight = navigationBarHeight
+        val navigationBarWidth = navigationBarWidth
+        var h = realScreenSize.y - rect.height() - statusBarHeight - navigationBarHeight
+        var w = realScreenSize.x - rect.width()
+        val isSmartphone = diagonalSize() < 7.0
+        if (isSmartphone && screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            h += navigationBarHeight
+            w -= navigationBarWidth
         }
-        currentConfiguration = activity.getResources().getConfiguration();
-
-        isMultiWindow = h != 0 || w != 0;
-
-        int topPart = (realScreenSize.y / 5);
-
-        isWindowOnScreenBottom = isSmartphone && (rect.top >= topPart || (isMultiWindow && rect.top == 0));
+        currentConfiguration = activity.resources.configuration
+        isMultiWindow = h != 0 || w != 0
+        val topPart = realScreenSize.y / 5
+        isWindowOnScreenBottom =
+            isSmartphone && (rect.top >= topPart || isMultiWindow && rect.top == 0)
     }
 
-    public boolean isConfigurationChanged() {
-        //Configuration change can happens when Activity Window Size was changed, but Multiwindow was not switched
-        if (!ActivityToolsKt.isActivityFinished(activity)) {
-            return !ObjectsCompat.equals(activity.getResources().getConfiguration(), currentConfiguration);
-        } else {
-            return false;
-        }
-    }
-
-    public boolean isWindowOnScreenBottom() {
-        updateState();
-        return isWindowOnScreenBottom;
-    }
-
-    public boolean isInMultiWindow() {
-
-        //Should work on API24+ and support almost all devices types, include Chromebooks and foldable devices
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-
-            if (!ActivityToolsKt.isActivityFinished(activity)) {
-                return activity.isInMultiWindowMode();
+    //Configuration change can happens when Activity Window Size was changed, but Multiwindow was not switched
+    val isConfigurationChanged: Boolean
+        get() =//Configuration change can happens when Activity Window Size was changed, but Multiwindow was not switched
+            if (!isActivityFinished(activity)) {
+                !ObjectsCompat.equals(activity.resources.configuration, currentConfiguration)
+            } else {
+                false
             }
-        }
-        //http://open-wiki.flyme.cn/index.php?title=%E5%88%86%E5%B1%8F%E9%80%82%E9%85%8D%E6%96%87%E6%A1%A3
-        try {
-            Class<?> clazz = Class.forName("meizu.splitmode.FlymeSplitModeManager");
-            Method b = clazz.getMethod("getInstance", Context.class);
-            Object instance = b.invoke(null, activity);
-            Method m = clazz.getMethod("isSplitMode");
-            return (boolean) m.invoke(instance);
-        } catch (Throwable ignore) {
 
-        }
-        updateState();
-        //general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons
-        return isMultiWindow;
+    fun isWindowOnScreenBottom(): Boolean {
+        updateState()
+        return isWindowOnScreenBottom
     }
 
-    private int getNavigationBarHeight() {
-        if (!hasNavBar()) {
-            return 0;
-        }
+    //Should work on API24+ and support almost all devices types, include Chromebooks and foldable devices
+    //http://open-wiki.flyme.cn/index.php?title=%E5%88%86%E5%B1%8F%E9%80%82%E9%85%8D%E6%96%87%E6%A1%A3
+    //general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons
+    val isInMultiWindow: Boolean
+        get() {
 
-        Resources resources = activity.getResources();
-        int orientation = getScreenOrientation();
-
-        boolean isSmartphone = diagonalSize() < 7.0d;
-
-        int resourceId;
-        if (!isSmartphone) {
-            resourceId = resources.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ?
-                    "navigation_bar_height" : "navigation_bar_height_landscape", "dimen", "android");
-        } else {
-            resourceId = resources.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ?
-                    "navigation_bar_height" : "navigation_bar_width", "dimen", "android");
-        }
-
-        if (resourceId > 0) {
-            return resources.getDimensionPixelSize(resourceId);
-        }
-
-        return 0;
-    }
-
-    private int getNavigationBarWidth() {
-        if (!hasNavBar()) {
-            return 0;
-        }
-
-        Resources resources = activity.getResources();
-        int orientation = getScreenOrientation();
-
-        boolean isSmartphone = diagonalSize() < 7.0d;
-
-        int resourceId;
-        if (!isSmartphone) {
-            resourceId = resources.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ?
-                    "navigation_bar_height_landscape" : "navigation_bar_height", "dimen", "android");
-        } else {
-            resourceId = resources.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ?
-                    "navigation_bar_width" : "navigation_bar_height", "dimen", "android");
-        }
-
-        if (resourceId > 0) {
-            return resources.getDimensionPixelSize(resourceId);
-        }
-
-        return 0;
-    }
-
-    private boolean hasNavBar() {
-
-        Point realSize = getRealScreenSize();
-        int realHeight = realSize.y;
-        int realWidth = realSize.x;
-        WindowManager windowManager = (WindowManager) activity
-                .getSystemService(Context.WINDOW_SERVICE);
-        Display display = windowManager.getDefaultDisplay();
-
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        display.getMetrics(displayMetrics);
-
-        int displayHeight = displayMetrics.heightPixels;
-        int displayWidth = displayMetrics.widthPixels;
-        if ((realWidth - displayWidth) > 0 || (realHeight - displayHeight) > 0) {
-            return true;
-        }
-
-        boolean hasMenuKey = ViewConfiguration.get(activity).hasPermanentMenuKey();
-        boolean hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK);
-        boolean hasHomeKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_HOME);
-        boolean hasNoCapacitiveKeys = !hasMenuKey && !hasBackKey && !hasHomeKey;
-        Resources resources = activity.getResources();
-        int id = resources.getIdentifier("config_showNavigationBar", "bool", "android");
-        boolean hasOnScreenNavBar = id > 0 && resources.getBoolean(id);
-        return hasOnScreenNavBar || hasNoCapacitiveKeys;
-    }
-
-    private int getStatusBarHeight() {
-        // status bar height
-        int statusBarHeight = 0;
-        int resourceId = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            statusBarHeight = activity.getResources().getDimensionPixelSize(resourceId);
-        }
-        return statusBarHeight;
-    }
-
-    private Point getRealScreenSize() {
-        Configuration configuration = activity.getResources().getConfiguration();
-        Point point = realScreenSize.get(configuration);
-        if (point != null) {
-            return point;
-        } else {
-            WindowManager windowManager = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE);
-            Display display = windowManager.getDefaultDisplay();
-            int realWidth;
-            int realHeight;
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                //new pleasant way to get real metrics
-                DisplayMetrics realMetrics = new DisplayMetrics();
-                display.getRealMetrics(realMetrics);
-                realWidth = realMetrics.widthPixels;
-                realHeight = realMetrics.heightPixels;
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-                //reflection for this weird in-between time
-                try {
-                    Method mGetRawH = Display.class.getMethod("getRawHeight");
-                    Method mGetRawW = Display.class.getMethod("getRawWidth");
-                    realWidth = (Integer) mGetRawW.invoke(display);
-                    realHeight = (Integer) mGetRawH.invoke(display);
-                } catch (Exception e) {
-                    //this may not be 100% accurate, but it's all we've got
-                    realWidth = display.getWidth();
-                    realHeight = display.getHeight();
+            //Should work on API24+ and support almost all devices types, include Chromebooks and foldable devices
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (!isActivityFinished(activity)) {
+                    return activity.isInMultiWindowMode
                 }
-            } else {
-                //This should be close, as lower API devices should not have window navigation bars
-                realWidth = display.getWidth();
-                realHeight = display.getHeight();
             }
-            final Point size = new Point(realWidth, realHeight);
-            realScreenSize.put(configuration, size);
-            return size;
+            //http://open-wiki.flyme.cn/index.php?title=%E5%88%86%E5%B1%8F%E9%80%82%E9%85%8D%E6%96%87%E6%A1%A3
+            try {
+                val clazz = Class.forName("meizu.splitmode.FlymeSplitModeManager")
+                val b = clazz.getMethod("getInstance", Context::class.java)
+                val instance = b.invoke(null, activity)
+                val m = clazz.getMethod("isSplitMode")
+                return m.invoke(instance) as Boolean
+            } catch (ignore: Throwable) {
+            }
+            updateState()
+            //general way - for OEM devices (Samsung, LG, Huawei) and/or in case API24 not fired for some reasons
+            return isMultiWindow
         }
+    private val navigationBarHeight: Int
+        get() {
+            if (!hasNavBar()) {
+                return 0
+            }
+            val resources = activity.resources
+            val orientation = screenOrientation
+            val isSmartphone = diagonalSize() < 7.0
+            val resourceId: Int = if (!isSmartphone) {
+                resources.getIdentifier(
+                    if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height" else "navigation_bar_height_landscape",
+                    "dimen",
+                    "android"
+                )
+            } else {
+                resources.getIdentifier(
+                    if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height" else "navigation_bar_width",
+                    "dimen",
+                    "android"
+                )
+            }
+            return if (resourceId > 0) {
+                resources.getDimensionPixelSize(resourceId)
+            } else 0
+        }
+    private val navigationBarWidth: Int
+        get() {
+            if (!hasNavBar()) {
+                return 0
+            }
+            val resources = activity.resources
+            val orientation = screenOrientation
+            val isSmartphone = diagonalSize() < 7.0
+            val resourceId: Int = if (!isSmartphone) {
+                resources.getIdentifier(
+                    if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height_landscape" else "navigation_bar_height",
+                    "dimen",
+                    "android"
+                )
+            } else {
+                resources.getIdentifier(
+                    if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_width" else "navigation_bar_height",
+                    "dimen",
+                    "android"
+                )
+            }
+            return if (resourceId > 0) {
+                resources.getDimensionPixelSize(resourceId)
+            } else 0
+        }
+
+    private fun hasNavBar(): Boolean {
+        val realSize = realScreenSize
+        val realHeight = realSize.y
+        val realWidth = realSize.x
+        val windowManager = activity
+            .getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val display = windowManager.defaultDisplay
+        val displayMetrics = DisplayMetrics()
+        display.getMetrics(displayMetrics)
+        val displayHeight = displayMetrics.heightPixels
+        val displayWidth = displayMetrics.widthPixels
+        if (realWidth - displayWidth > 0 || realHeight - displayHeight > 0) {
+            return true
+        }
+        val hasMenuKey = ViewConfiguration.get(activity).hasPermanentMenuKey()
+        val hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK)
+        val hasHomeKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_HOME)
+        val hasNoCapacitiveKeys = !hasMenuKey && !hasBackKey && !hasHomeKey
+        val resources = activity.resources
+        val id = resources.getIdentifier("config_showNavigationBar", "bool", "android")
+        val hasOnScreenNavBar = id > 0 && resources.getBoolean(id)
+        return hasOnScreenNavBar || hasNoCapacitiveKeys
     }
 
-    private int getScreenOrientation() {
-        int orientation = activity.getResources().getConfiguration().orientation;
+    // status bar height
+    private val statusBarHeight: Int
+        get() {
+            // status bar height
+            var statusBarHeight = 0
+            val resourceId =
+                activity.resources.getIdentifier("status_bar_height", "dimen", "android")
+            if (resourceId > 0) {
+                statusBarHeight = activity.resources.getDimensionPixelSize(resourceId)
+            }
+            return statusBarHeight
+        }//This should be close, as lower API devices should not have window navigation bars//this may not be 100% accurate, but it's all we've got//reflection for this weird in-between time
 
-        if (orientation == Configuration.ORIENTATION_UNDEFINED) {
-            WindowManager windowManager = (WindowManager) activity
-                    .getSystemService(Context.WINDOW_SERVICE);
-            Display display = windowManager.getDefaultDisplay();
-            if (display.getWidth() == display.getHeight()) {
-                orientation = Configuration.ORIENTATION_SQUARE;
+    //new pleasant way to get real metrics
+    private val realScreenSize: Point
+        get() {
+            val configuration = activity.resources.configuration
+            val point = Companion.realScreenSize[configuration]
+            return if (point != null) {
+                point
             } else {
-                if (display.getWidth() < display.getHeight()) {
-                    orientation = Configuration.ORIENTATION_PORTRAIT;
+                val windowManager =
+                    activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                val display = windowManager.defaultDisplay
+                var realWidth: Int
+                var realHeight: Int
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    //new pleasant way to get real metrics
+                    val realMetrics = DisplayMetrics()
+                    display.getRealMetrics(realMetrics)
+                    realWidth = realMetrics.widthPixels
+                    realHeight = realMetrics.heightPixels
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                    //reflection for this weird in-between time
+                    try {
+                        val mGetRawH = Display::class.java.getMethod("getRawHeight")
+                        val mGetRawW = Display::class.java.getMethod("getRawWidth")
+                        realWidth = mGetRawW.invoke(display) as Int
+                        realHeight = mGetRawH.invoke(display) as Int
+                    } catch (e: Exception) {
+                        //this may not be 100% accurate, but it's all we've got
+                        realWidth = display.width
+                        realHeight = display.height
+                    }
                 } else {
-                    orientation = Configuration.ORIENTATION_LANDSCAPE;
+                    //This should be close, as lower API devices should not have window navigation bars
+                    realWidth = display.width
+                    realHeight = display.height
                 }
+                val size = Point(realWidth, realHeight)
+                Companion.realScreenSize.put(configuration, size)
+                size
             }
         }
-        return orientation;
-    }
+    private val screenOrientation: Int
+        get() {
+            var orientation = activity.resources.configuration.orientation
+            if (orientation == Configuration.ORIENTATION_UNDEFINED) {
+                val windowManager = activity
+                    .getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                val display = windowManager.defaultDisplay
+                orientation = if (display.width == display.height) {
+                    Configuration.ORIENTATION_SQUARE
+                } else {
+                    if (display.width < display.height) {
+                        Configuration.ORIENTATION_PORTRAIT
+                    } else {
+                        Configuration.ORIENTATION_LANDSCAPE
+                    }
+                }
+            }
+            return orientation
+        }
 
-    private double diagonalSize() {
+    private fun diagonalSize(): Double {
 
         // Compute real screen size
-        DisplayMetrics dm = activity.getResources().getDisplayMetrics();
-
-        Point realSize = getRealScreenSize();
-
-        float screenWidth = realSize.x / dm.xdpi;
-
-        float screenHeight = realSize.y / dm.ydpi;
-
-        return Math.sqrt(Math.pow(screenWidth, 2) + Math.pow(screenHeight, 2));
+        val dm = activity.resources.displayMetrics
+        val realSize = realScreenSize
+        val screenWidth = realSize.x / dm.xdpi
+        val screenHeight = realSize.y / dm.ydpi
+        return sqrt(
+            screenWidth.toDouble().pow(2.0) + screenHeight.toDouble().pow(2.0)
+        )
     }
 }
