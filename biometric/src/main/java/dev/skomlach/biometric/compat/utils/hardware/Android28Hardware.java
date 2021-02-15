@@ -71,13 +71,18 @@ public class Android28Hardware extends AbstractHardware {
             for (Field f : fields) {
                 if (Modifier.isStatic(f.getModifiers()) && f.getType().equals(String.class)) {
                     String name = (String) f.get(null);
-                    if (name == null)
+                    if (name == null || !name.contains(".hardware."))
                         continue;
 
                     if (name.endsWith(".fingerprint")
                             || name.endsWith(".face")
                             || name.endsWith(".iris")
                             || name.endsWith(".biometric")
+
+                            || name.contains(".fingerprint.")
+                            || name.contains(".face.")
+                            || name.contains(".iris.")
+                            || name.contains(".biometric.")
 
                     ) {
                         list.add(name);
@@ -211,12 +216,15 @@ public class Android28Hardware extends AbstractHardware {
         ArrayList<String> list = biometricFeatures();
         PackageManager packageManager = AndroidContext.getAppContext().getPackageManager();
         for (String f : list) {
-            if (packageManager != null && packageManager.hasSystemFeature(f)) {
-                if (f.endsWith(".face") && getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FACE)
+            if (packageManager != null && packageManager.hasSystemFeature(f) && f.contains(".hardware.")) {
+                if ((f.endsWith(".face") || f.contains(".face.")) &&
+                        getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FACE)
                     return true;
-                if (f.endsWith(".iris") && getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_IRIS)
+                if ((f.endsWith(".iris") || f.contains(".iris."))&&
+                        getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_IRIS)
                     return true;
-                if (f.endsWith(".fingerprint") && getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT)
+                if ((f.endsWith(".fingerprint") || f.contains(".fingerprint."))&&
+                        getBiometricAuthRequest().getType() == BiometricType.BIOMETRIC_FINGERPRINT)
                     return true;
             }
         }
