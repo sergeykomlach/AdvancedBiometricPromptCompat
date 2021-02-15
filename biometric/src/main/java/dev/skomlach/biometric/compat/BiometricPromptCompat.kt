@@ -62,7 +62,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var deviceInfo: DeviceInfo?=null
         get() {
             if(field == null){
-                AsyncTask.THREAD_POOL_EXECUTOR.execute{
+                ExecutorHelper.INSTANCE.startOnBackground{
                         DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
                     }
             }
@@ -86,9 +86,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
-                    AndroidContext.getAppContext()
+                    AndroidContext.appContext
                     startBiometricInit()
-                    AsyncTask.THREAD_POOL_EXECUTOR.execute{
+                    ExecutorHelper.INSTANCE.startOnBackground{
                         DeviceInfoManager.INSTANCE.getDeviceInfo { info ->
                             deviceInfo = info
                         }
@@ -152,7 +152,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun authenticate(callbackOuter: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
-        AsyncTask.THREAD_POOL_EXECUTOR.execute {
+        ExecutorHelper.INSTANCE.startOnBackground {
             while (deviceInfo == null || !isInit) {
                 try {
                     Thread.sleep(250)
@@ -284,7 +284,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun cancelAuthenticate() {
-        AsyncTask.THREAD_POOL_EXECUTOR.execute {
+        ExecutorHelper.INSTANCE.startOnBackground {
             while (deviceInfo == null || !isInit) {
                 try {
                     Thread.sleep(250)
@@ -299,7 +299,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if(!isInit){
-            AsyncTask.THREAD_POOL_EXECUTOR.execute {
+            ExecutorHelper.INSTANCE.startOnBackground {
                 while (deviceInfo == null || !isInit) {
                     try {
                         Thread.sleep(250)

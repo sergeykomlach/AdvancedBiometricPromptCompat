@@ -66,8 +66,8 @@ public class OnePlusFaceUnlock {
             return false;
         }
         mServiceConnection = new ServiceConnectionWrapper(connection);
-        Intent intent = new Intent(flInterface.getName());
-        intent.setPackage(pkg);
+        Intent intent = new Intent();
+        intent.setClassName(pkg, "com.oneplus.faceunlock.FaceUnlockService");
         return mContext
                 .bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
@@ -83,6 +83,9 @@ public class OnePlusFaceUnlock {
         BiometricLoggerImpl.d(TAG + " startUi");
 
         try {
+            if (flInterface != null)
+                flInterface.getMethod("prepare").invoke(mFaceLockService);
+
             Method method = flInterface.getMethod("startFaceUnlock", int.class);
             method.invoke(mFaceLockService, Process.myUid());
         } catch (Throwable ignore) { }
@@ -94,6 +97,8 @@ public class OnePlusFaceUnlock {
         try {
             if (flInterface != null)
                 flInterface.getMethod("stopFaceUnlock", int.class).invoke(mFaceLockService, Process.myUid());
+            if (flInterface != null)
+                flInterface.getMethod("release").invoke(mFaceLockService);
         } catch (Throwable ignore) { }
     }
 
@@ -142,9 +147,6 @@ public class OnePlusFaceUnlock {
             try {
                 mFaceLockService = flInterfaceStub.getMethod("asInterface", IBinder.class)
                         .invoke(null, service);
-                if (flInterface != null)
-                    flInterface.getMethod("prepare").invoke(mFaceLockService);
-
                 mServiceConnection.onServiceConnected(name, service);
             } catch (IllegalArgumentException e) {
                 mFaceLockService = null;
@@ -164,12 +166,6 @@ public class OnePlusFaceUnlock {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             BiometricLoggerImpl.d(TAG + " service disconnected");
-            try {
-                if (flInterface != null)
-                    flInterface.getMethod("release").invoke(mFaceLockService);
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            }
             mServiceConnection.onServiceDisconnected(name);
             mFaceLockService = null;
         }
