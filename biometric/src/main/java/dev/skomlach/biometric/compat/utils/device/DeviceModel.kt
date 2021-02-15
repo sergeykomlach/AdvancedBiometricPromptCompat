@@ -46,7 +46,7 @@ object DeviceModel {
     }
     private fun getSimpleDeviceName(): String {
         val s =
-            SystemPropertiesProxy.get(AndroidContext.getAppContext(), "ro.config.marketing_name")
+            SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name")
         return if (!s.isNullOrEmpty())
             getName(brand, s)
         else
@@ -95,7 +95,7 @@ object DeviceModel {
         try {
            //https://github.com/androidtrackers/certified-android-devices/
            val inputStream =
-                AndroidContext.getAppContext().assets.open("by_brand.json")
+                AndroidContext.appContext.assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()
             Network.fastCopy(inputStream, byteArrayOutputStream)
             inputStream.close()
@@ -111,7 +111,7 @@ object DeviceModel {
     @WorkerThread
     private fun getNameFromDatabase(): String? {
         val info = DeviceName
-            .getDeviceInfo(AndroidContext.getAppContext())
+            .getDeviceInfo(AndroidContext.appContext)
         BiometricLoggerImpl.e("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
             val modelParts = model.split(" ")

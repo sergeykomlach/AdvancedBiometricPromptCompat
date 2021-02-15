@@ -156,7 +156,7 @@ public class BiometricAuthentication {
             };
 
             for (BiometricMethod method : list) {
-                startTask(() -> {
+                ExecutorHelper.INSTANCE.startOnBackground(() -> {
                     BiometricLoggerImpl.e("BiometricAuthentication.check started for "+method);
                     BiometricModule biometricModule = null;
                     try {
@@ -233,20 +233,7 @@ public class BiometricAuthentication {
             BiometricLoggerImpl.e(e, "BiometricAuthentication" );
         }
     }
-    private static void startTask(Runnable task){
-        if(isAtLeastR()){
-            Executors.newCachedThreadPool().execute(task);
-        }else{
-            //AsyncTask Deprecated in API 30
-            new AsyncTask<Void, Void, Void>(){
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    task.run();
-                    return null;
-                }
-            }.executeOnExecutor(Executors.newCachedThreadPool());
-        }
-    }
+
     public static List<BiometricType> getAvailableBiometrics() {
         HashSet<BiometricType> biometricMethodListInternal = new HashSet<>();
         for (BiometricMethod method : moduleHashMap.keySet()) {
