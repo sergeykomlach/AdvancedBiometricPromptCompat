@@ -2,7 +2,6 @@ package dev.skomlach.biometric.compat
 
 import android.annotation.TargetApi
 import android.content.DialogInterface
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Looper
 import android.view.View
@@ -38,7 +37,6 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.HashSet
 
@@ -160,27 +158,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun authenticate(callbackOuter: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
         ExecutorHelper.INSTANCE.startOnBackground {
-            val startTime = System.currentTimeMillis()
-            var hasAttachedToWindow = try {
-                ActiveWindow.getActiveView(impl.builder.context) != null
-            } catch (ignore : IllegalStateException){
-                false
-            }
-            while (deviceInfo == null || !isInit || !hasAttachedToWindow) {
-                if(System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(3)){
-                    ExecutorHelper.INSTANCE.handler.post {callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)}
-                    return@startOnBackground
-                }
+            while (deviceInfo == null || !isInit) {
                 try {
                     Thread.sleep(300)
                 } catch (ignore: InterruptedException) {
                 }
-                hasAttachedToWindow = try {
-                    ActiveWindow.getActiveView(impl.builder.context) != null
-                } catch (ignore : IllegalStateException){
-                    false
-                }
             }
+
             ExecutorHelper.INSTANCE.handler.post { startAuth(callbackOuter) }
         }
     }
@@ -250,16 +234,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private fun authenticateInternal(callback: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal()")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            val d = impl.builder.activeWindow
-            if (!ViewCompat.isAttachedToWindow(d)) {
-                checkForAttachAndStart(d, callback)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                val d = impl.builder.activeWindow
+                if (!ViewCompat.isAttachedToWindow(d)) {
+                    checkForAttachAndStart(d, callback)
+                } else {
+                    checkForFocusAndStart(callback)
+                }
             } else {
-                checkForFocusAndStart(callback)
+                BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
+                impl.authenticate(callback)
             }
-        } else {
-            BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
-            impl.authenticate(callback)
+        } catch (ignore: IllegalStateException) {
+            ExecutorHelper.INSTANCE.handler.post { callback.onCanceled() }
         }
     }
 
