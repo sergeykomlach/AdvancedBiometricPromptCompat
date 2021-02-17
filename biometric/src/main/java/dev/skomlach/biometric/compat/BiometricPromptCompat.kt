@@ -38,6 +38,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.HashSet
 
@@ -159,10 +160,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun authenticate(callbackOuter: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
         ExecutorHelper.INSTANCE.startOnBackground {
-            while (deviceInfo == null || !isInit) {
+            val startTime = System.currentTimeMillis()
+            var hasAttachedToWindow = try {
+                ActiveWindow.getActiveView(impl.builder.context) != null
+            } catch (ignore : IllegalStateException){
+                false
+            }
+            while (deviceInfo == null || !isInit || !hasAttachedToWindow) {
+                if(System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(3)){
+                    ExecutorHelper.INSTANCE.handler.post {callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)}
+                    return@startOnBackground
+                }
                 try {
-                    Thread.sleep(250)
+                    Thread.sleep(300)
                 } catch (ignore: InterruptedException) {
+                }
+                hasAttachedToWindow = try {
+                    ActiveWindow.getActiveView(impl.builder.context) != null
+                } catch (ignore : IllegalStateException){
+                    false
                 }
             }
             ExecutorHelper.INSTANCE.handler.post { startAuth(callbackOuter) }
