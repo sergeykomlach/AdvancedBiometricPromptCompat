@@ -32390,6 +32390,11 @@
    "model": "F104EvII_PRO_EEA"
   },
   {
+   "device": "F105D_128GB",
+   "name": "F105D_128GB",
+   "model": "F105D_128GB"
+  },
+  {
    "device": "F105Dv2",
    "name": "F105Dv2",
    "model": "F105Dv2"
@@ -45153,6 +45158,11 @@
    "device": "yebisuBA",
    "name": "A-DA",
    "model": "MY20ADA"
+  },
+  {
+   "device": "yebisuDA",
+   "name": "A-DA",
+   "model": "MY21ADA"
   },
   {
    "device": "koelsch",
@@ -59590,6 +59600,13 @@
    "device": "MG101A4T",
    "name": "mymaga CLASS Plus 2",
    "model": "mymaga CLASS Plus 2"
+  }
+ ],
+ "JREN": [
+  {
+   "device": "JR-101",
+   "name": "JR-101",
+   "model": "JR-101"
   }
  ],
  "JUSYEA": [
@@ -103137,6 +103154,11 @@
    "model": "Q.3778"
   },
   {
+   "device": "QT21101_464_EEA",
+   "name": "Q1-21",
+   "model": "QT21101"
+  },
+  {
    "device": "Q10S55IN4G",
    "name": "Q10S55IN4G",
    "model": "Q10S55IN4G"
@@ -108312,6 +108334,11 @@
    "model": "SM-A315N"
   },
   {
+   "device": "SCG08",
+   "name": "Galaxy A32 5G",
+   "model": "SCG08"
+  },
+  {
    "device": "a32x",
    "name": "Galaxy A32 5G",
    "model": "SM-A326B"
@@ -108695,6 +108722,21 @@
    "device": "a51xq",
    "name": "Galaxy A51 5G",
    "model": "SM-A516V"
+  },
+  {
+   "device": "a52xq",
+   "name": "Galaxy A52 5G",
+   "model": "SM-A5260"
+  },
+  {
+   "device": "a52xq",
+   "name": "Galaxy A52 5G",
+   "model": "SM-A526B"
+  },
+  {
+   "device": "a52xq",
+   "name": "Galaxy A52 5G",
+   "model": "SM-A526U"
   },
   {
    "device": "a6elteaio",
@@ -110310,6 +110352,11 @@
    "device": "f41",
    "name": "Galaxy F41",
    "model": "SM-F415F"
+  },
+  {
+   "device": "f62",
+   "name": "Galaxy F62",
+   "model": "SM-E625F"
   },
   {
    "device": "SCH-I629",
@@ -142674,6 +142721,11 @@
   }
  ],
  "Veidoo": [
+  {
+   "device": "T12",
+   "name": "T12",
+   "model": "T12"
+  },
   {
    "device": "T20",
    "name": "T20",
