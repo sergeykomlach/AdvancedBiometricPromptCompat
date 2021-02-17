@@ -153,10 +153,7 @@ public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
 
             if (signalObject == null)
                 throw new IllegalArgumentException("CancellationSignal cann't be null");
-            if (ExecutorHelper.INSTANCE.getExecutor() == null)
-                throw new IllegalArgumentException("Executor cann't be null");
-            if (ExecutorHelper.INSTANCE.getHandler() == null)
-                throw new IllegalArgumentException("Handler cann't be null");
+
         } catch (Throwable e) {
             BiometricLoggerImpl.e(e);
             if (listener != null) {

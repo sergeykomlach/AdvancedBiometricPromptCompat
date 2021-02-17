@@ -93,10 +93,7 @@ public class SoterFingerprintUnlockModule extends AbstractBiometricModule {
 
                 if (signalObject == null)
                     throw new IllegalArgumentException("CancellationSignal cann't be null");
-                if (ExecutorHelper.INSTANCE.getExecutor() == null)
-                    throw new IllegalArgumentException("Executor cann't be null");
-                if (ExecutorHelper.INSTANCE.getHandler() == null)
-                    throw new IllegalArgumentException("Handler cann't be null");
+
 
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 manager.authenticate(null, 0, signalObject, callback, ExecutorHelper.INSTANCE.getHandler());

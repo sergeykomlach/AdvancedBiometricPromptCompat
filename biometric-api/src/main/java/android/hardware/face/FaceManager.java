@@ -3,15 +3,34 @@ package android.hardware.face;
 import android.os.CancellationSignal;
 import android.os.Handler;
 
+import java.security.Signature;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.Mac;
 
 public class FaceManager {
 
-    public void authenticate(Object crypto, CancellationSignal cancel, int flags, AuthenticationCallback callback, Handler handler) {
+    public static final class CryptoObject {
+
+        public Signature getSignature() {
+            return null;
+        }
+
+        public Cipher getCipher() {
+            return null;
+        }
+
+        public Mac getMac() {
+            return null;
+        }
+    }
+
+    public void authenticate(CryptoObject crypto, CancellationSignal cancel, int flags, AuthenticationCallback callback, Handler handler) {
 
     }
 
-    public void authenticate(Object crypto, CancellationSignal cancel, int flags, AuthenticationCallback callback, Handler handler, int userId) {
+    public void authenticate(CryptoObject crypto, CancellationSignal cancel, int flags, AuthenticationCallback callback, Handler handler, int userId) {
         throw new IllegalArgumentException("Must supply an authentication callback");
     }
 
@@ -36,17 +55,17 @@ public class FaceManager {
     }
 
     public static class AuthenticationResult {
-        private final Object mObject;
+        private final CryptoObject mObject;
         private final Face mFace;
         private final int mUserId;
 
-        public AuthenticationResult(Object crypto, Face face, int userId) {
+        public AuthenticationResult(CryptoObject crypto, Face face, int userId) {
             this.mObject = crypto;
             this.mFace = face;
             this.mUserId = userId;
         }
 
-        public Object getObject() {
+        public CryptoObject getCryptoObject() {
             return this.mObject;
         }
 
