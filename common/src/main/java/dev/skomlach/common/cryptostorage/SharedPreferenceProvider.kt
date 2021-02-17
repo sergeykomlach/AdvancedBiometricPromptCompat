@@ -8,7 +8,7 @@ object SharedPreferenceProvider {
 
     @JvmStatic
     @Synchronized
-    fun getCryptoPreferences(name: String): SharedPreferences? {
+    fun getCryptoPreferences(name: String): SharedPreferences {
         if (dependencies == null) {
             dependencies = EncryptedPreferencesProvider(appContext)
         }

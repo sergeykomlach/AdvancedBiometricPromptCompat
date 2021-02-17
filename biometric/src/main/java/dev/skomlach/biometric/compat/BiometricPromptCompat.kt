@@ -63,7 +63,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         get() {
             if(field == null){
                 ExecutorHelper.INSTANCE.startOnBackground{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
+                        DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
+                            override fun onReady(info: DeviceInfo?) {
+                                field = info
+                            }
+                        })
                     }
             }
             return field
@@ -89,9 +93,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AndroidContext.appContext
                     startBiometricInit()
                     ExecutorHelper.INSTANCE.startOnBackground{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo { info ->
-                            deviceInfo = info
-                        }
+                        DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
+                            override fun onReady(info: DeviceInfo?) {
+                                deviceInfo = info
+                            }
+                        })
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
                 }
