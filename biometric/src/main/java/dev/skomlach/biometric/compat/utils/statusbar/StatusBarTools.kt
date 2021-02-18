@@ -1,22 +1,17 @@
-package dev.skomlach.biometric.compat.utils.statusbar;
+package dev.skomlach.biometric.compat.utils.statusbar
 
-import android.app.Activity;
-import android.graphics.Color;
-import android.os.Build;
-import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.Window;
+import android.R
+import android.app.Activity
+import android.graphics.Color
+import android.os.Build
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import androidx.annotation.ColorInt
+import androidx.annotation.RestrictTo
+import androidx.core.content.ContextCompat
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.RestrictTo;
-import androidx.core.content.ContextCompat;
-
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import static dev.skomlach.biometric.compat.utils.statusbar.HelperTool.isVisible;
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class StatusBarTools {
-
+object StatusBarTools {
     /* //TODO: Display cutout support
      * https://github.com/QMUI/QMUI_Android/tree/2689199dda27a6c9163fe54faa05e2d3a8447416/qmui/src/main/java/com/qmuiteam/qmui/util
      * https://open.oppomobile.com/wiki/doc#id=10159
@@ -27,92 +22,96 @@ public class StatusBarTools {
      *
      * http://thoughtnerds.com/2018/03/10-things-you-should-know-about-android-p/
      * */
-    private final static boolean TURNOFF_TINT = false;
-    private final static boolean translucentNavBar = false;
-    private final static boolean translucentStatusBar = false;
-    private final static float alpha = 0.65f;
+    private const val TURNOFF_TINT = false
+    private const val translucentNavBar = false
+    private const val translucentStatusBar = false
+    private const val alpha = 0.65f
 
     //setSystemUiVisibility has effect only if View is visible
-    public static void setNavBarAndStatusBarColors(Activity activity, @ColorInt int colorNavBar, @ColorInt int colorStatusBar) {
-        final Runnable runnable = () -> {
-            setStatusBarColor(activity, colorStatusBar);
-            setNavBarColor(activity, colorNavBar);
-        };
-
-        final View view = activity.getWindow().getDecorView();
-        if (isVisible(view, 100)) {
-            view.post(runnable);
+    fun setNavBarAndStatusBarColors(
+        activity: Activity,
+        @ColorInt colorNavBar: Int,
+        @ColorInt colorStatusBar: Int
+    ) {
+        val runnable = Runnable {
+            setStatusBarColor(activity, colorStatusBar)
+            setNavBarColor(activity, colorNavBar)
+        }
+        val view = activity.window.decorView
+        if (HelperTool.isVisible(view, 100)) {
+            view.post(runnable)
         } else {
-            view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    if (isVisible(view, 100)) {
-                        if (view.getViewTreeObserver().isAlive()) {
-                            view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                            view.post(runnable);
+            view.viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
+                override fun onGlobalLayout() {
+                    if (HelperTool.isVisible(view, 100)) {
+                        if (view.viewTreeObserver.isAlive) {
+                            view.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                            view.post(runnable)
                         }
                     }
                 }
-            });
+            })
         }
     }
 
-    private static void setNavBarColor(Activity activity, @ColorInt int color) {
+    private fun setNavBarColor(activity: Activity, @ColorInt c: Int) {
+        var color = c
         try {
-
-            if (TURNOFF_TINT)
-                return;
-
-            if (translucentNavBar)
-                color = Color.TRANSPARENT;
-
-            Window window = activity.getWindow();
-
-            boolean isDark = ColorUtil.trueDarkColor(color);
+            if (TURNOFF_TINT) return
+            if (translucentNavBar) color = Color.TRANSPARENT
+            val window = activity.window
+            val isDark = ColorUtil.trueDarkColor(color)
 
             //emulate navbar color via translucent and custom views
             //On Android6+ and some OEM device we can enable DarkIcons
-            if (!StatusBarIconsDarkMode.setDarkIconMode(window, !isDark, BarType.NAVBAR)) { //in other cases - make color a bit 'darker'
+            if (!StatusBarIconsDarkMode.setDarkIconMode(
+                    window,
+                    !isDark,
+                    BarType.NAVBAR
+                )
+            ) { //in other cases - make color a bit 'darker'
                 if (!isDark) {
-                    color = ColorUtil.blend(color, Color.BLACK, alpha);
+                    color = ColorUtil.blend(color, Color.BLACK, alpha.toDouble())
                 }
             }
             if (Build.VERSION.SDK_INT >= 21) {
-                window.setNavigationBarColor(color);
+                window.navigationBarColor = color
             }
             //add divider for android 9
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                window.setNavigationBarDividerColor(ContextCompat.getColor(window.getContext(), android.R.color.darker_gray));
+                window.navigationBarDividerColor =
+                    ContextCompat.getColor(window.context, R.color.darker_gray)
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
     }
 
-    private static void setStatusBarColor(Activity activity, @ColorInt int color) {
+    private fun setStatusBarColor(activity: Activity, @ColorInt c: Int) {
+        var color = c
         try {
-
-            if (TURNOFF_TINT)
-                return;
-
-            if (translucentStatusBar)
-                color = Color.TRANSPARENT;
-
-            Window window = activity.getWindow();
-            boolean isDark = ColorUtil.trueDarkColor(color);
+            if (TURNOFF_TINT) return
+            if (translucentStatusBar) color = Color.TRANSPARENT
+            val window = activity.window
+            val isDark = ColorUtil.trueDarkColor(color)
 
             //emulate statusbar color via translucent and custom views
             //On Android6+ and some OEM device we can enable DarkIcons
-            if (!StatusBarIconsDarkMode.setDarkIconMode(window, !isDark, BarType.STATUSBAR)) { //in other cases - make color a bit 'darker'
+            if (!StatusBarIconsDarkMode.setDarkIconMode(
+                    window,
+                    !isDark,
+                    BarType.STATUSBAR
+                )
+            ) { //in other cases - make color a bit 'darker'
                 if (!isDark) {
-                    color = ColorUtil.blend(color, Color.BLACK, alpha);
+                    color = ColorUtil.blend(color, Color.BLACK, alpha.toDouble())
                 }
             }
             if (Build.VERSION.SDK_INT >= 21) {
-                window.setStatusBarColor(color);
+                window.statusBarColor = color
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
     }
 }

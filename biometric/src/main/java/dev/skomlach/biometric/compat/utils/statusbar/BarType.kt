@@ -1,9 +1,8 @@
-package dev.skomlach.biometric.compat.utils.statusbar;
+package dev.skomlach.biometric.compat.utils.statusbar
 
-import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public enum BarType {
-    STATUSBAR,
-    NAVBAR
+enum class BarType {
+    STATUSBAR, NAVBAR
 }
