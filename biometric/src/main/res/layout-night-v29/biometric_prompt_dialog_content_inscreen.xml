@@ -10,7 +10,7 @@
         android:tag="dark_theme"
         android:orientation="vertical"
         >
-    <include layout="@layout/biometrics"/>
+
     <LinearLayout
             android:id="@+id/dialogLayout"
             android:layout_width="wrap_content"

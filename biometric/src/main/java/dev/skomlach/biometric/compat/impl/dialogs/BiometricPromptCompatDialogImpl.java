@@ -312,7 +312,6 @@ public class BiometricPromptCompatDialogImpl {
         ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
             @Override
             public void run() {
-                dialog.errorType(type);
                 animateHandler.removeMessages(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE);
                 if (dialog.getFingerprintIcon() != null) {
                     dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
@@ -321,15 +320,6 @@ public class BiometricPromptCompatDialogImpl {
                 dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.getContext(), R.color.material_red_500));
 
                 animateHandler.sendEmptyMessageDelayed(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE, 2000);
-            }
-        });
-    }
-
-    public void onSuccess(BiometricType type) {
-        ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                dialog.successType(type);
             }
         });
     }
@@ -345,7 +335,6 @@ public class BiometricPromptCompatDialogImpl {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case WHAT_RESTORE_NORMAL_STATE:
-                    dialog.resetIcons();
                     if (dialog.getFingerprintIcon() != null) {
                         dialog.getFingerprintIcon().setState(FingerprintIconView.State.ON);
                     }

@@ -399,8 +399,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var notificationEnabled = true
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
-        var showBiometricIcons = false
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
@@ -420,10 +418,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             this.colorStatusBar = activityStatusBarColor
             return this
         }
-        fun setShowBiometricIcons(enabled: Boolean): Builder {
-            this.showBiometricIcons = enabled
-            return this
-        }
+
         fun setEnabledNotification(enabled: Boolean): Builder {
             this.notificationEnabled = enabled
             return this
