@@ -44,13 +44,11 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
     private FingerprintIconView mFingerprintIcon;
     private View container = null;
     private View rootView = null;
-    private View biometrics_layout = null;
     private WindowFocusChangedListener focusListener;
-    private final List<BiometricType> list;
 
     BiometricPromptCompatDialog(@NonNull BiometricPromptCompat.Builder compatBuilder, boolean isInscreenLayout) {
         super(new ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog), R.style.Theme_BiometricPromptDialog);
-        this.list = new ArrayList<>(compatBuilder.showBiometricIcons? compatBuilder.getAllTypes() : Collections.emptyList());
+
         res = (isInscreenLayout ?
                 R.layout.biometric_prompt_dialog_content_inscreen :
                 R.layout.biometric_prompt_dialog_content);
@@ -150,8 +148,6 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
             }
         });
 
-        biometrics_layout = rootView.findViewById(R.id.biometrics_layout);
-        updateBiometricIconsLayout();
         mTitle = rootView.findViewById(R.id.title);
         mSubtitle = rootView.findViewById(R.id.subtitle);
         mDescription = rootView.findViewById(R.id.description);
@@ -216,136 +212,5 @@ class BiometricPromptCompatDialog extends AppCompatDialog {
 
     public View getRootView() {
         return rootView;
-    }
-
-    private void updateBiometricIconsLayout() {
-        resetIcons();
-        biometrics_layout.findViewById(R.id.face).setVisibility(list.contains(BiometricType.BIOMETRIC_FACE) ? View.VISIBLE : View.GONE);
-        biometrics_layout.findViewById(R.id.iris).setVisibility(list.contains(BiometricType.BIOMETRIC_IRIS) ? View.VISIBLE : View.GONE);
-        biometrics_layout.findViewById(R.id.fingerprint).setVisibility(list.contains(BiometricType.BIOMETRIC_FINGERPRINT) ? View.VISIBLE : View.GONE);
-        biometrics_layout.findViewById(R.id.heartrate).setVisibility(list.contains(BiometricType.BIOMETRIC_HEARTRATE) ? View.VISIBLE : View.GONE);
-        biometrics_layout.findViewById(R.id.voice).setVisibility(list.contains(BiometricType.BIOMETRIC_VOICE) ? View.VISIBLE : View.GONE);
-        biometrics_layout.findViewById(R.id.palm).setVisibility(list.contains(BiometricType.BIOMETRIC_PALMPRINT) ? View.VISIBLE : View.GONE);
-        biometrics_layout.findViewById(R.id.typing).setVisibility(list.contains(BiometricType.BIOMETRIC_BEHAVIOR) ? View.VISIBLE : View.GONE);
-        if (list.size() < 1 || (list.size() == 1 && list.contains(BiometricType.BIOMETRIC_FINGERPRINT))) {
-            biometrics_layout.setVisibility(View.GONE);
-        } else {
-            biometrics_layout.setVisibility(View.VISIBLE);
-        }
-    }
-
-    public void resetIcons() {
-        for (BiometricType type : BiometricType.values()) {
-            switch (type) {
-                case BIOMETRIC_FACE:
-                    if(biometrics_layout.findViewById(R.id.face).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.face),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-                case BIOMETRIC_IRIS:
-                    if(biometrics_layout.findViewById(R.id.iris).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.iris),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-                case BIOMETRIC_HEARTRATE:
-                    if(biometrics_layout.findViewById(R.id.heartrate).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.heartrate),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-                case BIOMETRIC_VOICE:
-                    if(biometrics_layout.findViewById(R.id.voice).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.voice),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-                case BIOMETRIC_PALMPRINT:
-                    if(biometrics_layout.findViewById(R.id.palm).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.palm),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-                case BIOMETRIC_BEHAVIOR:
-                    if(biometrics_layout.findViewById(R.id.typing).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.typing),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-                case BIOMETRIC_FINGERPRINT:
-                    if(biometrics_layout.findViewById(R.id.fingerprint).getTag() == null)
-                    ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.fingerprint),
-                            ColorStateList.valueOf(Color.parseColor("#ffffff")));
-                    break;
-            }
-        }
-    }
-
-    public void errorType(BiometricType type) {
-        switch (type) {
-            case BIOMETRIC_FACE:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.face),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-            case BIOMETRIC_IRIS:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.iris),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-            case BIOMETRIC_HEARTRATE:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.heartrate),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-            case BIOMETRIC_VOICE:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.voice),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-            case BIOMETRIC_PALMPRINT:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.palm),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-            case BIOMETRIC_BEHAVIOR:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.typing),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-            case BIOMETRIC_FINGERPRINT:
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.fingerprint),
-                        ColorStateList.valueOf(Color.parseColor("#ff4500")));
-                break;
-        }
-    }
-
-    public void successType(BiometricType type) {
-        switch (type) {
-            case BIOMETRIC_FACE:
-                biometrics_layout.findViewById(R.id.face).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.face),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-            case BIOMETRIC_IRIS:
-                biometrics_layout.findViewById(R.id.iris).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.iris),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-            case BIOMETRIC_HEARTRATE:
-                biometrics_layout.findViewById(R.id.heartrate).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.heartrate),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-            case BIOMETRIC_VOICE:
-                biometrics_layout.findViewById(R.id.voice).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.voice),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-            case BIOMETRIC_PALMPRINT:
-                biometrics_layout.findViewById(R.id.palm).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.palm),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-            case BIOMETRIC_BEHAVIOR:
-                biometrics_layout.findViewById(R.id.typing).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.typing),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-            case BIOMETRIC_FINGERPRINT:
-                biometrics_layout.findViewById(R.id.fingerprint).setTag(type);
-                ImageViewCompat.setImageTintList(biometrics_layout.findViewById(R.id.fingerprint),
-                        ColorStateList.valueOf(Color.parseColor("#00b341")));
-                break;
-        }
     }
 }

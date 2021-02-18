@@ -204,8 +204,6 @@ public class BiometricPromptGenericImpl implements IBiometricPromptImpl, AuthCal
         @Override
         public void onSuccess(BiometricType module) {
             confirmed.add(module);
-            if(dialog !=null)
-            dialog.onSuccess(module);
             List<BiometricType> confirmedList = new ArrayList<>(confirmed);
             List<BiometricType> allList = new ArrayList<>(compatBuilder.getAllTypes());
             allList.removeAll(confirmedList);
