@@ -1,8 +1,8 @@
-package dev.skomlach.biometric.compat.utils.themes;
+package dev.skomlach.biometric.compat.utils.themes
 
-import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public enum DarkThemeCheckResult {
+enum class DarkThemeCheckResult {
     LIGHT, DARK, UNDEFINED
 }
