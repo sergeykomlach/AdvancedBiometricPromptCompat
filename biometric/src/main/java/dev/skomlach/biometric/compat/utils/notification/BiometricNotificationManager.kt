@@ -1,107 +1,116 @@
-package dev.skomlach.biometric.compat.utils.notification;
+package dev.skomlach.biometric.compat.utils.notification
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Build;
-import androidx.annotation.DrawableRes;
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
-import java.util.Set;
-import dev.skomlach.biometric.compat.BiometricType;
-import dev.skomlach.biometric.compat.R;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.annotation.DrawableRes
+import androidx.annotation.RestrictTo
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class BiometricNotificationManager {
-    public static BiometricNotificationManager INSTANCE = new BiometricNotificationManager();
-    public static final String CHANNEL_ID = "biometric";
-    private final NotificationManagerCompat notificationManagerCompat;
-    private final Context context;
+class BiometricNotificationManager private constructor() {
 
-    private BiometricNotificationManager() {
-        context = AndroidContext.getAppContext();
-        notificationManagerCompat = NotificationManagerCompat.from(context);
-        initNotificationsPreferences();
+    companion object {
+        val INSTANCE = BiometricNotificationManager()
+        const val CHANNEL_ID = "biometric"
     }
 
-    private void initNotificationsPreferences() {
+    private val notificationManagerCompat: NotificationManagerCompat = NotificationManagerCompat.from(appContext)
+
+    init {
+        initNotificationsPreferences()
+    }
+
+    private fun initNotificationsPreferences() {
         if (Build.VERSION.SDK_INT >= 26) {
             try {
-                NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-                NotificationChannel notificationChannel1 = notificationManager.getNotificationChannel(CHANNEL_ID);
+                val notificationManager = appContext.getSystemService(
+                    NotificationManager::class.java
+                )
+                var notificationChannel1 = notificationManager.getNotificationChannel(CHANNEL_ID)
                 if (notificationChannel1 == null) {
-                    notificationChannel1 = new NotificationChannel(CHANNEL_ID, "Biometric", NotificationManager.IMPORTANCE_LOW);
+                    notificationChannel1 = NotificationChannel(
+                        CHANNEL_ID,
+                        "Biometric",
+                        NotificationManager.IMPORTANCE_LOW
+                    )
                 }
-                notificationChannel1.setShowBadge(false);
-                notificationManager.createNotificationChannel(notificationChannel1);
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e);
+                notificationChannel1.setShowBadge(false)
+                notificationManager.createNotificationChannel(notificationChannel1)
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
         }
     }
 
-    public void showNotification(@Nullable CharSequence title, @Nullable CharSequence description, Set<BiometricType> list) {
-        dismissAll();
+    fun showNotification(
+        title: CharSequence?,
+        description: CharSequence?,
+        list: Set<BiometricType>
+    ) {
+        dismissAll()
         try {
-            Intent clickIntent = new Intent();
-            for (BiometricType type : list) {
-                @DrawableRes int icon;
-                switch (type) {
-                    case BIOMETRIC_FACE:
-                        icon = R.drawable.bio_ic_face;
-                        break;
-                    case BIOMETRIC_IRIS:
-                        icon = R.drawable.bio_ic_iris;
-                        break;
-                    case BIOMETRIC_HEARTRATE:
-                        icon = R.drawable.bio_ic_heartrate;
-                        break;
-                    case BIOMETRIC_VOICE:
-                        icon = R.drawable.bio_ic_voice;
-                        break;
-                    case BIOMETRIC_PALMPRINT:
-                        icon = R.drawable.bio_ic_palm;
-                        break;
-                    case BIOMETRIC_BEHAVIOR:
-                        icon = R.drawable.bio_ic_behavior;
-                        break;
-                    case BIOMETRIC_FINGERPRINT:
-                    default:
-                        icon = R.drawable.bio_ic_fingerprint;
-                        break;
+            val clickIntent = Intent()
+            for (type in list) {
+                @DrawableRes val icon: Int = when (type) {
+                    BiometricType.BIOMETRIC_FACE -> R.drawable.bio_ic_face
+                    BiometricType.BIOMETRIC_IRIS -> R.drawable.bio_ic_iris
+                    BiometricType.BIOMETRIC_HEARTRATE -> R.drawable.bio_ic_heartrate
+                    BiometricType.BIOMETRIC_VOICE -> R.drawable.bio_ic_voice
+                    BiometricType.BIOMETRIC_PALMPRINT -> R.drawable.bio_ic_palm
+                    BiometricType.BIOMETRIC_BEHAVIOR -> R.drawable.bio_ic_behavior
+                    BiometricType.BIOMETRIC_FINGERPRINT -> R.drawable.bio_ic_fingerprint
+                    else -> R.drawable.bio_ic_fingerprint
                 }
-                NotificationCompat.Builder notif = new NotificationCompat.Builder(context, CHANNEL_ID)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
-                        .setLocalOnly(true)
-                        .setContentTitle(title)
-                        .setContentText(description)
-                        .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(description))
-                        .setContentIntent(PendingIntent.getBroadcast(context, 1, clickIntent, PendingIntent.FLAG_CANCEL_CURRENT))
-                        .setDeleteIntent(PendingIntent.getBroadcast(context, 2, clickIntent, PendingIntent.FLAG_CANCEL_CURRENT))
-                        .setSmallIcon(icon);
-
-                notificationManagerCompat.notify(type.hashCode(), notif.build());
+                val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
+                    .setAutoCancel(false)
+                    .setOngoing(true)
+                    .setLocalOnly(true)
+                    .setContentTitle(title)
+                    .setContentText(description)
+                    .setStyle(
+                        NotificationCompat.BigTextStyle()
+                            .bigText(description)
+                    )
+                    .setContentIntent(
+                        PendingIntent.getBroadcast(
+                            appContext,
+                            1,
+                            clickIntent,
+                            PendingIntent.FLAG_CANCEL_CURRENT
+                        )
+                    )
+                    .setDeleteIntent(
+                        PendingIntent.getBroadcast(
+                            appContext,
+                            2,
+                            clickIntent,
+                            PendingIntent.FLAG_CANCEL_CURRENT
+                        )
+                    )
+                    .setSmallIcon(icon)
+                notificationManagerCompat.notify(type.hashCode(), notif.build())
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
     }
 
-    public void dismissAll() {
+    fun dismissAll() {
         try {
-            for (BiometricType type : BiometricType.values()) {
-                notificationManagerCompat.cancel(type.hashCode());
+            for (type in BiometricType.values()) {
+                notificationManagerCompat.cancel(type.hashCode())
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
     }
 }
