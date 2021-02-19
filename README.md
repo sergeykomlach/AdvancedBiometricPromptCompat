@@ -225,7 +225,8 @@ IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scann
 - ~~Check for the way to start BiometricAuth with specified BiometricType~~
 - Cleanup project and README  
 - Migrate to Kotlin  
-  
+- Implement 'hasEnrollChanged()' (???)
+- implement 'CryptoObject' (???)
   
 
 
