@@ -6,18 +6,15 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Point
 import android.graphics.Rect
-import android.hardware.display.DisplayManager
-import android.hardware.display.DisplayManager.DisplayListener
 import android.os.Build
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.*
 import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
 import com.jakewharton.rxrelay2.PublishRelay
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.logging.LogCat.logException
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Consumer
@@ -29,16 +26,8 @@ class MultiWindowSupport(private val activity: Activity) {
         private val realScreenSize = LruCache<Configuration, Point>(1)
         private val activityResumedRelay = PublishRelay.create<Activity>()
         private val activityDestroyedRelay = PublishRelay.create<Activity>()
-        private var displayManager: DisplayManager? = null
 
         init {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                try {
-                    displayManager =
-                        appContext.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-                } catch (ignore: Throwable) {
-                }
-            }
             appContext
                 .registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
                     override fun onActivityCreated(
@@ -52,7 +41,9 @@ class MultiWindowSupport(private val activity: Activity) {
                         activityResumedRelay.accept(activity)
                     }
 
-                    override fun onActivityPaused(activity: Activity) {}
+                    override fun onActivityPaused(activity: Activity) {
+                        activityResumedRelay.accept(activity)
+                    }
                     override fun onActivityStopped(activity: Activity) {}
                     override fun onActivitySaveInstanceState(
                         activity: Activity,
@@ -71,11 +62,9 @@ class MultiWindowSupport(private val activity: Activity) {
     private lateinit var subscribeOnDestroy: Disposable
     private var isMultiWindow = false
     private var isWindowOnScreenBottom = false
-    private var displayListener: DisplayListener? = null
     private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
         if (ObjectsCompat.equals(activity1, activity)) {
             try {
-                unregisterDualScreenListeners()
                 subscribeOnResume.dispose()
                 subscribeOnDestroy.dispose()
             } catch (e: Exception) {
@@ -96,8 +85,8 @@ class MultiWindowSupport(private val activity: Activity) {
         }
     }
 
+    private val window = androidx.window.WindowManager(activity)
     init {
-        registerDualScreenListeners()
         subscribeOnResume = subscribeOnResume()
         subscribeOnDestroy = subscribeOnDestroy()
     }
@@ -108,31 +97,6 @@ class MultiWindowSupport(private val activity: Activity) {
 
     private fun subscribeOnDestroy(): Disposable {
         return activityDestroyedRelay.subscribe(onDestroyListener)
-    }
-
-    private fun registerDualScreenListeners() {
-        unregisterDualScreenListeners()
-        try {
-            if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                displayManager?.registerDisplayListener(
-                    displayListener,
-                    ExecutorHelper.INSTANCE.handler
-                )
-            }
-        } catch (e: Throwable) {
-            logException(e)
-        }
-    }
-
-    private fun unregisterDualScreenListeners() {
-        try {
-            if (displayManager != null && displayListener != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                displayManager?.unregisterDisplayListener(displayListener)
-            }
-        } catch (e: Throwable) {
-            logException(e)
-        }
-        displayListener = null
     }
 
     private fun updateState() {
@@ -165,9 +129,24 @@ class MultiWindowSupport(private val activity: Activity) {
         }
         currentConfiguration = activity.resources.configuration
         isMultiWindow = h != 0 || w != 0
-        val topPart = realScreenSize.y / 5
-        isWindowOnScreenBottom =
-            isSmartphone && (rect.top >= topPart || isMultiWindow && rect.top == 0)
+        val locationOnScreen  = IntArray(2)
+        decorView.getLocationOnScreen(locationOnScreen)
+        isWindowOnScreenBottom = isMultiWindow && (realScreenSize.y/2 < locationOnScreen[1] + (rect.width()/2))
+
+        val sb = StringBuilder()
+        sb.append(activity.javaClass.simpleName + " Activity screen:")
+        log("isMultiWindow $isMultiWindow", sb)
+        log("isWindowOnScreenBottom $isWindowOnScreenBottom", sb)
+        log("final " + w + "x" + h + "", sb)
+        log("NavBarW/H " + navigationBarWidth + "x" + navigationBarHeight, sb)
+        log("statusBarH $statusBarHeight", sb)
+        log("View $rect", sb)
+        log("realScreenSize $realScreenSize", sb)
+
+        LogCat.logError(sb.toString())
+    }
+    private fun log(msg: Any, sb: java.lang.StringBuilder) {
+        sb.append(" [").append(msg).append("] ")
     }
 
     //Configuration change can happens when Activity Window Size was changed, but Multiwindow was not switched
@@ -264,13 +243,9 @@ class MultiWindowSupport(private val activity: Activity) {
         val realSize = realScreenSize
         val realHeight = realSize.y
         val realWidth = realSize.x
-        val windowManager = activity
-            .getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val display = windowManager.defaultDisplay
-        val displayMetrics = DisplayMetrics()
-        display.getMetrics(displayMetrics)
-        val displayHeight = displayMetrics.heightPixels
-        val displayWidth = displayMetrics.widthPixels
+        val bounds = window.currentWindowMetrics.bounds
+        val displayHeight = bounds.height()
+        val displayWidth = bounds.width()
         if (realWidth - displayWidth > 0 || realHeight - displayHeight > 0) {
             return true
         }
@@ -305,34 +280,9 @@ class MultiWindowSupport(private val activity: Activity) {
             return if (point != null) {
                 point
             } else {
-                val windowManager =
-                    activity.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                val display = windowManager.defaultDisplay
-                var realWidth: Int
-                var realHeight: Int
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    //new pleasant way to get real metrics
-                    val realMetrics = DisplayMetrics()
-                    display.getRealMetrics(realMetrics)
-                    realWidth = realMetrics.widthPixels
-                    realHeight = realMetrics.heightPixels
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-                    //reflection for this weird in-between time
-                    try {
-                        val mGetRawH = Display::class.java.getMethod("getRawHeight")
-                        val mGetRawW = Display::class.java.getMethod("getRawWidth")
-                        realWidth = mGetRawW.invoke(display) as Int
-                        realHeight = mGetRawH.invoke(display) as Int
-                    } catch (e: Exception) {
-                        //this may not be 100% accurate, but it's all we've got
-                        realWidth = display.width
-                        realHeight = display.height
-                    }
-                } else {
-                    //This should be close, as lower API devices should not have window navigation bars
-                    realWidth = display.width
-                    realHeight = display.height
-                }
+                val bounds = window.maximumWindowMetrics.bounds
+                val realWidth = bounds.width()
+                val realHeight = bounds.height()
                 val size = Point(realWidth, realHeight)
                 Companion.realScreenSize.put(configuration, size)
                 size
@@ -342,13 +292,11 @@ class MultiWindowSupport(private val activity: Activity) {
         get() {
             var orientation = activity.resources.configuration.orientation
             if (orientation == Configuration.ORIENTATION_UNDEFINED) {
-                val windowManager = activity
-                    .getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                val display = windowManager.defaultDisplay
-                orientation = if (display.width == display.height) {
+               val bounds = window.currentWindowMetrics.bounds
+                orientation = if (bounds.width() == bounds.height()) {
                     Configuration.ORIENTATION_SQUARE
                 } else {
-                    if (display.width < display.height) {
+                    if (bounds.width() < bounds.height()) {
                         Configuration.ORIENTATION_PORTRAIT
                     } else {
                         Configuration.ORIENTATION_LANDSCAPE

@@ -25,25 +25,26 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .allowToManageSystemBars(Color.BLUE, Color.RED)
         .build()
 
+    val context = activity?.applicationContext
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
         override fun onSucceeded() {
-            Toast.makeText(activity, "Succeeded", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Succeeded", Toast.LENGTH_SHORT).show()
         }
 
         override fun onCanceled() {
-            Toast.makeText(activity, "Canceled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Canceled", Toast.LENGTH_SHORT).show()
         }
 
         override fun onFailed(reason: AuthenticationFailureReason?) {
-            Toast.makeText(activity, "Error: $reason", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Error: $reason", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIOpened() {
-            Toast.makeText(activity, "onUIOpened", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "onUIOpened", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIClosed() {
-            Toast.makeText(activity, "onUIClosed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
 }
