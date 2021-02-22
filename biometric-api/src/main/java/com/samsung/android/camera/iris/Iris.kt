@@ -1,4 +1,3 @@
-package com.samsung.android.camera.iris;
+package com.samsung.android.camera.iris
 
-public class Iris {
-}
+class Iris 

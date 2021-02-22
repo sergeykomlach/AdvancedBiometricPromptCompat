@@ -1,4 +1,3 @@
-package android.hardware.face;
+package android.hardware.face
 
-public class Face {
-}
+class Face 

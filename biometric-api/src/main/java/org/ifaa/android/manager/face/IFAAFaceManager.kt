@@ -1,23 +1,14 @@
-package org.ifaa.android.manager.face;
+package org.ifaa.android.manager.face
 
-public abstract class IFAAFaceManager {
-    public abstract void authenticate(int reqId, int flags, AuthenticatorCallback authenticatorCallback);
+abstract class IFAAFaceManager {
+    abstract fun authenticate(reqId: Int, flags: Int, authenticatorCallback: AuthenticatorCallback?)
+    abstract fun cancel(reqId: Int): Int
+    abstract val version: Int
 
-    public abstract int cancel(int reqId);
-
-    public abstract int getVersion();
-
-    public static abstract class AuthenticatorCallback {
-        public void onAuthenticationError(int errorCode) {
-        }
-
-        public void onAuthenticationStatus(int status) {
-        }
-
-        public void onAuthenticationSucceeded() {
-        }
-
-        public void onAuthenticationFailed(int errCode) {
-        }
+    abstract class AuthenticatorCallback {
+        fun onAuthenticationError(errorCode: Int) {}
+        fun onAuthenticationStatus(status: Int) {}
+        fun onAuthenticationSucceeded() {}
+        fun onAuthenticationFailed(errCode: Int) {}
     }
 }

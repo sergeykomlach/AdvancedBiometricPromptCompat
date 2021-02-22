@@ -1,4 +1,3 @@
-package android.hardware.iris;
+package android.hardware.iris
 
-public class Iris {
-}
+class Iris 

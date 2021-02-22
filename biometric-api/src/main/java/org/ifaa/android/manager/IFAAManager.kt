@@ -1,20 +1,13 @@
-package org.ifaa.android.manager;
+package org.ifaa.android.manager
 
-import android.content.Context;
-import android.os.Build.VERSION;
+import android.content.Context
+import android.os.Build.VERSION
 
-public abstract class IFAAManager {
-    private static final int IFAA_VERSION_V2 = 2;
-    private static final int IFAA_VERSION_V3 = 3;
-    private static final int IFAA_VERSION_V4 = 4;
-
-    static int sIfaaVer;
-    static boolean sIsFod = false;
-
+abstract class IFAAManager {
     /**
      * 返回手机系统上支持的校验方式，目前IFAF协议1.0版本指纹为0x01、虹膜为0x02
      */
-    public abstract int getSupportBIOTypes(Context context);
+    abstract fun getSupportBIOTypes(context: Context?): Int
 
     /**
      * 启动系统的指纹/虹膜管理应用界面，让用户进行指纹录入。指纹录入是在系统的指纹管理应用中实现的，
@@ -23,7 +16,7 @@ public abstract class IFAAManager {
      * @param authType 生物特征识别类型，指纹为1，虹膜为2
      * @return 0，成功启动指纹管理应用；-1，启动指纹管理应用失败。
      */
-    public abstract int startBIOManager(Context context, int authType);
+    abstract fun startBIOManager(context: Context?, authType: Int): Int
 
     /**
      * 通过ifaateeclient的so文件实现REE到TA的通道
@@ -31,32 +24,39 @@ public abstract class IFAAManager {
      * @param param 用于传输到IFAA TA的数据buffer
      * @return IFAA TA返回给REE数据buffer
      */
-    public native byte[] processCmd(Context context, byte[] param);
+    external fun processCmd(context: Context?, param: ByteArray?): ByteArray?
 
     /**
      * 获取设备型号，同一款机型型号需要保持一致
      */
-    public abstract String getDeviceModel();
+    abstract val deviceModel: String?
 
     /**
      * 获取IFAAManager接口定义版本，目前为1
      */
-    public abstract int getVersion();
+    abstract val version: Int
 
-    /**
-     * load so to communicate from REE to TEE
-     */
-    static {
-        sIfaaVer = 1;
+    companion object {
+        private const val IFAA_VERSION_V2 = 2
+        private const val IFAA_VERSION_V3 = 3
+        private const val IFAA_VERSION_V4 = 4
+        var sIfaaVer = 0
+        var sIsFod = false
 
-        if (VERSION.SDK_INT >= 28) {
-            sIfaaVer = IFAA_VERSION_V4;
-        } else if (sIsFod) {
-            sIfaaVer = IFAA_VERSION_V3;
-        } else if (VERSION.SDK_INT >= 24) {
-            sIfaaVer = IFAA_VERSION_V2;
-        } else {
-            System.loadLibrary("teeclientjni"); //teeclientjni for TA test binary //ifaateeclient
+        /**
+         * load so to communicate from REE to TEE
+         */
+        init {
+            sIfaaVer = 1
+            if (VERSION.SDK_INT >= 28) {
+                sIfaaVer = IFAA_VERSION_V4
+            } else if (sIsFod) {
+                sIfaaVer = IFAA_VERSION_V3
+            } else if (VERSION.SDK_INT >= 24) {
+                sIfaaVer = IFAA_VERSION_V2
+            } else {
+                System.loadLibrary("teeclientjni") //teeclientjni for TA test binary //ifaateeclient
+            }
         }
     }
 }

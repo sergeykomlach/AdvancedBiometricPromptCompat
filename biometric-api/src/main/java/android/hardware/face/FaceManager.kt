@@ -1,101 +1,66 @@
-package android.hardware.face;
+package android.hardware.face
 
-import android.os.CancellationSignal;
-import android.os.Handler;
+import android.os.CancellationSignal
+import android.os.Handler
+import java.security.Signature
+import javax.crypto.Cipher
+import javax.crypto.Mac
 
-import java.security.Signature;
-import java.util.List;
-
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
-
-public class FaceManager {
-
-    public static final class CryptoObject {
-
-        public Signature getSignature() {
-            return null;
-        }
-
-        public Cipher getCipher() {
-            return null;
-        }
-
-        public Mac getMac() {
-            return null;
-        }
+class FaceManager {
+    class CryptoObject {
+        val signature: Signature?
+            get() = null
+        val cipher: Cipher?
+            get() = null
+        val mac: Mac?
+            get() = null
     }
 
-    public void authenticate(CryptoObject crypto, CancellationSignal cancel, int flags, AuthenticationCallback callback, Handler handler) {
-
+    fun authenticate(
+        crypto: CryptoObject?,
+        cancel: CancellationSignal?,
+        flags: Int,
+        callback: AuthenticationCallback?,
+        handler: Handler?
+    ) {
     }
 
-    public void authenticate(CryptoObject crypto, CancellationSignal cancel, int flags, AuthenticationCallback callback, Handler handler, int userId) {
-        throw new IllegalArgumentException("Must supply an authentication callback");
+    fun authenticate(
+        crypto: CryptoObject?,
+        cancel: CancellationSignal?,
+        flags: Int,
+        callback: AuthenticationCallback?,
+        handler: Handler?,
+        userId: Int
+    ) {
+        throw IllegalArgumentException("Must supply an authentication callback")
     }
 
-    public List<Face> getEnrolledFaces(int userId) {
-        return null;
+    fun getEnrolledFaces(userId: Int): List<Face>? {
+        return null
     }
 
-    public List<Face> getEnrolledFaces() {
-        return getEnrolledFaces(0);
+    val enrolledFaces: List<Face>?
+        get() = getEnrolledFaces(0)
+
+    fun hasEnrolledTemplates(): Boolean {
+        return false
     }
 
-    public boolean hasEnrolledTemplates() {
-        return false;
+    fun hasEnrolledTemplates(userId: Int): Boolean {
+        return false
     }
 
-    public boolean hasEnrolledTemplates(int userId) {
-        return false;
-    }
+    val isHardwareDetected: Boolean
+        get() = false
 
-    public boolean isHardwareDetected() {
-        return false;
-    }
-
-    public static class AuthenticationResult {
-        private final CryptoObject mObject;
-        private final Face mFace;
-        private final int mUserId;
-
-        public AuthenticationResult(CryptoObject crypto, Face face, int userId) {
-            this.mObject = crypto;
-            this.mFace = face;
-            this.mUserId = userId;
-        }
-
-        public CryptoObject getCryptoObject() {
-            return this.mObject;
-        }
-
-        public Face getFace() {
-            return this.mFace;
-        }
-
-        public int getUserId() {
-            return this.mUserId;
-        }
-    }
-
-    public static abstract class AuthenticationCallback {
-
-        public void onAuthenticationError(int errorCode, CharSequence errString) {
-        }
-
-        public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-        }
-
-        public void onAuthenticationSucceeded(AuthenticationResult result) {
-        }
-
-        public void onAuthenticationFailed() {
-        }
-
-        public void onAuthenticationAcquired(int acquireInfo) {
-        }
-
-        public void onProgressChanged(int progressInfo) {
-        }
+    class AuthenticationResult(val cryptoObject: CryptoObject, val face: Face, val userId: Int)
+    abstract class AuthenticationCallback {
+        open fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {}
+        open fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence?) {}
+        open fun onAuthenticationSucceeded(result: AuthenticationResult?) {}
+        open fun onAuthenticationFailed() {}
+        fun onAuthenticationAcquired(acquireInfo: Int) {}
+        fun onProgressChanged(progressInfo: Int) {}
     }
 }

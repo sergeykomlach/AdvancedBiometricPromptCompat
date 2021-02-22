@@ -1,129 +1,101 @@
-package com.samsung.android.bio.face;
+package com.samsung.android.bio.face
 
-import android.content.Context;
-import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.os.Handler;
-import android.view.View;
+import android.content.Context
+import android.os.Bundle
+import android.os.CancellationSignal
+import android.os.Handler
+import android.view.View
+import java.security.Signature
+import javax.crypto.Cipher
+import javax.crypto.Mac
 
-import java.security.Signature;
-import java.util.List;
-
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
-
-public class SemBioFaceManager {
-    public static synchronized SemBioFaceManager getInstance(Context context) {
-        return null;
+class SemBioFaceManager {
+    fun authenticate(
+        cryptoObject: CryptoObject?,
+        cancellationSignal: CancellationSignal?,
+        i: Int,
+        authenticationCallback: AuthenticationCallback?,
+        handler: Handler?,
+        i2: Int,
+        bundle: Bundle?,
+        view: View?
+    ) {
     }
 
-    public void authenticate(CryptoObject cryptoObject, CancellationSignal cancellationSignal, int i, AuthenticationCallback authenticationCallback, Handler handler, int i2, Bundle bundle, View view) {
-
+    fun authenticate(
+        cryptoObject: CryptoObject?,
+        cancellationSignal: CancellationSignal?,
+        i: Int,
+        authenticationCallback: AuthenticationCallback?,
+        handler: Handler?,
+        view: View?
+    ) {
     }
 
-    public void authenticate(CryptoObject cryptoObject, CancellationSignal cancellationSignal, int i, AuthenticationCallback authenticationCallback, Handler handler, View view) {
+    val enrolledFaces: List<Face>?
+        get() = null
 
+    fun getEnrolledFaces(i: Int): List<Face>? {
+        return null
     }
 
-    public List<Face> getEnrolledFaces() {
-        return null;
+    fun hasEnrolledFaces(): Boolean {
+        return false
     }
 
-    public List<Face> getEnrolledFaces(int i) {
+    val isHardwareDetected: Boolean
+        get() = true
 
-        return null;
+    abstract class AuthenticationCallback {
+        fun onAuthenticationAcquired(i: Int) {}
+        open fun onAuthenticationError(i: Int, charSequence: CharSequence?) {}
+        open fun onAuthenticationFailed() {}
+        open fun onAuthenticationHelp(i: Int, charSequence: CharSequence?) {}
+        open fun onAuthenticationSucceeded(authenticationResult: AuthenticationResult?) {}
     }
 
-    public boolean hasEnrolledFaces() {
+    class AuthenticationResult(val cryptoObject: CryptoObject, val face: Face)
+    class CryptoObject {
+        private val mCrypto: Any
+        val fidoRequestData: ByteArray
+        var fidoResultData: ByteArray? = null
+            private set
 
-        return false;
+        constructor(signature: Signature, bArr: ByteArray) {
+            mCrypto = signature
+            fidoRequestData = bArr
+        }
+
+        constructor(cipher: Cipher, bArr: ByteArray) {
+            mCrypto = cipher
+            fidoRequestData = bArr
+        }
+
+        constructor(mac: Mac, bArr: ByteArray) {
+            mCrypto = mac
+            fidoRequestData = bArr
+        }
+
+        val cipher: Cipher?
+            get() = if (mCrypto is Cipher) mCrypto else null
+
+        private fun setFidoResultData(bArr: ByteArray) {
+            fidoResultData = bArr
+        }
+
+        val mac: Mac?
+            get() = if (mCrypto is Mac) mCrypto else null
+        val opId: Long
+            get() = 0
+        val signature: Signature?
+            get() = if (mCrypto is Signature) mCrypto else null
     }
 
-    public boolean isHardwareDetected() {
-        return true;
-    }
-
-    public static abstract class AuthenticationCallback {
-        public void onAuthenticationAcquired(int i) {
-        }
-
-        public void onAuthenticationError(int i, CharSequence charSequence) {
-        }
-
-        public void onAuthenticationFailed() {
-        }
-
-        public void onAuthenticationHelp(int i, CharSequence charSequence) {
-        }
-
-        public void onAuthenticationSucceeded(AuthenticationResult authenticationResult) {
-        }
-    }
-
-    public static class AuthenticationResult {
-        private final CryptoObject mCryptoObject;
-        private final Face mFace;
-
-        public AuthenticationResult(CryptoObject cryptoObject, Face face) {
-            this.mCryptoObject = cryptoObject;
-            this.mFace = face;
-        }
-
-        public CryptoObject getCryptoObject() {
-            return this.mCryptoObject;
-        }
-
-        public Face getFace() {
-            return this.mFace;
-        }
-    }
-
-    public static final class CryptoObject {
-        private final Object mCrypto;
-        private final byte[] mFidoRequestData;
-        private byte[] mFidoResultData = null;
-
-        public CryptoObject(Signature signature, byte[] bArr) {
-            this.mCrypto = signature;
-            this.mFidoRequestData = bArr;
-        }
-
-        public CryptoObject(Cipher cipher, byte[] bArr) {
-            this.mCrypto = cipher;
-            this.mFidoRequestData = bArr;
-        }
-
-        public CryptoObject(Mac mac, byte[] bArr) {
-            this.mCrypto = mac;
-            this.mFidoRequestData = bArr;
-        }
-
-        public Cipher getCipher() {
-            return this.mCrypto instanceof Cipher ? (Cipher) this.mCrypto : null;
-        }
-
-        public byte[] getFidoRequestData() {
-            return this.mFidoRequestData;
-        }
-
-        public byte[] getFidoResultData() {
-            return this.mFidoResultData;
-        }
-
-        private void setFidoResultData(byte[] bArr) {
-            this.mFidoResultData = bArr;
-        }
-
-        public Mac getMac() {
-            return this.mCrypto instanceof Mac ? (Mac) this.mCrypto : null;
-        }
-
-        public long getOpId() {
-            return 0;
-        }
-
-        public Signature getSignature() {
-            return this.mCrypto instanceof Signature ? (Signature) this.mCrypto : null;
+    companion object {
+        @Synchronized
+        @JvmStatic
+        fun getInstance(context: Context?): SemBioFaceManager? {
+            return null
         }
     }
 }

@@ -1,4 +1,3 @@
-package com.samsung.android.bio.face;
+package com.samsung.android.bio.face
 
-public class Face {
-}
+class Face 

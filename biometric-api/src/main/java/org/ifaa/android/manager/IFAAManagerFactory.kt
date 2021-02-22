@@ -1,9 +1,10 @@
-package org.ifaa.android.manager;
+package org.ifaa.android.manager
 
-import android.content.Context;
+import android.content.Context
 
-public class IFAAManagerFactory {
-    public static IFAAManager getIFAAManager(Context context, int authType) {
-        return null;
+object IFAAManagerFactory {
+    @JvmStatic
+    fun getIFAAManager(context: Context?, authType: Int): IFAAManager? {
+        return null
     }
 }
