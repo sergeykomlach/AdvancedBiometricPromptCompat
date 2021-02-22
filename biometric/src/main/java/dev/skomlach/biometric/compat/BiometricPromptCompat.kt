@@ -144,8 +144,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private val impl: IBiometricPromptImpl by lazy {
-        val iBiometricPromptImpl = if (builder.biometricAuthRequest.api === BiometricApi.BIOMETRIC_API
-            || (builder.biometricAuthRequest.api === BiometricApi.AUTO
+        val iBiometricPromptImpl = if (builder.biometricAuthRequest.api == BiometricApi.BIOMETRIC_API
+            || (builder.biometricAuthRequest.api == BiometricApi.AUTO
                     && isNewBiometricApi(builder.biometricAuthRequest))
         ) {
             BiometricPromptApi28Impl(builder)

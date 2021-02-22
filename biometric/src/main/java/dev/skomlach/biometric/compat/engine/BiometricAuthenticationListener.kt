@@ -1,23 +1,22 @@
-package dev.skomlach.biometric.compat.engine;
+package dev.skomlach.biometric.compat.engine
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-import androidx.annotation.WorkerThread;
-
-import dev.skomlach.biometric.compat.BiometricType;
+import androidx.annotation.RestrictTo
+import androidx.annotation.WorkerThread
+import dev.skomlach.biometric.compat.BiometricType
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public interface BiometricAuthenticationListener {
-
+interface BiometricAuthenticationListener {
     //user identity confirmed in module
     @WorkerThread
-    void onSuccess(BiometricType module);
+    fun onSuccess(module: BiometricType?)
 
     @WorkerThread
-    void onHelp(AuthenticationHelpReason helpReason, @Nullable CharSequence msg);
+    fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?)
 
     //failure happens in module
     @WorkerThread
-    void onFailure(AuthenticationFailureReason failureReason,
-                   BiometricType module);
+    fun onFailure(
+        failureReason: AuthenticationFailureReason?,
+        module: BiometricType?
+    )
 }

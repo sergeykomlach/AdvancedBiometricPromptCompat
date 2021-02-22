@@ -34,11 +34,11 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
     override val isHardwareAvailable: Boolean
-        get() = if (biometricAuthRequest.type === BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType
     override val isBiometricEnrolled: Boolean
-        get() = if (biometricAuthRequest.type === BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType
     override val isLockedOut: Boolean
-        get() = if (biometricAuthRequest.type === BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType
 
     private fun biometricFeatures(): ArrayList<String> {
         val list = ArrayList<String>()
@@ -71,7 +71,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     open val isAnyHardwareAvailable: Boolean
         get() {
-            if (BiometricAuthentication.isHardwareDetected()) return true
+            if (BiometricAuthentication.isHardwareDetected) return true
             val list = biometricFeatures()
             val packageManager = appContext.packageManager
             for (f in list) {
@@ -182,7 +182,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     private val isHardwareAvailableForType: Boolean
         get() {
             //legacy
-            if (biometricAuthRequest.type === BiometricType.BIOMETRIC_FINGERPRINT) {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FINGERPRINT) {
                 val biometricModule =
                     BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
                 if (biometricModule != null && biometricModule.isHardwarePresent) return true
@@ -192,13 +192,13 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             for (f in list) {
                 if (packageManager.hasSystemFeature(f)) {
                     if ((f.endsWith(".face") || f.contains(".face.")) &&
-                        biometricAuthRequest.type === BiometricType.BIOMETRIC_FACE
+                        biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE
                     ) return true
                     if ((f.endsWith(".iris") || f.contains(".iris.")) &&
-                        biometricAuthRequest.type === BiometricType.BIOMETRIC_IRIS
+                        biometricAuthRequest.type == BiometricType.BIOMETRIC_IRIS
                     ) return true
                     if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                        biometricAuthRequest.type === BiometricType.BIOMETRIC_FINGERPRINT
+                        biometricAuthRequest.type == BiometricType.BIOMETRIC_FINGERPRINT
                     ) return true
                 }
             }
@@ -208,7 +208,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     //More or less ok this one
     private val isLockedOutForType: Boolean
         get() {
-            if (biometricAuthRequest.type === BiometricType.BIOMETRIC_FINGERPRINT) {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FINGERPRINT) {
                 val biometricModule =
                     BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
                 if (biometricModule != null && biometricModule.isLockOut) return true
@@ -233,13 +233,13 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             val biometricModule =
                 BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
             val fingersEnrolled = biometricModule != null && biometricModule.hasEnrolled()
-            return if (biometricAuthRequest.type === BiometricType.BIOMETRIC_FINGERPRINT) {
+            return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FINGERPRINT) {
                 fingersEnrolled
             } else {
-                if (biometricAuthRequest.type === BiometricType.BIOMETRIC_FACE &&
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE &&
                     LockType.isBiometricEnabledInSettings(appContext, "face")
                 ) return true
-                if (biometricAuthRequest.type === BiometricType.BIOMETRIC_IRIS &&
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_IRIS &&
                     LockType.isBiometricEnabledInSettings(appContext, "iris")
                 ) true else !fingersEnrolled && isHardwareAvailableForType
                         && isAnyBiometricEnrolled
