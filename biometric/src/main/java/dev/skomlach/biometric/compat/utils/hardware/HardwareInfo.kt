@@ -1,13 +1,10 @@
-package dev.skomlach.biometric.compat.utils.hardware;
+package dev.skomlach.biometric.compat.utils.hardware
 
-import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public interface HardwareInfo {
-
-    boolean isHardwareAvailable();
-
-    boolean isBiometricEnrolled();
-
-    boolean isLockedOut();
+interface HardwareInfo {
+    val isHardwareAvailable: Boolean
+    val isBiometricEnrolled: Boolean
+    val isLockedOut: Boolean
 }
