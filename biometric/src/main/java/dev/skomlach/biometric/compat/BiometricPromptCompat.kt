@@ -190,11 +190,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         ContextCompat.getColor(impl.builder.context, getDialogMainColor()), impl.builder.colorStatusBar)
                 }
                 if (impl.builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.showNotification(
-                        impl.builder.title,
-                        impl.builder.description,
-                        impl.builder.allTypes
-                    )
+                    BiometricNotificationManager.INSTANCE.showNotification(impl.builder)
                 }
             }
 
