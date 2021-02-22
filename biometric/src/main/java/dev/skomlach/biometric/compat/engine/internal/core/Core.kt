@@ -1,124 +1,125 @@
-package dev.skomlach.biometric.compat.engine.internal.core;
+package dev.skomlach.biometric.compat.engine.internal.core
 
-import androidx.annotation.RestrictTo;
-import androidx.core.os.CancellationSignal;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
+import androidx.annotation.RestrictTo
+import androidx.core.os.CancellationSignal
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import java.util.*
+import kotlin.collections.set
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class Core {
-
-    private static final Map<BiometricModule, CancellationSignal> cancellationSignals = Collections.synchronizedMap(new HashMap<>());
-    private static final Map<Integer, BiometricModule> reprintModuleHashMap = Collections.synchronizedMap(new HashMap<>());
-
-    public static void cleanModules() {
-        reprintModuleHashMap.clear();
+object Core {
+    private val cancellationSignals =
+        Collections.synchronizedMap(HashMap<BiometricModule, CancellationSignal>())
+    private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
+    @JvmStatic
+    fun cleanModules() {
+        reprintModuleHashMap.clear()
     }
-
-    public static void registerModule(BiometricModule module) {
+    @JvmStatic
+    fun registerModule(module: BiometricModule?) {
         if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
-            return;
+            return
         }
-        if (module.isHardwarePresent()) {
-            reprintModuleHashMap.put(module.tag(), module);
+        if (module.isHardwarePresent) {
+            reprintModuleHashMap[module.tag()] = module
         }
     }
-
-    static boolean isLockOut() {
-        for (BiometricModule module : reprintModuleHashMap.values()) {
-            if (module.isLockOut()) {
-                return true;
+    @JvmStatic
+    val isLockOut: Boolean
+        get() {
+            for (module in reprintModuleHashMap.values) {
+                if (module.isLockOut) {
+                    return true
+                }
             }
+            return false
         }
-
-        return false;
-    }
-
-    static boolean isHardwareDetected() {
-        for (BiometricModule module : reprintModuleHashMap.values()) {
-            if (module.isHardwarePresent())
-                return true;
+    @JvmStatic
+    val isHardwareDetected: Boolean
+        get() {
+            for (module in reprintModuleHashMap.values) {
+                if (module.isHardwarePresent) return true
+            }
+            return false
         }
-        return false;
-    }
-
-    static boolean hasEnrolled() {
-        for (BiometricModule module : reprintModuleHashMap.values()) {
-            if (module.hasEnrolled())
-                return true;
+    @JvmStatic
+    fun hasEnrolled(): Boolean {
+        for (module in reprintModuleHashMap.values) {
+            if (module.hasEnrolled()) return true
         }
-
-        return false;
+        return false
     }
-
     /**
      * Start an authentication request.
      *
      * @param listener         The listener to be notified.
      * @param restartPredicate The predicate that determines whether to restart or not.
      */
-    public static void authenticate(final AuthenticationListener listener, RestartPredicate restartPredicate) {
-
-        for (BiometricModule module : reprintModuleHashMap.values()) {
-            authenticate(module, listener, restartPredicate);
-        }
-    }
-
-    public static void authenticate(BiometricModule module, final AuthenticationListener listener, RestartPredicate restartPredicate) {
-        if (!module.isHardwarePresent() || !module.hasEnrolled() || module.isLockOut())
-            throw new RuntimeException("Module " + module.getClass().getSimpleName() + " not ready");
-
-        CancellationSignal cancellationSignal = cancellationSignals.get(module);
-        if (cancellationSignal != null && !cancellationSignal.isCanceled())
-            cancelAuthentication(module);
-
-        cancellationSignal = new CancellationSignal();
-
-        cancellationSignals.put(module, cancellationSignal);
-        module.authenticate(cancellationSignal, listener, restartPredicate);
-    }
-
-    public static void cancelAuthentication() {
-        for (BiometricModule module : reprintModuleHashMap.values()) {
-            cancelAuthentication(module);
-        }
-    }
-
-    public static void cancelAuthentication(BiometricModule module) {
-        final CancellationSignal signal = cancellationSignals.get(module);
-        if (signal != null && !signal.isCanceled()) {
-            signal.cancel();
-        }
-        cancellationSignals.remove(module);
-    }
-
     /**
      * Start a fingerprint authentication request.
-     * <p/>
-     * Equivalent to calling {@link #authenticate(AuthenticationListener, RestartPredicate)} with
-     * {@link RestartPredicatesImpl#defaultPredicate()}
+     *
+     *
+     * Equivalent to calling [.authenticate] with
+     * [RestartPredicatesImpl.defaultPredicate]
      *
      * @param listener The listener that will be notified of authentication events.
      */
-    public static void authenticate(AuthenticationListener listener) {
-        authenticate(listener, RestartPredicatesImpl.defaultPredicate());
+    @JvmStatic
+    @JvmOverloads
+    fun authenticate(
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate()
+    ) {
+        for (module in reprintModuleHashMap.values) {
+            authenticate(module, listener, restartPredicate)
+        }
+    }
+    @JvmStatic
+    fun authenticate(
+        module: BiometricModule,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        if (!module.isHardwarePresent || !module.hasEnrolled() || module.isLockOut) throw RuntimeException(
+            "Module " + module.javaClass.simpleName + " not ready"
+        )
+        var cancellationSignal = cancellationSignals[module]
+        if (cancellationSignal != null && !cancellationSignal.isCanceled) cancelAuthentication(
+            module
+        )
+        cancellationSignal = CancellationSignal()
+        cancellationSignals[module] = cancellationSignal
+        module.authenticate(cancellationSignal, listener, restartPredicate)
+    }
+    @JvmStatic
+    fun cancelAuthentication() {
+        for (module in reprintModuleHashMap.values) {
+            cancelAuthentication(module)
+        }
+    }
+
+    @JvmStatic
+    fun cancelAuthentication(module: BiometricModule) {
+        val signal = cancellationSignals[module]
+        if (signal != null && !signal.isCanceled) {
+            signal.cancel()
+        }
+        cancellationSignals.remove(module)
     }
 
     /**
      * Start a fingerprint authentication request.
-     * <p/>
+     *
+     *
      * This variant will not restart the fingerprint reader after any failure, including non-fatal
      * failures.
      *
      * @param listener The listener that will be notified of authentication events.
      */
-    public static void authenticateWithoutRestart(AuthenticationListener listener) {
-        authenticate(listener, RestartPredicatesImpl.neverRestart());
+    @JvmStatic
+    fun authenticateWithoutRestart(listener: AuthenticationListener?) {
+        authenticate(listener, RestartPredicatesImpl.neverRestart())
     }
 }

@@ -1,199 +1,150 @@
-package dev.skomlach.biometric.compat.engine.internal.fingerprint;
+package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
-import android.content.Context;
-
-import androidx.annotation.RestrictTo;
-import androidx.core.os.CancellationSignal;
-
-import com.samsung.android.sdk.pass.Spass;
-import com.samsung.android.sdk.pass.SpassFingerprint;
-
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
-import dev.skomlach.biometric.compat.engine.BiometricInitListener;
-import dev.skomlach.biometric.compat.engine.BiometricMethod;
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import static com.samsung.android.sdk.pass.SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS;
+import android.content.*
+import androidx.annotation.RestrictTo
+import androidx.core.os.CancellationSignal
+import com.samsung.android.sdk.pass.Spass
+import com.samsung.android.sdk.pass.SpassFingerprint
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.engine.BiometricInitListener
+import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class SamsungFingerprintModule extends AbstractBiometricModule {
-
-    private Spass mSpass = null;
-    private SpassFingerprint mSpassFingerprint = null;
-
-    public SamsungFingerprintModule(BiometricInitListener listener) {
-        super(BiometricMethod.FINGERPRINT_SAMSUNG);
-
+class SamsungFingerprintModule(listener: BiometricInitListener?) :
+    AbstractBiometricModule(BiometricMethod.FINGERPRINT_SAMSUNG) {
+    private var mSpass: Spass? = null
+    private var mSpassFingerprint: SpassFingerprint? = null
+    init {
         try {
-            mSpass = new Spass();
-
-            mSpass.initialize(getContext());
-            if (!mSpass.isFeatureEnabled(Spass.DEVICE_FINGERPRINT)) {
-                throw new RuntimeException("No hardware");
+            mSpass = Spass()
+            mSpass?.initialize(context)
+            if (mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == false) {
+                throw RuntimeException("No hardware")
             }
-            mSpassFingerprint = new SpassFingerprint(getContext());
-        } catch (Throwable ignore) {
-            mSpass = null;
-            mSpassFingerprint = null;
+            mSpassFingerprint = SpassFingerprint(context)
+        } catch (ignore: Throwable) {
+            mSpass = null
+            mSpassFingerprint = null
         }
-
-        if (listener != null) {
-            listener
-                    .initFinished(getBiometricMethod(), SamsungFingerprintModule.this);
-        }
+        listener?.initFinished(biometricMethod, this@SamsungFingerprintModule)
     }
+    override val isManagerAccessible: Boolean
+        get() = mSpass != null && mSpassFingerprint != null
+    override val isHardwarePresent: Boolean
+        get() {
 
-    @Override
-    public boolean isManagerAccessible() {
-        return mSpass != null && mSpassFingerprint != null;
-    }
-
-    @Override
-    public boolean isHardwarePresent() {
-
-        if (mSpass != null) {
-            try {
-                return mSpass.isFeatureEnabled(Spass.DEVICE_FINGERPRINT);
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName());
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean hasEnrolled() {
-
-        if (mSpassFingerprint != null) {
-            try {
-                if (mSpassFingerprint.hasRegisteredFinger()) {
-                    return true;
+                try {
+                    return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true
+                } catch (e: Throwable) {
+                    e(e, name)
                 }
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName());
-            }
+
+            return false
         }
 
-        return false;
-    }
+    override fun hasEnrolled(): Boolean {
 
-    @Override
-    public void authenticate(final CancellationSignal cancellationSignal,
-                             final AuthenticationListener listener,
-                             final RestartPredicate restartPredicate) throws SecurityException {
-        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
-
-        if (mSpassFingerprint != null) {
             try {
-                cancelFingerprintRequest();
-
-                mSpassFingerprint.startIdentify(new SpassFingerprint.IdentifyListener() {
-                    @Override
-                    public void onFinished(int status) {
-                        switch (status) {
-                            case SpassFingerprint.STATUS_AUTHENTIFICATION_SUCCESS:
-                            case STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS:
-                                if (listener != null) {
-                                    listener.onSuccess(tag());
-                                }
-                                return;
-                            case SpassFingerprint.STATUS_QUALITY_FAILED:
-                            case SpassFingerprint.STATUS_SENSOR_FAILED:
-                                fail(AuthenticationFailureReason.SENSOR_FAILED);
-                                break;
-                            case SpassFingerprint.STATUS_AUTHENTIFICATION_FAILED:
-                                fail(AuthenticationFailureReason.AUTHENTICATION_FAILED);
-                                break;
-                            case SpassFingerprint.STATUS_TIMEOUT_FAILED:
-                                fail(AuthenticationFailureReason.TIMEOUT);
-                                break;
-                            default:
-                                fail(AuthenticationFailureReason.UNKNOWN);
-                                break;
-                            case SpassFingerprint.STATUS_USER_CANCELLED:
-                                // Don't send a cancelled message.
-                                break;
-                        }
-                    }
-
-                    private void fail(AuthenticationFailureReason failureReason) {
-
-                        if (restartPredicate.invoke(failureReason)) {
-                            if (listener != null) {
-                                listener.onFailure(failureReason, tag());
-                            }
-                            authenticate(cancellationSignal, listener, restartPredicate);
-                        } else {
-                            switch (failureReason) {
-                                case SENSOR_FAILED:
-                                case AUTHENTICATION_FAILED:
-                                    lockout();
-                                    failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                                    break;
-                            }
-
-                            if (listener != null) {
-                                listener.onFailure(failureReason, tag());
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onReady() {
-                    }
-
-                    @Override
-                    public void onStarted() {
-                    }
-
-                    @Override
-                    public void onCompleted() {
-
-                    }
-                });
-
-                cancellationSignal.setOnCancelListener(() -> cancelFingerprintRequest());
-
-                return;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
+                if (mSpassFingerprint?.hasRegisteredFinger() == true) {
+                    return true
+                }
+            } catch (e: Throwable) {
+                e(e, name)
             }
-        }
 
-        if (listener != null) {
-            listener.onFailure(AuthenticationFailureReason.UNKNOWN,
-                    tag());
-        }
-        return;
+        return false
     }
 
-    private void cancelFingerprintRequest() {
-        try {
-            if (mSpassFingerprint != null) {
-                mSpassFingerprint.cancelIdentify();
+    @Throws(SecurityException::class)
+    override fun authenticate(
+        cancellationSignal: CancellationSignal?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        d("$name.authenticate - $biometricMethod")
+        mSpassFingerprint?.let {
+            try {
+                cancelFingerprintRequest()
+                it.startIdentify(object : SpassFingerprint.IdentifyListener {
+                    override fun onFinished(status: Int) {
+                        when (status) {
+                            SpassFingerprint.STATUS_AUTHENTIFICATION_SUCCESS, SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS -> {
+                                listener?.onSuccess(tag())
+                                return
+                            }
+                            SpassFingerprint.STATUS_QUALITY_FAILED, SpassFingerprint.STATUS_SENSOR_FAILED -> fail(
+                                AuthenticationFailureReason.SENSOR_FAILED
+                            )
+                            SpassFingerprint.STATUS_AUTHENTIFICATION_FAILED -> fail(
+                                AuthenticationFailureReason.AUTHENTICATION_FAILED
+                            )
+                            SpassFingerprint.STATUS_TIMEOUT_FAILED -> fail(
+                                AuthenticationFailureReason.TIMEOUT
+                            )
+                            SpassFingerprint.STATUS_USER_CANCELLED -> {
+                            }
+                            else -> fail(AuthenticationFailureReason.UNKNOWN)
+                        }
+                    }
+
+                    private fun fail(reason: AuthenticationFailureReason) {
+                        var failureReason: AuthenticationFailureReason? = reason
+                        if (restartPredicate?.invoke(failureReason) == true) {
+                            listener?.onFailure(failureReason, tag())
+                            authenticate(cancellationSignal, listener, restartPredicate)
+                        } else {
+                            when (failureReason) {
+                                AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                                    lockout()
+                                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                                }
+                            }
+                            listener?.onFailure(failureReason, tag())
+                        }
+                    }
+
+                    override fun onReady() {}
+                    override fun onStarted() {}
+                    override fun onCompleted() {}
+                })
+                cancellationSignal?.setOnCancelListener { cancelFingerprintRequest() }
+                return
+            } catch (e: Throwable) {
+                e(e, "$name: authenticate failed unexpectedly")
             }
-        } catch (Throwable t) {
+        }
+        listener?.onFailure(
+            AuthenticationFailureReason.UNKNOWN,
+            tag()
+        )
+        return
+    }
+
+    private fun cancelFingerprintRequest() {
+        try {
+
+                mSpassFingerprint?.cancelIdentify()
+
+        } catch (t: Throwable) {
             // There's no way to query if there's an active identify request,
             // so just try to cancel and ignore any exceptions.
         }
     }
 
-    public boolean openSettings(Context context) {
-        try {
-            mSpassFingerprint.registerFinger(context, new SpassFingerprint.RegisterListener() {
-                @Override
-                public void onFinished() {
-
-                }
-            });
-            return true;
-        } catch (Exception e) {
-            BiometricLoggerImpl.e(e, getName());
-            return false;
+    fun openSettings(context: Context?): Boolean {
+        return try {
+            mSpassFingerprint?.registerFinger(context) { }
+            true
+        } catch (e: Exception) {
+            e(e, name)
+            false
         }
     }
+
+
 }

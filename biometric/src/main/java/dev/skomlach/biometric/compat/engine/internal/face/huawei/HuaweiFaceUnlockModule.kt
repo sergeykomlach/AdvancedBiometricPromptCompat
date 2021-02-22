@@ -1,385 +1,304 @@
-package dev.skomlach.biometric.compat.engine.internal.face.huawei;
+package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
-import android.content.Context;
-import android.text.TextUtils;
-
-import androidx.annotation.RestrictTo;
-import androidx.core.os.CancellationSignal;
-
-import com.huawei.facerecognition.FaceManager;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason;
-import dev.skomlach.biometric.compat.engine.BiometricInitListener;
-import dev.skomlach.biometric.compat.engine.BiometricMethod;
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule;
-import dev.skomlach.biometric.compat.engine.internal.core.Core;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
-import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager;
-import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory;
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
-import dev.skomlach.biometric.compat.utils.CodeToString;
-import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.misc.ExecutorHelper;
+import android.content.*
+import android.os.*
+import androidx.annotation.RestrictTo
+import com.huawei.facerecognition.FaceManager
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason.Companion.getByCode
+import dev.skomlach.biometric.compat.engine.BiometricCodes
+import dev.skomlach.biometric.compat.engine.BiometricInitListener
+import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.core.Core
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager
+import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory
+import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
+import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
+import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy.get
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
+import java.lang.reflect.InvocationTargetException
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class HuaweiFaceUnlockModule extends AbstractBiometricModule {
+class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
+    AbstractBiometricModule(BiometricMethod.FACE_HUAWEI) {
     //EMUI 10.1.0
-    private HuaweiFaceManager huaweiFaceManagerLegacy = null;
-    private FaceManager huawei3DFaceManager = null;
-    public HuaweiFaceUnlockModule(BiometricInitListener listener) {
-        super(BiometricMethod.FACE_HUAWEI);
-        String versionEmui = SystemPropertiesProxy.get(getContext(), "ro.build.version.emui");
-        final String emuiTag = "EmotionUI_";
+    private var huaweiFaceManagerLegacy: HuaweiFaceManager? = null
+    private var huawei3DFaceManager: FaceManager? = null
+
+    init {
+        var versionEmui = get(context, "ro.build.version.emui")
+        val emuiTag = "EmotionUI_"
         if (versionEmui != null && versionEmui.startsWith(emuiTag)) {
-            versionEmui = versionEmui.substring(emuiTag.length());
+            versionEmui = versionEmui.substring(emuiTag.length)
         }
-        BiometricLoggerImpl.d(getName() + ".EMUI version - '" + versionEmui + "'");
+        d("$name.EMUI version - '$versionEmui'")
+        ExecutorHelper.INSTANCE.handler.post {
+            try {
+                huawei3DFaceManager = faceManager
+                d("$name.huawei3DFaceManager - $huawei3DFaceManager")
+            } catch (ignore: Throwable) {
+                huawei3DFaceManager = null
+            }
+            try {
+                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
+                d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
+            } catch (ignore: Throwable) {
+                huaweiFaceManagerLegacy = null
+            }
+            listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
+        }
+    }
 
-        ExecutorHelper.INSTANCE.getHandler().post(()->{
+    private val faceManager: FaceManager?
+        get() {
+            try {
+                val t = Class.forName("com.huawei.facerecognition.FaceManagerFactory")
+                val method = t.getDeclaredMethod("getFaceManager", Context::class.java)
+                return method.invoke(null, context) as FaceManager
+            } catch (var3: ClassNotFoundException) {
+                d("$name.Throw exception: ClassNotFoundException")
+            } catch (var4: NoSuchMethodException) {
+                d("$name.Throw exception: NoSuchMethodException")
+            } catch (var5: IllegalAccessException) {
+                d("$name.Throw exception: IllegalAccessException")
+            } catch (var6: InvocationTargetException) {
+                d("$name.Throw exception: InvocationTargetException")
+            }
+            return null
+        }
+    override val isManagerAccessible: Boolean
+        get() = huaweiFaceManagerLegacy != null || huawei3DFaceManager != null
+    override val isHardwarePresent: Boolean
+        get() {
+            try {
+                if (huawei3DFaceManager?.isHardwareDetected == true) return true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+            try {
+                if (huaweiFaceManagerLegacy?.isHardwareDetected == true) return true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
+        }
+
+    override fun hasEnrolled(): Boolean {
         try {
-            huawei3DFaceManager = getFaceManager();
-            BiometricLoggerImpl.d(getName() + ".huawei3DFaceManager - " + huawei3DFaceManager);
-        } catch (Throwable ignore) {
-            huawei3DFaceManager = null;
+            if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) return true
+        } catch (e: Throwable) {
+            e(e, name)
         }
-
         try {
-            huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(getContext());
-            BiometricLoggerImpl.d(getName() + ".huaweiFaceManagerLegacy - " + huaweiFaceManagerLegacy);
-        } catch (Throwable ignore) {
-            huaweiFaceManagerLegacy = null;
+            if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
+        } catch (e: Throwable) {
+            e(e, name)
         }
 
-        if (listener != null) {
-            listener
-                    .initFinished(getBiometricMethod(), HuaweiFaceUnlockModule.this);
-        }
-        });
+        return false
     }
 
-    private FaceManager getFaceManager() {
-        try {
-            Class<?> t = Class.forName("com.huawei.facerecognition.FaceManagerFactory");
-            Method method = t.getDeclaredMethod("getFaceManager", Context.class);
-            return (FaceManager) method.invoke(null, getContext());
-        } catch (ClassNotFoundException var3) {
-            BiometricLoggerImpl.d(getName() + ".Throw exception: ClassNotFoundException");
-        } catch (NoSuchMethodException var4) {
-            BiometricLoggerImpl.d(getName() + ".Throw exception: NoSuchMethodException");
-        } catch (IllegalAccessException var5) {
-            BiometricLoggerImpl.d(getName() + ".Throw exception: IllegalAccessException");
-        } catch (InvocationTargetException var6) {
-            BiometricLoggerImpl.d(getName() + ".Throw exception: InvocationTargetException");
-        }
-        return null;
-    }
-
-    @Override
-    public boolean isManagerAccessible() {
-        return huaweiFaceManagerLegacy != null || huawei3DFaceManager != null;
-    }
-
-    @Override
-    public boolean isHardwarePresent() {
-        if (huawei3DFaceManager != null) {
-            try {
-                if (huawei3DFaceManager.isHardwareDetected())
-                    return true;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName());
-            }
-        }
-        if (huaweiFaceManagerLegacy != null) {
-            try {
-                if (huaweiFaceManagerLegacy.isHardwareDetected())
-                    return true;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName());
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean hasEnrolled() {
-        if (huawei3DFaceManager != null) {
-            try {
-                if (huawei3DFaceManager.hasEnrolledTemplates())
-                    return true;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName());
-            }
-        }
-
-        if (huaweiFaceManagerLegacy != null) {
-            try {
-                if (huaweiFaceManagerLegacy.hasEnrolledTemplates())
-                    return true;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName());
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    public void authenticate(final CancellationSignal cancellationSignal,
-                             final AuthenticationListener listener,
-                             final RestartPredicate restartPredicate) throws SecurityException {
-
-        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
-
-        if (!isHardwarePresent()) {
-            listener.onFailure(AuthenticationFailureReason.NO_HARDWARE, tag());
-            return;
+    @Throws(SecurityException::class)
+    override fun authenticate(
+        cancellationSignal: androidx.core.os.CancellationSignal?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        d("$name.authenticate - $biometricMethod")
+        if (!isHardwarePresent) {
+            listener?.onFailure(AuthenticationFailureReason.NO_HARDWARE, tag())
+            return
         }
         if (!hasEnrolled()) {
-            listener.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, tag());
-            return;
+            listener?.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, tag())
+            return
         }
         // Why getCancellationSignalObject returns an Object is unexplained
-        final android.os.CancellationSignal signalObject = cancellationSignal == null ? null :
-                (android.os.CancellationSignal) cancellationSignal.getCancellationSignalObject();
-
+        val signalObject =
+            if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as CancellationSignal?
         try {
-
-            if (signalObject == null)
-                throw new IllegalArgumentException("CancellationSignal cann't be null");
-
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.UNKNOWN, tag());
-            }
-            return;
+            requireNotNull(signalObject) { "CancellationSignal cann't be null" }
+        } catch (e: Throwable) {
+            e(e)
+            listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+            return
         }
-        if (huawei3DFaceManager != null && huawei3DFaceManager.isHardwareDetected() && huawei3DFaceManager.hasEnrolledTemplates()) {
-            try {
-                // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                huawei3DFaceManager.authenticate(null, signalObject, 0, new AuthCallback3DFace(restartPredicate, cancellationSignal, listener), ExecutorHelper.INSTANCE.getHandler());
-                return;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
+        if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) {
+            huawei3DFaceManager?.let {
+                try {
+                    // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                    it.authenticate(
+                        null,
+                        signalObject,
+                        0,
+                        AuthCallback3DFace(restartPredicate, cancellationSignal, listener),
+                        ExecutorHelper.INSTANCE.handler
+                    )
+                    return
+                } catch (e: Throwable) {
+                    e(e, "$name: authenticate failed unexpectedly")
+                }
             }
         }
+        if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) {
+            huaweiFaceManagerLegacy?.let {
+                try {
+                    signalObject.setOnCancelListener(CancellationSignal.OnCancelListener {
+                        it.cancel(
+                            0
+                        )
+                    })
+                    // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                    it.authenticate(
+                        0,
+                        0,
+                        AuthCallbackLegacy(restartPredicate, cancellationSignal, listener)
+                    )
+                    return
+                } catch (e: Throwable) {
+                    e(e, "$name: authenticate failed unexpectedly")
+                }
+            }
+        }
+        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+    }
 
-        if (huaweiFaceManagerLegacy != null && huaweiFaceManagerLegacy.isHardwareDetected() && huaweiFaceManagerLegacy.hasEnrolledTemplates()) {
-            try {
-
-                signalObject.setOnCancelListener(new android.os.CancellationSignal.OnCancelListener() {
-                    @Override
-                    public void onCancel() {
-                        huaweiFaceManagerLegacy.cancel(0);
+    private inner class AuthCallback3DFace(
+        private val restartPredicate: RestartPredicate?,
+        private val cancellationSignal: androidx.core.os.CancellationSignal?,
+        private val listener: AuthenticationListener?
+    ) : FaceManager.AuthenticationCallback() {
+        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
+            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            var failureReason = AuthenticationFailureReason.UNKNOWN
+            when (errMsgId) {
+                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                    AuthenticationFailureReason.NO_HARDWARE
+                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                        biometricMethod.biometricType
+                    )
+                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                }
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                    AuthenticationFailureReason.SENSOR_FAILED
+                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                    AuthenticationFailureReason.TIMEOUT
+                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                    lockout()
+                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
+                    return
+                }
+                BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
+                    return
+            }
+            if (restartPredicate?.invoke(failureReason) == true) {
+                listener?.onFailure(failureReason, tag())
+                authenticate(cancellationSignal, listener, restartPredicate)
+            } else {
+                when (failureReason) {
+                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                });
-                // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                huaweiFaceManagerLegacy.authenticate(0, 0, new AuthCallbackLegacy(restartPredicate, cancellationSignal, listener));
-                return;
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, getName() + ": authenticate failed unexpectedly");
+                }
+                listener?.onFailure(failureReason, tag())
             }
         }
 
-        if (listener != null) {
-            listener.onFailure(AuthenticationFailureReason.UNKNOWN, tag());
+        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
+            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
+            listener?.onHelp(getByCode(helpMsgId), helpString)
+        }
+
+        override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
+            d("$name.onAuthenticationSucceeded: $result")
+            listener?.onSuccess(tag())
+        }
+
+        override fun onAuthenticationFailed() {
+            d("$name.onAuthenticationFailed: ")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
         }
     }
 
-    private class AuthCallback3DFace extends FaceManager.AuthenticationCallback {
-
-        private final RestartPredicate restartPredicate;
-        private final CancellationSignal cancellationSignal;
-        private final AuthenticationListener listener;
-
-        public AuthCallback3DFace(RestartPredicate restartPredicate,
-                                  CancellationSignal cancellationSignal, AuthenticationListener listener) {
-            this.restartPredicate = restartPredicate;
-            this.cancellationSignal = cancellationSignal;
-            this.listener = listener;
-        }
-
-        @Override
-        public void onAuthenticationError(int errMsgId, CharSequence errString) {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId) + "-" + errString);
-            AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
-            switch (errMsgId) {
-                case BIOMETRIC_ERROR_NO_BIOMETRICS:
-                    failureReason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED;
-                    break;
-                case BIOMETRIC_ERROR_HW_NOT_PRESENT:
-                    failureReason = AuthenticationFailureReason.NO_HARDWARE;
-                    break;
-                case BIOMETRIC_ERROR_HW_UNAVAILABLE:
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
-                    break;
-                case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
-                    break;
-                case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
-                case BIOMETRIC_ERROR_NO_SPACE:
-                    failureReason = AuthenticationFailureReason.SENSOR_FAILED;
-                    break;
-                case BIOMETRIC_ERROR_TIMEOUT:
-                    failureReason = AuthenticationFailureReason.TIMEOUT;
-                    break;
-                case BIOMETRIC_ERROR_LOCKOUT:
-                    lockout();
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                    break;
-                case BIOMETRIC_ERROR_USER_CANCELED:
-                    Core.cancelAuthentication(HuaweiFaceUnlockModule.this);
-                    return;
-                case BIOMETRIC_ERROR_CANCELED:
-                    // Don't send a cancelled message.
-                    return;
-            }
-
-            if (restartPredicate.invoke(failureReason)) {
-                if (listener != null) {
-                    listener.onFailure(failureReason, tag());
+    private inner class AuthCallbackLegacy(
+        private val restartPredicate: RestartPredicate?,
+        private val cancellationSignal: androidx.core.os.CancellationSignal?,
+        private val listener: AuthenticationListener?
+    ) : HuaweiFaceManager.AuthenticatorCallback() {
+        override fun onAuthenticationError(errMsgId: Int) {
+            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId))
+            var failureReason = AuthenticationFailureReason.UNKNOWN
+            when (errMsgId) {
+                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                    AuthenticationFailureReason.NO_HARDWARE
+                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                        biometricMethod.biometricType
+                    )
+                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                authenticate(cancellationSignal, listener, restartPredicate);
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                    AuthenticationFailureReason.SENSOR_FAILED
+                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                    AuthenticationFailureReason.TIMEOUT
+                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                    lockout()
+                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
+                    return
+                }
+                BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
+                    return
+            }
+            if (restartPredicate?.invoke(failureReason) == true) {
+                listener?.onFailure(failureReason, tag())
+                authenticate(cancellationSignal, listener, restartPredicate)
             } else {
-                switch (failureReason) {
-                    case SENSOR_FAILED:
-                    case AUTHENTICATION_FAILED:
-                        lockout();
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                        break;
+                when (failureReason) {
+                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+                    }
                 }
-
-                if (listener != null) {
-                    listener.onFailure(failureReason, tag());
-                }
+                listener?.onFailure(failureReason, tag())
             }
         }
 
-        @Override
-        public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId) + "-" + helpString);
-            if (listener != null) {
-                listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString);
-            }
+        override fun onAuthenticationStatus(helpMsgId: Int) {
+            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId))
+            listener?.onHelp(getByCode(helpMsgId), null)
         }
 
-        @Override
-        public void onAuthenticationSucceeded(FaceManager.AuthenticationResult result) {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: " + result);
-            if (listener != null) {
-                listener.onSuccess(tag());
-            }
+        override fun onAuthenticationSucceeded() {
+            d("$name.onAuthenticationSucceeded: ")
+            listener?.onSuccess(tag())
         }
 
-        @Override
-        public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag());
-            }
-        }
-    }
-
-    private class AuthCallbackLegacy extends HuaweiFaceManager.AuthenticatorCallback {
-
-        private final RestartPredicate restartPredicate;
-        private final CancellationSignal cancellationSignal;
-        private final AuthenticationListener listener;
-
-        public AuthCallbackLegacy(RestartPredicate restartPredicate,
-                                  CancellationSignal cancellationSignal, AuthenticationListener listener) {
-            this.restartPredicate = restartPredicate;
-            this.cancellationSignal = cancellationSignal;
-            this.listener = listener;
-        }
-
-        @Override
-        public void onAuthenticationError(int errMsgId) {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationError: " + CodeToString.getErrorCode(errMsgId));
-            AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
-            switch (errMsgId) {
-                case BIOMETRIC_ERROR_NO_BIOMETRICS:
-                    failureReason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED;
-                    break;
-                case BIOMETRIC_ERROR_HW_NOT_PRESENT:
-                    failureReason = AuthenticationFailureReason.NO_HARDWARE;
-                    break;
-                case BIOMETRIC_ERROR_HW_UNAVAILABLE:
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
-                    break;
-                case BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(getBiometricMethod().getBiometricType());
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
-                    break;
-                case BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
-                case BIOMETRIC_ERROR_NO_SPACE:
-                    failureReason = AuthenticationFailureReason.SENSOR_FAILED;
-                    break;
-                case BIOMETRIC_ERROR_TIMEOUT:
-                    failureReason = AuthenticationFailureReason.TIMEOUT;
-                    break;
-                case BIOMETRIC_ERROR_LOCKOUT:
-                    lockout();
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                    break;
-                case BIOMETRIC_ERROR_USER_CANCELED:
-                    Core.cancelAuthentication(HuaweiFaceUnlockModule.this);
-                    return;
-                case BIOMETRIC_ERROR_CANCELED:
-                    // Don't send a cancelled message.
-                    return;
-            }
-
-            if (restartPredicate.invoke(failureReason)) {
-                if (listener != null) {
-                    listener.onFailure(failureReason, tag());
-                }
-                authenticate(cancellationSignal, listener, restartPredicate);
-            } else {
-                switch (failureReason) {
-                    case SENSOR_FAILED:
-                    case AUTHENTICATION_FAILED:
-                        lockout();
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                        break;
-                }
-
-                if (listener != null) {
-                    listener.onFailure(failureReason, tag());
-                }
-            }
-        }
-
-        @Override
-        public void onAuthenticationStatus(int helpMsgId) {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationHelp: " + CodeToString.getHelpCode(helpMsgId));
-            if (listener != null) {
-                listener.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), null);
-            }
-        }
-
-        @Override
-        public void onAuthenticationSucceeded() {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationSucceeded: ");
-            if (listener != null) {
-                listener.onSuccess(tag());
-            }
-        }
-
-        @Override
-        public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d(getName() + ".onAuthenticationFailed: ");
-            if (listener != null) {
-                listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag());
-            }
+        override fun onAuthenticationFailed() {
+            d("$name.onAuthenticationFailed: ")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
         }
     }
 }

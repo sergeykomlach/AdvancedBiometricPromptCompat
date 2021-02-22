@@ -1,59 +1,45 @@
-package dev.skomlach.biometric.compat.engine.internal;
+package dev.skomlach.biometric.compat.engine.internal
 
-import androidx.annotation.RestrictTo;
-import androidx.core.os.CancellationSignal;
-
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
-import dev.skomlach.biometric.compat.engine.BiometricInitListener;
-import dev.skomlach.biometric.compat.engine.BiometricMethod;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.misc.ExecutorHelper;
+import androidx.annotation.RestrictTo
+import androidx.core.os.CancellationSignal
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.engine.BiometricInitListener
+import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.common.misc.ExecutorHelper
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class DummyBiometricModule extends AbstractBiometricModule {
+class DummyBiometricModule(listener: BiometricInitListener?) :
+    AbstractBiometricModule(BiometricMethod.DUMMY_BIOMETRIC) {
 
-    private BiometricInitListener listener = null;
+    init {
+        listener?.initFinished(biometricMethod, this@DummyBiometricModule)
+    }
+    //BuildConfig.DEBUG;
+    override val isManagerAccessible: Boolean
+        get() = false //BuildConfig.DEBUG;
+    override val isHardwarePresent: Boolean
+        get() = true
 
-    public DummyBiometricModule(BiometricInitListener listener) {
-        super(BiometricMethod.DUMMY_BIOMETRIC);
-        this.listener = listener;
-        if (listener != null) {
-            listener
-                    .initFinished(getBiometricMethod(), DummyBiometricModule.this);
-        }
+    override fun hasEnrolled(): Boolean {
+        return true
     }
 
-    @Override
-    public boolean isManagerAccessible() {
-        return false;//BuildConfig.DEBUG;
+    @Throws(SecurityException::class)
+    override fun authenticate(
+        cancellationSignal: CancellationSignal?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        d("$name.authenticate - $biometricMethod")
+        ExecutorHelper.INSTANCE.handler.postDelayed({
+            listener?.onFailure(
+                AuthenticationFailureReason.AUTHENTICATION_FAILED,
+                biometricMethod.id
+            )
+        }, 2500)
     }
 
-    @Override
-    public boolean isHardwarePresent() {
-        return true;
-    }
-
-    @Override
-    public boolean hasEnrolled() {
-        return true;
-    }
-
-    @Override
-    public void authenticate(final CancellationSignal cancellationSignal,
-                             final AuthenticationListener listener,
-                             final RestartPredicate restartPredicate) throws SecurityException {
-
-        BiometricLoggerImpl.d(getName() + ".authenticate - " + getBiometricMethod().toString());
-
-        ExecutorHelper.INSTANCE.getHandler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (listener != null) {
-                    listener.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, getBiometricMethod().getId());
-                }
-            }
-        }, 2500);
-    }
 }

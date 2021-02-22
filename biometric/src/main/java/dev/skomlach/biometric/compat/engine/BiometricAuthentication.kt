@@ -237,7 +237,7 @@ object BiometricAuthentication {
             return
         } else {
             Core.authenticate(object : AuthenticationListener {
-                override fun onHelp(helpReason: AuthenticationHelpReason, msg: CharSequence?) {
+                override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
                     listener.onHelp(helpReason, msg)
                 }
 
@@ -246,7 +246,7 @@ object BiometricAuthentication {
                 }
 
                 override fun onFailure(
-                    reason: AuthenticationFailureReason,
+                    reason: AuthenticationFailureReason?,
                     moduleTag: Int
                 ) {
                     listener.onFailure(reason, hashMap[moduleTag])
