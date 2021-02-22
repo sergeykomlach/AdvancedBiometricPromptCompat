@@ -49,7 +49,9 @@ enum class AuthenticationHelpReason(val id: Int) {
      * Hardware vendors may extend this list if there are conditions that do not fall under one of
      * the above categories. Vendors are responsible for providing error strings for these errors.
      */
-    BIOMETRIC_ACQUIRED_VENDOR(6), BIOMETRICT_ACQUIRED_VENDOR_BASE(1000);
+    BIOMETRIC_ACQUIRED_VENDOR(6),
+
+    BIOMETRICT_ACQUIRED_VENDOR_BASE(1000);
 
     companion object {
         @JvmStatic

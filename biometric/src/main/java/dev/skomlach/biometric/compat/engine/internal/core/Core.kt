@@ -1,0 +1,125 @@
+package dev.skomlach.biometric.compat.engine.internal.core
+
+import androidx.annotation.RestrictTo
+import androidx.core.os.CancellationSignal
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import java.util.*
+import kotlin.collections.set
+
+@RestrictTo(RestrictTo.Scope.LIBRARY)
+object Core {
+    private val cancellationSignals =
+        Collections.synchronizedMap(HashMap<BiometricModule, CancellationSignal>())
+    private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
+    @JvmStatic
+    fun cleanModules() {
+        reprintModuleHashMap.clear()
+    }
+    @JvmStatic
+    fun registerModule(module: BiometricModule?) {
+        if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
+            return
+        }
+        if (module.isHardwarePresent) {
+            reprintModuleHashMap[module.tag()] = module
+        }
+    }
+    @JvmStatic
+    val isLockOut: Boolean
+        get() {
+            for (module in reprintModuleHashMap.values) {
+                if (module.isLockOut) {
+                    return true
+                }
+            }
+            return false
+        }
+    @JvmStatic
+    val isHardwareDetected: Boolean
+        get() {
+            for (module in reprintModuleHashMap.values) {
+                if (module.isHardwarePresent) return true
+            }
+            return false
+        }
+    @JvmStatic
+    fun hasEnrolled(): Boolean {
+        for (module in reprintModuleHashMap.values) {
+            if (module.hasEnrolled()) return true
+        }
+        return false
+    }
+    /**
+     * Start an authentication request.
+     *
+     * @param listener         The listener to be notified.
+     * @param restartPredicate The predicate that determines whether to restart or not.
+     */
+    /**
+     * Start a fingerprint authentication request.
+     *
+     *
+     * Equivalent to calling [.authenticate] with
+     * [RestartPredicatesImpl.defaultPredicate]
+     *
+     * @param listener The listener that will be notified of authentication events.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun authenticate(
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate()
+    ) {
+        for (module in reprintModuleHashMap.values) {
+            authenticate(module, listener, restartPredicate)
+        }
+    }
+    @JvmStatic
+    fun authenticate(
+        module: BiometricModule,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        if (!module.isHardwarePresent || !module.hasEnrolled() || module.isLockOut) throw RuntimeException(
+            "Module " + module.javaClass.simpleName + " not ready"
+        )
+        var cancellationSignal = cancellationSignals[module]
+        if (cancellationSignal != null && !cancellationSignal.isCanceled) cancelAuthentication(
+            module
+        )
+        cancellationSignal = CancellationSignal()
+        cancellationSignals[module] = cancellationSignal
+        module.authenticate(cancellationSignal, listener, restartPredicate)
+    }
+    @JvmStatic
+    fun cancelAuthentication() {
+        for (module in reprintModuleHashMap.values) {
+            cancelAuthentication(module)
+        }
+    }
+
+    @JvmStatic
+    fun cancelAuthentication(module: BiometricModule) {
+        val signal = cancellationSignals[module]
+        if (signal != null && !signal.isCanceled) {
+            signal.cancel()
+        }
+        cancellationSignals.remove(module)
+    }
+
+    /**
+     * Start a fingerprint authentication request.
+     *
+     *
+     * This variant will not restart the fingerprint reader after any failure, including non-fatal
+     * failures.
+     *
+     * @param listener The listener that will be notified of authentication events.
+     */
+    @JvmStatic
+    fun authenticateWithoutRestart(listener: AuthenticationListener?) {
+        authenticate(listener, RestartPredicatesImpl.neverRestart())
+    }
+}
