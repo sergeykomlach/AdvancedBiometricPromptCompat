@@ -12,7 +12,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object StatusBarTools {
-    /* //TODO: Display cutout support
+    /* //FIXME: Display cutout support
      * https://github.com/QMUI/QMUI_Android/tree/2689199dda27a6c9163fe54faa05e2d3a8447416/qmui/src/main/java/com/qmuiteam/qmui/util
      * https://open.oppomobile.com/wiki/doc#id=10159
      * https://mini.eastday.com/bdmip/180411011257629.html
