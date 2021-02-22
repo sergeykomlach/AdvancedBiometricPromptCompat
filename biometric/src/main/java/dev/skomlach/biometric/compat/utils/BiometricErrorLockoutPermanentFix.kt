@@ -1,31 +1,26 @@
-package dev.skomlach.biometric.compat.utils;
+package dev.skomlach.biometric.compat.utils
 
-import android.content.SharedPreferences;
-
-import androidx.annotation.RestrictTo;
-
-import dev.skomlach.biometric.compat.BiometricType;
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider;
+import android.content.SharedPreferences
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class BiometricErrorLockoutPermanentFix {
-    private static final String TS_PREF = "user_unlock_device";
-    public static BiometricErrorLockoutPermanentFix INSTANCE = new BiometricErrorLockoutPermanentFix();
-    private final SharedPreferences sharedPreferences;
-
-    private BiometricErrorLockoutPermanentFix() {
-        sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("BiometricErrorLockoutPermanentFix");
+class BiometricErrorLockoutPermanentFix private constructor() {
+    companion object {
+        private const val TS_PREF = "user_unlock_device"
+        @JvmField var INSTANCE = BiometricErrorLockoutPermanentFix()
+    }
+    private val sharedPreferences: SharedPreferences = getCryptoPreferences("BiometricErrorLockoutPermanentFix")
+    fun setBiometricSensorPermanentlyLocked(type: BiometricType) {
+        sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).apply()
     }
 
-    public void setBiometricSensorPermanentlyLocked(BiometricType type) {
-        sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name(), false).apply();
+    fun resetBiometricSensorPermanentlyLocked() {
+        sharedPreferences.edit().clear().apply()
     }
 
-    void resetBiometricSensorPermanentlyLocked() {
-        sharedPreferences.edit().clear().apply();
-    }
-
-    public boolean isBiometricSensorPermanentlyLocked(BiometricType type) {
-        return !sharedPreferences.getBoolean(TS_PREF + "-" + type.name(), true);
+    fun isBiometricSensorPermanentlyLocked(type: BiometricType): Boolean {
+        return !sharedPreferences.getBoolean(TS_PREF + "-" + type.name, true)
     }
 }

@@ -1,190 +1,189 @@
-package dev.skomlach.biometric.compat.utils;
+package dev.skomlach.biometric.compat.utils
 
-import android.content.Context;
-import android.content.pm.PackageManager;
-
-import androidx.annotation.RestrictTo;
-import androidx.core.os.BuildCompat;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.WeakHashMap;
-
-import dalvik.system.PathClassLoader;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.annotation.RestrictTo
+import androidx.core.os.BuildCompat
+import dalvik.system.PathClassLoader
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import java.lang.reflect.Modifier
+import java.util.*
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class ReflectionTools {
-
-    private static final WeakHashMap<String, PathClassLoader> cache = new WeakHashMap<>();
-
-    private static PathClassLoader getPathClassLoaderForPkg(String pkg) throws Exception {
-        PathClassLoader pathClassLoader = cache.get(pkg);
+object ReflectionTools {
+    private val cache = WeakHashMap<String, PathClassLoader>()
+    @Throws(Exception::class)
+    private fun getPathClassLoaderForPkg(pkg: String): PathClassLoader {
+        var pathClassLoader = cache[pkg]
         if (pathClassLoader == null) {
-            String apkName = null;
+            var apkName: String? = null
             try {
-                apkName = AndroidContext.getAppContext().getPackageManager().getApplicationInfo(
-                        pkg, 0).sourceDir;
-            } catch (Throwable e) {
-                if (BuildCompat.isAtLeastN())
-                    apkName = AndroidContext.getAppContext().getPackageManager().getApplicationInfo(
-                            pkg, PackageManager.MATCH_SYSTEM_ONLY).sourceDir;
+                apkName = appContext.packageManager.getApplicationInfo(
+                    pkg, 0
+                ).sourceDir
+            } catch (e: Throwable) {
+                if (BuildCompat.isAtLeastN()) apkName =
+                    appContext.packageManager.getApplicationInfo(
+                        pkg, PackageManager.MATCH_SYSTEM_ONLY
+                    ).sourceDir
             }
-            pathClassLoader = new PathClassLoader(apkName,
-                    ClassLoader.getSystemClassLoader());
-            cache.put(pkg, pathClassLoader);
+            pathClassLoader = PathClassLoader(
+                apkName,
+                ClassLoader.getSystemClassLoader()
+            )
+            cache[pkg] = pathClassLoader
         }
-
-        return pathClassLoader;
+        return pathClassLoader
     }
 
-    public static Class<?> getClassFromPkg(String pkg, String cls) throws ClassNotFoundException {
-        try {
-            return Class.forName(cls, true, getPathClassLoaderForPkg(pkg));
-        } catch (Throwable e) {
-            throw new ClassNotFoundException("Class '" + pkg + "/" + cls + "' not found", e);
+    @JvmStatic
+    @Throws(ClassNotFoundException::class)
+    fun getClassFromPkg(pkg: String, cls: String): Class<*> {
+        return try {
+            Class.forName(cls, true, getPathClassLoaderForPkg(pkg))
+        } catch (e: Throwable) {
+            throw ClassNotFoundException("Class '$pkg/$cls' not found", e)
         }
     }
 
-    public static boolean checkBooleanMethodForSignature(Class<?> clazz, Object managerObject, String... keywords) {
+    fun checkBooleanMethodForSignature(
+        clazz: Class<*>,
+        managerObject: Any?,
+        vararg keywords: String?
+    ): Boolean {
         try {
-            Method[] allMethods = clazz.getMethods();
-            for (Method m : allMethods) {
+            val allMethods = clazz.methods
+            for (m in allMethods) {
                 try {
-
-                    boolean isReturnBoolean = boolean.class.getName().equals(m.getReturnType().getName()) || Boolean.class.getName().equals(m.getReturnType().getName());
-
-                    boolean containsKeyword = false;
-                    String name = m.getName();
-                    for (String s : keywords) {
-                        if (name.contains(s)) {
-                            containsKeyword = true;
-                            break;
+                    val isReturnBoolean =
+                        Boolean::class.javaPrimitiveType?.name == m.returnType.name || Boolean::class.java.name == m.returnType.name
+                    var containsKeyword = false
+                    val name = m.name
+                    for (s in keywords) {
+                        if (!s.isNullOrEmpty() && name.contains(s)) {
+                            containsKeyword = true
+                            break
                         }
                     }
-
-                    if (Modifier.isPublic(m.getModifiers()) && isReturnBoolean && containsKeyword) {
-                        BiometricLoggerImpl.d("Method: " + m.getName());
-
-                        if (m.getParameterTypes().length == 0)
-                            try {
-                                if (boolean.class.getName().equals(m.getReturnType().getName())) {
-                                    return (boolean) m.invoke(managerObject);
-                                } else {
-                                    return (Boolean) m.invoke(managerObject);
-                                }
-                            } catch (Throwable e) {
-                                BiometricLoggerImpl.e(e);
+                    if (Modifier.isPublic(m.modifiers) && isReturnBoolean && containsKeyword) {
+                        d("Method: " + m.name)
+                        if (m.parameterTypes.isEmpty()) try {
+                            return if (Boolean::class.javaPrimitiveType?.name == m.returnType.name) {
+                                m.invoke(managerObject) as Boolean
+                            } else {
+                                m.invoke(managerObject) as Boolean
                             }
+                        } catch (e: Throwable) {
+                            e(e)
+                        }
                     }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
+                } catch (e: Throwable) {
+                    e(e)
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
-        return false;
+        return false
     }
 
-    public static int checkIntMethodForSignature(Class<?> clazz, Object managerObject, String startWith) {
+    fun checkIntMethodForSignature(clazz: Class<*>, managerObject: Any?, startWith: String): Int {
         try {
-            Method[] allMethods = clazz.getMethods();
-            for (Method m : allMethods) {
+            val allMethods = clazz.methods
+            for (m in allMethods) {
                 try {
-
-                    boolean isReturnInt = int.class.getName().equals(m.getReturnType().getName()) || Integer.class.getName().equals(m.getReturnType().getName());
-
-                    if (Modifier.isPublic(m.getModifiers()) && isReturnInt && m.getName().startsWith(startWith)) {
-                        BiometricLoggerImpl.d("Method: " + m.getName());
-
-                        if (m.getParameterTypes().length == 0)
-                            try {
-                                if (int.class.getName().equals(m.getReturnType().getName())) {
-                                    return (int) m.invoke(managerObject);
-                                } else {
-                                    return (Integer) m.invoke(managerObject);
-                                }
-                            } catch (Throwable e) {
-                                BiometricLoggerImpl.e(e);
+                    val isReturnInt =
+                        Int::class.javaPrimitiveType?.name == m.returnType.name || Int::class.java.name == m.returnType.name
+                    if (Modifier.isPublic(m.modifiers) && isReturnInt && m.name.startsWith(startWith) ) {
+                        d("Method: " + m.name)
+                        if (m.parameterTypes.isEmpty()) try {
+                            return if (Int::class.javaPrimitiveType?.name == m.returnType.name) {
+                                m.invoke(managerObject) as Int
+                            } else {
+                                m.invoke(managerObject) as Int
                             }
+                        } catch (e: Throwable) {
+                            e(e)
+                        }
                     }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
+                } catch (e: Throwable) {
+                    e(e)
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
-        return -1;
+        return -1
     }
 
-    public static Object callGetOrCreateInstance(Class<?> target) {
-
+    fun callGetOrCreateInstance(target: Class<*>): Any? {
         try {
-            Method[] array = target.getMethods();
-            for (Method m : array) {
+            val array = target.methods
+            for (m in array) {
                 try {
-                    if (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers())) {
-                        Class<?> returnedType = m.getReturnType();
-                        if (returnedType == Void.TYPE || returnedType == Object.class)
-                            continue;
-                        if (returnedType == target || returnedType == target.getSuperclass() || Arrays.asList(target.getInterfaces()).contains(returnedType)) {
-                            BiometricLoggerImpl.d("Method: " + m.getName());
+                    if (Modifier.isPublic(m.modifiers) && Modifier.isStatic(m.modifiers)) {
+                        val returnedType = m.returnType
+                        if (returnedType == Void.TYPE || returnedType == Any::class.java) continue
+                        if (returnedType == target || returnedType == target.superclass || listOf(
+                                *target.interfaces
+                            ).contains(returnedType)
+                        ) {
+                            d("Method: " + m.name)
                             try {
-                                if (m.getParameterTypes().length == 1 && m
-                                        .getParameterTypes()[0].getName().equals(Context.class.getName())) {
+                                if (m.parameterTypes.size == 1 && m
+                                        .parameterTypes[0].name == Context::class.java.name
+                                ) {
                                     //Case for SomeManager.getInstance(Context)
-                                    return m.invoke(null, AndroidContext.getAppContext());
-                                } else if (m.getParameterTypes().length == 0) {
+                                    return m.invoke(null, appContext)
+                                } else if (m.parameterTypes.isEmpty()) {
                                     //Case for SomeManager.getInstance()
-                                    return m.invoke(null);
+                                    return m.invoke(null)
                                 }
-                            } catch (Throwable e) {
+                            } catch (e: Throwable) {
                                 //TODO:
                                 //Deal with Caused by: java.lang.SecurityException: Permission Denial: get/set setting for user asks to run as user -2 but is calling from user 0; this requires android.permission.INTERACT_ACROSS_USERS_FULL
-                                BiometricLoggerImpl.e(e);
+                                e(e)
                             }
                         }
                     }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
+                } catch (e: Throwable) {
+                    e(e)
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
         try {
-            Constructor<?>[] array = target.getConstructors();
-            for (Constructor<?> c : array) {
+            val array = target.constructors
+            for (c in array) {
                 try {
-                    if (Modifier.isPublic(c.getModifiers())) {
-                        BiometricLoggerImpl.d("Constructor: " + c.getName());
+                    if (Modifier.isPublic(c.modifiers)) {
+                        d("Constructor: " + c.name)
                         try {
-                            if (c.getParameterTypes().length == 1 && c
-                                    .getParameterTypes()[0].getName().equals(Context.class.getName())) {
+                            if (c.parameterTypes.size == 1 && c
+                                    .parameterTypes[0].name == Context::class.java.name
+                            ) {
                                 //Case for new SomeManager(Context)
-                                return c.newInstance(AndroidContext.getAppContext());
-                            } else if (c.getParameterTypes().length == 0) {
+                                return c.newInstance(appContext)
+                            } else if (c.parameterTypes.isEmpty()) {
                                 //Case for new SomeManager()
-                                return c.newInstance();
+                                return c.newInstance()
                             }
-                        } catch (Throwable e) {
+                        } catch (e: Throwable) {
                             //TODO:
                             //Deal with Caused by: java.lang.SecurityException: Permission Denial: get/set setting for user asks to run as user -2 but is calling from user 0; this requires android.permission.INTERACT_ACROSS_USERS_FULL
-                            BiometricLoggerImpl.e(e);
+                            e(e)
                         }
                     }
-                } catch (Throwable e) {
-                    BiometricLoggerImpl.e(e);
+                } catch (e: Throwable) {
+                    e(e)
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
-        return null;
+        return null
     }
 }

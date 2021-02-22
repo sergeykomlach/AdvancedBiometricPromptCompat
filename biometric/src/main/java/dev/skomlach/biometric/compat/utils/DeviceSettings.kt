@@ -1,106 +1,103 @@
-package dev.skomlach.biometric.compat.utils;
+package dev.skomlach.biometric.compat.utils
 
-import android.database.Cursor;
-import android.net.Uri;
-import android.util.Base64;
-
-import androidx.annotation.RestrictTo;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
+import android.database.Cursor
+import android.net.Uri
+import android.util.Base64
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 //Dev tool
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class DeviceSettings {
-
-    private static final Pattern pattern = Pattern.compile("\\[(.+)\\]: \\[(.+)\\]");
-
-    public static void printAll() {
-        printSetting();
-        printProperties();
+object DeviceSettings {
+    private val pattern = Pattern.compile("\\[(.+)\\]: \\[(.+)\\]")
+    fun printAll() {
+        printSetting()
+        printProperties()
     }
 
-    private static void printSetting() {
-
+    private fun printSetting() {
         try {
-            final String[] subSettings = {"system", "global", "secure"};
-
-            for (String sub : subSettings) {
-                Uri u = Uri.parse("content://settings/" + sub);
-                Cursor mCur = AndroidContext.getAppContext()
-                        .getContentResolver()
-                        .query(u, null,
-                                null,
-                                null,
-                                null);
+            val subSettings = arrayOf("system", "global", "secure")
+            for (sub in subSettings) {
+                val u = Uri.parse("content://settings/$sub")
+                val mCur = appContext
+                    .contentResolver
+                    .query(
+                        u, null,
+                        null,
+                        null,
+                        null
+                    )
                 if (mCur != null) {
-
-                    for (mCur.moveToFirst(); !mCur.isAfterLast(); mCur.moveToNext()) {
-                        int nameIndex = mCur
-                                .getColumnIndexOrThrow("name");
-                        int valueIndex = mCur
-                                .getColumnIndexOrThrow("values");
+                    mCur.moveToFirst()
+                    while (!mCur.isAfterLast) {
+                        val nameIndex = mCur
+                            .getColumnIndexOrThrow("name")
+                        val valueIndex = mCur
+                            .getColumnIndexOrThrow("values")
                         if (!mCur.isNull(nameIndex)) {
-                            int type = mCur.getType(valueIndex);
-
-                            String name = mCur.getString(nameIndex);
-
-                            switch (type) {
-                                case Cursor.FIELD_TYPE_BLOB:
-                                    BiometricLoggerImpl.d("SystemSettings: " + sub + " - " + name + ":" + Base64.encodeToString(mCur.getBlob(valueIndex), Base64.DEFAULT));
-                                    break;
-                                case Cursor.FIELD_TYPE_FLOAT:
-                                    BiometricLoggerImpl.d("SystemSettings: " + sub + " - " + name + ":" + mCur.getFloat(valueIndex));
-                                    break;
-                                case Cursor.FIELD_TYPE_INTEGER:
-                                    BiometricLoggerImpl.d("SystemSettings: " + sub + " - " + name + ":" + mCur.getInt(valueIndex));
-                                    break;
-                                case Cursor.FIELD_TYPE_NULL:
-                                    BiometricLoggerImpl.d("SystemSettings: " + sub + " - " + name + ":NULL");
-                                    break;
-                                case Cursor.FIELD_TYPE_STRING:
-                                    BiometricLoggerImpl.d("SystemSettings: " + sub + " - " + name + ":" + mCur.getString(valueIndex));
-                                    break;
-                                default:
-                                    BiometricLoggerImpl.d("SystemSettings: " + sub + " - " + name + ": unknown type - " + type);
-                                    break;
+                            val type = mCur.getType(valueIndex)
+                            val name = mCur.getString(nameIndex)
+                            when (type) {
+                                Cursor.FIELD_TYPE_BLOB -> d(
+                                    "SystemSettings: $sub - $name:" + Base64.encodeToString(
+                                        mCur.getBlob(valueIndex),
+                                        Base64.DEFAULT
+                                    )
+                                )
+                                Cursor.FIELD_TYPE_FLOAT -> d(
+                                    "SystemSettings: $sub - $name:" + mCur.getFloat(
+                                        valueIndex
+                                    )
+                                )
+                                Cursor.FIELD_TYPE_INTEGER -> d(
+                                    "SystemSettings: $sub - $name:" + mCur.getInt(
+                                        valueIndex
+                                    )
+                                )
+                                Cursor.FIELD_TYPE_NULL -> d("SystemSettings: $sub - $name:NULL")
+                                Cursor.FIELD_TYPE_STRING -> d(
+                                    "SystemSettings: $sub - $name:" + mCur.getString(
+                                        valueIndex
+                                    )
+                                )
+                                else -> d("SystemSettings: $sub - $name: unknown type - $type")
                             }
                         }
+                        mCur.moveToNext()
                     }
-
-                    mCur.close();
+                    mCur.close()
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e, "SystemSettings");
+        } catch (e: Throwable) {
+            e(e, "SystemSettings")
         }
     }
 
-    private static void printProperties() {
-        String line;
-        Matcher m;
+    private fun printProperties() {
+        var line: String
+        var m: Matcher
         try {
-            Process p = Runtime.getRuntime().exec("getprop");
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            while ((line = input.readLine()) != null) {
-                m = pattern.matcher(line);
+            val p = Runtime.getRuntime().exec("getprop")
+            val input = BufferedReader(InputStreamReader(p.inputStream))
+            while (input.readLine().also { line = it } != null) {
+                m = pattern.matcher(line)
                 if (m.find()) {
-                    MatchResult result = m.toMatchResult();
-                    String key = result.group(1);
-                    String value = result.group(2);
-
-                    BiometricLoggerImpl.d("SystemProperties: " + line);
+                    val result = m.toMatchResult()
+                    val key = result.group(1)
+                    val value = result.group(2)
+                    d("SystemProperties: $line")
                 }
             }
-            input.close();
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e, "SystemProperties");
+            input.close()
+        } catch (e: Throwable) {
+            e(e, "SystemProperties")
         }
     }
 }

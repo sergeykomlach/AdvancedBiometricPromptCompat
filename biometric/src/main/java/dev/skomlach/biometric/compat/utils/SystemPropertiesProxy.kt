@@ -1,51 +1,43 @@
-package dev.skomlach.biometric.compat.utils;
-import android.content.Context;
+package dev.skomlach.biometric.compat.utils
 
-import java.io.File;
-import java.lang.reflect.Method;
-import dalvik.system.DexFile;
+import android.content.*
+import dalvik.system.DexFile
+import java.io.File
 
 /**
  * This class cannot be instantiated
  */
-public class SystemPropertiesProxy {
-
+object SystemPropertiesProxy {
     /**
      * Get the value for the given key.
      *
      * @return an empty string if the key isn't found
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    public static String get(Context context, String key) throws IllegalArgumentException {
-
-        String ret = "";
-
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun get(context: Context, key: String): String? {
+        var ret = ""
         try {
-
-            ClassLoader cl = context.getClassLoader();
-            @SuppressWarnings("rawtypes")
-            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+            val cl = context.classLoader
+            val SystemProperties = cl.loadClass("android.os.SystemProperties")
 
 //Parameters Types
-            @SuppressWarnings("rawtypes")
-            Class[] paramTypes = new Class[1];
-            paramTypes[0] = String.class;
-
-            Method get = SystemProperties.getMethod("get", paramTypes);
+            val paramTypes: Array<Class<*>?> = arrayOfNulls(1)
+            paramTypes[0] = String::class.java
+            val get = SystemProperties.getMethod("get", *paramTypes)
 
             //Parameters
-            Object[] params = new Object[1];
-            params[0] = new String(key);
-
-            ret = (String) get.invoke(SystemProperties, params);
-        } catch (IllegalArgumentException iAE) {
-            throw iAE;
-        } catch (Exception e) {
-            ret = "";
+            val params = arrayOfNulls<Any>(1)
+            params[0] = key
+            ret = get.invoke(SystemProperties, *params) as String
+        } catch (iAE: IllegalArgumentException) {
+            throw iAE
+        } catch (e: Exception) {
+            ret = ""
             //TODO
         }
-
-        return ret;
+        return ret
     }
 
     /**
@@ -54,38 +46,32 @@ public class SystemPropertiesProxy {
      * @return if the key isn't found, return def if it isn't null, or an empty string otherwise
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    public static String get(Context context, String key, String def) throws IllegalArgumentException {
-
-        String ret = def;
-
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun get(context: Context, key: String, def: String): String? {
+        var ret = def
         try {
-
-            ClassLoader cl = context.getClassLoader();
-            @SuppressWarnings("rawtypes")
-            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+            val cl = context.classLoader
+            val SystemProperties = cl.loadClass("android.os.SystemProperties")
 
 //Parameters Types
-            @SuppressWarnings("rawtypes")
-            Class[] paramTypes = new Class[2];
-            paramTypes[0] = String.class;
-            paramTypes[1] = String.class;
-
-            Method get = SystemProperties.getMethod("get", paramTypes);
+            val paramTypes: Array<Class<*>?> = arrayOfNulls(2)
+            paramTypes[0] = String::class.java
+            paramTypes[1] = String::class.java
+            val get = SystemProperties.getMethod("get", *paramTypes)
 
             //Parameters
-            Object[] params = new Object[2];
-            params[0] = new String(key);
-            params[1] = new String(def);
-
-            ret = (String) get.invoke(SystemProperties, params);
-        } catch (IllegalArgumentException iAE) {
-            throw iAE;
-        } catch (Exception e) {
-            ret = def;
+            val params = arrayOfNulls<Any>(2)
+            params[0] = key
+            params[1] = def
+            ret = get.invoke(SystemProperties, *params) as String
+        } catch (iAE: IllegalArgumentException) {
+            throw iAE
+        } catch (e: Exception) {
+            ret = def
             //TODO
         }
-
-        return ret;
+        return ret
     }
 
     /**
@@ -97,38 +83,32 @@ public class SystemPropertiesProxy {
      * cannot be parsed
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    public static Integer getInt(Context context, String key, int def) throws IllegalArgumentException {
-
-        Integer ret = def;
-
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun getInt(context: Context, key: String, def: Int): Int? {
+        var ret = def
         try {
-
-            ClassLoader cl = context.getClassLoader();
-            @SuppressWarnings("rawtypes")
-            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+            val cl = context.classLoader
+            val SystemProperties = cl.loadClass("android.os.SystemProperties")
 
 //Parameters Types
-            @SuppressWarnings("rawtypes")
-            Class[] paramTypes = new Class[2];
-            paramTypes[0] = String.class;
-            paramTypes[1] = int.class;
-
-            Method getInt = SystemProperties.getMethod("getInt", paramTypes);
+            val paramTypes = arrayOfNulls<Class<*>?>(2)
+            paramTypes[0] = String::class.java
+            paramTypes[1] = Int::class.javaPrimitiveType
+            val getInt = SystemProperties.getMethod("getInt", *paramTypes)
 
             //Parameters
-            Object[] params = new Object[2];
-            params[0] = new String(key);
-            params[1] = new Integer(def);
-
-            ret = (Integer) getInt.invoke(SystemProperties, params);
-        } catch (IllegalArgumentException iAE) {
-            throw iAE;
-        } catch (Exception e) {
-            ret = def;
+            val params = arrayOfNulls<Any>(2)
+            params[0] = key
+            params[1] = def
+            ret = getInt.invoke(SystemProperties, *params) as Int
+        } catch (iAE: IllegalArgumentException) {
+            throw iAE
+        } catch (e: Exception) {
+            ret = def
             //TODO
         }
-
-        return ret;
+        return ret
     }
 
     /**
@@ -140,38 +120,32 @@ public class SystemPropertiesProxy {
      * cannot be parsed
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    public static Long getLong(Context context, String key, long def) throws IllegalArgumentException {
-
-        Long ret = def;
-
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun getLong(context: Context, key: String, def: Long): Long? {
+        var ret = def
         try {
-
-            ClassLoader cl = context.getClassLoader();
-            @SuppressWarnings("rawtypes")
-            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+            val cl = context.classLoader
+            val SystemProperties = cl.loadClass("android.os.SystemProperties")
 
 //Parameters Types
-            @SuppressWarnings("rawtypes")
-            Class[] paramTypes = new Class[2];
-            paramTypes[0] = String.class;
-            paramTypes[1] = long.class;
-
-            Method getLong = SystemProperties.getMethod("getLong", paramTypes);
+            val paramTypes = arrayOfNulls<Class<*>?>(2)
+            paramTypes[0] = String::class.java
+            paramTypes[1] = Long::class.javaPrimitiveType
+            val getLong = SystemProperties.getMethod("getLong", *paramTypes)
 
             //Parameters
-            Object[] params = new Object[2];
-            params[0] = new String(key);
-            params[1] = new Long(def);
-
-            ret = (Long) getLong.invoke(SystemProperties, params);
-        } catch (IllegalArgumentException iAE) {
-            throw iAE;
-        } catch (Exception e) {
-            ret = def;
+            val params = arrayOfNulls<Any>(2)
+            params[0] = key
+            params[1] = def
+            ret = getLong.invoke(SystemProperties, *params) as Long
+        } catch (iAE: IllegalArgumentException) {
+            throw iAE
+        } catch (e: Exception) {
+            ret = def
             //TODO
         }
-
-        return ret;
+        return ret
     }
 
     /**
@@ -188,38 +162,32 @@ public class SystemPropertiesProxy {
      * not able to be parsed as a boolean.
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    public static Boolean getBoolean(Context context, String key, boolean def) throws IllegalArgumentException {
-
-        Boolean ret = def;
-
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun getBoolean(context: Context, key: String, def: Boolean): Boolean? {
+        var ret = def
         try {
-
-            ClassLoader cl = context.getClassLoader();
-            @SuppressWarnings("rawtypes")
-            Class SystemProperties = cl.loadClass("android.os.SystemProperties");
+            val cl = context.classLoader
+            val SystemProperties = cl.loadClass("android.os.SystemProperties")
 
 //Parameters Types
-            @SuppressWarnings("rawtypes")
-            Class[] paramTypes = new Class[2];
-            paramTypes[0] = String.class;
-            paramTypes[1] = boolean.class;
-
-            Method getBoolean = SystemProperties.getMethod("getBoolean", paramTypes);
+            val paramTypes = arrayOfNulls<Class<*>?>(2)
+            paramTypes[0] = String::class.java
+            paramTypes[1] = Boolean::class.javaPrimitiveType
+            val getBoolean = SystemProperties.getMethod("getBoolean", *paramTypes)
 
             //Parameters
-            Object[] params = new Object[2];
-            params[0] = new String(key);
-            params[1] = new Boolean(def);
-
-            ret = (Boolean) getBoolean.invoke(SystemProperties, params);
-        } catch (IllegalArgumentException iAE) {
-            throw iAE;
-        } catch (Exception e) {
-            ret = def;
+            val params = arrayOfNulls<Any>(2)
+            params[0] = key
+            params[1] = def
+            ret = getBoolean.invoke(SystemProperties, *params) as Boolean
+        } catch (iAE: IllegalArgumentException) {
+            throw iAE
+        } catch (e: Exception) {
+            ret = def
             //TODO
         }
-
-        return ret;
+        return ret
     }
 
     /**
@@ -228,34 +196,28 @@ public class SystemPropertiesProxy {
      * @throws IllegalArgumentException if the key exceeds 32 characters
      * @throws IllegalArgumentException if the value exceeds 92 characters
      */
-    public static void set(Context context, String key, String val) throws IllegalArgumentException {
-
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun set(context: Context, key: String?, value: String?) {
         try {
-
-            @SuppressWarnings("unused")
-            DexFile df = new DexFile(new File("/system/app/Settings.apk"));
-            @SuppressWarnings("unused")
-            ClassLoader cl = context.getClassLoader();
-            @SuppressWarnings("rawtypes")
-            Class SystemProperties = Class.forName("android.os.SystemProperties");
+            val df = DexFile(File("/system/app/Settings.apk"))
+            val cl = context.classLoader
+            val SystemProperties = Class.forName("android.os.SystemProperties")
 
 //Parameters Types
-            @SuppressWarnings("rawtypes")
-            Class[] paramTypes = new Class[2];
-            paramTypes[0] = String.class;
-            paramTypes[1] = String.class;
-
-            Method set = SystemProperties.getMethod("set", paramTypes);
+            val paramTypes: Array<Class<*>?> = arrayOfNulls(2)
+            paramTypes[0] = String::class.java
+            paramTypes[1] = String::class.java
+            val set = SystemProperties.getMethod("set", *paramTypes)
 
             //Parameters
-            Object[] params = new Object[2];
-            params[0] = new String(key);
-            params[1] = new String(val);
-
-            set.invoke(SystemProperties, params);
-        } catch (IllegalArgumentException iAE) {
-            throw iAE;
-        } catch (Exception e) {
+            val params = arrayOfNulls<Any>(2)
+            params[0] = key
+            params[1] = value
+            set.invoke(SystemProperties, *params)
+        } catch (iAE: IllegalArgumentException) {
+            throw iAE
+        } catch (e: Exception) {
             //TODO
         }
     }

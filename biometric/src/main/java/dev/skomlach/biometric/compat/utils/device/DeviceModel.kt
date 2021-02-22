@@ -9,6 +9,9 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 object DeviceModel {
 
@@ -20,15 +23,15 @@ object DeviceModel {
         var s: String? = getSimpleDeviceName()
         BiometricLoggerImpl.e("AndroidModel - $s")
         s?.let {
-            strings.put(it.toLowerCase(), fixVendorName(it))
+            strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
         }
         s = getNameFromAssets()
         s?.let {
-            strings.put(it.toLowerCase(), fixVendorName(it))
+            strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
         }
         s = getNameFromDatabase()
         s?.let {
-            strings.put(it.toLowerCase(), fixVendorName(it))
+            strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
         }
         BiometricLoggerImpl.e("AndroidModel.names ${strings.values}")
         return HashSet<String>(strings.values)

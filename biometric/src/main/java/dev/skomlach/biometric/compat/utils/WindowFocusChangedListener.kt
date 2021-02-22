@@ -1,10 +1,9 @@
-package dev.skomlach.biometric.compat.utils;
+package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public interface WindowFocusChangedListener {
-    void onStartWatching();
-
-    void hasFocus(boolean hasFocus);
+interface WindowFocusChangedListener {
+    fun onStartWatching()
+    fun hasFocus(hasFocus: Boolean)
 }

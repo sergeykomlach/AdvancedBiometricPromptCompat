@@ -25,7 +25,7 @@ class DeviceInfoManager private constructor() {
     fun hasFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase()
+            val s = str.toLowerCase(Locale.US)
             if (s.contains("fingerprint")) {
                 return true
             }
@@ -36,7 +36,7 @@ class DeviceInfoManager private constructor() {
     fun hasUnderDisplayFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase()
+            val s = str.toLowerCase(Locale.US)
             if (s.contains("fingerprint") && s.contains("under display")) {
                 return true
             }
@@ -47,7 +47,7 @@ class DeviceInfoManager private constructor() {
     fun hasIrisScanner(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase()
+            val s = str.toLowerCase(Locale.US)
             if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(
                     " auth"
                 )
@@ -63,7 +63,7 @@ class DeviceInfoManager private constructor() {
     fun hasFaceID(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase()
+            val s = str.toLowerCase(Locale.US)
             if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(
                     " auth"
                 )

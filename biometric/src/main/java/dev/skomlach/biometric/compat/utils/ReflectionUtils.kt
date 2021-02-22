@@ -1,48 +1,43 @@
-package dev.skomlach.biometric.compat.utils;
+package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.RestrictTo;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.lang.reflect.Modifier
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class ReflectionUtils {
-    public static void printClass(String name) {
+object ReflectionUtils {
+    fun printClass(name: String?) {
         try {
             // print class name and superclass name (if != Object)
-            Class<?> cl = Class.forName(name);
-            printClass(cl);
-        } catch (ClassNotFoundException ignore) {
-
+            val cl = Class.forName(name)
+            printClass(cl)
+        } catch (ignore: ClassNotFoundException) {
         }
     }
 
-    public static void printClass(Class cl) {
+    fun printClass(cl: Class<*>) {
         try {
-            Class<?> supercl = cl.getSuperclass();
-            String modifiers = Modifier.toString(cl.getModifiers());
-            if (modifiers.length() > 0) {
-                System.err.print(modifiers + " ");
+            val supercl = cl.superclass
+            val modifiers = Modifier.toString(cl.modifiers)
+            if (modifiers.isNotEmpty()) {
+                System.err.print("$modifiers ")
             }
-            System.err.print("class " + cl.getName());
-            if (supercl != null && supercl != Object.class) {
-                System.err.print(" extends "
-                        + supercl.getName());
+            System.err.print("class " + cl.name)
+            if (supercl != null && supercl != Any::class.java) {
+                System.err.print(
+                    " extends "
+                            + supercl.name
+                )
             }
-
-            System.err.print("\n{\n");
-            printConstructors(cl);
-            System.err.println();
-            printMethods(cl);
-            System.err.println();
-            printFields(cl);
-            System.err.println("}");
-        } catch (Exception e) {
-            BiometricLoggerImpl.e(e);
+            System.err.print("\n{\n")
+            printConstructors(cl)
+            System.err.println()
+            printMethods(cl)
+            System.err.println()
+            printFields(cl)
+            System.err.println("}")
+        } catch (e: Exception) {
+            e(e)
         }
     }
 
@@ -51,27 +46,26 @@ public class ReflectionUtils {
      *
      * @param cl a class
      */
-    public static void printConstructors(Class<?> cl) {
-        Constructor<?>[] constructors = cl.getDeclaredConstructors();
-
-        for (Constructor<?> c : constructors) {
-            String name = c.getName();
-            System.err.print("   ");
-            String modifiers = Modifier.toString(c.getModifiers());
-            if (modifiers.length() > 0) {
-                System.err.print(modifiers + " ");
+    fun printConstructors(cl: Class<*>) {
+        val constructors = cl.declaredConstructors
+        for (c in constructors) {
+            val name = c.name
+            System.err.print("   ")
+            val modifiers = Modifier.toString(c.modifiers)
+            if (modifiers.isNotEmpty()) {
+                System.err.print("$modifiers ")
             }
-            System.err.print(name + "(");
+            System.err.print("$name(")
 
             // print parameter types
-            Class<?>[] paramTypes = c.getParameterTypes();
-            for (int j = 0; j < paramTypes.length; j++) {
+            val paramTypes = c.parameterTypes
+            for (j in paramTypes.indices) {
                 if (j > 0) {
-                    System.err.print(", ");
+                    System.err.print(", ")
                 }
-                System.err.print(paramTypes[j].getName());
+                System.err.print(paramTypes[j].name)
             }
-            System.err.println(");");
+            System.err.println(");")
         }
     }
 
@@ -80,30 +74,28 @@ public class ReflectionUtils {
      *
      * @param cl a class
      */
-    public static void printMethods(Class<?> cl) {
-        Method[] methods = cl.getDeclaredMethods();
-
-        for (Method m : methods) {
-            Class<?> retType = m.getReturnType();
-            String name = m.getName();
-
-            System.err.print("   ");
+    fun printMethods(cl: Class<*>) {
+        val methods = cl.declaredMethods
+        for (m in methods) {
+            val retType = m.returnType
+            val name = m.name
+            System.err.print("   ")
             // print modifiers, return type and method name
-            String modifiers = Modifier.toString(m.getModifiers());
-            if (modifiers.length() > 0) {
-                System.err.print(modifiers + " ");
+            val modifiers = Modifier.toString(m.modifiers)
+            if (modifiers.isNotEmpty()) {
+                System.err.print("$modifiers ")
             }
-            System.err.print(retType.getName() + " " + name + "(");
+            System.err.print(retType.name + " " + name + "(")
 
             // print parameter types
-            Class<?>[] paramTypes = m.getParameterTypes();
-            for (int j = 0; j < paramTypes.length; j++) {
+            val paramTypes = m.parameterTypes
+            for (j in paramTypes.indices) {
                 if (j > 0) {
-                    System.err.print(", ");
+                    System.err.print(", ")
                 }
-                System.err.print(paramTypes[j].getName());
+                System.err.print(paramTypes[j].name)
             }
-            System.err.println(");");
+            System.err.println(");")
         }
     }
 
@@ -112,31 +104,28 @@ public class ReflectionUtils {
      *
      * @param cl a class
      */
-    public static void printFields(Class<?> cl) throws IllegalAccessException {
-        Field[] fields = cl.getDeclaredFields();
-
-        for (Field f : fields) {
-            boolean isAccessible = f.isAccessible();
+    @Throws(IllegalAccessException::class)
+    fun printFields(cl: Class<*>) {
+        val fields = cl.declaredFields
+        for (f in fields) {
+            val isAccessible = f.isAccessible
             if (!isAccessible) {
-                f.setAccessible(true);
+                f.isAccessible = true
             }
-            Class<?> type = f.getType();
-            String name = f.getName();
-            System.err.print("   ");
-            String modifiers = Modifier.toString(f.getModifiers());
-            if (modifiers.length() > 0) {
-                System.err.print(modifiers + " ");
+            val type = f.type
+            val name = f.name
+            System.err.print("   ")
+            val modifiers = Modifier.toString(f.modifiers)
+            if (modifiers.isNotEmpty()) {
+                System.err.print("$modifiers ")
             }
-            if (Modifier.isStatic(f.getModifiers())) {
-                if (type.equals(String.class))
-                    System.err.println(type.getName() + " " + name + " = \"" + f.get(null) + "\";");
-                else
-                    System.err.println(type.getName() + " " + name + " = " + f.get(null) + ";");
-            } else
-                System.err.println(type.getName() + " " + name + ";");
-
+            if (Modifier.isStatic(f.modifiers)) {
+                if (type == String::class.java) System.err.println(type.name + " " + name + " = \"" + f[null] + "\";") else System.err.println(
+                    type.name + " " + name + " = " + f[null] + ";"
+                )
+            } else System.err.println(type.name + " " + name + ";")
             if (!isAccessible) {
-                f.setAccessible(true);
+                f.isAccessible = true
             }
         }
     }

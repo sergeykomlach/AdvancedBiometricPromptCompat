@@ -1,175 +1,150 @@
-package dev.skomlach.biometric.compat.utils;
+package dev.skomlach.biometric.compat.utils
 
-import android.app.Activity;
-import android.app.Application;
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.os.Build;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.WindowManager;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-import androidx.core.util.ObjectsCompat;
-import androidx.fragment.app.FragmentActivity;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import android.app.Activity
+import android.app.Application
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.Build
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewParent
+import android.view.WindowManager
+import androidx.annotation.RestrictTo
+import androidx.core.util.ObjectsCompat
+import androidx.fragment.app.FragmentActivity
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.util.*
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-@SuppressWarnings("unchecked")
-public class ActiveWindow {
-    private static Class<?> clazz;
-    private static Object windowManager;
-    private static Class<?> windowManagerClazz;
-
-    static {
+object ActiveWindow {
+    private var clazz: Class<*>? = null
+    private var windowManager: Any? = null
+    private var windowManagerClazz: Class<*>? = null
+    init {
         try {
-            clazz = Class.forName("android.view.ViewRootImpl");
-
+            clazz = Class.forName("android.view.ViewRootImpl")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                windowManagerClazz = Class.forName("android.view.WindowManagerGlobal");
-                windowManager = windowManagerClazz.getMethod("getInstance").invoke(null);
+                windowManagerClazz = Class.forName("android.view.WindowManagerGlobal")
+                windowManagerClazz?.getMethod("getInstance")?.invoke(null).also { windowManager = it }
             } else {
-                windowManagerClazz = Class.forName("android.view.WindowManagerImpl");
-                windowManager = windowManagerClazz.getMethod("getDefault").invoke(null);
+                windowManagerClazz = Class.forName("android.view.WindowManagerImpl")
+                windowManagerClazz?.getMethod("getDefault")?.invoke(null).also { windowManager = it }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
     }
-
-    public static View getActiveView(FragmentActivity activity) {
-        List<ViewParent> list = getViewRoots();
-        View topView = null;
-        for (int i = 0; i < list.size(); i++) {
-            ViewParent viewParent = list.get(i);
+    fun getActiveView(activity: FragmentActivity): View {
+        val list = viewRoots
+        var topView: View? = null
+        for (i in list.indices) {
+            val viewParent = list[i]
             try {
-
-                View view = (View) clazz.getMethod("getView").invoke(viewParent);
-                int type = ((WindowManager.LayoutParams) view.getLayoutParams()).type;
+                val view = clazz?.getMethod("getView")?.invoke(viewParent) as View
+                val type = (view.layoutParams as WindowManager.LayoutParams).type
                 if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
-                    continue;
+                    continue
                 }
-
-                if(!viewBelongActivity(view, activity))
-                    continue;
-
+                if (!viewBelongActivity(view, activity)) continue
                 if (topView == null) {
-                    topView = view;
+                    topView = view
                 } else {
-                    int topViewType = ((WindowManager.LayoutParams) topView.getLayoutParams()).type;
+                    val topViewType = (topView.layoutParams as WindowManager.LayoutParams).type
                     if (type > topViewType) {
-                        topView = view;
+                        topView = view
                     } else if (view.hasWindowFocus() && !topView.hasWindowFocus()) {
-                        topView = view;
+                        topView = view
                     }
                 }
-            } catch (Throwable e) {
-                BiometricLoggerImpl.e(e, "ActiveWindow.getActiveView");
+            } catch (e: Throwable) {
+                e(e, "ActiveWindow.getActiveView")
             }
         }
         if (topView != null) {
-            BiometricLoggerImpl.e("ActiveWindow.getActiveView-" + topView);
-            return topView;
+            e("ActiveWindow.getActiveView-$topView")
+            return topView
         }
-
-        throw new IllegalStateException("Unable to find Active Window to attach");
+        throw IllegalStateException("Unable to find Active Window to attach")
     }
 
-    private static boolean viewBelongActivity(@Nullable View view, @NonNull Activity activity) {
-        if (view == null)
-            return false;
-        Context context = extractActivity(view.getContext());
-        if (context == null)
-            context = view.getContext();
-
+    private fun viewBelongActivity(view: View?, activity: Activity): Boolean {
+        if (view == null) return false
+        var context: Context? = extractActivity(view.context)
+        if (context == null) context = view.context
         if (ObjectsCompat.equals(activity, context)) {
-            return true;
-        }
-        else if (view instanceof ViewGroup) {
-            ViewGroup vg = (ViewGroup) view;
-            for (int i = 0; i < vg.getChildCount(); i++) {
-                if (viewBelongActivity(vg.getChildAt(i), activity))
-                    return true;
+            return true
+        } else if (view is ViewGroup) {
+            val vg = view
+            for (i in 0 until vg.childCount) {
+                if (viewBelongActivity(vg.getChildAt(i), activity)) return true
             }
         }
-
-        return false;
+        return false
     }
 
-    @Nullable
-    private static Activity extractActivity(@NonNull Context context) {
+    private fun extractActivity(c: Context): Activity? {
+        var context = c
         while (true) {
-            if (context instanceof Application) {
-                return null;
-            } else if (context instanceof Activity) {
-                return (Activity) context;
-            } else if (context instanceof ContextWrapper) {
-                Context baseContext = ((ContextWrapper) context).getBaseContext();
-                // Prevent Stack Overflow.
-                if (baseContext == context) {
-                    return null;
+            context = when (context) {
+                is Application -> {
+                    return null
                 }
-                context = baseContext;
-            } else {
-                return null;
+                is Activity -> {
+                    return context
+                }
+                is ContextWrapper -> {
+                    val baseContext = context.baseContext
+                    // Prevent Stack Overflow.
+                    if (baseContext === context) {
+                        return null
+                    }
+                    baseContext
+                }
+                else -> {
+                    return null
+                }
             }
         }
     }
 
-    private static List<ViewParent> getViewRoots() {
-
-        List<ViewParent> viewRoots = new ArrayList<>();
-
-        try {
-
-            Field rootsField = windowManagerClazz.getDeclaredField("mRoots");
-            boolean isAccessibleRootsField = rootsField.isAccessible();
+    // Filter out inactive view roots
+    private val viewRoots: List<ViewParent>
+        get() {
+            val viewRoots: MutableList<ViewParent> = ArrayList()
             try {
-                if (!isAccessibleRootsField)
-                    rootsField.setAccessible(true);
-
-                Field stoppedField = clazz.getDeclaredField("mStopped");
-                boolean isAccessible = stoppedField.isAccessible();
+                val rootsField = windowManagerClazz?.getDeclaredField("mRoots")
+                val isAccessibleRootsField = rootsField?.isAccessible
                 try {
-                    if (!isAccessible)
-                        stoppedField.setAccessible(true);
-
-                    Object lst = rootsField.get(windowManager);
-                    List<ViewParent> viewParents = new ArrayList<>();
+                    if (isAccessibleRootsField == false) rootsField?.isAccessible = true
+                    val stoppedField = clazz?.getDeclaredField("mStopped")
+                    val isAccessible = stoppedField?.isAccessible
                     try {
-                        viewParents.addAll((List<ViewParent>) lst);
-                    } catch (ClassCastException ignore) {
-                        ViewParent[] parents = (ViewParent[]) lst;
-                        viewParents.addAll(Arrays.asList(parents));
-                    }
-                    // Filter out inactive view roots
-                    for (ViewParent viewParent : viewParents) {
-                        boolean stopped = (boolean) stoppedField.get(viewParent);
-                        if (!stopped) {
-                            viewRoots.add(viewParent);
+                        if (isAccessible == false) stoppedField?.isAccessible = true
+                        val lst = rootsField?.get(windowManager)
+                        val viewParents: MutableList<ViewParent> = ArrayList()
+                        try {
+                            viewParents.addAll((lst as List<ViewParent>))
+                        } catch (ignore: ClassCastException) {
+                            val parents = lst as Array<ViewParent>
+                            viewParents.addAll(listOf(*parents))
                         }
+                        // Filter out inactive view roots
+                        for (viewParent in viewParents) {
+                            val stopped = stoppedField?.get(viewParent) as Boolean
+                            if (!stopped) {
+                                viewRoots.add(viewParent)
+                            }
+                        }
+                    } finally {
+                        if (isAccessible == false) stoppedField.isAccessible = false
                     }
                 } finally {
-                    if (!isAccessible)
-                        stoppedField.setAccessible(false);
+                    if (isAccessibleRootsField == false) rootsField.isAccessible = false
                 }
-            } finally {
-                if (!isAccessibleRootsField)
-                    rootsField.setAccessible(false);
+            } catch (e: Exception) {
+                e(e, "ActiveWindow")
             }
-        } catch (Exception e) {
-            BiometricLoggerImpl.e(e, "ActiveWindow");
+            return viewRoots
         }
 
-        return viewRoots;
-    }
 }
