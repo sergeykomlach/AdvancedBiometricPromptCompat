@@ -1,35 +1,41 @@
-package me.weishu.reflection;
+package me.weishu.reflection
 
-import android.os.Build;
-import android.util.Log;
-
-import java.lang.reflect.Method;
-
-import static android.os.Build.VERSION.SDK_INT;
+import android.os.Build
+import android.os.Build.VERSION
+import android.util.Log
+import java.lang.reflect.Method
 
 /**
  * @author weishu
  * @date 2020/7/13.
  */
-public final class BootstrapClass {
+object BootstrapClass {
+    private const val TAG = "BootstrapClass"
+    private var sVmRuntime: Any? = null
+    private var setHiddenApiExemptions: Method? = null
 
-    private static final String TAG = "BootstrapClass";
-
-    private static Object sVmRuntime;
-    private static Method setHiddenApiExemptions;
-
-    static {
-        if (SDK_INT >= Build.VERSION_CODES.P) {
+    init {
+        if (VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             try {
-                Method forName = Class.class.getDeclaredMethod("forName", String.class);
-                Method getDeclaredMethod = Class.class.getDeclaredMethod("getDeclaredMethod", String.class, Class[].class);
-
-                Class<?> vmRuntimeClass = (Class<?>) forName.invoke(null, "dalvik.system.VMRuntime");
-                Method getRuntime = (Method) getDeclaredMethod.invoke(vmRuntimeClass, "getRuntime", null);
-                setHiddenApiExemptions = (Method) getDeclaredMethod.invoke(vmRuntimeClass, "setHiddenApiExemptions", new Class[]{String[].class});
-                sVmRuntime = getRuntime.invoke(null);
-            } catch (Throwable e) {
-                Log.w(TAG, "reflect bootstrap failed:", e);
+                val params = arrayOf<Class<*>>()
+                val forName =
+                    Class::class.java.getDeclaredMethod("forName", String::class.java)
+                val getDeclaredMethod = Class::class.java.getDeclaredMethod(
+                    "getDeclaredMethod",
+                    String::class.java,
+                    params::class.java
+                )
+                val vmRuntimeClass = forName.invoke(null, "dalvik.system.VMRuntime") as Class<*>
+                val getRuntime =
+                    getDeclaredMethod.invoke(vmRuntimeClass, "getRuntime", null) as Method
+                setHiddenApiExemptions = getDeclaredMethod.invoke(
+                    vmRuntimeClass, "setHiddenApiExemptions", arrayOf<Class<*>>(
+                        Array<String>::class.java
+                    )
+                ) as Method
+                sVmRuntime = getRuntime.invoke(null)
+            } catch (e: Throwable) {
+                Log.w(TAG, "reflect bootstrap failed:", e)
             }
         }
     }
@@ -40,8 +46,8 @@ public final class BootstrapClass {
      * @param method the method signature prefix.
      * @return true if success.
      */
-    public static boolean exempt(String method) {
-        return exempt(new String[]{method});
+    fun exempt(method: String): Boolean {
+        return exempt(*arrayOf(method))
     }
 
     /**
@@ -50,16 +56,14 @@ public final class BootstrapClass {
      * @param methods the method signature prefix, such as "Ldalvik/system", "Landroid" or even "L"
      * @return true if success
      */
-    public static boolean exempt(String... methods) {
-        if (sVmRuntime == null || setHiddenApiExemptions == null) {
-            return false;
-        }
-
-        try {
-            setHiddenApiExemptions.invoke(sVmRuntime, new Object[]{methods});
-            return true;
-        } catch (Throwable e) {
-            return false;
+    fun exempt(vararg methods: String?): Boolean {
+        return if (sVmRuntime == null || setHiddenApiExemptions == null) {
+            false
+        } else try {
+            setHiddenApiExemptions?.invoke(sVmRuntime, *arrayOf<Any>(methods))
+            true
+        } catch (e: Throwable) {
+            false
         }
     }
 
@@ -68,7 +72,7 @@ public final class BootstrapClass {
      *
      * @return true if success.
      */
-    public static boolean exemptAll() {
-        return exempt(new String[]{"L"});
+    fun exemptAll(): Boolean {
+        return exempt(*arrayOf("L"))
     }
 }
