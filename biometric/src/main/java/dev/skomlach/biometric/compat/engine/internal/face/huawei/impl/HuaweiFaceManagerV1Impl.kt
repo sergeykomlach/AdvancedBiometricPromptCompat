@@ -1,72 +1,70 @@
-package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl;
+package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
-import android.content.Context;
+import android.content.Context
+import dev.skomlach.biometric.compat.engine.BiometricCodes
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-import dev.skomlach.biometric.compat.engine.BiometricCodes;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+class HuaweiFaceManagerV1Impl(context: Context) : HuaweiFaceManagerV1() {
 
-public class HuaweiFaceManagerV1Impl extends HuaweiFaceManagerV1 {
-
-    private static final int FACE_AUTH_VERSION_V1 = 1;
-    private static final int HUAWEI_OP_FAIL = -1;
-    private static final int HUAWEI_OP_SUCCESS = 0;
-    private static final String TAG = "HuaweiFaceManagerV1Impl";
-
-    public HuaweiFaceManagerV1Impl(Context context) {
-        HuaweiFaceRecognizeManager.createInstance(context);
+    companion object {
+        private const val FACE_AUTH_VERSION_V1 = 1
+        private const val HUAWEI_OP_FAIL = -1
+        private const val HUAWEI_OP_SUCCESS = 0
+        private const val TAG = "HuaweiFaceManagerV1Impl"
     }
 
-    public void authenticate(int reqID, int flag, AuthenticatorCallback callback) {
-        HuaweiFaceRecognizeManager frManager = HuaweiFaceRecognizeManager.getInstance();
+    init {
+        HuaweiFaceRecognizeManager.createInstance(context)
+    }
+
+    override fun authenticate(reqID: Int, flag: Int, callback: AuthenticatorCallback?) {
+        val frManager: HuaweiFaceRecognizeManager? =
+            HuaweiFaceRecognizeManager.instance
         if (frManager == null) {
-            BiometricLoggerImpl.e(TAG, "HuaweiFaceRecognizeManager is null");
+            e(TAG, "HuaweiFaceRecognizeManager is null")
         } else if (callback == null) {
-            BiometricLoggerImpl.e(TAG, "callback empty");
+            e(TAG, "callback empty")
         } else {
-            frManager.setAuthCallback(callback);
-            String str = TAG;
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("reqID is ");
-            stringBuilder.append(reqID);
-            stringBuilder.append("flag is ");
-            stringBuilder.append(flag);
-            BiometricLoggerImpl.d(str, stringBuilder.toString());
-            int ret = frManager.init();
+            frManager.setAuthCallback(callback)
+            val str = TAG
+            val stringBuilder = StringBuilder()
+            stringBuilder.append("reqID is ")
+            stringBuilder.append(reqID)
+            stringBuilder.append("flag is ")
+            stringBuilder.append(flag)
+            d(str, stringBuilder.toString())
+            val ret = frManager.init()
             if (ret != HUAWEI_OP_SUCCESS) {
-                String str2 = TAG;
-                StringBuilder stringBuilder2 = new StringBuilder();
-                stringBuilder2.append("init failed returning ");
-                stringBuilder2.append(ret);
-                BiometricLoggerImpl.e(str2, stringBuilder2.toString());
-                callback.onAuthenticationError(BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE);
-                return;
+                val str2 = TAG
+                val stringBuilder2 = StringBuilder()
+                stringBuilder2.append("init failed returning ")
+                stringBuilder2.append(ret)
+                e(str2, stringBuilder2.toString())
+                callback.onAuthenticationError(BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE)
+                return
             }
-            BiometricLoggerImpl.d(TAG, "authenicating... ");
-            HuaweiFaceRecognizeManager.getFRManager().authenticate(reqID, flag, null);
+            d(TAG, "authenicating... ")
+            HuaweiFaceRecognizeManager.fRManager?.authenticate(reqID, flag, null)
         }
     }
 
-    public int cancel(int reqID) {
-        BiometricLoggerImpl.d(TAG, "canceling...");
-        if (HuaweiFaceRecognizeManager.getInstance() == null) {
-            BiometricLoggerImpl.e(TAG, "HuaweiFaceRecognizeManager is null");
-            return -1;
+    override fun cancel(reqID: Int): Int {
+        d(TAG, "canceling...")
+        if (HuaweiFaceRecognizeManager.instance == null) {
+            e(TAG, "HuaweiFaceRecognizeManager is null")
+            return -1
         }
-        HuaweiFaceRecognizeManager.getFRManager().cancelAuthenticate(reqID);
-        return 0;
+        HuaweiFaceRecognizeManager.fRManager?.cancelAuthenticate(reqID)
+        return 0
     }
 
-    public int getVersion() {
-        return 1;
-    }
+    override val version: Int
+        get() = 1
+    override val isHardwareDetected: Boolean
+        get() = HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: 0 and 1 != 0
 
-    @Override
-    public boolean isHardwareDetected() {
-        return (HuaweiFaceRecognizeManager.getFRManager().getHardwareSupportType() & 1) != 0;
-    }
-
-    @Override
-    public boolean hasEnrolledTemplates() {
-        return HuaweiFaceRecognizeManager.getFRManager().getEnrolledFaceIDs().length > 0;
+    override fun hasEnrolledTemplates(): Boolean {
+        return HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs?.isNotEmpty() == true
     }
 }

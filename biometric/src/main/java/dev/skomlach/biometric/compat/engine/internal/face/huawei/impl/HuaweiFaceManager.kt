@@ -1,28 +1,15 @@
-package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl;
+package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
-public abstract class HuaweiFaceManager {
-
-    public abstract void authenticate(int reqId, int flag, AuthenticatorCallback authenticatorCallback);
-
-    public abstract int cancel(int i);
-
-    public abstract int getVersion();
-
-    public abstract boolean isHardwareDetected();
-
-    public abstract boolean hasEnrolledTemplates();
-
-    public static abstract class AuthenticatorCallback {
-        public void onAuthenticationError(int errorCode) {
-        }
-
-        public void onAuthenticationStatus(int status) {
-        }
-
-        public void onAuthenticationSucceeded() {
-        }
-
-        public void onAuthenticationFailed() {
-        }
+abstract class HuaweiFaceManager {
+    abstract fun authenticate(reqId: Int, flag: Int, authenticatorCallback: AuthenticatorCallback?)
+    abstract fun cancel(i: Int): Int
+    abstract val version: Int
+    abstract val isHardwareDetected: Boolean
+    abstract fun hasEnrolledTemplates(): Boolean
+    abstract class AuthenticatorCallback {
+        open fun onAuthenticationError(errorCode: Int) {}
+        open fun onAuthenticationStatus(status: Int) {}
+        open fun onAuthenticationSucceeded() {}
+        open fun onAuthenticationFailed() {}
     }
 }
