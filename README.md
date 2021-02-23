@@ -189,7 +189,7 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
     
   `void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*  
   
-  `void onUIShown()` - Biometric UI on display  
+  `void onUIOpened()/void onUIClosed` - Biometric UI on display or closed 
   
   
   
@@ -219,11 +219,8 @@ IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scann
 
   
 ## TODO  
-- ~~Simplify setup~~
 - Add more devices/manufacturers  
-- ~~Check for the way to start BiometricAuth with specified BiometricType~~
 - Cleanup project and README  
-- Migrate to Kotlin  
   
   
 
