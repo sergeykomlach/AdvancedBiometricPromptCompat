@@ -221,7 +221,8 @@ IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scann
 ## TODO  
 - Add more devices/manufacturers  
 - Cleanup project and README  
-  
+- Implement 'hasEnrollChanged()' (???)
+- implement 'CryptoObject' (???)
   
 
 
