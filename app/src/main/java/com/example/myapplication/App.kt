@@ -20,20 +20,22 @@ class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        LogCat.getInstance().setLog2ViewCallback {
-            LogCat.getInstance().setLog2ViewCallback(null)
-            BiometricPromptCompat.logging(true)
-            BiometricPromptCompat.init {
-                authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
-                for (listener in onInitListeners) {
-                    listener.onFinished()
+        LogCat.instance.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
+            override fun log(string: String?) {
+                LogCat.instance.setLog2ViewCallback(null)
+                BiometricPromptCompat.logging(true)
+                BiometricPromptCompat.init {
+                    authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
+                    for (listener in onInitListeners) {
+                        listener.onFinished()
+                    }
+                    onInitListeners.clear()
+                    isReady = true
                 }
-                onInitListeners.clear()
-                isReady = true
             }
-        }
+        })
 
-        LogCat.getInstance().start()
+        LogCat.instance.start()
     }
 
     interface OnInitFinished {
