@@ -1,61 +1,50 @@
-package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import android.os.Parcel
+import android.os.Parcelable
+import android.os.Parcelable.Creator
 
-public final class Miuiface implements Parcelable {
-    public static final Creator<Miuiface> CREATOR = new Creator<Miuiface>() {
-        public Miuiface createFromParcel(Parcel in) {
-            return new Miuiface(in);
+class Miuiface : Parcelable {
+
+    companion object {
+        @JvmField val CREATOR: Creator<Miuiface> = object : Creator<Miuiface> {
+            override fun createFromParcel(p: Parcel): Miuiface {
+                return Miuiface(p)
+            }
+
+            override fun newArray(size: Int): Array<Miuiface?> {
+                return arrayOfNulls(size)
+            }
         }
-
-        public Miuiface[] newArray(int size) {
-            return new Miuiface[size];
-        }
-    };
-    private final long mDeviceId;
-    private final int mGroupId;
-    private final int mMiuifaceId;
-    private final CharSequence mName;
-
-    public Miuiface(CharSequence name, int groupId, int miuifaceId, long deviceId) {
-        this.mName = name;
-        this.mGroupId = groupId;
-        this.mMiuifaceId = miuifaceId;
-        this.mDeviceId = deviceId;
     }
 
-    private Miuiface(Parcel in) {
-        this.mName = in.readString();
-        this.mGroupId = in.readInt();
-        this.mMiuifaceId = in.readInt();
-        this.mDeviceId = in.readLong();
+    val deviceId: Long
+    val groupId: Int
+    val miuifaceId: Int
+    val name: CharSequence?
+
+    constructor(name: CharSequence?, groupId: Int, miuifaceId: Int, deviceId: Long) {
+        this.name = name
+        this.groupId = groupId
+        this.miuifaceId = miuifaceId
+        this.deviceId = deviceId
     }
 
-    public CharSequence getName() {
-        return this.mName;
+    private constructor(p: Parcel) {
+        name = p.readString()
+        groupId = p.readInt()
+        miuifaceId = p.readInt()
+        deviceId = p.readLong()
     }
 
-    public int getMiuifaceId() {
-        return this.mMiuifaceId;
+    override fun describeContents(): Int {
+        return 0
     }
 
-    public int getGroupId() {
-        return this.mGroupId;
-    }
-
-    public long getDeviceId() {
-        return this.mDeviceId;
-    }
-
-    public int describeContents() {
-        return 0;
-    }
-
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeString(this.mName.toString());
-        out.writeInt(this.mGroupId);
-        out.writeInt(this.mMiuifaceId);
-        out.writeLong(this.mDeviceId);
+    override fun writeToParcel(out: Parcel, flags: Int) {
+        out.writeString(name.toString())
+        out.writeInt(groupId)
+        out.writeInt(miuifaceId)
+        out.writeLong(deviceId)
     }
 }

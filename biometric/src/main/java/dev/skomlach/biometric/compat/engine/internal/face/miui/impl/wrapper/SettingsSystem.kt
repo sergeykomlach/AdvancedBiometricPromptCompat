@@ -1,37 +1,49 @@
-package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper
 
-import android.content.ContentResolver;
+import android.content.ContentResolver
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+object SettingsSystem {
+    private var clazz: Class<*>? = null
 
-public class SettingsSystem {
-    private static Class<?> clazz;
-
-    static {
+    init {
         try {
-            clazz = Class.forName("android.provider.Settings$System");
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            clazz = Class.forName("android.provider.Settings\$System")
+        } catch (e: Throwable) {
+            e(e)
         }
     }
 
-    public static int getIntForUser(ContentResolver cr, String name, int def, int userHandle) {
-        try {
-            return (int) clazz.
-                    getMethod("getIntForUser", ContentResolver.class, String.class, int.class, int.class).
-                    invoke(null, cr, name, def, userHandle);
-        } catch (Throwable e) {
-            return def;
+    fun getIntForUser(cr: ContentResolver?, name: String?, def: Int, userHandle: Int): Int {
+        return try {
+            clazz?.getMethod(
+                "getIntForUser",
+                ContentResolver::class.java,
+                String::class.java,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType
+            )?.invoke(null, cr, name, def, userHandle) as Int
+        } catch (e: Throwable) {
+            def
         }
     }
 
-    public static String getStringForUser(ContentResolver cr, String name, String def, int userHandle) {
-        try {
-            return (String) clazz.
-                    getMethod("getStringForUser", ContentResolver.class, String.class, String.class, int.class).
-                    invoke(null, cr, name, def, userHandle);
-        } catch (Throwable e) {
-            return def;
+    fun getStringForUser(
+        cr: ContentResolver?,
+        name: String?,
+        def: String,
+        userHandle: Int
+    ): String {
+        return try {
+            clazz?.getMethod(
+                "getStringForUser",
+                ContentResolver::class.java,
+                String::class.java,
+                String::class.java,
+                Int::class.javaPrimitiveType
+            )?.invoke(null, cr, name, def, userHandle) as String
+        } catch (e: Throwable) {
+            def
         }
     }
 }

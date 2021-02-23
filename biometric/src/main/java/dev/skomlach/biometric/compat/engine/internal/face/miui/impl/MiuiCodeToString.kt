@@ -1,168 +1,132 @@
-package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import me.weishu.reflection.Reflection.unseal
+import java.lang.reflect.Field
 
-import java.lang.reflect.Field;
-import java.util.Collections;
+object MiuiCodeToString {
+    private var stringFields: Array<Field>? = null
+    private var stringArrayFields: Array<Field>? = null
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
-import me.weishu.reflection.Reflection;
-
-public class MiuiCodeToString {
-
-    private static Field[] stringFields = null;
-    private static Field[] stringArrayFields = null;
-
-    static {
-        Reflection.unseal(AndroidContext.getAppContext(), Collections.singletonList("com.android.internal"));
+    init {
+        unseal(appContext, listOf("com.android.internal"))
         try {
-            stringFields = Class.forName("com.android.internal.R$string").getDeclaredFields();
-            stringArrayFields = Class.forName("com.android.internal.R$array").getDeclaredFields();
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            stringFields = Class.forName("com.android.internal.R\$string").declaredFields
+            stringArrayFields = Class.forName("com.android.internal.R\$array").declaredFields
+        } catch (e: Throwable) {
+            e(e)
         }
     }
 
-    private static String getString(String s) {
-        try {
-            for (Field field : stringFields) {
-                if (s.equals(field.getName())) {
-                    boolean isAccessible = field.isAccessible();
-                    try {
-                        if (!isAccessible)
-                            field.setAccessible(true);
-                        return AndroidContext.getAppContext().getResources().getString((int) field.get(null));
-                    } finally {
-                        if (!isAccessible)
-                            field.setAccessible(false);
+    private fun getString(s: String): String? {
+        stringFields?.let {
+            try {
+                for (field in it) {
+                    if (s == field.name) {
+                        val isAccessible = field.isAccessible
+                        return try {
+                            if (!isAccessible) field.isAccessible = true
+                            appContext.resources.getString(field[null] as Int)
+                        } finally {
+                            if (!isAccessible) field.isAccessible = false
+                        }
                     }
                 }
+            } catch (e: Throwable) {
+                e(e)
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
         }
-
-        return null;
+        return null
     }
-    private static String[] getStringArray(String s) {
-        try {
-            for (Field field : stringArrayFields) {
-                if (s.equals(field.getName())) {
-                    boolean isAccessible = field.isAccessible();
-                    try {
-                        if (!isAccessible)
-                            field.setAccessible(true);
-                        return AndroidContext.getAppContext().getResources().getStringArray((int) field.get(null));
-                    } finally {
-                        if (!isAccessible)
-                            field.setAccessible(false);
+
+    private fun getStringArray(s: String): Array<String>? {
+        stringArrayFields?.let {
+            try {
+                for (field in it) {
+                    if (s == field.name) {
+                        val isAccessible = field.isAccessible
+                        return try {
+                            if (!isAccessible) field.isAccessible = true
+                            appContext.resources.getStringArray(field[null] as Int)
+                        } finally {
+                            if (!isAccessible) field.isAccessible = false
+                        }
                     }
                 }
+            } catch (e: Throwable) {
+                e(e)
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
         }
-
-        return null;
+        return null
     }
-    public static String getErrorString(int errMsg, int vendorCode) {
-        switch (errMsg) {
-            case 1:
-                return getString( "face_error_hw_not_available");
-            case 2:
-                return getString( "face_error_unable_to_process");
-            case 3:
-                return getString( "face_error_timeout");
-            case 4:
-                return getString( "face_error_no_space");
-            case 5:
-                return getString( "face_error_canceled");
-            case 7:
-                return getString( "face_error_lockout");
-            case 8:
-                String[] msgArray = getStringArray("face_error_vendor");
-                if (msgArray!=null && vendorCode < msgArray.length) {
-                    return msgArray[vendorCode];
+
+    fun getErrorString(errMsg: Int, vendorCode: Int): String? {
+        when (errMsg) {
+            1 -> return getString("face_error_hw_not_available")
+            2 -> return getString("face_error_unable_to_process")
+            3 -> return getString("face_error_timeout")
+            4 -> return getString("face_error_no_space")
+            5 -> return getString("face_error_canceled")
+            7 -> return getString("face_error_lockout")
+            8 -> {
+                val msgArray = getStringArray("face_error_vendor")
+                if (msgArray != null && vendorCode < msgArray.size) {
+                    return msgArray[vendorCode]
                 }
-                break;
-            case 9:
-                return getString( "face_error_lockout_permanent");
-            case 10:
-                return getString( "face_error_user_canceled");
-            case 11:
-                return getString( "face_error_not_enrolled");
-            case 12:
-                return getString( "face_error_hw_not_present");
+            }
+            9 -> return getString("face_error_lockout_permanent")
+            10 -> return getString("face_error_user_canceled")
+            11 -> return getString("face_error_not_enrolled")
+            12 -> return getString("face_error_hw_not_present")
         }
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Invalid error message: ");
-        stringBuilder.append(errMsg);
-        stringBuilder.append(", ");
-        stringBuilder.append(vendorCode);
-        BiometricLoggerImpl.d(stringBuilder.toString());
-        return null;
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("Invalid error message: ")
+        stringBuilder.append(errMsg)
+        stringBuilder.append(", ")
+        stringBuilder.append(vendorCode)
+        d(stringBuilder.toString())
+        return null
     }
 
-    public static String getAcquiredString(int acquireInfo, int vendorCode) {
-        switch (acquireInfo) {
-            case 0:
-                return null;
-            case 1:
-                return getString( "face_acquired_insufficient");
-            case 2:
-                return getString( "face_acquired_too_bright");
-            case 3:
-                return getString( "face_acquired_too_dark");
-            case 4:
-                return getString( "face_acquired_too_close");
-            case 5:
-                return getString( "face_acquired_too_far");
-            case 6:
-                return getString( "face_acquired_too_high");
-            case 7:
-                return getString( "face_acquired_too_low");
-            case 8:
-                return getString( "face_acquired_too_right");
-            case 9:
-                return getString( "face_acquired_too_left");
-            case 10:
-                return getString( "face_acquired_poor_gaze");
-            case 11:
-                return getString( "face_acquired_not_detected");
-            case 12:
-                return getString( "face_acquired_too_much_motion");
-            case 13:
-                return getString( "face_acquired_recalibrate");
-            case 14:
-                return getString( "face_acquired_too_different");
-            case 15:
-                return getString( "face_acquired_too_similar");
-            case 16:
-                return getString( "face_acquired_pan_too_extreme");
-            case 17:
-                return getString( "face_acquired_tilt_too_extreme");
-            case 18:
-                return getString( "face_acquired_roll_too_extreme");
-            case 19:
-                return getString( "face_acquired_obscured");
-            case 20:
-                return null;
-            case 21:
-                return getString( "face_acquired_sensor_dirty");
-            case 22:
-                String[] msgArray = getStringArray("face_acquired_vendor");
-                if (msgArray != null && vendorCode < msgArray.length) {
-                    return msgArray[vendorCode];
+    fun getAcquiredString(acquireInfo: Int, vendorCode: Int): String? {
+        when (acquireInfo) {
+            0 -> return null
+            1 -> return getString("face_acquired_insufficient")
+            2 -> return getString("face_acquired_too_bright")
+            3 -> return getString("face_acquired_too_dark")
+            4 -> return getString("face_acquired_too_close")
+            5 -> return getString("face_acquired_too_far")
+            6 -> return getString("face_acquired_too_high")
+            7 -> return getString("face_acquired_too_low")
+            8 -> return getString("face_acquired_too_right")
+            9 -> return getString("face_acquired_too_left")
+            10 -> return getString("face_acquired_poor_gaze")
+            11 -> return getString("face_acquired_not_detected")
+            12 -> return getString("face_acquired_too_much_motion")
+            13 -> return getString("face_acquired_recalibrate")
+            14 -> return getString("face_acquired_too_different")
+            15 -> return getString("face_acquired_too_similar")
+            16 -> return getString("face_acquired_pan_too_extreme")
+            17 -> return getString("face_acquired_tilt_too_extreme")
+            18 -> return getString("face_acquired_roll_too_extreme")
+            19 -> return getString("face_acquired_obscured")
+            20 -> return null
+            21 -> return getString("face_acquired_sensor_dirty")
+            22 -> {
+                val msgArray = getStringArray("face_acquired_vendor")
+                if (msgArray != null && vendorCode < msgArray.size) {
+                    return msgArray[vendorCode]
                 }
-                break;
+            }
         }
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Invalid acquired message: ");
-        stringBuilder.append(acquireInfo);
-        stringBuilder.append(", ");
-        stringBuilder.append(vendorCode);
-        BiometricLoggerImpl.d(stringBuilder.toString());
-        return null;
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("Invalid acquired message: ")
+        stringBuilder.append(acquireInfo)
+        stringBuilder.append(", ")
+        stringBuilder.append(vendorCode)
+        d(stringBuilder.toString())
+        return null
     }
-
 }

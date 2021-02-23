@@ -1,32 +1,39 @@
-package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper
 
-import android.database.ContentObserver;
-import android.net.Uri;
+import android.content.ContentResolver
+import android.database.ContentObserver
+import android.net.Uri
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+object ContentResolverHelper {
+    private var clazz: Class<*>? = null
 
-public class ContentResolverHelper {
-    private static Class<?> clazz;
-
-    static {
+    init {
         try {
-            clazz = Class.forName("android.content.ContentResolver");
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            clazz = Class.forName("android.content.ContentResolver")
+        } catch (e: Throwable) {
+            e(e)
         }
     }
 
-    public static void registerContentObserver(android.content.ContentResolver cr, Uri uri, boolean notifyForDescendents,
-                                               ContentObserver observer, int userHandle) {
+    fun registerContentObserver(
+        cr: ContentResolver, uri: Uri, notifyForDescendents: Boolean,
+        observer: ContentObserver, userHandle: Int
+    ) {
         try {
-            clazz.getMethod("registerContentObserver", Uri.class, boolean.class, ContentObserver.class, int.class).
-                    invoke(cr, uri, notifyForDescendents, observer, userHandle);
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            clazz?.getMethod(
+                "registerContentObserver",
+                Uri::class.java,
+                Boolean::class.javaPrimitiveType,
+                ContentObserver::class.java,
+                Int::class.javaPrimitiveType
+            )?.invoke(cr, uri, notifyForDescendents, observer, userHandle)
+        } catch (e: Throwable) {
+            e(e)
             try {
-                cr.registerContentObserver(uri, notifyForDescendents, observer);
-            } catch (Throwable e2) {
-                BiometricLoggerImpl.e(e2);
+                cr.registerContentObserver(uri, notifyForDescendents, observer)
+            } catch (e2: Throwable) {
+                e(e2)
             }
         }
     }

@@ -1,90 +1,83 @@
-package dev.skomlach.biometric.compat.engine.internal.face.miui.impl;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
-import android.graphics.Rect;
-import android.graphics.RectF;
-import android.os.CancellationSignal;
-import android.os.Handler;
-import android.view.Surface;
+import android.graphics.Rect
+import android.graphics.RectF
+import android.os.CancellationSignal
+import android.os.Handler
+import android.view.Surface
 
-import java.util.List;
-
-public interface IMiuiFaceManager {
-    public static final int TEMPLATE_INVALIDATE = -1;
-    public static final int TEMPLATE_NONE = 0;
-    public static final int TEMPLATE_SERVICE_NOT_INIT = -2;
-    public static final int TEMPLATE_VALIDATE = 1;
-
-    public static abstract class AuthenticationCallback {
-        public void onAuthenticationError(int errorCode, CharSequence errString) {
-        }
-
-        public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-        }
-
-        public void onAuthenticationSucceeded(Miuiface face) {
-        }
-
-        public void onAuthenticationFailed() {
-        }
+interface IMiuiFaceManager {
+    companion object {
+        const val TEMPLATE_INVALIDATE = -1
+        const val TEMPLATE_NONE = 0
+        const val TEMPLATE_SERVICE_NOT_INIT = -2
+        const val TEMPLATE_VALIDATE = 1
     }
 
-    public static abstract class EnrollmentCallback {
-        public void onEnrollmentError(int errMsgId, CharSequence errString) {
-        }
-
-        public void onEnrollmentHelp(int helpMsgId, CharSequence helpString) {
-        }
-
-        public void onEnrollmentProgress(int remaining, int faceId) {
-        }
+    abstract class AuthenticationCallback {
+        open fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {}
+        open fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence?) {}
+        open fun onAuthenticationSucceeded(face: Miuiface?) {}
+        open fun onAuthenticationFailed() {}
     }
 
-    public static abstract class LockoutResetCallback {
-        public void onLockoutReset() {
-        }
+    abstract class EnrollmentCallback {
+        fun onEnrollmentError(errMsgId: Int, errString: CharSequence?) {}
+        fun onEnrollmentHelp(helpMsgId: Int, helpString: CharSequence?) {}
+        fun onEnrollmentProgress(remaining: Int, faceId: Int) {}
     }
 
-    public static abstract class RemovalCallback {
-        public void onRemovalError(Miuiface face, int errMsgId, CharSequence errString) {
-        }
-
-        public void onRemovalSucceeded(Miuiface face, int remaining) {
-        }
+    abstract class LockoutResetCallback {
+        fun onLockoutReset() {}
     }
 
-    void addLockoutResetCallback(LockoutResetCallback lockoutResetCallback);
+    abstract class RemovalCallback {
+        fun onRemovalError(face: Miuiface?, errMsgId: Int, errString: CharSequence?) {}
+        fun onRemovalSucceeded(face: Miuiface?, remaining: Int) {}
+    }
 
-    void authenticate(CancellationSignal cancellationSignal, int i, AuthenticationCallback authenticationCallback, Handler handler, int i2);
+    fun addLockoutResetCallback(lockoutResetCallback: LockoutResetCallback?)
+    fun authenticate(
+        cancellationSignal: CancellationSignal?,
+        i: Int,
+        authenticationCallback: AuthenticationCallback?,
+        handler: Handler?,
+        i2: Int
+    )
 
-    void enroll(byte[] bArr, CancellationSignal cancellationSignal, int i, EnrollmentCallback enrollmentCallback, Surface surface, Rect rect, int i2);
+    fun enroll(
+        bArr: ByteArray?,
+        cancellationSignal: CancellationSignal,
+        i: Int,
+        enrollmentCallback: EnrollmentCallback?,
+        surface: Surface?,
+        rect: Rect?,
+        i2: Int
+    )
 
-    void enroll(byte[] bArr, CancellationSignal cancellationSignal, int i, EnrollmentCallback enrollmentCallback, Surface surface, RectF rectF, RectF rectF2, int i2);
+    fun enroll(
+        bArr: ByteArray?,
+        cancellationSignal: CancellationSignal,
+        i: Int,
+        enrollmentCallback: EnrollmentCallback?,
+        surface: Surface?,
+        rectF: RectF?,
+        rectF2: RectF,
+        i2: Int
+    )
 
-    int extCmd(int i, int i2);
-
-    List<Miuiface> getEnrolledFaces();
-
-    int getManagerVersion();
-
-    String getVendorInfo();
-
-    int hasEnrolledFaces();
-
-    boolean isFaceFeatureSupport();
-
-    boolean isFaceUnlockInited();
-
-    boolean isReleased();
-
-    boolean isSupportScreenOnDelayed();
-
-    void preInitAuthen();
-
-    void release();
-
-    void remove(Miuiface miuiface, RemovalCallback removalCallback);
-
-    void rename(int i, String str);
-
-    void resetTimeout(byte[] bArr);
+    fun extCmd(i: Int, i2: Int): Int
+    val enrolledFaces: List<Miuiface?>?
+    val managerVersion: Int
+    val vendorInfo: String?
+    fun hasEnrolledFaces(): Int
+    val isFaceFeatureSupport: Boolean
+    val isFaceUnlockInited: Boolean
+    val isReleased: Boolean
+    val isSupportScreenOnDelayed: Boolean
+    fun preInitAuthen()
+    fun release()
+    fun remove(miuiface: Miuiface, removalCallback: RemovalCallback)
+    fun rename(i: Int, str: String)
+    fun resetTimeout(bArr: ByteArray)
 }

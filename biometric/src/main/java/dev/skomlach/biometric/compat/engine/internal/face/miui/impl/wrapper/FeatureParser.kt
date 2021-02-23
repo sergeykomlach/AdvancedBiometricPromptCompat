@@ -1,35 +1,34 @@
-package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper;
+package dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper
 
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-public class FeatureParser {
-    private static Class<?> clazz;
+object FeatureParser {
+    private var clazz: Class<*>? = null
 
-    static {
+    init {
         try {
-            clazz = Class.forName("miui.util.FeatureParser");
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+            clazz = Class.forName("miui.util.FeatureParser")
+        } catch (e: Throwable) {
+            e(e)
         }
     }
 
-    public static String[] getStringArray(String s) {
-        try {
-            return (String[]) clazz.getMethod("getStringArray", String.class).
-                    invoke(null, s);
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
-            return null;
+    fun getStringArray(s: String?): Array<String>? {
+        return try {
+            clazz?.getMethod("getStringArray", String::class.java)?.invoke(null, s) as Array<String>
+        } catch (e: Throwable) {
+            e(e)
+            null
         }
     }
 
-    public static boolean getBoolean(String s, boolean def) {
-        try {
-            return (boolean) clazz.getMethod("getBoolean", boolean.class).
-                    invoke(null, s);
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
-            return def;
+    fun getBoolean(s: String?, def: Boolean): Boolean {
+        return try {
+            clazz?.getMethod("getBoolean", Boolean::class.javaPrimitiveType)
+                ?.invoke(null, s) as Boolean
+        } catch (e: Throwable) {
+            e(e)
+            def
         }
     }
 }
