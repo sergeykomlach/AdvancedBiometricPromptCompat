@@ -7,7 +7,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 47
+    ext.libsMinorVersion = 48
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
