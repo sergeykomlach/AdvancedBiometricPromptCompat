@@ -1,346 +1,307 @@
-package dev.skomlach.biometric.compat.impl.dialogs;
+package dev.skomlach.biometric.compat.impl.dialogs
 
-import android.content.DialogInterface;
-import android.content.res.ColorStateList;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.Window;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RestrictTo;
-import androidx.core.content.ContextCompat;
-
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import dev.skomlach.biometric.compat.BiometricPromptCompat;
-import dev.skomlach.biometric.compat.BiometricType;
-import dev.skomlach.biometric.compat.R;
-import dev.skomlach.biometric.compat.impl.AuthCallback;
-import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.contextprovider.AndroidContext;
-import dev.skomlach.common.misc.ExecutorHelper;
-import me.weishu.reflection.Reflection;
+import android.content.DialogInterface
+import android.content.res.ColorStateList
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.view.View
+import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.view.Window
+import androidx.annotation.RestrictTo
+import androidx.core.content.ContextCompat
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.impl.AuthCallback
+import dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
+import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.misc.ExecutorHelper
+import me.weishu.reflection.Reflection.unseal
+import java.util.concurrent.atomic.AtomicBoolean
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class BiometricPromptCompatDialogImpl {
-    private final boolean isInScreen;
-    private final Handler animateHandler;
-    private final BiometricPromptCompatDialog dialog;
-    private final CharSequence promptText;
-    private final CharSequence too_many_attempts;
-    private final CharSequence not_recognized;
-    private final AtomicBoolean inProgress = new AtomicBoolean(false);
-    private final BiometricPromptCompat.Builder compatBuilder;
-    private final ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
-        @Override
-        public void onGlobalLayout() {
-            BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog");
-            checkInScreenIcon();
-        }
-    };
-    private final AuthCallback authCallback;
-    private final WindowFocusChangedListener onWindowFocusChangeListener = new WindowFocusChangedListener() {
-        @Override
-        public void onStartWatching() {
-            BiometricLoggerImpl.e("BiometricPromptGenericImpl.onStartWatching");
-        }
+class BiometricPromptCompatDialogImpl(
+    private val compatBuilder: BiometricPromptCompat.Builder,
+    private val authCallback: AuthCallback?,
+    private val isInScreen: Boolean
+) {
+    private val animateHandler: Handler
+    private val dialog: BiometricPromptCompatDialog
+    private val promptText: CharSequence
+    private val too_many_attempts: CharSequence
+    private val not_recognized: CharSequence
+    private val inProgress = AtomicBoolean(false)
+    val WHAT_RESTORE_NORMAL_STATE = 0
 
-        @Override
-        public void hasFocus(boolean hasFocus) {
-            BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - fallback dialog " + hasFocus);
-            if (hasFocus) {
-                startAuth();
-            } else {
-
-                if (isMultiWindowHack()) {
-                    if (isInScreen && isInScreenUIHackNeeded()) {
-                        BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - inScreenDevice and app on top");
-                        return;
-                    } else {
-                        BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - regular device in multiwindow");
-                        return;
-                    }
-                }
-
-                BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - cancelAuth");
-                cancelAuth();
-            }
-        }
-    };
-    private ColorStateList originalColor;
-
-    public BiometricPromptCompatDialogImpl(BiometricPromptCompat.Builder compatBuilder, AuthCallback authCallback, boolean isInScreen) {
-        this.isInScreen = isInScreen;
-        this.authCallback = authCallback;
-        this.compatBuilder = compatBuilder;
-        this.promptText = getDialogTitle();
-        this.too_many_attempts = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_error_lockout);
-        this.not_recognized = compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized);
-
-        this.animateHandler = new AnimateHandler(Looper.getMainLooper());
-        this.dialog = new BiometricPromptCompatDialog(compatBuilder, isInScreen);
-
-        dialog.setOnDismissListener(dialogInterface -> {
-            detachWindowListeners();
+    init {
+        promptText = getDialogTitle()
+        too_many_attempts =
+            compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_error_lockout)
+        not_recognized =
+            compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_not_recognized)
+        animateHandler = AnimateHandler(Looper.getMainLooper())
+        dialog = BiometricPromptCompatDialog(compatBuilder, isInScreen)
+        dialog.setOnDismissListener { dialogInterface: DialogInterface? ->
+            detachWindowListeners()
             if (inProgress.get()) {
-                inProgress.set(false);
-                authCallback.stopAuth();
+                inProgress.set(false)
+                authCallback?.stopAuth()
             }
-        });
-
-        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                if (authCallback != null)
-                    authCallback.cancelAuth();
-
-                detachWindowListeners();
-                if (inProgress.get()) {
-                    inProgress.set(false);
-                    if (authCallback != null) {
-                        authCallback.stopAuth();
-                    }
-                }
-
+        }
+        dialog.setOnCancelListener {
+            authCallback?.cancelAuth()
+            detachWindowListeners()
+            if (inProgress.get()) {
+                inProgress.set(false)
+                authCallback?.stopAuth()
             }
-        });
-        dialog.setOnShowListener(d -> {
-            BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.");
+        }
+        dialog.setOnShowListener { d: DialogInterface? ->
+            e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.")
             if (compatBuilder.title == null) {
-                dialog.getTitle().setVisibility(View.GONE);
+                dialog.title?.visibility = View.GONE
             } else {
-                dialog.getTitle().setText(compatBuilder.title);
+                dialog.title?.text = compatBuilder.title
             }
             if (compatBuilder.subtitle == null) {
-                dialog.getSubtitle().setVisibility(View.GONE);
+                dialog.subtitle?.visibility = View.GONE
             } else {
-                dialog.getSubtitle().setText(compatBuilder.subtitle);
+                dialog.subtitle?.text = compatBuilder.subtitle
             }
             if (compatBuilder.description == null) {
-                dialog.getDescription().setVisibility(View.GONE);
+                dialog.description?.visibility = View.GONE
             } else {
-                dialog.getDescription().setText(compatBuilder.description);
+                dialog.description?.text = compatBuilder.description
             }
             if (compatBuilder.negativeButtonText == null) {
-                dialog.getNegativeButton().setVisibility(View.INVISIBLE);
+                dialog.negativeButton?.visibility = View.INVISIBLE
             } else {
-                dialog.getNegativeButton().setText(compatBuilder.negativeButtonText);
+                dialog.negativeButton?.text = compatBuilder.negativeButtonText
+                dialog.negativeButton?.setOnClickListener { v: View? ->
+                    dismissDialog()
+                    authCallback?.cancelAuth()
+                }
+            }
+            dialog.status?.text = promptText
+            originalColor = dialog.status?.textColors
 
-                dialog.getNegativeButton().setOnClickListener(v -> {
-                    dismissDialog();
-                    if (authCallback != null)
-                        authCallback.cancelAuth();
-                });
-            }
-            dialog.getStatus().setText(promptText);
-            originalColor = dialog.getStatus().getTextColors();
-            if (dialog.getFingerprintIcon() != null) {
-                dialog.getFingerprintIcon().setState(FingerprintIconView.State.ON, false);
-            }
-            checkInScreenIcon();
-            attachWindowListeners();
-            startAuth();
-        });
+            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, false)
+
+            checkInScreenIcon()
+            attachWindowListeners()
+            startAuth()
+        }
     }
 
-    private String getDialogTitle() {
-        Reflection.unseal(AndroidContext.getAppContext(), Collections.singletonList("com.android.internal"));
+    private val onGlobalLayoutListener = OnGlobalLayoutListener {
+        e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
+        checkInScreenIcon()
+    }
+    private val onWindowFocusChangeListener: WindowFocusChangedListener =
+        object : WindowFocusChangedListener {
+            override fun onStartWatching() {
+                e("BiometricPromptGenericImpl.onStartWatching")
+            }
+
+            override fun hasFocus(hasFocus: Boolean) {
+                e("BiometricPromptGenericImplBiometricPromptGenericImpl.onWindowFocusChanged - fallback dialog $hasFocus")
+                if (hasFocus) {
+                    startAuth()
+                } else {
+                    if (isMultiWindowHack) {
+                        if (isInScreen && isInScreenUIHackNeeded) {
+                            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - inScreenDevice and app on top")
+                            return
+                        } else {
+                            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - regular device in multiwindow")
+                            return
+                        }
+                    }
+                    e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - cancelAuth")
+                    cancelAuth()
+                }
+            }
+        }
+    private var originalColor: ColorStateList? = null
+    private fun getDialogTitle(): String {
+        unseal(appContext, listOf("com.android.internal"))
         try {
-            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
-            for (Field field : fields) {
-                if (field.getName().contains("biometric") && field.getName().contains("dialog")) {
-                    boolean isAccessible = field.isAccessible();
-                    try {
-                        if (!isAccessible)
-                            field.setAccessible(true);
-                        return compatBuilder.getContext().getString((int) field.get(null));
+            val fields = Class.forName("com.android.internal.R\$string").declaredFields
+            for (field in fields) {
+                if (field.name.contains("biometric") && field.name.contains("dialog")) {
+                    val isAccessible = field.isAccessible
+                    return try {
+                        if (!isAccessible) field.isAccessible = true
+                        compatBuilder.context.getString(field[null] as Int)
                     } finally {
-                        if (!isAccessible)
-                            field.setAccessible(false);
+                        if (!isAccessible) field.isAccessible = false
                     }
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
         try {
-            Field[] fields = Class.forName("com.android.internal.R$string").getDeclaredFields();
-            for (Field field : fields) {
-                if (field.getName().contains("fingerprint") && field.getName().contains("dialog")) {
-                    boolean isAccessible = field.isAccessible();
-                    try {
-                        if (!isAccessible)
-                            field.setAccessible(true);
-                        return compatBuilder.getContext().getString((int) field.get(null));
+            val fields = Class.forName("com.android.internal.R\$string").declaredFields
+            for (field in fields) {
+                if (field.name.contains("fingerprint") && field.name.contains("dialog")) {
+                    val isAccessible = field.isAccessible
+                    return try {
+                        if (!isAccessible) field.isAccessible = true
+                        compatBuilder.context.getString(field[null] as Int)
                     } finally {
-                        if (!isAccessible)
-                            field.setAccessible(false);
+                        if (!isAccessible) field.isAccessible = false
                     }
                 }
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
+        } catch (e: Throwable) {
+            e(e)
         }
-
-        return compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor);
-    }
-    public boolean isNightMode() {
-        return dialog.isNightMode();
+        return compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
     }
 
-    public boolean cancelAuthenticateBecauseOnPause() {
-        if (isMultiWindowHack()) {
-            return false;
+    val isNightMode: Boolean
+        get() = dialog.isNightMode
+
+    fun cancelAuthenticateBecauseOnPause(): Boolean {
+        return if (isMultiWindowHack) {
+            false
         } else {
-            dismissDialog();
-            return true;
+            dismissDialog()
+            true
         }
     }
 
-    private void attachWindowListeners() {
+    private fun attachWindowListeners() {
         try {
-            View v = dialog.findViewById(Window.ID_ANDROID_CONTENT);
-            dialog.setWindowFocusChangedListener(onWindowFocusChangeListener);
-            v.getViewTreeObserver().addOnGlobalLayoutListener(onGlobalLayoutListener);
-        } catch (Throwable we) {
-            BiometricLoggerImpl.e(we);
+            val v = dialog.findViewById<View>(Window.ID_ANDROID_CONTENT)
+            dialog.setWindowFocusChangedListener(onWindowFocusChangeListener)
+            v?.viewTreeObserver?.addOnGlobalLayoutListener(onGlobalLayoutListener)
+        } catch (we: Throwable) {
+            e(we)
         }
     }
 
-    private void detachWindowListeners() {
+    private fun detachWindowListeners() {
         try {
-            View v = dialog.findViewById(Window.ID_ANDROID_CONTENT);
-            dialog.setWindowFocusChangedListener(null);
-            v.getViewTreeObserver().removeOnGlobalLayoutListener(onGlobalLayoutListener);
-        } catch (Throwable we) {
-            BiometricLoggerImpl.e(we);
+            val v = dialog.findViewById<View>(Window.ID_ANDROID_CONTENT)
+            dialog.setWindowFocusChangedListener(null)
+            v?.viewTreeObserver?.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+        } catch (we: Throwable) {
+            e(we)
         }
     }
 
     //in case devices is InScreenScanner and app switched to the SplitScreen mode and app placed on the top of screen
     //we need to show Fingerprint icon
-    private boolean isInScreenUIHackNeeded() {
-        return compatBuilder.multiWindowSupport.isInMultiWindow() && !compatBuilder.multiWindowSupport.isWindowOnScreenBottom();
-    }
+    private val isInScreenUIHackNeeded: Boolean
+        get() = compatBuilder.multiWindowSupport.isInMultiWindow && !compatBuilder.multiWindowSupport.isWindowOnScreenBottom()
 
     //in case app switched to the SplitScreen mode we need to skip onPause on lost focus cases
-    private boolean isMultiWindowHack() {
-        if (compatBuilder.multiWindowSupport.isInMultiWindow() && (inProgress.get() && dialog.isShowing())) {
-            BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - perform hack");
-            this.authCallback.stopAuth();
-            this.authCallback.startAuth();
-
-            return true;
+    private val isMultiWindowHack: Boolean
+        get() = if (compatBuilder.multiWindowSupport.isInMultiWindow && inProgress.get() && dialog.isShowing) {
+            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - perform hack")
+            authCallback?.stopAuth()
+            authCallback?.startAuth()
+            true
         } else {
-            BiometricLoggerImpl.e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - do not perform hack");
-            return false;
+            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - do not perform hack")
+            false
         }
-    }
 
-    private void checkInScreenIcon() {
-        if (isInScreen && dialog.getFingerprintIcon() != null) {
-            if (isInScreenUIHackNeeded()) {
-                if (dialog.getFingerprintIcon().getVisibility() != View.VISIBLE) {
-                    dialog.getFingerprintIcon().setVisibility(View.VISIBLE);
+    private fun checkInScreenIcon() {
+        if (isInScreen && dialog.fingerprintIcon != null) {
+            if (isInScreenUIHackNeeded) {
+                if (dialog.fingerprintIcon?.visibility != View.VISIBLE) {
+                    dialog.fingerprintIcon?.visibility = View.VISIBLE
                 }
             } else {
-                if (dialog.getFingerprintIcon().getVisibility() != View.INVISIBLE) {
-                    dialog.getFingerprintIcon().setVisibility(View.INVISIBLE);
+                if (dialog.fingerprintIcon?.visibility != View.INVISIBLE) {
+                    dialog.fingerprintIcon?.visibility = View.INVISIBLE
                 }
             }
         }
     }
 
-    private void startAuth() {
-        if (!inProgress.get() && dialog.isShowing()) {
-            inProgress.set(true);
-            this.authCallback.startAuth();
+    private fun startAuth() {
+        if (!inProgress.get() && dialog.isShowing) {
+            inProgress.set(true)
+            authCallback?.startAuth()
         }
     }
 
-    private void cancelAuth() {
-        if (inProgress.get() && dialog.isShowing()) {
-            inProgress.set(false);
-            this.authCallback.stopAuth();
+    private fun cancelAuth() {
+        if (inProgress.get() && dialog.isShowing) {
+            inProgress.set(false)
+            authCallback?.stopAuth()
         }
     }
 
-    public void showDialog() {
-        if (dialog.isShowing()) {
-            throw new IllegalArgumentException("BiometricPromptGenericImpl. has been started.");
-        }
-        dialog.show();
+    fun showDialog() {
+        require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
+        dialog.show()
     }
 
-    public View getContainer() {
-        return dialog.getContainer();
-    }
+    val container: View?
+        get() = dialog.container
 
-    public void dismissDialog() {
-        if (dialog.isShowing()) {
-            detachWindowListeners();
-            cancelAuth();
-            dialog.dismiss();
+    fun dismissDialog() {
+        if (dialog.isShowing) {
+            detachWindowListeners()
+            cancelAuth()
+            dialog.dismiss()
         }
     }
 
-    public void onHelp(CharSequence msg) {
+    fun onHelp(msg: CharSequence?) {
+        ExecutorHelper.INSTANCE.handler.post {
+            animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
-        ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
+            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR)
 
-                animateHandler.removeMessages(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE);
-                if (dialog.getFingerprintIcon() != null) {
-                    dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
+            dialog.status?.text = msg
+            dialog.status?.setTextColor(
+                ContextCompat.getColor(
+                    compatBuilder.context, R.color.material_red_500
+                )
+            )
+            animateHandler.sendEmptyMessageDelayed(
+                WHAT_RESTORE_NORMAL_STATE,
+                2000
+            )
+        }
+    }
+
+    fun onFailure(isLockout: Boolean, type: BiometricType?) {
+        ExecutorHelper.INSTANCE.handler.post {
+            animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
+
+            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR)
+
+            dialog.status?.text = if (isLockout) too_many_attempts else not_recognized
+            dialog.status?.setTextColor(
+                ContextCompat.getColor(
+                    compatBuilder.context, R.color.material_red_500
+                )
+            )
+            animateHandler.sendEmptyMessageDelayed(
+                WHAT_RESTORE_NORMAL_STATE,
+                2000
+            )
+        }
+    }
+
+    private inner class AnimateHandler constructor(looper: Looper) : Handler(looper) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                WHAT_RESTORE_NORMAL_STATE -> {
+                    dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON)
+                    dialog.status?.text = promptText
+                    dialog.status?.setTextColor(originalColor)
                 }
-                dialog.getStatus().setText(msg);
-                dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.getContext(), R.color.material_red_500));
-
-                animateHandler.sendEmptyMessageDelayed(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE, 2000);
-            }
-        });
-    }
-
-    public void onFailure(boolean isLockout, BiometricType type) {
-        ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                animateHandler.removeMessages(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE);
-                if (dialog.getFingerprintIcon() != null) {
-                    dialog.getFingerprintIcon().setState(FingerprintIconView.State.ERROR);
-                }
-                dialog.getStatus().setText(isLockout ? too_many_attempts : not_recognized);
-                dialog.getStatus().setTextColor(ContextCompat.getColor(compatBuilder.getContext(), R.color.material_red_500));
-
-                animateHandler.sendEmptyMessageDelayed(BiometricPromptCompatDialogImpl.AnimateHandler.WHAT_RESTORE_NORMAL_STATE, 2000);
-            }
-        });
-    }
-    private class AnimateHandler extends Handler {
-
-        static final int WHAT_RESTORE_NORMAL_STATE = 0;
-
-        AnimateHandler(@NonNull Looper looper) {
-            super(looper);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case WHAT_RESTORE_NORMAL_STATE:
-                    if (dialog.getFingerprintIcon() != null) {
-                        dialog.getFingerprintIcon().setState(FingerprintIconView.State.ON);
-                    }
-                    dialog.getStatus().setText(promptText);
-                    dialog.getStatus().setTextColor(originalColor);
-                    break;
             }
         }
     }
