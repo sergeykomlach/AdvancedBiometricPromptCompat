@@ -58,7 +58,6 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
-| ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~One Plus 7 Pro~~|
 
 
 ## Screenshots:  
