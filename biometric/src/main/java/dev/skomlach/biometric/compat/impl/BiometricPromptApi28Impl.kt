@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.isAtLeastR
@@ -277,6 +278,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
+        if (builder.notificationEnabled) {
+            BiometricNotificationManager.INSTANCE.showNotification(builder)
+        }
         val secondary = HashSet<BiometricType>(builder.secondaryAvailableTypes)
         secondary.removeAll(builder.primaryAvailableTypes)
         if(secondary.isNotEmpty()){
@@ -290,6 +294,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         d("BiometricPromptApi28Impl.stopAuth():")
         BiometricAuthentication.cancelAuthentication()
         biometricPrompt.cancelAuthentication()
+        if (builder.notificationEnabled) {
+            BiometricNotificationManager.INSTANCE.dismissAll()
+        }
     }
 
     override fun cancelAuth() {
