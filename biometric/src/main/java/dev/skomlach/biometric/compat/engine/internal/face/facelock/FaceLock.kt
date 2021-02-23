@@ -2,269 +2,282 @@
 See original thread
 https://forum.xda-developers.com/showthread.php?p=25572510#post25572510
 */
+package dev.skomlach.biometric.compat.engine.internal.face.facelock
 
-package dev.skomlach.biometric.compat.engine.internal.face.facelock;
-
-import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.Binder;
-import android.os.IBinder;
-import android.os.Parcel;
-import android.os.RemoteException;
-
-import androidx.annotation.RestrictTo;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-
-import dev.skomlach.biometric.compat.utils.LockType;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.common.misc.ExecutorHelper;
-
-import static dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg;
+import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Binder
+import android.os.IBinder
+import android.os.Parcel
+import android.os.RemoteException
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakLivelinessEnabled
+import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
+import java.lang.reflect.InvocationTargetException
+import java.util.*
 
 @SuppressLint("PrivateApi")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class FaceLock {
+class FaceLock(private val mContext: Context) {
+    protected var mFaceLockService: Any? = null
+    private var mServiceConnection: ServiceConnectionWrapper? = null
+    protected var mMap = HashMap<IFaceLockCallback, Any>()
+    private var flInterface: Class<*>? = null
+    private var flInterfaceStub: Class<*>? = null
+    private var flCallbackInterface: Class<*>? = null
+    private var flCallbackInterfaceStub: Class<*>? = null
+    private val pkg = "com.android.facelock"
 
-    private static final String TAG = FaceLock.class.getSimpleName();
+    companion object {
+        private val TAG = FaceLock::class.java.simpleName
+    }
 
-    private final Context mContext;
-    protected Object mFaceLockService;
-    protected ServiceConnectionWrapper mServiceConnection;
-    protected HashMap<IFaceLockCallback, Object> mMap = new HashMap<>();
-    private Class<?> flInterface;
-    private Class<?> flInterfaceStub;
-    private Class<?> flCallbackInterface;
-    private Class<?> flCallbackInterfaceStub;
-
-    private final String pkg = "com.android.facelock";
-
-    public FaceLock(Context context) throws Exception {
-        mContext = context;
-
-       final String FACELOCK_INTERFACE = "com.android.internal.policy.IFaceLockInterface";
-       final String FACELOCK_CALLBACK = "com.android.internal.policy.IFaceLockCallback";
-       final String TRUSTEDFACE_INTERFACE = "com.android.facelock.ITrustedFaceInterface";
-       final String TRUSTEDFACE_CALLBACK = "com.android.facelock.ITrustedFaceCallback";
-
+    init {
+        val FACELOCK_INTERFACE = "com.android.internal.policy.IFaceLockInterface"
+        val FACELOCK_CALLBACK = "com.android.internal.policy.IFaceLockCallback"
+        val TRUSTEDFACE_INTERFACE = "com.android.facelock.ITrustedFaceInterface"
+        val TRUSTEDFACE_CALLBACK = "com.android.facelock.ITrustedFaceCallback"
         try {
-            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-            flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-            flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK);
-            flCallbackInterfaceStub = getClassFromPkg(pkg, FACELOCK_CALLBACK + "$Stub");
-            return;
-        } catch (Throwable ignored) {
+            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE)
+            flInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_INTERFACE\$Stub")
+            flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK)
+            flCallbackInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_CALLBACK\$Stub")
+        } catch (ignored: Throwable) {
             try {
-                flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE);
-                flInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE + "$Stub");
-                flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK);
-                flCallbackInterfaceStub = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK + "$Stub");
-                return;
-            } catch (Throwable ignored2) {}
+                flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE)
+                flInterfaceStub = getClassFromPkg(pkg, "$TRUSTEDFACE_INTERFACE\$Stub")
+                flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK)
+                flCallbackInterfaceStub = getClassFromPkg(pkg, "$TRUSTEDFACE_CALLBACK\$Stub")
+            } catch (ignored2: Throwable) {
+            }
         }
-
-        throw new RuntimeException(TAG + " not supported");
+        if (flCallbackInterfaceStub == null) {
+            throw RuntimeException(TAG + " not supported")
+        }
     }
 
-    public boolean bind(ServiceConnection connection) {
-        BiometricLoggerImpl.d(TAG + " bind to service");
-
+    fun bind(connection: ServiceConnection): Boolean {
+        d(TAG + " bind to service")
         if (mServiceConnection != null) {
-            return false;
+            return false
         }
-        mServiceConnection = new ServiceConnectionWrapper(connection);
-        Intent intent = new Intent(flInterface.getName());
-        intent.setPackage(pkg);
+        mServiceConnection = ServiceConnectionWrapper(connection)
+        val intent = Intent(flInterface?.name)
+        intent.setPackage(pkg)
         return mContext
-                .bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
     }
 
-    public void unbind() {
-        BiometricLoggerImpl.d(TAG + " unbind from service");
-        mContext.unbindService(mServiceConnection);
-        mServiceConnection = null;
+    fun unbind() {
+        d(TAG + " unbind from service")
+        mServiceConnection?.let {
+            mContext.unbindService(it)
+        }
+        mServiceConnection = null
     }
 
-    public void startUi(IBinder token, int x, int y, int width, int height)
-            throws android.os.RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        BiometricLoggerImpl.d(TAG + " startUi");
-
+    @Throws(
+        RemoteException::class,
+        IllegalArgumentException::class,
+        IllegalAccessException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun startUi(token: IBinder?, x: Int, y: Int, width: Int, height: Int) {
+        d(TAG + " startUi")
         try {
-            Method method = flInterface.getMethod("start");
-            method.invoke(mFaceLockService);
-            return;
-        } catch (Throwable ignore) { }
+            val method = flInterface?.getMethod("start")
+            method?.invoke(mFaceLockService)
+            return
+        } catch (ignore: Throwable) {
+        }
         //newer API
         try {
-            Method method = flInterface.getMethod("startUi", IBinder.class, int.class, int.class, int.class, int.class,
-                    boolean.class);
-            method.invoke(mFaceLockService, token, x, y, width, height, LockType.isBiometricWeakLivelinessEnabled(mContext));
-            return;
-        } catch (Throwable ignore) { }
+            val method = flInterface?.getMethod(
+                "startUi",
+                IBinder::class.java,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+                Boolean::class.javaPrimitiveType
+            )
+            method?.invoke(
+                mFaceLockService,
+                token,
+                x,
+                y,
+                width,
+                height,
+                isBiometricWeakLivelinessEnabled(mContext)
+            )
+            return
+        } catch (ignore: Throwable) {
+        }
         try {
             //older API's
-            Method method = flInterface.getMethod("startUi", IBinder.class, int.class, int.class, int.class, int.class);
-            method.invoke(mFaceLockService, token, x, y, width, height);
-        } catch (Throwable ignore) { }
+            val method = flInterface?.getMethod(
+                "startUi",
+                IBinder::class.java,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType,
+                Int::class.javaPrimitiveType
+            )
+            method?.invoke(mFaceLockService, token, x, y, width, height)
+        } catch (ignore: Throwable) {
+        }
     }
 
-    public void stopUi()
-            throws android.os.RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        BiometricLoggerImpl.d(TAG + " stopUi");
+    @Throws(
+        RemoteException::class,
+        IllegalArgumentException::class,
+        IllegalAccessException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun stopUi() {
+        d(TAG + " stopUi")
         try {
-            if (flInterface != null)
-                flInterface.getMethod("stop").invoke(mFaceLockService);
-            return;
-        } catch (Throwable ignore) { }
-
-        try{
-        if (flInterface != null)
-            flInterface.getMethod("stopUi").invoke(mFaceLockService);
-        } catch (Throwable ignore) { }
+            flInterface?.getMethod("stop")?.invoke(mFaceLockService)
+            return
+        } catch (ignore: Throwable) {
+        }
+        try {
+            flInterface?.getMethod("stopUi")?.invoke(mFaceLockService)
+        } catch (ignore: Throwable) {
+        }
     }
 
-    public void registerCallback(IFaceLockCallback cb)
-            throws NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        BiometricLoggerImpl.d(TAG + " registerCallback");
-
-        Constructor<?> c = getClassFromPkg(pkg, flCallbackInterface.getName() + "$Stub$Proxy")
-                .getDeclaredConstructor(IBinder.class);
-        boolean isAccessible = c.isAccessible();
+    @Throws(
+        NoSuchMethodException::class,
+        ClassNotFoundException::class,
+        IllegalArgumentException::class,
+        IllegalAccessException::class,
+        InvocationTargetException::class,
+        InstantiationException::class
+    )
+    fun registerCallback(cb: IFaceLockCallback) {
+        d(TAG + " registerCallback")
+        val c = getClassFromPkg(pkg, flCallbackInterface?.name + "\$Stub\$Proxy")
+            .getDeclaredConstructor(IBinder::class.java)
+        val isAccessible = c.isAccessible
         try {
-            if (!isAccessible)
-                c.setAccessible(true);
-            Object callbacks = c.newInstance(new CallBackBinder(cb));
-
-            flInterface.getMethod("registerCallback", flCallbackInterface)
-                    .invoke(mFaceLockService, callbacks);
-            mMap.put(cb, callbacks);
+            if (!isAccessible) c.isAccessible = true
+            val callbacks = c.newInstance(CallBackBinder(cb))
+            flInterface?.getMethod("registerCallback", flCallbackInterface)
+                ?.invoke(mFaceLockService, callbacks)
+            mMap[cb] = callbacks
         } finally {
-            if (!isAccessible)
-                c.setAccessible(false);
+            if (!isAccessible) c.isAccessible = false
         }
     }
 
-    public void unregisterCallback(IFaceLockCallback cb)
-            throws android.os.RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        BiometricLoggerImpl.d(TAG + " unregisterCallback");
-        flInterface.getMethod("unregisterCallback", flCallbackInterface)
-                .invoke(mFaceLockService, mMap.get(cb));
-        mMap.remove(cb);
+    @Throws(
+        RemoteException::class,
+        IllegalArgumentException::class,
+        IllegalAccessException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun unregisterCallback(cb: IFaceLockCallback) {
+        d(TAG + " unregisterCallback")
+        flInterface?.getMethod("unregisterCallback", flCallbackInterface)
+            ?.invoke(mFaceLockService, mMap[cb])
+        mMap.remove(cb)
     }
 
-    private class ServiceConnectionWrapper implements ServiceConnection {
-
-        private final ServiceConnection mServiceConnection;
-
-        ServiceConnectionWrapper(ServiceConnection sc) {
-            mServiceConnection = sc;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-
-            BiometricLoggerImpl.d(TAG + " service connected");
-
+    private inner class ServiceConnectionWrapper constructor(private val mServiceConnection: ServiceConnection) :
+        ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            d(TAG + " service connected")
             try {
-                mFaceLockService = flInterfaceStub.getMethod("asInterface", IBinder.class)
-                        .invoke(null, service);
-                mServiceConnection.onServiceConnected(name, service);
-            } catch (IllegalArgumentException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            } catch (IllegalAccessException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            } catch (InvocationTargetException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            } catch (NoSuchMethodException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
+                mFaceLockService = flInterfaceStub?.getMethod("asInterface", IBinder::class.java)
+                    ?.invoke(null, service)
+                mServiceConnection.onServiceConnected(name, service)
+            } catch (e: IllegalArgumentException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
+            } catch (e: IllegalAccessException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
+            } catch (e: InvocationTargetException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
+            } catch (e: NoSuchMethodException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
             }
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            BiometricLoggerImpl.d(TAG + " service disconnected");
-
-            mServiceConnection.onServiceDisconnected(name);
-            mFaceLockService = null;
+        override fun onServiceDisconnected(name: ComponentName) {
+            d(TAG + " service disconnected")
+            mServiceConnection.onServiceDisconnected(name)
+            mFaceLockService = null
         }
     }
 
-    private class CallBackBinder extends Binder {
+    private inner class CallBackBinder(private val mCallback: IFaceLockCallback) :
+        Binder() {
+        private val mMap = HashMap<Int, String>()
 
-        private final IFaceLockCallback mCallback;
-        private final HashMap<Integer, String> mMap = new HashMap<>();
-
-        CallBackBinder(IFaceLockCallback callback) {
-            mCallback = callback;
-
-            // Find matching TRANSACTION_**** values
-            Method[] methods = IFaceLockCallback.class.getMethods();
-
-            for (Method m : methods) {
-                try {
-                    Field f = flCallbackInterfaceStub.getDeclaredField("TRANSACTION_" + m.getName());
-                    boolean isAccessible = f.isAccessible();
-                    try {
-                        if (!isAccessible)
-                            f.setAccessible(true);
-                        f.setAccessible(true);
-                        mMap.put((Integer) f.get(null), m.getName());
-                    } finally {
-                        if (!isAccessible)
-                            f.setAccessible(false);
-                    }
-                } catch (NoSuchFieldException ignore) {
-                } catch (IllegalArgumentException e) {
-                    BiometricLoggerImpl.e(e, TAG);
-                } catch (IllegalAccessException e) {
-                    BiometricLoggerImpl.e(e, TAG);
-                }
-            }
-        }
-
-        @Override
-        protected boolean onTransact(final int code, Parcel data, Parcel reply,
-                                     int flags) throws RemoteException {
-
+        @Throws(RemoteException::class)
+        override fun onTransact(
+            code: Int, data: Parcel, reply: Parcel?,
+            flags: Int
+        ): Boolean {
             if (mMap.containsKey(code)) {
-                BiometricLoggerImpl.d(TAG + (" onTransact " + mMap.get(code)));
+                d(TAG + (" onTransact " + mMap[code]))
 
                 // Callback may be called outside the UI thread
-                ExecutorHelper.INSTANCE.getHandler().post(() -> {
+                ExecutorHelper.INSTANCE.handler.post {
                     try {
-                        IFaceLockCallback.class.getMethod(mMap.get(code)).invoke(mCallback);
-                    } catch (IllegalArgumentException e) {
-
-                        BiometricLoggerImpl.e(e, TAG + e.getMessage());
-                    } catch (IllegalAccessException e) {
-
-                        BiometricLoggerImpl.e(e, TAG + e.getMessage());
-                    } catch (InvocationTargetException e) {
-
-                        BiometricLoggerImpl.e(e, TAG + e.getMessage());
-                    } catch (NoSuchMethodException e) {
-
-                        BiometricLoggerImpl.e(e, TAG + e.getMessage());
+                        IFaceLockCallback::class.java.getMethod(mMap[code]).invoke(mCallback)
+                    } catch (e: IllegalArgumentException) {
+                        e(e, TAG + e.message)
+                    } catch (e: IllegalAccessException) {
+                        e(e, TAG + e.message)
+                    } catch (e: InvocationTargetException) {
+                        e(e, TAG + e.message)
+                    } catch (e: NoSuchMethodException) {
+                        e(e, TAG + e.message)
                     }
-                });
-
-                return true;
+                }
+                return true
             } else {
-                BiometricLoggerImpl.d(TAG + (" unknown transact : " + code));
+                d(TAG + " unknown transact : $code")
             }
+            return super.onTransact(code, data, reply, flags)
+        }
 
-            return super.onTransact(code, data, reply, flags);
+        init {
+
+            // Find matching TRANSACTION_**** values
+            val methods = IFaceLockCallback::class.java.methods
+            for (m in methods) {
+                try {
+                    val f = flCallbackInterfaceStub?.getDeclaredField("TRANSACTION_" + m.name)
+                    val isAccessible = f?.isAccessible
+                    try {
+                        if (isAccessible == false) f.isAccessible = true
+                        f?.isAccessible = true
+                        mMap[f?.get(null) as Int] = m.name
+                    } finally {
+                        if (isAccessible == false) f.isAccessible = false
+                    }
+                } catch (ignore: NoSuchFieldException) {
+                } catch (e: IllegalArgumentException) {
+                    e(e, TAG)
+                } catch (e: IllegalAccessException) {
+                    e(e, TAG)
+                }
+            }
         }
     }
 }

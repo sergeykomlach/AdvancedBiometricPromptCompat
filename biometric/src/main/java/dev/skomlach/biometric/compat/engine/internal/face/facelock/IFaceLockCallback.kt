@@ -1,17 +1,22 @@
-package dev.skomlach.biometric.compat.engine.internal.face.facelock;
+package dev.skomlach.biometric.compat.engine.internal.face.facelock
 
-import androidx.annotation.RestrictTo;
+import android.os.RemoteException
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public interface IFaceLockCallback {
+interface IFaceLockCallback {
+    @Throws(RemoteException::class)
+    fun unlock()
 
-    void unlock() throws android.os.RemoteException;
+    @Throws(RemoteException::class)
+    fun cancel()
 
-    void cancel() throws android.os.RemoteException;
+    @Throws(RemoteException::class)
+    fun reportFailedAttempt()
 
-    void reportFailedAttempt() throws android.os.RemoteException;
+    @Throws(RemoteException::class)
+    fun exposeFallback()
 
-    void exposeFallback() throws android.os.RemoteException;
-
-    void pokeWakelock() throws android.os.RemoteException;
+    @Throws(RemoteException::class)
+    fun pokeWakelock()
 }

@@ -1,271 +1,268 @@
-package dev.skomlach.biometric.compat.engine.internal.face.facelock;
+package dev.skomlach.biometric.compat.engine.internal.face.facelock
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.ServiceConnection;
-import android.graphics.Rect;
-import android.os.IBinder;
-import android.os.PowerManager;
-import android.os.RemoteException;
-import android.view.View;
-
-import androidx.annotation.Nullable;
-import androidx.annotation.RestrictTo;
-
-import java.lang.reflect.InvocationTargetException;
-
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
+import android.content.ComponentName
+import android.content.Context
+import android.content.ServiceConnection
+import android.graphics.Rect
+import android.os.IBinder
+import android.os.PowerManager
+import android.os.RemoteException
+import android.view.View
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.lang.reflect.InvocationTargetException
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class FaceLockHelper {
+class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
+    private val faceLockInterface: FaceLockInterface
+    private val context: Context? = null
+    private var targetView: View? = null
+    private var mFaceLock: FaceLock? = null
+    private var mFaceLockServiceRunning = false
+    private var mBoundToFaceLockService = false
+    private var mCallback: IFaceLockCallback? = null
+    private var mServiceConnection: ServiceConnection? = null
+    private val hasHardware: Boolean
 
-    public static final int FACELOCK_UNABLE_TO_BIND = 1;
-    public static final int FACELOCK_API_NOT_FOUND = 2;
-    public static final int FACELOCK_CANNT_START = 3;
-    public static final int FACELOCK_NOT_SETUP = 4;
-    public static final int FACELOCK_CANCELED = 5;
-    public static final int FACELOCK_NO_FACE_FOUND = 6;
-    public static final int FACELOCK_FAILED_ATTEMPT = 7;
-    public static final int FACELOCK_TIMEOUT = 8;
-    protected static final String TAG = FaceLockHelper.class.getSimpleName();
-    private final FaceLockInterface faceLockInterface;
-    private Context context = null;
-    private View targetView = null;
-    private FaceLock mFaceLock;
-    private boolean mFaceLockServiceRunning;
-    private boolean mBoundToFaceLockService;
-    private IFaceLockCallback mCallback;
-    private ServiceConnection mServiceConnection;
-    private final boolean hasHardware;
-
-    protected FaceLockHelper(Context context, FaceLockInterface faceLockInterface) {
-        this.context = context;
-        this.faceLockInterface = faceLockInterface;
-
-        try {
-
-            mFaceLock = new FaceLock(context);
-        } catch (Throwable e) {
-            mFaceLock = null;
-        }
-        hasHardware = mFaceLock != null;
-    }
-
-    public boolean faceUnlockAvailable(){
-        return hasHardware;
-    }
-    public static String getMessage(int code) {
-
-        switch (code) {
-            case FACELOCK_UNABLE_TO_BIND:
-                return "Unable to bind to FaceId";
-            case FACELOCK_API_NOT_FOUND:
-                return TAG + ". not found";
-            case FACELOCK_CANNT_START:
-                return "Can not start FaceId";
-            case FACELOCK_NOT_SETUP:
-                return TAG + ". not set up";
-            case FACELOCK_CANCELED:
-                return TAG + ". canceled";
-            case FACELOCK_NO_FACE_FOUND:
-                return "No face found";
-            case FACELOCK_FAILED_ATTEMPT:
-                return "Failed attempt";
-            case FACELOCK_TIMEOUT:
-                return "Timeout";
-            default:
-                return "Unknown error (" + code + ")";
+    companion object {
+        const val FACELOCK_UNABLE_TO_BIND = 1
+        const val FACELOCK_API_NOT_FOUND = 2
+        const val FACELOCK_CANNT_START = 3
+        const val FACELOCK_NOT_SETUP = 4
+        const val FACELOCK_CANCELED = 5
+        const val FACELOCK_NO_FACE_FOUND = 6
+        const val FACELOCK_FAILED_ATTEMPT = 7
+        const val FACELOCK_TIMEOUT = 8
+        protected val TAG = FaceLockHelper::class.java.simpleName
+        fun getMessage(code: Int): String {
+            return when (code) {
+                FACELOCK_UNABLE_TO_BIND -> "Unable to bind to FaceId"
+                FACELOCK_API_NOT_FOUND -> TAG + ". not found"
+                FACELOCK_CANNT_START -> "Can not start FaceId"
+                FACELOCK_NOT_SETUP -> TAG + ". not set up"
+                FACELOCK_CANCELED -> TAG + ". canceled"
+                FACELOCK_NO_FACE_FOUND -> "No face found"
+                FACELOCK_FAILED_ATTEMPT -> "Failed attempt"
+                FACELOCK_TIMEOUT -> "Timeout"
+                else -> "Unknown error ($code)"
+            }
         }
     }
 
-    synchronized void destroy() {
-        targetView = null;
-        
-        mCallback = null;
-        mServiceConnection = null;
+    init {
+        this.faceLockInterface = faceLockInterface
+        mFaceLock = try {
+            FaceLock(context)
+        } catch (e: Throwable) {
+            null
+        }
+        hasHardware = mFaceLock != null
     }
 
-    synchronized void initFacelock() {
-        BiometricLoggerImpl.d(TAG + ".initFacelock");
+    fun faceUnlockAvailable(): Boolean {
+        return hasHardware
+    }
+
+    @Synchronized
+    fun destroy() {
+        targetView = null
+        mCallback = null
+        mServiceConnection = null
+    }
+
+    @Synchronized
+    fun initFacelock() {
+        d(TAG + ".initFacelock")
         try {
+            mCallback = object : IFaceLockCallback {
+                private var mStarted = false
 
-            mCallback = new IFaceLockCallback() {
-
-                private boolean mStarted = false;
-
-                @Override
-                public void unlock() throws RemoteException {
-                    BiometricLoggerImpl.d(TAG + ".IFaceIdCallback.unlock");
-                    stopFaceLock();
-                    BiometricLoggerImpl.d(TAG + ".IFaceIdCallback.exec onAuthorized");
-                    faceLockInterface.onAuthorized();
-                    mStarted = false;
+                @Throws(RemoteException::class)
+                override fun unlock() {
+                    d(TAG + ".IFaceIdCallback.unlock")
+                    stopFaceLock()
+                    d(TAG + ".IFaceIdCallback.exec onAuthorized")
+                    faceLockInterface.onAuthorized()
+                    mStarted = false
                 }
 
-                @Override
-                public void cancel() throws RemoteException {
-                    BiometricLoggerImpl.d(TAG + ".IFaceIdCallback.cancel");
+                @Throws(RemoteException::class)
+                override fun cancel() {
+                    d(TAG + ".IFaceIdCallback.cancel")
                     if (mBoundToFaceLockService) {
-                        if (mStarted) {
-                            BiometricLoggerImpl.d(TAG + ".timeout");
-                            faceLockInterface.onError(FACELOCK_TIMEOUT, getMessage(FACELOCK_TIMEOUT));
-                            stopFaceLock();
-                            mStarted = false;
+                        mStarted = if (mStarted) {
+                            d(TAG + ".timeout")
+                            faceLockInterface.onError(
+                                FACELOCK_TIMEOUT,
+                                getMessage(FACELOCK_TIMEOUT)
+                            )
+                            stopFaceLock()
+                            false
                         } else {
-                            BiometricLoggerImpl.d(TAG + ".canceled");
-                            faceLockInterface.onError(FACELOCK_CANCELED, getMessage(FACELOCK_CANCELED));
-                            stopFaceLock();
-                            mStarted = false;
+                            d(TAG + ".canceled")
+                            faceLockInterface.onError(
+                                FACELOCK_CANCELED,
+                                getMessage(FACELOCK_CANCELED)
+                            )
+                            stopFaceLock()
+                            false
                         }
                     }
                 }
 
-                @Override
-                public void reportFailedAttempt() throws RemoteException {
-                    BiometricLoggerImpl.d(TAG + ".IFaceIdCallback.reportFailedAttempt");
-                    faceLockInterface.onError(FACELOCK_FAILED_ATTEMPT, getMessage(FACELOCK_FAILED_ATTEMPT));
+                @Throws(RemoteException::class)
+                override fun reportFailedAttempt() {
+                    d(TAG + ".IFaceIdCallback.reportFailedAttempt")
+                    faceLockInterface.onError(
+                        FACELOCK_FAILED_ATTEMPT, getMessage(
+                            FACELOCK_FAILED_ATTEMPT
+                        )
+                    )
                 }
 
-                @Override
-                public void exposeFallback() throws RemoteException {
-                    BiometricLoggerImpl.d(TAG + ".IFaceIdCallback.exposeFallback");
-                    mStarted = true;
+                @Throws(RemoteException::class)
+                override fun exposeFallback() {
+                    d(TAG + ".IFaceIdCallback.exposeFallback")
+                    mStarted = true
                 }
 
-                @Override
-                public void pokeWakelock() throws RemoteException {
-                    BiometricLoggerImpl.d(TAG + ".IFaceIdCallback.pokeWakelock");
-                    mStarted = true;
+                @Throws(RemoteException::class)
+                override fun pokeWakelock() {
+                    d(TAG + ".IFaceIdCallback.pokeWakelock")
+                    mStarted = true
                     try {
-                        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-                        PowerManager.WakeLock screenLock = pm
-                                .newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK,
-                                        getClass().getName());
-                        screenLock.acquire(25000L);
-
-                        if (screenLock.isHeld()) {
-                            screenLock.release();
+                        val pm = context?.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                        val screenLock = pm
+                            ?.newWakeLock(
+                                PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,
+                                javaClass.name
+                            )
+                        screenLock?.acquire(25000L)
+                        if (screenLock?.isHeld == true) {
+                            screenLock?.release()
                         }
-                    } catch (Throwable e) {
-                        BiometricLoggerImpl.e(e, TAG);
+                    } catch (e: Throwable) {
+                        e(e, TAG)
                     }
                 }
-            };
-            mServiceConnection = new ServiceConnection() {
-
-                @Override
-                public void onServiceDisconnected(ComponentName name) {
-                    BiometricLoggerImpl.d(TAG + ".ServiceConnection.onServiceDisconnected");
+            }
+            mServiceConnection = object : ServiceConnection {
+                override fun onServiceDisconnected(name: ComponentName) {
+                    d(TAG + ".ServiceConnection.onServiceDisconnected")
                     try {
-                        mFaceLock.unregisterCallback(mCallback);
-                    } catch (Exception e) {
-
-                        if (e instanceof InvocationTargetException) {
-                            BiometricLoggerImpl.e(e, TAG + ("Caught invocation exception registering callback: "
-                                    + ((InvocationTargetException) e)
-                                    .getTargetException()));
+                        mCallback?.let {
+                            mFaceLock?.unregisterCallback(it)
+                        }
+                    } catch (e: Exception) {
+                        if (e is InvocationTargetException) {
+                            e(
+                                e, TAG + ("Caught invocation exception registering callback: "
+                                        + e
+                                    .targetException)
+                            )
                         } else {
-                            BiometricLoggerImpl.e(e, TAG + ("Caught exception registering callback: " + e.toString()));
+                            e(e, TAG + "Caught exception registering callback: $e")
                         }
                     }
-                    
-                    mFaceLockServiceRunning = false;
-                    mBoundToFaceLockService = false;
-                    faceLockInterface.onDisconnected();
+                    mFaceLockServiceRunning = false
+                    mBoundToFaceLockService = false
+                    faceLockInterface.onDisconnected()
                 }
 
-                @Override
-                public void onServiceConnected(ComponentName name, IBinder service) {
-                    BiometricLoggerImpl.d(TAG + ".ServiceConnection.onServiceConnected");
-                    mBoundToFaceLockService = true;
+                override fun onServiceConnected(name: ComponentName, service: IBinder) {
+                    d(TAG + ".ServiceConnection.onServiceConnected")
+                    mBoundToFaceLockService = true
                     try {
-                        mFaceLock.registerCallback(mCallback);
-                    } catch (Exception e) {
-
-                        if (e instanceof InvocationTargetException) {
-                            BiometricLoggerImpl.e(e, TAG + ("Caught invocation exception registering callback: "
-                                    + ((InvocationTargetException) e)
-                                    .getTargetException()));
-                        } else {
-                            BiometricLoggerImpl.e(e, TAG + ("Caught exception registering callback: " + e.toString()));
+                        mCallback?.let {
+                            mFaceLock?.registerCallback(it)
                         }
-                        
-                        mBoundToFaceLockService = false;
+                    } catch (e: Exception) {
+                        if (e is InvocationTargetException) {
+                            e(
+                                e, TAG + ("Caught invocation exception registering callback: "
+                                        + e
+                                    .targetException)
+                            )
+                        } else {
+                            e(e, TAG + "Caught exception registering callback: $e")
+                        }
+                        mBoundToFaceLockService = false
                     }
-                    faceLockInterface.onConnected();
+                    faceLockInterface.onConnected()
                 }
-            };
-
+            }
             if (!mBoundToFaceLockService) {
-                if (!mFaceLock.bind(mServiceConnection)) {
-                    this.faceLockInterface
-                            .onError(FACELOCK_UNABLE_TO_BIND, getMessage(FACELOCK_UNABLE_TO_BIND));
-                } else {
-                    BiometricLoggerImpl.d(TAG + ".Binded, waiting for connection");
-                    return;
+                mServiceConnection?.let {
+                    if (mFaceLock?.bind(it) == false) {
+                        faceLockInterface
+                            .onError(FACELOCK_UNABLE_TO_BIND, getMessage(FACELOCK_UNABLE_TO_BIND))
+                    } else {
+                        d(TAG + ".Binded, waiting for connection")
+                        return
+                    }
                 }
             } else {
-                BiometricLoggerImpl.d(TAG + ".Already mBoundToFaceLockService");
+                d(TAG + ".Already mBoundToFaceLockService")
             }
-        } catch (Exception e) {
-            BiometricLoggerImpl.e(e, TAG + ("Caught exception creating FaceId: " + e.toString()));
-            this.faceLockInterface.onError(FACELOCK_API_NOT_FOUND, getMessage(FACELOCK_API_NOT_FOUND));
+        } catch (e: Exception) {
+            e(e, TAG + "Caught exception creating FaceId: $e")
+            faceLockInterface.onError(FACELOCK_API_NOT_FOUND, getMessage(FACELOCK_API_NOT_FOUND))
         }
-        BiometricLoggerImpl.d(TAG + ".init failed");
+        d(TAG + ".init failed")
     }
 
     // Tells the FaceId service to stop displaying its UI and stop recognition
-    synchronized void stopFaceLock() {
-        BiometricLoggerImpl.d(TAG + ".stopFaceLock");
+    @Synchronized
+    fun stopFaceLock() {
+        d(TAG + ".stopFaceLock")
         if (mFaceLockServiceRunning) {
             try {
-                BiometricLoggerImpl.d(TAG + ".Stopping FaceId");
-                mFaceLock.stopUi();
-            } catch (Exception e) {
-                BiometricLoggerImpl.e(e, TAG + ("Caught exception stopping FaceId: " + e.toString()));
+                d(TAG + ".Stopping FaceId")
+                mFaceLock?.stopUi()
+            } catch (e: Exception) {
+                e(e, TAG + "Caught exception stopping FaceId: $e")
             }
-            mFaceLockServiceRunning = false;
+            mFaceLockServiceRunning = false
         }
-
         if (mBoundToFaceLockService) {
-            mFaceLock.unbind();
-            BiometricLoggerImpl.d(TAG + ".FaceId.unbind()");
-            mBoundToFaceLockService = false;
+            mFaceLock?.unbind()
+            d(TAG + ".FaceId.unbind()")
+            mBoundToFaceLockService = false
         }
     }
 
     // Tells the FaceId service to start displaying its UI and perform recognition
-    private void startFaceAuth(View targetView) {
-        BiometricLoggerImpl.d(TAG + ".startFaceLock");
-
+    private fun startFaceAuth(targetView: View) {
+        d(TAG + ".startFaceLock")
         if (!mFaceLockServiceRunning) {
             try {
-                BiometricLoggerImpl.d(TAG + ".Starting FaceId");
-                Rect rect = new Rect();
-                targetView.getGlobalVisibleRect(rect);
-                BiometricLoggerImpl.d(TAG + (" rect: " + rect));
-                mFaceLock.startUi(targetView.getWindowToken(),
-                        rect.left, rect.top,
-                        rect.width(), rect.height()
-                );
-            } catch (Exception e) {
-                BiometricLoggerImpl.e(e, TAG + ("Caught exception starting FaceId: " + e.getMessage()));
-                faceLockInterface.onError(FACELOCK_CANNT_START, getMessage(FACELOCK_CANNT_START));
-                return;
+                d(TAG + ".Starting FaceId")
+                val rect = Rect()
+                targetView.getGlobalVisibleRect(rect)
+                d(TAG + " rect: $rect")
+                mFaceLock?.startUi(
+                    targetView.windowToken,
+                    rect.left, rect.top,
+                    rect.width(), rect.height()
+                )
+            } catch (e: Exception) {
+                e(e, TAG + ("Caught exception starting FaceId: " + e.message))
+                faceLockInterface.onError(FACELOCK_CANNT_START, getMessage(FACELOCK_CANNT_START))
+                return
             }
-            mFaceLockServiceRunning = true;
+            mFaceLockServiceRunning = true
         } else {
-            BiometricLoggerImpl.e(TAG + ".startFaceLock() attempted while running");
+            e(TAG + ".startFaceLock() attempted while running")
         }
     }
 
-    synchronized void startFaceLockWithUi(@Nullable View view) {
-        BiometricLoggerImpl.d(TAG + ".startFaceLockWithUi");
-
-        this.targetView = view;
-
-        if (targetView != null) {
-            startFaceAuth(targetView);
+    @Synchronized
+    fun startFaceLockWithUi(view: View?) {
+        d(TAG + ".startFaceLockWithUi")
+        targetView = view
+        targetView?.let {
+            startFaceAuth(it)
         }
     }
 }
