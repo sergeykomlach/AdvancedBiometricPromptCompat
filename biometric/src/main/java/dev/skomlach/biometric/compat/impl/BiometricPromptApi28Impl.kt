@@ -1,341 +1,298 @@
-package dev.skomlach.biometric.compat.impl;
+package dev.skomlach.biometric.compat.impl
 
-import android.annotation.TargetApi;
-import android.os.Build;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.NonNull;
-import androidx.annotation.RestrictTo;
-import androidx.biometric.BiometricManager;
-import androidx.biometric.BiometricPrompt;
-import androidx.core.content.ContextCompat;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import dev.skomlach.biometric.compat.BiometricAuthRequest;
-import dev.skomlach.biometric.compat.BiometricManagerCompat;
-import dev.skomlach.biometric.compat.BiometricPromptCompat;
-import dev.skomlach.biometric.compat.BiometricType;
-import dev.skomlach.biometric.compat.R;
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason;
-import dev.skomlach.biometric.compat.engine.BiometricCodes;
-import dev.skomlach.biometric.compat.engine.internal.core.RestartPredicatesImpl;
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate;
-import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl;
-import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError;
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix;
-import dev.skomlach.biometric.compat.utils.CodeToString;
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs;
-import dev.skomlach.biometric.compat.utils.HardwareAccessImpl;
-import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener;
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes;
-import dev.skomlach.common.misc.ExecutorHelper;
-import dev.skomlach.common.misc.Utils;
+import android.annotation.TargetApi
+import android.os.Build
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import androidx.annotation.ColorInt
+import androidx.annotation.RestrictTo
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.core.content.ContextCompat
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.engine.BiometricCodes
+import dev.skomlach.biometric.compat.engine.internal.core.RestartPredicatesImpl.defaultPredicate
+import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
+import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError
+import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
+import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
+import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils.isAtLeastR
+import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 @TargetApi(Build.VERSION_CODES.P)
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public class BiometricPromptApi28Impl implements IBiometricPromptImpl, BiometricCodes, AuthCallback {
-    private final BiometricPrompt.PromptInfo biometricPromptInfo;
-    private final BiometricPrompt biometricPrompt;
-    private final BiometricPromptCompat.Builder compatBuilder;
-    private final RestartPredicate restartPredicate = RestartPredicatesImpl.defaultPredicate();
-    private BiometricPromptCompatDialogImpl dialog = null;
-    private BiometricPromptCompat.Result callback;
+class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Builder) :
+    IBiometricPromptImpl, BiometricCodes, AuthCallback {
+    private val biometricPromptInfo: PromptInfo
+    private val biometricPrompt: BiometricPrompt
+    private val restartPredicate = defaultPredicate()
+    private var dialog: BiometricPromptCompatDialogImpl? = null
+    private var callback: BiometricPromptCompat.Result? = null
     
-    final BiometricPrompt.AuthenticationCallback authCallback = new BiometricPrompt.AuthenticationCallback() {
-        //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
-        private Boolean onePlusWithBiometricBugFailure = false;
-
-        @Override
-        public void onAuthenticationFailed() {
-            BiometricLoggerImpl.d("BiometricPromptApi28Impl.onAuthenticationFailed");
-            if (DevicesWithKnownBugs.isOnePlusWithBiometricBug()) {
-                this.onePlusWithBiometricBugFailure = true;
-                cancelAuthenticate();
-            } else {
-                //...normal failed processing...//
-                if (dialog != null)
-                    dialog.onFailure(false, compatBuilder.getBiometricAuthRequest().getType());
+    val authCallback: BiometricPrompt.AuthenticationCallback =
+        object : BiometricPrompt.AuthenticationCallback() {
+            //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
+            private var onePlusWithBiometricBugFailure = false
+            override fun onAuthenticationFailed() {
+                d("BiometricPromptApi28Impl.onAuthenticationFailed")
+                if (isOnePlusWithBiometricBug) {
+                    onePlusWithBiometricBugFailure = true
+                    cancelAuthenticate()
+                } else {
+                    //...normal failed processing...//
+                    if (dialog != null) dialog?.onFailure(false, builder.biometricAuthRequest.type)
+                }
             }
-        }
 
-        @Override
-        public void onAuthenticationError(int errorCode, CharSequence errString) {
-            BiometricLoggerImpl.d("BiometricPromptApi28Impl.onAuthenticationError: " + CodeToString.getErrorCode(errorCode) + " " + errString);
-            // Authentication failed on OnePlus device with broken BiometricPrompt implementation
-            // Present the same screen with additional buttons to allow retry/fail
-            if (this.onePlusWithBiometricBugFailure) {
-                this.onePlusWithBiometricBugFailure = false;
-                //...present retryable error screen...
-                return;
-            }
-            //...present normal failed screen...
-
-            FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
-
-            ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-
-                    AuthenticationFailureReason failureReason = AuthenticationFailureReason.UNKNOWN;
-                    switch (errorCode) {
-                        case BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS:
-                            failureReason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT:
-                            failureReason = AuthenticationFailureReason.NO_HARDWARE;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE:
-                            failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT:
-                            BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(compatBuilder.getBiometricAuthRequest().getType());
-                            failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS:
-                        case BiometricCodes.BIOMETRIC_ERROR_NO_SPACE:
-                            failureReason = AuthenticationFailureReason.SENSOR_FAILED;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_TIMEOUT:
-                            failureReason = AuthenticationFailureReason.TIMEOUT;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_LOCKOUT:
-                            HardwareAccessImpl.getInstance(compatBuilder.getBiometricAuthRequest()).lockout();
-                            failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                            break;
-                        case BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED:
-                        case BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON:
-                            if (callback != null)
-                                callback.onCanceled();
-                            cancelAuthenticate();
-                            return;
-                        case BiometricCodes.BIOMETRIC_ERROR_CANCELED:
-                            // Don't send a cancelled message.
-                            return;
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                d("BiometricPromptApi28Impl.onAuthenticationError: " + getErrorCode(errorCode) + " " + errString)
+                // Authentication failed on OnePlus device with broken BiometricPrompt implementation
+                // Present the same screen with additional buttons to allow retry/fail
+                if (onePlusWithBiometricBugFailure) {
+                    onePlusWithBiometricBugFailure = false
+                    //...present retryable error screen...
+                    return
+                }
+                //...present normal failed screen...
+                FocusLostDetection.stopListener(builder.activeWindow)
+                ExecutorHelper.INSTANCE.handler.post(Runnable {
+                    var failureReason = AuthenticationFailureReason.UNKNOWN
+                    when (errorCode) {
+                        BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                            AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                        BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                            AuthenticationFailureReason.NO_HARDWARE
+                        BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                            AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                        BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                            BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                                builder.biometricAuthRequest.type
+                            )
+                            failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                        }
+                        BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                            AuthenticationFailureReason.SENSOR_FAILED
+                        BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                            AuthenticationFailureReason.TIMEOUT
+                        BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                            getInstance(builder.biometricAuthRequest).lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
+                        BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON -> {
+                            if (callback != null) callback?.onCanceled()
+                            cancelAuthenticate()
+                            return@Runnable
+                        }
+                        BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                             // Don't send a cancelled message.
+                            return@Runnable
                     }
-
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
-                            if (dialog != null)
-                                dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, compatBuilder.getBiometricAuthRequest().getType());
-                            authenticate(callback);
+                            if (dialog != null) dialog?.onFailure(
+                                failureReason === AuthenticationFailureReason.LOCKED_OUT,
+                                builder.biometricAuthRequest.type
+                            )
+                            authenticate(callback)
                         }
                     } else {
-                        switch (failureReason) {
-                            case SENSOR_FAILED:
-                            case AUTHENTICATION_FAILED:
-                                HardwareAccessImpl.getInstance(compatBuilder.getBiometricAuthRequest()).lockout();
-                                failureReason = AuthenticationFailureReason.LOCKED_OUT;
-                                break;
+                        when (failureReason) {
+                            AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                                getInstance(builder.biometricAuthRequest).lockout()
+                                failureReason = AuthenticationFailureReason.LOCKED_OUT
+                            }
                         }
-
-                        if (dialog != null)
-                            dialog.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, compatBuilder.getBiometricAuthRequest().getType());
-                        if (callback != null)
-                            callback.onFailed(failureReason);
-                        BiometricAuthWasCanceledByError.INSTANCE.setCanceledByError();
-
-                        if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
-                            ExecutorHelper.INSTANCE.getHandler().postDelayed(() -> {
-                                if (callback != null)
-                                    callback.onCanceled();
-                                cancelAuthenticate();
-                            }, 2000);
+                        if (dialog != null) dialog?.onFailure(
+                            failureReason === AuthenticationFailureReason.LOCKED_OUT,
+                            builder.biometricAuthRequest.type
+                        )
+                        if (callback != null) callback?.onFailed(failureReason)
+                        BiometricAuthWasCanceledByError.INSTANCE.setCanceledByError()
+                        if (failureReason === AuthenticationFailureReason.LOCKED_OUT) {
+                            ExecutorHelper.INSTANCE.handler.postDelayed({
+                                if (callback != null) callback?.onCanceled()
+                                cancelAuthenticate()
+                            }, 2000)
                         } else {
-                            if (callback != null)
-                                callback.onCanceled();
-                            cancelAuthenticate();
+                            if (callback != null) callback?.onCanceled()
+                            cancelAuthenticate()
                         }
                     }
-                }
-            });
-        }
+                })
+            }
 
-        @Override
-        public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
-            BiometricLoggerImpl.d("BiometricPromptApi28Impl.onAuthenticationSucceeded:");
-            this.onePlusWithBiometricBugFailure = false;
-            FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
-
-            ExecutorHelper.INSTANCE.getHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    cancelAuthenticate();
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                d("BiometricPromptApi28Impl.onAuthenticationSucceeded:")
+                onePlusWithBiometricBugFailure = false
+                FocusLostDetection.stopListener(builder.activeWindow)
+                ExecutorHelper.INSTANCE.handler.post {
+                    cancelAuthenticate()
                     if (callback != null) {
-                        callback.onSucceeded();
+                        callback?.onSucceeded()
                     }
                 }
-            });
+            }
         }
-    };
+    private val isFingerprint = AtomicBoolean(false)
 
-    private final AtomicBoolean isFingerprint = new AtomicBoolean(false);
-    public BiometricPromptApi28Impl(@NonNull BiometricPromptCompat.Builder compatBuilder) {
+    init {
+        val promptInfoBuilder = PromptInfo.Builder()
+        builder.title?.let {
+            promptInfoBuilder.setTitle(it)
+        }
 
-        this.compatBuilder = compatBuilder;
+        builder.subtitle?.let {
+            promptInfoBuilder.setSubtitle(it)
+        }
 
-        BiometricPrompt.PromptInfo.Builder builder = new BiometricPrompt.PromptInfo.Builder();
-        builder.setTitle(compatBuilder.title);
-        if (compatBuilder.subtitle != null) {
-            builder.setSubtitle(compatBuilder.subtitle);
+        builder.description?.let {
+            promptInfoBuilder.setDescription(it)
         }
-        if (compatBuilder.description != null) {
-            builder.setDescription(compatBuilder.description);
+        builder.negativeButtonText?.let {
+            if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
+                getFixedString(
+                    it, ContextCompat.getColor(
+                        builder.context, R.color.material_deep_teal_500
+                    )
+                )
+            )
         }
-        if (compatBuilder.negativeButtonText != null) {
-            if (Utils.isAtLeastR())
-                builder.setNegativeButtonText(compatBuilder.negativeButtonText);
-            else
-                builder.setNegativeButtonText(
-                        getFixedString(compatBuilder.negativeButtonText, ContextCompat.getColor(compatBuilder.getContext(), R.color.material_deep_teal_500)));
-        }
-        if (Utils.isAtLeastR()) {
-            builder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK);
+        if (isAtLeastR) {
+            promptInfoBuilder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
         } else {
-            builder.setDeviceCredentialAllowed(false);
+            promptInfoBuilder.setDeviceCredentialAllowed(false)
         }
-        builder.setConfirmationRequired(true);
-
-
-        this.biometricPromptInfo = builder.build();
-        this.biometricPrompt = new BiometricPrompt(compatBuilder.getContext(),
-                ExecutorHelper.INSTANCE.getExecutor(), authCallback);
-        isFingerprint.set(compatBuilder.getAllTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT));
+        promptInfoBuilder.setConfirmationRequired(true)
+        biometricPromptInfo = promptInfoBuilder.build()
+        biometricPrompt = BiometricPrompt(
+            builder.context,
+            ExecutorHelper.INSTANCE.executor, authCallback
+        )
+        isFingerprint.set(builder.allTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+    }
+    private fun getFixedString(str: CharSequence?, @ColorInt color: Int): CharSequence {
+        val wordtoSpan: Spannable = SpannableString(str)
+        wordtoSpan.setSpan(
+            ForegroundColorSpan(color),
+            0,
+            wordtoSpan.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        return wordtoSpan
     }
 
-    private CharSequence getFixedString(CharSequence str, @ColorInt int color) {
-        Spannable wordtoSpan = new SpannableString(str);
-        wordtoSpan.setSpan(new ForegroundColorSpan(color), 0, wordtoSpan.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        return wordtoSpan;
-    }
-
-    @Override
-    public void authenticate(@NonNull BiometricPromptCompat.Result cbk) {
+    override fun authenticate(cbk: BiometricPromptCompat.Result?) {
         try {
-            BiometricLoggerImpl.d("BiometricPromptApi28Impl.authenticate():");
-            this.callback = cbk;
-
-            if(DevicesWithKnownBugs.isLGWithMissedBiometricUI() && isFingerprint.get()){
+            d("BiometricPromptApi28Impl.authenticate():")
+            callback = cbk
+            if (isLGWithMissedBiometricUI && isFingerprint.get()) {
                 //LG G8 do not have BiometricPrompt UI
-                dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, false);
-                dialog.showDialog();
-                startAuth();
-            }
-            else if(isFingerprint.get()){
-
-                FocusLostDetection.attachListener(compatBuilder.getActiveWindow(), new WindowFocusChangedListener() {
-                    @Override
-                    public void onStartWatching() {
-                        startAuth();
-                    }
-
-                    @Override
-                    public void hasFocus(boolean hasFocus) {
-                        if (hasFocus) {
-                            //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
-                            //For other types of biometric that do not have UI - use regular Fingerprint UI
-                            dialog = new BiometricPromptCompatDialogImpl(compatBuilder, BiometricPromptApi28Impl.this, isFingerprint.get());
-                            dialog.showDialog();
+                dialog =
+                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
+                dialog?.showDialog()
+                startAuth()
+            } else if (isFingerprint.get()) {
+                FocusLostDetection.attachListener(
+                    builder.activeWindow,
+                    object : WindowFocusChangedListener {
+                        override fun onStartWatching() {
+                            startAuth()
                         }
-                    }
-                });
-            } else{
-                startAuth();
+
+                        override fun hasFocus(hasFocus: Boolean) {
+                            if (hasFocus) {
+                                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
+                                //For other types of biometric that do not have UI - use regular Fingerprint UI
+                                dialog = BiometricPromptCompatDialogImpl(
+                                    builder,
+                                    this@BiometricPromptApi28Impl,
+                                    isFingerprint.get()
+                                )
+                                dialog?.showDialog()
+                            }
+                        }
+                    })
+            } else {
+                startAuth()
             }
-        } catch (Throwable e) {
-            BiometricLoggerImpl.e(e);
-            callback.onFailed(AuthenticationFailureReason.UNKNOWN);
+        } catch (e: Throwable) {
+            e(e)
+            callback?.onFailed(AuthenticationFailureReason.UNKNOWN)
         }
     }
 
-    @Override
-    public boolean cancelAuthenticateBecauseOnPause() {
-        BiometricLoggerImpl.d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():");
-        if (dialog != null) {
-            if (dialog.cancelAuthenticateBecauseOnPause()) {
-                FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
-                return true;
+    override fun cancelAuthenticateBecauseOnPause(): Boolean {
+        d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():")
+        return if (dialog != null) {
+            if (dialog?.cancelAuthenticateBecauseOnPause() == true) {
+                FocusLostDetection.stopListener(builder.activeWindow)
+                true
             } else {
-                return false;
+                false
             }
         } else {
-            cancelAuthenticate();
-            return true;
+            cancelAuthenticate()
+            true
         }
     }
 
-    @Override
-    public boolean isNightMode() {
-        if (dialog != null)
-            return dialog.isNightMode();
-        else {
-            return DarkLightThemes.isNightMode(compatBuilder.getContext());
+    override val isNightMode: Boolean
+        get() = if (dialog != null) dialog?.isNightMode == true else {
+            isNightMode(builder.context)
         }
-    }
-
-    @Override
-    public BiometricPromptCompat.Builder getBuilder() {
-        return compatBuilder;
-    }
-
-    @Override
-    public List<String> getUsedPermissions() {
-        final Set<String> permission = new HashSet<>();
-        permission.add("android.permission.USE_FINGERPRINT");
-        if (Build.VERSION.SDK_INT >= 28) {
-            permission.add("android.permission.USE_BIOMETRIC");
+    override val usedPermissions: List<String>
+        get() {
+            val permission: MutableSet<String> = HashSet()
+            permission.add("android.permission.USE_FINGERPRINT")
+            if (Build.VERSION.SDK_INT >= 28) {
+                permission.add("android.permission.USE_BIOMETRIC")
+            }
+            return ArrayList(permission)
         }
-        return new ArrayList<>(permission);
-    }
 
-    @Override
-    public void cancelAuthenticate() {
-        BiometricLoggerImpl.d("BiometricPromptApi28Impl.cancelAuthenticate():");
-        if (dialog != null)
-            dialog.dismissDialog();
-        else {
-            stopAuth();
+    override fun cancelAuthenticate() {
+        d("BiometricPromptApi28Impl.cancelAuthenticate():")
+        if (dialog != null) dialog?.dismissDialog() else {
+            stopAuth()
         }
-        FocusLostDetection.stopListener(compatBuilder.getActiveWindow());
-
+        FocusLostDetection.stopListener(builder.activeWindow)
     }
 
-    @Override
-    public void startAuth() {
-        BiometricLoggerImpl.d("BiometricPromptApi28Impl.startAuth():");
-        biometricPrompt.authenticate(biometricPromptInfo);
-        onUiOpened();
+    override fun startAuth() {
+        d("BiometricPromptApi28Impl.startAuth():")
+        biometricPrompt.authenticate(biometricPromptInfo)
+        onUiOpened()
     }
 
-    @Override
-    public void stopAuth() {
-        BiometricLoggerImpl.d("BiometricPromptApi28Impl.stopAuth():");
-        biometricPrompt.cancelAuthentication();
-        onUiClosed();
+    override fun stopAuth() {
+        d("BiometricPromptApi28Impl.stopAuth():")
+        biometricPrompt.cancelAuthentication()
+        onUiClosed()
     }
 
-    @Override
-    public void cancelAuth() {
-        if (callback != null)
-            callback.onCanceled();
+    override fun cancelAuth() {
+        if (callback != null) callback?.onCanceled()
     }
 
-    @Override
-    public void onUiOpened() {
-        if (callback != null)
-            callback.onUIOpened();
+    override fun onUiOpened() {
+        if (callback != null) callback?.onUIOpened()
     }
-    @Override
-    public void onUiClosed() {
-        if (callback != null)
-            callback.onUIClosed();
+
+    override fun onUiClosed() {
+        if (callback != null) callback?.onUIClosed()
     }
+
 }

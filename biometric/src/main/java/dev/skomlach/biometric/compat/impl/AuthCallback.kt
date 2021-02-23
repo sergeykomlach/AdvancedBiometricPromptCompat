@@ -1,16 +1,12 @@
-package dev.skomlach.biometric.compat.impl;
+package dev.skomlach.biometric.compat.impl
 
-import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public interface AuthCallback {
-    void startAuth();
-
-    void stopAuth();
-
-    void cancelAuth();
-
-    void onUiOpened();
-
-    void onUiClosed();
+interface AuthCallback {
+    fun startAuth()
+    fun stopAuth()
+    fun cancelAuth()
+    fun onUiOpened()
+    fun onUiClosed()
 }
