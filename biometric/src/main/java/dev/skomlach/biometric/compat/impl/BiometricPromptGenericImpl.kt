@@ -17,6 +17,7 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInst
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.*
@@ -49,6 +50,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         } else {
             startAuth()
         }
+        onUiOpened()
     }
 
     override fun cancelAuthenticate() {
@@ -56,6 +58,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
+        onUiClosed()
     }
 
     override val isNightMode: Boolean
@@ -102,7 +105,9 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun startAuth() {
-        onUiOpened()
+        if (builder.notificationEnabled) {
+            BiometricNotificationManager.INSTANCE.showNotification(builder)
+        }
         d("BiometricPromptGenericImpl.startAuth():")
         val types: List<BiometricType?> = ArrayList(
             builder.allAvailableTypes
@@ -113,19 +118,21 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     override fun stopAuth() {
         d("BiometricPromptGenericImpl.stopAuth():")
         cancelAuthentication()
-        onUiClosed()
+        if (builder.notificationEnabled) {
+            BiometricNotificationManager.INSTANCE.dismissAll()
+        }
     }
 
     override fun cancelAuth() {
-        if (callback != null) callback?.onCanceled()
+        callback?.onCanceled()
     }
 
     override fun onUiOpened() {
-        if (callback != null) callback?.onUIOpened()
+        callback?.onUIOpened()
     }
 
     override fun onUiClosed() {
-        if (callback != null) callback?.onUIClosed()
+        callback?.onUIClosed()
     }
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {

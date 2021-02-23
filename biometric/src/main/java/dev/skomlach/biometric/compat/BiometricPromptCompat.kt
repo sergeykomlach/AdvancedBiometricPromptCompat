@@ -1,10 +1,14 @@
 package dev.skomlach.biometric.compat
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.content.ContextWrapper
 import android.content.DialogInterface
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Looper
-import android.view.View
+import android.view.*
 import android.view.ViewTreeObserver.OnWindowFocusChangeListener
 import androidx.annotation.*
 import androidx.appcompat.app.AppCompatDelegate
@@ -26,6 +30,7 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.ActiveWindow
+import dev.skomlach.biometric.compat.utils.BlurUtil
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
@@ -38,6 +43,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
@@ -158,37 +164,86 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun startAuth(callbackOuter: Result){
+        val bitmapHolder = AtomicReference<Bitmap>(null)
+        val tag = "biometric-"+builder.context.javaClass.name
         val callback = object : Result {
+            private fun resetAll(){
+                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
+                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context, impl.builder.colorNavBar, impl.builder.colorStatusBar)
+                }
+                try {
+                    val vg: ViewGroup = builder.context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
+                    val v = vg.findViewWithTag<View?>(tag)
+                    v?.let {
+                        vg.removeView(v)
+                    }
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+            }
             override fun onSucceeded() {
+                resetAll()
                 callbackOuter.onSucceeded()
             }
 
             override fun onCanceled() {
+                resetAll()
                 callbackOuter.onCanceled()
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
                 callbackOuter.onFailed(reason)
             }
-
+            @SuppressLint("ClickableViewAccessibility")
             override fun onUIOpened() {
                 callbackOuter.onUIOpened()
-                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
-                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context,
-                        ContextCompat.getColor(impl.builder.context, getDialogMainColor()), impl.builder.colorStatusBar)
+                if(builder.colorNavBar != 0 && builder.colorStatusBar != 0){
+                    StatusBarTools.setNavBarAndStatusBarColors(builder.context,
+                        ContextCompat.getColor(builder.context, getDialogMainColor()), builder.colorStatusBar)
                 }
-                if (impl.builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.showNotification(impl.builder)
+                try {
+                    val vg: ViewGroup = builder.context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
+                    if (vg.findViewWithTag<View?>(tag) != null) {
+                        return
+                    } else {
+                        val v = View(ContextWrapper(builder.context))
+                        v.tag = tag
+                        val lp = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        v.layoutParams = lp
+                        v.alpha = 0f
+                        val bm = bitmapHolder.get()
+                        if(bm == null) {
+                            BlurUtil.takeScreenshotAndBlur(
+                                vg,
+                                object : BlurUtil.OnPublishListener {
+                                    override fun onBlurredScreenshot(bm: Bitmap) {
+                                        bitmapHolder.set(bm)
+                                        v.alpha = 1f
+                                        ViewCompat.setBackground(v, BitmapDrawable(bm))
+                                    }
+                                })
+                        } else {
+                            v.alpha = 1f
+                            ViewCompat.setBackground(v, BitmapDrawable(bm))
+                        }
+                        v.isFocusable = true
+                        v.isClickable = true
+                        v.isLongClickable = true
+                        v.setOnTouchListener { _,  _ ->
+                            true
+                        }
+                        vg.addView(v)
+                    }
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
                 }
             }
 
             override fun onUIClosed() {
-                if (impl.builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.dismissAll()
-                }
-                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
-                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context, impl.builder.colorNavBar, impl.builder.colorStatusBar)
-                }
+                resetAll()
                 callbackOuter.onUIClosed()
             }
         }
