@@ -14,7 +14,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.impl.AuthCallback
-import dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -26,8 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BiometricPromptCompatDialogImpl(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val authCallback: AuthCallback?,
-    private val isInScreen: Boolean
+    private val hasFingerprint: Boolean = false
 ) {
+    private val isInScreen: Boolean =  hasFingerprint && DevicesWithKnownBugs.isShowInScreenDialogInstantly
     private val animateHandler: Handler
     private val dialog: BiometricPromptCompatDialog
     private val promptText: CharSequence
