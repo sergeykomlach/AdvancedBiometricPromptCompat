@@ -22,7 +22,7 @@ import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImp
 import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isDeviceWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
 import dev.skomlach.biometric.compat.utils.Vibro
@@ -74,7 +74,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     return
                 }
                 //...present normal failed screen...
-                FocusLostDetection.stopListener(builder.activeWindow)
+                
                 ExecutorHelper.INSTANCE.handler.post(Runnable {
                     var failureReason = AuthenticationFailureReason.UNKNOWN
                     when (errorCode) {
@@ -99,7 +99,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
                         }
                         BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON -> {
-                            if (callback != null) callback?.onCanceled()
+                            callback?.onCanceled()
                             cancelAuthenticate()
                             return@Runnable
                         }
@@ -125,15 +125,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             failureReason == AuthenticationFailureReason.LOCKED_OUT,
                             builder.biometricAuthRequest.type
                         )
-                        if (callback != null) callback?.onFailed(failureReason)
+                        callback?.onFailed(failureReason)
                         BiometricAuthWasCanceledByError.INSTANCE.setCanceledByError()
                         if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
                             ExecutorHelper.INSTANCE.handler.postDelayed({
-                                if (callback != null) callback?.onCanceled()
+                                callback?.onCanceled()
                                 cancelAuthenticate()
                             }, 2000)
                         } else {
-                            if (callback != null) callback?.onCanceled()
+                            callback?.onCanceled()
                             cancelAuthenticate()
                         }
                     }
@@ -143,7 +143,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 d("BiometricPromptApi28Impl.onAuthenticationSucceeded:")
                 onePlusWithBiometricBugFailure = false
-                FocusLostDetection.stopListener(builder.activeWindow)
+                
                 var addded = false
                 for(module in builder.primaryAvailableTypes) {
                     if(confirmed.add(module))
@@ -227,36 +227,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         try {
             d("BiometricPromptApi28Impl.authenticate():")
             callback = cbk
-            if (isLGWithMissedBiometricUI && isFingerprint.get()) {
-                //LG G8 do not have BiometricPrompt UI
+            if (isDeviceWithMissedBiometricUI && isFingerprint.get()) {
+                //LG G8 and OnePlus devices do not have BiometricPrompt UI
                 dialog =
                     BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, isFingerprint.get())
                 dialog?.showDialog()
                 startAuth()
-            } else if (isFingerprint.get()) {
-                FocusLostDetection.attachListener(
-                    builder.activeWindow,
-                    object : WindowFocusChangedListener {
-                        override fun onStartWatching() {
-                            startAuth()
-                        }
-
-                        override fun hasFocus(hasFocus: Boolean) {
-                            if (hasFocus) {
-                                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
-                                //For other types of biometric that do not have UI - use regular Fingerprint UI
-                                dialog = BiometricPromptCompatDialogImpl(
-                                    builder,
-                                    this@BiometricPromptApi28Impl,
-                                    isFingerprint.get()
-                                )
-                                dialog?.showDialog()
-                            }
-                        }
-                    })
             } else {
                 startAuth()
             }
+            onUiOpened()
         } catch (e: Throwable) {
             e(e)
             callback?.onFailed(AuthenticationFailureReason.UNKNOWN)
@@ -266,12 +246,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun cancelAuthenticateBecauseOnPause(): Boolean {
         d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():")
         return if (dialog != null) {
-            if (dialog?.cancelAuthenticateBecauseOnPause() == true) {
-                FocusLostDetection.stopListener(builder.activeWindow)
-                true
-            } else {
-                false
-            }
+            dialog?.cancelAuthenticateBecauseOnPause() == true
         } else {
             cancelAuthenticate()
             true
@@ -297,7 +272,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
-        FocusLostDetection.stopListener(builder.activeWindow)
+        onUiClosed()
     }
 
     override fun startAuth() {
@@ -309,26 +284,24 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             BiometricAuthentication.authenticate(null, ArrayList<BiometricType>(secondary), fmAuthCallback)
         }
         biometricPrompt.authenticate(biometricPromptInfo)
-        onUiOpened()
     }
 
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
         BiometricAuthentication.cancelAuthentication()
         biometricPrompt.cancelAuthentication()
-        onUiClosed()
     }
 
     override fun cancelAuth() {
-        if (callback != null) callback?.onCanceled()
+        callback?.onCanceled()
     }
 
     override fun onUiOpened() {
-        if (callback != null) callback?.onUIOpened()
+        callback?.onUIOpened()
     }
 
     override fun onUiClosed() {
-        if (callback != null) callback?.onUIClosed()
+        callback?.onUIClosed()
     }
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
