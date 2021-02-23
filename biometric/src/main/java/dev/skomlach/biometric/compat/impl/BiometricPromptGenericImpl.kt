@@ -81,7 +81,6 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
                     BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
                     BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                    BiometricMethod.FACE_ONEPLUS -> permission.add("com.oneplus.faceunlock.permission.FACE_UNLOCK")
                     BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
                         "android.permission.USE_FINGERPRINT"
                     )

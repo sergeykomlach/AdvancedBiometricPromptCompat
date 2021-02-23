@@ -15,7 +15,6 @@ import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnl
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockModule
-import dev.skomlach.biometric.compat.engine.internal.face.oneplus.OnePlusFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule
@@ -71,7 +70,6 @@ object BiometricAuthentication {
         }
         //Vivo and Huawei Face - Oreo (8.0)
         if (Build.VERSION.SDK_INT >= 26) {
-//            allMethods.add(BiometricMethod.FACE_ONEPLUS);
             allMethods.add(BiometricMethod.FACE_VIVO)
             allMethods.add(BiometricMethod.FACE_HUAWEI)
         }
@@ -138,7 +136,6 @@ object BiometricAuthentication {
                             )
                             BiometricMethod.FACE_HUAWEI -> HuaweiFaceUnlockModule(initListener)
                             BiometricMethod.FACE_MIUI -> MiuiFaceUnlockModule(initListener)
-                            BiometricMethod.FACE_ONEPLUS -> OnePlusFaceUnlockModule(initListener)
                             BiometricMethod.FACE_SOTERAPI -> SoterFaceUnlockModule(initListener)
                             BiometricMethod.FACE_OPPO -> OppoFaceUnlockModule(initListener)
                             BiometricMethod.FACE_SAMSUNG -> SamsungFaceUnlockModule(initListener)
@@ -287,16 +284,6 @@ object BiometricAuthentication {
         }
         if (biometricModule is FacelockOldModule && method === BiometricType.BIOMETRIC_FACE &&
             startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
-        ) {
-            return true
-        }
-        if (biometricModule is OnePlusFaceUnlockModule && method === BiometricType.BIOMETRIC_FACE && startActivity(
-                Intent().setClassName(
-                    "com.android.settings",
-                    "com.android.settings.Settings\$OPFaceUnlockSettings"
-                ),
-                context
-            )
         ) {
             return true
         }

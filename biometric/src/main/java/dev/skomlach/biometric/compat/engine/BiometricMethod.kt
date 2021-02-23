@@ -30,7 +30,7 @@ enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
         207,
         BiometricType.BIOMETRIC_FACE
     ),
-    FACE_ONEPLUS(208, BiometricType.BIOMETRIC_FACE), FACE_VIVO(
+    FACE_VIVO(
         209,
         BiometricType.BIOMETRIC_FACE
     ),  //old FaceLock impl
