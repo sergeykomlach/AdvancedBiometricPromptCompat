@@ -25,6 +25,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
+import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -45,6 +46,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private val restartPredicate = defaultPredicate()
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.Result? = null
+    private val confirmed: MutableSet<BiometricType?> = java.util.HashSet()
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
     val authCallback: BiometricPrompt.AuthenticationCallback =
@@ -107,7 +109,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
                             if (dialog != null) dialog?.onFailure(
-                                failureReason === AuthenticationFailureReason.LOCKED_OUT,
+                                failureReason == AuthenticationFailureReason.LOCKED_OUT,
                                 builder.biometricAuthRequest.type
                             )
                             authenticate(callback)
@@ -120,12 +122,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             }
                         }
                         if (dialog != null) dialog?.onFailure(
-                            failureReason === AuthenticationFailureReason.LOCKED_OUT,
+                            failureReason == AuthenticationFailureReason.LOCKED_OUT,
                             builder.biometricAuthRequest.type
                         )
                         if (callback != null) callback?.onFailed(failureReason)
                         BiometricAuthWasCanceledByError.INSTANCE.setCanceledByError()
-                        if (failureReason === AuthenticationFailureReason.LOCKED_OUT) {
+                        if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
                             ExecutorHelper.INSTANCE.handler.postDelayed({
                                 if (callback != null) callback?.onCanceled()
                                 cancelAuthenticate()
@@ -142,11 +144,34 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 d("BiometricPromptApi28Impl.onAuthenticationSucceeded:")
                 onePlusWithBiometricBugFailure = false
                 FocusLostDetection.stopListener(builder.activeWindow)
-                ExecutorHelper.INSTANCE.handler.post {
-                    cancelAuthenticate()
-                    if (callback != null) {
+                var addded = false
+                for(module in builder.primaryAvailableTypes) {
+                    if(confirmed.add(module))
+                        addded = true
+                }
+                if(addded)
+                    Vibro.start()
+                val confirmedList: List<BiometricType?> = ArrayList(confirmed)
+                val allList: MutableList<BiometricType?> = ArrayList(
+                    builder.allAvailableTypes
+                )
+                allList.removeAll(confirmedList)
+                if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
+                    builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
+                ) {
+                    ExecutorHelper.INSTANCE.handler.post {
+                        cancelAuthenticate()
                         callback?.onSucceeded()
                     }
+                } else {
+                    if(dialog == null) {
+                        dialog =
+                            BiometricPromptCompatDialogImpl(
+                                builder, this@BiometricPromptApi28Impl,
+                                builder.secondaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT)
+                            )
+                    }
+                    dialog?.showDialog()
                 }
             }
         }
@@ -185,7 +210,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             builder.context,
             ExecutorHelper.INSTANCE.executor, authCallback
         )
-        isFingerprint.set(builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+        isFingerprint.set(builder.primaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
     }
     private fun getFixedString(str: CharSequence?, @ColorInt color: Int): CharSequence {
         val wordtoSpan: Spannable = SpannableString(str)
@@ -205,7 +230,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             if (isLGWithMissedBiometricUI && isFingerprint.get()) {
                 //LG G8 do not have BiometricPrompt UI
                 dialog =
-                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
+                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, isFingerprint.get())
                 dialog?.showDialog()
                 startAuth()
             } else if (isFingerprint.get()) {
@@ -307,22 +332,23 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
-//        private val confirmed: MutableSet<BiometricType?> = java.util.HashSet()
+
         override fun onSuccess(module: BiometricType?) {
-//            confirmed.add(module)
-//            val confirmedList: List<BiometricType?> = ArrayList(confirmed)
-//            val allList: MutableList<BiometricType?> = ArrayList(
-//                builder.allAvailableTypes
-//            )
-//            allList.removeAll(confirmedList)
-//            if (builder.biometricAuthRequest.confirmation === BiometricConfirmation.ANY ||
-//                builder.biometricAuthRequest.confirmation === BiometricConfirmation.ALL && allList.isEmpty()
-//            ) {
+            if(confirmed.add(module))
+                Vibro.start()
+            val confirmedList: List<BiometricType?> = ArrayList(confirmed)
+            val allList: MutableList<BiometricType?> = ArrayList(
+                builder.allAvailableTypes
+            )
+            allList.removeAll(confirmedList)
+            if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
+                builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
+            ) {
                 ExecutorHelper.INSTANCE.handler.post {
                     cancelAuthenticate()
                     callback?.onSucceeded()
                 }
-//            }
+            }
         }
 
         override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
@@ -339,7 +365,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             module: BiometricType?
         ) {
             if (dialog != null) {
-                dialog?.onFailure(failureReason === AuthenticationFailureReason.LOCKED_OUT, module)
+                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, module)
             }
             if (failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
                 //non fatal
