@@ -24774,6 +24774,13 @@
    "model": "DG-Q08M"
   }
  ],
+ "Digiquest": [
+  {
+   "device": "yeongdeungpo",
+   "name": "Italy",
+   "model": "Digiquest 4K Android TV"
+  }
+ ],
  "Digital2": [
   {
    "device": "nuclear-D2_Deluxe",
@@ -27673,6 +27680,16 @@
    "device": "EX7W4",
    "name": "EX7W4",
    "model": "EX7W4"
+  },
+  {
+   "device": "EX7X4",
+   "name": "EX7X4",
+   "model": "EX7X4"
+  },
+  {
+   "device": "EX8S1",
+   "name": "EX8S1",
+   "model": "EX8S1"
   }
  ],
  "EXO S.A.": [
@@ -31841,6 +31858,16 @@
  ],
  "Fresh": [
   {
+   "device": "tamachi",
+   "name": "Egypt",
+   "model": "Fresh FHD Android TV"
+  },
+  {
+   "device": "yeongdeungpo",
+   "name": "Egypt",
+   "model": "Fresh UHD Android TV"
+  },
+  {
    "device": "shinagawa",
    "name": "FreshTV",
    "model": "FreshTV"
@@ -32577,6 +32604,11 @@
    "device": "FMT-NM7058-02",
    "name": "Flash",
    "model": "FMT-NM7058-02"
+  },
+  {
+   "device": "Global3_B01",
+   "name": "Global3_B01",
+   "model": "Global3 B01"
   },
   {
    "device": "16M4HI105024",
@@ -59681,6 +59713,11 @@
    "device": "JUSYEA_J3",
    "name": "J3",
    "model": "J3"
+  },
+  {
+   "device": "J3_EEA",
+   "name": "J3_EEA",
+   "model": "J3"
   }
  ],
  "JVC": [
@@ -59738,6 +59775,11 @@
    "device": "sadang",
    "name": "Dixons",
    "model": "UK 4K Android TV"
+  },
+  {
+   "device": "yeongdeungpo",
+   "name": "France",
+   "model": "JVC 4K Android TV"
   },
   {
    "device": "bangbae",
@@ -61204,6 +61246,13 @@
    "model": "HiSmartTV A4"
   }
  ],
+ "Kammunica": [
+  {
+   "device": "Kammunica_XD",
+   "name": "Kammunica_XD",
+   "model": "Kammunica_XD"
+  }
+ ],
  "Kanji": [
   {
    "device": "KANJI-AC05",
@@ -62348,6 +62397,11 @@
    "device": "shibuya",
    "name": "Australia",
    "model": "KoganTVAP"
+  },
+  {
+   "device": "tamachi",
+   "name": "Australia",
+   "model": "Kogan TV"
   },
   {
    "device": "yeongdeungpo",
@@ -101976,6 +102030,16 @@
    "model": "PSP7546DUO_RU"
   },
   {
+   "device": "TC10A3L",
+   "name": "TC10A3L",
+   "model": "PMT4771_4G_EEA"
+  },
+  {
+   "device": "TC10A3L",
+   "name": "TC10A3L",
+   "model": "PMT4771_4G_RU"
+  },
+  {
    "device": "TC70A1G",
    "name": "TC70A1G",
    "model": "PMT4327_3G_RU"
@@ -136626,6 +136690,11 @@
    "device": "KIDS09",
    "name": "TOPELOTEK",
    "model": "KIDS09"
+  },
+  {
+   "device": "Y8",
+   "name": "Y8",
+   "model": "Y8"
   }
  ],
  "TOSCIDO": [
@@ -142920,6 +142989,11 @@
    "device": "T20-Plus",
    "name": "T20-Plus",
    "model": "T20-Plus"
+  },
+  {
+   "device": "T20_Play_EEA",
+   "name": "T20_Play_EEA",
+   "model": "T20_Play"
   },
   {
    "device": "T7",
@@ -150042,6 +150116,11 @@
    "device": "A10c",
    "name": "A10c",
    "model": "A10c"
+  },
+  {
+   "device": "A20C",
+   "name": "A20C",
+   "model": "A20C"
   },
   {
    "device": "A20S",
