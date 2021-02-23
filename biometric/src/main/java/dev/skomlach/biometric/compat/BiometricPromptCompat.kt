@@ -339,7 +339,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             RestrictTo.Scope.LIBRARY
         ) val context: FragmentActivity
     ) {
-        val allTypes: HashSet<BiometricType> by lazy {
+        val allAvailableTypes: HashSet<BiometricType> by lazy {
+            val types = HashSet<BiometricType>()
+            types.addAll(primaryAvailableTypes)
+            types.addAll(secondaryAvailableTypes)
+            types
+        }
+        val primaryAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 for (type in BiometricType.values()) {
@@ -358,7 +364,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             types
         }
-
+        val secondaryAvailableTypes: HashSet<BiometricType> by lazy {
+            val types = HashSet<BiometricType>()
+            if (isNewBiometricApi(biometricAuthRequest) &&
+                biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY ) {
+                for (type in BiometricType.values()) {
+                    if (type == BiometricType.BIOMETRIC_ANY)
+                        continue
+                    val request = BiometricAuthRequest(
+                        BiometricApi.LEGACY_API,
+                        type
+                    )
+                    if (isHardwareDetected(request) && hasEnrolled(request)) {
+                        types.add(type)
+                    }
+                }
+            } else {
+                types.add(biometricAuthRequest.type)
+            }
+            types
+        }
         val activeWindow: View by lazy {
             ActiveWindow.getActiveView(context)
         }

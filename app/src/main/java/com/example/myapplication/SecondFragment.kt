@@ -62,8 +62,8 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
             NavHostFragment.findNavController(this@SecondFragment)
                 .navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
-        LogCat.getInstance().setFilter("Biometric")
-        LogCat.getInstance().setLog2ViewCallback(this@SecondFragment)
+        LogCat.instance.setFilter("Biometric")
+        LogCat.instance.setLog2ViewCallback(this@SecondFragment)
     }
 
     override fun onDestroyView() {

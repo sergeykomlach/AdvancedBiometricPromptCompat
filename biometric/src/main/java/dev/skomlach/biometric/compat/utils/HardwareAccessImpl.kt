@@ -56,14 +56,6 @@ class HardwareAccessImpl private constructor(biometricAuthRequest: BiometricAuth
                     LegacyHardware(biometricAuthRequest) //Android 4+
                 }
             }
-            if (hardwareInfo !is LegacyHardware) {
-                val info = LegacyHardware(biometricAuthRequest)
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY && info.availableBiometricsCount > 1) {
-                    hardwareInfo = info
-                } else if (!isHardwareReady(hardwareInfo) && isHardwareReady(info)) {
-                    hardwareInfo = info
-                }
-            }
         }
     }
 
