@@ -59,18 +59,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             private set
         private var initInProgress = AtomicBoolean(false)
         var deviceInfo: DeviceInfo?=null
-        get() {
-            if(field == null){
-                ExecutorHelper.INSTANCE.startOnBackground{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
-                            override fun onReady(info: DeviceInfo?) {
-                                field = info
-                            }
-                        })
-                    }
-            }
-            return field
-        }
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
