@@ -32,7 +32,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val isFingerprint = AtomicBoolean(false)
 
     init {
-        isFingerprint.set(builder.allTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+        isFingerprint.set(builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
     }
 
     override fun authenticate(callback: BiometricPromptCompat.Result?) {
@@ -67,7 +67,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             val permission: MutableSet<String> = HashSet()
             val biometricMethodList: MutableList<BiometricMethod> = ArrayList()
             for (m in availableBiometricMethods) {
-                if (builder.allTypes.contains(m.biometricType)) {
+                if (builder.allAvailableTypes.contains(m.biometricType)) {
                     biometricMethodList.add(m)
                 }
             }
@@ -105,7 +105,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         onUiOpened()
         d("BiometricPromptGenericImpl.startAuth():")
         val types: List<BiometricType?> = ArrayList(
-            builder.allTypes
+            builder.allAvailableTypes
         )
         authenticate(if (dialog != null) dialog?.container else null, types, fmAuthCallback)
     }
@@ -129,22 +129,22 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
-        private val confirmed: MutableSet<BiometricType?> = HashSet()
+//        private val confirmed: MutableSet<BiometricType?> = HashSet()
         override fun onSuccess(module: BiometricType?) {
-            confirmed.add(module)
-            val confirmedList: List<BiometricType?> = ArrayList(confirmed)
-            val allList: MutableList<BiometricType?> = ArrayList(
-                builder.allTypes
-            )
-            allList.removeAll(confirmedList)
-            if (builder.biometricAuthRequest.confirmation === BiometricConfirmation.ANY ||
-                builder.biometricAuthRequest.confirmation === BiometricConfirmation.ALL && allList.isEmpty()
-            ) {
+//            confirmed.add(module)
+//            val confirmedList: List<BiometricType?> = ArrayList(confirmed)
+//            val allList: MutableList<BiometricType?> = ArrayList(
+//                builder.allAvailableTypes
+//            )
+//            allList.removeAll(confirmedList)
+//            if (builder.biometricAuthRequest.confirmation === BiometricConfirmation.ANY ||
+//                builder.biometricAuthRequest.confirmation === BiometricConfirmation.ALL && allList.isEmpty()
+//            ) {
                 ExecutorHelper.INSTANCE.handler.post {
                     cancelAuthenticate()
                     callback?.onSucceeded()
                 }
-            }
+//            }
         }
 
         override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {

@@ -62,7 +62,7 @@ class BiometricNotificationManager private constructor() {
         val notify = Runnable {
             try {
                 val clickIntent = Intent()
-                for (type in builder.allTypes) {
+                for (type in builder.allAvailableTypes) {
                     @DrawableRes val icon: Int = when (type) {
                         BiometricType.BIOMETRIC_FACE -> R.drawable.bio_ic_face
                         BiometricType.BIOMETRIC_IRIS -> R.drawable.bio_ic_iris
