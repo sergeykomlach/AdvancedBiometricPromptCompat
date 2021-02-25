@@ -1,18 +1,11 @@
 package dev.skomlach.biometric.compat
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
-import android.content.ContextWrapper
 import android.content.DialogInterface
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Looper
 import android.view.View
-import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.ViewTreeObserver.OnWindowFocusChangeListener
-import android.view.Window
 import androidx.annotation.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -33,8 +26,8 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.ActiveWindow
-import dev.skomlach.biometric.compat.utils.BlurUtil
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -165,109 +158,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun startAuth(callbackOuter: Result) {
-        val vg: ViewGroup = builder.context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
-        val tag = "biometric-" + builder.context.javaClass.name
-        val onGlobalLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-            @SuppressLint("ClickableViewAccessibility")
-            private fun updateBg(bm: Bitmap) {
-                try {
-                    var v = vg.findViewWithTag<View?>(tag)
-                    if (v != null) {
-                        ViewCompat.setBackground(v, BitmapDrawable(bm))
-                    } else {
-                        v = View(ContextWrapper(builder.context))
-                        v.tag = tag
-                        val lp = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        v.layoutParams = lp
-                        v.alpha = 1f
-                        ViewCompat.setBackground(v, BitmapDrawable(bm))
-                        v.isFocusable = true
-                        v.isClickable = true
-                        v.isLongClickable = true
-                        v.setOnTouchListener { _, _ ->
-                            true
-                        }
-                        vg.addView(v)
-                    }
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
-            }
 
-            override fun onGlobalLayout() {
-                BiometricLoggerImpl.e("onGlobalLayout")
-                try {
-                    vg.findViewWithTag<View?>(tag)?.let {
-                        it.visibility = View.INVISIBLE
-                    }
-                    BlurUtil.takeScreenshotAndBlur(
-                        vg,
-                        object : BlurUtil.OnPublishListener {
-                            override fun onBlurredScreenshot(bm: Bitmap) {
-                                vg.findViewWithTag<View?>(tag)?.let {
-                                    it.visibility = View.VISIBLE
-                                }
-                                updateBg(bm)
-                            }
-                        })
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
+        val activityViewWatcher = ActivityViewWatcher(impl.builder.context, object : ActivityViewWatcher.ForceToCloseCallback{
+            override fun onCloseBiometric() {
+                cancelAuthenticate()
             }
-        }
+        })
 
         val callback = object : Result {
-            private fun setup() {
-                if (isNewBiometricApi(impl.builder.biometricAuthRequest) && builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        builder.context.window,
-                        ContextCompat.getColor(builder.context, getDialogMainColor()),
-                        builder.colorStatusBar
-                    )
-                }
-                try {
-                    onGlobalLayoutListener.onGlobalLayout()
-                    vg.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
-            }
-
-            private fun resetAll() {
-                if (impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0) {
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        impl.builder.context.window,
-                        impl.builder.colorNavBar,
-                        impl.builder.colorStatusBar
-                    )
-                }
-                try {
-                    vg.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
-                try {
-                    val v = vg.findViewWithTag<View?>(tag)
-                    v?.let {
-                        vg.removeView(v)
-                    }
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
-            }
-
-
 
             override fun onSucceeded() {
-                resetAll()
                 callbackOuter.onSucceeded()
             }
 
             override fun onCanceled() {
-                resetAll()
                 callbackOuter.onCanceled()
             }
 
@@ -277,11 +181,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             override fun onUIOpened() {
                 callbackOuter.onUIOpened()
-                setup()
+                if (isNewBiometricApi(builder.biometricAuthRequest) && builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        builder.context.window,
+                        ContextCompat.getColor(builder.context, getDialogMainColor()),
+                        builder.colorStatusBar
+                    )
+                }
+                activityViewWatcher.setupListeners()
             }
 
             override fun onUIClosed() {
-                resetAll()
+                if (builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        builder.context.window,
+                        builder.colorNavBar,
+                        builder.colorStatusBar
+                    )
+                }
+                activityViewWatcher.resetListeners()
                 callbackOuter.onUIClosed()
             }
         }

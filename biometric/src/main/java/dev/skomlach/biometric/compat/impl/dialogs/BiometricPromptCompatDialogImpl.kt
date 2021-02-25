@@ -53,6 +53,7 @@ class BiometricPromptCompatDialogImpl(
                 inProgress.set(false)
                 authCallback?.stopAuth()
             }
+            authCallback?.onUiClosed()
         }
         dialog.setOnCancelListener {
             authCallback?.cancelAuth()

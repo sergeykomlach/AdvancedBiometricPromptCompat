@@ -12,6 +12,7 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -45,6 +46,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.Result? = null
     private val confirmed: MutableSet<BiometricType?> = java.util.HashSet()
+    private var biometricFragment : Any? = null
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
     val authCallback: BiometricPrompt.AuthenticationCallback =
@@ -306,12 +308,53 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             BiometricAuthentication.authenticate(null, ArrayList<BiometricType>(secondary), fmAuthCallback)
         }
         biometricPrompt.authenticate(biometricPromptInfo)
+
+        //fallback - sometimes we not able to cancel BiometricPrompt properly
+        try {
+            val m = BiometricPrompt::class.java.getDeclaredMethod(
+                "findBiometricFragment",
+                FragmentManager::class.java
+            )
+            val isAccessible = m.isAccessible
+            try {
+                if (!isAccessible)
+                    m.isAccessible = true
+                biometricFragment =  m.invoke(null, builder.context.supportFragmentManager)
+            } finally {
+                if (!isAccessible)
+                    m.isAccessible = false
+            }
+        } catch (e: Throwable) {
+            e(e)
+        }
+
     }
 
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
-        BiometricAuthentication.cancelAuthentication()
-        biometricPrompt.cancelAuthentication()
+        try {
+            BiometricAuthentication.cancelAuthentication()
+            biometricPrompt.cancelAuthentication()
+        } finally {
+            try {
+                // biometricFragment.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT);
+                biometricFragment?.let {
+                    val m = it.javaClass.getDeclaredMethod("cancelAuthentication", Int::class.java)
+                    val isAccessible = m.isAccessible
+                    try {
+                        if (!isAccessible)
+                            m.isAccessible = true
+                        m.invoke(it, 3)
+                    } finally {
+                        if (!isAccessible)
+                            m.isAccessible = false
+                    }
+                }
+                biometricFragment = null
+            } catch (e: Throwable) {
+                e(e)
+            }
+        }
         if (builder.notificationEnabled) {
             BiometricNotificationManager.INSTANCE.dismissAll()
         }
