@@ -146,8 +146,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                 var addded = false
                 for(module in builder.primaryAvailableTypes) {
-                    if(confirmed.add(module))
+                    if(confirmed.add(module)) {
                         addded = true
+                        BiometricNotificationManager.INSTANCE.dismiss(module)
+                    }
                 }
                 if(addded)
                     Vibro.start()
@@ -156,6 +158,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     builder.allAvailableTypes
                 )
                 allList.removeAll(confirmedList)
+                e("onSuccess - $allList; ($confirmed / ${builder.allAvailableTypes})")
                 if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
                     builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
                 ) {
@@ -296,38 +299,64 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiClosed()
     }
 
+    private fun hasPrimaryConfirmed(): Boolean {
+
+        val confirmedList: List<BiometricType?> = ArrayList(confirmed)
+        val allList: MutableList<BiometricType?> = ArrayList(
+            builder.primaryAvailableTypes
+        )
+        allList.removeAll(confirmedList)
+        return allList.isEmpty()
+    }
+
+    private fun hasSecondaryConfirmed(): Boolean {
+
+        val confirmedList: List<BiometricType?> = ArrayList(confirmed)
+        val allList: MutableList<BiometricType?> = ArrayList(
+            builder.secondaryAvailableTypes
+        )
+        allList.removeAll(confirmedList)
+        return allList.isEmpty()
+    }
+
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
-        if (builder.notificationEnabled) {
-            BiometricNotificationManager.INSTANCE.showNotification(builder)
-        }
-        val secondary = HashSet<BiometricType>(builder.secondaryAvailableTypes)
-        secondary.removeAll(builder.primaryAvailableTypes)
-        if(secondary.isNotEmpty()){
-            d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.primaryAvailableTypes}")
-            BiometricAuthentication.authenticate(null, ArrayList<BiometricType>(secondary), fmAuthCallback)
-        }
-        biometricPrompt.authenticate(biometricPromptInfo)
 
-        //fallback - sometimes we not able to cancel BiometricPrompt properly
-        try {
-            val m = BiometricPrompt::class.java.getDeclaredMethod(
-                "findBiometricFragment",
-                FragmentManager::class.java
-            )
-            val isAccessible = m.isAccessible
-            try {
-                if (!isAccessible)
-                    m.isAccessible = true
-                biometricFragment =  m.invoke(null, builder.context.supportFragmentManager)
-            } finally {
-                if (!isAccessible)
-                    m.isAccessible = false
+        if (!hasSecondaryConfirmed()) {
+            val secondary = HashSet<BiometricType>(builder.secondaryAvailableTypes)
+            secondary.removeAll(builder.primaryAvailableTypes)
+            if (secondary.isNotEmpty()) {
+                d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.primaryAvailableTypes}")
+                BiometricAuthentication.authenticate(
+                    null,
+                    ArrayList<BiometricType>(secondary),
+                    fmAuthCallback
+                )
             }
-        } catch (e: Throwable) {
-            e(e)
         }
 
+        if (!hasPrimaryConfirmed()) {
+
+            biometricPrompt.authenticate(biometricPromptInfo)
+            //fallback - sometimes we not able to cancel BiometricPrompt properly
+            try {
+                val m = BiometricPrompt::class.java.getDeclaredMethod(
+                    "findBiometricFragment",
+                    FragmentManager::class.java
+                )
+                val isAccessible = m.isAccessible
+                try {
+                    if (!isAccessible)
+                        m.isAccessible = true
+                    biometricFragment = m.invoke(null, builder.context.supportFragmentManager)
+                } finally {
+                    if (!isAccessible)
+                        m.isAccessible = false
+                }
+            } catch (e: Throwable) {
+                e(e)
+            }
+        }
     }
 
     override fun stopAuth() {
@@ -355,9 +384,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 e(e)
             }
         }
-        if (builder.notificationEnabled) {
-            BiometricNotificationManager.INSTANCE.dismissAll()
-        }
     }
 
     override fun cancelAuth() {
@@ -375,13 +401,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
 
         override fun onSuccess(module: BiometricType?) {
-            if(confirmed.add(module))
+            if(confirmed.add(module)) {
                 Vibro.start()
+                BiometricNotificationManager.INSTANCE.dismiss(module)
+            }
             val confirmedList: List<BiometricType?> = ArrayList(confirmed)
             val allList: MutableList<BiometricType?> = ArrayList(
                 builder.allAvailableTypes
             )
             allList.removeAll(confirmedList)
+            e("onSuccess - $allList; ($confirmed / ${builder.allAvailableTypes})")
             if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
                 builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
             ) {

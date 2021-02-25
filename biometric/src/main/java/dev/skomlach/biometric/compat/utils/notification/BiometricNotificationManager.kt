@@ -124,8 +124,16 @@ class BiometricNotificationManager private constructor() {
         }
         try {
             for (type in BiometricType.values()) {
-                notificationManagerCompat.cancel(type.hashCode())
+                dismiss(type)
             }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+    }
+
+    fun dismiss(type: BiometricType?) {
+        try {
+            notificationManagerCompat.cancel(type?.hashCode() ?: return)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
