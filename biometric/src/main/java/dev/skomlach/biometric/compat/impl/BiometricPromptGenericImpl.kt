@@ -14,6 +14,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInstantly
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isShowInScreenDialogInstantly
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -44,7 +45,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptGenericImpl,
-                isFingerprint.get()
+                isFingerprint.get() && isShowInScreenDialogInstantly
             )
             dialog?.showDialog()
         } else {

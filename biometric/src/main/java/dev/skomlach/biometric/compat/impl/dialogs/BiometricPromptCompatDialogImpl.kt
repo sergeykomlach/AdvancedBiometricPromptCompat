@@ -8,6 +8,7 @@ import android.os.Message
 import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
+import androidx.annotation.ColorRes
 import androidx.annotation.RestrictTo
 import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -17,6 +18,7 @@ import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
 import me.weishu.reflection.Reflection.unseal
@@ -26,9 +28,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BiometricPromptCompatDialogImpl(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val authCallback: AuthCallback?,
-    private val hasFingerprint: Boolean = false
+    private val isInScreen: Boolean = false
 ) {
-    private val isInScreen: Boolean =  hasFingerprint && DevicesWithKnownBugs.isShowInScreenDialogInstantly
+
     private val animateHandler: Handler
     private val dialog: BiometricPromptCompatDialog
     private val promptText: CharSequence
@@ -51,6 +53,7 @@ class BiometricPromptCompatDialogImpl(
                 inProgress.set(false)
                 authCallback?.stopAuth()
             }
+            authCallback?.onUiClosed()
         }
         dialog.setOnCancelListener {
             authCallback?.cancelAuth()
@@ -62,6 +65,16 @@ class BiometricPromptCompatDialogImpl(
         }
         dialog.setOnShowListener { d: DialogInterface? ->
             e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.")
+            dialog.window?.let {
+                if (compatBuilder.colorNavBar != 0 && compatBuilder.colorStatusBar != 0) {
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        it,
+                        ContextCompat.getColor(compatBuilder.context, getDialogMainColor()),
+                        compatBuilder.colorStatusBar
+                    )
+                }
+            }
+
             if (compatBuilder.title == null) {
                 dialog.title?.visibility = View.GONE
             } else {
@@ -96,7 +109,14 @@ class BiometricPromptCompatDialogImpl(
             startAuth()
         }
     }
-
+    @ColorRes
+    private fun getDialogMainColor(): Int {
+        return if (isNightMode) {
+            android.R.color.black
+        } else {
+            R.color.material_grey_50
+        }
+    }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
         checkInScreenIcon()
