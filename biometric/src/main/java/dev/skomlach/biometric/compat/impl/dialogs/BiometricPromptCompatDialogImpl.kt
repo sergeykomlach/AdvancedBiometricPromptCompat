@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BiometricPromptCompatDialogImpl(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val authCallback: AuthCallback?,
-    private val hasFingerprint: Boolean = false
+    private val isInScreen: Boolean = false
 ) {
-    private val isInScreen: Boolean =  hasFingerprint && DevicesWithKnownBugs.isShowInScreenDialogInstantly
+
     private val animateHandler: Handler
     private val dialog: BiometricPromptCompatDialog
     private val promptText: CharSequence

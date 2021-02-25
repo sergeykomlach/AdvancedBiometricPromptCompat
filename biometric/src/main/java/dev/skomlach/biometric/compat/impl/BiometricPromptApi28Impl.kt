@@ -22,7 +22,7 @@ import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImp
 import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isDeviceWithMissedBiometricUI
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
 import dev.skomlach.biometric.compat.utils.Vibro
@@ -75,7 +75,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     return
                 }
                 //...present normal failed screen...
-                
+
                 ExecutorHelper.INSTANCE.handler.post(Runnable {
                     var failureReason = AuthenticationFailureReason.UNKNOWN
                     when (errorCode) {
@@ -144,7 +144,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 d("BiometricPromptApi28Impl.onAuthenticationSucceeded:")
                 onePlusWithBiometricBugFailure = false
-                
+
                 var addded = false
                 for(module in builder.primaryAvailableTypes) {
                     if(confirmed.add(module))
@@ -228,12 +228,33 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         try {
             d("BiometricPromptApi28Impl.authenticate():")
             callback = cbk
-            if (isDeviceWithMissedBiometricUI && isFingerprint.get()) {
-                //LG G8 and OnePlus devices do not have BiometricPrompt UI
+            if (isLGWithMissedBiometricUI && isFingerprint.get()) {
+                //LG G8 do not have BiometricPrompt UI
                 dialog =
-                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, isFingerprint.get())
+                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
                 dialog?.showDialog()
                 startAuth()
+            } else if (isFingerprint.get()) {
+                FocusLostDetection.attachListener(
+                    builder.activeWindow,
+                    object : WindowFocusChangedListener {
+                        override fun onStartWatching() {
+                            startAuth()
+                        }
+
+                        override fun hasFocus(hasFocus: Boolean) {
+                            if (hasFocus) {
+                                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
+                                //For other types of biometric that do not have UI - use regular Fingerprint UI
+                                dialog = BiometricPromptCompatDialogImpl(
+                                    builder,
+                                    this@BiometricPromptApi28Impl,
+                                    isFingerprint.get()
+                                )
+                                dialog?.showDialog()
+                            }
+                        }
+                    })
             } else {
                 startAuth()
             }
