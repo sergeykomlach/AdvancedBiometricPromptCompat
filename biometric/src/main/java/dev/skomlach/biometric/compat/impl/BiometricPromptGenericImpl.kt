@@ -17,6 +17,7 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInst
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isShowInScreenDialogInstantly
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
 import dev.skomlach.biometric.compat.utils.Vibro
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
@@ -106,9 +107,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun startAuth() {
-        if (builder.notificationEnabled) {
-            BiometricNotificationManager.INSTANCE.showNotification(builder)
-        }
+
         d("BiometricPromptGenericImpl.startAuth():")
         val types: List<BiometricType?> = ArrayList(
             builder.allAvailableTypes
@@ -119,9 +118,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     override fun stopAuth() {
         d("BiometricPromptGenericImpl.stopAuth():")
         cancelAuthentication()
-        if (builder.notificationEnabled) {
-            BiometricNotificationManager.INSTANCE.dismissAll()
-        }
+
     }
 
     override fun cancelAuth() {
@@ -139,13 +136,16 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
 
         override fun onSuccess(module: BiometricType?) {
-            if(confirmed.add(module))
+            if(confirmed.add(module)) {
                 Vibro.start()
+                BiometricNotificationManager.INSTANCE.dismiss(module)
+            }
             val confirmedList: List<BiometricType?> = ArrayList(confirmed)
             val allList: MutableList<BiometricType?> = ArrayList(
                 builder.allAvailableTypes
             )
             allList.removeAll(confirmedList)
+            BiometricLoggerImpl.e("onSuccess - $allList; ($confirmed / ${builder.allAvailableTypes})")
             if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
                 builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
             ) {

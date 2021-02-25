@@ -31,6 +31,7 @@ import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
@@ -181,6 +182,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             override fun onUIOpened() {
                 callbackOuter.onUIOpened()
+                if (builder.notificationEnabled) {
+                    BiometricNotificationManager.INSTANCE.showNotification(builder)
+                }
                 if (isNewBiometricApi(builder.biometricAuthRequest) && builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
@@ -198,6 +202,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         builder.colorNavBar,
                         builder.colorStatusBar
                     )
+                }
+                if (builder.notificationEnabled) {
+                    BiometricNotificationManager.INSTANCE.dismissAll()
                 }
                 activityViewWatcher.resetListeners()
                 callbackOuter.onUIClosed()
@@ -377,21 +384,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val secondaryAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
-            if (isNewBiometricApi(biometricAuthRequest) &&
-                biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY ) {
-                for (type in BiometricType.values()) {
-                    if (type == BiometricType.BIOMETRIC_ANY)
-                        continue
-                    val request = BiometricAuthRequest(
-                        BiometricApi.LEGACY_API,
-                        type
-                    )
-                    if (isHardwareDetected(request) && hasEnrolled(request)) {
-                        types.add(type)
+            if(isNewBiometricApi(biometricAuthRequest)) {
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                    for (type in BiometricType.values()) {
+                        if (type == BiometricType.BIOMETRIC_ANY)
+                            continue
+                        val request = BiometricAuthRequest(
+                            BiometricApi.LEGACY_API,
+                            type
+                        )
+                        if (isHardwareDetected(request) && hasEnrolled(request)) {
+                            types.add(type)
+                        }
                     }
+                } else {
+                    types.add(biometricAuthRequest.type)
                 }
-            } else {
-                types.add(biometricAuthRequest.type)
             }
             types
         }
