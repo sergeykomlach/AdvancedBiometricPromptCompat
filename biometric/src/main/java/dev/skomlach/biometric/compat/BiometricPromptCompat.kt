@@ -8,8 +8,11 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Looper
-import android.view.*
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.ViewTreeObserver.OnWindowFocusChangeListener
+import android.view.Window
 import androidx.annotation.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -35,7 +38,6 @@ import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
@@ -43,7 +45,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
@@ -163,16 +164,92 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    private fun startAuth(callbackOuter: Result){
-        val bitmapHolder = AtomicReference<Bitmap>(null)
-        val tag = "biometric-"+builder.context.javaClass.name
+    private fun startAuth(callbackOuter: Result) {
+        val vg: ViewGroup = builder.context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
+        val tag = "biometric-" + builder.context.javaClass.name
+        val onGlobalLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
+            @SuppressLint("ClickableViewAccessibility")
+            private fun updateBg(bm: Bitmap) {
+                try {
+                    var v = vg.findViewWithTag<View?>(tag)
+                    if (v != null) {
+                        ViewCompat.setBackground(v, BitmapDrawable(bm))
+                    } else {
+                        v = View(ContextWrapper(builder.context))
+                        v.tag = tag
+                        val lp = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        v.layoutParams = lp
+                        v.alpha = 1f
+                        ViewCompat.setBackground(v, BitmapDrawable(bm))
+                        v.isFocusable = true
+                        v.isClickable = true
+                        v.isLongClickable = true
+                        v.setOnTouchListener { _, _ ->
+                            true
+                        }
+                        vg.addView(v)
+                    }
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+            }
+
+            override fun onGlobalLayout() {
+                BiometricLoggerImpl.e("onGlobalLayout")
+                try {
+                    vg.findViewWithTag<View?>(tag)?.let {
+                        it.visibility = View.INVISIBLE
+                    }
+                    BlurUtil.takeScreenshotAndBlur(
+                        vg,
+                        object : BlurUtil.OnPublishListener {
+                            override fun onBlurredScreenshot(bm: Bitmap) {
+                                vg.findViewWithTag<View?>(tag)?.let {
+                                    it.visibility = View.VISIBLE
+                                }
+                                updateBg(bm)
+                            }
+                        })
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+            }
+        }
+
         val callback = object : Result {
-            private fun resetAll(){
-                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
-                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context, impl.builder.colorNavBar, impl.builder.colorStatusBar)
+            private fun setup() {
+                if (builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        builder.context,
+                        ContextCompat.getColor(builder.context, getDialogMainColor()),
+                        builder.colorStatusBar
+                    )
                 }
                 try {
-                    val vg: ViewGroup = builder.context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
+                    onGlobalLayoutListener.onGlobalLayout()
+                    vg.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+            }
+
+            private fun resetAll() {
+                if (impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0) {
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        impl.builder.context,
+                        impl.builder.colorNavBar,
+                        impl.builder.colorStatusBar
+                    )
+                }
+                try {
+                    vg.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+                try {
                     val v = vg.findViewWithTag<View?>(tag)
                     v?.let {
                         vg.removeView(v)
@@ -181,6 +258,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricLoggerImpl.e(e)
                 }
             }
+
+
+
             override fun onSucceeded() {
                 resetAll()
                 callbackOuter.onSucceeded()
@@ -194,52 +274,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onFailed(reason: AuthenticationFailureReason?) {
                 callbackOuter.onFailed(reason)
             }
-            @SuppressLint("ClickableViewAccessibility")
+
             override fun onUIOpened() {
                 callbackOuter.onUIOpened()
-                if(builder.colorNavBar != 0 && builder.colorStatusBar != 0){
-                    StatusBarTools.setNavBarAndStatusBarColors(builder.context,
-                        ContextCompat.getColor(builder.context, getDialogMainColor()), builder.colorStatusBar)
-                }
-                try {
-                    val vg: ViewGroup = builder.context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
-                    if (vg.findViewWithTag<View?>(tag) != null) {
-                        return
-                    } else {
-                        val v = View(ContextWrapper(builder.context))
-                        v.tag = tag
-                        val lp = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        v.layoutParams = lp
-                        v.alpha = 0f
-                        val bm = bitmapHolder.get()
-                        if(bm == null) {
-                            BlurUtil.takeScreenshotAndBlur(
-                                vg,
-                                object : BlurUtil.OnPublishListener {
-                                    override fun onBlurredScreenshot(bm: Bitmap) {
-                                        bitmapHolder.set(bm)
-                                        v.alpha = 1f
-                                        ViewCompat.setBackground(v, BitmapDrawable(bm))
-                                    }
-                                })
-                        } else {
-                            v.alpha = 1f
-                            ViewCompat.setBackground(v, BitmapDrawable(bm))
-                        }
-                        v.isFocusable = true
-                        v.isClickable = true
-                        v.isLongClickable = true
-                        v.setOnTouchListener { _,  _ ->
-                            true
-                        }
-                        vg.addView(v)
-                    }
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
+                setup()
             }
 
             override fun onUIClosed() {
