@@ -5,6 +5,7 @@ import android.app.Activity
 import android.graphics.Color
 import android.os.Build
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.view.Window
 import androidx.annotation.ColorInt
 import androidx.annotation.RestrictTo
 import androidx.core.content.ContextCompat
@@ -29,15 +30,15 @@ object StatusBarTools {
 
     //setSystemUiVisibility has effect only if View is visible
     fun setNavBarAndStatusBarColors(
-        activity: Activity,
+        window: Window,
         @ColorInt colorNavBar: Int,
         @ColorInt colorStatusBar: Int
     ) {
         val runnable = Runnable {
-            setStatusBarColor(activity, colorStatusBar)
-            setNavBarColor(activity, colorNavBar)
+            setStatusBarColor(window, colorStatusBar)
+            setNavBarColor(window, colorNavBar)
         }
-        val view = activity.window.decorView
+        val view = window.decorView
         if (HelperTool.isVisible(view, 100)) {
             view.post(runnable)
         } else {
@@ -54,12 +55,11 @@ object StatusBarTools {
         }
     }
 
-    private fun setNavBarColor(activity: Activity, @ColorInt c: Int) {
+    private fun setNavBarColor(window: Window, @ColorInt c: Int) {
         var color = c
         try {
             if (TURNOFF_TINT) return
             if (translucentNavBar) color = Color.TRANSPARENT
-            val window = activity.window
             val isDark = ColorUtil.trueDarkColor(color)
 
             //emulate navbar color via translucent and custom views
@@ -87,12 +87,11 @@ object StatusBarTools {
         }
     }
 
-    private fun setStatusBarColor(activity: Activity, @ColorInt c: Int) {
+    private fun setStatusBarColor(window: Window, @ColorInt c: Int) {
         var color = c
         try {
             if (TURNOFF_TINT) return
             if (translucentStatusBar) color = Color.TRANSPARENT
-            val window = activity.window
             val isDark = ColorUtil.trueDarkColor(color)
 
             //emulate statusbar color via translucent and custom views

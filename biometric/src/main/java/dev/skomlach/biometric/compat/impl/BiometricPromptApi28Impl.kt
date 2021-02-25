@@ -19,14 +19,11 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.internal.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
-import dev.skomlach.biometric.compat.utils.BiometricAuthWasCanceledByError
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
-import dev.skomlach.biometric.compat.utils.Vibro
-import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
@@ -169,7 +166,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         dialog =
                             BiometricPromptCompatDialogImpl(
                                 builder, this@BiometricPromptApi28Impl,
-                                builder.secondaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT)
+                                builder.secondaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT) && DevicesWithKnownBugs.isShowInScreenDialogInstantly
                             )
                     }
                     dialog?.showDialog()
@@ -234,7 +231,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
                 dialog?.showDialog()
                 startAuth()
-            } else if (isFingerprint.get()) {
+            } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly) {
                 FocusLostDetection.attachListener(
                     builder.activeWindow,
                     object : WindowFocusChangedListener {
@@ -249,7 +246,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 dialog = BiometricPromptCompatDialogImpl(
                                     builder,
                                     this@BiometricPromptApi28Impl,
-                                    isFingerprint.get()
+                                    true
                                 )
                                 dialog?.showDialog()
                             }

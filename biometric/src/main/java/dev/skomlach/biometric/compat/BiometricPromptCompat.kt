@@ -221,9 +221,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         val callback = object : Result {
             private fun setup() {
-                if (builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
+                if (isNewBiometricApi(impl.builder.biometricAuthRequest) && builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
                     StatusBarTools.setNavBarAndStatusBarColors(
-                        builder.context,
+                        builder.context.window,
                         ContextCompat.getColor(builder.context, getDialogMainColor()),
                         builder.colorStatusBar
                     )
@@ -239,7 +239,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             private fun resetAll() {
                 if (impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0) {
                     StatusBarTools.setNavBarAndStatusBarColors(
-                        impl.builder.context,
+                        impl.builder.context.window,
                         impl.builder.colorNavBar,
                         impl.builder.colorStatusBar
                     )
