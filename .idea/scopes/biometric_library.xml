@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="biometric_library" pattern="src[biometric*]:*..*" />
+</component>

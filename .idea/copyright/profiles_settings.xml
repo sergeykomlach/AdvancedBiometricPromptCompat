@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings default="komlach">
+    <module2copyright>
+      <element module="biometric_library" copyright="komlach" />
+    </module2copyright>
+  </settings>
+</component>

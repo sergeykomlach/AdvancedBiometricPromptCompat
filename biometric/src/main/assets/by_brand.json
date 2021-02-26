@@ -471,6 +471,11 @@
    "model": "ADT1012L"
   },
   {
+   "device": "ADT1061",
+   "name": "ADT1061",
+   "model": "ADT1061"
+  },
+  {
    "device": "ADT1061_1",
    "name": "ADT1061_1",
    "model": "ADT1061_1"
@@ -13761,6 +13766,11 @@
    "model": "A80Pro"
   },
   {
+   "device": "A80S",
+   "name": "A80S",
+   "model": "A80S"
+  },
+  {
    "device": "A9_Pro",
    "name": "A9 Pro",
    "model": "A9_Pro"
@@ -13802,6 +13812,11 @@
   },
   {
    "device": "BV5500",
+   "name": "BV5500",
+   "model": "BV5500"
+  },
+  {
+   "device": "BV5500S",
    "name": "BV5500",
    "model": "BV5500"
   },
@@ -14503,6 +14518,11 @@
    "device": "BLU_Vivo_XL2",
    "name": "BLU_Vivo_XL2",
    "model": "Vivo XL2"
+  },
+  {
+   "device": "M0100WW",
+   "name": "BOLD M7",
+   "model": "BOLD M7"
   },
   {
    "device": "M0110WW",
@@ -43600,6 +43620,11 @@
   {
    "device": "HS7731ESP",
    "name": "Hisense U605",
+   "model": "Hisense U30"
+  },
+  {
+   "device": "HS7731ESP",
+   "name": "Hisense U605",
    "model": "Hisense U605"
   },
   {
@@ -61678,6 +61703,11 @@
    "device": "KG555_Pro",
    "name": "KG555 Pro",
    "model": "KG555 Pro"
+  },
+  {
+   "device": "KG777Pro",
+   "name": "KG777 Pro",
+   "model": "KG777 Pro"
   }
  ],
  "Karvy": [
@@ -99213,6 +99243,11 @@
    "model": "Z519"
   },
   {
+   "device": "Z555",
+   "name": "Z555",
+   "model": "Z555"
+  },
+  {
    "device": "Z621",
    "name": "Z621",
    "model": "Z621"
@@ -105670,6 +105705,11 @@
    "model": "P13_Blue"
   },
   {
+   "device": "P13_BML_32",
+   "name": "P13 Blue  Max Lite 32GB",
+   "model": "P13 Blue Max Lite 32GB"
+  },
+  {
    "device": "P13_Blue_Maks",
    "name": "P13 Blue Maks",
    "model": "P13_Blue_Maks"
@@ -106550,6 +106590,11 @@
    "device": "SHIFT6m",
    "name": "SHIFT6m",
    "model": "SHIFT6m"
+  },
+  {
+   "device": "axolotl",
+   "name": "SHIFT6mq",
+   "model": "SHIFT6mq"
   }
  ],
  "SHINON": [
@@ -135535,6 +135580,11 @@
    "model": "9317X1"
   },
   {
+   "device": "Phoenix_7_KD",
+   "name": "Smart Tab 7",
+   "model": "9317H"
+  },
+  {
    "device": "one_touch_996_gsm",
    "name": "Smartphone Android by SFR STARADDICT II",
    "model": "Smartphone Android by SFR STARADDICT II"
@@ -137695,6 +137745,11 @@
    "device": "X6",
    "name": "X6",
    "model": "X6"
+  },
+  {
+   "device": "X7",
+   "name": "X7",
+   "model": "X7"
   },
   {
    "device": "i700",
@@ -151735,6 +151790,11 @@
    "model": "Redmi 8"
   },
   {
+   "device": "lemon",
+   "name": "Redmi 9T",
+   "model": "M2010J19SY"
+  },
+  {
    "device": "tiare",
    "name": "Redmi Go",
    "model": "Redmi Go"
@@ -156651,6 +156711,11 @@
    "model": "NX907J"
   },
   {
+   "device": "P731F50",
+   "name": "Nubia N11",
+   "model": "Nubia N11"
+  },
+  {
    "device": "VFD511",
    "name": "OWN FUN 5(4G)",
    "model": "OWN FUN 5(4G)"
@@ -159591,6 +159656,11 @@
    "model": "ZTE Blade A5 2020RU"
   },
   {
+   "device": "P963F60",
+   "name": "ZTE Blade A51",
+   "model": "ZTE Blade A51"
+  },
+  {
    "device": "P817E53",
    "name": "ZTE Blade A522",
    "model": "ZTE Blade A522"
@@ -162518,6 +162588,11 @@
   {
    "device": "G10",
    "name": "G10",
+   "model": "G10"
+  },
+  {
+   "device": "G10",
+   "name": "G10E",
    "model": "G10"
   },
   {
