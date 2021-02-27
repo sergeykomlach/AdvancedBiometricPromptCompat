@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         binding.fab.setOnClickListener { _ ->
             showDialog()
         }
-        StatusBarTools.setNavBarAndStatusBarColors(window, Color.BLUE, Color.RED)
+//        StatusBarTools.setNavBarAndStatusBarColors(window, Color.BLUE, Color.RED)
     }
 
     private fun showDialog() {

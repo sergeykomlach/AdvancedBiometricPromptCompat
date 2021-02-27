@@ -41,7 +41,6 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
     )
         .setTitle("Biometric for Fragment")
         .setNegativeButton("Cancel", null)
-        .allowToManageSystemBars(Color.BLUE, Color.RED)
         .build()
 
     val context = activity?.applicationContext
