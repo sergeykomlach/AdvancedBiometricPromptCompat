@@ -46,6 +46,7 @@ import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.ActiveWindow
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
@@ -165,6 +166,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun authenticate(callbackOuter: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
+        WideGamutBug.checkColorMode(builder.context)
         ExecutorHelper.INSTANCE.startOnBackground {
             while (deviceInfo == null || !isInit) {
                 try {
