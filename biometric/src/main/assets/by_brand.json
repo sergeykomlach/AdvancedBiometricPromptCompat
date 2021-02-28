@@ -75362,6 +75362,11 @@
    "model": "Lenovo TB-8705X"
   },
   {
+   "device": "TB-8506F",
+   "name": "Lenovo Tab M8 (3rd Gen)",
+   "model": "Lenovo TB-8506F"
+  },
+  {
    "device": "TB-8506FS",
    "name": "Lenovo Tab M8 (3rd Gen)",
    "model": "Lenovo TB-8506FS"
@@ -83247,6 +83252,11 @@
    "model": "BERRY 2"
   },
   {
+   "device": "CHAMP",
+   "name": "CHAMP",
+   "model": "CHAMP"
+  },
+  {
    "device": "CHERRY",
    "name": "CHERRY",
    "model": "CHERRY"
@@ -83447,6 +83457,11 @@
    "model": "ONYX"
   },
   {
+   "device": "OREO",
+   "name": "OREO",
+   "model": "OREO"
+  },
+  {
    "device": "PLAY",
    "name": "PLAY",
    "model": "PLAY"
@@ -83460,6 +83475,11 @@
    "device": "PULSE_1",
    "name": "PULSE_1",
    "model": "PULSE_1"
+  },
+  {
+   "device": "PULSE_1_VDC",
+   "name": "PULSE_1_VDC",
+   "model": "PULSE_1_VDC"
   },
   {
    "device": "PURE",
@@ -83685,6 +83705,11 @@
    "device": "VENUS_G",
    "name": "VENUS_G",
    "model": "VENUS_G"
+  },
+  {
+   "device": "VIBE",
+   "name": "VIBE",
+   "model": "VIBE"
   },
   {
    "device": "X1",
@@ -129808,6 +129833,16 @@
    "model": "6125F"
   },
   {
+   "device": "Richland",
+   "name": "TCL 20L",
+   "model": "T774B"
+  },
+  {
+   "device": "Richland_Pro",
+   "name": "TCL 20L+",
+   "model": "T775B"
+  },
+  {
    "device": "Miami_Pro",
    "name": "TCL 20S",
    "model": "T773O"
@@ -159609,6 +159644,11 @@
    "device": "P932F20",
    "name": "ZTE Blade A3 Lite",
    "model": "ZTE Blade A3 Lite"
+  },
+  {
+   "device": "P963F70",
+   "name": "ZTE Blade A31",
+   "model": "ZTE Blade A31"
   },
   {
    "device": "Z5157",

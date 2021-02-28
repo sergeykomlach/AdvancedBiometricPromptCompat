@@ -85,13 +85,13 @@ class BiometricPromptCompatDialogImpl(
         dialog.setOnShowListener { d: DialogInterface? ->
             e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.")
             dialog.window?.let {
-                if (compatBuilder.colorNavBar != 0 && compatBuilder.colorStatusBar != 0) {
+
                     StatusBarTools.setNavBarAndStatusBarColors(
                         it,
                         ContextCompat.getColor(compatBuilder.context, getDialogMainColor()),
                         compatBuilder.colorStatusBar
                     )
-                }
+
             }
 
             if (compatBuilder.title == null) {

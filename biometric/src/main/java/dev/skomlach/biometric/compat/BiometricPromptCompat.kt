@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat
 
 import android.annotation.TargetApi
 import android.content.DialogInterface
+import android.graphics.Color
 import android.os.Build
 import android.os.Looper
 import android.view.View
@@ -206,7 +207,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (builder.notificationEnabled) {
                     BiometricNotificationManager.INSTANCE.showNotification(builder)
                 }
-                if (isNewBiometricApi(builder.biometricAuthRequest) && builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
+                if (isNewBiometricApi(builder.biometricAuthRequest)) {
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
                         ContextCompat.getColor(builder.context, getDialogMainColor()),
@@ -217,13 +218,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onUIClosed() {
-                if (builder.colorNavBar != 0 && builder.colorStatusBar != 0) {
+
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
                         builder.colorNavBar,
                         builder.colorStatusBar
                     )
-                }
+
                 if (builder.notificationEnabled) {
                     BiometricNotificationManager.INSTANCE.dismissAll()
                 }
@@ -451,21 +452,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
-        var colorNavBar: Int = 0
+        var colorNavBar: Int = Color.TRANSPARENT
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
-        var colorStatusBar: Int = 0
+        var colorStatusBar: Int = Color.TRANSPARENT
+        init {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                this.colorNavBar = context.window.navigationBarColor
+                this.colorStatusBar = context.window.statusBarColor
+            }
+       }
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_ANY
             ), context
         ) {
-        }
-        fun allowToManageSystemBars( @ColorInt  activityNavBarColor: Int, @ColorInt  activityStatusBarColor: Int): Builder {
-            this.colorNavBar = activityNavBarColor
-            this.colorStatusBar = activityStatusBarColor
-            return this
         }
 
         fun setEnabledNotification(enabled: Boolean): Builder {
