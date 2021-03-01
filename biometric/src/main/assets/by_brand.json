@@ -54454,6 +54454,11 @@
    "model": "E475"
   },
   {
+   "device": "E485",
+   "name": "E485",
+   "model": "E485"
+  },
+  {
    "device": "E503F",
    "name": "E503F",
    "model": "E503F"
@@ -139535,6 +139540,11 @@
    "device": "T9501",
    "name": "T9501",
    "model": "T9501"
+  },
+  {
+   "device": "Telemor_T9503",
+   "name": "T9503",
+   "model": "Telemor T9503"
   },
   {
    "device": "T9502",
