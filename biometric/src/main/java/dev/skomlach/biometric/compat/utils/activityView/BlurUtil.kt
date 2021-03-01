@@ -23,7 +23,6 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
-import android.os.AsyncTask
 import android.os.Build
 import android.renderscript.Allocation
 import android.renderscript.Element
@@ -134,7 +133,7 @@ object BlurUtil {
 
     fun blur(context: Context, image: Bitmap, listener: OnPublishListener) {
         if (Build.VERSION.SDK_INT >= 17) {
-            AsyncTask.THREAD_POOL_EXECUTOR.execute {
+            ExecutorHelper.INSTANCE.startOnBackground {
                 val width = (image.width * BITMAP_SCALE).roundToInt()
                 val height = (image.height * BITMAP_SCALE).roundToInt()
                 val inputBitmap = Bitmap.createScaledBitmap(image, width, height, false)
