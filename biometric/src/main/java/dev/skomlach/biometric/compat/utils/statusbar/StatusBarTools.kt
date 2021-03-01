@@ -51,11 +51,12 @@ object StatusBarTools {
     fun setNavBarAndStatusBarColors(
         window: Window,
         @ColorInt colorNavBar: Int,
+        @ColorInt dividerColor: Int,
         @ColorInt colorStatusBar: Int
     ) {
         val runnable = Runnable {
             setStatusBarColor(window, colorStatusBar)
-            setNavBarColor(window, colorNavBar)
+            setNavBarColor(window, colorNavBar, dividerColor)
         }
         val view = window.decorView
         if (HelperTool.isVisible(view, 100)) {
@@ -74,7 +75,7 @@ object StatusBarTools {
         }
     }
 
-    private fun setNavBarColor(window: Window, @ColorInt c: Int) {
+    private fun setNavBarColor(window: Window, @ColorInt c: Int, @ColorInt dividerColor: Int) {
         var color = c
         try {
             if (TURNOFF_TINT) return
@@ -98,8 +99,7 @@ object StatusBarTools {
             }
             //add divider for android 9
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                window.navigationBarDividerColor =
-                    ContextCompat.getColor(window.context, R.color.darker_gray)
+                window.navigationBarDividerColor = dividerColor
             }
         } catch (e: Throwable) {
             e(e)
