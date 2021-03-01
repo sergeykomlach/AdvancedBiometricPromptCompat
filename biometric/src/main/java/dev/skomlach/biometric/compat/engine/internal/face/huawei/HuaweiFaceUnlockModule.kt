@@ -24,7 +24,7 @@ import android.os.*
 import androidx.annotation.RestrictTo
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason.Companion.getByCode
+import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -241,7 +241,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
             d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(getByCode(helpMsgId), helpString)
+            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
         }
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
@@ -307,7 +307,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationStatus(helpMsgId: Int) {
             d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId))
-            listener?.onHelp(getByCode(helpMsgId), null)
+            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), null)
         }
 
         override fun onAuthenticationSucceeded() {

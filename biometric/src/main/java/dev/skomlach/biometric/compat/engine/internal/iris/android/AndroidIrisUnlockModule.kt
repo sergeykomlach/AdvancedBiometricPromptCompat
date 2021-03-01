@@ -24,11 +24,7 @@ import android.hardware.iris.IrisManager
 import android.os.Build
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason.Companion.getByCode
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.core.Core
 import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
@@ -174,7 +170,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(getByCode(helpMsgId), helpString)
+            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
         }
 
         override fun onAuthenticationSucceeded(result: IrisManager.AuthenticationResult?) {

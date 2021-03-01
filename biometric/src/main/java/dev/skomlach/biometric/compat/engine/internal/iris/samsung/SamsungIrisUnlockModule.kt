@@ -23,9 +23,8 @@ import android.annotation.SuppressLint
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.samsung.android.camera.iris.SemIrisManager
-import com.samsung.android.camera.iris.SemIrisManager.Companion.getSemIrisManager
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason.Companion.getByCode
+import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -49,7 +48,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     init {
         Reflection.unseal(context, listOf("com.samsung.android.camera.iris"))
         manager = try {
-            getSemIrisManager(context)
+            SemIrisManager.getSemIrisManager(context)
         } catch (ignore: Throwable) {
             null
         }
@@ -166,7 +165,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(getByCode(helpMsgId), helpString)
+            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
         }
 
         override fun onAuthenticationSucceeded(result: SemIrisManager.AuthenticationResult?) {

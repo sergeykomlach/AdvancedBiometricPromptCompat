@@ -43,7 +43,7 @@ import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
-import dev.skomlach.biometric.compat.utils.HardwareAccessImpl.Companion.getInstance
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
@@ -114,7 +114,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                             AuthenticationFailureReason.TIMEOUT
                         BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
-                            getInstance(builder.biometricAuthRequest).lockout()
+                            HardwareAccessImpl.getInstance(builder.biometricAuthRequest).lockout()
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
                         }
                         BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON -> {
@@ -136,7 +136,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     } else {
                         when (failureReason) {
                             AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                                getInstance(builder.biometricAuthRequest).lockout()
+                                HardwareAccessImpl.getInstance(builder.biometricAuthRequest).lockout()
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT
                             }
                         }
@@ -463,7 +463,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     callback?.onFailed(failureReason)
                 }
             } else {
-                getInstance(builder.biometricAuthRequest).lockout()
+                HardwareAccessImpl.getInstance(builder.biometricAuthRequest).lockout()
                 ExecutorHelper.INSTANCE.handler.postDelayed({
                     cancelAuthenticate()
                     callback?.onFailed(failureReason)
