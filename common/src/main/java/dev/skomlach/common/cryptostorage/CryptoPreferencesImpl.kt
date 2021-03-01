@@ -98,7 +98,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     private fun checkAndDeleteIfNeed(key: String?, e: Throwable): Boolean {
         if (!e.toString().contains("Could not decrypt value")) {
-            if (!TextUtils.isEmpty(key)) {
+            if (!key.isNullOrEmpty()) {
                 LogCat.log("Remove broken value for key '$key'")
                 edit().remove(key).apply()
             } else {

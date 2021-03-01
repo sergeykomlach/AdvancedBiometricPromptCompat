@@ -146,7 +146,7 @@ object DeviceModel {
                 ) model else info.name
 
             getName(
-                if (!TextUtils.isEmpty(info.manufacturer)) info.manufacturer else brand,
+                if (!info.manufacturer.isNullOrEmpty()) info.manufacturer else brand,
                 fullName
             )
         } else {

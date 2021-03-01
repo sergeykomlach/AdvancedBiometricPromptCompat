@@ -176,10 +176,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
 
         override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
-            if (helpReason !== AuthenticationHelpReason.BIOMETRIC_ACQUIRED_GOOD && !TextUtils.isEmpty(
-                    msg
-                )
-            ) {
+            if (helpReason !== AuthenticationHelpReason.BIOMETRIC_ACQUIRED_GOOD && !msg.isNullOrEmpty()) {
                 if (dialog != null) dialog?.onHelp(msg)
             }
         }

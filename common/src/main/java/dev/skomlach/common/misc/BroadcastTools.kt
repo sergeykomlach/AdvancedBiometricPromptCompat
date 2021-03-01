@@ -32,7 +32,7 @@ object BroadcastTools {
     @JvmStatic
     fun sendGlobalBroadcastIntent(context: Context, intent: Intent) {
         val action = intent.action
-        if (!TextUtils.isEmpty(action) && action?.startsWith(androidIntentAction) == false) {
+        if (!action.isNullOrEmpty() && !action.startsWith(androidIntentAction)) {
             logError("BroadcastTools: You tried to send custom global BroadcastIntent. Make sure that action `$action` contains package-specific name")
         }
         context.sendBroadcast(intent)
@@ -47,7 +47,7 @@ object BroadcastTools {
         val actionsIterator = filter.actionsIterator()
         while (actionsIterator.hasNext()) {
             val action = actionsIterator.next()
-            if (!TextUtils.isEmpty(action) && !action.startsWith(androidIntentAction)) {
+            if (!action.isNullOrEmpty() && !action.startsWith(androidIntentAction)) {
                 logError("BroadcastTools: You tried to register custom global BroadcastReceiver. Make sure that action `$action` contains package-specific name")
             }
         }

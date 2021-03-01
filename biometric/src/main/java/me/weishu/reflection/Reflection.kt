@@ -1,22 +1,3 @@
-/*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
- *  All rights reserved.
- *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
- *
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- */
-
 package me.weishu.reflection
 
 import android.content.Context
@@ -30,7 +11,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.*
 
-/**
+/** Original project: https://github.com/tiann/FreeReflection
  * @author weishu
  * @date 2018/6/7.
  */
@@ -64,7 +45,7 @@ object Reflection {
         val strings: MutableList<String> = ArrayList()
         for (p in packages) {
             var pkg = p
-            if (!TextUtils.isEmpty(pkg)) {
+            if (!pkg.isNullOrEmpty()) {
                 if (pkg.endsWith("/")) pkg = pkg.substring(0, pkg.length - 1)
                 strings.add("L" + pkg.replace(".", "/"))
             }
