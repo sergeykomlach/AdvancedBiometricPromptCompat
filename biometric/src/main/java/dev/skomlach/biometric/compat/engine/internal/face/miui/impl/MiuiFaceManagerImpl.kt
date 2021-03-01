@@ -206,7 +206,7 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
                         readLong = data.readLong()
                         var face: Miuiface? = null
                         if (data.readInt() != 0) {
-                            face = Miuiface.Companion.CREATOR.createFromParcel(data)
+                            face = Miuiface.CREATOR.createFromParcel(data)
                         }
                         mHandler.obtainMessage(203, data.readInt(), 0, face)
                             .sendToTarget()

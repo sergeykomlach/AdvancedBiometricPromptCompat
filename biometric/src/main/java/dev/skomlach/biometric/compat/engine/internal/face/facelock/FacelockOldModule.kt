@@ -58,17 +58,17 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 if (facelockProxyListener != null) {
                     var failureReason = BiometricCodes.BIOMETRIC_ERROR_CANCELED
                     when (code) {
-                        FaceLockHelper.Companion.FACELOCK_FAILED_ATTEMPT -> failureReason =
+                        FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
                             BIOMETRIC_AUTHENTICATION_FAILED
-                        FaceLockHelper.Companion.FACELOCK_TIMEOUT -> failureReason =
+                        FaceLockHelper.FACELOCK_TIMEOUT -> failureReason =
                             BiometricCodes.BIOMETRIC_ERROR_TIMEOUT
-                        FaceLockHelper.Companion.FACELOCK_NO_FACE_FOUND -> failureReason =
+                        FaceLockHelper.FACELOCK_NO_FACE_FOUND -> failureReason =
                             BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS
-                        FaceLockHelper.Companion.FACELOCK_NOT_SETUP -> failureReason =
+                        FaceLockHelper.FACELOCK_NOT_SETUP -> failureReason =
                             BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS
-                        FaceLockHelper.Companion.FACELOCK_CANCELED -> failureReason =
+                        FaceLockHelper.FACELOCK_CANCELED -> failureReason =
                             BiometricCodes.BIOMETRIC_ERROR_CANCELED
-                        FaceLockHelper.Companion.FACELOCK_CANNT_START, FaceLockHelper.Companion.FACELOCK_UNABLE_TO_BIND, FaceLockHelper.Companion.FACELOCK_API_NOT_FOUND -> failureReason =
+                        FaceLockHelper.FACELOCK_CANNT_START, FaceLockHelper.FACELOCK_UNABLE_TO_BIND, FaceLockHelper.FACELOCK_API_NOT_FOUND -> failureReason =
                             BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE
                     }
                     facelockProxyListener?.onAuthenticationError(failureReason, msg)
@@ -103,7 +103,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 if (facelockProxyListener != null) {
                     facelockProxyListener?.onAuthenticationError(
                         BiometricCodes.BIOMETRIC_ERROR_CANCELED,
-                        FaceLockHelper.Companion.getMessage(BiometricCodes.BIOMETRIC_ERROR_CANCELED)
+                        FaceLockHelper.getMessage(BiometricCodes.BIOMETRIC_ERROR_CANCELED)
                     )
                 }
                 if (listener != null) {

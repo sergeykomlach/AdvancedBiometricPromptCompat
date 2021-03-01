@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.vivo.framework.facedetect.FaceDetectManager
-import com.vivo.framework.facedetect.FaceDetectManager.Companion.getInstance
 import com.vivo.framework.facedetect.FaceDetectManager.FaceAuthenticationCallback
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
@@ -43,7 +42,7 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     init {
         Reflection.unseal(context, listOf("com.vivo.framework.facedetect"))
         manager = try {
-            getInstance()
+            FaceDetectManager.getInstance()
         } catch (ignore: Throwable) {
             null
         }

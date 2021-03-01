@@ -21,7 +21,7 @@ package dev.skomlach.biometric.compat.utils
 
 import android.os.Build
 import androidx.biometric.R
-import dev.skomlach.biometric.compat.BiometricPromptCompat.Companion.deviceInfo
+import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
@@ -70,5 +70,5 @@ object DevicesWithKnownBugs {
                 listOf(*lgWithMissedBiometricUI).contains(Build.MODEL)
     @JvmStatic
     val isShowInScreenDialogInstantly: Boolean
-        get() = DeviceInfoManager.INSTANCE.hasUnderDisplayFingerprint(deviceInfo)
+        get() = DeviceInfoManager.INSTANCE.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
 }

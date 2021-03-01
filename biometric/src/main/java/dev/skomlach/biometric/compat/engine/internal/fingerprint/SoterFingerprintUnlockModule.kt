@@ -25,7 +25,7 @@ import androidx.core.os.CancellationSignal
 import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason.Companion.getByCode
+import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -164,7 +164,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
             d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(getByCode(helpMsgId), helpString)
+            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
         }
 
         override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {
