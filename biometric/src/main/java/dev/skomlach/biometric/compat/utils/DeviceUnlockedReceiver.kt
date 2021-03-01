@@ -43,7 +43,7 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
         }
     }
     override fun onReceive(context: Context, intent: Intent) {
-        if (!TextUtils.isEmpty(intent.action)) {
+        if (!intent.action.isNullOrEmpty()) {
             d("Device unlocked or boot completed")
             BiometricErrorLockoutPermanentFix.Companion.INSTANCE.resetBiometricSensorPermanentlyLocked()
         }

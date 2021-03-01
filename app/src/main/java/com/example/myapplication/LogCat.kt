@@ -69,7 +69,7 @@ class LogCat private constructor() {
                     if (stream.readLine().also { log = it } != null) {
                         val temp = truncate(log)
                         cache.add(temp)
-                        if (log2ViewCallback != null && (TextUtils.isEmpty(FILTER) || temp.contains(
+                        if (log2ViewCallback != null && (FILTER.isNullOrEmpty() || temp.contains(
                                 FILTER
                             ))
                         ) {
@@ -87,7 +87,7 @@ class LogCat private constructor() {
         get() {
             val stringBuilder = StringBuilder()
             for (i in cache.indices) {
-                if (TextUtils.isEmpty(FILTER) || cache[i].contains(FILTER)) {
+                if (FILTER.isNullOrEmpty() || cache[i].contains(FILTER)) {
                     stringBuilder.append(cache[i])
                     if (i < cache.size - 1) {
                         stringBuilder.append("\n")

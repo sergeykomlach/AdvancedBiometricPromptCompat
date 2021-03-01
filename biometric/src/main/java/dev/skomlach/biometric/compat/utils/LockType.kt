@@ -102,7 +102,7 @@ object LockType {
                         .getColumnIndex("name")
                     if (!mCur.isNull(nameIndex)) {
                         val name = mCur.getString(nameIndex)
-                        if (TextUtils.isEmpty(name)) {
+                        if (name.isNullOrEmpty()) {
                             mCur.moveToNext()
                             continue
                         }
@@ -147,7 +147,7 @@ object LockType {
                         .getColumnIndex("name")
                     if (!mCur.isNull(nameIndex)) {
                         val name = mCur.getString(nameIndex)
-                        if (TextUtils.isEmpty(name)) {
+                        if (name.isNullOrEmpty()) {
                             mCur.moveToNext()
                             continue
                         }

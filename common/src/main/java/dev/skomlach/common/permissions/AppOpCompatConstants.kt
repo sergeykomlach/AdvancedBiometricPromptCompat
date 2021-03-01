@@ -423,7 +423,7 @@ object AppOpCompatConstants {
 
     fun getAppOpFromPermission(permission: String): String? {
         val result: String? = AppOpsManagerCompat.permissionToOp(permission)
-        return if (!TextUtils.isEmpty(result)) {
+        return if (!result.isNullOrEmpty()) {
             result
         } else if (VERSION.SDK_INT >= 23) {
             permissionToApOps[permission]

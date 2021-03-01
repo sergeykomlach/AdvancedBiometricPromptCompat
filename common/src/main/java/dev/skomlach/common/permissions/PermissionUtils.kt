@@ -144,7 +144,7 @@ class PermissionUtils internal constructor() {
             val permissionToOp: String =
                 AppOpCompatConstants.getAppOpFromPermission(permission) ?: ""
             //below Android 6
-            if (TextUtils.isEmpty(permissionToOp)) {
+            if (permissionToOp.isEmpty()) {
                 // in case of normal permissions(e.g. INTERNET)
                 granted = PermissionChecker.checkSelfPermission(
                     appContext,
@@ -314,11 +314,7 @@ class PermissionUtils internal constructor() {
                     (permissionToOp),
                     pkgName
                 ) { op, packageName ->
-                    if (TextUtils.equals(permissionToOp, op) && TextUtils.equals(
-                            pkgName,
-                            packageName
-                        )
-                    ) {
+                    if (permissionToOp == op && pkgName == packageName) {
                         logError("PermissionUtils.onOpChanged - $op - $packageName")
                         //https://stackoverflow.com/a/40649631
                         ExecutorHelper.INSTANCE.handler.postDelayed(runnable, 250)

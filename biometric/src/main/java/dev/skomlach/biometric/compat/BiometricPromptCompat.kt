@@ -211,6 +211,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
                         ContextCompat.getColor(builder.context, getDialogMainColor()),
+                        ContextCompat.getColor(builder.context, android.R.color.darker_gray),
                         builder.colorStatusBar
                     )
                 }
@@ -222,6 +223,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
                         builder.colorNavBar,
+                        builder.dividerColor,
                         builder.colorStatusBar
                     )
 
@@ -455,11 +457,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var colorNavBar: Int = Color.TRANSPARENT
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
+        var dividerColor: Int = Color.TRANSPARENT
+
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @ColorInt
         var colorStatusBar: Int = Color.TRANSPARENT
         init {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 this.colorNavBar = context.window.navigationBarColor
                 this.colorStatusBar = context.window.statusBarColor
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                dividerColor = context.window.navigationBarDividerColor
             }
        }
         constructor(context: FragmentActivity) : this(

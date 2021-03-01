@@ -145,7 +145,7 @@ class DeviceInfoManager private constructor() {
 
     private fun loadDeviceInfo(model: String): DeviceInfo? {
         BiometricLoggerImpl.e("DeviceInfoManager: loadDeviceInfo for $model")
-        return if (TextUtils.isEmpty(model)) null else try {
+        return if (model.isNullOrEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
             var html: String? = getHtml(url) ?: return null
             val detailsLink = getDetailsLink(url, html, model)
@@ -174,7 +174,7 @@ class DeviceInfoManager private constructor() {
                 val element = rElements[i]
                 if (element.attr("data-spec") == "sensors") {
                     var name = element.text()
-                    if (!TextUtils.isEmpty(name)) {
+                    if (!name.isNullOrEmpty()) {
                         val matcher = pattern.matcher(name)
                         while (matcher.find()) {
                             val s = matcher.group()
@@ -199,7 +199,7 @@ class DeviceInfoManager private constructor() {
             for (i in rElements.indices) {
                 val element = rElements[i]
                 val name = element.text()
-                if (TextUtils.isEmpty(name)) {
+                if (name.isNullOrEmpty()) {
                     continue
                 }
                 if (name.equals(model, ignoreCase = true)) {
