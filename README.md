@@ -218,13 +218,6 @@ Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Androi
 IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
 
   
-## TODO  
-- Add more devices/manufacturers  
-- Cleanup project and README  
-- Implement 'hasEnrollChanged()' (???)
-- implement 'CryptoObject' (???)
-  
-
 
 ## Contact author  
   
@@ -237,11 +230,3 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 Apache License 2.0
 
 
-<p align="center">
-<strong align="center">Buy me a beer, if you wish.</strong>
-</p>
-<p align="center">
-  <a href="https://www.paypal.com/donate?hosted_button_id=53PV7V25NG292">
-  <img src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" alt="Donate" />
-  </a>
-</p>
