@@ -251,9 +251,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             if (isLGWithMissedBiometricUI && isFingerprint.get()) {
                 //LG G8 do not have BiometricPrompt UI
                 dialog =
-                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
+                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, DevicesWithKnownBugs.isShowInScreenDialogInstantly)
                 dialog?.showDialog()
-                startAuth()
             } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly && Build.BRAND.equals("OnePlus", ignoreCase = true) ) {
                 //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
                 //For other types of biometric that do not have UI - use regular Fingerprint UI
