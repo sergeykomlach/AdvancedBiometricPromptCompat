@@ -28,9 +28,9 @@ import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.engine.internal.core.Core
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.core.Core
+import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.IMiuiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceFactory
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface

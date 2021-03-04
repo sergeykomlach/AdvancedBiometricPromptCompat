@@ -52,7 +52,10 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isHardwareAvailable
+        return if(api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isHardwareAvailable
+        else
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API)).isHardwareAvailable || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API)).isHardwareAvailable
     }
     @JvmStatic
     fun hasEnrolled(
@@ -62,7 +65,11 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isBiometricEnrolled
+        return if(api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isBiometricEnrolled
+        else
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API)).isBiometricEnrolled || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API)).isBiometricEnrolled
+
     }
     @JvmStatic
     fun isLockOut(
@@ -72,17 +79,11 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isLockedOut
-    }
-    @JvmStatic
-    fun isNewBiometricApi(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return HardwareAccessImpl.getInstance(api).isNewBiometricApi
+        return if(api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isLockedOut
+        else
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API)).isLockedOut || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API)).isLockedOut
+
     }
 
     @JvmStatic

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,12 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.engine
+package androidx.biometric
 
-import androidx.annotation.RestrictTo
-import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
-
-@RestrictTo(RestrictTo.Scope.LIBRARY)
-interface BiometricInitListener {
-    fun initFinished(method: BiometricMethod, module: BiometricModule?)
-    fun onBiometricReady()
+object CancelationHelper {
+    fun forceCancel(biometricFragment : BiometricFragment?){
+        try {
+            biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT)
+        } catch (ignore : Throwable){}
+    }
 }

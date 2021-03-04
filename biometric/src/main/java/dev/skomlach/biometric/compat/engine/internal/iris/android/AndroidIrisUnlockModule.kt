@@ -26,9 +26,9 @@ import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.engine.internal.core.Core
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.core.Core
+import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode

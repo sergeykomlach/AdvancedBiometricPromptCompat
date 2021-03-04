@@ -17,11 +17,11 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.engine.internal.core.interfaces
+package dev.skomlach.biometric.compat.engine.core.interfaces
 
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
-import dev.skomlach.biometric.compat.engine.internal.core.Core
+import dev.skomlach.biometric.compat.engine.core.Core
 
 /**
  * A reprint module handles communication with a specific fingerprint api.

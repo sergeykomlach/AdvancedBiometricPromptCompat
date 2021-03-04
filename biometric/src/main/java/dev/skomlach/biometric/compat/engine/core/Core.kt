@@ -17,13 +17,13 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.engine.internal.core
+package dev.skomlach.biometric.compat.engine.core
 
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import java.util.*
 import kotlin.collections.set
 

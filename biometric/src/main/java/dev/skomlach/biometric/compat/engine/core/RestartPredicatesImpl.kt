@@ -17,11 +17,11 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.engine.internal.core
+package dev.skomlach.biometric.compat.engine.core
 
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object RestartPredicatesImpl {

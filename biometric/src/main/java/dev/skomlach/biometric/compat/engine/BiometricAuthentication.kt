@@ -27,9 +27,9 @@ import android.view.View
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
-import dev.skomlach.biometric.compat.engine.internal.core.Core
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.AuthenticationListener
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.Core
+import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule

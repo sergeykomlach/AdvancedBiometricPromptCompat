@@ -23,13 +23,14 @@ import android.annotation.TargetApi
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorInt
 import androidx.annotation.RestrictTo
+import androidx.biometric.BiometricFragment
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.biometric.CancelationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.BiometricConfirmation
@@ -37,7 +38,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.engine.*
-import dev.skomlach.biometric.compat.engine.internal.core.RestartPredicatesImpl.defaultPredicate
+import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
@@ -65,7 +66,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.Result? = null
     private val confirmed: MutableSet<BiometricType?> = java.util.HashSet()
-    private var biometricFragment : Any? = null
+    private var biometricFragment : BiometricFragment? = null
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
     val authCallback: BiometricPrompt.AuthenticationCallback =
@@ -252,30 +253,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             if (isLGWithMissedBiometricUI && isFingerprint.get()) {
                 //LG G8 do not have BiometricPrompt UI
                 dialog =
-                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
+                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, DevicesWithKnownBugs.isShowInScreenDialogInstantly)
                 dialog?.showDialog()
-                startAuth()
-            } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly) {
-                FocusLostDetection.attachListener(
-                    builder.activeWindow,
-                    object : WindowFocusChangedListener {
-                        override fun onStartWatching() {
-                            startAuth()
-                        }
-
-                        override fun hasFocus(hasFocus: Boolean) {
-                            if (hasFocus) {
-                                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
-                                //For other types of biometric that do not have UI - use regular Fingerprint UI
-                                dialog = BiometricPromptCompatDialogImpl(
-                                    builder,
-                                    this@BiometricPromptApi28Impl,
-                                    true
-                                )
-                                dialog?.showDialog()
-                            }
-                        }
-                    })
+            } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly && Build.BRAND.equals("OnePlus", ignoreCase = true) ) {
+                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
+                //For other types of biometric that do not have UI - use regular Fingerprint UI
+                dialog = BiometricPromptCompatDialogImpl(
+                    builder,
+                    this@BiometricPromptApi28Impl,
+                    true
+                )
+                dialog?.showDialog()
             } else {
                 startAuth()
             }
@@ -367,7 +355,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 try {
                     if (!isAccessible)
                         m.isAccessible = true
-                    biometricFragment = m.invoke(null, builder.context.supportFragmentManager)
+                    biometricFragment = m.invoke(null, builder.context.supportFragmentManager) as BiometricFragment?
                 } finally {
                     if (!isAccessible)
                         m.isAccessible = false
@@ -384,24 +372,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             BiometricAuthentication.cancelAuthentication()
             biometricPrompt.cancelAuthentication()
         } finally {
-            try {
-                // biometricFragment.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT);
-                biometricFragment?.let {
-                    val m = it.javaClass.getDeclaredMethod("cancelAuthentication", Int::class.java)
-                    val isAccessible = m.isAccessible
-                    try {
-                        if (!isAccessible)
-                            m.isAccessible = true
-                        m.invoke(it, 3)
-                    } finally {
-                        if (!isAccessible)
-                            m.isAccessible = false
-                    }
-                }
-                biometricFragment = null
-            } catch (e: Throwable) {
-                e(e)
-            }
+            CancelationHelper.forceCancel(biometricFragment)
+            biometricFragment = null
         }
     }
 
