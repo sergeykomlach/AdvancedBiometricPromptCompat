@@ -1,3 +1,0 @@
--ignorewarnings
--keep class com.lge.display.** { *; }
--keep interface com.lge.display.** { *; }
