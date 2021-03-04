@@ -26,9 +26,11 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorInt
 import androidx.annotation.RestrictTo
+import androidx.biometric.BiometricFragment
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.biometric.CancelationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.BiometricConfirmation
@@ -64,7 +66,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.Result? = null
     private val confirmed: MutableSet<BiometricType?> = java.util.HashSet()
-    private var biometricFragment : Any? = null
+    private var biometricFragment : BiometricFragment? = null
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
     val authCallback: BiometricPrompt.AuthenticationCallback =
@@ -353,7 +355,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 try {
                     if (!isAccessible)
                         m.isAccessible = true
-                    biometricFragment = m.invoke(null, builder.context.supportFragmentManager)
+                    biometricFragment = m.invoke(null, builder.context.supportFragmentManager) as BiometricFragment?
                 } finally {
                     if (!isAccessible)
                         m.isAccessible = false
@@ -370,24 +372,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             BiometricAuthentication.cancelAuthentication()
             biometricPrompt.cancelAuthentication()
         } finally {
-            try {
-                // biometricFragment.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT);
-                biometricFragment?.let {
-                    val m = it.javaClass.getDeclaredMethod("cancelAuthentication", Int::class.java)
-                    val isAccessible = m.isAccessible
-                    try {
-                        if (!isAccessible)
-                            m.isAccessible = true
-                        m.invoke(it, 3)
-                    } finally {
-                        if (!isAccessible)
-                            m.isAccessible = false
-                    }
-                }
-                biometricFragment = null
-            } catch (e: Throwable) {
-                e(e)
-            }
+            CancelationHelper.forceCancel(biometricFragment)
+            biometricFragment = null
         }
     }
 

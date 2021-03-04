@@ -35,7 +35,6 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isNewBiometricApi
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
@@ -47,6 +46,7 @@ import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.ActiveWindow
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
@@ -154,7 +154,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private val impl: IBiometricPromptImpl by lazy {
-        val iBiometricPromptImpl = if (isNewBiometricApi(builder.biometricAuthRequest) && builder.primaryAvailableTypes.isNotEmpty()) {
+        BiometricLoggerImpl.d("BiometricPromptCompat.IBiometricPromptImpl - " +
+                "${HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi} && ${builder.primaryAvailableTypes}/${builder.secondaryAvailableTypes}")
+        val iBiometricPromptImpl = if (HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi && builder.primaryAvailableTypes.isNotEmpty()) {
             BiometricPromptApi28Impl(builder)
         } else {
             BiometricPromptGenericImpl(builder)
@@ -210,7 +212,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (builder.notificationEnabled) {
                         BiometricNotificationManager.INSTANCE.showNotification(builder)
                     }
-                    if (isNewBiometricApi(builder.biometricAuthRequest)) {
+                    if (impl is BiometricPromptApi28Impl) {
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.context.window,
                             ContextCompat.getColor(builder.context, getDialogMainColor()),
@@ -395,12 +397,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val primaryAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
+            val api = if(HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 for (type in BiometricType.values()) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = BiometricAuthRequest(
-                        biometricAuthRequest.api,
+                        api,
                         type
                     )
                     if (isHardwareDetected(request) && hasEnrolled(request)) {
@@ -414,7 +417,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val secondaryAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
-            if(isNewBiometricApi(biometricAuthRequest)) {
+            if(HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
                 if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                     for (type in BiometricType.values()) {
                         if (type == BiometricType.BIOMETRIC_ANY)
