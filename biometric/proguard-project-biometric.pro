@@ -11,4 +11,5 @@
 -keep class com.tencent.soter.** { *; }
 -keep interface com.tencent.soter.** { *; }
 
--keep class dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver { *; }
+-keep class dev.skomlach.biometric.compat.engine.internal.** { *; }
+-keep interface dev.skomlach.biometric.compat.engine.internal.** { *; }

@@ -23,7 +23,6 @@ import android.annotation.TargetApi
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
-import android.text.TextUtils
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorInt
 import androidx.annotation.RestrictTo
@@ -37,7 +36,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.engine.*
-import dev.skomlach.biometric.compat.engine.internal.core.RestartPredicatesImpl.defaultPredicate
+import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
@@ -255,27 +254,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, false)
                 dialog?.showDialog()
                 startAuth()
-            } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly) {
-                FocusLostDetection.attachListener(
-                    builder.activeWindow,
-                    object : WindowFocusChangedListener {
-                        override fun onStartWatching() {
-                            startAuth()
-                        }
-
-                        override fun hasFocus(hasFocus: Boolean) {
-                            if (hasFocus) {
-                                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
-                                //For other types of biometric that do not have UI - use regular Fingerprint UI
-                                dialog = BiometricPromptCompatDialogImpl(
-                                    builder,
-                                    this@BiometricPromptApi28Impl,
-                                    true
-                                )
-                                dialog?.showDialog()
-                            }
-                        }
-                    })
+            } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly && Build.BRAND.equals("OnePlus", ignoreCase = true) ) {
+                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
+                //For other types of biometric that do not have UI - use regular Fingerprint UI
+                dialog = BiometricPromptCompatDialogImpl(
+                    builder,
+                    this@BiometricPromptApi28Impl,
+                    true
+                )
+                dialog?.showDialog()
             } else {
                 startAuth()
             }

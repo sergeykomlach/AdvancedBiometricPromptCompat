@@ -40,7 +40,7 @@ import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
@@ -187,36 +187,44 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         val callback = object : Result {
 
+            var isOpened = false
             override fun onSucceeded() {
                 callbackOuter.onSucceeded()
+                onUIClosed()
             }
 
             override fun onCanceled() {
                 callbackOuter.onCanceled()
+                onUIClosed()
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
                 callbackOuter.onFailed(reason)
+                onUIClosed()
             }
 
             override fun onUIOpened() {
-                callbackOuter.onUIOpened()
-                if (builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.showNotification(builder)
+                if(!isOpened) {
+                    isOpened = true
+                    callbackOuter.onUIOpened()
+                    if (builder.notificationEnabled) {
+                        BiometricNotificationManager.INSTANCE.showNotification(builder)
+                    }
+                    if (isNewBiometricApi(builder.biometricAuthRequest)) {
+                        StatusBarTools.setNavBarAndStatusBarColors(
+                            builder.context.window,
+                            ContextCompat.getColor(builder.context, getDialogMainColor()),
+                            ContextCompat.getColor(builder.context, android.R.color.darker_gray),
+                            builder.colorStatusBar
+                        )
+                    }
+                    activityViewWatcher.setupListeners()
                 }
-                if (isNewBiometricApi(builder.biometricAuthRequest)) {
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        builder.context.window,
-                        ContextCompat.getColor(builder.context, getDialogMainColor()),
-                        ContextCompat.getColor(builder.context, android.R.color.darker_gray),
-                        builder.colorStatusBar
-                    )
-                }
-                activityViewWatcher.setupListeners()
             }
 
             override fun onUIClosed() {
-
+                if(isOpened) {
+                    isOpened = false
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
                         builder.colorNavBar,
@@ -224,11 +232,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         builder.colorStatusBar
                     )
 
-                if (builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.dismissAll()
+                    if (builder.notificationEnabled) {
+                        BiometricNotificationManager.INSTANCE.dismissAll()
+                    }
+                    activityViewWatcher.resetListeners()
+                    callbackOuter.onUIClosed()
                 }
-                activityViewWatcher.resetListeners()
-                callbackOuter.onUIClosed()
             }
         }
 

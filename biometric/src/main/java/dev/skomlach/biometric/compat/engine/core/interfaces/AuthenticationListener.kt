@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.engine.internal.core.interfaces
+package dev.skomlach.biometric.compat.engine.core.interfaces
 
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason

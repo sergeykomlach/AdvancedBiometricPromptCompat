@@ -20,7 +20,7 @@
 package dev.skomlach.biometric.compat.engine
 
 import androidx.annotation.RestrictTo
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 interface BiometricInitListener {

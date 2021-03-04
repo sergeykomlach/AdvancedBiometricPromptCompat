@@ -81,23 +81,23 @@ class ActivityViewWatcher(
 
         override fun onGlobalLayout() {
 
-            try {
-                vg.findViewWithTag<View?>(tag)?.let {
-                    it.visibility = View.INVISIBLE
-                }
-                BlurUtil.takeScreenshotAndBlur(
-                    vg,
-                    object : BlurUtil.OnPublishListener {
-                        override fun onBlurredScreenshot(bm: Bitmap) {
-                            vg.findViewWithTag<View?>(tag)?.let {
-                                it.visibility = View.VISIBLE
-                            }
-                            updateBg(bm)
-                        }
-                    })
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
-            }
+//            try {
+//                vg.findViewWithTag<View?>(tag)?.let {
+//                    it.visibility = View.INVISIBLE
+//                }
+//                BlurUtil.takeScreenshotAndBlur(
+//                    vg,
+//                    object : BlurUtil.OnPublishListener {
+//                        override fun onBlurredScreenshot(bm: Bitmap) {
+//                            vg.findViewWithTag<View?>(tag)?.let {
+//                                it.visibility = View.VISIBLE
+//                            }
+//                            updateBg(bm)
+//                        }
+//                    })
+//            } catch (e: Throwable) {
+//                BiometricLoggerImpl.e(e)
+//            }
         }
     }
 
