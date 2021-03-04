@@ -298,15 +298,15 @@ object BiometricAuthentication {
         method: BiometricType,
         biometricModule: BiometricModule?
     ): Boolean {
-        if (biometricModule is SamsungFingerprintModule && method === BiometricType.BIOMETRIC_FINGERPRINT) {
+        if (biometricModule is SamsungFingerprintModule && method == BiometricType.BIOMETRIC_FINGERPRINT) {
             if (biometricModule.openSettings(context)) return true
         }
-        if (biometricModule is FacelockOldModule && method === BiometricType.BIOMETRIC_FACE &&
+        if (biometricModule is FacelockOldModule && method == BiometricType.BIOMETRIC_FACE &&
             startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
         ) {
             return true
         }
-        if (biometricModule is MiuiFaceUnlockModule && method === BiometricType.BIOMETRIC_FACE && startActivity(
+        if (biometricModule is MiuiFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE && startActivity(
                 Intent().setClassName("com.android.settings", "com.android.settings.Settings")
                     .putExtra(
                         ":android:show_fragment",
@@ -317,7 +317,7 @@ object BiometricAuthentication {
         ) {
             return true
         }
-        if (biometricModule is HuaweiFaceUnlockModule && method === BiometricType.BIOMETRIC_FACE && startActivity(
+        if (biometricModule is HuaweiFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE && startActivity(
                 Intent().setClassName(
                     "com.android.settings",
                     "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"
@@ -328,17 +328,17 @@ object BiometricAuthentication {
         }
 
         //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_FINGERPRINT required" - but not should be
-        if (BiometricType.BIOMETRIC_FINGERPRINT === method
+        if (BiometricType.BIOMETRIC_FINGERPRINT == method
             && startActivity(Intent("android.settings.FINGERPRINT_ENROLL"), context)
         ) {
             return true
         }
-        if (BiometricType.BIOMETRIC_FACE === method
+        if (BiometricType.BIOMETRIC_FACE == method
             && startActivity(Intent("android.settings.FACE_ENROLL"), context)
         ) {
             return true
         }
-        return (BiometricType.BIOMETRIC_IRIS === method
+        return (BiometricType.BIOMETRIC_IRIS == method
                 && startActivity(Intent("android.settings.IRIS_ENROLL"), context))
     }
 

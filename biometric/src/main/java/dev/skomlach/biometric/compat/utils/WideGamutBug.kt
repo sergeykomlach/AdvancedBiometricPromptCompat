@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.pm.ActivityInfo
 import android.os.Build
 import androidx.fragment.app.FragmentActivity
+import dev.skomlach.biometric.compat.BuildConfig
 
 object WideGamutBug {
     private val error: String = "WARNING!!!\n" +
@@ -30,7 +31,7 @@ object WideGamutBug {
             "On OnePlus 6T stop working Fingerprint Sensor O_o"
 
     fun checkColorMode(activity: FragmentActivity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (activity.window.colorMode == ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT ||
                 (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && activity.window.isWideColorGamut)
             )

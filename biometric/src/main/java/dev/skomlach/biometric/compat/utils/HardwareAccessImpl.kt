@@ -30,7 +30,7 @@ import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-class HardwareAccessImpl private constructor(biometricAuthRequest: BiometricAuthRequest) {
+class HardwareAccessImpl private constructor(val biometricAuthRequest: BiometricAuthRequest) {
     companion object {
         @JvmStatic
         fun getInstance(api: BiometricAuthRequest): HardwareAccessImpl {
@@ -53,9 +53,9 @@ class HardwareAccessImpl private constructor(biometricAuthRequest: BiometricAuth
         get() = hardwareInfo?.isLockedOut ?: false
 
     init {
-        if (biometricAuthRequest.api === BiometricApi.LEGACY_API) {
+        if (biometricAuthRequest.api == BiometricApi.LEGACY_API) {
             hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
-        } else if (biometricAuthRequest.api === BiometricApi.BIOMETRIC_API) {
+        } else if (biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
             if (BuildCompat.isAtLeastQ()) {
                 hardwareInfo =
                     Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
@@ -73,12 +73,6 @@ class HardwareAccessImpl private constructor(biometricAuthRequest: BiometricAuth
                 }
                 else -> {
                     LegacyHardware(biometricAuthRequest) //Android 4+
-                }
-            }
-            if (hardwareInfo !is LegacyHardware) {
-                val info = LegacyHardware(biometricAuthRequest)
-                if (!isHardwareReady(hardwareInfo) && isHardwareReady(info)) {
-                    hardwareInfo = info
                 }
             }
         }
