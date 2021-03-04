@@ -8,4 +8,7 @@
 -keep class com.huawei.** { *; }
 -keep interface com.huawei.** { *; }
 
+-keep class com.tencent.soter.** { *; }
+-keep interface com.tencent.soter.** { *; }
+
 -keep class dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver { *; }
