@@ -24913,6 +24913,11 @@
  ],
  "Digiquest": [
   {
+   "device": "tamachi",
+   "name": "Italy",
+   "model": "Digiquest 2K Android TV"
+  },
+  {
    "device": "yeongdeungpo",
    "name": "Italy",
    "model": "Digiquest 4K Android TV"
@@ -70418,6 +70423,11 @@
   {
    "device": "mcaymanlm",
    "name": "VELVET",
+   "model": "LM-G900MM"
+  },
+  {
+   "device": "mcaymanlm",
+   "name": "VELVET",
    "model": "LM-G900TM"
   },
   {
@@ -82873,6 +82883,13 @@
    "model": "MSW_BT767QC8TN"
   }
  ],
+ "Minister": [
+  {
+   "device": "R1",
+   "name": "Android TV",
+   "model": "ATV R1"
+  }
+ ],
  "Mint": [
   {
    "device": "M4CR",
@@ -84936,11 +84953,6 @@
    "model": "MB501"
   },
   {
-   "device": "bathena",
-   "name": "Athena",
-   "model": "Motorola Defy"
-  },
-  {
    "device": "olympus",
    "name": "Atrix",
    "model": "MB860"
@@ -86249,6 +86261,11 @@
    "device": "shibuya",
    "name": "Motorola Android 9.0 TV",
    "model": "FlipkartTV"
+  },
+  {
+   "device": "bathena",
+   "name": "Motorola Defy",
+   "model": "Motorola Defy"
   },
   {
    "device": "deen_sprout",
@@ -120178,6 +120195,11 @@
    "model": "GT-S5690R"
   },
   {
+   "device": "xcover5",
+   "name": "Galaxy Xcover 5",
+   "model": "SM-G525F"
+  },
+  {
    "device": "skomer",
    "name": "Galaxy Xcover2",
    "model": "GT-S7710"
@@ -137051,6 +137073,11 @@
  ],
  "TD SYSTEMS": [
   {
+   "device": "tamachi",
+   "name": "Spain",
+   "model": "TD SYSTEMS Android TV"
+  },
+  {
    "device": "yeongdeungpo",
    "name": "Spain",
    "model": "TD SYSTEMS Android TV"
@@ -147977,11 +148004,6 @@
  ],
  "Vsmart": [
   {
-   "device": "samseong",
-   "name": "55KD6800",
-   "model": "VINATV 4K"
-  },
-  {
    "device": "PQ6001",
    "name": "Active 1",
    "model": "Active 1"
@@ -148088,6 +148110,11 @@
   },
   {
    "device": "TR2001",
+   "name": "VINATV 4K",
+   "model": "VINATV 4K"
+  },
+  {
+   "device": "samseong",
    "name": "VINATV 4K",
    "model": "VINATV 4K"
   },
@@ -151861,11 +151888,6 @@
    "device": "venus",
    "name": "Mi 11",
    "model": "M2011K2C"
-  },
-  {
-   "device": "renoir",
-   "name": "Mi 11 Lite 5G",
-   "model": "M2101K9G"
   },
   {
    "device": "pisces",
