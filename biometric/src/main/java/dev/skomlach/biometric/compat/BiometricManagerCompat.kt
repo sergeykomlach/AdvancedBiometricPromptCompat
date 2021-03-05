@@ -55,7 +55,7 @@ object BiometricManagerCompat {
         return if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isHardwareAvailable
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API)).isHardwareAvailable || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API)).isHardwareAvailable
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isHardwareAvailable || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isHardwareAvailable
     }
     @JvmStatic
     fun hasEnrolled(
@@ -68,7 +68,7 @@ object BiometricManagerCompat {
         return if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isBiometricEnrolled
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API)).isBiometricEnrolled || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API)).isBiometricEnrolled
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isBiometricEnrolled || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isBiometricEnrolled
 
     }
     @JvmStatic
@@ -82,7 +82,7 @@ object BiometricManagerCompat {
         return if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API)).isLockedOut || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API)).isLockedOut
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isLockedOut || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isLockedOut
 
     }
 
