@@ -67,14 +67,23 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
                     (f[null] as String?)?.let { name ->
 
-                        if (name.contains(".hardware.") && (name.endsWith(".fingerprint")
-                                    || name.endsWith(".face")
-                                    || name.endsWith(".iris")
-                                    || name.endsWith(".biometric")
-                                    || name.contains(".fingerprint.")
-                                    || name.contains(".face.")
-                                    || name.contains(".iris.")
-                                    || name.contains(".biometric."))
+                        if (name.contains(".hardware.") && (
+                                    name.endsWith(".fingerprint")
+                                            || name.endsWith(".face")
+                                            || name.endsWith(".iris")
+                                            || name.endsWith(".biometric")
+                                            || name.endsWith(".palm")
+                                            || name.endsWith(".voice")
+                                            || name.endsWith(".heartrate")
+
+                                            || name.contains(".fingerprint.")
+                                            || name.contains(".face.")
+                                            || name.contains(".iris.")
+                                            || name.contains(".biometric.")
+                                            || name.contains(".palm.")
+                                            || name.contains(".voice.")
+                                            || name.contains(".heartrate.")
+                                    )
                         ) {
                             list.add(name)
                         }
@@ -219,6 +228,16 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
                         biometricAuthRequest.type == BiometricType.BIOMETRIC_FINGERPRINT
                     ) return true
+
+                    if ((f.endsWith(".palm") || f.contains(".palm.")) &&
+                        biometricAuthRequest.type == BiometricType.BIOMETRIC_PALMPRINT
+                    ) return true
+                    if ((f.endsWith(".voice") || f.contains(".voice.")) &&
+                        biometricAuthRequest.type == BiometricType.BIOMETRIC_VOICE
+                    ) return true
+                    if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
+                        biometricAuthRequest.type == BiometricType.BIOMETRIC_HEARTRATE
+                    ) return true
                 }
             }
             return false
@@ -260,7 +279,18 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 ) return true
                 if (biometricAuthRequest.type == BiometricType.BIOMETRIC_IRIS &&
                     LockType.isBiometricEnabledInSettings(appContext, "iris")
-                ) true else !fingersEnrolled && isHardwareAvailableForType
+                ) return true
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_PALMPRINT &&
+                    LockType.isBiometricEnabledInSettings(appContext, "palm")
+                ) return true
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_VOICE &&
+                    LockType.isBiometricEnabledInSettings(appContext, "voice")
+                ) return true
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_HEARTRATE &&
+                    LockType.isBiometricEnabledInSettings(appContext, "heartrate")
+                ) return true
+
+                return !fingersEnrolled && isHardwareAvailableForType
                         && isAnyBiometricEnrolled
             }
         }
