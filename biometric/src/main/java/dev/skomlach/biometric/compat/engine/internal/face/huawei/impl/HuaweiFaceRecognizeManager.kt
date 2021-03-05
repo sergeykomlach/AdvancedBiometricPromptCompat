@@ -154,25 +154,25 @@ class HuaweiFaceRecognizeManager(context: Context?) {
                 stringBuilder.append(" errCode ")
                 stringBuilder.append(errorCode)
                 e(str, stringBuilder.toString())
-            } else  //                if (code == CODE_CALLBACK_CANCEL) {
-            //                int result = HuaweiFaceRecognizeManager.converHwErrorCodeToHuawei(errorCode);
-            //                String str2 = HuaweiFaceRecognizeManager.TAG;
-            //                StringBuilder stringBuilder2 = new StringBuilder();
-            //                stringBuilder2.append(" result ");
-            //                stringBuilder2.append(result);
-            //                BiometricLoggerImpl.d(str2, stringBuilder2.toString());
-            //                if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-            //                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationError(result);
-            //                } else {
-            //                    HuaweiFaceRecognizeManager.this.mAuthenticatorCallback.onAuthenticationFailed();
-            //                    str2 = HuaweiFaceRecognizeManager.TAG;
-            //                    stringBuilder2 = new StringBuilder();
-            //                    stringBuilder2.append(" fail reason ");
-            //                    stringBuilder2.append(result);
-            //                    BiometricLoggerImpl.e(str2, stringBuilder2.toString());
-            //                }
-            //                HuaweiFaceRecognizeManager.this.release();
-            //            } else
+            } else if (code == CODE_CALLBACK_CANCEL) {
+                val result = converHwErrorCodeToHuawei(errorCode);
+
+                var stringBuilder2 = StringBuilder()
+                stringBuilder2.append(" result ")
+                stringBuilder2.append(result)
+                d(TAG, stringBuilder2.toString())
+                if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
+                    mAuthenticatorCallback?.onAuthenticationError(result)
+                    mAuthenticatorCallback = null
+                } else {
+                    mAuthenticatorCallback?.onAuthenticationFailed()
+                    stringBuilder2 = StringBuilder()
+                    stringBuilder2.append(" fail reason ")
+                    stringBuilder2.append(result)
+                    e(TAG, stringBuilder2.toString())
+                }
+                release();
+            } else
                 if (code == CODE_CALLBACK_ACQUIRE) {
                     val result = converHwAcquireInfoToHuawei(errorCode)
                     val str2 = TAG
@@ -193,8 +193,10 @@ class HuaweiFaceRecognizeManager(context: Context?) {
                     if (result == HUAWEI_FACE_AUTHENTICATOR_SUCCESS) {
                         d(TAG, "huawei face auth success")
                         mAuthenticatorCallback?.onAuthenticationSucceeded()
+                        mAuthenticatorCallback = null
                     } else if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
                         mAuthenticatorCallback?.onAuthenticationError(result)
+                        mAuthenticatorCallback = null
                     } else {
                         mAuthenticatorCallback?.onAuthenticationFailed()
                         str2 = TAG
