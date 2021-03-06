@@ -83187,6 +83187,11 @@
    "model": "X2"
   },
   {
+   "device": "X3",
+   "name": "X3",
+   "model": "X3"
+  },
+  {
    "device": "X4",
    "name": "X4",
    "model": "X4"
@@ -122273,6 +122278,11 @@
    "model": "A004SH"
   },
   {
+   "device": "Sarah",
+   "name": "AQUOS sense5G",
+   "model": "SH-M17"
+  },
+  {
    "device": "WJG",
    "name": "AQUOS sense5G",
    "model": "SHG03"
@@ -146287,6 +146297,11 @@
    "model": "V2065A"
   },
   {
+   "device": "PD2066B",
+   "name": "V2066BA",
+   "model": "V2066BA"
+  },
+  {
    "device": "PD2068",
    "name": "V2068A",
    "model": "V2068A"
@@ -147672,6 +147687,11 @@
    "device": "Magnet_G50",
    "name": "Magnet_G20",
    "model": "Magnet_G20"
+  },
+  {
+   "device": "Magnet_G50",
+   "name": "Magnet_G25",
+   "model": "Magnet_G25"
   },
   {
    "device": "Magnet_G30",
@@ -149444,6 +149464,11 @@
   {
    "device": "W-V745",
    "name": "Power U10",
+   "model": "W-V745-OPE"
+  },
+  {
+   "device": "W-V745",
+   "name": "Power U10",
    "model": "W-V745-TVM"
   },
   {
@@ -149460,6 +149485,11 @@
    "device": "W-V755",
    "name": "Power U30",
    "model": "W-V755-EEA"
+  },
+  {
+   "device": "W-V755",
+   "name": "Power U30",
+   "model": "W-V755-TVM"
   },
   {
    "device": "s5501",
@@ -150175,6 +150205,11 @@
    "device": "W-K560",
    "name": "Y61",
    "model": "W-K560-TVM1G"
+  },
+  {
+   "device": "W-K610",
+   "name": "Y62",
+   "model": "W-K610-EEA"
   },
   {
    "device": "W-K610",
