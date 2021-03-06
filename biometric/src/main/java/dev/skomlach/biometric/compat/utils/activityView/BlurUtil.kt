@@ -20,80 +20,28 @@
 package dev.skomlach.biometric.compat.utils.activityView
 
 import android.app.Activity
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Rect
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.os.Build
-import android.renderscript.Allocation
-import android.renderscript.Element
-import android.renderscript.RenderScript
-import android.renderscript.ScriptIntrinsicBlur
-import android.view.PixelCopy
-import android.view.Surface
 import android.view.View
 import android.view.ViewTreeObserver
-import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 
 object BlurUtil {
-    private const val BITMAP_SCALE = 0.4f
-    private const val BLUR_RADIUS = 7.5f
-
     interface OnPublishListener {
         fun onBlurredScreenshot(bm: Bitmap)
     }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val startMs = System.currentTimeMillis()
+        val isDone = AtomicBoolean(false)
+        val takeScreenshot = {
             val decorView: View? = (view.context as Activity).window.peekDecorView()
             decorView?.let {
-                try {
-                    //workaround for IllegalStateException("Window doesn't have a backing surface!")
-                    val method = View::class.java.getMethod("getViewRootImpl")
-                    val root = method.invoke(decorView) ?: return
-                    val field = try {
-                        root.javaClass.getField("mSurface")
-                    } catch (ignore: Throwable) {
-                        root.javaClass.fields.firstOrNull { it.type.name == Surface::class.java.name }
-                    }
-                    val surface: Surface? = field?.get(root) as Surface?
-                    if (surface?.isValid == false) {
-                        return
-                    }
-                    val bitmap = Bitmap.createBitmap(
-                        view.width,
-                        view.height,
-                        Bitmap.Config.ARGB_8888
-                    )
-
-                    val rect = Rect()
-                    if(view.getGlobalVisibleRect(rect)) {
-                        PixelCopy.request(
-                            (view.context as Activity).window,
-                            rect,
-                            bitmap,
-                            { result ->
-                                when (result) {
-                                    PixelCopy.SUCCESS -> {
-                                        blur(view.context, bitmap, listener)
-                                    }
-                                }
-                            },
-                            ExecutorHelper.INSTANCE.handler
-                        )
-                    }
-                } catch (e: Throwable) {
-
-                }
-
-            }
-        } else {
-            //fallback for Pre-Oreo devices
-            val isDone = AtomicBoolean(false)
-            val takeScreenshot = {
-                val decorView: View? = (view.context as Activity).window.peekDecorView()
-                decorView?.let {
+                if (Build.VERSION.SDK_INT >= 28) {
                     try {
                         val old = view.isDrawingCacheEnabled
                         if (!old) {
@@ -103,8 +51,9 @@ object BlurUtil {
                         try {
                             view.drawingCache?.let {
                                 val bm = Bitmap.createBitmap(it)
+                                blur(view, bm, listener)
                                 isDone.set(true)
-                                blur(view.context, bm, listener)
+                                BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
                             }
                         } finally {
                             if (!old) {
@@ -112,42 +61,58 @@ object BlurUtil {
                                 view.isDrawingCacheEnabled = false
                             }
                         }
-                    } catch (ex: Throwable) {
+                    } catch (ex1: Throwable) {
+                    }
+                } else {
+                    try {
+                        val bm =
+                            Bitmap.createBitmap(
+                                view.width,
+                                view.height,
+                                Bitmap.Config.ARGB_8888
+                            )
+                        val canvas = Canvas(bm)
+                        view.draw(canvas)
+                        blur(view, bm, listener)
                         isDone.set(true)
+                        BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
+                    } catch (ex2: Throwable) {
                     }
                 }
             }
-            view.viewTreeObserver.addOnGlobalLayoutListener(object :
-                ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    if (view.viewTreeObserver.isAlive) {
-                        takeScreenshot.invoke()
-                        if (isDone.get()) {
-                            view.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                        }
+        }
+        takeScreenshot.invoke()
+        if (!isDone.get()) view.viewTreeObserver.addOnDrawListener(object :
+            ViewTreeObserver.OnDrawListener {
+            override fun onDraw() {
+                if (view.viewTreeObserver.isAlive) {
+                    takeScreenshot.invoke()
+                    if (isDone.get()) {
+                        view.viewTreeObserver.removeOnDrawListener(this)
                     }
                 }
-            })
-        }
+            }
+        })
     }
 
-    fun blur(context: Context, image: Bitmap, listener: OnPublishListener) {
-        if (Build.VERSION.SDK_INT >= 17) {
-            ExecutorHelper.INSTANCE.startOnBackground {
-                val width = (image.width * BITMAP_SCALE).roundToInt()
-                val height = (image.height * BITMAP_SCALE).roundToInt()
-                val inputBitmap = Bitmap.createScaledBitmap(image, width, height, false)
-                val outputBitmap = Bitmap.createBitmap(inputBitmap)
-                val rs = RenderScript.create(context)
-                val theIntrinsic = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
-                val tmpIn = Allocation.createFromBitmap(rs, inputBitmap)
-                val tmpOut = Allocation.createFromBitmap(rs, outputBitmap)
-                theIntrinsic.setRadius(BLUR_RADIUS)
-                theIntrinsic.setInput(tmpIn)
-                theIntrinsic.forEach(tmpOut)
-                tmpOut.copyTo(outputBitmap)
-                ExecutorHelper.INSTANCE.handler.post { listener.onBlurredScreenshot(outputBitmap) }
-            }
-        }
+    fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {
+
+        val startMs = System.currentTimeMillis()
+        val scaleFactor = 8f
+        val radius = 2f
+        var overlay = Bitmap.createBitmap(
+            (view.measuredWidth / scaleFactor).toInt(),
+            (view.measuredHeight / scaleFactor).toInt(), Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(overlay)
+        canvas.translate(-view.left / scaleFactor, -view.top / scaleFactor)
+        canvas.scale(1 / scaleFactor, 1 / scaleFactor)
+        val paint = Paint()
+        paint.flags = Paint.FILTER_BITMAP_FLAG
+        canvas.drawBitmap(bkg, 0f, 0f, paint)
+
+        overlay = FastBlur.doBlur(overlay, radius.roundToInt(), true)
+        BiometricLoggerImpl.d("BlurUtil.Blurring time - ${System.currentTimeMillis() - startMs} ms")
+        listener.onBlurredScreenshot(overlay)
     }
 }

@@ -35,97 +35,113 @@ class ActivityViewWatcher(
     private val context: FragmentActivity,
     private val forceToCloseCallback: ForceToCloseCallback
 ) {
-
-    private val vg: ViewGroup = context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
-    private val tag = "biometric-" + context.javaClass.name
+    private val parentView: ViewGroup = context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
+    private lateinit var contentView: ViewGroup
+    private var v: View? = null
+    private var isAttached = false
+    private var drawingInProgress = false
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View?) {
-            BiometricLoggerImpl.e("onViewAttachedToWindow")
+            BiometricLoggerImpl.e("ActivityViewWatcher.onViewAttachedToWindow")
         }
 
         override fun onViewDetachedFromWindow(v: View?) {
-            BiometricLoggerImpl.e("onViewDetachedFromWindow")
+            BiometricLoggerImpl.e("ActivityViewWatcher.onViewDetachedFromWindow")
             resetListeners()
             forceToCloseCallback.onCloseBiometric()
         }
     }
-    private val onGlobalLayoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
-        @SuppressLint("ClickableViewAccessibility")
-        private fun updateBg(bm: Bitmap) {
-            try {
-                var v = vg.findViewWithTag<View?>(tag)
-                if (v != null) {
-                    ViewCompat.setBackground(v, BitmapDrawable(bm))
-                } else {
-                    v = View(ContextWrapper(context))
-                    v.tag = tag
+
+    private val onDrawListener = ViewTreeObserver.OnDrawListener { updateBackground() }
+
+    init {
+        for (i in 0 until parentView.childCount) {
+            val v = parentView.getChildAt(i)
+            if (v is ViewGroup) {
+                contentView = v
+            }
+        }
+    }
+
+    private fun updateBackground() {
+        if (!isAttached || drawingInProgress)
+            return
+        BiometricLoggerImpl.e("ActivityViewWatcher.updateBackground")
+        try {
+            BlurUtil.takeScreenshotAndBlur(
+                contentView,
+                object : BlurUtil.OnPublishListener {
+                    override fun onBlurredScreenshot(bm: Bitmap) {
+                        setDrawable(bm)
+                    }
+                })
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setDrawable(bm: Bitmap) {
+        if (!isAttached || drawingInProgress)
+            return
+        BiometricLoggerImpl.d("ActivityViewWatcher.setDrawable")
+        drawingInProgress = true
+        try {
+            v?.let {
+                ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
+            } ?: run {
+                v = View(ContextWrapper(context)).apply {
+                    tag = tag
                     val lp = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    v.layoutParams = lp
-                    v.alpha = 1f
-                    ViewCompat.setBackground(v, BitmapDrawable(bm))
-                    v.isFocusable = true
-                    v.isClickable = true
-                    v.isLongClickable = true
-                    v.setOnTouchListener { _, _ ->
+                    layoutParams = lp
+                    alpha = 1f
+
+                    isFocusable = true
+                    isClickable = true
+                    isLongClickable = true
+                    setOnTouchListener { _, _ ->
                         true
                     }
-                    vg.addView(v)
+                    ViewCompat.setBackground(this, BitmapDrawable(this.resources, bm))
+                    parentView.addView(this)
                 }
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
+
             }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
-
-        override fun onGlobalLayout() {
-
-//            try {
-//                vg.findViewWithTag<View?>(tag)?.let {
-//                    it.visibility = View.INVISIBLE
-//                }
-//                BlurUtil.takeScreenshotAndBlur(
-//                    vg,
-//                    object : BlurUtil.OnPublishListener {
-//                        override fun onBlurredScreenshot(bm: Bitmap) {
-//                            vg.findViewWithTag<View?>(tag)?.let {
-//                                it.visibility = View.VISIBLE
-//                            }
-//                            updateBg(bm)
-//                        }
-//                    })
-//            } catch (e: Throwable) {
-//                BiometricLoggerImpl.e(e)
-//            }
+        v?.post {
+            drawingInProgress = false
         }
-    }
-
-    init {
-        vg.addOnAttachStateChangeListener(attachStateChangeListener)
     }
 
     fun setupListeners() {
+        BiometricLoggerImpl.e("ActivityViewWatcher.setupListeners")
+        isAttached = true
         try {
-            onGlobalLayoutListener.onGlobalLayout()
-            vg.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
+            updateBackground()
+            parentView.addOnAttachStateChangeListener(attachStateChangeListener)
+            parentView.viewTreeObserver.addOnDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
     }
 
     fun resetListeners() {
-
+        BiometricLoggerImpl.e("ActivityViewWatcher.resetListeners")
+        isAttached = false
         try {
-            vg.removeOnAttachStateChangeListener(attachStateChangeListener)
-            vg.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
+            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
+            parentView.viewTreeObserver.removeOnDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
         try {
-            val v = vg.findViewWithTag<View?>(tag)
             v?.let {
-                vg.removeView(v)
+                parentView.removeView(it)
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
