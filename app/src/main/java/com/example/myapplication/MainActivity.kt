@@ -19,7 +19,6 @@
 
 package com.example.myapplication
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -29,7 +28,6 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
-import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,6 +37,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+//        if (secure) {
+            //prevent screen capturing
+//            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+//        } else {
+//            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+//        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
