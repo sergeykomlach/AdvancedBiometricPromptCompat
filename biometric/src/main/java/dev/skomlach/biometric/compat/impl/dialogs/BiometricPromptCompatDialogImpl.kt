@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
+import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
@@ -88,7 +89,7 @@ class BiometricPromptCompatDialogImpl(
 
                     StatusBarTools.setNavBarAndStatusBarColors(
                         it,
-                        ContextCompat.getColor(compatBuilder.context, getDialogMainColor()),
+                        ContextCompat.getColor(compatBuilder.context, DialogMainColor.getColor(isNightMode)),
                         ContextCompat.getColor(compatBuilder.context, android.R.color.darker_gray),
                         compatBuilder.colorStatusBar
                     )
@@ -124,7 +125,7 @@ class BiometricPromptCompatDialogImpl(
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, false)
 
-            checkInScreenIcon()
+            checkInScreenVisibility()
             attachWindowListeners()
             startAuth()
         }
@@ -139,7 +140,7 @@ class BiometricPromptCompatDialogImpl(
     }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
-        checkInScreenIcon()
+        checkInScreenVisibility()
     }
     private val onWindowFocusChangeListener: WindowFocusChangedListener =
         object : WindowFocusChangedListener {
@@ -253,16 +254,12 @@ class BiometricPromptCompatDialogImpl(
             false
         }
 
-    private fun checkInScreenIcon() {
+    private fun checkInScreenVisibility() {
         if (isInScreen && dialog.fingerprintIcon != null) {
             if (isInScreenUIHackNeeded) {
-                if (dialog.fingerprintIcon?.visibility != View.VISIBLE) {
-                    dialog.fingerprintIcon?.visibility = View.VISIBLE
-                }
+                    dialog.makeInvisible()
             } else {
-                if (dialog.fingerprintIcon?.visibility != View.INVISIBLE) {
-                    dialog.fingerprintIcon?.visibility = View.INVISIBLE
-                }
+                    dialog.makeVisible()
             }
         }
     }

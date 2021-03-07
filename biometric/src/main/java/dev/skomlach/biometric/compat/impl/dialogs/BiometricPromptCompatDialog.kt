@@ -121,6 +121,12 @@ internal class BiometricPromptCompatDialog(
         }
     }
 
+    fun makeVisible(){
+        (rootView?.parent as View?)?.alpha = 1f
+    }
+    fun makeInvisible(){
+        (rootView?.parent as View?)?.alpha = 0.01f
+    }
     override fun dismiss() {
         if (isShowing) {
             val animation = AnimationUtils.loadAnimation(context, R.anim.move_out)
