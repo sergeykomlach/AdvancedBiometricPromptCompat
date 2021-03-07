@@ -171,8 +171,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         BiometricNotificationManager.INSTANCE.dismiss(module)
                     }
                 }
-                if(addded)
-                    Vibro.start()
+                if(addded && builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL) {
+                        Vibro.start()
+                }
+
                 val confirmedList: List<BiometricType?> = ArrayList(confirmed)
                 val allList: MutableList<BiometricType?> = ArrayList(
                     builder.allAvailableTypes
@@ -393,7 +395,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
         override fun onSuccess(module: BiometricType?) {
             if(confirmed.add(module)) {
-                Vibro.start()
+                if(builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL) {
+                    Vibro.start()
+                }
                 BiometricNotificationManager.INSTANCE.dismiss(module)
             }
             val confirmedList: List<BiometricType?> = ArrayList(confirmed)
