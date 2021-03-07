@@ -156,7 +156,9 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
         override fun onSuccess(module: BiometricType?) {
             if(confirmed.add(module)) {
-                Vibro.start()
+                if(builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL) {
+                    Vibro.start()
+                }
                 BiometricNotificationManager.INSTANCE.dismiss(module)
             }
             val confirmedList: List<BiometricType?> = ArrayList(confirmed)
