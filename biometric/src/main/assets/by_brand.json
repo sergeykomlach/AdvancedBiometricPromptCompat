@@ -658,6 +658,13 @@
    "model": "AOpen Chromebox Mini"
   }
  ],
+ "ARRQW": [
+  {
+   "device": "yeongdeungpo",
+   "name": "Saudi Arabia",
+   "model": "ARRQW UHD Android TV"
+  }
+ ],
  "ASTCA": [
   {
    "device": "SURGE_AA_787_S",
@@ -42862,6 +42869,11 @@
    "model": "HLTE229E"
   },
   {
+   "device": "HLTE229E_01",
+   "name": "HLTE229E",
+   "model": "Hisense E40"
+  },
+  {
    "device": "SC9863A",
    "name": "HLTE230E",
    "model": "Hisense Infinity H40 Lite"
@@ -79379,13 +79391,6 @@
    "device": "Z2",
    "name": "Z2",
    "model": "Z2"
-  }
- ],
- "Magenta TV": [
-  {
-   "device": "DV6067Y",
-   "name": "OTT-G1",
-   "model": "OTT-G1"
   }
  ],
  "MagentaTV": [
