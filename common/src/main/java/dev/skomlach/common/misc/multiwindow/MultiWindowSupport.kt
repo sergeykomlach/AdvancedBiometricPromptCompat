@@ -307,7 +307,7 @@ class MultiWindowSupport(private val activity: Activity) {
                 size
             }
         }
-    private val screenOrientation: Int
+    val screenOrientation: Int
         get() {
             var orientation = activity.resources.configuration.orientation
             if (orientation == Configuration.ORIENTATION_UNDEFINED) {

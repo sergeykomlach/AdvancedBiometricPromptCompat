@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.content.DialogInterface
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -255,8 +256,8 @@ class BiometricPromptCompatDialogImpl(
         }
 
     private fun checkInScreenVisibility() {
-        if (isInScreen && dialog.fingerprintIcon != null) {
-            if (isInScreenUIHackNeeded) {
+        if (isInScreen) {
+            if (isInScreenUIHackNeeded || compatBuilder.multiWindowSupport.screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
                     dialog.makeInvisible()
             } else {
                     dialog.makeVisible()
