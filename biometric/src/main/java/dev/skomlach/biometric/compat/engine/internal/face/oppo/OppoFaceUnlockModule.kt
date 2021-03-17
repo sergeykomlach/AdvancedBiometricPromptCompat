@@ -39,7 +39,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import me.weishu.reflection.Reflection
+import org.chickenhook.restrictionbypass.Unseal
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -47,7 +47,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: OppoMirrorFaceManager? = null
 
     init {
-        Reflection.unseal(context, listOf("android.hardware.face"))
+        Unseal.unseal(listOf("android.hardware.face"))
         manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(OppoMirrorFaceManager::class.java)

@@ -38,7 +38,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import me.weishu.reflection.Reflection
+import org.chickenhook.restrictionbypass.Unseal
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -46,7 +46,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var manager: SemIrisManager? = null
 
     init {
-        Reflection.unseal(context, listOf("com.samsung.android.camera.iris"))
+        Unseal.unseal(listOf("com.samsung.android.camera.iris"))
         manager = try {
             SemIrisManager.getSemIrisManager(context)
         } catch (ignore: Throwable) {
