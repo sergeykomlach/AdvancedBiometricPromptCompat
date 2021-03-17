@@ -126,6 +126,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                         }
                     }, mFingerprintServiceFingerprintManager?.ids)
                 cancellationSignal?.setOnCancelListener { cancelFingerprintServiceFingerprintRequest() }
+                return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
             }
