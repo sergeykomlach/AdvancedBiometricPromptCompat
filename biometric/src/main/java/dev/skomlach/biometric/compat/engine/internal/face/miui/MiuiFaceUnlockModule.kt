@@ -40,7 +40,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import me.weishu.reflection.Reflection
+import org.chickenhook.restrictionbypass.Unseal
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -55,7 +55,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         list.add("miui.os")
         list.add("miui.util")
         list.add("android.util")
-        Reflection.unseal(context, list)
+        Unseal.unseal(list)
         try {
             manager = MiuiFaceFactory.getFaceManager(context, MiuiFaceFactory.TYPE_3D)
             if (manager?.isFaceFeatureSupport == false) {

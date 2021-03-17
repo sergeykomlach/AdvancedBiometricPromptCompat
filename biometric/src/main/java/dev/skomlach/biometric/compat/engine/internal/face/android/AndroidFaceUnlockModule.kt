@@ -36,7 +36,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import me.weishu.reflection.Reflection
+import org.chickenhook.restrictionbypass.Unseal
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -44,7 +44,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var faceAuthenticationManager: FaceAuthenticationManager? = null
     private var faceManager: FaceManager? = null
     init {
-        Reflection.unseal(context, listOf("android.hardware.face"))
+        Unseal.unseal(listOf("android.hardware.face"))
         faceAuthenticationManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(FaceAuthenticationManager::class.java)
