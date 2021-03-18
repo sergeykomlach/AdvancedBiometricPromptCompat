@@ -78,6 +78,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             private set
         private var initInProgress = AtomicBoolean(false)
         var deviceInfo: DeviceInfo?=null
+        get() {
+            if(field == null && !isDeviceInfoChecked){
+                isDeviceInfoChecked = false
+                ExecutorHelper.INSTANCE.startOnBackground{
+                        DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
+                            override fun onReady(info: DeviceInfo?) {
+                                isDeviceInfoChecked = true
+                                deviceInfo = info
+                            }
+                        })
+                    }
+            }
+            return field
+        }
+        private var isDeviceInfoChecked = false
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -101,6 +116,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ExecutorHelper.INSTANCE.startOnBackground{
                         DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
                             override fun onReady(info: DeviceInfo?) {
+                                isDeviceInfoChecked = true
                                 deviceInfo = info
                             }
                         })
@@ -165,9 +181,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
         WideGamutBug.checkColorMode(builder.context)
         ExecutorHelper.INSTANCE.startOnBackground {
-            while (deviceInfo == null || !isInit) {
+            while (!isDeviceInfoChecked || !isInit) {
                 try {
-                    Thread.sleep(300)
+                    Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
                 }
             }
@@ -177,7 +193,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun startAuth(callbackOuter: Result) {
-
+        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth")
         val activityViewWatcher = ActivityViewWatcher(impl.builder.context, object : ActivityViewWatcher.ForceToCloseCallback{
             override fun onCloseBiometric() {
                 cancelAuthenticate()
@@ -326,7 +342,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun cancelAuthenticate() {
         ExecutorHelper.INSTANCE.startOnBackground {
-            while (deviceInfo == null || !isInit) {
+            while (!isDeviceInfoChecked || !isInit) {
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
@@ -341,7 +357,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if(!isInit){
             ExecutorHelper.INSTANCE.startOnBackground {
-                while (deviceInfo == null || !isInit) {
+                while (!isDeviceInfoChecked  || !isInit) {
                     try {
                         Thread.sleep(250)
                     } catch (ignore: InterruptedException) {

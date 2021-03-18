@@ -139,7 +139,6 @@ class HuaweiFaceRecognizeManager(context: Context?) {
             d(str, stringBuilder.toString())
             if (mAuthenticatorCallback == null) {
                 e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
-                release()
                 return
             }
             if (type != TYPE_CALLBACK_AUTH) {
@@ -154,24 +153,6 @@ class HuaweiFaceRecognizeManager(context: Context?) {
                 stringBuilder.append(" errCode ")
                 stringBuilder.append(errorCode)
                 e(str, stringBuilder.toString())
-            } else if (code == CODE_CALLBACK_CANCEL) {
-                val result = converHwErrorCodeToHuawei(errorCode);
-
-                var stringBuilder2 = StringBuilder()
-                stringBuilder2.append(" result ")
-                stringBuilder2.append(result)
-                d(TAG, stringBuilder2.toString())
-                if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-                    mAuthenticatorCallback?.onAuthenticationError(result)
-                    mAuthenticatorCallback = null
-                } else {
-                    mAuthenticatorCallback?.onAuthenticationFailed()
-                    stringBuilder2 = StringBuilder()
-                    stringBuilder2.append(" fail reason ")
-                    stringBuilder2.append(result)
-                    e(TAG, stringBuilder2.toString())
-                }
-                release();
             } else
                 if (code == CODE_CALLBACK_ACQUIRE) {
                     val result = converHwAcquireInfoToHuawei(errorCode)
@@ -205,7 +186,6 @@ class HuaweiFaceRecognizeManager(context: Context?) {
                         stringBuilder2.append(result)
                         e(str2, stringBuilder2.toString())
                     }
-                    release()
                 }
         }
     }
@@ -218,7 +198,6 @@ class HuaweiFaceRecognizeManager(context: Context?) {
 
     fun init(): Int {
         if (fRManager != null) {
-            fRManager = FaceRecognizeManager(appContext, mFRCallback)
             return fRManager?.init() ?: -1
         }
         return -1
@@ -228,7 +207,8 @@ class HuaweiFaceRecognizeManager(context: Context?) {
         if (fRManager != null) {
             fRManager?.release()
         }
-        fRManager = FaceRecognizeManager(appContext, mFRCallback)
+        fRManager = null
+        instance = null
     }
 
     fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {

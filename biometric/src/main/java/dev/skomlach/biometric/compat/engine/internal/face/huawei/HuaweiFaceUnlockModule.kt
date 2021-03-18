@@ -293,7 +293,10 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             }
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
+                huaweiFaceManagerLegacy?.cancel(0)
+                ExecutorHelper.INSTANCE.handler.postDelayed({
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                }, 250)
             } else {
                 when (failureReason) {
                     AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
@@ -317,7 +320,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            onAuthenticationError(BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS)
         }
     }
 }
