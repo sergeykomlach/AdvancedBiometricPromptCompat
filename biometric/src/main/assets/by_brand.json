@@ -36029,6 +36029,11 @@
    "model": "Yellowstone"
   },
   {
+   "device": "trogdor_cheets",
+   "name": "Qualcomm SC7180 Chromebook",
+   "model": "trogdor"
+  },
+  {
    "device": "jerry_cheets",
    "name": "Rockchip RK3288 Chromebook",
    "model": "RK3288 Chrome OS Device"
@@ -88152,6 +88157,11 @@
    "model": "Multilaser_E"
   },
   {
+   "device": "Multilaser_E_A10",
+   "name": "Multilaser E",
+   "model": "Multilaser_E"
+  },
+  {
    "device": "Multilaser_E_Lite",
    "name": "Multilaser E Lite",
    "model": "Multilaser_E_Lite"
@@ -102180,6 +102190,11 @@
    "model": "PMT4208_3G_EEA"
   },
   {
+   "device": "TL80A15G",
+   "name": "PMT4208_3G_E_RU",
+   "model": "PMT4208_3G_E_RU"
+  },
+  {
    "device": "HP70A2G",
    "name": "PMT4227_3G_RU",
    "model": "PMT4227_3G_RU"
@@ -103631,6 +103646,21 @@
    "device": "QMobile_QNote",
    "name": "QNote",
    "model": "QMobile QNote"
+  },
+  {
+   "device": "QTab_Y1",
+   "name": "QTab_Y1",
+   "model": "QTab Y1"
+  },
+  {
+   "device": "QTab_Y2",
+   "name": "QTab_Y2",
+   "model": "QTab Y2"
+  },
+  {
+   "device": "QTab_Y3",
+   "name": "QTab_Y3",
+   "model": "QTab Y3"
   },
   {
    "device": "QMobile_S8_Plus",
@@ -121322,6 +121352,11 @@
   },
   {
    "device": "gangbyeon",
+   "name": "Sceptre",
+   "model": "4K Smart TV"
+  },
+  {
+   "device": "gangbyeon",
    "name": "TATUNG",
    "model": "TATUNG 4K AI Smart TV"
   },
@@ -130228,6 +130263,11 @@
    "model": "Smart TV Pro"
   },
   {
+   "device": "BeyondTV",
+   "name": "C02_4K_US",
+   "model": "Smart TV"
+  },
+  {
    "device": "A3A_XL_4G",
    "name": "C9",
    "model": "5199I"
@@ -130426,6 +130466,11 @@
    "device": "Transformer_4G",
    "name": "TCL 10 TABMAX 4G",
    "model": "9295G_EEA"
+  },
+  {
+   "device": "Transformer_4G",
+   "name": "TCL 10 TABMAX 4G",
+   "model": "9295G_RU"
   },
   {
    "device": "T1_LITE",
@@ -138802,6 +138847,11 @@
    "device": "TECNO-CD6j",
    "name": "CAMON 16 S",
    "model": "TECNO CD6j"
+  },
+  {
+   "device": "TECNO-CG6j",
+   "name": "CAMON 17",
+   "model": "TECNO CG6j"
   },
   {
    "device": "TECNO-C7",
@@ -157609,6 +157659,11 @@
    "model": "NX907J"
   },
   {
+   "device": "P963F05",
+   "name": "Nubia 8011",
+   "model": "Nubia 8011"
+  },
+  {
    "device": "P731F50",
    "name": "Nubia N11",
    "model": "Nubia N11"
@@ -161060,6 +161115,11 @@
   {
    "device": "ET56S",
    "name": "ET56",
+   "model": "ET56"
+  },
+  {
+   "device": "ET56L",
+   "name": "ET56CA",
    "model": "ET56"
   },
   {
