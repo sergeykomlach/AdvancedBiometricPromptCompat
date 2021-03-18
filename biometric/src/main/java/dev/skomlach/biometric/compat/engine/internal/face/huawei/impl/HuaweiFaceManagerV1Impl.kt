@@ -24,7 +24,7 @@ import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-class HuaweiFaceManagerV1Impl(context: Context) : HuaweiFaceManagerV1() {
+class HuaweiFaceManagerV1Impl(private val context: Context) : HuaweiFaceManagerV1() {
 
     companion object {
         private const val FACE_AUTH_VERSION_V1 = 1
@@ -75,6 +75,8 @@ class HuaweiFaceManagerV1Impl(context: Context) : HuaweiFaceManagerV1() {
             return -1
         }
         HuaweiFaceRecognizeManager.fRManager?.cancelAuthenticate(reqID)
+        HuaweiFaceRecognizeManager.fRManager?.release()
+        HuaweiFaceRecognizeManager.createInstance(context)
         return 0
     }
 
