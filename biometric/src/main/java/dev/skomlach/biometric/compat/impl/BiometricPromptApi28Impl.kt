@@ -430,6 +430,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, module)
             }
             if (failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
+                //non fatal
+                when (failureReason) {
+                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> return
+                }
                 ExecutorHelper.INSTANCE.handler.post {
                     cancelAuthenticate()
                     callback?.onFailed(failureReason)
