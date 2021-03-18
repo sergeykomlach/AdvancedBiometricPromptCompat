@@ -239,8 +239,16 @@ object BiometricAuthentication {
             val biometricModule = getAvailableBiometricModule(type)
             if (biometricModule == null || !biometricModule.hasEnrolled()) continue
             Core.registerModule(biometricModule)
-            if (biometricModule is FacelockOldModule) {
-                biometricModule.setCallerView(targetView)
+            when (biometricModule) {
+                is FacelockOldModule -> {
+                    biometricModule.setCallerView(targetView)
+                }
+                is SamsungIrisUnlockModule -> {
+                    biometricModule.setCallerView(targetView)
+                }
+                is SamsungFaceUnlockModule -> {
+                    biometricModule.setCallerView(targetView)
+                }
             }
             hashMap[biometricModule.tag()] = type
             isAtLeastOneFired = true
