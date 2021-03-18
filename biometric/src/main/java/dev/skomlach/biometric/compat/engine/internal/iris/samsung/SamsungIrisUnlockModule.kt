@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.internal.iris.samsung
 
 import android.annotation.SuppressLint
+import android.view.View
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.samsung.android.camera.iris.SemIrisManager
@@ -39,12 +40,13 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import org.chickenhook.restrictionbypass.Unseal
+import java.lang.ref.WeakReference
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.IRIS_SAMSUNG) {
     private var manager: SemIrisManager? = null
-
+    private var viewWeakReference = WeakReference<View?>(null)
     init {
         Unseal.unseal(listOf("com.samsung.android.camera.iris"))
         manager = try {
@@ -55,6 +57,10 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@SamsungIrisUnlockModule)
     }
 
+    fun setCallerView(targetView: View?) {
+        d("$name.setCallerView: $targetView")
+        viewWeakReference = WeakReference(targetView)
+    }
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -102,7 +108,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     0,
                     callback,
                     ExecutorHelper.INSTANCE.handler,
-                    null
+                    viewWeakReference.get()
                 )
                 return
             } catch (e: Throwable) {
