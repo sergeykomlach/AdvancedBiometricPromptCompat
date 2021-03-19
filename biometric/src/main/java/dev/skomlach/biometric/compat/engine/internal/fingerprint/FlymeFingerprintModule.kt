@@ -132,6 +132,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             }
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        cancelFingerprintServiceFingerprintRequest()
         return
     }
 
