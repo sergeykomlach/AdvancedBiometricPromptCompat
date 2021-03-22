@@ -10527,6 +10527,11 @@
    "device": "Azumi_V6",
    "name": "V6",
    "model": "Azumi V6"
+  },
+  {
+   "device": "Azumi_V60",
+   "name": "V60",
+   "model": "V60"
   }
  ],
  "BARTEC": [
@@ -32918,6 +32923,11 @@
  ],
  "G-Guard": [
   {
+   "device": "shibuya",
+   "name": "G GuardTV",
+   "model": "G GuardTV"
+  },
+  {
    "device": "hamamatsucho",
    "name": "fushan_Guard",
    "model": "Smart TV"
@@ -40782,6 +40792,26 @@
    "device": "nippori",
    "name": "EU",
    "model": "HEC Android TV 2K"
+  },
+  {
+   "device": "hanyang",
+   "name": "Ecuador",
+   "model": "EVVO 4K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Ecuador",
+   "model": "INNOVA 4K Android TV"
+  },
+  {
+   "device": "nippori",
+   "name": "Ecuador",
+   "model": "EVVO 2K Android TV"
+  },
+  {
+   "device": "nippori",
+   "name": "Ecuador",
+   "model": "INNOVA 2K Android TV"
   },
   {
    "device": "E13",
@@ -54737,6 +54767,16 @@
    "device": "E603",
    "name": "E603",
    "model": "E603"
+  },
+  {
+   "device": "hanyang",
+   "name": "Ecuador",
+   "model": "HYUNDAI 4K Android TV"
+  },
+  {
+   "device": "nippori",
+   "name": "Ecuador",
+   "model": "HYUNDAI 2K Android TV"
   },
   {
    "device": "A25024L",
@@ -86942,6 +86982,11 @@
    "model": "moto g stylus (XT2115DL)"
   },
   {
+   "device": "caprip",
+   "name": "moto g(30)",
+   "model": "moto g(30)"
+  },
+  {
    "device": "ali",
    "name": "moto g(6)",
    "model": "XT1925-10"
@@ -88165,6 +88210,16 @@
    "device": "Multilaser_E_Lite",
    "name": "Multilaser E Lite",
    "model": "Multilaser_E_Lite"
+  },
+  {
+   "device": "Multilaser_Elite_2",
+   "name": "Multilaser Elite 2",
+   "model": "Multilaser_Elite_2"
+  },
+  {
+   "device": "Multilaser_F_A10",
+   "name": "Multilaser F",
+   "model": "Multilaser_F"
   },
   {
    "device": "Multilaser_F_Pro",
@@ -96703,6 +96758,13 @@
    "device": "P9001",
    "name": "P9001",
    "model": "P9001"
+  }
+ ],
+ "PRISMPLUS": [
+  {
+   "device": "shibuya",
+   "name": "Prismplus TV",
+   "model": "Prismplus TV"
   }
  ],
  "PROGRACE": [
@@ -121258,6 +121320,11 @@
    "model": "AI PONT"
   },
   {
+   "device": "shibuya",
+   "name": "SANSUITV",
+   "model": "SANSUITV"
+  },
+  {
    "device": "yeongdeungpo",
    "name": "USA",
    "model": "AiPlus4K"
@@ -129900,11 +129967,6 @@
    "model": "Z25"
   },
   {
-   "device": "Z35",
-   "name": "Z25",
-   "model": "Z35"
-  },
-  {
    "device": "Z28",
    "name": "Z28",
    "model": "Z28"
@@ -129923,6 +129985,11 @@
    "device": "Z32",
    "name": "Z32",
    "model": "Symphony Z32"
+  },
+  {
+   "device": "Z35",
+   "name": "Z35",
+   "model": "Z35"
   },
   {
    "device": "Z40",
@@ -130238,6 +130305,11 @@
    "model": "8194"
   },
   {
+   "device": "T1_LE",
+   "name": "A1",
+   "model": "T770K"
+  },
+  {
    "device": "BeyondTV",
    "name": "Beyond TV",
    "model": "BeyondTV"
@@ -130440,6 +130512,16 @@
   {
    "device": "Transformer",
    "name": "TCL 10 TABMAX",
+   "model": "9296G_EEA"
+  },
+  {
+   "device": "Transformer",
+   "name": "TCL 10 TABMAX",
+   "model": "9296G_RU"
+  },
+  {
+   "device": "Transformer",
+   "name": "TCL 10 TABMAX",
    "model": "9296G_TR"
   },
   {
@@ -130531,6 +130613,11 @@
    "device": "Richland",
    "name": "TCL 20L",
    "model": "T774B"
+  },
+  {
+   "device": "Richland",
+   "name": "TCL 20L",
+   "model": "T774H"
   },
   {
    "device": "Richland_Pro",
@@ -139782,6 +139869,21 @@
    "device": "TECNO-KD7",
    "name": "TECNO SPARK 5 Pro",
    "model": "TECNO KD7"
+  },
+  {
+   "device": "TECNO-KF6",
+   "name": "TECNO SPARK 7",
+   "model": "TECNO KF6"
+  },
+  {
+   "device": "TECNO-KF6h",
+   "name": "TECNO SPARK 7",
+   "model": "TECNO KF6h"
+  },
+  {
+   "device": "TECNO-KF6j",
+   "name": "TECNO SPARK 7",
+   "model": "TECNO KF6j"
   },
   {
    "device": "TECNO-KF8",
@@ -154679,6 +154781,11 @@
    "model": "A001ZT"
   },
   {
+   "device": "Z6650S",
+   "name": "A003ZT",
+   "model": "A003ZT"
+  },
+  {
    "device": "P963F01D",
    "name": "A1 Alpha",
    "model": "A1 Alpha"
@@ -157652,6 +157759,11 @@
    "device": "NX659J-RU",
    "name": "NX659J",
    "model": "NX659J"
+  },
+  {
+   "device": "NX669J",
+   "name": "NX669J",
+   "model": "NX669J"
   },
   {
    "device": "NX907J",
