@@ -30,10 +30,12 @@ import android.os.Bundle
 import android.view.*
 import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
+import androidx.window.WindowHelper
 import com.jakewharton.rxrelay2.PublishRelay
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.logging.LogCat.logException
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Consumer
@@ -79,6 +81,7 @@ class MultiWindowSupport(private val activity: Activity) {
 
     private lateinit var subscribeOnResume: Disposable
     private lateinit var subscribeOnDestroy: Disposable
+    private var isActive = false
     private var isMultiWindow = false
     private var isWindowOnScreenBottom = false
     private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
@@ -103,11 +106,23 @@ class MultiWindowSupport(private val activity: Activity) {
             }
         }
     }
-
-    private val window = androidx.window.WindowManager(activity)
     init {
         subscribeOnResume = subscribeOnResume()
         subscribeOnDestroy = subscribeOnDestroy()
+        start()
+    }
+
+    fun start(){
+        if(!isActive) {
+            isActive = true
+            activityResumedRelay.accept(activity)
+        }
+    }
+    fun finish(){
+        if(isActive) {
+            activityDestroyedRelay.accept(activity)
+            ExecutorHelper.INSTANCE.handler.post {  isActive = false }
+        }
     }
 
     private fun subscribeOnResume(): Disposable {
@@ -262,7 +277,7 @@ class MultiWindowSupport(private val activity: Activity) {
         val realSize = realScreenSize
         val realHeight = realSize.y
         val realWidth = realSize.x
-        val bounds = window.currentWindowMetrics.bounds
+        val bounds = WindowHelper.getCurrentWindowMetrics(activity)
         val displayHeight = bounds.height()
         val displayWidth = bounds.width()
         if (realWidth - displayWidth > 0 || realHeight - displayHeight > 0) {
@@ -299,7 +314,7 @@ class MultiWindowSupport(private val activity: Activity) {
             return if (point != null) {
                 point
             } else {
-                val bounds = window.maximumWindowMetrics.bounds
+                val bounds = WindowHelper.getMaximumWindowMetrics(activity)
                 val realWidth = bounds.width()
                 val realHeight = bounds.height()
                 val size = Point(realWidth, realHeight)
@@ -311,7 +326,7 @@ class MultiWindowSupport(private val activity: Activity) {
         get() {
             var orientation = activity.resources.configuration.orientation
             if (orientation == Configuration.ORIENTATION_UNDEFINED) {
-               val bounds = window.currentWindowMetrics.bounds
+                val bounds = WindowHelper.getCurrentWindowMetrics(activity)
                 orientation = if (bounds.width() == bounds.height()) {
                     Configuration.ORIENTATION_SQUARE
                 } else {
