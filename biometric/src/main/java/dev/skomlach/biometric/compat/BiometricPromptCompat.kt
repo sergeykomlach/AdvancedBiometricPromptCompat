@@ -221,6 +221,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onUIOpened() {
                 if(!isOpened) {
                     isOpened = true
+                    builder.multiWindowSupport.start()
                     callbackOuter.onUIOpened()
                     if (builder.notificationEnabled) {
                         BiometricNotificationManager.INSTANCE.showNotification(builder)
@@ -240,6 +241,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onUIClosed() {
                 if(isOpened) {
                     isOpened = false
+                    builder.multiWindowSupport.finish()
                     StatusBarTools.setNavBarAndStatusBarColors(
                         builder.context.window,
                         builder.colorNavBar,
@@ -415,6 +417,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         api,
                         type
                     )
+                    BiometricLoggerImpl.d("primaryAvailableTypes - $request -> ${isHardwareDetected(request)}")
                     if (isHardwareDetected(request) && hasEnrolled(request)) {
                         types.add(type)
                     }
@@ -435,6 +438,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricApi.LEGACY_API,
                             type
                         )
+                        BiometricLoggerImpl.d("secondaryAvailableTypes - $request -> ${isHardwareDetected(request)}")
                         if (isHardwareDetected(request) && hasEnrolled(request)) {
                             types.add(type)
                         }
