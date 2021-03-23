@@ -94447,6 +94447,21 @@
    "model": "PDET10"
   },
   {
+   "device": "OP4F57L1",
+   "name": "Find X3 Pro",
+   "model": "CPH2173"
+  },
+  {
+   "device": "OP4E3F",
+   "name": "Find X3 Pro 中国版",
+   "model": "PEEM00"
+  },
+  {
+   "device": "OP4E5D",
+   "name": "Find X3 中国版",
+   "model": "PEDM00"
+  },
+  {
    "device": "FIND5",
    "name": "Find5",
    "model": "X909"
