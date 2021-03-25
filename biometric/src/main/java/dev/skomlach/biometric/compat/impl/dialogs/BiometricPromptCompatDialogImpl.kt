@@ -313,7 +313,7 @@ class BiometricPromptCompatDialogImpl(
         }
     }
 
-    fun onFailure(isLockout: Boolean, type: BiometricType?) {
+    fun onFailure(isLockout: Boolean) {
         ExecutorHelper.INSTANCE.handler.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 

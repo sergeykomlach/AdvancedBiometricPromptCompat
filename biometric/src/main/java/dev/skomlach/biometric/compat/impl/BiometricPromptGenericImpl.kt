@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import android.text.TextUtils
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -36,6 +35,7 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInst
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isShowInScreenDialogInstantly
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
+import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
@@ -156,6 +156,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
         override fun onSuccess(module: BiometricType?) {
             if(confirmed.add(module)) {
+                IconStateHelper.successType(module)
                 if(builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL) {
                     Vibro.start()
                 }
@@ -188,7 +189,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             module: BiometricType?
         ) {
             if (dialog != null) {
-                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, module)
+                IconStateHelper.errorType(module)
+                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
             }
             if (failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
                 //non fatal

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/biometrics_layout"
+        android:visibility="gone"
+        android:padding="8dp"
+        >
+
+    <LinearLayout
+            android:id="@+id/biometrics"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            >
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/fingerprint"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_fingerprint"
+                />
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/face"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_face"
+                />
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/iris"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_iris"
+                />
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/voice"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_voice"
+                />
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/heartrate"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_heartrate"
+                />
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/palm"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_palm"
+                />
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/typing"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:padding="4dp"
+                app:tint="@android:color/white"
+                app:srcCompat="@drawable/bio_ic_behavior"
+                />
+    </LinearLayout>
+
+    <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/biometrics"
+            android:layout_alignLeft="@+id/biometrics"
+            android:layout_alignRight="@+id/biometrics"
+            android:background="@android:color/white"
+            />
+</RelativeLayout>

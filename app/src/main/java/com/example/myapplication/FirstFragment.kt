@@ -29,6 +29,8 @@ import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentFirstBinding
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 
 /**
@@ -79,7 +81,7 @@ class FirstFragment : Fragment() {
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
             button.setOnClickListener {
-                startBiometric(authRequest)
+                startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type, BiometricConfirmation.ALL ))
             }
             buttonsList.addView(container)
         }
