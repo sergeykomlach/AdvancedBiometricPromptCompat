@@ -23,20 +23,15 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.util.*
 
 object IconStateHelper {
-    private val iconsTasks = HashMap<BiometricType?, Runnable>()
-    private val listeners = HashSet<IconStateListener>()
+    private val iconsTasks = Collections.synchronizedMap(HashMap<BiometricType?, Runnable>())
+    private val listeners = Collections.synchronizedSet(HashSet<IconStateListener>())
     fun registerListener(stateListener: IconStateListener) {
-        synchronized(IconStateHelper::class.java) {
-            listeners.add(stateListener)
-        }
+        listeners.add(stateListener)
     }
 
     fun unregisterListener(stateListener: IconStateListener) {
-        synchronized(IconStateHelper::class.java) {
-            listeners.remove(stateListener)
-        }
+        listeners.remove(stateListener)
     }
-
     fun errorType(type: BiometricType?) {
         ExecutorHelper.INSTANCE.handler.post {
             for (stateListener in listeners) {
