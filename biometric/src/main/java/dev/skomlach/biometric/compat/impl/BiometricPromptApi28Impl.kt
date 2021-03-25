@@ -45,6 +45,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
+import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
@@ -80,7 +81,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     cancelAuthenticate()
                 } else {
                     //...normal failed processing...//
-                    if (dialog != null) dialog?.onFailure(false, builder.biometricAuthRequest.type)
+                    for(module in builder.primaryAvailableTypes) {
+                        IconStateHelper.errorType(module)
+                    }
+                    dialog?.onFailure(false)
                 }
             }
 
@@ -126,10 +130,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
-                            if (dialog != null) dialog?.onFailure(
-                                failureReason == AuthenticationFailureReason.LOCKED_OUT,
-                                builder.biometricAuthRequest.type
-                            )
+                            for(module in builder.primaryAvailableTypes) {
+                                IconStateHelper.errorType(module)
+                            }
+                           dialog?.onFailure(
+                                failureReason == AuthenticationFailureReason.LOCKED_OUT)
                             authenticate(callback)
                         }
                     } else {
@@ -139,9 +144,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT
                             }
                         }
-                        if (dialog != null) dialog?.onFailure(
-                            failureReason == AuthenticationFailureReason.LOCKED_OUT,
-                            builder.biometricAuthRequest.type
+
+                        for(module in builder.primaryAvailableTypes) {
+                            IconStateHelper.errorType(module)
+                        }
+                        dialog?.onFailure(
+                            failureReason == AuthenticationFailureReason.LOCKED_OUT
                         )
                         callback?.onFailed(failureReason)
                         BiometricAuthWasCanceledByError.INSTANCE.setCanceledByError()
@@ -165,6 +173,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 var addded = false
                 for(module in builder.primaryAvailableTypes) {
                     if(confirmed.add(module)) {
+                        IconStateHelper.successType(module)
                         addded = true
                         BiometricNotificationManager.INSTANCE.dismiss(module)
                     }
@@ -393,6 +402,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
         override fun onSuccess(module: BiometricType?) {
             if(confirmed.add(module)) {
+                IconStateHelper.successType(module)
                 if(builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL) {
                     Vibro.start()
                 }
@@ -424,9 +434,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             failureReason: AuthenticationFailureReason?,
             module: BiometricType?
         ) {
-            if (dialog != null) {
-                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT, module)
-            }
+
+                IconStateHelper.errorType(module)
+                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
+
             if (failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
                 //non fatal
                 when (failureReason) {

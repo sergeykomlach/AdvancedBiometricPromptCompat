@@ -194,7 +194,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private fun startAuth(callbackOuter: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.startAuth")
-        val activityViewWatcher = ActivityViewWatcher(impl.builder.context, object : ActivityViewWatcher.ForceToCloseCallback{
+        val activityViewWatcher = ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback{
             override fun onCloseBiometric() {
                 cancelAuthenticate()
             }
