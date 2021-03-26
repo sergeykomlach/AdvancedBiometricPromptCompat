@@ -42,7 +42,6 @@ import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPr
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isLGWithMissedBiometricUI
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
@@ -201,7 +200,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             BiometricPromptCompatDialogImpl(
                                 builder, this@BiometricPromptApi28Impl,
                                 builder.secondaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT)
-                                        && builder.isInScreen
+                                        && DevicesWithKnownBugs.hasUnderDisplayFingerprint
                             )
                     }
                     dialog?.showDialog()
@@ -260,13 +259,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         try {
             d("BiometricPromptApi28Impl.authenticate():")
             callback = cbk
-            if ((isLGWithMissedBiometricUI && isFingerprint.get()) || builder.isInScreen) {
+            if (DevicesWithKnownBugs.isMissedBiometricUI) {
                 //1) LG G8 do not have BiometricPrompt UI
                 //2) One Plus 6T with InScreen fingerprint sensor
                     dialog = BiometricPromptCompatDialogImpl(
                     builder,
                     this@BiometricPromptApi28Impl,
-                    builder.isInScreen
+                     isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
                 )
                 dialog?.showDialog()
             } else {

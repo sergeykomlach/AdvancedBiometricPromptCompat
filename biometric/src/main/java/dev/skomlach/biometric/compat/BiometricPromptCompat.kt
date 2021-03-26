@@ -481,13 +481,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val activeWindow: View by lazy {
             ActiveWindow.getActiveView(context)
         }
-        val isInScreen: Boolean by lazy {
-            allAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT) &&
-                    DevicesWithKnownBugs.hasUnderDisplayFingerprint &&
-                    (deviceInfo?.model?.startsWith("OnePlus 6T", true) == true || //Always for OnePlus 6T/OnePlus 6T McLaren
-                    (Build.BRAND.equals("OnePlus", true) && biometricAuthRequest.api == BiometricApi.LEGACY_API)) // Always for OnePlus if LEGACY
-        }
-
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var title: CharSequence? = null
 
