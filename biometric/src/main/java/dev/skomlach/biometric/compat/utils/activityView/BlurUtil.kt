@@ -32,7 +32,7 @@ import kotlin.math.roundToInt
 
 object BlurUtil {
     interface OnPublishListener {
-        fun onBlurredScreenshot(bm: Bitmap)
+        fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap)
     }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
@@ -113,6 +113,6 @@ object BlurUtil {
 
         overlay = FastBlur.doBlur(overlay, radius.roundToInt(), true)
         BiometricLoggerImpl.d("BlurUtil.Blurring time - ${System.currentTimeMillis() - startMs} ms")
-        listener.onBlurredScreenshot(overlay)
+        listener.onBlurredScreenshot(bkg, overlay)
     }
 }

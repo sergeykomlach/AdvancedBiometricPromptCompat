@@ -69,6 +69,6 @@ object DevicesWithKnownBugs {
         get() = Build.BRAND.equals("LG", ignoreCase = true) &&
                 listOf(*lgWithMissedBiometricUI).contains(Build.MODEL)
     @JvmStatic
-    val isShowInScreenDialogInstantly: Boolean
+    val hasUnderDisplayFingerprint: Boolean
         get() = DeviceInfoManager.INSTANCE.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
 }

@@ -200,7 +200,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         dialog =
                             BiometricPromptCompatDialogImpl(
                                 builder, this@BiometricPromptApi28Impl,
-                                builder.secondaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT) && DevicesWithKnownBugs.isShowInScreenDialogInstantly
+                                builder.secondaryAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT)
+                                        && builder.isInScreen
                             )
                     }
                     dialog?.showDialog()
@@ -259,18 +260,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         try {
             d("BiometricPromptApi28Impl.authenticate():")
             callback = cbk
-            if (isLGWithMissedBiometricUI && isFingerprint.get()) {
-                //LG G8 do not have BiometricPrompt UI
-                dialog =
-                    BiometricPromptCompatDialogImpl(builder, this@BiometricPromptApi28Impl, DevicesWithKnownBugs.isShowInScreenDialogInstantly)
-                dialog?.showDialog()
-            } else if (isFingerprint.get() && DevicesWithKnownBugs.isShowInScreenDialogInstantly && Build.BRAND.equals("OnePlus", ignoreCase = true) ) {
-                //One Plus devices (6T and newer) with InScreen fingerprint sensor - Activity do not lost the focus
-                //For other types of biometric that do not have UI - use regular Fingerprint UI
-                dialog = BiometricPromptCompatDialogImpl(
+            if ((isLGWithMissedBiometricUI && isFingerprint.get()) || builder.isInScreen) {
+                //1) LG G8 do not have BiometricPrompt UI
+                //2) One Plus 6T with InScreen fingerprint sensor
+                    dialog = BiometricPromptCompatDialogImpl(
                     builder,
                     this@BiometricPromptApi28Impl,
-                    true
+                    builder.isInScreen
                 )
                 dialog?.showDialog()
             } else {

@@ -56,7 +56,9 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
@@ -180,15 +182,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun authenticate(callbackOuter: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
         WideGamutBug.checkColorMode(builder.context)
+        val startTime = System.currentTimeMillis()
+        var timeout = false
         ExecutorHelper.INSTANCE.startOnBackground {
             while (!isDeviceInfoChecked || !isInit) {
+                timeout = System.currentTimeMillis() - startTime <= TimeUnit.SECONDS.toMillis(5)
+                if(timeout) {
+                    break
+                }
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
                 }
             }
-
-            ExecutorHelper.INSTANCE.handler.post { startAuth(callbackOuter) }
+            ExecutorHelper.INSTANCE.handler.post {
+                if(timeout) {
+                    callbackOuter.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                }
+                else
+                    startAuth(callbackOuter) 
+            }
         }
     }
 
@@ -289,48 +302,64 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (!ViewCompat.isAttachedToWindow(d)) {
                     checkForAttachAndStart(d, callback)
                 } else {
-                    checkForFocusAndStart(callback)
+                    impl.authenticate(callback)
                 }
             } else {
                 BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
                 impl.authenticate(callback)
             }
         } catch (ignore: IllegalStateException) {
-            ExecutorHelper.INSTANCE.handler.post { callback.onCanceled() }
+             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
         }
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun checkForAttachAndStart(d: View, callback: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.checkForAttachAndStart() - started")
-        d.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+        val atomicReference = AtomicReference<View.OnAttachStateChangeListener?>(null)
+        val r = Runnable {
+            atomicReference.get()?.let {
+                atomicReference.set(null)
+                d.removeOnAttachStateChangeListener(it)
+                callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+            }
+        }
+        d.postDelayed(r, TimeUnit.SECONDS.toMillis(1))
+        val onAttachStateChangeListener = object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
+                d.removeCallbacks(r)
                 d.removeOnAttachStateChangeListener(this)
                 checkForFocusAndStart(callback)
-                d.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                    override fun onViewAttachedToWindow(v: View) {}
-                    override fun onViewDetachedFromWindow(v: View) {
-                        d.removeOnAttachStateChangeListener(this)
-                        impl.cancelAuthenticate()
-                    }
-                })
             }
 
             override fun onViewDetachedFromWindow(v: View) {
                 d.removeOnAttachStateChangeListener(this)
             }
-        })
+        }
+        atomicReference.set(onAttachStateChangeListener)
+        d.addOnAttachStateChangeListener(onAttachStateChangeListener)
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun checkForFocusAndStart(callback: Result) {
         BiometricLoggerImpl.e("BiometricPromptCompat.checkForFocusAndStart() - started")
-        val activity = ActiveWindow.getActiveView(impl.builder.context)
+        val activity = impl.builder.activeWindow
         if (!activity.hasWindowFocus()) {
+            val atomicReference = AtomicReference<OnWindowFocusChangeListener?>(null)
+            val r = Runnable {
+                atomicReference.get()?.let {
+                    atomicReference.set(null)
+                    activity.viewTreeObserver.removeOnWindowFocusChangeListener(it)
+                    callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                }
+            }
+            activity.postDelayed(r, TimeUnit.SECONDS.toMillis(1))
+
             val windowFocusChangeListener: OnWindowFocusChangeListener =
                 object : OnWindowFocusChangeListener {
                     override fun onWindowFocusChanged(focus: Boolean) {
                         if (activity.hasWindowFocus()) {
+                            activity.removeCallbacks(r)
                             activity.viewTreeObserver.removeOnWindowFocusChangeListener(this)
                             impl.authenticate(callback)
                         }
@@ -451,6 +480,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val activeWindow: View by lazy {
             ActiveWindow.getActiveView(context)
+        }
+        val isInScreen: Boolean by lazy {
+            allAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT) &&
+                    DevicesWithKnownBugs.hasUnderDisplayFingerprint &&
+                    (deviceInfo?.model?.startsWith("OnePlus 6T", true) == true || //Always for OnePlus 6T/OnePlus 6T McLaren
+                    (Build.BRAND.equals("OnePlus", true) && biometricAuthRequest.api == BiometricApi.LEGACY_API)) // Always for OnePlus if LEGACY
         }
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
