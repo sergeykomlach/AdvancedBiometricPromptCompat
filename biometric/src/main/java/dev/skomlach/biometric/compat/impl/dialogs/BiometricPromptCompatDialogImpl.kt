@@ -173,23 +173,7 @@ class BiometricPromptCompatDialogImpl(
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
-                if (field.name.contains("biometric") && field.name.contains("dialog")) {
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        compatBuilder.context.getString(field[null] as Int)
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            e(e)
-        }
-        try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name.contains("fingerprint") && field.name.contains("dialog")) {
+                if ((field.name.contains("biometric") || field.name.contains("fingerprint"))&& field.name.contains("dialog")) {
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true

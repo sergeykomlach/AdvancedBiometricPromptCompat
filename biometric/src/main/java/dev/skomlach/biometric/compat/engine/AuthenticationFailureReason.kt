@@ -73,5 +73,7 @@ enum class AuthenticationFailureReason {
     /**
      * The authentication failed for an unknown reason.
      */
-    UNKNOWN
+    UNKNOWN,
+
+    INTERNAL_ERROR
 }
