@@ -102,14 +102,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 throw IllegalThreadStateException("Main Thread required")
 
             if (isBiometricInit.get()) {
-                BiometricLoggerImpl.e("BiometricPromptCompat.init() - ready")
+                BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
                 execute?.let { ExecutorHelper.INSTANCE.handler.post(it) }
             } else {
                 if (initInProgress.get()) {
-                    BiometricLoggerImpl.e("BiometricPromptCompat.init() - pending")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init() - pending")
                     pendingTasks.add(execute)
                 } else {
-                    BiometricLoggerImpl.e("BiometricPromptCompat.init()")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init()")
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
@@ -138,7 +138,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
 
                 override fun onBiometricReady() {
-                    BiometricLoggerImpl.e("BiometricPromptCompat.init() - finished")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init() - finished")
                     isBiometricInit.set(true)
                     initInProgress.set(false)
                     //Add default first
@@ -180,7 +180,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun authenticate(callbackOuter: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
+        BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
         WideGamutBug.checkColorMode(builder.context)
         val startTime = System.currentTimeMillis()
         var timeout = false
@@ -206,7 +206,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun startAuth(callbackOuter: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth")
+        BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
         val activityViewWatcher = ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback{
             override fun onCloseBiometric() {
                 cancelAuthenticate()
@@ -287,7 +287,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callback.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
             return
         }
-        BiometricLoggerImpl.e("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
+        BiometricLoggerImpl.d("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
         PermissionsFragment.askForPermissions(
             impl.builder.context,
             impl.usedPermissions
@@ -295,7 +295,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun authenticateInternal(callback: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal()")
+        BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 val d = impl.builder.activeWindow
@@ -305,7 +305,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     impl.authenticate(callback)
                 }
             } else {
-                BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
+                BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
                 impl.authenticate(callback)
             }
         } catch (ignore: IllegalStateException) {
@@ -315,7 +315,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun checkForAttachAndStart(d: View, callback: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.checkForAttachAndStart() - started")
+        BiometricLoggerImpl.d("BiometricPromptCompat.checkForAttachAndStart() - started")
         val atomicReference = AtomicReference<View.OnAttachStateChangeListener?>(null)
         val r = Runnable {
             atomicReference.get()?.let {
@@ -342,7 +342,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     private fun checkForFocusAndStart(callback: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.checkForFocusAndStart() - started")
+        BiometricLoggerImpl.d("BiometricPromptCompat.checkForFocusAndStart() - started")
         val activity = impl.builder.activeWindow
         if (!activity.hasWindowFocus()) {
             val atomicReference = AtomicReference<OnWindowFocusChangeListener?>(null)

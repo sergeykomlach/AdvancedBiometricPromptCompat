@@ -29,7 +29,7 @@ object BiometricLoggerImpl {
     var DEBUG = BuildConfig.DEBUG
     @JvmStatic
     fun e(vararg msgs: Any?) {
-        if (DEBUG) Log.e("BiometricLogging", listOf(*msgs).toString())
+        if (DEBUG) Log.d("BiometricLogging", listOf(*msgs).toString())
     }
     @JvmStatic
     fun e(e: Throwable) {
@@ -38,7 +38,7 @@ object BiometricLoggerImpl {
 
     @JvmStatic
     fun e(e: Throwable?, vararg msgs: Any?) {
-        if (DEBUG) Log.e("BiometricLogging", listOf(*msgs).toString(), e)
+        if (DEBUG) Log.d("BiometricLogging", listOf(*msgs).toString(), e)
     }
 
     @JvmStatic

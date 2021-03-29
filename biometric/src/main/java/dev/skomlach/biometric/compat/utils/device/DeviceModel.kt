@@ -40,7 +40,7 @@ object DeviceModel {
     fun getNames(): Set<String> {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
-        BiometricLoggerImpl.e("AndroidModel - $s")
+        BiometricLoggerImpl.d("AndroidModel - $s")
         s?.let {
             strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
         }
@@ -52,7 +52,7 @@ object DeviceModel {
         s?.let {
             strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
         }
-        BiometricLoggerImpl.e("AndroidModel.names ${strings.values}")
+        BiometricLoggerImpl.d("AndroidModel.names ${strings.values}")
         return HashSet<String>(strings.values)
     }
 
@@ -78,7 +78,7 @@ object DeviceModel {
     @WorkerThread
     private fun getNameFromAssets(): String? {
 
-        BiometricLoggerImpl.e("AndroidModel.getNameFromAssets started")
+        BiometricLoggerImpl.d("AndroidModel.getNameFromAssets started")
 
         try {
             val json = JSONObject(getJSON())
@@ -92,7 +92,7 @@ object DeviceModel {
                         if (m.isNullOrEmpty() && name.isNullOrEmpty()) {
                             continue
                         } else if (model.equals(m, ignoreCase = true)) {
-                            BiometricLoggerImpl.e("AndroidModel - $jsonObject")
+                            BiometricLoggerImpl.d("AndroidModel - $jsonObject")
                             val modelParts = model.split(" ")
                             val nameParts = name.replace("  ", " ").split(" ")
                             val fullName =
@@ -107,7 +107,7 @@ object DeviceModel {
                 }
             }
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e, "AndroidModel")
+            BiometricLoggerImpl.e(e)
         }
         return null
     }
@@ -134,7 +134,7 @@ object DeviceModel {
     private fun getNameFromDatabase(): String? {
         val info = DeviceName
             .getDeviceInfo(AndroidContext.appContext)
-        BiometricLoggerImpl.e("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
+        BiometricLoggerImpl.d("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
             val modelParts = model.split(" ")
             val nameParts = info.name.replace("  ", " ").split(" ")
