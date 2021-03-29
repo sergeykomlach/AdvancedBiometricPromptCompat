@@ -16827,6 +16827,11 @@
  ],
  "\"CHUBU TELECOMMUNICATIONS CO.": [
   {
+   "device": "STI6130C",
+   "name": "INC\"",
+   "model": "sti6130d353"
+  },
+  {
    "device": "STI6130d353",
    "name": "INC\"",
    "model": "sti6130d353"
