@@ -109,14 +109,14 @@ class DeviceInfoManager private constructor() {
         for (m in strings) {
             deviceInfo = loadDeviceInfo(m)
             if (deviceInfo?.sensors != null) {
-                BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
+                BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
                 setCachedDeviceInfo(deviceInfo)
                 onDeviceInfoListener.onReady(deviceInfo)
                 return
             }
         }
         if (deviceInfo != null) {
-            BiometricLoggerImpl.e("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
+            BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
             setCachedDeviceInfo(deviceInfo)
         }
         onDeviceInfoListener.onReady(deviceInfo)
@@ -144,7 +144,7 @@ class DeviceInfoManager private constructor() {
     }
 
     private fun loadDeviceInfo(model: String): DeviceInfo? {
-        BiometricLoggerImpl.e("DeviceInfoManager: loadDeviceInfo for $model")
+        BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $model")
         return if (model.isNullOrEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
             var html: String? = getHtml(url) ?: return null
@@ -152,11 +152,11 @@ class DeviceInfoManager private constructor() {
                 ?: return DeviceInfo(model, null)
 
             //not found
-            BiometricLoggerImpl.e("DeviceInfoManager: Link: $detailsLink")
+            BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
             html = getHtml(detailsLink)
             if (html == null) return null
             val l = getSensorDetails(html)
-            BiometricLoggerImpl.e("DeviceInfoManager: Sensors: $l")
+            BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             DeviceInfo(model, l)
         } catch (e: Throwable) {
             null

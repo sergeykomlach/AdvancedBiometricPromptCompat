@@ -110,7 +110,7 @@ object BiometricManagerCompat {
                     activity,
                     authType
                 )
-                BiometricLoggerImpl.e("IFAA details: ${ifaamanager?.deviceModel}/${ifaamanager?.version}")
+                BiometricLoggerImpl.d("IFAA details: ${ifaamanager?.deviceModel}/${ifaamanager?.version}")
 
                 if (ifaamanager?.startBIOManager(activity, authType) == 0
                 ) {

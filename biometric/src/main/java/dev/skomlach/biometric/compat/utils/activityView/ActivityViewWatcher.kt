@@ -45,11 +45,11 @@ class ActivityViewWatcher(
 ) : IconStateHelper.IconStateListener {
     private val context = compatBuilder.context
     private val parentView: ViewGroup = context.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)
-    private lateinit var contentView: ViewGroup
+    private var contentView: ViewGroup? = null
     private var v: View? = null
     private var isAttached = false
     private var drawingInProgress = false
-    private lateinit var biometrics_layout: View
+    private var biometricsLayout: View? = null
     private var defaultColor = ContextCompat.getColor(
         context,
         DialogMainColor.getColor(!DarkLightThemes.isNightMode(context))
@@ -61,11 +61,11 @@ class ActivityViewWatcher(
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View?) {
-            BiometricLoggerImpl.e("ActivityViewWatcher.onViewAttachedToWindow")
+            BiometricLoggerImpl.d("ActivityViewWatcher.onViewAttachedToWindow")
         }
 
         override fun onViewDetachedFromWindow(v: View?) {
-            BiometricLoggerImpl.e("ActivityViewWatcher.onViewDetachedFromWindow")
+            BiometricLoggerImpl.d("ActivityViewWatcher.onViewDetachedFromWindow")
             resetListeners()
             forceToCloseCallback.onCloseBiometric()
         }
@@ -85,19 +85,21 @@ class ActivityViewWatcher(
     private fun updateBackground() {
         if (!isAttached || drawingInProgress)
             return
-        BiometricLoggerImpl.e("ActivityViewWatcher.updateBackground")
+        BiometricLoggerImpl.d("ActivityViewWatcher.updateBackground")
         try {
-            BlurUtil.takeScreenshotAndBlur(
-                contentView,
-                object : BlurUtil.OnPublishListener {
-                    override fun onBlurredScreenshot(
-                        originalBitmap: Bitmap,
-                        blurredBitmap: Bitmap
-                    ) {
-                        updateDefaultColor(originalBitmap)
-                        setDrawable(blurredBitmap)
-                    }
-                })
+            contentView?.let {
+                BlurUtil.takeScreenshotAndBlur(
+                    it,
+                    object : BlurUtil.OnPublishListener {
+                        override fun onBlurredScreenshot(
+                            originalBitmap: Bitmap,
+                            blurredBitmap: Bitmap
+                        ) {
+                            updateDefaultColor(originalBitmap)
+                            setDrawable(blurredBitmap)
+                        }
+                    })
+            }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
@@ -117,7 +119,7 @@ class ActivityViewWatcher(
                     .inflate(R.layout.blurred_screen, null, false).apply {
                         tag = tag
                         alpha = 1f
-                        biometrics_layout = findViewById(R.id.biometrics_layout)
+                        biometricsLayout = findViewById(R.id.biometrics_layout)
                         isFocusable = true
                         isClickable = true
                         isLongClickable = true
@@ -140,7 +142,7 @@ class ActivityViewWatcher(
     }
 
     fun setupListeners() {
-        BiometricLoggerImpl.e("ActivityViewWatcher.setupListeners")
+        BiometricLoggerImpl.d("ActivityViewWatcher.setupListeners")
         isAttached = true
         IconStateHelper.registerListener(this)
         try {
@@ -153,7 +155,7 @@ class ActivityViewWatcher(
     }
 
     fun resetListeners() {
-        BiometricLoggerImpl.e("ActivityViewWatcher.resetListeners")
+        BiometricLoggerImpl.d("ActivityViewWatcher.resetListeners")
         isAttached = false
         IconStateHelper.unregisterListener(this)
         try {
@@ -173,50 +175,52 @@ class ActivityViewWatcher(
     }
 
     private fun updateBiometricIconsLayout() {
-        try{
-        biometrics_layout.findViewById<View>(R.id.face)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_FACE)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
-        biometrics_layout.findViewById<View>(R.id.iris)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_IRIS)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
-        biometrics_layout.findViewById<View>(R.id.fingerprint)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_FINGERPRINT)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
-        biometrics_layout.findViewById<View>(R.id.heartrate)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_HEARTRATE)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
-        biometrics_layout.findViewById<View>(R.id.voice)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_VOICE)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
-        biometrics_layout.findViewById<View>(R.id.palm)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_PALMPRINT)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
-        biometrics_layout.findViewById<View>(R.id.typing)?.apply {
-            visibility =
-                if (list.contains(BiometricType.BIOMETRIC_BEHAVIOR)) View.VISIBLE else View.GONE
-            tag = IconStates.WAITING
-        }
+        try {
+            biometricsLayout?.let { biometrics_layout ->
+                biometrics_layout.findViewById<View>(R.id.face)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_FACE)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
+                biometrics_layout.findViewById<View>(R.id.iris)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_IRIS)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
+                biometrics_layout.findViewById<View>(R.id.fingerprint)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_FINGERPRINT)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
+                biometrics_layout.findViewById<View>(R.id.heartrate)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_HEARTRATE)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
+                biometrics_layout.findViewById<View>(R.id.voice)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_VOICE)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
+                biometrics_layout.findViewById<View>(R.id.palm)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_PALMPRINT)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
+                biometrics_layout.findViewById<View>(R.id.typing)?.apply {
+                    visibility =
+                        if (list.contains(BiometricType.BIOMETRIC_BEHAVIOR)) View.VISIBLE else View.GONE
+                    tag = IconStates.WAITING
+                }
 
-        updateIcons()
-        if (list.isEmpty()) {
-            biometrics_layout.visibility = View.GONE
-        } else {
-            biometrics_layout.visibility = View.VISIBLE
-        }
-        } catch (e : Throwable){
+                updateIcons()
+                if (list.isEmpty()) {
+                    biometrics_layout.visibility = View.GONE
+                } else {
+                    biometrics_layout.visibility = View.VISIBLE
+                }
+            }
+        } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
     }
@@ -231,44 +235,51 @@ class ActivityViewWatcher(
                 context,
                 DialogMainColor.getColor(!isDark)
             )
-            BiometricLoggerImpl.e("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - $defaultColor")
+            BiometricLoggerImpl.d("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - $defaultColor")
         } catch (e : Throwable){
             BiometricLoggerImpl.e(e)
         }
     }
 
     private fun updateIcons() {
-        for (type in BiometricType.values()) {
-            when (type) {
-                BiometricType.BIOMETRIC_FACE -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.face)?.tag as IconStates
-                )
-                BiometricType.BIOMETRIC_IRIS -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.iris)?.tag as IconStates
-                )
-                BiometricType.BIOMETRIC_HEARTRATE -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.heartrate)?.tag as IconStates
-                )
-                BiometricType.BIOMETRIC_VOICE -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.voice)?.tag as IconStates
-                )
-                BiometricType.BIOMETRIC_PALMPRINT -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.palm)?.tag as IconStates
-                )
-                BiometricType.BIOMETRIC_BEHAVIOR -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.typing)?.tag as IconStates
-                )
-                BiometricType.BIOMETRIC_FINGERPRINT -> setIconState(
-                    type,
-                    biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates
-                )
+        try {
+            biometricsLayout?.let { biometrics_layout ->
+
+                for (type in BiometricType.values()) {
+                    when (type) {
+                        BiometricType.BIOMETRIC_FACE -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.face)?.tag as IconStates
+                        )
+                        BiometricType.BIOMETRIC_IRIS -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.iris)?.tag as IconStates
+                        )
+                        BiometricType.BIOMETRIC_HEARTRATE -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.heartrate)?.tag as IconStates
+                        )
+                        BiometricType.BIOMETRIC_VOICE -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.voice)?.tag as IconStates
+                        )
+                        BiometricType.BIOMETRIC_PALMPRINT -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.palm)?.tag as IconStates
+                        )
+                        BiometricType.BIOMETRIC_BEHAVIOR -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.typing)?.tag as IconStates
+                        )
+                        BiometricType.BIOMETRIC_FINGERPRINT -> setIconState(
+                            type,
+                            biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates
+                        )
+                    }
+                }
             }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
     }
 
@@ -289,64 +300,66 @@ class ActivityViewWatcher(
     }
 
     private fun setIconState(type: BiometricType?, iconStates: IconStates) {
-        try{
-        val color = when (iconStates) {
-            IconStates.WAITING -> defaultColor
-            IconStates.ERROR -> Color.RED
-            IconStates.SUCCESS -> Color.GREEN
-        }
-        when (type) {
-            BiometricType.BIOMETRIC_FACE -> {
-                biometrics_layout.findViewById<View>(R.id.face)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.face),
-                    ColorStateList.valueOf(color)
-                )
+        try {
+            biometricsLayout?.let { biometrics_layout ->
+                val color = when (iconStates) {
+                    IconStates.WAITING -> defaultColor
+                    IconStates.ERROR -> Color.RED
+                    IconStates.SUCCESS -> Color.GREEN
+                }
+                when (type) {
+                    BiometricType.BIOMETRIC_FACE -> {
+                        biometrics_layout.findViewById<View>(R.id.face)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.face),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                    BiometricType.BIOMETRIC_IRIS -> {
+                        biometrics_layout.findViewById<View>(R.id.iris)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.iris),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                    BiometricType.BIOMETRIC_HEARTRATE -> {
+                        biometrics_layout.findViewById<View>(R.id.heartrate)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.heartrate),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                    BiometricType.BIOMETRIC_VOICE -> {
+                        biometrics_layout.findViewById<View>(R.id.voice)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.voice),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                    BiometricType.BIOMETRIC_PALMPRINT -> {
+                        biometrics_layout.findViewById<View>(R.id.palm)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.palm),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                    BiometricType.BIOMETRIC_BEHAVIOR -> {
+                        biometrics_layout.findViewById<View>(R.id.typing)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.typing),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                    BiometricType.BIOMETRIC_FINGERPRINT -> {
+                        biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag = iconStates
+                        ImageViewCompat.setImageTintList(
+                            biometrics_layout.findViewById<ImageView>(R.id.fingerprint),
+                            ColorStateList.valueOf(color)
+                        )
+                    }
+                }
             }
-            BiometricType.BIOMETRIC_IRIS -> {
-                biometrics_layout.findViewById<View>(R.id.iris)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.iris),
-                    ColorStateList.valueOf(color)
-                )
-            }
-            BiometricType.BIOMETRIC_HEARTRATE -> {
-                biometrics_layout.findViewById<View>(R.id.heartrate)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.heartrate),
-                    ColorStateList.valueOf(color)
-                )
-            }
-            BiometricType.BIOMETRIC_VOICE -> {
-                biometrics_layout.findViewById<View>(R.id.voice)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.voice),
-                    ColorStateList.valueOf(color)
-                )
-            }
-            BiometricType.BIOMETRIC_PALMPRINT -> {
-                biometrics_layout.findViewById<View>(R.id.palm)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.palm),
-                    ColorStateList.valueOf(color)
-                )
-            }
-            BiometricType.BIOMETRIC_BEHAVIOR -> {
-                biometrics_layout.findViewById<View>(R.id.typing)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.typing),
-                    ColorStateList.valueOf(color)
-                )
-            }
-            BiometricType.BIOMETRIC_FINGERPRINT -> {
-                biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag = iconStates
-                ImageViewCompat.setImageTintList(
-                    biometrics_layout.findViewById<ImageView>(R.id.fingerprint),
-                    ColorStateList.valueOf(color)
-                )
-            }
-        }
-        } catch (e : Throwable){
+        } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
     }

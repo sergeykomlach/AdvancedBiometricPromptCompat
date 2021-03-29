@@ -167,7 +167,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 builder.allAvailableTypes
             )
             allList.removeAll(confirmedList)
-            BiometricLoggerImpl.e("onSuccess - $allList; ($confirmed / ${builder.allAvailableTypes})")
+            BiometricLoggerImpl.d("onSuccess - $allList; ($confirmed / ${builder.allAvailableTypes})")
             if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
                 builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
             ) {
