@@ -43,7 +43,7 @@ object CheckBiometricUI {
                 }
             }
         } catch (e: Throwable) {
-
+            BiometricLoggerImpl.e(e)
         }
         return ArrayList(apks)
     }
@@ -68,8 +68,7 @@ object CheckBiometricUI {
             zipEntries.sortWith { o1, o2 -> o1.name.compareTo(o2.name) }
             for (zip in zipEntries) {
                 if (zip.name.contains("layout", true) &&
-                    (zip.name.contains("biometric", true) || zip.name.contains("fingerprint")) &&
-                    zip.name.contains("dialog")
+                    (zip.name.contains("biometric", true) || zip.name.contains("fingerprint"))
                 ) {
                     BiometricLoggerImpl.d("Resource in APK ${zip.name}")
                     return true
@@ -85,10 +84,17 @@ object CheckBiometricUI {
     }
 
     fun hasExists(context: Context): Boolean {
-        val apks = getAPKs(context, "com.android.systemui")
-        for (f in apks) {
-            if (checkApk(f))
+        try {
+            val apks = getAPKs(context, "com.android.systemui")
+            if (apks.isEmpty())
                 return true
+
+            for (f in apks) {
+                if (checkApk(f))
+                    return true
+            }
+        } catch (e : Throwable){
+            BiometricLoggerImpl.e(e)
         }
         return false
     }
