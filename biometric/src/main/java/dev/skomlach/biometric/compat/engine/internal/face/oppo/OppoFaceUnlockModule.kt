@@ -36,10 +36,10 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
+import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import org.chickenhook.restrictionbypass.Unseal
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -47,19 +47,21 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: OppoMirrorFaceManager? = null
 
     init {
-        Unseal.unseal(listOf("android.hardware.face"))
-        manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                context.getSystemService(OppoMirrorFaceManager::class.java)
-            } catch (ignore: Throwable) {
-                null
-            }
-        } else {
-            try {
-                context.getSystemService("face") as OppoMirrorFaceManager
-            } catch (ignore: Throwable) {
-                null
-            }
+        if(VendorCheck.isOppo) {
+                manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    try {
+                        context.getSystemService(OppoMirrorFaceManager::class.java)
+                    } catch (ignore: Throwable) {
+                        null
+                    }
+                } else {
+                    try {
+                        context.getSystemService("face") as OppoMirrorFaceManager
+                    } catch (ignore: Throwable) {
+                        null
+                    }
+                }
+
         }
         listener?.initFinished(biometricMethod, this@OppoFaceUnlockModule)
     }

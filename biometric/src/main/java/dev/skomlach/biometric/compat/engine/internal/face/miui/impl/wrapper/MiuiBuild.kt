@@ -29,10 +29,6 @@ object MiuiBuild {
     init {
         try {
             clazz = Class.forName("miui.os.Build")
-        } catch (e: Throwable) {
-            e(e)
-        }
-        try {
             IS_INTERNATIONAL_BUILD =
                 clazz?.getField("IS_INTERNATIONAL_BUILD")?.getBoolean(null) ?: false
             DEVICE = clazz?.getField("DEVICE")?.get(null) as String?

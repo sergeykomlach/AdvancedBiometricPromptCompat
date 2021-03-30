@@ -30,9 +30,10 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import org.chickenhook.restrictionbypass.Unseal
+
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -40,11 +41,13 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: FaceDetectManager? = null
 
     init {
-        Unseal.unseal(listOf("com.vivo.framework.facedetect"))
-        manager = try {
-            FaceDetectManager.getInstance()
-        } catch (ignore: Throwable) {
-            null
+        if(VendorCheck.isVivo) {
+                manager = try {
+                    FaceDetectManager.getInstance()
+                } catch (ignore: Throwable) {
+                    null
+                }
+
         }
         listener?.initFinished(biometricMethod, this@VivoFaceUnlockModule)
     }

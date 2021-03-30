@@ -56335,6 +56335,11 @@
    "model": "Infinix X658B"
   },
   {
+   "device": "Infinix-X659B",
+   "name": "HOT 10i",
+   "model": "Infinix X659B"
+  },
+  {
    "device": "Infinix_X510",
    "name": "HOT 2",
    "model": "Infinix X510"
@@ -146457,6 +146462,11 @@
    "device": "I1928",
    "name": "I1928",
    "model": "I1928"
+  },
+  {
+   "device": "2012",
+   "name": "I2012",
+   "model": "I2012"
   },
   {
    "device": "PD1806B",

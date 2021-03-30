@@ -35,7 +35,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import org.chickenhook.restrictionbypass.Unseal
+
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -43,7 +43,6 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var manager: IrisManager? = null
 
     init {
-        Unseal.unseal(listOf("android.hardware.iris"))
         manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(IrisManager::class.java)

@@ -57,10 +57,6 @@ object BiometricConnect {
             clazz = Class.forName("android.miui.BiometricConnect")
             dbtemplateClass = Class.forName("android.miui.BiometricConnect\$DBTemplate")
             dbgroupClass = Class.forName("android.miui.BiometricConnect\$DBGroup")
-        } catch (e: Throwable) {
-            e(e)
-        }
-        try {
             DEBUG_LOG = clazz?.getField("DEBUG_LOG")?.getBoolean(null) ?: false
             MSG_VER_SER_MAJ = clazz?.getField("MSG_VER_SER_MAJ")?.get(null) as String?
             MSG_VER_SER_MIN = clazz?.getField("MSG_VER_SER_MIN")?.get(null) as String?

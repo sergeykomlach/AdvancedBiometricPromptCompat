@@ -55,6 +55,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
+import org.chickenhook.restrictionbypass.Unseal
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -65,6 +66,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
         init {
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+            try {
+                Unseal.unsealAll()
+            } catch (e : Throwable){
+                e.printStackTrace()
+            }
         }
         @JvmStatic
         val availableAuthRequests = ArrayList<BiometricAuthRequest>()

@@ -37,10 +37,10 @@ import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
+import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import org.chickenhook.restrictionbypass.Unseal
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -50,30 +50,26 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: IMiuiFaceManager? = null
 
     init {
-        val list: MutableList<String> = ArrayList()
-        list.add("android.miui")
-        list.add("miui.os")
-        list.add("miui.util")
-        list.add("android.util")
-        Unseal.unseal(list)
-        try {
-            manager = MiuiFaceFactory.getFaceManager(context, MiuiFaceFactory.TYPE_3D)
-            if (manager?.isFaceFeatureSupport == false) {
-                throw RuntimeException("Miui 3DFace not supported")
-            }
-        } catch (e1: Throwable) {
-            e(e1, e1.message, name)
+        if(VendorCheck.isMiui) {
             try {
-                manager = MiuiFaceFactory.getFaceManager(context, MiuiFaceFactory.TYPE_2D)
+                manager = MiuiFaceFactory.getFaceManager(context, MiuiFaceFactory.TYPE_3D)
                 if (manager?.isFaceFeatureSupport == false) {
-                    throw RuntimeException("Miui 2DFace not supported")
+                    throw RuntimeException("Miui 3DFace not supported")
                 }
-            } catch (e2: Throwable) {
-                e(e2, e2.message, name)
-                manager = null
+            } catch (e1: Throwable) {
+                e(e1, e1.message, name)
+                try {
+                    manager = MiuiFaceFactory.getFaceManager(context, MiuiFaceFactory.TYPE_2D)
+                    if (manager?.isFaceFeatureSupport == false) {
+                        throw RuntimeException("Miui 2DFace not supported")
+                    }
+                } catch (e2: Throwable) {
+                    e(e2, e2.message, name)
+                    manager = null
+                }
             }
+            e("MiuiFaceUnlockModule - $manager")
         }
-        e("MiuiFaceUnlockModule - $manager")
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
     override val isManagerAccessible: Boolean
