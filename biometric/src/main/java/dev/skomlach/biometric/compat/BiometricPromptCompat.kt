@@ -192,7 +192,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var timeout = false
         ExecutorHelper.INSTANCE.startOnBackground {
             while (!isDeviceInfoChecked || !isInit) {
-                timeout = System.currentTimeMillis() - startTime <= TimeUnit.SECONDS.toMillis(5)
+                timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
                 if(timeout) {
                     break
                 }
@@ -206,7 +206,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
                 }
                 else
-                    startAuth(callbackOuter) 
+                    startAuth(callbackOuter)
             }
         }
     }
@@ -303,77 +303,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private fun authenticateInternal(callback: Result) {
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                val d = impl.builder.activeWindow
-                if (!ViewCompat.isAttachedToWindow(d)) {
-                    checkForAttachAndStart(d, callback)
-                } else {
-                    impl.authenticate(callback)
-                }
-            } else {
-                BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
-                impl.authenticate(callback)
-            }
-        } catch (ignore: IllegalStateException) {
-             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private fun checkForAttachAndStart(d: View, callback: Result) {
-        BiometricLoggerImpl.d("BiometricPromptCompat.checkForAttachAndStart() - started")
-        val atomicReference = AtomicReference<View.OnAttachStateChangeListener?>(null)
-        val r = Runnable {
-            atomicReference.get()?.let {
-                atomicReference.set(null)
-                d.removeOnAttachStateChangeListener(it)
-                callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
-            }
-        }
-        d.postDelayed(r, TimeUnit.SECONDS.toMillis(1))
-        val onAttachStateChangeListener = object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) {
-                d.removeCallbacks(r)
-                d.removeOnAttachStateChangeListener(this)
-                checkForFocusAndStart(callback)
-            }
-
-            override fun onViewDetachedFromWindow(v: View) {
-                d.removeOnAttachStateChangeListener(this)
-            }
-        }
-        atomicReference.set(onAttachStateChangeListener)
-        d.addOnAttachStateChangeListener(onAttachStateChangeListener)
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private fun checkForFocusAndStart(callback: Result) {
-        BiometricLoggerImpl.d("BiometricPromptCompat.checkForFocusAndStart() - started")
-        val activity = impl.builder.activeWindow
-        if (!activity.hasWindowFocus()) {
-            val atomicReference = AtomicReference<OnWindowFocusChangeListener?>(null)
-            val r = Runnable {
-                atomicReference.get()?.let {
-                    atomicReference.set(null)
-                    activity.viewTreeObserver.removeOnWindowFocusChangeListener(it)
-                    callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
-                }
-            }
-            activity.postDelayed(r, TimeUnit.SECONDS.toMillis(1))
-
-            val windowFocusChangeListener: OnWindowFocusChangeListener =
-                object : OnWindowFocusChangeListener {
-                    override fun onWindowFocusChanged(focus: Boolean) {
-                        if (activity.hasWindowFocus()) {
-                            activity.removeCallbacks(r)
-                            activity.viewTreeObserver.removeOnWindowFocusChangeListener(this)
-                            impl.authenticate(callback)
-                        }
-                    }
-                }
-            activity.viewTreeObserver.addOnWindowFocusChangeListener(windowFocusChangeListener)
-        } else {
+            BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
             impl.authenticate(callback)
+        } catch (ignore: IllegalStateException) {
+            callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
         }
     }
 
