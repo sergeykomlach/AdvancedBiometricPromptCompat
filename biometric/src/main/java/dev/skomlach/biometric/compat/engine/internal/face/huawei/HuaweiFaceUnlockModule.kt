@@ -37,7 +37,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFace
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
-import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy.get
+import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -51,24 +51,20 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     private var huawei3DFaceManager: FaceManager? = null
 
     init {
-        var versionEmui = get(context, "ro.build.version.emui")
-        val emuiTag = "EmotionUI_"
-        if (versionEmui != null && versionEmui.startsWith(emuiTag)) {
-            versionEmui = versionEmui.substring(emuiTag.length)
-        }
-        d("$name.EMUI version - '$versionEmui'")
         ExecutorHelper.INSTANCE.handler.post {
-            try {
-                huawei3DFaceManager = faceManager
-                d("$name.huawei3DFaceManager - $huawei3DFaceManager")
-            } catch (ignore: Throwable) {
-                huawei3DFaceManager = null
-            }
-            try {
-                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
-                d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
-            } catch (ignore: Throwable) {
-                huaweiFaceManagerLegacy = null
+            if(VendorCheck.isHuawei) {
+                try {
+                    huawei3DFaceManager = faceManager
+                    d("$name.huawei3DFaceManager - $huawei3DFaceManager")
+                } catch (ignore: Throwable) {
+                    huawei3DFaceManager = null
+                }
+                try {
+                    huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
+                    d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
+                } catch (ignore: Throwable) {
+                    huaweiFaceManagerLegacy = null
+                }
             }
             listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
         }

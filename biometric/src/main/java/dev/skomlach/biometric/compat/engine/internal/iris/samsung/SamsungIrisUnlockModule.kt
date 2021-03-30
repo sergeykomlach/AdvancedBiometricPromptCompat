@@ -36,10 +36,11 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
+import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import org.chickenhook.restrictionbypass.Unseal
+
 import java.lang.ref.WeakReference
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -48,11 +49,13 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var manager: SemIrisManager? = null
     private var viewWeakReference = WeakReference<View?>(null)
     init {
-        Unseal.unseal(listOf("com.samsung.android.camera.iris"))
-        manager = try {
-            SemIrisManager.getSemIrisManager(context)
-        } catch (ignore: Throwable) {
-            null
+        if(VendorCheck.isSamsung) {
+                manager = try {
+                    SemIrisManager.getSemIrisManager(context)
+                } catch (ignore: Throwable) {
+                    null
+                }
+
         }
         listener?.initFinished(biometricMethod, this@SamsungIrisUnlockModule)
     }

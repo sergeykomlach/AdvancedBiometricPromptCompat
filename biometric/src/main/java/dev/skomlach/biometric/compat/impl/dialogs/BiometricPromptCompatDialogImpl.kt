@@ -41,7 +41,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
-import org.chickenhook.restrictionbypass.Unseal.unseal
+
 import java.util.concurrent.atomic.AtomicBoolean
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -169,7 +169,6 @@ class BiometricPromptCompatDialogImpl(
         }
     private var originalColor: ColorStateList? = null
     private fun getDialogTitle(): String {
-        unseal(listOf("com.android.internal"))
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {

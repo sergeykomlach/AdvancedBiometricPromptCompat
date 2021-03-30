@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils.device
 import android.content.Context
 import android.net.ConnectivityManager
 import android.os.Looper
-import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -122,18 +121,21 @@ class DeviceInfoManager private constructor() {
         onDeviceInfoListener.onReady(deviceInfo)
     }
 
-    private val cachedDeviceInfo: DeviceInfo?
+    private var cachedDeviceInfo: DeviceInfo? = null
         get() {
-            val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
-            if (sharedPreferences.getBoolean("checked", false)) {
-                val model = sharedPreferences.getString("model", null) ?: return null
-                val sensors = sharedPreferences.getStringSet("sensors", null) ?: return null
-                return DeviceInfo(model, sensors)
+            if (field == null) {
+                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
+                if (sharedPreferences.getBoolean("checked", false)) {
+                    val model = sharedPreferences.getString("model", null) ?: return null
+                    val sensors = sharedPreferences.getStringSet("sensors", null) ?: return null
+                    field = DeviceInfo(model, sensors)
+                }
             }
-            return null
+            return field
         }
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
+        cachedDeviceInfo = deviceInfo
         val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
             .edit()
         sharedPreferences
