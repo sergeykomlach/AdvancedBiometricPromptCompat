@@ -27,6 +27,8 @@
     <!-- Huawei FaceUnlock-->
     <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION"/>
     <uses-permission android:name="android.permission.USE_FACERECOGNITION" />
+    <uses-permission android:name="com.huawei.permission.MANAGE_FACERECOGNITION"/>
+    <uses-permission android:name="android.permission.MANAGE_FACERECOGNITION"/>
 
     <!-- Oppo -->
     <uses-permission android:name="oppo.permission.USE_FACE" />
@@ -48,6 +50,7 @@
     <uses-permission android:name="android.permission.USE_IRIS" />
     <uses-permission android:name="android.permission.USE_FACE_AUTHENTICATION" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC_INTERNAL" tools:ignore="ProtectedPermissions" />
 
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

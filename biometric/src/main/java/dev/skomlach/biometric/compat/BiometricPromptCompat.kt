@@ -54,6 +54,7 @@ import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import org.chickenhook.restrictionbypass.Unseal
 import java.util.*
@@ -160,6 +161,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             biometricAuthRequest = BiometricAuthRequest(api, type)
                             if (isHardwareDetected(biometricAuthRequest)) {
                                 availableAuthRequests.add(biometricAuthRequest)
+                                //just cache value
+                                hasEnrolled(biometricAuthRequest)
+                                isLockOut(biometricAuthRequest)
                             }
                         }
                     }
@@ -186,6 +190,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun authenticate(callbackOuter: Result) {
+        if(isActivityFinished(builder.context)){
+            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
+            return
+        }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
         WideGamutBug.checkColorMode(builder.context)
         val startTime = System.currentTimeMillis()

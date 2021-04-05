@@ -178,6 +178,7 @@ object BiometricAuthentication {
     val availableBiometrics: List<BiometricType?>
         get() {
             val biometricMethodListInternal = HashSet<BiometricType?>()
+            val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
             for (method in moduleHashMap.keys) {
                 e("Module:$method")
                 biometricMethodListInternal.add(method.biometricType)
@@ -187,6 +188,7 @@ object BiometricAuthentication {
     @JvmStatic val availableBiometricMethods: List<BiometricMethod>
         get() {
             val biometricMethodListInternal = HashSet<BiometricMethod>()
+            val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
             for (method in moduleHashMap.keys) {
                 e("Module:$method")
                 biometricMethodListInternal.add(method)
@@ -353,6 +355,7 @@ object BiometricAuthentication {
     fun getAvailableBiometricModule(biometricMethod: BiometricType?): BiometricModule? {
         var module: BiometricMethod? = null
         //lowest  ID == highest priority
+        val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
         for (m in moduleHashMap.keys) {
             if (m.biometricType == biometricMethod) {
                 if (module == null) module = m else if (module.id > m.id) {

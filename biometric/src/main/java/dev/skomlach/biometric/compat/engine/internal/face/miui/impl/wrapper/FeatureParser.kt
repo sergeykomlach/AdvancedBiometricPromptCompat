@@ -34,7 +34,7 @@ object FeatureParser {
 
     fun getStringArray(s: String?): Array<String>? {
         return try {
-            clazz?.getMethod("getStringArray", String::class.java)?.invoke(null, s) as Array<String>
+            clazz?.getMethod("getStringArray", String::class.java)?.invoke(null, s) as Array<String>?
         } catch (e: Throwable) {
             e(e)
             null

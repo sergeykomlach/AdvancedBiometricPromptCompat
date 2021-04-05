@@ -27,12 +27,14 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
 import org.ifaa.android.manager.IFAAManagerFactory
 import java.util.*
 
 object BiometricManagerCompat {
 
+    private val preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricManagerCache")
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -40,7 +42,6 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
         return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
     }
     @JvmStatic
@@ -50,11 +51,17 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return if(api.api != BiometricApi.AUTO)
+        if(!BiometricPromptCompat.isInit){
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
+        }
+        val result = if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isHardwareAvailable
         else
             HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isHardwareAvailable || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isHardwareAvailable
+
+        preferences.edit().putBoolean("isHardwareDetected-${api.api}-${api.type}", result).apply()
+        return result
     }
     @JvmStatic
     fun hasEnrolled(
@@ -63,12 +70,17 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return if(api.api != BiometricApi.AUTO)
+        if(!BiometricPromptCompat.isInit){
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
+        }
+        val result = if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isBiometricEnrolled
         else
             HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isBiometricEnrolled || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isBiometricEnrolled
 
+        preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).apply()
+        return result
     }
     @JvmStatic
     fun isLockOut(
@@ -77,12 +89,17 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-        return if(api.api != BiometricApi.AUTO)
+        if(!BiometricPromptCompat.isInit){
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("isLockOut-${api.api}-${api.type}", false)
+        }
+        val result = if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
         else
             HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isLockedOut || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isLockedOut
 
+        preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
+        return result
     }
 
     @JvmStatic
@@ -92,8 +109,6 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     , forced : Boolean = true): Boolean {
-        check(BiometricPromptCompat.isInit) { "Please call BiometricPromptCompat.init(null);  first" }
-
         if (BiometricType.BIOMETRIC_ANY != api.type) {
             try {
                 //https://git.aicp-rom.com/device_oneplus_oneplus3.git/tree/org.ifaa.android.manager/src/org/ifaa/android/manager/IFAAManagerFactory.java?h=refs/changes/03/28003/1
@@ -116,8 +131,7 @@ object BiometricManagerCompat {
                 }
             } catch (ignore: Throwable) {
             }
-
-            if (BiometricAuthentication.openSettings(
+            if (BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(
                     activity,
                     api.type
                 )
