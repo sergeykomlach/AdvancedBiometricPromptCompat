@@ -132,6 +132,8 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, name)
 
             }
+        if(!(faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled))
+        e(RuntimeException("Unable to find 'hasEnrolled' method"))
 
         return faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled
     }

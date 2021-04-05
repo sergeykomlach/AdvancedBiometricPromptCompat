@@ -86,6 +86,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             }
         } catch (e: Throwable) {
         }
+        e(RuntimeException("Unable to find 'hasEnrolled' method"))
         return false
     }
 
