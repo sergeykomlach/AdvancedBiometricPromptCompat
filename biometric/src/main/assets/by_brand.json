@@ -16839,11 +16839,6 @@
  ],
  "CHiQ": [
   {
-   "device": "hapjeong",
-   "name": "G7P",
-   "model": "AI PONT PLUS"
-  },
-  {
    "device": "samseong",
    "name": "H7A",
    "model": "AI PONT"
@@ -18338,6 +18333,11 @@
   }
  ],
  "Changhong": [
+  {
+   "device": "hapjeong",
+   "name": "G7P",
+   "model": "AI PONT PLUS"
+  },
   {
    "device": "GIU6060",
    "name": "GIU6060",
@@ -24605,6 +24605,13 @@
    "device": "M50E-1A",
    "name": "M50E-1A",
    "model": "M50E-1A"
+  }
+ ],
+ "Dialog_TV": [
+  {
+   "device": "DV6067H-Dialog",
+   "name": "Viu Mini",
+   "model": "Viu Mini"
   }
  ],
  "Diamond": [
@@ -63442,19 +63449,19 @@
  ],
  "Kurio": [
   {
+   "device": "U3A_7_WIFI_Refresh_KD",
+   "name": "KURIO LITE GO NEW",
+   "model": "9309S"
+  },
+  {
    "device": "Aquaman_10_WIFI",
-   "name": "1T10  WIFI NEW",
+   "name": "Kurio Smart 2 in 1 PRO",
    "model": "8391X"
   },
   {
    "device": "Aquaman_10_WIFI",
-   "name": "1T10 WIFI NEW",
+   "name": "Kurio Smart 2 in 1 PRO",
    "model": "8391X_EEA"
-  },
-  {
-   "device": "U3A_7_WIFI_Refresh_KD",
-   "name": "KURIO LITE GO NEW",
-   "model": "9309S"
   },
   {
    "device": "Hulk_7_KIDS_WIFI",
@@ -81607,6 +81614,11 @@
    "model": "Meizu M8c"
   },
   {
+   "device": "meizu18",
+   "name": "MEIZU 18",
+   "model": "MEIZU 18"
+  },
+  {
    "device": "Meizu6T",
    "name": "Meizu 6T",
    "model": "Meizu 6T"
@@ -81665,6 +81677,11 @@
    "device": "meizu17Pro",
    "name": "meizu 17 Pro",
    "model": "meizu 17 Pro"
+  },
+  {
+   "device": "meizu18Pro",
+   "name": "meizu 18 Pro",
+   "model": "MEIZU 18 Pro"
   },
   {
    "device": "meizuC9",
@@ -97943,6 +97960,11 @@
   },
   {
    "device": "NEXT820",
+   "name": "NEXT Elite-4K 16",
+   "model": "NEXT"
+  },
+  {
+   "device": "NEXT820",
    "name": "NEXT Elite-4K 24",
    "model": "NEXT"
   },
@@ -109161,6 +109183,11 @@
   {
    "device": "a02q",
    "name": "Galaxy A02s",
+   "model": "SM-A025U"
+  },
+  {
+   "device": "a02q",
+   "name": "Galaxy A02s",
    "model": "SM-A025V"
   },
   {
@@ -109272,6 +109299,16 @@
    "device": "a12",
    "name": "Galaxy A12",
    "model": "SM-A125M"
+  },
+  {
+   "device": "a12",
+   "name": "Galaxy A12",
+   "model": "SM-A125N"
+  },
+  {
+   "device": "a12u",
+   "name": "Galaxy A12",
+   "model": "SM-A125U"
   },
   {
    "device": "a2corelte",
@@ -109649,6 +109686,21 @@
    "model": "SM-A326BR"
   },
   {
+   "device": "a32x",
+   "name": "Galaxy A32 5G",
+   "model": "SM-A326U"
+  },
+  {
+   "device": "a32x",
+   "name": "Galaxy A32 5G",
+   "model": "SM-A326U1"
+  },
+  {
+   "device": "a32x",
+   "name": "Galaxy A32 5G",
+   "model": "SM-A326W"
+  },
+  {
    "device": "a40",
    "name": "Galaxy A40",
    "model": "SM-A405FM"
@@ -109712,6 +109764,11 @@
    "device": "a42xuq",
    "name": "Galaxy A42 5G",
    "model": "SM-A426U"
+  },
+  {
+   "device": "a42xuq",
+   "name": "Galaxy A42 5G",
+   "model": "SM-A426U1"
   },
   {
    "device": "a53g",
@@ -110047,6 +110104,16 @@
    "device": "a52xq",
    "name": "Galaxy A52 5G",
    "model": "SM-A526U"
+  },
+  {
+   "device": "a52xq",
+   "name": "Galaxy A52 5G",
+   "model": "SM-A526U1"
+  },
+  {
+   "device": "a52xq",
+   "name": "Galaxy A52 5G",
+   "model": "SM-A526W"
   },
   {
    "device": "a6elteaio",
@@ -115659,6 +115726,11 @@
    "model": "SGH-T589W"
   },
   {
+   "device": "a82xq",
+   "name": "Galaxy Quantum2",
+   "model": "SM-A826S"
+  },
+  {
    "device": "jaguark",
    "name": "Galaxy R-Style",
    "model": "SHV-E170K"
@@ -116467,6 +116539,11 @@
    "device": "y2s",
    "name": "Galaxy S20+ 5G",
    "model": "SM-G986B"
+  },
+  {
+   "device": "SC-51B",
+   "name": "Galaxy S21 5G",
+   "model": "SC-51B"
   },
   {
    "device": "o1q",
@@ -122825,6 +122902,11 @@
    "device": "WJG",
    "name": "AQUOS sense5G",
    "model": "SHG03"
+  },
+  {
+   "device": "SarahH",
+   "name": "AQUOS sense5G SH-S50",
+   "model": "SH-S50"
   },
   {
    "device": "SG801SH",
@@ -134589,16 +134671,6 @@
    "model": "8068"
   },
   {
-   "device": "U3A_7_WIFI_Refresh",
-   "name": "Alcatel 1T 7 WIFI NEW",
-   "model": "9309X"
-  },
-  {
-   "device": "U3A_7_WIFI_Refresh",
-   "name": "Alcatel 1T7 Wifi",
-   "model": "9309X_RU"
-  },
-  {
    "device": "Tokyo_Lite",
    "name": "Alcatel 1V",
    "model": "5007A"
@@ -137497,6 +137569,16 @@
    "device": "King_Kong_7_4G",
    "name": "alcatel 1T7 4G",
    "model": "9013X_TR"
+  },
+  {
+   "device": "U3A_7_WIFI_Refresh",
+   "name": "alcatel 1T7 NEW",
+   "model": "9309X"
+  },
+  {
+   "device": "U3A_7_WIFI_Refresh",
+   "name": "alcatel 1T7 NEW",
+   "model": "9309X_RU"
   },
   {
    "device": "Edison",
@@ -164899,6 +164981,11 @@
    "device": "HB_N9106H_C_truevisions",
    "name": "N9106H-C",
    "model": "N9106H-C"
+  },
+  {
+   "device": "HP42F",
+   "name": "SKWAMX3",
+   "model": "SKWAMX3"
   },
   {
    "device": "TV_A01",
