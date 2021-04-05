@@ -88,7 +88,14 @@ object BlurUtil {
                 if (view.viewTreeObserver.isAlive) {
                     takeScreenshot.invoke()
                     if (isDone.get()) {
-                        view.viewTreeObserver.removeOnDrawListener(this)
+                        val onDrawListener = this
+                        view.post {
+                            try {
+                            view.viewTreeObserver.removeOnDrawListener(onDrawListener)
+                        } catch (e: Throwable) {
+                            BiometricLoggerImpl.e(e)
+                        }
+                        }
                     }
                 }
             }

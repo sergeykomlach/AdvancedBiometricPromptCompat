@@ -185,22 +185,7 @@ class Miui3DFaceManagerImpl constructor(private val mContext: Context) : IMiuiFa
         mRemovalCallback = null
         mAuthenticationCallback = null
         mEnrollmentCallback = null
-        try {
 
-//        Secure.putIntForUser(this.mContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
-            ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver, Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE),
-                false, mHasFaceDataObserver, 0
-            )
-            mHasFaceDataObserver.onChange(false)
-            ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver, Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN),
-                false, mSuperPowerOpenObserver, 0
-            )
-            mSuperPowerOpenObserver.onChange(false)
-        } catch (e: Throwable) {
-            e(e)
-        }
         mHandler = ClientHandler(
             mContext
         )
@@ -223,6 +208,22 @@ class Miui3DFaceManagerImpl constructor(private val mContext: Context) : IMiuiFa
                     FACE_UNLOCK_HAS_FEATURE, 0, 0
                 ) != 0
             }
+        }
+        try {
+
+//        Secure.putIntForUser(this.mContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
+            ContentResolverHelper.registerContentObserver(
+                mContext.contentResolver, Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE),
+                false, mHasFaceDataObserver, 0
+            )
+            mHasFaceDataObserver.onChange(false)
+            ContentResolverHelper.registerContentObserver(
+                mContext.contentResolver, Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN),
+                false, mSuperPowerOpenObserver, 0
+            )
+            mSuperPowerOpenObserver.onChange(false)
+        } catch (e: Throwable) {
+            e(e)
         }
         mBiometricClient = BiometricClient(mContext)
         mBiometricClient?.let {

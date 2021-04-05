@@ -47,12 +47,11 @@ object ContentResolverHelper {
                 ContentObserver::class.java,
                 Int::class.javaPrimitiveType
             )?.invoke(cr, uri, notifyForDescendents, observer, userHandle)
-        } catch (e: Throwable) {
-            e(e)
+        } catch (ignore: Throwable) {
             try {
                 cr.registerContentObserver(uri, notifyForDescendents, observer)
-            } catch (e2: Throwable) {
-                e(e2)
+            } catch (e: Throwable) {
+                e(e)
             }
         }
     }

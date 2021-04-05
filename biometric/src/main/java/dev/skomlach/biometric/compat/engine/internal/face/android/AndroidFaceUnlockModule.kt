@@ -102,33 +102,38 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         var faceManagerHasEnrolled = false
 
             try {
-                faceAuthenticationManagerHasEnrolled =
-                    faceAuthenticationManager?.javaClass?.getMethod("hasEnrolledFace")
-                        ?.invoke(faceAuthenticationManager) as Boolean
+                faceAuthenticationManager?.javaClass?.methods?.firstOrNull { method ->
+                    method.name.startsWith(
+                        "hasEnrolled"
+                    )
+                }?.invoke(faceAuthenticationManager)?.let {
+                    if (it is Boolean)
+                        faceAuthenticationManagerHasEnrolled = it
+                    else
+                        throw RuntimeException("Unexpected type - $it")
+                }
             } catch (e: Throwable) {
                 e(e, name)
-                try {
-                    faceAuthenticationManagerHasEnrolled =
-                        faceAuthenticationManager?.javaClass?.getMethod("hasEnrolledTemplates")
-                            ?.invoke(faceAuthenticationManager) as Boolean
-                } catch (e2: Throwable) {
-                    e(e2, name)
-                }
             }
 
 
             try {
-                faceManagerHasEnrolled = faceManager?.javaClass?.getMethod("hasEnrolledFace")
-                    ?.invoke(faceManager) as Boolean
+                 faceManager?.javaClass?.methods?.firstOrNull { method ->
+                    method.name.startsWith(
+                        "hasEnrolled"
+                    )
+                }?.invoke(faceManager)?.let {
+                    if (it is Boolean)
+                        faceManagerHasEnrolled = it
+                    else
+                        throw RuntimeException("Unexpected type - $it")
+                }
             } catch (e: Throwable) {
                 e(e, name)
-                try {
-                    faceManagerHasEnrolled = faceManager?.javaClass?.getMethod("hasEnrolledTemplates")
-                        ?.invoke(faceManager) as Boolean
-                } catch (e2: Throwable) {
-                    e(e2, name)
-                }
+
             }
+        if(!(faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled))
+        e(RuntimeException("Unable to find 'hasEnrolled' method"))
 
         return faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled
     }
