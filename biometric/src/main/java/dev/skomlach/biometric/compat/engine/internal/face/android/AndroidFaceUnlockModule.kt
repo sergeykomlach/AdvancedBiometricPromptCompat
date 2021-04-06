@@ -98,8 +98,6 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
     override fun hasEnrolled(): Boolean {
-        var faceAuthenticationManagerHasEnrolled = false
-        var faceManagerHasEnrolled = false
 
             try {
                 faceAuthenticationManager?.javaClass?.methods?.firstOrNull { method ->
@@ -108,7 +106,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     )
                 }?.invoke(faceAuthenticationManager)?.let {
                     if (it is Boolean)
-                        faceAuthenticationManagerHasEnrolled = it
+                        return it
                     else
                         throw RuntimeException("Unexpected type - $it")
                 }
@@ -124,7 +122,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     )
                 }?.invoke(faceManager)?.let {
                     if (it is Boolean)
-                        faceManagerHasEnrolled = it
+                        return it
                     else
                         throw RuntimeException("Unexpected type - $it")
                 }
@@ -132,10 +130,10 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, name)
 
             }
-        if(!(faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled))
+
         e(RuntimeException("Unable to find 'hasEnrolled' method"))
 
-        return faceAuthenticationManagerHasEnrolled || faceManagerHasEnrolled
+        return false
     }
 
     @Throws(SecurityException::class)
