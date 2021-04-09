@@ -81,17 +81,23 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                return manager?.javaClass?.getMethod("hasEnrolledFace")?.invoke(manager) as Boolean
-            } catch (e: Throwable) {
-                e(e, name)
-                try {
-                    return manager?.javaClass?.getMethod("hasEnrolledTemplates")
-                        ?.invoke(manager) as Boolean
-                } catch (e2: Throwable) {
-                    e(e2, name)
-                }
+        try {
+            manager?.javaClass?.methods?.firstOrNull { method ->
+                method.name.startsWith(
+                    "hasEnrolled"
+                )
+            }?.invoke(manager)?.let {
+                if (it is Boolean)
+                    return it
+                else
+                    throw RuntimeException("Unexpected type - $it")
             }
+        } catch (e: Throwable) {
+            e(e, name)
+
+        }
+
+        e(RuntimeException("Unable to find 'hasEnrolled' method"))
 
         return false
     }
