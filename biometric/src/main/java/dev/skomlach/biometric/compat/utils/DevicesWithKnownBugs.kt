@@ -38,15 +38,20 @@ object DevicesWithKnownBugs {
         "ONEPLUS A6000", "ONEPLUS A6003" // OnePlus 6
     )
 
-    //Users reports that on LG G8 displayed "Biometric dialog without fingerprint icon";
-    //After digging I found that it seems like BiometricPrompt simply missing on this device,
-    //so the fallback screen for In-Screen scanners are displayed, where we expecte that
-    //Fingerpint icon will be shown by the System
+    //Users reports that on LG devices have a bug with wrong/missing BiometricUI
+    //After digging I found that it seems like system BiometricPrompt simply missing on this device
     //https://lg-firmwares.com/models-list/
-    private val lgWithMissedBiometricUI = arrayOf( //G8 ThinQ
-        "G820N", "G820QM", "G820QM5", "G820TM", "G820UM",  //G8S ThinQ
-        "G810EA", "G810EAW", "G810RA",  //G8X ThinQ
-        "G850EM", "G850EMW", "G850QM", "G850UM"
+    private val lgWithMissedBiometricUI = arrayOf(
+        //G8 ThinQ
+        "G820",
+        //G8S ThinQ
+        "G810",
+        //G8X ThinQ
+        "G850",
+        //Velvet/Velvet 5G
+        "G900",
+        //Velvet 4G Dual Sim
+        "G910",
     )
     @JvmStatic
     val isOnePlusWithBiometricBug: Boolean
@@ -67,7 +72,12 @@ object DevicesWithKnownBugs {
     @JvmStatic
     val isMissedBiometricUI: Boolean
         get() = (Build.BRAND.equals("LG", ignoreCase = true) &&
-                listOf(*lgWithMissedBiometricUI).contains(Build.MODEL)) || !CheckBiometricUI.hasExists(appContext)
+                listOf(*lgWithMissedBiometricUI).any { knownModel ->
+            Build.MODEL.contains(
+                knownModel,
+                ignoreCase = true
+            )
+        }) || !CheckBiometricUI.hasExists(appContext)
     @JvmStatic
     val hasUnderDisplayFingerprint: Boolean
         get() = DeviceInfoManager.INSTANCE.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)

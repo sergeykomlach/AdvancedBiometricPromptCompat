@@ -17422,6 +17422,11 @@
    "model": "ET-L10"
   },
   {
+   "device": "tai",
+   "name": "GSW-H1000",
+   "model": "GSW-H1000"
+  },
+  {
    "device": "itg400",
    "name": "IT-G400",
    "model": "IT-G400"
@@ -56342,6 +56347,11 @@
    "model": "Infinix X658B"
   },
   {
+   "device": "Infinix-X659",
+   "name": "HOT 10i",
+   "model": "Infinix X659"
+  },
+  {
    "device": "Infinix-X659B",
    "name": "HOT 10i",
    "model": "Infinix X659B"
@@ -56610,6 +56620,11 @@
    "device": "Infinix-X655F",
    "name": "Infinix HOT 9 Pro",
    "model": "Infinix X655F"
+  },
+  {
+   "device": "Infinix-X693",
+   "name": "Infinix NOTE 10",
+   "model": "Infinix X693"
   },
   {
    "device": "Infinix-X604_sprout",
@@ -78341,6 +78356,11 @@
    "device": "ueno",
    "name": "L32AHE19",
    "model": "2K Android TV"
+  },
+  {
+   "device": "sadang",
+   "name": "LOGIK",
+   "model": "LOGIK 4K Android TV"
   }
  ],
  "Logitec": [
@@ -92711,6 +92731,11 @@
  ],
  "OK (Mediamark)": [
   {
+   "device": "ikebukuro",
+   "name": "32770H-TAB",
+   "model": "AI PONT"
+  },
+  {
    "device": "osaki",
    "name": "ODL 32760HN-TAB",
    "model": "2K AI Smart TV"
@@ -93285,6 +93310,71 @@
    "device": "OnePlus8TTMO",
    "name": "OnePlus 8T+ 5G",
    "model": "KB2007"
+  },
+  {
+   "device": "OnePlus9",
+   "name": "OnePlus 9",
+   "model": "LE2110"
+  },
+  {
+   "device": "OnePlus9",
+   "name": "OnePlus 9",
+   "model": "LE2113"
+  },
+  {
+   "device": "OnePlus9",
+   "name": "OnePlus 9 5G",
+   "model": "LE2110"
+  },
+  {
+   "device": "OnePlus9",
+   "name": "OnePlus 9 5G",
+   "model": "LE2111"
+  },
+  {
+   "device": "OnePlus9",
+   "name": "OnePlus 9 5G",
+   "model": "LE2115"
+  },
+  {
+   "device": "OnePlus9TMO",
+   "name": "OnePlus 9 5G",
+   "model": "LE2117"
+  },
+  {
+   "device": "OnePlus9Pro",
+   "name": "OnePlus 9 Pro",
+   "model": "LE2120"
+  },
+  {
+   "device": "OnePlus9Pro",
+   "name": "OnePlus 9 Pro 5G",
+   "model": "LE2120"
+  },
+  {
+   "device": "OnePlus9Pro",
+   "name": "OnePlus 9 Pro 5G",
+   "model": "LE2121"
+  },
+  {
+   "device": "OnePlus9Pro",
+   "name": "OnePlus 9 Pro 5G",
+   "model": "LE2123"
+  },
+  {
+   "device": "OnePlus9Pro",
+   "name": "OnePlus 9 Pro 5G",
+   "model": "LE2125"
+  },
+  {
+   "device": "OnePlus9ProTMO",
+   "name": "OnePlus 9 Pro 5G",
+   "model": "LE2127"
+  },
+  {
+   "device": "Nord",
+   "name": "OnePlus Nord",
+   "model": "AC2001"
   },
   {
    "device": "Nord",
@@ -109311,6 +109401,11 @@
    "model": "SM-A125U"
   },
   {
+   "device": "a12u",
+   "name": "Galaxy A12",
+   "model": "SM-A125U1"
+  },
+  {
    "device": "a2corelte",
    "name": "Galaxy A2 Core",
    "model": "SM-A260F"
@@ -110099,6 +110194,11 @@
    "device": "a52xq",
    "name": "Galaxy A52 5G",
    "model": "SM-A526B"
+  },
+  {
+   "device": "a52xq",
+   "name": "Galaxy A52 5G",
+   "model": "SM-A526N"
   },
   {
    "device": "a52xq",
@@ -116571,6 +116671,11 @@
    "model": "SM-G991N"
   },
   {
+   "device": "SC-52B",
+   "name": "Galaxy S21 Ultra 5G",
+   "model": "SC-52B"
+  },
+  {
    "device": "p3q",
    "name": "Galaxy S21 Ultra 5G",
    "model": "SM-G9980"
@@ -121149,11 +121254,6 @@
    "device": "delos3gss",
    "name": "Galaxy win",
    "model": "GT-I8550L"
-  },
-  {
-   "device": "a60q",
-   "name": "Galaxy-A60",
-   "model": "SM-A6060"
   },
   {
    "device": "a9xltechn",
@@ -128520,6 +128620,13 @@
    "device": "Spark_Plus_3",
    "name": "Spark_Plus_3",
    "model": "Spark Plus 3"
+  }
+ ],
+ "Spectra Geospatial": [
+  {
+   "device": "bcat",
+   "name": "Ranger 5",
+   "model": "RGR5"
   }
  ],
  "SpectraPrecision": [
@@ -140177,6 +140284,11 @@
    "model": "TECNO KF6j"
   },
   {
+   "device": "TECNO-KF6k",
+   "name": "TECNO SPARK 7",
+   "model": "TECNO KF6k"
+  },
+  {
    "device": "TECNO-KF8",
    "name": "TECNO SPARK 7 Pro",
    "model": "TECNO KF8"
@@ -142133,6 +142245,11 @@
    "model": "MS5"
   },
   {
+   "device": "bcat",
+   "name": "Ranger 5",
+   "model": "RGR5"
+  },
+  {
    "device": "td520",
    "name": "TD-520",
    "model": "TD520"
@@ -142186,6 +142303,11 @@
    "device": "ulmo_pro",
    "name": "TDI 600",
    "model": "TDI 600"
+  },
+  {
+   "device": "bcat",
+   "name": "TSC5",
+   "model": "TSC5"
   },
   {
    "device": "MS5",
@@ -149016,6 +149138,11 @@
    "device": "TR2002",
    "name": "VINTV 2K",
    "model": "VINTV 2K"
+  },
+  {
+   "device": "TR2003",
+   "name": "VINTV 4K",
+   "model": "VINTV 4K"
   }
  ],
  "Vsun": [
@@ -162682,6 +162809,11 @@
    "device": "AF9020",
    "name": "benco Y50",
    "model": "AF9020"
+  },
+  {
+   "device": "AE9010",
+   "name": "benco v80",
+   "model": "AE9010"
   },
   {
    "device": "LH9921",
