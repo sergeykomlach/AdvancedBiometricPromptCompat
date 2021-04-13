@@ -82,24 +82,26 @@ object BlurUtil {
             }
         }
         takeScreenshot.invoke()
-        if (!isDone.get()) view.viewTreeObserver.addOnDrawListener(object :
-            ViewTreeObserver.OnDrawListener {
-            override fun onDraw() {
-                if (view.viewTreeObserver.isAlive) {
-                    takeScreenshot.invoke()
-                    if (isDone.get()) {
-                        val onDrawListener = this
-                        view.post {
-                            try {
-                            view.viewTreeObserver.removeOnDrawListener(onDrawListener)
-                        } catch (e: Throwable) {
-                            BiometricLoggerImpl.e(e)
-                        }
+        if (!isDone.get()) view.post {
+            view.viewTreeObserver.addOnDrawListener(object :
+                ViewTreeObserver.OnDrawListener {
+                override fun onDraw() {
+                    if (view.viewTreeObserver.isAlive) {
+                        takeScreenshot.invoke()
+                        if (isDone.get()) {
+                            val onDrawListener = this
+                            view.post {
+                                try {
+                                    view.viewTreeObserver.removeOnDrawListener(onDrawListener)
+                                } catch (e: Throwable) {
+                                    BiometricLoggerImpl.e(e)
+                                }
+                            }
                         }
                     }
                 }
-            }
-        })
+            })
+        }
     }
 
     fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {
