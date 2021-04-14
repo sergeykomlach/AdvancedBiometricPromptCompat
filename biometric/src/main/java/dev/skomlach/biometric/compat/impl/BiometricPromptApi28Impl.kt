@@ -192,7 +192,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 ) {
                     ExecutorHelper.INSTANCE.handler.post {
                         cancelAuthenticate()
-                        callback?.onSucceeded()
+                        callback?.onSucceeded(confirmed.filterNotNull().toSet())
                     }
                 } else {
                     if(dialog == null) {
@@ -414,7 +414,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             ) {
                 ExecutorHelper.INSTANCE.handler.post {
                     cancelAuthenticate()
-                    callback?.onSucceeded()
+                    callback?.onSucceeded(confirmed.filterNotNull().toSet())
                 }
             }
         }

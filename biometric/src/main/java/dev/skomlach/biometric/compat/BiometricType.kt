@@ -19,13 +19,15 @@
 
 package dev.skomlach.biometric.compat
 
-enum class BiometricType {
-    BIOMETRIC_FINGERPRINT,
-    BIOMETRIC_FACE,
-    BIOMETRIC_IRIS,
-    BIOMETRIC_VOICE,
-    BIOMETRIC_PALMPRINT,
-    BIOMETRIC_HEARTRATE,
-    BIOMETRIC_BEHAVIOR,
-    BIOMETRIC_ANY
+import androidx.annotation.DrawableRes
+
+enum class BiometricType(@DrawableRes val iconId: Int) {
+    BIOMETRIC_FINGERPRINT(R.drawable.bio_ic_fingerprint),
+    BIOMETRIC_FACE(R.drawable.bio_ic_face),
+    BIOMETRIC_IRIS(R.drawable.bio_ic_iris),
+    BIOMETRIC_VOICE(R.drawable.bio_ic_voice),
+    BIOMETRIC_PALMPRINT(R.drawable.bio_ic_palm),
+    BIOMETRIC_HEARTRATE(R.drawable.bio_ic_heartrate),
+    BIOMETRIC_BEHAVIOR(R.drawable.bio_ic_behavior),
+    BIOMETRIC_ANY(R.drawable.bio_ic_fingerprint)
 }

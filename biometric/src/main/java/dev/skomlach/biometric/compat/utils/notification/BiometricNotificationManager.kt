@@ -82,16 +82,7 @@ class BiometricNotificationManager private constructor() {
             try {
                 val clickIntent = Intent()
                 for (type in builder.allAvailableTypes) {
-                    @DrawableRes val icon: Int = when (type) {
-                        BiometricType.BIOMETRIC_FACE -> R.drawable.bio_ic_face
-                        BiometricType.BIOMETRIC_IRIS -> R.drawable.bio_ic_iris
-                        BiometricType.BIOMETRIC_HEARTRATE -> R.drawable.bio_ic_heartrate
-                        BiometricType.BIOMETRIC_VOICE -> R.drawable.bio_ic_voice
-                        BiometricType.BIOMETRIC_PALMPRINT -> R.drawable.bio_ic_palm
-                        BiometricType.BIOMETRIC_BEHAVIOR -> R.drawable.bio_ic_behavior
-                        BiometricType.BIOMETRIC_FINGERPRINT -> R.drawable.bio_ic_fingerprint
-                        else -> R.drawable.bio_ic_fingerprint
-                    }
+
                     val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
                         .setOnlyAlertOnce(true)
                         .setAutoCancel(false)
@@ -119,7 +110,7 @@ class BiometricNotificationManager private constructor() {
                                 PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
-                        .setSmallIcon(icon).build()
+                        .setSmallIcon(type.iconId).build()
 
                     notificationManagerCompat.notify(type.hashCode(), notif)
                 }
