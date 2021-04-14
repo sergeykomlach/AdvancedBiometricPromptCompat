@@ -230,8 +230,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val callback = object : Result {
 
             var isOpened = false
-            override fun onSucceeded() {
-                callbackOuter.onSucceeded()
+            override fun onSucceeded(confirmed : Set<BiometricType>) {
+                callbackOuter.onSucceeded(confirmed)
                 onUIClosed()
             }
 
@@ -356,7 +356,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     interface Result {
         @MainThread
-        fun onSucceeded()
+        fun onSucceeded(confirmed : Set<BiometricType>)
 
         @MainThread
         fun onCanceled()

@@ -173,7 +173,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             ) {
                 ExecutorHelper.INSTANCE.handler.post {
                     cancelAuthenticate()
-                    callback?.onSucceeded()
+                    callback?.onSucceeded(confirmed.filterNotNull().toSet())
                 }
             }
         }
