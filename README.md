@@ -142,8 +142,13 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
   
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi and BiometricType;  
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY)` - means any available BiometricApi and BiometricType  
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` - means any available BiometricApi and BiometricType  
+    
+ **BiometricConfirmation:**  
   
+  `BiometricConfirmation.ANY` - any biometric confirm the user
+    
+  `BiometricConfirmation.ALL` - all (one-by-one) biometrics confirm the user
   
  **BiometricApi:**  
   
@@ -189,7 +194,7 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   
 **BiometricPromptCompat.Result**  
   
-  `void onSucceeded()` - User successfully authenticated   
+  `void onSucceeded(Set<BiometricType> confirmed)` - User successfully authenticated   
     
   `void onCanceled()` - Biometric authentication was canceled  
     
