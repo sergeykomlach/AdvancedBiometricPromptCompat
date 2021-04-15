@@ -33,23 +33,38 @@
             android:layout_centerInParent="true"
             android:gravity="center"
             />
-
     <LinearLayout
             android:id="@+id/buttons_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@+id/button_first"
+            android:layout_above="@+id/buttons"
             android:layout_below="@+id/text"
             android:orientation="vertical"
             />
-
-    <Button
-            android:id="@+id/button_first"
-            android:layout_width="wrap_content"
+    <LinearLayout
+            android:id="@+id/buttons"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerInParent="true"
-            android:text="@string/logging"
-            />
+            android:orientation="horizontal"
+            android:gravity="center"
+            >
+
+        <Button
+                android:layout_margin="6dp"
+                android:id="@+id/button_first"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/logging"
+                />
+        <Button
+                android:layout_margin="6dp"
+                android:id="@+id/button_second"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dialog"
+                />
+    </LinearLayout>
 
 </RelativeLayout>

@@ -19,6 +19,7 @@
 
 package com.example.myapplication
 
+import android.app.ProgressDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -51,12 +52,18 @@ class FirstFragment : Fragment() {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
 
+        val dialog = ProgressDialog.show(
+            activity, "",
+            "Initialization in progress...", true
+        )
 
         if (!App.isReady) {
+            dialog.show()
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
                     fillList(inflater, binding.buttonsList)
                     checkDeviceInfo()
+                    dialog.dismiss()
                 }
             })
         } else {
@@ -65,6 +72,9 @@ class FirstFragment : Fragment() {
         binding.buttonFirst.setOnClickListener {
             NavHostFragment.findNavController(this@FirstFragment)
                 .navigate(R.id.action_FirstFragment_to_SecondFragment)
+        }
+        binding.buttonSecond.setOnClickListener {
+            (activity as MainActivity).showDialog()
         }
         return binding.root
     }

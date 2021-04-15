@@ -51,7 +51,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         )
 
         val buttonsList = view.findViewById<LinearLayout>(R.id.buttons_list)
-
+        view.findViewById<LinearLayout>(R.id.buttons).visibility = View.GONE
         if (!App.isReady) {
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
