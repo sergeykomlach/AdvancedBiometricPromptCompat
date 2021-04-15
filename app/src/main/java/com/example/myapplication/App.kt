@@ -19,6 +19,8 @@
 
 package com.example.myapplication
 
+import android.os.Handler
+import android.os.Looper
 import androidx.multidex.MultiDexApplication
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -44,17 +46,27 @@ class App : MultiDexApplication() {
                 LogCat.instance.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
                 BiometricPromptCompat.init {
-                    authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
-                    for (listener in onInitListeners) {
-                        listener.onFinished()
-                    }
-                    onInitListeners.clear()
-                    isReady = true
+                    checkForDeviceInfo()
                 }
             }
         })
 
         LogCat.instance.start()
+    }
+
+    private fun checkForDeviceInfo() {
+        if (BiometricPromptCompat.deviceInfo != null) {
+            authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
+            for (listener in onInitListeners) {
+                listener.onFinished()
+            }
+            onInitListeners.clear()
+            isReady = true
+        } else {
+            Handler(Looper.getMainLooper()).postDelayed({
+                checkForDeviceInfo()
+            }, 1000)
+        }
     }
 
     interface OnInitFinished {
