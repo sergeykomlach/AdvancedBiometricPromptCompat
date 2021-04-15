@@ -66,6 +66,9 @@ class FirstFragment : Fragment() {
             NavHostFragment.findNavController(this@FirstFragment)
                 .navigate(R.id.action_FirstFragment_to_SecondFragment)
         }
+        binding.buttonSecond.setOnClickListener {
+            (activity as MainActivity).showDialog()
+        }
         return binding.root
     }
 

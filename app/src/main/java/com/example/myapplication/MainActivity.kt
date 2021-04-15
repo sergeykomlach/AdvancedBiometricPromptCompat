@@ -19,9 +19,14 @@
 
 package com.example.myapplication
 
+import android.app.ProgressDialog
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.AsyncTask
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -53,12 +58,54 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         binding.fab.setOnClickListener { _ ->
-            showDialog()
+            val dialog = ProgressDialog.show(
+                this@MainActivity, "Looking for API's",
+                "Please wait...", true
+            )
+
+            val scanTask = object : AsyncTask<Void, Void, String>() {
+                override fun onPreExecute() {
+                    dialog.show()
+                }
+
+                override fun doInBackground(vararg params: Void?): String? {
+                    return Scan4Apis(this@MainActivity).getList()
+                }
+
+                override fun onPostExecute(result: String?) {
+                    dialog.dismiss()
+                    if (result?.isNullOrEmpty() == true) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Unexpected error happens",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return
+                    }
+                    result.let {
+                        MailTo.startMailClient(
+                            this@MainActivity,
+                            "s.komlach@gmail.com",
+                            "Advanced BiometricPromptCompat Report",
+                            it
+                        )
+                        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).text = it
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Report copied to clipboard",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+                }
+            }
+
+            scanTask.execute()
         }
 //        StatusBarTools.setNavBarAndStatusBarColors(window, Color.BLUE, Color.RED)
     }
 
-    private fun showDialog() {
+    fun showDialog() {
         val dialogFragment = AppCompactBaseDialogFragment()
         dialogFragment.show(supportFragmentManager, null)
     }
