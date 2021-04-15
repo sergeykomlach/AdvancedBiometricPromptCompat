@@ -76935,12 +76935,12 @@
   },
   {
    "device": "zippo",
-   "name": "Z6",
+   "name": "Z6 Pro",
    "model": "Lenovo L78051"
   },
   {
    "device": "zippo",
-   "name": "Z6 Pro",
+   "name": "Z6Pro",
    "model": "Lenovo L78051"
   },
   {
@@ -110040,6 +110040,11 @@
   {
    "device": "a32x",
    "name": "Galaxy A32 5G",
+   "model": "SM-A326K"
+  },
+  {
+   "device": "a32x",
+   "name": "Galaxy A32 5G",
    "model": "SM-A326U"
   },
   {
@@ -138507,6 +138512,16 @@
    "device": "T151-EEA",
    "name": "T151-EEA",
    "model": "T151-EEA"
+  },
+  {
+   "device": "T201",
+   "name": "T201",
+   "model": "T201"
+  },
+  {
+   "device": "T201-EEA",
+   "name": "T201-EEA",
+   "model": "T201-EEA"
   },
   {
    "device": "T50-EEA",
