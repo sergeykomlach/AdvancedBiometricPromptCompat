@@ -56,7 +56,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
-import org.chickenhook.restrictionbypass.Unseal
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -68,7 +68,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         init {
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
             try {
-                Unseal.unsealAll()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    HiddenApiBypass.setHiddenApiExemptions("L");
+                }
             } catch (e : Throwable){
                 e.printStackTrace()
             }

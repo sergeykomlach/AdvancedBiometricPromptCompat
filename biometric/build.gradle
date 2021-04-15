@@ -14,16 +14,7 @@ android {
         versionCode libsMinorVersion
         versionName libsMajorVersion + "." + libsMinorVersion
         consumerProguardFiles "proguard-project-biometric.pro"
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++14"
-            }
-        }
-        ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'
-        }
     }
-
     compileOptions {
         sourceCompatibility javaVersion
         targetCompatibility javaVersion
@@ -31,19 +22,13 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-            version "3.6.0"
-        }
-    }
 }
 
 dependencies {
     implementation project(":"+libArtifactId_common)
     compileOnly project(":"+libArtifactId_biometric_api)
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-
+    implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:1.1'
     implementation 'com.jaredrummler:android-device-names:2.0.0'
     implementation "org.jsoup:jsoup:1.13.1"
     implementation 'androidx.biometric:biometric:+'
