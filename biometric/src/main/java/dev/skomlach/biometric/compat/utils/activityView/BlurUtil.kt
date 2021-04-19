@@ -35,72 +35,47 @@ object BlurUtil {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap)
     }
 
+    @Synchronized
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
         val startMs = System.currentTimeMillis()
-        val isDone = AtomicBoolean(false)
-        val takeScreenshot = {
-            val decorView: View? = (view.context as Activity).window.peekDecorView()
-            decorView?.let {
-                if (Build.VERSION.SDK_INT >= 28) {
+        val decorView: View? = (view.context as Activity).window.peekDecorView()
+        decorView?.let {
+            if (Build.VERSION.SDK_INT < 28) {
+                try {
+                    val old = view.isDrawingCacheEnabled
+                    if (!old) {
+                        view.isDrawingCacheEnabled = true
+                        view.buildDrawingCache()//WARNING: may produce exceptions in draw()
+                    }
                     try {
-                        val old = view.isDrawingCacheEnabled
+                        view.drawingCache?.let {
+                            val bm = Bitmap.createBitmap(it)
+                            blur(view, bm, listener)
+                            BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
+                        }
+                    } finally {
                         if (!old) {
-                            view.isDrawingCacheEnabled = true
-                            view.buildDrawingCache()//WARNING: may produce exceptions in draw()
+                            view.destroyDrawingCache()
+                            view.isDrawingCacheEnabled = false
                         }
-                        try {
-                            view.drawingCache?.let {
-                                val bm = Bitmap.createBitmap(it)
-                                blur(view, bm, listener)
-                                isDone.set(true)
-                                BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
-                            }
-                        } finally {
-                            if (!old) {
-                                view.destroyDrawingCache()
-                                view.isDrawingCacheEnabled = false
-                            }
-                        }
-                    } catch (ex1: Throwable) {
                     }
-                } else {
-                    try {
-                        val bm =
-                            Bitmap.createBitmap(
-                                view.width,
-                                view.height,
-                                Bitmap.Config.ARGB_8888
-                            )
-                        val canvas = Canvas(bm)
-                        view.draw(canvas)
-                        blur(view, bm, listener)
-                        isDone.set(true)
-                        BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
-                    } catch (ex2: Throwable) {
-                    }
+                } catch (ex1: Throwable) {
+                }
+            } else {
+                try {
+                    val bm =
+                        Bitmap.createBitmap(
+                            view.width,
+                            view.height,
+                            Bitmap.Config.ARGB_8888
+                        )
+                    val canvas = Canvas(bm)
+                    view.draw(canvas)
+                    blur(view, bm, listener)
+                    BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
+                } catch (ex2: Throwable) {
                 }
             }
-        }
-        takeScreenshot.invoke()
-        if (!isDone.get()) view.post {
-            view.viewTreeObserver.addOnDrawListener(object :
-                ViewTreeObserver.OnDrawListener {
-                override fun onDraw() {
-                    if (view.viewTreeObserver.isAlive) {
-                        takeScreenshot.invoke()
-                        if (isDone.get()) {
-                            val onDrawListener = this
-                            view.post {
-                                try {
-                                    view.viewTreeObserver.removeOnDrawListener(onDrawListener)
-                                } catch (e: Throwable) {
-                                    BiometricLoggerImpl.e(e)
-                                }
-                            }
-                        }
-                    }
-                }
-            })
         }
     }
 
