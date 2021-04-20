@@ -71,7 +71,10 @@ class ActivityViewWatcher(
         }
     }
 
-    private val onDrawListener = ViewTreeObserver.OnDrawListener { updateBackground() }
+    private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
+        updateBackground()
+        true
+    }
 
     init {
         for (i in 0 until parentView.childCount) {
@@ -148,7 +151,7 @@ class ActivityViewWatcher(
         try {
             updateBackground()
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
-            parentView.viewTreeObserver.addOnDrawListener(onDrawListener)
+            parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
@@ -160,7 +163,7 @@ class ActivityViewWatcher(
         IconStateHelper.unregisterListener(this)
         try {
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
-            parentView.viewTreeObserver.removeOnDrawListener(onDrawListener)
+            parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

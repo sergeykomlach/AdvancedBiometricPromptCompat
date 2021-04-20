@@ -19,67 +19,115 @@
 
 package dev.skomlach.biometric.compat.utils.activityView
 
-import android.app.Activity
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.Build
 import android.view.View
-import android.view.ViewTreeObserver
+import android.view.ViewDebug
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import java.util.concurrent.atomic.AtomicBoolean
+import java.lang.reflect.Method
 import kotlin.math.roundToInt
 
+@SuppressLint("PrivateApi")
 object BlurUtil {
+    private var m: Method? = try {
+        ViewDebug::class.java.getDeclaredMethod(
+            "performViewCapture",
+            View::class.java,
+            Boolean::class.javaPrimitiveType
+        )
+    } catch (ignore: Throwable) {
+        null
+    }
+
     interface OnPublishListener {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap)
     }
 
     @Synchronized
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
-        val startMs = System.currentTimeMillis()
-        val decorView: View? = (view.context as Activity).window.peekDecorView()
-        decorView?.let {
-            if (Build.VERSION.SDK_INT < 28) {
+        m?.let { method ->
+            val startMs = System.currentTimeMillis()
+            ExecutorHelper.INSTANCE.startOnBackground {
                 try {
-                    val old = view.isDrawingCacheEnabled
-                    if (!old) {
-                        view.isDrawingCacheEnabled = true
-                        view.buildDrawingCache()//WARNING: may produce exceptions in draw()
-                    }
+                    val isAccessible = method.isAccessible
                     try {
-                        view.drawingCache?.let {
-                            val bm = Bitmap.createBitmap(it)
-                            blur(view, bm, listener)
-                            BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
+                        if (!isAccessible)
+                            method.isAccessible = true
+
+                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                            ExecutorHelper.INSTANCE.handler.post {
+                                try {
+                                    BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
+                                    blur(
+                                        view,
+                                        bm.copy(Bitmap.Config.RGB_565, false),
+                                        listener
+                                    )
+                                } catch (e: Throwable) {
+                                    BiometricLoggerImpl.e(e)
+                                }
+                            }
                         }
                     } finally {
-                        if (!old) {
-                            view.destroyDrawingCache()
-                            view.isDrawingCacheEnabled = false
-                        }
+                        if (!isAccessible)
+                            method.isAccessible = false
                     }
-                } catch (ex1: Throwable) {
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
                 }
-            } else {
+            }
+        } ?: run {
+            fallbackViewCapture(view, listener)
+        }
+    }
+
+    private fun fallbackViewCapture(view: View, listener: OnPublishListener) {
+        val startMs = System.currentTimeMillis()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val bm =
+                    Bitmap.createBitmap(
+                        view.measuredWidth,
+                        view.measuredHeight,
+                        Bitmap.Config.RGB_565
+                    )
+                val canvas = Canvas(bm)
+                view.draw(canvas)
+                blur(view, bm, listener)
+                BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
+        } else {
+            try {
+                val old = view.isDrawingCacheEnabled
+                if (!old) {
+                    view.isDrawingCacheEnabled = true
+                    view.buildDrawingCache()//WARNING: may produce exceptions in draw()
+                }
                 try {
-                    val bm =
-                        Bitmap.createBitmap(
-                            view.width,
-                            view.height,
-                            Bitmap.Config.ARGB_8888
-                        )
-                    val canvas = Canvas(bm)
-                    view.draw(canvas)
-                    blur(view, bm, listener)
-                    BiometricLoggerImpl.d("BlurUtil.takeScreenshotAndBlur time - ${System.currentTimeMillis() - startMs} ms")
-                } catch (ex2: Throwable) {
+                    view.drawingCache?.let {
+                        val bm = Bitmap.createBitmap(it)
+                        BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
+                        blur(view, bm, listener)
+                    }
+                } finally {
+                    if (!old) {
+                        view.destroyDrawingCache()
+                        view.isDrawingCacheEnabled = false
+                    }
                 }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
         }
     }
 
-    fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {
+    private fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {
 
         val startMs = System.currentTimeMillis()
         val scaleFactor = 8f
