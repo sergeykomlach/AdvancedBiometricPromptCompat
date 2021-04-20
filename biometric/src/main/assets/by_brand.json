@@ -479,6 +479,11 @@
    "device": "ADT1061_1",
    "name": "ADT1061_1",
    "model": "ADT1061_1"
+  },
+  {
+   "device": "ADT_1061",
+   "name": "ADT_1061",
+   "model": "ADT_1061"
   }
  ],
  "AKOR": [
@@ -866,6 +871,11 @@
   }
  ],
  "AWOW": [
+  {
+   "device": "Funtab_801_I",
+   "name": "Funtab_801_I",
+   "model": "Funtab_801_I"
+  },
   {
    "device": "MID_789A100_EEA",
    "name": "MID-789A100-EEA",
@@ -2792,6 +2802,11 @@
    "device": "TR6948",
    "name": "TR6948",
    "model": "TR6948"
+  },
+  {
+   "device": "TR6949",
+   "name": "TR6949",
+   "model": "TR6949"
   },
   {
    "device": "TR7988",
@@ -5352,14 +5367,14 @@
  ],
  "Aqua": [
   {
-   "device": "hanyang",
-   "name": "APAC",
-   "model": "AQUA Android TV"
-  },
-  {
    "device": "nippori",
    "name": "APAC",
    "model": "AQUA Android TV 2K"
+  },
+  {
+   "device": "hanyang",
+   "name": "AQUA android TV",
+   "model": "AQUA Android TV"
   },
   {
    "device": "S1_Jazz",
@@ -12650,11 +12665,6 @@
  ],
  "Bauhn": [
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "Tempo Android TV"
-  },
-  {
    "device": "nippori",
    "name": "Australia",
    "model": "Bauhn Android TV 2K"
@@ -12668,6 +12678,11 @@
    "device": "komagome",
    "name": "Bauhn",
    "model": "BAUHN 2K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Bauhn android TV",
+   "model": "Tempo Android TV"
   }
  ],
  "Becrypt": [
@@ -13713,6 +13728,11 @@
    "model": "SHARK PRS-A0"
   },
   {
+   "device": "penrose",
+   "name": "SHARK PRS-H0",
+   "model": "SHARK PRS-H0"
+  },
+  {
    "device": "shark",
    "name": "Shark",
    "model": "SKR-H0"
@@ -14264,11 +14284,6 @@
    "model": "Atlantis_A10_G403"
   },
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "BP Android TV"
-  },
-  {
    "device": "nippori",
    "name": "Australia",
    "model": "BP Android TV 2K"
@@ -14334,6 +14349,21 @@
    "model": "Blaupunkt SM 01"
   },
   {
+   "device": "hanyang",
+   "name": "Blaupunkt android TV",
+   "model": "BLAUPUNKT Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Blaupunkt android TV",
+   "model": "BP 4K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Blaupunkt android TV",
+   "model": "BP Android TV"
+  },
+  {
    "device": "Blaupunkt_SM_02",
    "name": "Blaupunkt_SM_02",
    "model": "Blaupunkt_SM_02"
@@ -14352,11 +14382,6 @@
    "device": "tamachi",
    "name": "EU",
    "model": "BLAUPUNKT FHD Android TV"
-  },
-  {
-   "device": "hanyang",
-   "name": "Ecuador",
-   "model": "BP 4K Android TV"
   },
   {
    "device": "nippori",
@@ -14427,11 +14452,6 @@
    "device": "TX01",
    "name": "TX01",
    "model": "TX01"
-  },
-  {
-   "device": "Czech\"",
-   "name": "\"Ukraine",
-   "model": "hanyang"
   }
  ],
  "Blu": [
@@ -19102,6 +19122,13 @@
    "device": "ZP785",
    "name": "ZP785",
    "model": "ZP785"
+  }
+ ],
+ "ChicoMobile": [
+  {
+   "device": "LGU-PQv1",
+   "name": "LGU-PQv1",
+   "model": "LGU-PQv1"
   }
  ],
  "China Mobile": [
@@ -27119,14 +27146,14 @@
  ],
  "Durabrand": [
   {
-   "device": "hanyang",
-   "name": "Central America",
-   "model": "Durabrand 4K Android TV"
-  },
-  {
    "device": "nippori",
    "name": "Central America",
    "model": "Durabrand 2K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Durabrand android TV",
+   "model": "Durabrand 4K Android TV"
   }
  ],
  "Duubee": [
@@ -27456,11 +27483,6 @@
    "model": "Ara 5.7 A5719"
   },
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "Ayonz Android TV"
-  },
-  {
    "device": "nippori",
    "name": "Australia",
    "model": "EKO Android TV 2K"
@@ -27489,6 +27511,16 @@
    "device": "EKO_Star_LTE_G60",
    "name": "EKO Star LTE G60",
    "model": "EKO Star LTE G60"
+  },
+  {
+   "device": "hanyang",
+   "name": "EKO android TV",
+   "model": "Ayonz Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "EKO android TV ISDB",
+   "model": "EKO 4K Android TV"
   },
   {
    "device": "Star_4_0_G40",
@@ -40757,29 +40789,9 @@
    "model": "AP54"
   },
   {
-   "device": "hanyang",
-   "name": "APAC",
-   "model": "Haitech Android TV"
-  },
-  {
-   "device": "hanyang",
-   "name": "APAC",
-   "model": "haierATV"
-  },
-  {
    "device": "nippori",
    "name": "APAC",
    "model": "CANDY Android TV 2K"
-  },
-  {
-   "device": "nippori",
-   "name": "APAC",
-   "model": "haierATVnippori"
-  },
-  {
-   "device": "EU\"",
-   "name": "\"APAC",
-   "model": "hanyang"
   },
   {
    "device": "AT7003",
@@ -40897,24 +40909,14 @@
    "model": "D2-961G"
   },
   {
-   "device": "hanyang",
-   "name": "EU",
-   "model": "HEC Android TV"
-  },
-  {
    "device": "nippori",
    "name": "EU",
    "model": "HEC Android TV 2K"
   },
   {
    "device": "hanyang",
-   "name": "Ecuador",
+   "name": "EVVO Android TV",
    "model": "EVVO 4K Android TV"
-  },
-  {
-   "device": "hanyang",
-   "name": "Ecuador",
-   "model": "INNOVA 4K Android TV"
   },
   {
    "device": "nippori",
@@ -41007,6 +41009,11 @@
    "model": "I7A-LE"
   },
   {
+   "device": "hanyang",
+   "name": "HEC Android TV",
+   "model": "HEC Android TV"
+  },
+  {
    "device": "HG-9041",
    "name": "HG-9041",
    "model": "HG-9041"
@@ -41077,6 +41084,16 @@
    "model": "W861"
   },
   {
+   "device": "nippori",
+   "name": "Haier 2K android TV",
+   "model": "haierATVnippori"
+  },
+  {
+   "device": "hanyang",
+   "name": "Haier Android TV",
+   "model": "haierATV"
+  },
+  {
    "device": "Haier_Leisure_L7",
    "name": "Haier Leisure L7",
    "model": "HM-N700-FL"
@@ -41087,9 +41104,19 @@
    "model": "Titan_T5"
   },
   {
+   "device": "hanyang",
+   "name": "Haier android TV",
+   "model": "Haier 4K Android TV"
+  },
+  {
    "device": "HM-G701-FL",
    "name": "HaierG61",
    "model": "HM-G701-FL"
+  },
+  {
+   "device": "hanyang",
+   "name": "Haitech android TV",
+   "model": "Haitech Android TV"
   },
   {
    "device": "HomeSurf742_AT7003",
@@ -41125,6 +41152,11 @@
    "device": "INGO-TAB",
    "name": "INGO-TAB",
    "model": "INGO-TAB"
+  },
+  {
+   "device": "hanyang",
+   "name": "INNOVA android TV",
+   "model": "INNOVA 4K Android TV"
   },
   {
    "device": "nippori",
@@ -41202,11 +41234,6 @@
    "model": "LE55M7000CF"
   },
   {
-   "device": "hanyang",
-   "name": "Latin America",
-   "model": "Haier 4K Android TV"
-  },
-  {
    "device": "Logicom-S9782",
    "name": "Logicom S9782",
    "model": "Logicom-S9782"
@@ -41250,6 +41277,11 @@
    "device": "MXG408",
    "name": "MXG408",
    "model": "MXG408"
+  },
+  {
+   "device": "hanyang",
+   "name": "Magelite android TV",
+   "model": "MAGELITE Android TV"
   },
   {
    "device": "Central America",
@@ -41387,11 +41419,6 @@
    "model": "Smartfren Andromax AD9A1H"
   },
   {
-   "device": "hanyang",
-   "name": "South Asia",
-   "model": "MAGELITE Android TV"
-  },
-  {
    "device": "StarQ_Q5002",
    "name": "StarQ_Q5002",
    "model": "Q5002"
@@ -41470,6 +41497,11 @@
    "device": "W860",
    "name": "W860",
    "model": "W860"
+  },
+  {
+   "device": "hanyang",
+   "name": "candy android TV",
+   "model": "CANDY Android TV"
   },
   {
    "device": "Haier_Leisure_L7",
@@ -54882,11 +54914,6 @@
    "model": "E603"
   },
   {
-   "device": "hanyang",
-   "name": "Ecuador",
-   "model": "HYUNDAI 4K Android TV"
-  },
-  {
    "device": "nippori",
    "name": "Ecuador",
    "model": "HYUNDAI 2K Android TV"
@@ -55090,6 +55117,11 @@
    "device": "HT0701L16",
    "name": "Hyundai Koral_7XL",
    "model": "HT0701L16"
+  },
+  {
+   "device": "hanyang",
+   "name": "Hyundai android TV",
+   "model": "HYUNDAI 4K Android TV"
   },
   {
    "device": "HT1G50K",
@@ -56314,6 +56346,11 @@
    "device": "B860HV5_Telkom",
    "name": "B860H V5.0",
    "model": "B860H V5.0"
+  },
+  {
+   "device": "HG680",
+   "name": "HG680_FJ",
+   "model": "HG680_FJ"
   }
  ],
  "Indurama": [
@@ -56757,6 +56794,11 @@
    "device": "Infinix-X687",
    "name": "Infinix ZERO8",
    "model": "Infinix X687"
+  },
+  {
+   "device": "Infinix-X695",
+   "name": "NOTE 10 Pro",
+   "model": "Infinix X695"
   },
   {
    "device": "X601",
@@ -61480,11 +61522,6 @@
    "model": "MiddleEast，Africa\""
   },
   {
-   "device": "Europe",
-   "name": "\"Asia Pacific",
-   "model": "MiddleEast，Africa\""
-  },
-  {
    "device": "KM7012BK",
    "name": "KM7012BK",
    "model": "KM7012BK"
@@ -61498,6 +61535,11 @@
    "device": "sugamo",
    "name": "KONKA",
    "model": "KONKA 2K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Konka android tv",
+   "model": "KONKA Android TV 4K"
   },
   {
    "device": "hongik",
@@ -63043,11 +63085,6 @@
    "model": "Kogan Agora 6Plus"
   },
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "Kogan SmarterTV"
-  },
-  {
    "device": "nippori",
    "name": "Australia",
    "model": "Kogan SmarterTV 2K"
@@ -63101,6 +63138,11 @@
    "device": "Kogan_Agora_XS",
    "name": "Kogan Agora XS",
    "model": "Agora XS"
+  },
+  {
+   "device": "hanyang",
+   "name": "Kogan SmarterTV",
+   "model": "Kogan SmarterTV"
   }
  ],
  "Komu": [
@@ -75999,6 +76041,11 @@
    "model": "Lenovo YT-X703X"
   },
   {
+   "device": "YT-J706F",
+   "name": "Lenovo Yoga Tab 11",
+   "model": "Lenovo YT-J706F"
+  },
+  {
    "device": "heart",
    "name": "Lenovo Z5 Pro",
    "model": "Lenovo L78032"
@@ -77372,11 +77419,6 @@
  ],
  "Linsar": [
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "Linsar Android TV"
-  },
-  {
    "device": "bangbae",
    "name": "Linsar",
    "model": "Linsar 4K Android TV"
@@ -77390,6 +77432,11 @@
    "device": "sadang",
    "name": "Linsar",
    "model": "Linsar UK 4K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Linsar android TV",
+   "model": "Linsar Android TV"
   },
   {
    "device": "ueno",
@@ -78253,6 +78300,11 @@
    "model": "LiteTab760"
   },
   {
+   "device": "La_Tab_127_HD_EEA",
+   "name": "Logicom La Tab 127 HD",
+   "model": "Logicom La Tab 127 HD"
+  },
+  {
    "device": "Logikids_2",
    "name": "Logikids",
    "model": "Logikids_2"
@@ -78413,6 +78465,11 @@
    "device": "sadang",
    "name": "LOGIK",
    "model": "LOGIK 4K Android TV"
+  },
+  {
+   "device": "tabata",
+   "name": "LOGIK",
+   "model": "LOGIK 2K Android TV"
   }
  ],
  "Logitec": [
@@ -79667,6 +79724,11 @@
    "device": "B866_MTS_OTT",
    "name": "B866",
    "model": "B866"
+  },
+  {
+   "device": "DV8304C",
+   "name": "DV8304-C",
+   "model": "DV8304-C"
   },
   {
    "device": "B866_MTS_IPTV",
@@ -100411,11 +100473,6 @@
    "model": "ATV R1"
   },
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "Polaroid Android TV"
-  },
-  {
    "device": "BDL1064PR001",
    "name": "BDL1064PR001",
    "model": "BDL1064PR001"
@@ -100651,6 +100708,11 @@
    "model": "POMDTB005"
   },
   {
+   "device": "POMDTB006",
+   "name": "POMDTB006",
+   "model": "POMDTB006"
+  },
+  {
    "device": "up06_h25_polaroid",
    "name": "PRO5023PW",
    "model": "PRO5023PW"
@@ -100749,6 +100811,11 @@
    "device": "komagome",
    "name": "Polaroid",
    "model": "Polaroid 2K Android TV"
+  },
+  {
+   "device": "hanyang",
+   "name": "Polaroid android TV",
+   "model": "Polaroid Android TV"
   },
   {
    "device": "SIGMA-5",
@@ -103662,11 +103729,6 @@
  ],
  "QBell": [
   {
-   "device": "hanyang",
-   "name": "EU",
-   "model": "QBELL Android TV"
-  },
-  {
    "device": "nippori",
    "name": "EU",
    "model": "QBELL Android TV 2K"
@@ -103695,6 +103757,11 @@
    "device": "QTAB10",
    "name": "QTAB10",
    "model": "QTAB10"
+  },
+  {
+   "device": "hanyang",
+   "name": "Qbell android TV",
+   "model": "QBELL Android TV"
   }
  ],
  "QFX USA": [
@@ -105981,6 +106048,41 @@
    "model": "RMX3081"
   },
   {
+   "device": "RMX2185",
+   "name": "realme C11",
+   "model": "RMX2185"
+  },
+  {
+   "device": "RMX2186",
+   "name": "realme C11",
+   "model": "RMX2186"
+  },
+  {
+   "device": "RMX2184",
+   "name": "realme C12",
+   "model": "RMX2184"
+  },
+  {
+   "device": "RMX2189",
+   "name": "realme C12",
+   "model": "RMX2189"
+  },
+  {
+   "device": "RMX2180",
+   "name": "realme C15",
+   "model": "RMX2180"
+  },
+  {
+   "device": "RMX2181",
+   "name": "realme C15",
+   "model": "RMX2181"
+  },
+  {
+   "device": "RMX2183",
+   "name": "realme C15",
+   "model": "RMX2183"
+  },
+  {
    "device": "RECE4244",
    "name": "realme C15 Qualcomm Edition",
    "model": "RMX2195"
@@ -107466,14 +107568,14 @@
  ],
  "S Vision": [
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "Svision Android TV"
-  },
-  {
    "device": "nippori",
    "name": "Australia",
    "model": "Svision Android TV 2K"
+  },
+  {
+   "device": "hanyang",
+   "name": "S android TV",
+   "model": "Svision Android TV"
   }
  ],
  "S&T Global": [
@@ -110036,11 +110138,6 @@
    "device": "a32x",
    "name": "Galaxy A32 5G",
    "model": "SM-A326BR"
-  },
-  {
-   "device": "a32x",
-   "name": "Galaxy A32 5G",
-   "model": "SM-A326K"
   },
   {
    "device": "a32x",
@@ -113926,6 +114023,11 @@
    "device": "a20e",
    "name": "Galaxy Jean2",
    "model": "SM-A202K"
+  },
+  {
+   "device": "a32x",
+   "name": "Galaxy Jump",
+   "model": "SM-A326K"
   },
   {
    "device": "SHW-M130K",
@@ -125934,11 +126036,6 @@
  ],
  "Soniq": [
   {
-   "device": "hanyang",
-   "name": "Australia",
-   "model": "SONIQ Android TV"
-  },
-  {
    "device": "osaki",
    "name": "G32HW60A",
    "model": "2K AI Smart TV"
@@ -125952,6 +126049,11 @@
    "device": "PT1019A",
    "name": "PT1019A",
    "model": "PT1019A"
+  },
+  {
+   "device": "hanyang",
+   "name": "Soniq android TV",
+   "model": "SONIQ Android TV"
   }
  ],
  "Sony": [
@@ -129893,6 +129995,11 @@
    "model": "SUGAR C13"
   },
   {
+   "device": "SUGAR_C60",
+   "name": "SUGAR C60",
+   "model": "SUGAR C60"
+  },
+  {
    "device": "p700as",
    "name": "SUGAR F20",
    "model": "SUGAR F20"
@@ -131031,6 +131138,11 @@
    "device": "BeyondTV4",
    "name": "Smart TV",
    "model": "Smart TV"
+  },
+  {
+   "device": "C05",
+   "name": "Smart TV Pro",
+   "model": "Smart TV Pro"
   },
   {
    "device": "A5A_INFINI",
@@ -139215,6 +139327,11 @@
    "model": "TechPad M5"
   },
   {
+   "device": "TechPad_1032",
+   "name": "TechPad_1032",
+   "model": "TechPad_1032"
+  },
+  {
    "device": "TechPad_1032s",
    "name": "TechPad_1032s",
    "model": "TechPad_1032s"
@@ -143014,6 +143131,11 @@
    "device": "W7",
    "name": "W7",
    "model": "W7"
+  },
+  {
+   "device": "ZX_001",
+   "name": "ZX_001",
+   "model": "ZX_001"
   }
  ],
  "UNITED TV": [
@@ -147520,6 +147642,11 @@
    "model": "V2059A"
   },
   {
+   "device": "2061",
+   "name": "V2061",
+   "model": "V2061"
+  },
+  {
    "device": "PD2061",
    "name": "V2061A",
    "model": "V2061A"
@@ -147568,6 +147695,21 @@
    "device": "PD2034D",
    "name": "V2099A",
    "model": "V2099A"
+  },
+  {
+   "device": "2061",
+   "name": "V2108",
+   "model": "V2061"
+  },
+  {
+   "device": "2061",
+   "name": "V2108",
+   "model": "V2108"
+  },
+  {
+   "device": "PD2118",
+   "name": "V2118A",
+   "model": "V2118A"
   },
   {
    "device": "PD1524",
@@ -150977,6 +151119,11 @@
   {
    "device": "W-K211",
    "name": "Sunny5 Lite",
+   "model": "W-K211-TH"
+  },
+  {
+   "device": "W-K211",
+   "name": "Sunny5 Lite",
    "model": "W-K211-TVM"
   },
   {
@@ -151483,6 +151630,11 @@
    "device": "W-K610",
    "name": "Y62",
    "model": "W-K610-EEA"
+  },
+  {
+   "device": "W-K610",
+   "name": "Y62",
+   "model": "W-K610-OPE"
   },
   {
    "device": "W-K610",
@@ -162531,6 +162683,16 @@
    "device": "komagome",
    "name": "Zephir",
    "model": "Zephir 2K Android TV"
+  },
+  {
+   "device": "nippori",
+   "name": "Zephir 2K android TV",
+   "model": "ZEPHIR Android TV 2K"
+  },
+  {
+   "device": "hanyang",
+   "name": "Zephir android TV",
+   "model": "ZEPHIR Android TV"
   }
  ],
  "Zettaly": [
