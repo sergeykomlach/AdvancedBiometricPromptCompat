@@ -7142,6 +7142,11 @@
    "device": "vip6102w",
    "name": "VIP6102W Genesis",
    "model": "VIP6102W"
+  },
+  {
+   "device": "SFO",
+   "name": "VIP7100 A",
+   "model": "VIP7100 A"
   }
  ],
  "Arrow": [
@@ -15204,6 +15209,11 @@
    "device": "M030P",
    "name": "M6",
    "model": "M6"
+  },
+  {
+   "device": "M0080WW",
+   "name": "M6 2021",
+   "model": "M6 2021"
   },
   {
    "device": "M110EQ",
@@ -45648,6 +45658,11 @@
    "device": "HCA6010",
    "name": "Homeplus_ATV HCA-6010",
    "model": "HCA-6010"
+  },
+  {
+   "device": "STB6252C",
+   "name": "STB-6252C",
+   "model": "STB-6252C"
   }
  ],
  "Hometech": [
@@ -56646,6 +56661,26 @@
    "model": "Infinix X657B"
   },
   {
+   "device": "Infinix-X689",
+   "name": "Infinix HOT 10S",
+   "model": "Infinix X689"
+  },
+  {
+   "device": "Infinix-X689B",
+   "name": "Infinix HOT 10S",
+   "model": "Infinix X689B"
+  },
+  {
+   "device": "Infinix-X689D",
+   "name": "Infinix HOT 10S NFC",
+   "model": "Infinix X689D"
+  },
+  {
+   "device": "Infinix-X689C",
+   "name": "Infinix HOT 10T",
+   "model": "Infinix X689C"
+  },
+  {
    "device": "Infinix-X623",
    "name": "Infinix HOT 6X",
    "model": "Infinix X623"
@@ -63968,6 +64003,11 @@
    "device": "KYV33",
    "name": "INFOBAR A03",
    "model": "KYV33"
+  },
+  {
+   "device": "K5G-C-100A",
+   "name": "K5G-C-100A",
+   "model": "K5G-C-100A"
   },
   {
    "device": "KC-01",
@@ -76019,6 +76059,11 @@
    "device": "PB-6505Y",
    "name": "Lenovo Tab V7",
    "model": "Lenovo PB-6505Y"
+  },
+  {
+   "device": "A101LV",
+   "name": "Lenovo Tab6",
+   "model": "A101LV"
   },
   {
    "device": "X2-CU",
@@ -98203,6 +98248,11 @@
    "model": "NEXT"
   },
   {
+   "device": "NEXT820",
+   "name": "NEXT Elite-4K 43",
+   "model": "NEXT"
+  },
+  {
    "device": "pana2_1",
    "name": "P-01D",
    "model": "P-01D"
@@ -106018,6 +106068,11 @@
    "model": "RMX2002"
   },
   {
+   "device": "RMX2111L1",
+   "name": "realme 7 5G",
+   "model": "RMX2111"
+  },
+  {
    "device": "RMX2170L1",
    "name": "realme 7 Pro",
    "model": "RMX2170"
@@ -109016,6 +109071,11 @@
    "device": "SW4H_FF",
    "name": "SWTV-20SA-PRO",
    "model": "SWTV-20SA-PRO"
+  },
+  {
+   "device": "SW4H",
+   "name": "SWTV-20TW",
+   "model": "SWTV-20TW"
   },
   {
    "device": "SW3_ATV",
@@ -139713,6 +139773,11 @@
    "model": "TECNO CG6j"
   },
   {
+   "device": "TECNO-CG8",
+   "name": "CAMON 17 Pro",
+   "model": "TECNO CG8"
+  },
+  {
    "device": "TECNO-CG7",
    "name": "CAMON 17P",
    "model": "TECNO CG7"
@@ -147057,6 +147122,11 @@
    "model": "I1928"
   },
   {
+   "device": "2009",
+   "name": "I2009",
+   "model": "I2009"
+  },
+  {
    "device": "2012",
    "name": "I2012",
    "model": "I2012"
@@ -147567,6 +147637,11 @@
    "model": "V2043_21"
   },
   {
+   "device": "2044",
+   "name": "V2044",
+   "model": "V2044"
+  },
+  {
    "device": "2045",
    "name": "V2045",
    "model": "V2045"
@@ -147662,6 +147737,11 @@
    "model": "V2065A"
   },
   {
+   "device": "PD2066",
+   "name": "V2066A",
+   "model": "V2066A"
+  },
+  {
    "device": "PD2066B",
    "name": "V2066BA",
    "model": "V2066BA"
@@ -147695,6 +147775,16 @@
    "device": "PD2034D",
    "name": "V2099A",
    "model": "V2099A"
+  },
+  {
+   "device": "PD2106",
+   "name": "V2106A",
+   "model": "V2106A"
+  },
+  {
+   "device": "PD2106B",
+   "name": "V2106A",
+   "model": "V2106A"
   },
   {
    "device": "2061",

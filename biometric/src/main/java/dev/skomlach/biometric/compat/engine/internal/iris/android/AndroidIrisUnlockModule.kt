@@ -62,11 +62,12 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
-                try {
-                    return manager?.isHardwareDetected == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+
+            try {
+                return manager?.isHardwareDetected == true
+            } catch (ignore: Throwable) {
+
+            }
 
             return false
         }
@@ -84,8 +85,9 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 else
                     throw RuntimeException("Unexpected type - $it")
             }
-        } catch (e: Throwable) {
+        } catch (ignore: Throwable) {
         }
+
         e(RuntimeException("Unable to find 'hasEnrolled' method"))
         return false
     }
