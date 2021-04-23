@@ -80,59 +80,59 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             var faceAuthenticationManagerIsHardwareDetected = false
             var faceManagerIsHardwareDetected = false
 
-                try {
-                    faceAuthenticationManagerIsHardwareDetected =
-                        faceAuthenticationManager?.isHardwareDetected == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                faceAuthenticationManagerIsHardwareDetected =
+                    faceAuthenticationManager?.isHardwareDetected == true
+            } catch (ignore: Throwable) {
+
+            }
 
 
-                try {
-                    faceManagerIsHardwareDetected = faceManager?.isHardwareDetected == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                faceManagerIsHardwareDetected = faceManager?.isHardwareDetected == true
+            } catch (ignore: Throwable) {
+
+            }
 
             return faceManagerIsHardwareDetected || faceAuthenticationManagerIsHardwareDetected
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                faceAuthenticationManager?.javaClass?.methods?.firstOrNull { method ->
-                    method.name.startsWith(
-                        "hasEnrolled"
-                    )
-                }?.invoke(faceAuthenticationManager)?.let {
-                    if (it is Boolean)
-                        return it
-                    else
-                        throw RuntimeException("Unexpected type - $it")
-                }
-            } catch (e: Throwable) {
-                e(e, name)
+        try {
+            faceAuthenticationManager?.javaClass?.methods?.firstOrNull { method ->
+                method.name.startsWith(
+                    "hasEnrolled"
+                )
+            }?.invoke(faceAuthenticationManager)?.let {
+                if (it is Boolean)
+                    return it
+                else
+                    throw RuntimeException("Unexpected type - $it")
             }
+        } catch (ignore: Throwable) {
+
+        }
 
 
-            try {
-                 faceManager?.javaClass?.methods?.firstOrNull { method ->
-                    method.name.startsWith(
-                        "hasEnrolled"
-                    )
-                }?.invoke(faceManager)?.let {
-                    if (it is Boolean)
-                        return it
-                    else
-                        throw RuntimeException("Unexpected type - $it")
-                }
-            } catch (e: Throwable) {
-                e(e, name)
-
+        try {
+            faceManager?.javaClass?.methods?.firstOrNull { method ->
+                method.name.startsWith(
+                    "hasEnrolled"
+                )
+            }?.invoke(faceManager)?.let {
+                if (it is Boolean)
+                    return it
+                else
+                    throw RuntimeException("Unexpected type - $it")
             }
+        } catch (ignore: Throwable) {
+
+
+        }
+
 
         e(RuntimeException("Unable to find 'hasEnrolled' method"))
-
         return false
     }
 
