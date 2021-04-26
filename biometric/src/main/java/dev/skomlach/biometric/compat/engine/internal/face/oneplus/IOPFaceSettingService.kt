@@ -16,15 +16,15 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package dev.skomlach.biometric.compat.engine.internal.face.oneplus
 
-package dev.skomlach.biometric.compat.engine.internal.face.oneplus;
+import android.os.IInterface
+import android.os.RemoteException
 
-import android.os.IInterface;
-import android.os.RemoteException;
+interface IOPFaceSettingService : IInterface {
+    @Throws(RemoteException::class)
+    fun checkState(i: Int): Int
 
-public interface IOPFaceSettingService extends IInterface {
-
-    int checkState(int i) throws RemoteException;
-
-    void removeFace(int i) throws RemoteException;
+    @Throws(RemoteException::class)
+    fun removeFace(i: Int)
 }

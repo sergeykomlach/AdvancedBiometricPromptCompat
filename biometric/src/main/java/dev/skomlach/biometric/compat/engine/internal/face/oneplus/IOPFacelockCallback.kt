@@ -16,19 +16,19 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package dev.skomlach.biometric.compat.engine.internal.face.oneplus
 
-package dev.skomlach.biometric.compat.engine.internal.face.oneplus;
-
-import android.os.RemoteException;
-
-import androidx.annotation.RestrictTo;
+import android.os.RemoteException
+import androidx.annotation.RestrictTo
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-public interface IOPFacelockCallback {
+interface IOPFacelockCallback {
+    @Throws(RemoteException::class)
+    fun onBeginRecognize(faceId: Int)
 
-    void onBeginRecognize(int faceId) throws RemoteException;
+    @Throws(RemoteException::class)
+    fun onCompared(faceId: Int, userId: Int, result: Int, compareTimeMillis: Int, score: Int)
 
-    void onCompared(int faceId, int userId, int result, int compareTimeMillis, int score) throws RemoteException;
-
-    void onEndRecognize(int faceId, int userId, int result) throws RemoteException;
+    @Throws(RemoteException::class)
+    fun onEndRecognize(faceId: Int, userId: Int, result: Int)
 }

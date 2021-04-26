@@ -16,125 +16,114 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package dev.skomlach.biometric.compat.engine.internal.face.oneplus
 
-package dev.skomlach.biometric.compat.engine.internal.face.oneplus;
-
-import android.annotation.SuppressLint;
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.os.RemoteException;
-
-import androidx.annotation.RestrictTo;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl;
-
-import static dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg;
+import android.annotation.SuppressLint
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.os.RemoteException
+import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.lang.reflect.InvocationTargetException
+import java.util.*
 
 @SuppressLint("PrivateApi")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-class OnePlusFaceSettings {
+internal class OnePlusFaceSettings(  //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
+    private val mContext: Context
+) {
 
-    private static final String TAG = OnePlusFaceSettings.class.getSimpleName();
-
-    //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
-
-    private final Context mContext;
-    private final String pkg = "com.oneplus.faceunlock";
-    private final Class<?> flInterface;
-    private final Class<?> flInterfaceStub;
-    protected Object mFaceLockService;
-    protected ServiceConnectionWrapper mServiceConnection;
-    protected HashMap<IOPFacelockCallback, Object> mMap = new HashMap<>();
-
-    public OnePlusFaceSettings(Context context) throws Exception {
-        mContext = context;
-        final String FACELOCK_INTERFACE = "com.oneplus.faceunlock.internal.IOPFacelockService";
-
-        try {
-            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE);
-            flInterfaceStub = getClassFromPkg(pkg, FACELOCK_INTERFACE + "$Stub");
-            return;
-        } catch (Throwable ignored) {}
-
-        throw new RuntimeException(TAG + " not supported");
+    companion object {
+        private val TAG = OnePlusFaceSettings::class.java.simpleName
     }
 
-    public boolean bind(ServiceConnection connection) {
-        BiometricLoggerImpl.d(TAG + " bind to service");
+    private val pkg = "com.oneplus.faceunlock"
+    private var flInterface: Class<*>? = null
+    private var flInterfaceStub: Class<*>? = null
+    private var mFaceLockService: Any? = null
+    private var mServiceConnection: ServiceConnectionWrapper? = null
+    private var mMap = HashMap<IOPFacelockCallback, Any>()
 
+    init {
+        val FACELOCK_INTERFACE = "com.oneplus.faceunlock.internal.IOPFacelockService"
+        try {
+            flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE)
+            flInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_INTERFACE\$Stub")
+        } catch (ignored: Throwable) {
+        }
+        if (flInterfaceStub == null)
+            throw RuntimeException(TAG + " not supported")
+    }
+
+    fun bind(connection: ServiceConnection): Boolean {
+        d(TAG + " bind to service")
         if (mServiceConnection != null) {
-            return false;
+            return false
         }
-        mServiceConnection = new ServiceConnectionWrapper(connection);
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName(pkg, "com.oneplus.faceunlock.FaceSettingService"));
+        mServiceConnection = ServiceConnectionWrapper(connection)
+        val intent = Intent()
+        intent.component = ComponentName(pkg, "com.oneplus.faceunlock.FaceSettingService")
         return mContext
-                .bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
     }
 
-    public void unbind() {
-        BiometricLoggerImpl.d(TAG + " unbind from service");
-        mContext.unbindService(mServiceConnection);
-        mServiceConnection = null;
+    fun unbind() {
+        d(TAG + " unbind from service")
+        mServiceConnection?.let {
+            mContext.unbindService(it)
+        }
+        mServiceConnection = null
     }
 
-    public int checkState()
-            throws RemoteException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        BiometricLoggerImpl.d(TAG + " startUi");
-
+    @Throws(
+        RemoteException::class,
+        IllegalArgumentException::class,
+        IllegalAccessException::class,
+        InvocationTargetException::class,
+        NoSuchMethodException::class
+    )
+    fun checkState(): Int {
+        d(TAG + " startUi")
         try {
-            Method method = flInterface.getMethod("checkState", int.class);
-            return (int) method.invoke(mFaceLockService, 0);
-        } catch (Throwable ignore) {
-
+            val method = flInterface?.getMethod("checkState", Int::class.javaPrimitiveType)
+            return method?.invoke(mFaceLockService, 0) as Int
+        } catch (ignore: Throwable) {
         }
-        return -1;
+        return -1
     }
 
-    private class ServiceConnectionWrapper implements ServiceConnection {
-
-        private final ServiceConnection mServiceConnection;
-
-        ServiceConnectionWrapper(ServiceConnection sc) {
-            mServiceConnection = sc;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-
-            BiometricLoggerImpl.d(TAG + " service connected");
-
+    private inner class ServiceConnectionWrapper(private val mServiceConnection: ServiceConnection) :
+        ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, service: IBinder) {
+            d(TAG + " service connected")
             try {
-                mFaceLockService = flInterfaceStub.getMethod("asInterface", IBinder.class)
-                        .invoke(null, service);
-                mServiceConnection.onServiceConnected(name, service);
-            } catch (IllegalArgumentException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            } catch (IllegalAccessException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            } catch (InvocationTargetException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
-            } catch (NoSuchMethodException e) {
-                mFaceLockService = null;
-                BiometricLoggerImpl.e(e, TAG + e.getMessage());
+                mFaceLockService = flInterfaceStub?.getMethod("asInterface", IBinder::class.java)
+                    ?.invoke(null, service)
+                mServiceConnection.onServiceConnected(name, service)
+            } catch (e: IllegalArgumentException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
+            } catch (e: IllegalAccessException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
+            } catch (e: InvocationTargetException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
+            } catch (e: NoSuchMethodException) {
+                mFaceLockService = null
+                e(e, TAG + e.message)
             }
         }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            BiometricLoggerImpl.d(TAG + " service disconnected");
-            mServiceConnection.onServiceDisconnected(name);
-            mFaceLockService = null;
+        override fun onServiceDisconnected(name: ComponentName) {
+            d(TAG + " service disconnected")
+            mServiceConnection.onServiceDisconnected(name)
+            mFaceLockService = null
         }
     }
 }
