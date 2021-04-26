@@ -38,7 +38,9 @@ object BlurUtil {
             "performViewCapture",
             View::class.java,
             Boolean::class.javaPrimitiveType
-        )
+        ).apply {
+            isAccessible = true
+        }
     } catch (ignore: Throwable) {
         null
     }
@@ -53,31 +55,24 @@ object BlurUtil {
             val startMs = System.currentTimeMillis()
             ExecutorHelper.INSTANCE.startOnBackground {
                 try {
-                    val isAccessible = method.isAccessible
-                    try {
-                        if (!isAccessible)
-                            method.isAccessible = true
-
-                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            ExecutorHelper.INSTANCE.handler.post {
-                                try {
-                                    BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
-                                    blur(
-                                        view,
-                                        bm.copy(Bitmap.Config.RGB_565, false),
-                                        listener
-                                    )
-                                } catch (e: Throwable) {
-                                    BiometricLoggerImpl.e(e)
-                                }
+                    (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                        ExecutorHelper.INSTANCE.handler.post {
+                            try {
+                                BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
+                                blur(
+                                    view,
+                                    bm.copy(Bitmap.Config.RGB_565, false),
+                                    listener
+                                )
+                            } catch (e: Throwable) {
+                                BiometricLoggerImpl.e(e)
                             }
                         }
-                    } finally {
-                        if (!isAccessible)
-                            method.isAccessible = false
                     }
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
+                } catch (ignore: Throwable) {
+                    ExecutorHelper.INSTANCE.handler.post {
+                        fallbackViewCapture(view, listener)
+                    }
                 }
             }
         } ?: run {
