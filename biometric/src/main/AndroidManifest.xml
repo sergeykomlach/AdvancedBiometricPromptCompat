@@ -27,8 +27,7 @@
     <!-- Huawei FaceUnlock-->
     <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION"/>
     <uses-permission android:name="android.permission.USE_FACERECOGNITION" />
-    <uses-permission android:name="com.huawei.permission.MANAGE_FACERECOGNITION"/>
-    <uses-permission android:name="android.permission.MANAGE_FACERECOGNITION"/>
+
 
     <!-- Oppo -->
     <uses-permission android:name="oppo.permission.USE_FACE" />

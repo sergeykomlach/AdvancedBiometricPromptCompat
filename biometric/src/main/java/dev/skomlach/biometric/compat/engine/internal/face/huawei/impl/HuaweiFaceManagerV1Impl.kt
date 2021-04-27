@@ -83,9 +83,9 @@ class HuaweiFaceManagerV1Impl(private val context: Context) : HuaweiFaceManagerV
     override val version: Int
         get() = 1
     override val isHardwareDetected: Boolean
-        get() = HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: 0 and 1 != 0
+        get() = try{ HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: 0 and 1 != 0 } catch (ignore : Throwable){ false }
 
     override fun hasEnrolledTemplates(): Boolean {
-        return HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs?.isNotEmpty() == true
+        return try{ HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs?.isNotEmpty() == true } catch (ignore : Throwable){ false }
     }
 }
