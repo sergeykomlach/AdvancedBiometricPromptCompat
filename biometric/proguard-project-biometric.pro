@@ -8,4 +8,10 @@
 -keep class com.huawei.** { *; }
 -keep interface com.huawei.** { *; }
 
--keep class dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver { *; }
+-keep class com.tencent.soter.** { *; }
+-keep interface com.tencent.soter.** { *; }
+
+-keep class dev.skomlach.biometric.** { *; }
+-keep interface dev.skomlach.biometric.** { *; }
+-keep class org.chickenhook.restrictionbypass.** { *; }
+-keep interface org.chickenhook.restrictionbypass.** { *; }

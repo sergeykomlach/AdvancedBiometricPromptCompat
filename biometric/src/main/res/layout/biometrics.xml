@@ -23,7 +23,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_fingerprint"
                 />
 
@@ -32,7 +32,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_face"
                 />
 
@@ -41,7 +41,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_iris"
                 />
 
@@ -50,7 +50,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_voice"
                 />
 
@@ -59,7 +59,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_heartrate"
                 />
 
@@ -68,7 +68,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_palm"
                 />
         <androidx.appcompat.widget.AppCompatImageView
@@ -76,7 +76,7 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="#fff"
+                app:tint="@android:color/white"
                 app:srcCompat="@drawable/bio_ic_behavior"
                 />
     </LinearLayout>
@@ -87,7 +87,6 @@
             android:layout_below="@+id/biometrics"
             android:layout_alignLeft="@+id/biometrics"
             android:layout_alignRight="@+id/biometrics"
-            android:background="#fff"
+            android:background="@android:color/white"
             />
-
 </RelativeLayout>

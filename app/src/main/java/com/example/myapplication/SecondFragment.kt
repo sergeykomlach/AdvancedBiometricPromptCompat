@@ -1,3 +1,22 @@
+/*
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  All rights reserved.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
+
 package com.example.myapplication
 
 import android.annotation.SuppressLint
@@ -62,8 +81,8 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
             NavHostFragment.findNavController(this@SecondFragment)
                 .navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
-        LogCat.getInstance().setFilter("Biometric")
-        LogCat.getInstance().setLog2ViewCallback(this@SecondFragment)
+        LogCat.instance.setFilter("Biometric")
+        LogCat.instance.setLog2ViewCallback(this@SecondFragment)
     }
 
     override fun onDestroyView() {

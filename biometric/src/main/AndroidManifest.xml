@@ -1,13 +1,34 @@
+<!--
+  ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+  ~  All rights reserved.
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.biometric.compat">
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- OnePlus FaceUnlock-->
-<!--    <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_UNLOCK" />-->
+
     <!-- Huawei FaceUnlock-->
     <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION"/>
     <uses-permission android:name="android.permission.USE_FACERECOGNITION" />
+    <uses-permission android:name="com.huawei.permission.MANAGE_FACERECOGNITION"/>
+    <uses-permission android:name="android.permission.MANAGE_FACERECOGNITION"/>
 
     <!-- Oppo -->
     <uses-permission android:name="oppo.permission.USE_FACE" />
@@ -29,6 +50,7 @@
     <uses-permission android:name="android.permission.USE_IRIS" />
     <uses-permission android:name="android.permission.USE_FACE_AUTHENTICATION" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
 
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

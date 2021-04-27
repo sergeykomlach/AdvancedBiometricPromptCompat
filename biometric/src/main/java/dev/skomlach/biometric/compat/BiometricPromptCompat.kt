@@ -1,8 +1,27 @@
+/*
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  All rights reserved.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
+
 package dev.skomlach.biometric.compat
 
 import android.annotation.TargetApi
 import android.content.DialogInterface
-import android.os.AsyncTask
+import android.graphics.Color
 import android.os.Build
 import android.os.Looper
 import android.view.View
@@ -16,18 +35,17 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isNewBiometricApi
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
-import dev.skomlach.biometric.compat.utils.ActiveWindow
-import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.*
+import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -36,15 +54,26 @@ import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
         init {
             AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    HiddenApiBypass.setHiddenApiExemptions("L");
+                }
+            } catch (e : Throwable){
+                e.printStackTrace()
+            }
         }
         @JvmStatic
         val availableAuthRequests = ArrayList<BiometricAuthRequest>()
@@ -61,13 +90,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var initInProgress = AtomicBoolean(false)
         var deviceInfo: DeviceInfo?=null
         get() {
-            if(field == null){
-                AsyncTask.THREAD_POOL_EXECUTOR.execute{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo { info -> field = info }
+            if(field == null && !isDeviceInfoChecked){
+                isDeviceInfoChecked = false
+                ExecutorHelper.INSTANCE.startOnBackground{
+                        DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
+                            override fun onReady(info: DeviceInfo?) {
+                                isDeviceInfoChecked = true
+                                deviceInfo = info
+                            }
+                        })
                     }
             }
             return field
         }
+        private var isDeviceInfoChecked = false
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -75,23 +111,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 throw IllegalThreadStateException("Main Thread required")
 
             if (isBiometricInit.get()) {
-                BiometricLoggerImpl.e("BiometricPromptCompat.init() - ready")
+                BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
                 execute?.let { ExecutorHelper.INSTANCE.handler.post(it) }
             } else {
                 if (initInProgress.get()) {
-                    BiometricLoggerImpl.e("BiometricPromptCompat.init() - pending")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init() - pending")
                     pendingTasks.add(execute)
                 } else {
-                    BiometricLoggerImpl.e("BiometricPromptCompat.init()")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init()")
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
-                    AndroidContext.getAppContext()
+                    AndroidContext.appContext
                     startBiometricInit()
-                    AsyncTask.THREAD_POOL_EXECUTOR.execute{
-                        DeviceInfoManager.INSTANCE.getDeviceInfo { info ->
-                            deviceInfo = info
-                        }
+                    ExecutorHelper.INSTANCE.startOnBackground{
+                        DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
+                            override fun onReady(info: DeviceInfo?) {
+                                isDeviceInfoChecked = true
+                                deviceInfo = info
+                            }
+                        })
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
                 }
@@ -108,7 +147,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
 
                 override fun onBiometricReady() {
-                    BiometricLoggerImpl.e("BiometricPromptCompat.init() - finished")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init() - finished")
                     isBiometricInit.set(true)
                     initInProgress.set(false)
                     //Add default first
@@ -124,6 +163,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             biometricAuthRequest = BiometricAuthRequest(api, type)
                             if (isHardwareDetected(biometricAuthRequest)) {
                                 availableAuthRequests.add(biometricAuthRequest)
+                                //just cache value
+                                hasEnrolled(biometricAuthRequest)
+                                isLockOut(biometricAuthRequest)
                             }
                         }
                     }
@@ -139,10 +181,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private val impl: IBiometricPromptImpl by lazy {
-        val iBiometricPromptImpl = if (builder.biometricAuthRequest.api === BiometricApi.BIOMETRIC_API
-            || (builder.biometricAuthRequest.api === BiometricApi.AUTO
-                    && isNewBiometricApi(builder.biometricAuthRequest))
-        ) {
+        BiometricLoggerImpl.d("BiometricPromptCompat.IBiometricPromptImpl - " +
+                "${HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi} && ${builder.primaryAvailableTypes}/${builder.secondaryAvailableTypes}")
+        val iBiometricPromptImpl = if (HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi && builder.primaryAvailableTypes.isNotEmpty()) {
             BiometricPromptApi28Impl(builder)
         } else {
             BiometricPromptGenericImpl(builder)
@@ -151,55 +192,98 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun authenticate(callbackOuter: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.authenticate()")
-        AsyncTask.THREAD_POOL_EXECUTOR.execute {
-            while (deviceInfo == null || !isInit) {
+        if(isActivityFinished(builder.context)){
+            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
+            return
+        }
+        BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
+        WideGamutBug.checkColorMode(builder.context)
+        val startTime = System.currentTimeMillis()
+        var timeout = false
+        ExecutorHelper.INSTANCE.startOnBackground {
+            while (!isDeviceInfoChecked || !isInit) {
+                timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
+                if(timeout) {
+                    break
+                }
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
                 }
             }
-            ExecutorHelper.INSTANCE.handler.post { startAuth(callbackOuter) }
+            ExecutorHelper.INSTANCE.handler.post {
+                if(timeout) {
+                    callbackOuter.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                }
+                else
+                    startAuth(callbackOuter)
+            }
         }
     }
 
-    private fun startAuth(callbackOuter: Result){
+    private fun startAuth(callbackOuter: Result) {
+        BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
+        val activityViewWatcher = ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback{
+            override fun onCloseBiometric() {
+                cancelAuthenticate()
+            }
+        })
+
         val callback = object : Result {
-            override fun onSucceeded() {
-                callbackOuter.onSucceeded()
+
+            var isOpened = false
+            override fun onSucceeded(confirmed : Set<BiometricType>) {
+                callbackOuter.onSucceeded(confirmed)
+                onUIClosed()
             }
 
             override fun onCanceled() {
                 callbackOuter.onCanceled()
+                onUIClosed()
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
                 callbackOuter.onFailed(reason)
+                onUIClosed()
             }
 
             override fun onUIOpened() {
-                callbackOuter.onUIOpened()
-                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
-                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context,
-                        ContextCompat.getColor(impl.builder.context, getDialogMainColor()), impl.builder.colorStatusBar)
-                }
-                if (impl.builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.showNotification(
-                        impl.builder.title,
-                        impl.builder.description,
-                        impl.builder.allTypes
-                    )
+                if(!isOpened) {
+                    isOpened = true
+                    builder.multiWindowSupport.start()
+                    callbackOuter.onUIOpened()
+                    if (builder.notificationEnabled) {
+                        BiometricNotificationManager.INSTANCE.showNotification(builder)
+                    }
+                    if (impl is BiometricPromptApi28Impl) {
+                        StatusBarTools.setNavBarAndStatusBarColors(
+                            builder.context.window,
+                            ContextCompat.getColor(builder.context, getDialogMainColor()),
+                            ContextCompat.getColor(builder.context, android.R.color.darker_gray),
+                            builder.colorStatusBar
+                        )
+                    }
+                    activityViewWatcher.setupListeners()
                 }
             }
 
             override fun onUIClosed() {
-                if (impl.builder.notificationEnabled) {
-                    BiometricNotificationManager.INSTANCE.dismissAll()
+                if(isOpened) {
+                    isOpened = false
+                    builder.multiWindowSupport.finish()
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        builder.context.window,
+                        builder.colorNavBar,
+                        builder.dividerColor,
+                        builder.colorStatusBar
+                    )
+
+                    if (builder.notificationEnabled) {
+                        BiometricNotificationManager.INSTANCE.dismissAll()
+                    }
+                    activityViewWatcher.resetListeners()
+                    callbackOuter.onUIClosed()
                 }
-                if(impl.builder.colorNavBar != 0 && impl.builder.colorStatusBar != 0){
-                    StatusBarTools.setNavBarAndStatusBarColors(impl.builder.context, impl.builder.colorNavBar, impl.builder.colorStatusBar)
-                }
-                callbackOuter.onUIClosed()
             }
         }
 
@@ -219,7 +303,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callback.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
             return
         }
-        BiometricLoggerImpl.e("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
+        BiometricLoggerImpl.d("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
         PermissionsFragment.askForPermissions(
             impl.builder.context,
             impl.usedPermissions
@@ -227,65 +311,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun authenticateInternal(callback: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal()")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            val d = impl.builder.activeWindow
-            if (!ViewCompat.isAttachedToWindow(d)) {
-                checkForAttachAndStart(d, callback)
-            } else {
-                checkForFocusAndStart(callback)
-            }
-        } else {
-            BiometricLoggerImpl.e("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
+        BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
+        try {
+            BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
             impl.authenticate(callback)
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private fun checkForAttachAndStart(d: View, callback: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.checkForAttachAndStart() - started")
-        d.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) {
-                d.removeOnAttachStateChangeListener(this)
-                checkForFocusAndStart(callback)
-                d.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                    override fun onViewAttachedToWindow(v: View) {}
-                    override fun onViewDetachedFromWindow(v: View) {
-                        d.removeOnAttachStateChangeListener(this)
-                        impl.cancelAuthenticate()
-                    }
-                })
-            }
-
-            override fun onViewDetachedFromWindow(v: View) {
-                d.removeOnAttachStateChangeListener(this)
-            }
-        })
-    }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    private fun checkForFocusAndStart(callback: Result) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.checkForFocusAndStart() - started")
-        val activity = ActiveWindow.getActiveView(impl.builder.context)
-        if (!activity.hasWindowFocus()) {
-            val windowFocusChangeListener: OnWindowFocusChangeListener =
-                object : OnWindowFocusChangeListener {
-                    override fun onWindowFocusChanged(focus: Boolean) {
-                        if (activity.hasWindowFocus()) {
-                            activity.viewTreeObserver.removeOnWindowFocusChangeListener(this)
-                            impl.authenticate(callback)
-                        }
-                    }
-                }
-            activity.viewTreeObserver.addOnWindowFocusChangeListener(windowFocusChangeListener)
-        } else {
-            impl.authenticate(callback)
+        } catch (ignore: IllegalStateException) {
+            callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
         }
     }
 
     fun cancelAuthenticate() {
-        AsyncTask.THREAD_POOL_EXECUTOR.execute {
-            while (deviceInfo == null || !isInit) {
+        ExecutorHelper.INSTANCE.startOnBackground {
+            while (!isDeviceInfoChecked || !isInit) {
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
@@ -299,8 +336,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if(!isInit){
-            AsyncTask.THREAD_POOL_EXECUTOR.execute {
-                while (deviceInfo == null || !isInit) {
+            ExecutorHelper.INSTANCE.startOnBackground {
+                while (!isDeviceInfoChecked  || !isInit) {
                     try {
                         Thread.sleep(250)
                     } catch (ignore: InterruptedException) {
@@ -316,16 +353,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     @ColorRes
     fun getDialogMainColor(): Int {
-        return if (impl.isNightMode) {
-            android.R.color.black
-        } else {
-            R.color.material_grey_50
-        }
+       return DialogMainColor.getColor(impl.isNightMode)
     }
 
     interface Result {
         @MainThread
-        fun onSucceeded()
+        fun onSucceeded(confirmed : Set<BiometricType>)
 
         @MainThread
         fun onCanceled()
@@ -345,16 +378,24 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             RestrictTo.Scope.LIBRARY
         ) val context: FragmentActivity
     ) {
-        val allTypes: HashSet<BiometricType> by lazy {
+        val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
+            types.addAll(primaryAvailableTypes)
+            types.addAll(secondaryAvailableTypes)
+            types
+        }
+        val primaryAvailableTypes: HashSet<BiometricType> by lazy {
+            val types = HashSet<BiometricType>()
+            val api = if(HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 for (type in BiometricType.values()) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = BiometricAuthRequest(
-                        biometricAuthRequest.api,
+                        api,
                         type
                     )
+                    BiometricLoggerImpl.d("primaryAvailableTypes - $request -> ${isHardwareDetected(request)}")
                     if (isHardwareDetected(request) && hasEnrolled(request)) {
                         types.add(type)
                     }
@@ -364,11 +405,31 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             types
         }
-
+        val secondaryAvailableTypes: HashSet<BiometricType> by lazy {
+            val types = HashSet<BiometricType>()
+            if(HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                    for (type in BiometricType.values()) {
+                        if (type == BiometricType.BIOMETRIC_ANY)
+                            continue
+                        val request = BiometricAuthRequest(
+                            BiometricApi.LEGACY_API,
+                            type
+                        )
+                        BiometricLoggerImpl.d("secondaryAvailableTypes - $request -> ${isHardwareDetected(request)}")
+                        if (isHardwareDetected(request) && hasEnrolled(request)) {
+                            types.add(type)
+                        }
+                    }
+                } else {
+                    types.add(biometricAuthRequest.type)
+                }
+            }
+            types
+        }
         val activeWindow: View by lazy {
             ActiveWindow.getActiveView(context)
         }
-
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var title: CharSequence? = null
 
@@ -389,15 +450,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var notificationEnabled = true
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
-        var showBiometricIcons = false
 
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
-        var colorNavBar: Int = 0
+        var colorNavBar: Int = Color.TRANSPARENT
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
-        var colorStatusBar: Int = 0
+        var dividerColor: Int = Color.TRANSPARENT
+
+        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @ColorInt
+        var colorStatusBar: Int = Color.TRANSPARENT
+        init {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                this.colorNavBar = context.window.navigationBarColor
+                this.colorStatusBar = context.window.statusBarColor
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                dividerColor = context.window.navigationBarDividerColor
+            }
+       }
         constructor(context: FragmentActivity) : this(
             BiometricAuthRequest(
                 BiometricApi.AUTO,
@@ -405,15 +477,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             ), context
         ) {
         }
-        fun allowToManageSystemBars( @ColorInt  activityNavBarColor: Int, @ColorInt  activityStatusBarColor: Int): Builder {
-            this.colorNavBar = activityNavBarColor
-            this.colorStatusBar = activityStatusBarColor
-            return this
-        }
-        fun setShowBiometricIcons(enabled: Boolean): Builder {
-            this.showBiometricIcons = enabled
-            return this
-        }
+
         fun setEnabledNotification(enabled: Boolean): Builder {
             this.notificationEnabled = enabled
             return this

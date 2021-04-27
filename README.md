@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+  </a>
+</p>
+
+                                    
 
 
 ## PLEASE NOTE:  
@@ -50,7 +56,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
 | In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro|
-| Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Not tested yet |
+| Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 |
 | Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
 | Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30|
 | Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
@@ -58,7 +64,6 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
-| ~~OnePlus FaceId~~ | ~~Android 8+ and OnePlus devices~~ |~~One Plus 7 Pro~~|
 
 
 ## Screenshots:  
@@ -137,8 +142,13 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
   
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi and BiometricType;  
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY)` - means any available BiometricApi and BiometricType  
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` - means any available BiometricApi and BiometricType  
+    
+ **BiometricConfirmation:**  
   
+  `BiometricConfirmation.ANY` - any biometric confirm the user
+    
+  `BiometricConfirmation.ALL` - all (one-by-one) biometrics confirm the user
   
  **BiometricApi:**  
   
@@ -184,13 +194,13 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   
 **BiometricPromptCompat.Result**  
   
-  `void onSucceeded()` - User successfully authenticated   
+  `void onSucceeded(Set<BiometricType> confirmed)` - User successfully authenticated   
     
   `void onCanceled()` - Biometric authentication was canceled  
     
   `void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*  
   
-  `void onUIShown()` - Biometric UI on display  
+  `void onUIOpened()/void onUIClosed` - Biometric UI on display or closed 
   
   
   
@@ -219,15 +229,6 @@ Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Androi
 IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
 
   
-## TODO  
-- ~~Simplify setup~~
-- Add more devices/manufacturers  
-- ~~Check for the way to start BiometricAuth with specified BiometricType~~
-- Cleanup project and README  
-- Migrate to Kotlin  
-  
-  
-
 
 ## Contact author  
   
@@ -238,3 +239,5 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 ## License  
   
 Apache License 2.0
+
+

@@ -1,49 +1,24 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+<!--
+  ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+  ~  All rights reserved.
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
+
+<manifest xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.common">
-
-    <uses-permission android:name="huawei.android.permission.MULTIWINDOW_SDK" />
-    <uses-sdk tools:overrideLibrary="com.microsoft.device.dualscreen.core,com.microsoft.device.dualscreen.fragmentshandler,androidx.security" />
-    <application>
-        <!--        &lt;!&ndash;-->
-        <!--      https://android-developers.googleblog.com/2018/11/get-your-app-ready-for-foldable-phones.html-->
-        <!--      https://developer.samsung.com/galaxy/foldable-->
-        <!--      Doesn't have affect to the devices with Android 9 (except Samsung) and lower-->
-        <!--      &ndash;&gt;-->
-        <!--        <meta-data-->
-        <!--                android:name="android.allow_multiple_resumed_activities"-->
-        <!--                android:value="true" />-->
-
-        <!--        &lt;!&ndash; Google suggest use ration 2.1 or higher for displays like on S8&ndash;&gt;-->
-        <!--        <meta-data-->
-        <!--                android:name="android.max_aspect"-->
-        <!--                android:value="3.0" />-->
-
-        <!--        &lt;!&ndash; Samsung's multiwindow &ndash;&gt;-->
-        <!--        <uses-library-->
-        <!--                android:name="com.sec.android.support.multiwindow"-->
-        <!--                android:required="false" />-->
-
-        <!--        <meta-data-->
-        <!--                android:name="com.samsung.android.sdk.multiwindow.enable"-->
-        <!--                android:value="true" />-->
-        <!--        <meta-data-->
-        <!--                android:name="com.sec.android.support.multiwindow"-->
-        <!--                android:value="true" />-->
-
-        <!--        <meta-data-->
-        <!--                android:name="com.lge.support.SPLIT_WINDOW"-->
-        <!--                android:value="true" />-->
-
-        <!--        <meta-data-->
-        <!--                android:name="android.intent.category.MULTIWINDOW_LAUNCHER"-->
-        <!--                android:value="true" />-->
-        <!--        <meta-data-->
-        <!--                android:name="com.sec.android.intent.category.MULTIWINDOW_LAUNCHER"-->
-        <!--                android:value="true" />-->
-        <!--        <meta-data-->
-        <!--                android:name="com.lge.support.SPLIT_WINDOW.SUPPORT_SPLIT"-->
-        <!--                android:value="true" />-->
-
-    </application>
+    <uses-sdk tools:overrideLibrary="androidx.security" />
+    <application />
 </manifest>
