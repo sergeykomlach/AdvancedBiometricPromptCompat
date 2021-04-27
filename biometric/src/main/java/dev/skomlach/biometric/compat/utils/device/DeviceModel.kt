@@ -34,45 +34,44 @@ import kotlin.collections.HashSet
 
 object DeviceModel {
 
-    private val brand = Build.BRAND?:""
-    private val model = (Build.MODEL?:"").replace("  ", " ")
+    private val brand = (Build.BRAND ?: "").replace("  ", " ")
+    private val model = (Build.MODEL ?: "").replace("  ", " ")
+    private val device = (Build.DEVICE ?: "").replace("  ", " ")
 
     fun getNames(): Set<String> {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
         BiometricLoggerImpl.d("AndroidModel - $s")
         s?.let {
-            strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
+            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
         }
         s = getNameFromAssets()
         s?.let {
-            strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
+            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
         }
         s = getNameFromDatabase()
         s?.let {
-            strings.put(it.toLowerCase(Locale.US), fixVendorName(it))
+            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
         }
         BiometricLoggerImpl.d("AndroidModel.names ${strings.values}")
         return HashSet<String>(strings.values)
     }
 
-    private fun fixVendorName(string: String) :String{
+    private fun fixVendorName(string: String): String {
         val parts = string.split(" ")
 
         var vendor = parts[0]
-        if(vendor[0].isLowerCase()) {
+        if (vendor[0].isLowerCase()) {
             vendor = Character.toUpperCase(vendor[0]).toString() + vendor.substring(1)
         }
-        return vendor + string.substring(vendor.length, string.length)
-
+        return (vendor + string.substring(vendor.length, string.length)).trim()
     }
-    private fun getSimpleDeviceName(): String {
-        val s =
-            SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name")
-        return if (!s.isNullOrEmpty())
-            getName(brand, s)
-        else
-            getName(brand, model)
+
+    private fun getSimpleDeviceName(): String? {
+        SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name")?.let {
+            return getName(brand, it)
+        }
+        return null
     }
 
     @WorkerThread
@@ -81,7 +80,7 @@ object DeviceModel {
         BiometricLoggerImpl.d("AndroidModel.getNameFromAssets started")
 
         try {
-            val json = JSONObject(getJSON())
+            val json = JSONObject(getJSON() ?: return null)
             for (key in json.keys()) {
                 if (brand.equals(key, ignoreCase = true)) {
                     val details = json.getJSONArray(key)
@@ -89,25 +88,23 @@ object DeviceModel {
                         val jsonObject = details.getJSONObject(i)
                         val m = jsonObject.getString("model")
                         val name = jsonObject.getString("name")
-                        if (m.isNullOrEmpty() && name.isNullOrEmpty()) {
+                        val d = jsonObject.getString("device")
+                        if (name.isNullOrEmpty()) {
                             continue
-                        } else if (model.equals(m, ignoreCase = true)) {
+                        } else if (!m.isNullOrEmpty() && model.equals(m, ignoreCase = true)) {
                             BiometricLoggerImpl.d("AndroidModel - $jsonObject")
-                            val modelParts = model.split(" ")
-                            val nameParts = name.replace("  ", " ").split(" ")
-                            val fullName =
-                                if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
-                                        nameParts[0],
-                                        true
-                                    )
-                                ) model else name
+                            val fullName = getFullName(name)
+                            return getName(brand, fullName)
+                        } else if (!d.isNullOrEmpty() && device.equals(d, ignoreCase = true)) {
+                            BiometricLoggerImpl.d("AndroidModel - $jsonObject")
+                            val fullName = getFullName(name)
                             return getName(brand, fullName)
                         }
                     }
                 }
             }
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+            BiometricLoggerImpl.e(e, "AndroidModel")
         }
         return null
     }
@@ -115,8 +112,8 @@ object DeviceModel {
     //tools
     private fun getJSON(): String? {
         try {
-           //https://github.com/androidtrackers/certified-android-devices/
-           val inputStream =
+            //https://github.com/androidtrackers/certified-android-devices/
+            val inputStream =
                 AndroidContext.appContext.assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()
             Network.fastCopy(inputStream, byteArrayOutputStream)
@@ -136,22 +133,25 @@ object DeviceModel {
             .getDeviceInfo(AndroidContext.appContext)
         BiometricLoggerImpl.d("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
-            val modelParts = model.split(" ")
-            val nameParts = info.name.replace("  ", " ").split(" ")
-            val fullName =
-                if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
-                        nameParts[0],
-                        true
-                    )
-                ) model else info.name
-
+            val fullName = getFullName(info.name)
             getName(
-                if (!info.manufacturer.isNullOrEmpty()) info.manufacturer else brand,
+                if (!TextUtils.isEmpty(info.manufacturer)) info.manufacturer else brand,
                 fullName
             )
         } else {
             null
         }
+    }
+
+    private fun getFullName(name: String): String {
+        val modelParts = model.split(" ")
+        val nameParts = name.split(" ")
+
+        return if (modelParts[0].length > nameParts[0].length && modelParts[0].startsWith(
+                nameParts[0],
+                true
+            )
+        ) model else name
     }
 
     private fun getName(vendor: String, model: String): String {

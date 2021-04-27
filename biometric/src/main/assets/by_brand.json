@@ -11493,6 +11493,11 @@
    "model": "BL60_TG17"
   },
   {
+   "device": "Bmobile_BL61_MV05",
+   "name": "BL61",
+   "model": "BL61"
+  },
+  {
    "device": "Bella",
    "name": "Bella",
    "model": "Bella"
@@ -18093,6 +18098,11 @@
    "device": "sadang",
    "name": "Cello",
    "model": "cello UK 4K Android TV"
+  },
+  {
+   "device": "tabata",
+   "name": "Cello",
+   "model": "cello 2K Android TV"
   },
   {
    "device": "T1045PC",
@@ -75821,6 +75831,11 @@
    "model": "Lenovo TB-7104I"
   },
   {
+   "device": "X6C6X",
+   "name": "Lenovo Tab K10",
+   "model": "Lenovo TB-X6C6X"
+  },
+  {
    "device": "J606F",
    "name": "Lenovo Tab K11",
    "model": "Lenovo TB-J606F"
@@ -107810,6 +107825,13 @@
    "model": "FP-U320-711-WWAN"
   }
  ],
+ "SAMPO": [
+  {
+   "device": "R2",
+   "name": "Android TV",
+   "model": "ATV R2"
+  }
+ ],
  "SARL WISE TECHNOLOGIE": [
   {
    "device": "P1_Plus",
@@ -114307,6 +114329,11 @@
    "model": "SM-M127G"
   },
   {
+   "device": "m12",
+   "name": "Galaxy M12",
+   "model": "SM-M127N"
+  },
+  {
    "device": "m20",
    "name": "Galaxy M20",
    "model": "SM-M205N"
@@ -114375,6 +114402,11 @@
    "device": "m40",
    "name": "Galaxy M40",
    "model": "SM-M405F"
+  },
+  {
+   "device": "a42xq",
+   "name": "Galaxy M42 5G",
+   "model": "SM-M426B"
   },
   {
    "device": "m51",
