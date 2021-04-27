@@ -13,6 +13,7 @@ import androidx.annotation.RestrictTo;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import dev.skomlach.common.contextprovider.AndroidContext;
 
@@ -91,7 +92,7 @@ public class LockType {
                         if (TextUtils.isEmpty(name))
                             continue;
 
-                        String s = name.toLowerCase();
+                        String s = name.toLowerCase(Locale.ROOT);
 
                         if (s.contains(type)) {
                             if (s.contains("_unl") && s.contains("_enable")) {
@@ -140,7 +141,7 @@ public class LockType {
                         if (TextUtils.isEmpty(name))
                             continue;
 
-                        String s = name.toLowerCase();
+                        String s = name.toLowerCase(Locale.ROOT);
 
                         if (s.contains("fingerprint")
                                 || s.contains("face")

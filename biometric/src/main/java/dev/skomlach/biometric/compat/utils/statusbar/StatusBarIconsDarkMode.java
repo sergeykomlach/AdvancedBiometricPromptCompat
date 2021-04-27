@@ -8,6 +8,8 @@ import android.view.WindowManager;
 import androidx.annotation.RestrictTo;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
+
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 public class StatusBarIconsDarkMode {
     private static int SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = 0x00002000;
@@ -42,10 +44,10 @@ public class StatusBarIconsDarkMode {
                 if (!name.contains("_DARK_"))
                     continue;
 
-                if (type == BarType.STATUSBAR && !name.toLowerCase().contains("status")) {
+                if (type == BarType.STATUSBAR && !name.toLowerCase(Locale.ROOT).contains("status")) {
                     continue;
                 }
-                if (type == BarType.NAVBAR && !name.toLowerCase().contains("nav")) {
+                if (type == BarType.NAVBAR && !name.toLowerCase(Locale.ROOT).contains("nav")) {
                     continue;
                 }
                 int darkModeFlag = field.getInt(null);   //because its static fields - access without object
@@ -67,10 +69,10 @@ public class StatusBarIconsDarkMode {
                 if (!name.contains("_DARK_"))
                     continue;
 
-                if (type == BarType.STATUSBAR && !name.toLowerCase().contains("status")) {
+                if (type == BarType.STATUSBAR && !name.toLowerCase(Locale.ROOT).contains("status")) {
                     continue;
                 }
-                if (type == BarType.NAVBAR && !name.toLowerCase().contains("nav")) {
+                if (type == BarType.NAVBAR && !name.toLowerCase(Locale.ROOT).contains("nav")) {
                     continue;
                 }
                 field.setAccessible(true);

@@ -21,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -61,7 +62,7 @@ public class DeviceInfoManager {
             return false;
 
         for (String s : deviceInfo.getSensors()) {
-            s = s.toLowerCase();
+            s = s.toLowerCase(Locale.ROOT);
             if (s.contains("fingerprint")) {
                 return true;
             }
@@ -73,7 +74,7 @@ public class DeviceInfoManager {
         if (deviceInfo == null || deviceInfo.getSensors() == null)
             return false;
         for (String s : deviceInfo.getSensors()) {
-            s = s.toLowerCase();
+            s = s.toLowerCase(Locale.ROOT);
 
             if (s.contains("fingerprint") && s.contains("under display")) {
                 return true;
@@ -86,7 +87,7 @@ public class DeviceInfoManager {
         if (deviceInfo == null || deviceInfo.getSensors() == null)
             return false;
         for (String s : deviceInfo.getSensors()) {
-            s = s.toLowerCase();
+            s = s.toLowerCase(Locale.ROOT);
             if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(" auth")) {
                 if (s.contains("iris")) {
                     return true;
@@ -99,7 +100,7 @@ public class DeviceInfoManager {
         if(deviceInfo == null || deviceInfo.getSensors() == null)
             return false;
         for (String s : deviceInfo.getSensors()) {
-            s = s.toLowerCase();
+            s = s.toLowerCase(Locale.ROOT);
             if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(" auth")) {
                 if (s.contains("face")) {
                     return true;
@@ -140,7 +141,7 @@ public class DeviceInfoManager {
 
     @Nullable
     private DeviceInfo getCachedDeviceInfo() {
-        SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("StoredDeviceInfo");
+        SharedPreferences sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("StoredDeviceInfo-v2");
         if (sharedPreferences.getBoolean("checked", false)) {
             String model = sharedPreferences.getString("model", null);
             Set<String> sensors = sharedPreferences.getStringSet("sensors", null);
@@ -150,7 +151,7 @@ public class DeviceInfoManager {
     }
 
     private void setCachedDeviceInfo(@NonNull DeviceInfo deviceInfo) {
-        SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("StoredDeviceInfo").edit();
+        SharedPreferences.Editor sharedPreferences = SharedPreferenceProvider.getCryptoPreferences("StoredDeviceInfo-v2").edit();
         sharedPreferences
                 .putStringSet("sensors", deviceInfo.getSensors())
                 .putString("model", deviceInfo.getModel())
