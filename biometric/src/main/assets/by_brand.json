@@ -251,6 +251,11 @@
    "device": "IPBox",
    "name": "ACT4K1007",
    "model": "ACT4K1007"
+  },
+  {
+   "device": "HP40A",
+   "name": "ACT4K2020",
+   "model": "ACT4K2020"
   }
  ],
  "ADOC": [
@@ -23926,6 +23931,11 @@
    "device": "Dslide716",
    "name": "Dslide716",
    "model": "Dslide716"
+  },
+  {
+   "device": "Dslide807",
+   "name": "Dslide807",
+   "model": "Dslide807"
   },
   {
    "device": "Dslide971DC",
@@ -75831,6 +75841,11 @@
    "model": "Lenovo TB-7104I"
   },
   {
+   "device": "X6C6F",
+   "name": "Lenovo Tab K10",
+   "model": "Lenovo TB-X6C6F"
+  },
+  {
    "device": "X6C6X",
    "name": "Lenovo Tab K10",
    "model": "Lenovo TB-X6C6X"
@@ -87317,6 +87332,11 @@
    "model": "moto g(10)"
   },
   {
+   "device": "nio",
+   "name": "moto g(100)",
+   "model": "moto g(100)"
+  },
+  {
    "device": "caprip",
    "name": "moto g(30)",
    "model": "moto g(30)"
@@ -94374,6 +94394,16 @@
    "model": "A53w"
   },
   {
+   "device": "OP4E2F",
+   "name": "A55 5G",
+   "model": "PEMM00"
+  },
+  {
+   "device": "OP4E2F",
+   "name": "A55 5G",
+   "model": "PEMT00"
+  },
+  {
    "device": "A57",
    "name": "A57",
    "model": "OPPO A57"
@@ -95027,6 +95057,21 @@
    "device": "N5117",
    "name": "N5117",
    "model": "N5117"
+  },
+  {
+   "device": "OP4E7B",
+   "name": "OPPO A35",
+   "model": "PEFM00"
+  },
+  {
+   "device": "OP4E59",
+   "name": "OPPO Reno5 k 5G",
+   "model": "PEGM10"
+  },
+  {
+   "device": "OP4E59",
+   "name": "OPPO Reno5 k 5G",
+   "model": "PEGT10"
   },
   {
    "device": "beluga",
@@ -112364,6 +112409,11 @@
    "model": "SM-F415F"
   },
   {
+   "device": "f52x",
+   "name": "Galaxy F52 5G",
+   "model": "SM-E5260"
+  },
+  {
    "device": "f62",
    "name": "Galaxy F62",
    "model": "SM-E625F"
@@ -117184,6 +117234,11 @@
    "model": "SC-51B"
   },
   {
+   "device": "SCG09",
+   "name": "Galaxy S21 5G",
+   "model": "SCG09"
+  },
+  {
    "device": "o1q",
    "name": "Galaxy S21 5G",
    "model": "SM-G9910"
@@ -117242,6 +117297,11 @@
    "device": "p3s",
    "name": "Galaxy S21 Ultra 5G",
    "model": "SM-G998N"
+  },
+  {
+   "device": "SCG10",
+   "name": "Galaxy S21+ 5G",
+   "model": "SCG10"
   },
   {
    "device": "t2q",
@@ -129797,10 +129857,12 @@
    "device": "komagome",
    "name": "Strong",
    "model": "Strong 2K Android TV"
-  },
+  }
+ ],
+ "Strong-ZWL": [
   {
    "device": "HP40A1",
-   "name": "Strong-ZWL",
+   "name": "SKWHP40A-ZWL",
    "model": "SKWHP40A-ZWL"
   }
  ],
@@ -144065,6 +144127,11 @@
    "model": "BISON"
   },
   {
+   "device": "BISON_GT",
+   "name": "BISON GT EEA",
+   "model": "BISON GT"
+  },
+  {
    "device": "BISON_R",
    "name": "BISON R",
    "model": "BISON"
@@ -144312,6 +144379,11 @@
    "device": "Titan",
    "name": "Titan",
    "model": "Titan"
+  },
+  {
+   "device": "Titan_pocket",
+   "name": "Titan pocket",
+   "model": "Titan pocket"
   }
  ],
  "Unionaire": [
@@ -152892,6 +152964,11 @@
    "device": "xgimiapollo",
    "name": "P_FHD_2020",
    "model": "P_FHD_2020"
+  },
+  {
+   "device": "xgimigalileo",
+   "name": "XK03H",
+   "model": "XK03H"
   }
  ],
  "XION": [
@@ -158891,6 +158968,16 @@
    "model": "NX669J"
   },
   {
+   "device": "NX669J-EEA",
+   "name": "NX669J",
+   "model": "NX669J"
+  },
+  {
+   "device": "NX669J-UN",
+   "name": "NX669J",
+   "model": "NX669J"
+  },
+  {
    "device": "NX907J",
    "name": "NX907J",
    "model": "NX907J"
@@ -161331,6 +161418,11 @@
    "model": "ZTE 2050RU"
   },
   {
+   "device": "P633S07",
+   "name": "ZTE 7530N",
+   "model": "ZTE 7530N"
+  },
+  {
    "device": "P963F05",
    "name": "ZTE 8010",
    "model": "ZTE 8010"
@@ -161349,6 +161441,11 @@
    "device": "P653S06",
    "name": "ZTE 8012N",
    "model": "ZTE 8012N"
+  },
+  {
+   "device": "P963F06",
+   "name": "ZTE 8030",
+   "model": "ZTE 8030"
   },
   {
    "device": "P633S01",
