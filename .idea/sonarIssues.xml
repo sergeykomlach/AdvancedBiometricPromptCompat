@@ -1,0 +1,864 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="issues">
+    <option name="index">
+      <map>
+        <entry key="/Dummy.txt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="/a.dummy">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/AndroidStudioProjects/MyApplication2/app/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/AndroidStudioProjects/MyApplication2/app/src/main/java/com/example/myapplication/MainActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/RoboformOnlineAccountController.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/autofillservice/activity/AutofillShowAllActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/dialog/FileRenameDialog.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/dialog/secure/setup/RegisterBiometricDialog.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/dialog/secure/setup/SetupBiometricDialog.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/dialog/secure/unlock/SecureDialog.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/filefragments/identity/fragments/IdentityFlowFragment.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/filefragments/login/LoginFileActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/filefragments/safenote/SafenoteFileActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/jscore/JSRoboFormEngine.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/license/purchase/activiity/PurchaseNotificationActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/main/ui/StartPageHostFragment.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/main/ui/TabHostFragment.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/main/ui/TabHostFragmentManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/restorebackup/RestoreBackupActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/rf_import/ImportFromCsvActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/securewizard/SecureWizardActivity.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/securewizard/presenter/UnlockRoboFormByPresenter.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/uielements/BaseFragment.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/uielements/ProtectedFragmentsActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/upgrade_account/ui/UpgradeAccountActivity.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/util/StateLessExtensions.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/cpp/JNI/JNI_JSObject.cpp">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JNIJSFunction.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JNIJSObject.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JNIJSValue.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSArray.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSContext.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSException.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSFunction.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSLogger.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSObject.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSRegExp.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/java/org/liquidplayer/javascript/JSValue.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/README.md">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric-api/src/main/java/ com/tencent/soter/core/biometric/SoterFaceManagerFactory.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric-api/src/main/java/android/hardware/miuiface/Miui3DFaceManagerImpl.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric-api/src/main/java/android/hardware/miuiface/MiuiFaceManagerImp.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric-api/src/main/java/android/hardware/miuiface/MiuiFaceManagerImpl.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric-api/src/main/java/com/tencent/soter/core/biometric/FaceManager.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric-api/src/main/java/com/tencent/soter/core/biometric/SoterFaceManagerFactory.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/Test.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/facelock/ViewContainerRequestInterface.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/AuthCallbackLegacy.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/CodeToString.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/FaceRecognizeCallbackLegacy.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/HuaweiCodesHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/HuaweiFaceUnlockEMIUI10Module.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/HuaweiFaceUnlockLegacyModule.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/HuiaweiCodesHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/MyHandler.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/wrapper/HuaweiFaceManagerV1Impl.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/IMiuiFacelockCallback.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/MiuiFaceUnlock.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/MiuiFaceUnlockHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/MiuiFaceUnlockInterface.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/OnePlusFaceUnlockHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/OnePlusFaceUnlockModule.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/e.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/ContentResolver.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/Secure.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/System.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/oneplus/FaceLock.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/oneplus/FaceLockHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/oneplus/FaceLockInterface.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/oneplus/FacelockOldModule.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/oneplus/IFaceLockCallback.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/oneplus/IOnePlusFaceUnlockCallback.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/soter/SoterEMUI10UnlockModule.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/soter/SoterEMUI9FaceUnlockModule.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/engine/internal/face/soter/SoterHuaweiFaceUnlockModule.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/impl/BioTest.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/ActiveWindowTracker.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/ActiveWindowTracking.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/DeviceInfo.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/DeviceInfoManager.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/Multithreading.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/device/AndroidModel.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/device/AndroidModel.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/device/SystemPropertiesProxy.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/research/app-dex2jar_source_from_Procyon/ru/andr7e/deviceinfohw/InfoCenterActivity.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/research/miuiframework-master/sources/android/hardware/miuiface/MiuiFaceManagerImpl.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/research/ru.andr7e.deviceinfohw_4.30.1-160_minAPI15(nodpi)_apkmirror.com_source_from_JADX/sources/p059ru/andr7e/p062c/p072i/C1390g.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../patronus/analyzer/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../patronus/analyzer/src/main/java/com/patronus/analyzer/apis/oreo/AutofillServiceOPlus.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../patronus/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../patronus/common/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../patronus/common/src/main/AndroidManifest.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../patronus/verifiers/src/main/java/com/patronus/verifiers/basemodel/AbstractBaseModel.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/com/stickypassword/android/autofill/legacy/AutofillAPICompetitiveManager.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/com/stickypassword/android/filechooser/FileUtils.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/com/stickypassword/android/misc/tracker/CrashReportHandler.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/com/stickypassword/android/misc/tracker/TrackersWrapper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/com/stickypassword/android/misc/webview/MyWebViewClient.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/com/stickypassword/android/misc/webview/oreocompatible/OreoCompatibleWebViewClient.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/okhttp3/EasyDns.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/okhttp3/OkUrlFactory.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/okhttp3/proxy/ProxyAuthHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/app/src/main/java/okhttp3/proxy/ProxySettings.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../stickypassword-android/submodules/spcrypto/spcrypto/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/build/generated/data_binding_base_class_source_out/alphaDebug/out/com/siber/roboform/databinding/FSelectImportFolderBinding.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/build/tmp/kapt3/stubs/alphaDebug/com/siber/roboform/fillform/MatchingRepository.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/build/tmp/kapt3/stubs/alphaDebug/com/siber/roboform/web/pagestate/PageState.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/build/tmp/kapt3/stubs/alphaDebug/com/siber/roboform/web/pagestate/PageStateRepository.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/AndroidManifest.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/App.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/dialog/sale/SaleAdapter.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/filesystem/fileitem/FileItemHelper.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/fillform/MatchingRepository.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/httpauth/AuthCredentials.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/license/purchase/PurchaseService.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/main/ui/WebPageFragment.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/AuthCredentials.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/JavaNetAuthenticator.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/OkHttpAuth.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/ProxyAuthHelper.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/ProxySettings.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/WebViewAuth.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/proxy/WebViewAuthChangeListener.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/matchings/AccessibilityMatchingFromPlayMarketProvider.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/AllFileExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/DecodeFileExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/DropAreaExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/DropExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/FilePreviewExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/FingerprintExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/MasterPasswordExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/MatchingExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/PinCodeAndFingerprintExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/PinCodeExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/RFButtonExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/TestBoundExternalView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/rf_access/view/WindowType.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/secure/storage/DataCryptographer.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/services/fileimage/response/ImageInfoResponse.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/util/ContextExtensions.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/util/Crunches.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/util/Database.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/util/matching/AppRelatedUrls.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/util/statistics/SettingsTracker.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/.#UrlUtils.kt.1.8">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/AuthCredentials.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/AuthCredentials.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/RFWebView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/Tab.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/UrlUtils.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/dialog/mvp/HistoryPresenter.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/formfiller/FormFiller.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/formfiller/FormState.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/pagestate/PageState.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/pagestate/PageStateRepository.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/task/PostInstallUrlTask.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/terminationapitools/WebViewLockUIExtensions.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/webviewclients/IClientsCallbacks.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/java/com/siber/roboform/web/webviewclients/RFWebViewClient.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/layout/choose_dialog_list_item.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/layout/d_change_permissions.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/layout/d_external_all_files.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/layout/domain_equiv_edit_item.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/layout/downloads_list_item.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/layout/f_emergency_access_add_contact.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/app/src/main/res/values/strings.xml">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/java/build.gradle">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/jni/Android.mk">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/workspace/roboform/android/js/browser/main.ts">
+          <value>
+            <set />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

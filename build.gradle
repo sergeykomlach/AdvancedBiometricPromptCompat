@@ -42,11 +42,10 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
 //        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
         google()
-        jcenter()
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.0-alpha15'
+        classpath 'com.android.tools.build:gradle:4.2.0'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.0.13"
         classpath 'org.owasp:dependency-check-gradle:6.0.5'
@@ -61,7 +60,6 @@ allprojects {
         maven { url "https://plugins.gradle.org/m2/" }
 //        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
         google()
-        jcenter()
 
     }
 
