@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'maven-publish'
 apply plugin: 'com.github.dcendents.android-maven'
-group = libsGroupId
+group = "dev.skomlach"
 
 android {
     compileSdkVersion targetSDK
