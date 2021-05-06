@@ -95,13 +95,13 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 
 
 ## Setup  
-[![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
+
   
   
 Add dependency to Gradle:  
 ```groovy  
 dependencies {
- implementation 'dev.skomlach:biometric:X.X.X' 
+ implementation 'dev.skomlach:biometric:1.0.87' 
 }
 ```  
 
