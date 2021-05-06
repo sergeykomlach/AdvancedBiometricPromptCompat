@@ -1,9 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
-
+apply plugin: 'com.github.dcendents.android-maven'
+group = libsGroupId
 android {
     compileSdkVersion targetSDK
     defaultConfig {
@@ -30,7 +29,16 @@ dependencies {
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.1.1'
     implementation "androidx.window:window:1.0.0-alpha05"
 }
-
+dependencyCheck {
+    failOnError = false
+}
+afterEvaluate {
+    android.libraryVariants.all { v ->
+        if (v.buildType.name == "release") {
+            v.assemble.finalizedBy(dependencyCheckAnalyze)
+        }
+    }
+}
 /*
  *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
@@ -105,26 +113,3 @@ publishing {
         }
     }
 }
-
-// Bintray config
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    publications = ['releaseAar']
-    pkg {
-        repo = "Maven"
-        name = "$libsGroupId:$libArtifactId_common"
-        desc = libDesc
-        licenses = libLicenses
-        vcsUrl = libVCSUrl
-        version {
-            name = libVersion
-            vcsTag = libVersion
-            released = new Date()
-        }
-    }
-}
-//endregion
