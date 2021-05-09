@@ -140508,6 +140508,11 @@
    "model": "TECNO CG7"
   },
   {
+   "device": "TECNO-CG7n",
+   "name": "CAMON 17P",
+   "model": "TECNO CG7n"
+  },
+  {
    "device": "TECNO-C7",
    "name": "CAMON C7",
    "model": "TECNO-C7"
@@ -141228,14 +141233,14 @@
    "model": "TECNO KA9"
   },
   {
-   "device": "TECNO-KE5",
-   "name": "SPARK Go 2020",
-   "model": "TECNO KE5"
-  },
-  {
    "device": "TECNO-KE5S",
    "name": "SPARK Go 2020",
    "model": "TECNO KE5S"
+  },
+  {
+   "device": "TECNO-KE5",
+   "name": "SPARK Go 2021(SPARK 6 Go)",
+   "model": "TECNO KE5"
   },
   {
    "device": "TECNO-BB4k",
@@ -141456,6 +141461,11 @@
    "device": "TECNO-KF6h",
    "name": "TECNO SPARK 7",
    "model": "TECNO KF6h"
+  },
+  {
+   "device": "TECNO-KF6i",
+   "name": "TECNO SPARK 7",
+   "model": "TECNO KF6i"
   },
   {
    "device": "TECNO-KF6j",
