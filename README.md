@@ -101,12 +101,12 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 ## Setup  
 
   
-[![Maven Central](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fdev%2Fskomlach%2Fbiometric%2Fmaven-metadata.xml)](https://mvnrepository.com/artifact/dev.skomlach/biometric/1.0.90)
+VERSION = [![Maven Central](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fdev%2Fskomlach%2Fbiometric%2Fmaven-metadata.xml)](https://mvnrepository.com/artifact/dev.skomlach/biometric/1.0.90)
 
 Add dependency to Gradle
 ```groovy  
 dependencies {
- implementation 'dev.skomlach:biometric:X.X.XX' 
+ implementation 'dev.skomlach:biometric:${VERSION}' 
 }
 ```  
 
