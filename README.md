@@ -205,8 +205,16 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   `void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*  
   
   `void onUIOpened()/void onUIClosed` - Biometric UI on display or closed 
-  
-  
+
+
+## False-positive and/or False-negative detection   
+  On **pure** API28 implementation (built-in BiometricPrompt API) is no way to get 'isBiometricEnrolled' results for specific biometric, like Iris/Face, etc.
+So, some tricks have used that try to determine by indirect signs which biometric data are used (like "if NOT fingerprint, BUT something enrolled in the System Settings").
+
+There are edge cases where we cannot tell exactly what type of biometrics is enrolled - for example, if it is Samsung with Face and Iris - in this case, the code can give a incorrect result. It can happen if you set ```BiometricApi.BIOMETRIC_API + BiometricType.BIOMETRIC_FACE``` or ```BiometricApi.BIOMETRIC_API + BiometricType.BIOMETRIC_IRIS```
+
+Fortunately, for Samsung with Face and Iris, the 'legacy' check should work correctly, so for general cases when you use ```BiometricApi.AUTO/LEGACY_API + BiometricType.BIOMETRIC_FACE/BIOMETRIC_IRIS``` all should work fine.
+
   
 ## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?  
   
