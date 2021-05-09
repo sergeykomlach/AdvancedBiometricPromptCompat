@@ -179,8 +179,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private val impl: IBiometricPromptImpl by lazy {
-        val isBiometricPrompt =
-            if (HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi) {
+        val isBiometricPrompt = builder.biometricAuthRequest.api == BiometricApi.BIOMETRIC_API ||
+            if (builder.biometricAuthRequest.api == BiometricApi.AUTO && HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi) {
                 var found = false
                 for (v in builder.primaryAvailableTypes) {
                     val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
