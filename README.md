@@ -97,11 +97,11 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 ## Setup  
 
   
-**Temporary doesnt work!!!**  
-~~Add dependency to Gradle:~~ 
+
+Add dependency to Gradle
 ```groovy  
 dependencies {
- implementation 'dev.skomlach:biometric:1.0.87' 
+ implementation 'dev.skomlach:biometric:1.0.90' 
 }
 ```  
 
