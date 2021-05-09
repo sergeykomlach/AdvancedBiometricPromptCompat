@@ -93,6 +93,10 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
   </a>  
 </p>  
 
+  
+**Video from Xiaomi Pocophone F1**  
+[![Watch the video](https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg)](https://youtu.be/ttHroYJlgI0)
+
 
 ## Setup  
 
