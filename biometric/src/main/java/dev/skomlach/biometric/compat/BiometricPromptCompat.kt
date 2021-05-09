@@ -19,17 +19,13 @@
 
 package dev.skomlach.biometric.compat
 
-import android.annotation.TargetApi
 import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Build
 import android.os.Looper
-import android.view.View
-import android.view.ViewTreeObserver.OnWindowFocusChangeListener
 import androidx.annotation.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
@@ -44,7 +40,10 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
-import dev.skomlach.biometric.compat.utils.*
+import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.DialogMainColor
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
+import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
@@ -60,7 +59,6 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
@@ -181,9 +179,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private val impl: IBiometricPromptImpl by lazy {
-        BiometricLoggerImpl.d("BiometricPromptCompat.IBiometricPromptImpl - " +
-                "${HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi} && ${builder.primaryAvailableTypes}/${builder.secondaryAvailableTypes}")
-        val iBiometricPromptImpl = if (HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi && builder.primaryAvailableTypes.isNotEmpty()) {
+        val isBiometricPrompt =
+            if (HardwareAccessImpl.getInstance(builder.biometricAuthRequest).isNewBiometricApi) {
+                var found = false
+                for (v in builder.primaryAvailableTypes) {
+                    val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
+                    if (isHardwareDetected(request) && hasEnrolled(request)) {
+                        found = true
+                        break
+                    }
+                }
+                found
+            } else {
+                false
+            }
+        BiometricLoggerImpl.d(
+            "BiometricPromptCompat.IBiometricPromptImpl - " +
+                    "$isBiometricPrompt"
+        )
+        val iBiometricPromptImpl = if (isBiometricPrompt) {
             BiometricPromptApi28Impl(builder)
         } else {
             BiometricPromptGenericImpl(builder)
@@ -401,6 +415,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
             } else {
+                if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest))
                 types.add(biometricAuthRequest.type)
             }
             types
@@ -422,13 +437,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     }
                 } else {
+                    if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
                 }
             }
             types
-        }
-        val activeWindow: View by lazy {
-            ActiveWindow.getActiveView(context)
         }
         @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
         var title: CharSequence? = null
