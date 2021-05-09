@@ -19,14 +19,14 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.5.+'
+    ext.kotlin_version = '1.5.0'
     ext.minSDK = 16
     ext.targetSDK = 30
     ext.javaVersion = JavaVersion.VERSION_1_8
 
 
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 89
+    ext.libsMinorVersion = 90
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -41,6 +41,7 @@ buildscript {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
 //        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         google()
 
     }
@@ -49,8 +50,8 @@ buildscript {
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.0.13"
         classpath 'org.owasp:dependency-check-gradle:6.0.5'
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
     }
 }
 
@@ -76,6 +77,13 @@ allprojects {
 
 }
 
+subprojects { project ->
+    group = libsGroupId
+    version = libVersion
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+apply plugin: 'io.codearte.nexus-staging'

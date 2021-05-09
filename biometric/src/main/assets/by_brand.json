@@ -775,6 +775,18 @@
    "model": "U705AA"
   }
  ],
+ "ATID": [
+  {
+   "device": "AT908",
+   "name": "AT908",
+   "model": "AT908"
+  },
+  {
+   "device": "AT908",
+   "name": "AT908_EEA",
+   "model": "AT908_EEA"
+  }
+ ],
  "ATM (Brazil)": [
   {
    "device": "R5",
@@ -15043,6 +15055,11 @@
    "model": "G50 Plus"
   },
   {
+   "device": "G0510WW",
+   "name": "G51 Plus",
+   "model": "G51 Plus"
+  },
+  {
    "device": "G0210",
    "name": "G6",
    "model": "G6"
@@ -19448,6 +19465,13 @@
    "model": "CLARMIN C1"
   }
  ],
+ "Claro": [
+  {
+   "device": "SEI800CCOA",
+   "name": "Claro Colombia STB",
+   "model": "Claro Colombia STB"
+  }
+ ],
  "Classpro": [
   {
    "device": "samseong",
@@ -23680,6 +23704,16 @@
    "device": "Dg_1522",
    "name": "Dg_1522",
    "model": "Dg_1522"
+  },
+  {
+   "device": "Dg_1523",
+   "name": "Dg_1523",
+   "model": "Dg_1523"
+  },
+  {
+   "device": "Dg_1524",
+   "name": "Dg_1524",
+   "model": "Dg_1524"
   }
  ],
  "DIADEM": [
@@ -27542,6 +27576,16 @@
   }
  ],
  "EGOTEK": [
+  {
+   "device": "Mars8",
+   "name": "Mars8",
+   "model": "Mars8"
+  },
+  {
+   "device": "Penguin",
+   "name": "Penguin",
+   "model": "Penguin"
+  },
   {
    "device": "Venus10",
    "name": "Venus10",
@@ -41728,6 +41772,16 @@
  ],
  "Handheld-Wireless": [
   {
+   "device": "C6",
+   "name": "C6",
+   "model": "C6"
+  },
+  {
+   "device": "C6",
+   "name": "C6_EEA",
+   "model": "C6"
+  },
+  {
    "device": "X6",
    "name": "X6",
    "model": "X6"
@@ -54948,6 +55002,11 @@
    "model": "7LB1"
   },
   {
+   "device": "8LAB1",
+   "name": "8LAB1",
+   "model": "8LAB1"
+  },
+  {
    "device": "A25563L",
    "name": "A25563L",
    "model": "A25563L"
@@ -55158,6 +55217,16 @@
    "model": "Koral_8W2"
   },
   {
+   "device": "HT7WB1RBK",
+   "name": "HT7WB1RBK",
+   "model": "HT7WB1RBK"
+  },
+  {
+   "device": "HT7WC1PBK",
+   "name": "HT7WC1PBK",
+   "model": "HT7WC1PBK"
+  },
+  {
    "device": "HY1_5085",
    "name": "HY1-5085",
    "model": "HY1-5085"
@@ -55181,6 +55250,16 @@
    "device": "HY_BDL163G_001_EEA",
    "name": "HY_BDL163G_001",
    "model": "HY-BDL163G-001"
+  },
+  {
+   "device": "HyTab_Plus_10LC2",
+   "name": "HyTab_Plus_10LC2",
+   "model": "HyTab Plus 10LC2"
+  },
+  {
+   "device": "7WA1",
+   "name": "HyTab_Plus_7WA1",
+   "model": "7WA1"
   },
   {
    "device": "bangbae",
@@ -55216,6 +55295,11 @@
    "device": "HT1G50L",
    "name": "Hyundai Eternity G50L",
    "model": "Hyundai_Eternity_G50L"
+  },
+  {
+   "device": "HyTab_Pro_10LC1",
+   "name": "Hyundai HyTab Pro 10LC1",
+   "model": "HyTab Pro 10LC1"
   },
   {
    "device": "HT1002W16",
@@ -60534,6 +60618,11 @@
    "device": "JR-101",
    "name": "JR-101",
    "model": "JR-101"
+  },
+  {
+   "device": "JR-J71",
+   "name": "JR-J71",
+   "model": "JR-J71"
   }
  ],
  "JUSYEA": [
@@ -79454,6 +79543,11 @@
    "model": "MB8866"
   },
   {
+   "device": "MB8992",
+   "name": "MB8992",
+   "model": "MB8992"
+  },
+  {
    "device": "MLAB_GLOWY7",
    "name": "MLAB_GLOWY7",
    "model": "MLAB_GLOWY7"
@@ -83800,6 +83894,11 @@
    "device": "M1",
    "name": "M1",
    "model": "M1"
+  },
+  {
+   "device": "MINTT-DIGI",
+   "name": "MINTT-DIGI",
+   "model": "MINTT-DIGI"
   },
   {
    "device": "MinttPoro",
@@ -99494,6 +99593,11 @@
    "device": "PTPC01",
    "name": "PTPC01",
    "model": "Pebble_Quad"
+  },
+  {
+   "device": "PTPC02",
+   "name": "PTPC02",
+   "model": "PTPC02"
   }
  ],
  "Pegatron": [
@@ -99580,6 +99684,11 @@
   }
  ],
  "Performance": [
+  {
+   "device": "T7",
+   "name": "T7",
+   "model": "T7"
+  },
   {
    "device": "PR7RKTNF",
    "name": "PR7RKTNF",
@@ -107251,6 +107360,26 @@
    "model": "M2101K6I"
   },
   {
+   "device": "maltose",
+   "name": "Redmi Note 10S",
+   "model": "M2101K7BL"
+  },
+  {
+   "device": "rosemary",
+   "name": "Redmi Note 10S",
+   "model": "M2101K7BNY"
+  },
+  {
+   "device": "secret",
+   "name": "Redmi Note 10S",
+   "model": "M2101K7BG"
+  },
+  {
+   "device": "secret",
+   "name": "Redmi Note 10S",
+   "model": "M2101K7BI"
+  },
+  {
    "device": "lavender",
    "name": "Redmi Note 7",
    "model": "Redmi Note 7"
@@ -107354,6 +107483,11 @@
    "device": "cannong",
    "name": "Redmi Note 9T",
    "model": "M2007J22G"
+  },
+  {
+   "device": "tarzan",
+   "name": "Smart TV",
+   "model": "MiTV-MOOQ3"
   }
  ],
  "Redway": [
@@ -108334,6 +108468,11 @@
   }
  ],
  "SFR.fr": [
+  {
+   "device": "DV8555-SFR",
+   "name": "Connect TV de SFR",
+   "model": "Connect TV de SFR"
+  },
   {
    "device": "DV8219",
    "name": "DV8219_SFR",
@@ -109410,6 +109549,11 @@
    "device": "SC-813",
    "name": "SC-813",
    "model": "SC-813"
+  },
+  {
+   "device": "Hatch_102S",
+   "name": "SC-9810",
+   "model": "Hatch_102S"
   },
   {
    "device": "SC-9810",
@@ -126741,6 +126885,11 @@
    "model": "NSZ-GU1"
   },
   {
+   "device": "OD0M_EA_T32",
+   "name": "BRAVIA TL",
+   "model": "BRAVIA TL"
+  },
+  {
    "device": "BRAVIA_VH1",
    "name": "BRAVIA VH1",
    "model": "BRAVIA VH1"
@@ -130829,6 +130978,11 @@
   }
  ],
  "Surfans": [
+  {
+   "device": "K7",
+   "name": "K7",
+   "model": "K7"
+  },
   {
    "device": "P10P",
    "name": "P10P",
@@ -138901,6 +139055,11 @@
    "model": "TERRA_PAD_101"
   },
   {
+   "device": "TERRA_MOBILE_PAD_1200",
+   "name": "TERRA_MOBILE_PAD_1200",
+   "model": "TERRA_MOBILE_PAD_1200"
+  },
+  {
    "device": "TERRA_PAD_1005",
    "name": "TERRA_PAD_1005",
    "model": "TERRA_PAD_1005"
@@ -141327,6 +141486,11 @@
    "device": "TECNO-KF7j",
    "name": "TECNO SPARK 7P",
    "model": "TECNO KF7j"
+  },
+  {
+   "device": "TECNO-KF6p",
+   "name": "TECNO SPARK 7T",
+   "model": "TECNO KF6p"
   },
   {
    "device": "TECNO-KC1",
@@ -143902,6 +144066,13 @@
    "device": "iRULU",
    "name": "iRULU_V4",
    "model": "V4"
+  }
+ ],
+ "USEN": [
+  {
+   "device": "V11",
+   "name": "V11",
+   "model": "V11"
   }
  ],
  "USP (The University of the South Pacific)": [
@@ -164406,6 +164577,13 @@
    "device": "dazen_6E",
    "name": "dazen 6E",
    "model": "dazen 6E"
+  }
+ ],
+ "du (UAE)": [
+  {
+   "device": "IPBS9520",
+   "name": "IPBS9520",
+   "model": "IPBS9520"
   }
  ],
  "duraMOBI": [
