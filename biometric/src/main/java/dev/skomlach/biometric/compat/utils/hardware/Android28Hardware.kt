@@ -265,7 +265,8 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             }
         }
 
-    //Unexpected how this will work
+    //This code can produce false-positive results in some conditions
+    //https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/issues/105#issuecomment-834438785
     private val isBiometricEnrolledForType: Boolean
         get() {
             val biometricModule =
