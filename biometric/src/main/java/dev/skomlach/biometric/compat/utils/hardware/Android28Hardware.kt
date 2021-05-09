@@ -265,7 +265,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             }
         }
 
-    //This code can produce false-positive results in some conditions
+    //This code can produce false-positive OR false-negative results in some conditions
     //https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/issues/105#issuecomment-834438785
     private val isBiometricEnrolledForType: Boolean
         get() {
@@ -275,24 +275,24 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FINGERPRINT) {
                 fingersEnrolled
             } else {
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE &&
-                    LockType.isBiometricEnabledInSettings(appContext, "face")
-                ) return true
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_IRIS &&
-                    LockType.isBiometricEnabledInSettings(appContext, "iris")
-                ) return true
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_PALMPRINT &&
-                    LockType.isBiometricEnabledInSettings(appContext, "palm")
-                ) return true
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_VOICE &&
-                    LockType.isBiometricEnabledInSettings(appContext, "voice")
-                ) return true
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_HEARTRATE &&
-                    LockType.isBiometricEnabledInSettings(appContext, "heartrate")
-                ) return true
-
-                return !fingersEnrolled && isHardwareAvailableForType
-                        && isAnyBiometricEnrolled
+                if(isAnyBiometricEnrolled) {
+                    if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE &&
+                        LockType.isBiometricEnabledInSettings(appContext, "face")
+                    ) return true
+                    if (biometricAuthRequest.type == BiometricType.BIOMETRIC_IRIS &&
+                        LockType.isBiometricEnabledInSettings(appContext, "iris")
+                    ) return true
+                    if (biometricAuthRequest.type == BiometricType.BIOMETRIC_PALMPRINT &&
+                        LockType.isBiometricEnabledInSettings(appContext, "palm")
+                    ) return true
+                    if (biometricAuthRequest.type == BiometricType.BIOMETRIC_VOICE &&
+                        LockType.isBiometricEnabledInSettings(appContext, "voice")
+                    ) return true
+                    if (biometricAuthRequest.type == BiometricType.BIOMETRIC_HEARTRATE &&
+                        LockType.isBiometricEnabledInSettings(appContext, "heartrate")
+                    ) return true
+                }
+                return false
             }
         }
 }
