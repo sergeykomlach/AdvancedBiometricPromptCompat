@@ -120,7 +120,8 @@ object LockType {
                 mCur = null
             }
             for (s in keyValue) {
-                if (SettingsHelper.getInt(context, s, -1) == 1) {
+                //-1 not exists, 0 - disabled
+                if (SettingsHelper.getInt(context, s, -1) > 0) {
                     return true
                 }
             }
@@ -169,7 +170,8 @@ object LockType {
                 mCur = null
             }
             for (s in keyValue) {
-                if (SettingsHelper.getInt(context, s, -1) == 1) {
+                //-1 not exists, 0 - disabled
+                if (SettingsHelper.getInt(context, s, -1) > 0) {
                     return true
                 }
             }
