@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils
 
+import android.annotation.SuppressLint
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.net.Uri
@@ -30,7 +31,7 @@ import androidx.annotation.RestrictTo
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.lang.reflect.Method
 import java.util.*
-
+@SuppressLint("PrivateApi")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object LockType {
     /**
@@ -106,7 +107,7 @@ object LockType {
                             mCur.moveToNext()
                             continue
                         }
-                        val s = name.toLowerCase(Locale.US)
+                        val s = name.lowercase(Locale.ROOT)
                         if (s.contains(type)) {
                             if (s.contains("_unl") && s.contains("_enable")) {
                                 keyValue.add(name)
@@ -151,7 +152,7 @@ object LockType {
                             mCur.moveToNext()
                             continue
                         }
-                        val s = name.toLowerCase(Locale.US)
+                        val s = name.lowercase(Locale.ROOT)
                         if (s.contains("fingerprint")
                             || s.contains("face")
                             || s.contains("iris")

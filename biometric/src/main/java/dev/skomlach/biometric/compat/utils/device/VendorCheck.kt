@@ -27,16 +27,17 @@ import dev.skomlach.biometric.compat.utils.device.AppUtils.isIntentAvailable
 import dev.skomlach.biometric.compat.utils.device.AppUtils.isSystemPkgInstalled
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.lang.reflect.Modifier
+import java.util.*
 
 object VendorCheck {
     private fun checkForVendor(s: String): Boolean {
         var vendor = s
-        vendor = vendor.toLowerCase()
+        vendor = vendor.lowercase(Locale.ROOT)
         val allFields = Build::class.java.fields
         for (f in allFields) try {
             if (!Modifier.isPrivate(f.modifiers) && f.type == String::class.java) {
                 val value = f[null] as String
-                if (value.toLowerCase().contains(vendor)) return true
+                if (value.lowercase(Locale.ROOT).contains(vendor)) return true
             }
         } catch (e: Throwable) {
 
@@ -107,9 +108,9 @@ object VendorCheck {
 
     //Emui OS (Huawei/Honor)
     val isHuawei: Boolean
-        get() = !TextUtils.isEmpty(get(appContext, "ro.build.version.emui"))
+        get() = get(appContext, "ro.build.version.emui")?.isNotEmpty() == true
 
     //Miui OS (Xiaomi/Poco)
     val isMiui: Boolean
-        get() = !TextUtils.isEmpty(get(appContext, "ro.miui.ui.version.code"))
+        get() = get(appContext, "ro.miui.ui.version.code")?.isNotEmpty() == true
 }

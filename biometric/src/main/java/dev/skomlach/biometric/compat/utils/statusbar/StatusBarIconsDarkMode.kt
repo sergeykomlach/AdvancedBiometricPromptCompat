@@ -53,10 +53,10 @@ object StatusBarIconsDarkMode {
             for (field in allFields) {
                 val name = field.name
                 if (!name.contains("_DARK_")) continue
-                if (type == BarType.STATUSBAR && !name.toLowerCase(Locale.US).contains("status")) {
+                if (type == BarType.STATUSBAR && !name.lowercase(Locale.ROOT).contains("status")) {
                     continue
                 }
-                if (type == BarType.NAVBAR && !name.toLowerCase(Locale.US).contains("nav")) {
+                if (type == BarType.NAVBAR && !name.lowercase(Locale.ROOT).contains("nav")) {
                     continue
                 }
                 val darkModeFlag =
@@ -75,10 +75,10 @@ object StatusBarIconsDarkMode {
             for (field in allFields) {
                 val name = field.name
                 if (!name.contains("_DARK_")) continue
-                if (type == BarType.STATUSBAR && !name.toLowerCase(Locale.US).contains("status")) {
+                if (type == BarType.STATUSBAR && !name.lowercase(Locale.ROOT).contains("status")) {
                     continue
                 }
-                if (type == BarType.NAVBAR && !name.toLowerCase(Locale.US).contains("nav")) {
+                if (type == BarType.NAVBAR && !name.lowercase(Locale.ROOT).contains("nav")) {
                     continue
                 }
                 field.isAccessible = true
