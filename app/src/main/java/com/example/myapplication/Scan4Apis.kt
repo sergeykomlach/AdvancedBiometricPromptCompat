@@ -85,7 +85,7 @@ class Scan4Apis(private val context: Context) {
                                 DexFileFactory.loadDexFile(f, Opcodes.getDefault())
                             for (d in dexBackedDexFile.classes) {
                                 val type = d.type
-                                val typeCopy = type.toLowerCase()
+                                val typeCopy = type.lowercase(Locale.ROOT)
                                 if (typeCopy.contains("/fingerprint") || typeCopy.contains("/biometric") ||
                                     typeCopy.contains("/face") || typeCopy.contains("/iris")
                                     /*|| typeCopy.contains("/voice") || typeCopy.contains("/heart")*/
@@ -149,7 +149,7 @@ class Scan4Apis(private val context: Context) {
                 while (entries.hasMoreElements()) {
                     // get the zip entry
                     val name = entries.nextElement()
-                    if (name.name.toLowerCase(Locale.ROOT).endsWith(".dex")) return true
+                    if (name.name.lowercase(Locale.ROOT).endsWith(".dex")) return true
                 }
             } finally {
                 try {
@@ -178,7 +178,7 @@ class Scan4Apis(private val context: Context) {
             while (entries.hasMoreElements()) {
                 // get the zip entry
                 val name = entries.nextElement()
-                if (name.name.toLowerCase(Locale.ROOT).endsWith(".dex")) zipEntries.add(name)
+                if (name.name.lowercase(Locale.ROOT).endsWith(".dex")) zipEntries.add(name)
             }
             zipEntries.sortWith(Comparator { o1, o2 -> o1.name.compareTo(o2.name) })
             for (zipEntry in zipEntries) {
@@ -215,7 +215,7 @@ class Scan4Apis(private val context: Context) {
                     }
                 }
             } else {
-                val name = fileOrDirectory.name.toLowerCase(Locale.ROOT)
+                val name = fileOrDirectory.name.lowercase(Locale.ROOT)
                 if (name.endsWith(".odex") ||
                     //name.endsWith(".vdex") ||//??????
                     name.endsWith(".dex") ||

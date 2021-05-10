@@ -43,15 +43,15 @@ object DeviceModel {
         var s: String? = getSimpleDeviceName()
         BiometricLoggerImpl.d("AndroidModel - $s")
         s?.let {
-            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
         s = getNameFromAssets()
         s?.let {
-            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
         s = getNameFromDatabase()
         s?.let {
-            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
         BiometricLoggerImpl.d("AndroidModel.names ${strings.values}")
         return HashSet<String>(strings.values)
@@ -135,7 +135,7 @@ object DeviceModel {
         return if (info != null) {
             val fullName = getFullName(info.name)
             getName(
-                if (!TextUtils.isEmpty(info.manufacturer)) info.manufacturer else brand,
+                if (info.manufacturer.isNotEmpty()) info.manufacturer else brand,
                 fullName
             )
         } else {
