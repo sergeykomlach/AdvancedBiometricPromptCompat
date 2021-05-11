@@ -135,7 +135,7 @@ object DeviceModel {
         return if (info != null) {
             val fullName = getFullName(info.name)
             getName(
-                if (info.manufacturer.isNotEmpty()) info.manufacturer else brand,
+                if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
                 fullName
             )
         } else {
