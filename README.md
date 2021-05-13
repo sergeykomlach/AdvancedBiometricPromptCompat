@@ -139,6 +139,8 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
  `static boolean isNewBiometricApi()` - returns `true` if BiometricPrompt API used for specified biometric  
    
  `static boolean openSettings(Activity)` -  returns `true` if open the "Enroll biometric" settings screen for specified biometric  
+ 
+ `static boolean isBiometricEnrollChanged` -  returns `true` if enrollment changed for specified biometric. **NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases**
 ##  
   
   
