@@ -52,6 +52,27 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         }
         listener?.initFinished(biometricMethod, this@SamsungFingerprintModule)
     }
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        mSpassFingerprint?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+    override fun getIds(manager: Any): List<String> {
+        val ids = ArrayList<String>()
+        mSpassFingerprint?.let {
+            it.registeredFingerprintUniqueID?.let {  array->
+                for(i in 0 until array.size()) {
+                    //Sparsearray contains String
+                    (array.get(i) as? String)?.let { s->
+                        ids.add(s)
+                    }
+                }
+            }
+        }
+        return ids
+    }
     override val isManagerAccessible: Boolean
         get() = mSpass != null && mSpassFingerprint != null
     override val isHardwarePresent: Boolean

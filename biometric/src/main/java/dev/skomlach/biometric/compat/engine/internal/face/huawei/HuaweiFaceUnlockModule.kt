@@ -87,6 +87,24 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             }
             return null
         }
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        //pass only EMUI 10.1.0 manager
+        huawei3DFaceManager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+    override fun getIds(manager: Any): List<String> {
+        val ids = ArrayList<String>(super.getIds(manager))
+        huaweiFaceManagerLegacy?.let {
+            it.getEnrolledTemplates()?.let {  array->
+                for(a in array)
+                   ids.add("$a")
+            }
+        }
+        return ids
+    }
     override val isManagerAccessible: Boolean
         get() = huaweiFaceManagerLegacy != null || huawei3DFaceManager != null
     override val isHardwarePresent: Boolean

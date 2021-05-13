@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
 import org.ifaa.android.manager.IFAAManagerFactory
-import java.util.*
 
 object BiometricManagerCompat {
 
@@ -80,6 +79,26 @@ object BiometricManagerCompat {
             HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isBiometricEnrolled || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isBiometricEnrolled
 
         preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).apply()
+        return result
+    }
+    @JvmStatic
+    fun isBiometricEnrollChanged(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")
+        if(!BiometricPromptCompat.isInit){
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
+        }
+        val result = if(api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isBiometricEnrollChanged
+        else
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isBiometricEnrollChanged
+
+        preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result).apply()
         return result
     }
     @JvmStatic
@@ -137,43 +156,38 @@ object BiometricManagerCompat {
                 )
             )
                 return true
-
-            if (forced)
-                return Utils.startActivity(
-                    Intent(Settings.ACTION_SETTINGS), activity
-                )
-        } else
-            if (BiometricType.BIOMETRIC_ANY == api.type) {
-                //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
-                if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
-                    return true
-                }
-                if (Utils.startActivity(
-                        Intent().setComponent(
-                            ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
-                            )
-                        ), activity
-                    )
-                ) {
-                    return true
-                }
-                if (Utils.startActivity(
-                        Intent().setComponent(
-                            ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings\$SecuritySettingsActivity"
-                            )
-                        ), activity
-                    )
-                ) {
-                    return true
-                }
-                return Utils.startActivity(
-                    Intent(Settings.ACTION_SETTINGS), activity
-                )
+        }
+        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
+            //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
+            if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
+                return true
             }
+            if (Utils.startActivity(
+                    Intent().setComponent(
+                        ComponentName(
+                            "com.android.settings",
+                            "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
+                        )
+                    ), activity
+                )
+            ) {
+                return true
+            }
+            if (Utils.startActivity(
+                    Intent().setComponent(
+                        ComponentName(
+                            "com.android.settings",
+                            "com.android.settings.Settings\$SecuritySettingsActivity"
+                        )
+                    ), activity
+                )
+            ) {
+                return true
+            }
+            return Utils.startActivity(
+                Intent(Settings.ACTION_SETTINGS), activity
+            )
+        }
         return false
     }
 

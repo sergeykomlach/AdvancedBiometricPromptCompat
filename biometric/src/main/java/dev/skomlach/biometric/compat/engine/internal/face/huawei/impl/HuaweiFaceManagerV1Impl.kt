@@ -88,4 +88,7 @@ class HuaweiFaceManagerV1Impl(private val context: Context) : HuaweiFaceManagerV
     override fun hasEnrolledTemplates(): Boolean {
         return try{ HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs?.isNotEmpty() == true } catch (ignore : Throwable){ false }
     }
+    override fun getEnrolledTemplates(): IntArray? {
+        return try{ HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs } catch (ignore : Throwable){ null }
+    }
 }

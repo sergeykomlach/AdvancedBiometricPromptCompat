@@ -182,6 +182,11 @@
  ],
  "ACE (Global)": [
   {
+   "device": "BUZZ_3",
+   "name": "BUZZ 3",
+   "model": "BUZZ 3"
+  },
+  {
    "device": "URBAN_3",
    "name": "URBAN 3",
    "model": "URBAN 3"
@@ -10818,6 +10823,13 @@
    "model": "PlatinumTAB10_4G_V3"
   }
  ],
+ "BLUE": [
+  {
+   "device": "ikebukuro",
+   "name": "G6SG",
+   "model": "AI PONT"
+  }
+ ],
  "BLUEING": [
   {
    "device": "M1867G",
@@ -14348,6 +14360,11 @@
    "model": "B-STREAM"
   },
   {
+   "device": "ikebukuro",
+   "name": "B5000",
+   "model": "AI PONT"
+  },
+  {
    "device": "ICN",
    "name": "BATV10",
    "model": "BATV10"
@@ -16348,6 +16365,11 @@
    "model": "AI PONT"
   },
   {
+   "device": "samseong",
+   "name": "H7000",
+   "model": "AI PONT"
+  },
+  {
    "device": "M9",
    "name": "M9",
    "model": "M9"
@@ -17158,6 +17180,11 @@
    "device": "Star8_3G",
    "name": "Star8_3G",
    "model": "Star8_3G"
+  },
+  {
+   "device": "X60",
+   "name": "X60",
+   "model": "X60"
   }
  ],
  "COSMOTE TV": [
@@ -22143,6 +22170,11 @@
    "device": "C-One_v2_e-ID",
    "name": "C-one",
    "model": "C-One"
+  },
+  {
+   "device": "access",
+   "name": "TN502A1",
+   "model": "access"
   }
  ],
  "Core Innovations": [
@@ -22659,6 +22691,11 @@
    "device": "X30",
    "name": "X30",
    "model": "X30"
+  },
+  {
+   "device": "X50",
+   "name": "X50",
+   "model": "X50"
   }
  ],
  "Custom": [
@@ -30662,6 +30699,11 @@
    "device": "L590A",
    "name": "MIRO",
    "model": "L590A"
+  },
+  {
+   "device": "T8",
+   "name": "T8",
+   "model": "T8"
   }
  ],
  "FPT Telecom": [
@@ -42884,6 +42926,11 @@
    "model": "HITV102C"
   },
   {
+   "device": "HITV103C",
+   "name": "E23",
+   "model": "HITV103C"
+  },
+  {
    "device": "rk3026",
    "name": "E2371CH",
    "model": "E2371CH"
@@ -43859,6 +43906,11 @@
    "model": "Hisense Infinity E30"
   },
   {
+   "device": "HLTE105E",
+   "name": "Hisense E31 Lite",
+   "model": "Hisense E31 Lite"
+  },
+  {
    "device": "HLTE229E",
    "name": "Hisense E40",
    "model": "HLTE229E"
@@ -44124,6 +44176,11 @@
    "model": "Hisense Infinity H50 Lite"
   },
   {
+   "device": "HLTE233E_01",
+   "name": "Hisense Infinity H50 Lite",
+   "model": "Hisense Infinity H50 Lite"
+  },
+  {
    "device": "HLTE234E",
    "name": "Hisense Infinity H50 ZOOM",
    "model": "Hisense Infinity H50 ZOOM"
@@ -44197,6 +44254,11 @@
    "device": "SC9832E",
    "name": "Hisense U40",
    "model": "Hisense U40"
+  },
+  {
+   "device": "HLTE233E_10",
+   "name": "Hisense U50",
+   "model": "Hisense H50 Lite"
   },
   {
    "device": "HS7731ESP",
@@ -44292,6 +44354,11 @@
    "device": "HLTE229E_14",
    "name": "Hisense V40",
    "model": "Hisense V40"
+  },
+  {
+   "device": "HLTE233E_11",
+   "name": "Hisense V50",
+   "model": "Hisense V50"
   },
   {
    "device": "I300T",
@@ -60547,6 +60614,11 @@
    "model": "TPC-G1010"
   },
   {
+   "device": "TPC-G1011LTE",
+   "name": "TPC-G1011LTE",
+   "model": "TPC-G1011LTE"
+  },
+  {
    "device": "TPC-G109",
    "name": "TPC-G109_EEA",
    "model": "TPC-G109"
@@ -65908,6 +65980,11 @@
    "device": "mh5lm-8m",
    "name": "K30",
    "model": "LM-X320"
+  },
+  {
+   "device": "dh0lm",
+   "name": "K32",
+   "model": "LM-K200"
   },
   {
    "device": "lv1",
@@ -76074,6 +76151,11 @@
    "model": "Lenovo TB-X6C6F"
   },
   {
+   "device": "X6C6L",
+   "name": "Lenovo Tab K10",
+   "model": "Lenovo TB-X6C6L"
+  },
+  {
    "device": "X6C6X",
    "name": "Lenovo Tab K10",
    "model": "Lenovo TB-X6C6X"
@@ -77367,6 +77449,11 @@
    "device": "moba",
    "name": "拯救者电竞手机",
    "model": "Lenovo L79031"
+  },
+  {
+   "device": "TB-X607Z",
+   "name": "联想平板电脑K10 5G",
+   "model": "Lenovo TB-X607Z"
   }
  ],
  "Leotec": [
@@ -99714,6 +99801,11 @@
    "model": "Hit P10"
   },
   {
+   "device": "Hit_P12",
+   "name": "Hit P12",
+   "model": "Hit P12"
+  },
+  {
    "device": "Hit_P6",
    "name": "Hit P6",
    "model": "Hit P6"
@@ -106648,6 +106740,16 @@
    "model": "RMX2186"
   },
   {
+   "device": "RMX3231",
+   "name": "realme C11  2021",
+   "model": "RMX3231"
+  },
+  {
+   "device": "RMX3231",
+   "name": "realme C11 2021",
+   "model": "RMX3231"
+  },
+  {
    "device": "RMX2184",
    "name": "realme C12",
    "model": "RMX2184"
@@ -106698,9 +106800,19 @@
    "model": "RMX3201"
   },
   {
+   "device": "RMX3203L1",
+   "name": "realme C21",
+   "model": "RMX3203"
+  },
+  {
    "device": "RMX3191",
    "name": "realme C25",
    "model": "RMX3191"
+  },
+  {
+   "device": "RMX3193",
+   "name": "realme C25",
+   "model": "RMX3193"
   },
   {
    "device": "RMX2020",
@@ -106726,6 +106838,11 @@
    "device": "RMX2027",
    "name": "realme C3i",
    "model": "RMX2027"
+  },
+  {
+   "device": "RMX2202L1",
+   "name": "realme GT",
+   "model": "RMX2202"
   },
   {
    "device": "RMX2193",
@@ -106766,6 +106883,11 @@
    "device": "RMX3121CN",
    "name": "realme V11 5G",
    "model": "RMX3121"
+  },
+  {
+   "device": "RMX3122CN",
+   "name": "realme V11 5G",
+   "model": "RMX3122"
   },
   {
    "device": "RMX3092CN",
@@ -106951,6 +107073,21 @@
    "device": "RE50C1",
    "name": "realme 7i",
    "model": "RMX2104"
+  },
+  {
+   "device": "RMX3161CN",
+   "name": "真我 Q3 5G",
+   "model": "RMX3161"
+  },
+  {
+   "device": "RMX2205CN",
+   "name": "真我 Q3 Pro 5G",
+   "model": "RMX2205"
+  },
+  {
+   "device": "RMX3116CN",
+   "name": "真我 X7 pro至尊版",
+   "model": "RMX3116"
   },
   {
    "device": "RMX2202CN",
@@ -110565,6 +110702,11 @@
    "device": "a21s",
    "name": "Galaxy A21s",
    "model": "SM-A217N"
+  },
+  {
+   "device": "a22x",
+   "name": "Galaxy A22s 5G",
+   "model": "SM-A226B"
   },
   {
    "device": "a33g",
@@ -126142,6 +126284,16 @@
  ],
  "Skyview": [
   {
+   "device": "tamachi",
+   "name": "KENYA",
+   "model": "SKYVIEW Android TV"
+  },
+  {
+   "device": "yeongdeungpo",
+   "name": "KENYA",
+   "model": "SKYVIEW Android TV"
+  },
+  {
    "device": "M5",
    "name": "M5",
    "model": "M5"
@@ -126354,6 +126506,11 @@
    "device": "tamachi",
    "name": "France",
    "model": "AiPlus2K"
+  },
+  {
+   "device": "yeongdeungpo",
+   "name": "Germany",
+   "model": "AiPlus4K"
   },
   {
    "device": "yeongdeungpo",
@@ -129748,6 +129905,11 @@
    "device": "bcat",
    "name": "Ranger 5",
    "model": "RGR5"
+  },
+  {
+   "device": "MM60_2",
+   "name": "Spectra_Geospatial",
+   "model": "MobileMapper60_2"
   }
  ],
  "SpectraPrecision": [
@@ -143504,6 +143666,11 @@
    "model": "TDC600"
   },
   {
+   "device": "TDC600_2",
+   "name": "TDC600_2",
+   "model": "TDC600_2"
+  },
+  {
    "device": "pelican",
    "name": "TDC800 Handheld",
    "model": "TDC800"
@@ -143808,11 +143975,6 @@
    "device": "TN502A1",
    "name": "TN502A1",
    "model": "TN502A1"
-  },
-  {
-   "device": "access",
-   "name": "TN502A1",
-   "model": "access"
   },
   {
    "device": "TN800A1",
@@ -147939,6 +148101,11 @@
    "model": "I2009"
   },
   {
+   "device": "2011",
+   "name": "I2011",
+   "model": "I2011"
+  },
+  {
    "device": "2012",
    "name": "I2012",
    "model": "I2012"
@@ -148494,6 +148661,16 @@
    "model": "V2049A"
   },
   {
+   "device": "2050",
+   "name": "V2050",
+   "model": "V2050"
+  },
+  {
+   "device": "2050",
+   "name": "V2050",
+   "model": "V2066"
+  },
+  {
    "device": "2034",
    "name": "V2052",
    "model": "V2052"
@@ -148549,6 +148726,11 @@
    "model": "V2065A"
   },
   {
+   "device": "2050",
+   "name": "V2066",
+   "model": "V2066"
+  },
+  {
    "device": "PD2066",
    "name": "V2066A",
    "model": "V2066A"
@@ -148559,9 +148741,24 @@
    "model": "V2066BA"
   },
   {
+   "device": "2034",
+   "name": "V2068",
+   "model": "V2068"
+  },
+  {
    "device": "PD2068",
    "name": "V2068A",
    "model": "V2068A"
+  },
+  {
+   "device": "2034",
+   "name": "V2069",
+   "model": "V2069"
+  },
+  {
+   "device": "2034",
+   "name": "V2070",
+   "model": "V2070"
   },
   {
    "device": "PD2072",
@@ -148587,6 +148784,16 @@
    "device": "PD2034D",
    "name": "V2099A",
    "model": "V2099A"
+  },
+  {
+   "device": "2034",
+   "name": "V2101",
+   "model": "V2101"
+  },
+  {
+   "device": "2034",
+   "name": "V2102",
+   "model": "V2102"
   },
   {
    "device": "PD2106",
@@ -163631,6 +163838,16 @@
   }
  ],
  "Zephir": [
+  {
+   "device": "tamachi",
+   "name": "Italy",
+   "model": "Zephir FHD Android TV"
+  },
+  {
+   "device": "yeongdeungpo",
+   "name": "Italy",
+   "model": "Zephir UHD Android TV"
+  },
   {
    "device": "bangbae",
    "name": "Zephir",

@@ -51,7 +51,11 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         get() = hardwareInfo?.isBiometricEnrolled ?: false
     val isLockedOut: Boolean
         get() = hardwareInfo?.isLockedOut ?: false
-
+    val isBiometricEnrollChanged: Boolean
+        get() = hardwareInfo?.isBiometricEnrollChanged ?: false
+    fun updateBiometricEnrollChanged(){
+        hardwareInfo?.updateBiometricEnrollChanged()
+    }
     init {
         if (biometricAuthRequest.api == BiometricApi.LEGACY_API) {
             hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+

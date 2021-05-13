@@ -65,6 +65,13 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
         listener?.initFinished(biometricMethod, this@OppoFaceUnlockModule)
     }
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean

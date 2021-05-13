@@ -26,4 +26,6 @@ interface HardwareInfo {
     val isHardwareAvailable: Boolean
     val isBiometricEnrolled: Boolean
     val isLockedOut: Boolean
+    val isBiometricEnrollChanged: Boolean
+    fun updateBiometricEnrollChanged()
 }
