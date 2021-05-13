@@ -341,20 +341,7 @@ object BiometricAuthentication {
         ) {
             return true
         }
-
-        //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_FINGERPRINT required" - but not should be
-        if (BiometricType.BIOMETRIC_FINGERPRINT == method
-            && startActivity(Intent("android.settings.FINGERPRINT_ENROLL"), context)
-        ) {
-            return true
-        }
-        if (BiometricType.BIOMETRIC_FACE == method
-            && startActivity(Intent("android.settings.FACE_ENROLL"), context)
-        ) {
-            return true
-        }
-        return (BiometricType.BIOMETRIC_IRIS == method
-                && startActivity(Intent("android.settings.IRIS_ENROLL"), context))
+        return false
     }
 
     fun getAvailableBiometricModule(biometricMethod: BiometricType?): BiometricModule? {

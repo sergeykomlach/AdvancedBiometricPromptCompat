@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
 import org.ifaa.android.manager.IFAAManagerFactory
-import java.util.*
 
 object BiometricManagerCompat {
 
@@ -157,43 +156,38 @@ object BiometricManagerCompat {
                 )
             )
                 return true
-
-            if (forced)
-                return Utils.startActivity(
-                    Intent(Settings.ACTION_SETTINGS), activity
-                )
-        } else
-            if (BiometricType.BIOMETRIC_ANY == api.type) {
-                //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
-                if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
-                    return true
-                }
-                if (Utils.startActivity(
-                        Intent().setComponent(
-                            ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
-                            )
-                        ), activity
-                    )
-                ) {
-                    return true
-                }
-                if (Utils.startActivity(
-                        Intent().setComponent(
-                            ComponentName(
-                                "com.android.settings",
-                                "com.android.settings.Settings\$SecuritySettingsActivity"
-                            )
-                        ), activity
-                    )
-                ) {
-                    return true
-                }
-                return Utils.startActivity(
-                    Intent(Settings.ACTION_SETTINGS), activity
-                )
+        }
+        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
+            //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
+            if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
+                return true
             }
+            if (Utils.startActivity(
+                    Intent().setComponent(
+                        ComponentName(
+                            "com.android.settings",
+                            "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
+                        )
+                    ), activity
+                )
+            ) {
+                return true
+            }
+            if (Utils.startActivity(
+                    Intent().setComponent(
+                        ComponentName(
+                            "com.android.settings",
+                            "com.android.settings.Settings\$SecuritySettingsActivity"
+                        )
+                    ), activity
+                )
+            ) {
+                return true
+            }
+            return Utils.startActivity(
+                Intent(Settings.ACTION_SETTINGS), activity
+            )
+        }
         return false
     }
 
