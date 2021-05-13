@@ -217,7 +217,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val startTime = System.currentTimeMillis()
         var timeout = false
         ExecutorHelper.INSTANCE.startOnBackground {
-            while (!isDeviceInfoCheckInProgress || !isInit) {
+            while (isDeviceInfoCheckInProgress || !isInit) {
                 timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
                 if(timeout) {
                     break
@@ -348,7 +348,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun cancelAuthenticate() {
         ExecutorHelper.INSTANCE.startOnBackground {
-            while (!isDeviceInfoCheckInProgress || !isInit) {
+            while (isDeviceInfoCheckInProgress || !isInit) {
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
@@ -363,7 +363,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if(!isInit){
             ExecutorHelper.INSTANCE.startOnBackground {
-                while (!isDeviceInfoCheckInProgress  || !isInit) {
+                while (isDeviceInfoCheckInProgress  || !isInit) {
                     try {
                         Thread.sleep(250)
                     } catch (ignore: InterruptedException) {
