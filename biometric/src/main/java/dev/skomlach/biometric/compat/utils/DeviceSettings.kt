@@ -56,11 +56,17 @@ object DeviceSettings {
                 if (mCur != null) {
                     mCur.moveToFirst()
                     while (!mCur.isAfterLast) {
+                        try{
                         val nameIndex = mCur
                             .getColumnIndexOrThrow("name")
-                        val valueIndex = mCur
-                            .getColumnIndexOrThrow("values")
                         if (!mCur.isNull(nameIndex)) {
+                            val valueIndex = try {
+                                mCur
+                                    .getColumnIndexOrThrow("values")
+                            } catch (ignore: Throwable) {
+                                mCur
+                                    .getColumnIndexOrThrow("value")
+                            }
                             val type = mCur.getType(valueIndex)
                             val name = mCur.getString(nameIndex)
                             when (type) {
@@ -89,8 +95,12 @@ object DeviceSettings {
                                 else -> d("SystemSettings: $sub - $name: unknown type - $type")
                             }
                         }
+                        } catch (e: Throwable){
+                            e(e)
+                        }
                         mCur.moveToNext()
                     }
+
                     mCur.close()
                 }
             }
@@ -100,13 +110,13 @@ object DeviceSettings {
     }
 
     private fun printProperties() {
-        var line: String
+        var line: String? = null
         var m: Matcher
         try {
             val p = Runtime.getRuntime().exec("getprop")
             val input = BufferedReader(InputStreamReader(p.inputStream))
-            while (input.readLine().also { line = it } != null) {
-                m = pattern.matcher(line)
+            while (input.readLine()?.also { line = it } != null) {
+                m = pattern.matcher(line!!)
                 if (m.find()) {
                     val result = m.toMatchResult()
                     val key = result.group(1)

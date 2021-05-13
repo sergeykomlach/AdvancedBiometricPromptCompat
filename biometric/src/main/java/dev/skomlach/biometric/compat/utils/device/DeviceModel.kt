@@ -53,8 +53,20 @@ object DeviceModel {
         s?.let {
             strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
-        BiometricLoggerImpl.d("AndroidModel.names ${strings.values}")
-        return HashSet<String>(strings.values)
+
+        val set = HashSet<String>(strings.values)
+        val toRemove = HashSet<String>()
+        for(name1 in set){
+            for(name2 in set){
+                if(toRemove.contains(name2))
+                    continue
+                if(name1.length < name2.length && name2.startsWith(name1, ignoreCase = true))
+                    toRemove.add(name1)
+            }
+        }
+        set.removeAll(toRemove)
+        BiometricLoggerImpl.d("AndroidModel.names $set")
+        return set
     }
 
     private fun fixVendorName(string: String): String {
