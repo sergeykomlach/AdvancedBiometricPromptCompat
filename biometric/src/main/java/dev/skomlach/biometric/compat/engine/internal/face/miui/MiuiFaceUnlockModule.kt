@@ -70,6 +70,13 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean

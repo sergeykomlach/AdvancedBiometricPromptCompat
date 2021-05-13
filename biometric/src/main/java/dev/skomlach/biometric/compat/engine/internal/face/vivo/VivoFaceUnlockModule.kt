@@ -33,7 +33,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-
+import java.util.HashSet
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -50,6 +50,13 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
         }
         listener?.initFinished(biometricMethod, this@VivoFaceUnlockModule)
+    }
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
     }
     override val isManagerAccessible: Boolean
         get() = manager != null

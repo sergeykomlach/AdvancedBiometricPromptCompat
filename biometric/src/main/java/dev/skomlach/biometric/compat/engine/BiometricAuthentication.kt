@@ -219,7 +219,12 @@ object BiometricAuthentication {
         }
         return false
     }
-
+    fun isEnrollChanged(): Boolean {
+        for (method in availableBiometrics) {
+            if (getAvailableBiometricModule(method)?.isBiometricEnrollChanged == true) return true
+        }
+        return false
+    }
     fun authenticate(
         targetView: View?, method: BiometricType,
         listener: BiometricAuthenticationListener

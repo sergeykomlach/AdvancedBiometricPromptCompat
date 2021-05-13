@@ -254,6 +254,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             var isOpened = false
             override fun onSucceeded(confirmed : Set<BiometricType>) {
+                if(builder.biometricAuthRequest.api != BiometricApi.AUTO) {
+                    HardwareAccessImpl.getInstance(builder.biometricAuthRequest)
+                        .updateBiometricEnrollChanged()
+                } else{
+                    HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, builder.biometricAuthRequest.type))
+                        .updateBiometricEnrollChanged()
+                    HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, builder.biometricAuthRequest.type))
+                        .updateBiometricEnrollChanged()
+                }
+
                 callbackOuter.onSucceeded(confirmed)
                 onUIClosed()
             }

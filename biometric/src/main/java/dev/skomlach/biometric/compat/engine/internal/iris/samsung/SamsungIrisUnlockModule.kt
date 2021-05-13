@@ -59,7 +59,13 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
         listener?.initFinished(biometricMethod, this@SamsungIrisUnlockModule)
     }
-
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
     fun setCallerView(targetView: View?) {
         d("$name.setCallerView: $targetView")
         viewWeakReference = WeakReference(targetView)

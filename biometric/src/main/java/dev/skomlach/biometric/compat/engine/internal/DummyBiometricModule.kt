@@ -36,6 +36,9 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
     init {
         listener?.initFinished(biometricMethod, this@DummyBiometricModule)
     }
+    override fun getManagers(): Set<Any> {
+        return emptySet()
+    }
     //BuildConfig.DEBUG;
     override val isManagerAccessible: Boolean
         get() = false //BuildConfig.DEBUG;

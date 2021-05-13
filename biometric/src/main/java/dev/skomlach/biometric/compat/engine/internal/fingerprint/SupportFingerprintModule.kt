@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
+import android.content.Context
 import androidx.annotation.RestrictTo
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
@@ -52,7 +53,26 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         }
         listener?.initFinished(biometricMethod, this@SupportFingerprintModule)
     }
-
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        val manager = try{
+            val method = managerCompat?.javaClass?.getDeclaredMethod("getFingerprintManagerOrNull", Context::class.java)
+            val isAccessible = method?.isAccessible?:true
+            if(!isAccessible)
+                method?.isAccessible = true
+            val manager = try {
+                method?.invoke(managerCompat, context)
+            } finally {
+                if(!isAccessible)
+                    method?.isAccessible = false
+            }
+            manager
+        } catch (ignore : Throwable){ null}
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
     override val isManagerAccessible: Boolean
         get() = managerCompat != null
     override val isHardwarePresent: Boolean

@@ -32,13 +32,18 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.LockType
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
 import java.lang.reflect.Modifier
+import java.nio.charset.Charset
+import java.security.InvalidAlgorithmParameterException
 import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.crypto.Cipher
+import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
 
 //Set of tools that tried to behave like BiometricManager API from Android 10
@@ -58,7 +63,70 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType
     override val isLockedOut: Boolean
         get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType
+    override val isBiometricEnrollChanged: Boolean
+        get() {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY)
+            try {
+                val name = "BiometricKey"
+                val keyStore = KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                val key = if (keyStore.containsAlias(name))
+                    keyStore.getKey(name, null)
+                else {
+                    val keyGenerator =
+                        KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, keyStore.provider)
+                    val builder = KeyGenParameterSpec.Builder(
+                        name,
+                        KeyProperties.PURPOSE_ENCRYPT or
+                                KeyProperties.PURPOSE_DECRYPT
+                    )
+                        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                        .setUserAuthenticationRequired(true)
+                        .setInvalidatedByBiometricEnrollment(true)
+                    keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
+                    keyGenerator.generateKey();
+                }
+                //Devices with a bug in Keystore
+                //https://issuetracker.google.com/issues/37127115
+                //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
 
+                val sym = Cipher.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES + "/"
+                            + KeyProperties.BLOCK_MODE_CBC + "/"
+                            + KeyProperties.ENCRYPTION_PADDING_PKCS7
+                );
+                sym.init(Cipher.ENCRYPT_MODE, key);
+                sym.doFinal(name.toByteArray(Charset.forName("UTF-8")));
+            } catch (throwable: Throwable) {
+                var e = throwable
+                if (e is IllegalBlockSizeException) {
+                   return true
+                }
+                var cause: Throwable? = e.cause
+                while (cause != null && cause != e) {
+                    if (cause is IllegalStateException || cause.javaClass.name == "android.security.KeyStoreException") {
+                        return true
+                    }
+                    e = cause
+                    cause = e.cause
+                }
+            }
+            return false
+        }
+    override
+    fun updateBiometricEnrollChanged() {
+        if(isBiometricEnrollChanged) {
+            try {
+                val name = "BiometricKey"
+                val keyStore = KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                if (keyStore.containsAlias(name))
+                    keyStore.deleteEntry(name)
+            } catch (throwable: Throwable) {
+            }
+        }
+    }
     private fun biometricFeatures(): ArrayList<String> {
         val list = ArrayList<String>()
         try {
@@ -160,13 +228,16 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 //                }
                 } catch (throwable: Throwable) {
                     var e = throwable
-                    var cause = e.cause
+                    if (e is InvalidAlgorithmParameterException) {
+                        return false
+                    }
+                    var cause: Throwable? = e.cause
                     while (cause != null && cause != e) {
+                        if (cause is IllegalStateException) {
+                            return false
+                        }
                         e = cause
                         cause = e.cause
-                    }
-                    if (e is IllegalStateException) {
-                        return false
                     }
                 } finally {
                     try {

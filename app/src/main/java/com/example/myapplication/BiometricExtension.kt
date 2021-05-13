@@ -44,6 +44,8 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .setNegativeButton("Cancel", null)
         .build()
 
+    BiometricLoggerImpl.e("CheckBiometric.isEnrollChanged -  ${BiometricManagerCompat.isBiometricEnrollChanged()}")
+
     val context = activity?.applicationContext
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
         override fun onSucceeded(confirmed : Set<BiometricType>) {

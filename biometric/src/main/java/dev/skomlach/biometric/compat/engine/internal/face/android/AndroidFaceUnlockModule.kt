@@ -73,6 +73,17 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@AndroidFaceUnlockModule)
     }
 
+    override fun getManagers(): Set<Any> {
+       val managers = HashSet<Any>()
+        faceManager?.let {
+            managers.add(it)
+        }
+        faceAuthenticationManager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = faceAuthenticationManager != null || faceManager != null
     override val isHardwarePresent: Boolean
