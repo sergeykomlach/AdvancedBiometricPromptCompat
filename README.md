@@ -142,7 +142,7 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
  
  `static boolean isBiometricEnrollChanged` -  returns `true` if enrollment changed for specified biometric. 
  
- **NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases**
+ **NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in some cases**
 ##  
   
   
