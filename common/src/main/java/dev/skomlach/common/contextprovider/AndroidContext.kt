@@ -21,6 +21,7 @@ package dev.skomlach.common.contextprovider
 
 import android.app.Application
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
 import java.io.IOException
@@ -28,6 +29,16 @@ import java.util.*
 
 object AndroidContext {
     private var application: Application? = null
+        private set(value) {
+            field = value
+            field?.registerActivityLifecycleCallbacks(ActivityContextProvider)
+        }
+    var configuration: Configuration? = null
+        get() {
+            return ActivityContextProvider.configuration ?: application?.resources?.configuration
+        }
+        private set
+
     @JvmStatic val appContext: Application
         get() {
             application?.let {
