@@ -30,8 +30,9 @@ import android.os.Bundle
 import android.view.*
 import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
-import androidx.window.WindowHelper
+import androidx.window.WindowManager
 import com.jakewharton.rxrelay2.PublishRelay
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.logging.LogCat.logException
@@ -39,8 +40,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Consumer
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class MultiWindowSupport(private val activity: Activity) {
     companion object {
@@ -84,6 +83,7 @@ class MultiWindowSupport(private val activity: Activity) {
     private var isActive = false
     private var isMultiWindow = false
     private var isWindowOnScreenBottom = false
+    private val windowManager = WindowManager(activity)
     private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
         if (ObjectsCompat.equals(activity1, activity)) {
             try {
@@ -156,7 +156,7 @@ class MultiWindowSupport(private val activity: Activity) {
         val navigationBarWidth = navigationBarWidth
         var h = realScreenSize.y - rect.height() - statusBarHeight - navigationBarHeight
         var w = realScreenSize.x - rect.width()
-        val isSmartphone = diagonalSize() < 7.0
+        val isSmartphone = !isTablet()
         if (isSmartphone && screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             h += navigationBarHeight
             w -= navigationBarWidth
@@ -229,7 +229,7 @@ class MultiWindowSupport(private val activity: Activity) {
             }
             val resources = activity.resources
             val orientation = screenOrientation
-            val isSmartphone = diagonalSize() < 7.0
+            val isSmartphone = !isTablet()
             val resourceId: Int = if (!isSmartphone) {
                 resources.getIdentifier(
                     if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height" else "navigation_bar_height_landscape",
@@ -254,7 +254,7 @@ class MultiWindowSupport(private val activity: Activity) {
             }
             val resources = activity.resources
             val orientation = screenOrientation
-            val isSmartphone = diagonalSize() < 7.0
+            val isSmartphone = !isTablet()
             val resourceId: Int = if (!isSmartphone) {
                 resources.getIdentifier(
                     if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height_landscape" else "navigation_bar_height",
@@ -277,7 +277,7 @@ class MultiWindowSupport(private val activity: Activity) {
         val realSize = realScreenSize
         val realHeight = realSize.y
         val realWidth = realSize.x
-        val bounds = WindowHelper.getCurrentWindowMetrics(activity)
+        val bounds = windowManager.getCurrentWindowMetrics().bounds
         val displayHeight = bounds.height()
         val displayWidth = bounds.width()
         if (realWidth - displayWidth > 0 || realHeight - displayHeight > 0) {
@@ -314,7 +314,7 @@ class MultiWindowSupport(private val activity: Activity) {
             return if (point != null) {
                 point
             } else {
-                val bounds = WindowHelper.getMaximumWindowMetrics(activity)
+                val bounds = windowManager.getMaximumWindowMetrics().bounds
                 val realWidth = bounds.width()
                 val realHeight = bounds.height()
                 val size = Point(realWidth, realHeight)
@@ -326,7 +326,7 @@ class MultiWindowSupport(private val activity: Activity) {
         get() {
             var orientation = activity.resources.configuration.orientation
             if (orientation == Configuration.ORIENTATION_UNDEFINED) {
-                val bounds = WindowHelper.getCurrentWindowMetrics(activity)
+                val bounds = windowManager.getCurrentWindowMetrics().bounds
                 orientation = if (bounds.width() == bounds.height()) {
                     Configuration.ORIENTATION_SQUARE
                 } else {
@@ -340,15 +340,31 @@ class MultiWindowSupport(private val activity: Activity) {
             return orientation
         }
 
-    private fun diagonalSize(): Double {
+    private fun isTablet(): Boolean {
+        AndroidContext.configuration?.let { configuration ->
+            //sometimes return value less then 600 even on tablets (example: Huawei MatePad Pro)
+            if (configuration.smallestScreenWidthDp != Configuration.SMALLEST_SCREEN_WIDTH_DP_UNDEFINED && configuration.smallestScreenWidthDp >= 600) {
+                return true
+            }
+            try {
+                val windowConfigField =
+                    Configuration::class.java.getDeclaredField("compatSmallestScreenWidthDp")
+                windowConfigField.isAccessible = true
+                val compatSmallestScreenWidthDp = windowConfigField[configuration] as Int?
+                compatSmallestScreenWidthDp?.let {
+                    if (it != Configuration.SMALLEST_SCREEN_WIDTH_DP_UNDEFINED && it >= 600) {
+                        return true
+                    }
+                }
+            } catch (ignore: Throwable) {
 
-        // Compute real screen size
-        val dm = activity.resources.displayMetrics
-        val realSize = realScreenSize
-        val screenWidth = realSize.x / dm.xdpi
-        val screenHeight = realSize.y / dm.ydpi
-        return sqrt(
-            screenWidth.toDouble().pow(2.0) + screenHeight.toDouble().pow(2.0)
-        )
+            }
+
+            if (configuration.screenLayout != Configuration.SCREENLAYOUT_SIZE_UNDEFINED && (configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE) {
+                return true
+            }
+        }
+        return false
     }
+
 }
