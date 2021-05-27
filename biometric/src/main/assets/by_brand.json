@@ -95984,6 +95984,11 @@
    "model": "A101OP"
   },
   {
+   "device": "OP4F2BL1",
+   "name": "OPPO Reno5 A",
+   "model": "CPH2199"
+  },
+  {
    "device": "OP4EA7",
    "name": "OPPO Reno5 Pro+ 5G",
    "model": "PDRM00"
@@ -111937,6 +111942,11 @@
    "model": "SM-A525F"
   },
   {
+   "device": "SC-53B",
+   "name": "Galaxy A52 5G",
+   "model": "SC-53B"
+  },
+  {
    "device": "a52xq",
    "name": "Galaxy A52 5G",
    "model": "SM-A5260"
@@ -123766,6 +123776,11 @@
    "model": "SELFIX_ES732_EXPERIUS"
   },
   {
+   "device": "X5",
+   "name": "X5",
+   "model": "X5"
+  },
+  {
    "device": "X7",
    "name": "X7",
    "model": "X7"
@@ -127888,6 +127903,11 @@
    "device": "SO-51B",
    "name": "Xperia 1 III",
    "model": "SO-51B"
+  },
+  {
+   "device": "XQ-BC72",
+   "name": "Xperia 1 III",
+   "model": "XQ-BC72"
   },
   {
    "device": "J9150",
@@ -163960,6 +163980,11 @@
    "device": "P875A02",
    "name": "ZTE Axon 30 5G",
    "model": "ZTE A2022"
+  },
+  {
+   "device": "P875A02",
+   "name": "ZTE Axon 30 5G",
+   "model": "ZTE A2022H"
   },
   {
    "device": "K83CA",

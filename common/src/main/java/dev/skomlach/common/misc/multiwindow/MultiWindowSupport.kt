@@ -30,7 +30,7 @@ import android.os.Bundle
 import android.view.*
 import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
-import androidx.window.WindowManager
+import androidx.window.WindowHelper
 import com.jakewharton.rxrelay2.PublishRelay
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -83,7 +83,7 @@ class MultiWindowSupport(private val activity: Activity) {
     private var isActive = false
     private var isMultiWindow = false
     private var isWindowOnScreenBottom = false
-    private val windowManager = WindowManager(activity)
+
     private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
         if (ObjectsCompat.equals(activity1, activity)) {
             try {
@@ -277,7 +277,7 @@ class MultiWindowSupport(private val activity: Activity) {
         val realSize = realScreenSize
         val realHeight = realSize.y
         val realWidth = realSize.x
-        val bounds = windowManager.getCurrentWindowMetrics().bounds
+        val bounds = WindowHelper.getCurrentWindowMetrics(activity)
         val displayHeight = bounds.height()
         val displayWidth = bounds.width()
         if (realWidth - displayWidth > 0 || realHeight - displayHeight > 0) {
@@ -314,7 +314,7 @@ class MultiWindowSupport(private val activity: Activity) {
             return if (point != null) {
                 point
             } else {
-                val bounds = windowManager.getMaximumWindowMetrics().bounds
+                val bounds = WindowHelper.getMaximumWindowMetrics(activity)
                 val realWidth = bounds.width()
                 val realHeight = bounds.height()
                 val size = Point(realWidth, realHeight)
@@ -326,7 +326,7 @@ class MultiWindowSupport(private val activity: Activity) {
         get() {
             var orientation = activity.resources.configuration.orientation
             if (orientation == Configuration.ORIENTATION_UNDEFINED) {
-                val bounds = windowManager.getCurrentWindowMetrics().bounds
+                val bounds = WindowHelper.getCurrentWindowMetrics(activity)
                 orientation = if (bounds.width() == bounds.height()) {
                     Configuration.ORIENTATION_SQUARE
                 } else {
