@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,12 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.utils.device
+package dev.skomlach.common.network
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.os.Build
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -31,7 +35,19 @@ import java.nio.channels.ReadableByteChannel
 import java.nio.channels.WritableByteChannel
 import javax.net.ssl.HttpsURLConnection
 
-object Network {
+object NetworkApi {
+
+    fun hasInternet(): Boolean {
+        val connectivityManager =
+            AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+        val hasConnection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            connectivityManager?.isDefaultNetworkActive == true
+        else
+            connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+
+        return hasConnection && Connection.isConnection
+    }
+
     @Throws(Exception::class)
     fun createConnection(link: String?, timeout: Int): HttpURLConnection {
         val url = URL(link).toURI().normalize().toURL()

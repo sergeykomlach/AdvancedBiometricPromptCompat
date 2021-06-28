@@ -20,12 +20,12 @@
 package dev.skomlach.biometric.compat.utils.device
 
 import android.os.Build
-import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import com.jaredrummler.android.device.DeviceName
 import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.network.NetworkApi
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -128,7 +128,7 @@ object DeviceModel {
             val inputStream =
                 AndroidContext.appContext.assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()
-            Network.fastCopy(inputStream, byteArrayOutputStream)
+            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
             inputStream.close()
             byteArrayOutputStream.close()
             val data = byteArrayOutputStream.toByteArray()

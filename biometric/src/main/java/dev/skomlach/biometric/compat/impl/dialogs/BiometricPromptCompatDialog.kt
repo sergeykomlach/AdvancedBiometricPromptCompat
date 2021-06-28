@@ -147,9 +147,7 @@ internal class BiometricPromptCompatDialog(
     }
 
     override fun onCreate(bundle: Bundle?) {
-
         super.onCreate(bundle)
-        window?.addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
         setContentView(res)
         rootView = findViewById(R.id.dialogContent)
         rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
