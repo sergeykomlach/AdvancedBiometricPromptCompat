@@ -88,11 +88,6 @@ publishing {
                     def dependenciesNode = asNode().appendNode('dependencies')
 
                     if (libArtifactId_biometric == artifactId) {
-                        def dependencyBiometricApi = dependenciesNode.appendNode('dependency')
-                        dependencyBiometricApi.appendNode('groupId', libsGroupId)
-                        dependencyBiometricApi.appendNode('artifactId', libArtifactId_biometric_api)
-                        dependencyBiometricApi.appendNode('version', version)
-
                         def dependencyComponent = dependenciesNode.appendNode('dependency')
                         dependencyComponent.appendNode('groupId', libsGroupId)
                         dependencyComponent.appendNode('artifactId', libArtifactId_common)
