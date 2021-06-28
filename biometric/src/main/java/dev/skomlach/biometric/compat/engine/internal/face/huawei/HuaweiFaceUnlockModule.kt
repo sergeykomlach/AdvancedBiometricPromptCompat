@@ -23,15 +23,11 @@ import android.content.*
 import android.os.*
 import androidx.annotation.RestrictTo
 import com.huawei.facerecognition.FaceManager
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -125,7 +121,29 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
     override fun hasEnrolled(): Boolean {
         try {
-            if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) return true
+            val hasEnrolled = try {
+                huawei3DFaceManager?.hasEnrolledTemplates() == true
+            } catch (ignore: Throwable) {
+                val m = huawei3DFaceManager?.javaClass?.declaredMethods?.firstOrNull {
+                    it.name.contains("hasEnrolled", ignoreCase = true)
+                }
+                val isAccessible = m?.isAccessible ?: true
+                var result = false
+                try {
+                    if (!isAccessible)
+                        m?.isAccessible = true
+                    if (m?.returnType == Boolean::class.javaPrimitiveType)
+                        result = (m?.invoke(huawei3DFaceManager) as Boolean?) == true
+                    else
+                        if (m?.returnType == Int::class.javaPrimitiveType)
+                            result = (m?.invoke(huawei3DFaceManager) as Int?) ?: 0 > 0
+                } finally {
+                    if (!isAccessible)
+                        m?.isAccessible = false
+                }
+                result
+            }
+            if (huawei3DFaceManager?.isHardwareDetected == true && hasEnrolled) return true
         } catch (e: Throwable) {
             e(e, name)
         }
