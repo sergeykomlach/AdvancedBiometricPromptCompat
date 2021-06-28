@@ -52,13 +52,11 @@ class FirstFragment : Fragment() {
 
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
 
-        val dialog = ProgressDialog.show(
-            activity, "",
-            "Initialization in progress...", true
-        )
-
         if (!App.isReady) {
-            dialog.show()
+            val dialog = ProgressDialog.show(
+                activity, "",
+                "Initialization in progress...", true
+            )
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
                     fillList(inflater, binding.buttonsList)
