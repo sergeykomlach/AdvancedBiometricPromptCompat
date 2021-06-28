@@ -19,14 +19,12 @@
 
 package dev.skomlach.biometric.compat.utils.device
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.network.NetworkApi
 import org.jsoup.Jsoup
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -202,7 +200,7 @@ class DeviceInfoManager private constructor() {
                     continue
                 }
                 if (name.equals(model, ignoreCase = true)) {
-                    return Network.resolveUrl(url, element.attr("href"))
+                    return NetworkApi.resolveUrl(url, element.attr("href"))
                 }
             }
         }
@@ -213,11 +211,9 @@ class DeviceInfoManager private constructor() {
     private fun getHtml(url: String): String? {
         try {
             var urlConnection: HttpURLConnection? = null
-            val connectivityManager =
-                appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-            if (connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true) {
+            if (NetworkApi.hasInternet()) {
                 return try {
-                    urlConnection = Network.createConnection(
+                    urlConnection = NetworkApi.createConnection(
                         url, TimeUnit.SECONDS.toMillis(30)
                             .toInt()
                     )
@@ -233,7 +229,7 @@ class DeviceInfoManager private constructor() {
                     var inputStream: InputStream? = null
                     inputStream = urlConnection.inputStream
                     if (inputStream == null) inputStream = urlConnection.errorStream
-                    Network.fastCopy(inputStream, byteArrayOutputStream)
+                    NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                     inputStream.close()
                     val data = byteArrayOutputStream.toByteArray()
                     byteArrayOutputStream.close()
