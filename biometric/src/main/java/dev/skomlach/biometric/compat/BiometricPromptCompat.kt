@@ -94,7 +94,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         DeviceInfoManager.INSTANCE.getDeviceInfo(object  : DeviceInfoManager.OnDeviceInfoListener{
                             override fun onReady(info: DeviceInfo?) {
                                 isDeviceInfoCheckInProgress = false
-                                deviceInfo = info
+                                field = info
                             }
                         })
                     }

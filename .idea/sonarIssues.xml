@@ -38,6 +38,461 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/contextprovider/ActivityContextProvider.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/contextprovider/AndroidContext.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/cryptostorage/CryptoPreferencesImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/cryptostorage/SharedPreferenceProvider.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/misc/BroadcastTools.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/misc/ExecutorHelper.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/misc/Utils.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/common/misc/multiwindow/MultiWindowSupport.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/BiometricManagerCompat.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/BiometricPromptCompat.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/BiometricType.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/AuthenticationHelpReason.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/BiometricAuthentication.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/BiometricAuthenticationListener.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/BiometricCodes.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/BiometricInitListener.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/BiometricMethod.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/core/Core.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/core/RestartPredicatesImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/core/interfaces/AuthenticationListener.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/core/interfaces/BiometricModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/core/interfaces/RestartPredicate.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/AbstractBiometricModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/DummyBiometricModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/android/AndroidFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/facelock/FaceLock.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/facelock/FaceLockHelper.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/facelock/FaceLockInterface.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/facelock/FacelockOldModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/facelock/IFaceLockCallback.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/huawei/HuaweiFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/huawei/impl/HuaweiFaceRecognizeManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/miui/MiuiFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/miui/impl/MiuiCodeToString.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/miui/impl/MiuiFaceManagerImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/oppo/OppoFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/samsung/SamsungFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/soter/SoterFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/face/vivo/VivoFaceUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/fingerprint/API23FingerprintModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/fingerprint/FlymeFingerprintModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/fingerprint/SamsungFingerprintModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/fingerprint/SoterFingerprintUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/fingerprint/SupportFingerprintModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/iris/android/AndroidIrisUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/engine/internal/iris/samsung/SamsungIrisUnlockModule.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/AuthCallback.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/BiometricPromptApi28Impl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/BiometricPromptGenericImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/IBiometricPromptImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/PermissionsFragment.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/dialogs/BiometricPromptCompatDialog.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/dialogs/BiometricPromptCompatDialogImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/impl/dialogs/FingerprintIconView.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/BiometricAuthWasCanceledByError.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/BiometricErrorLockoutPermanentFix.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/CheckBiometricUI.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/CodeToString.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/DeviceSettings.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/DeviceUnlockedReceiver.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/DevicesWithKnownBugs.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/DialogMainColor.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/HardwareAccessImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/LockType.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/ReflectionTools.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/ReflectionUtils.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/SettingsHelper.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/SystemPropertiesProxy.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/Vibro.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/WideGamutBug.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/WindowFocusChangedListener.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/activityView/ActivityViewWatcher.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/activityView/FastBlur.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/activityView/IconStateHelper.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/device/AppUtils.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/device/DeviceInfoManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/device/DeviceModel.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/device/VendorCheck.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/hardware/Android28Hardware.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/hardware/Android29Hardware.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/hardware/HardwareInfo.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/hardware/LegacyHardware.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/logging/BiometricLoggerImpl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/notification/BiometricNotificationManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/statusbar/BarType.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/statusbar/ColorUtil.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/statusbar/HelperTool.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/statusbar/StatusBarIconsDarkMode.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/statusbar/StatusBarTools.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/themes/DarkLightThemes.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/biometric/compat/utils/themes/DarkThemeCheckResult.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/app/src/main/java/com/siber/roboform/dialog/FileRenameDialog.kt">
           <value>
             <set />
@@ -138,6 +593,86 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/android/hardware/face/Face.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/android/hardware/face/FaceAuthenticationManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/android/hardware/face/FaceManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/android/hardware/face/OppoMirrorFaceManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/android/hardware/iris/Iris.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/android/hardware/iris/IrisManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/com/huawei/facerecognition/FaceRecognizeManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/com/samsung/android/bio/face/Face.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/com/samsung/android/bio/face/SemBioFaceManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/com/samsung/android/camera/iris/Iris.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/com/samsung/android/camera/iris/SemIrisManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/com/vivo/framework/facedetect/FaceDetectManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/org/ifaa/android/manager/IFAAManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/org/ifaa/android/manager/IFAAManagerFactory.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/org/ifaa/android/manager/face/IFAAFaceManager.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/../android-dev/roboform/android/java/biometric-api/src/main/java/org/ifaa/android/manager/face/IFAAFaceManagerFactory.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../android-dev/roboform/android/liquidcore/LiquidV8/src/main/cpp/JNI/JNI_JSObject.cpp">
           <value>
             <set />
@@ -229,6 +764,16 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/biometric-api/src/main/java/com/tencent/soter/core/biometric/SoterFaceManagerFactory.java">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/androidx/biometric/CancelationHelper.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/BiometricPromptCompat.kt">
           <value>
             <set />
           </value>
@@ -388,6 +933,11 @@
             <set />
           </value>
         </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/impl/BiometricPromptApi28Impl.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/ActiveWindowTracker.java">
           <value>
             <set />
@@ -419,6 +969,11 @@
           </value>
         </entry>
         <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/device/AndroidModel.kt">
+          <value>
+            <set />
+          </value>
+        </entry>
+        <entry key="$PROJECT_DIR$/biometric/src/main/java/dev/skomlach/biometric/compat/utils/device/DeviceInfoManager.kt">
           <value>
             <set />
           </value>

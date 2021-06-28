@@ -37,6 +37,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.net.ssl.SSLHandshakeException
+import kotlin.collections.HashSet
 
 class DeviceInfoManager private constructor() {
     private val pattern = Pattern.compile("\\((.*?)\\)+")
@@ -107,27 +108,23 @@ class DeviceInfoManager private constructor() {
         val strings = getNames()
         for (m in strings) {
             deviceInfo = loadDeviceInfo(m)
-            if (deviceInfo?.sensors != null) {
+            if (deviceInfo != null) {
                 BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
                 setCachedDeviceInfo(deviceInfo)
                 onDeviceInfoListener.onReady(deviceInfo)
                 return
             }
         }
-        if (deviceInfo != null) {
-            BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
-            setCachedDeviceInfo(deviceInfo)
-        }
-        onDeviceInfoListener.onReady(deviceInfo)
+        onDeviceInfoListener.onReady(null)
     }
 
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
+                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
-                    val sensors = sharedPreferences.getStringSet("sensors", null) ?: return null
+                    val sensors = sharedPreferences.getStringSet("sensors", null)
                     field = DeviceInfo(model, sensors)
                 }
             }
@@ -136,10 +133,10 @@ class DeviceInfoManager private constructor() {
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
-        val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
+        val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
             .edit()
         sharedPreferences
-            .putStringSet("sensors", deviceInfo.sensors)
+            .putStringSet("sensors", deviceInfo.sensors?:HashSet<String>())
             .putString("model", deviceInfo.model)
             .putBoolean("checked", true)
             .apply()
@@ -156,7 +153,7 @@ class DeviceInfoManager private constructor() {
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
             html = getHtml(detailsLink)
-            if (html == null) return null
+            if (html == null) return  DeviceInfo(model, null)
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             DeviceInfo(model, l)
