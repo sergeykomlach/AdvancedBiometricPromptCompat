@@ -20,8 +20,8 @@ package com.example.myapplication
 
 import android.content.Context
 import androidx.annotation.WorkerThread
-import dev.skomlach.biometric.compat.utils.device.Network.fastCopy
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.network.NetworkApi
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
 import java.io.*
@@ -65,7 +65,7 @@ class Scan4Apis(private val context: Context) {
                         try {
                             FileInputStream(s).use { bis ->
                                 FileOutputStream(dexInternalStoragePath).use { dexWriter ->
-                                    fastCopy(bis, dexWriter)
+                                    NetworkApi.fastCopy(bis, dexWriter)
                                     dexWriter.flush()
                                 }
                             }
@@ -186,7 +186,7 @@ class Scan4Apis(private val context: Context) {
                     val file = File(destDir, fileZip.name + "_" + zipEntry.name.replace("/", "-"))
                     if (file.exists()) file.delete()
                     val fos = FileOutputStream(file)
-                    fastCopy(zipFile.getInputStream(zipEntry), fos)
+                    NetworkApi.fastCopy(zipFile.getInputStream(zipEntry), fos)
                     fos.flush()
                     files.add(file)
                 }

@@ -57,6 +57,7 @@ android {
 }
 
 dependencies {
+    implementation project(":"+libArtifactId_common)
     implementation project(":"+libArtifactId_biometric)//"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
