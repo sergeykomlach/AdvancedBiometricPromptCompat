@@ -51,6 +51,7 @@ object BlurUtil {
 
     @Synchronized
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
+        System.gc()
         m?.let { method ->
             val startMs = System.currentTimeMillis()
             ExecutorHelper.INSTANCE.startOnBackground {
@@ -123,7 +124,8 @@ object BlurUtil {
     }
 
     private fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {
-
+        if(bkg.height == 0 || bkg.width == 0)
+            return
         val startMs = System.currentTimeMillis()
         val scaleFactor = 8f
         val radius = 2f

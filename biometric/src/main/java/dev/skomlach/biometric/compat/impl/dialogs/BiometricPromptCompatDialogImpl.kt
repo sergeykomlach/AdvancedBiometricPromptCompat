@@ -130,14 +130,6 @@ class BiometricPromptCompatDialogImpl(
             startAuth()
         }
     }
-    @ColorRes
-    private fun getDialogMainColor(): Int {
-        return if (isNightMode) {
-            android.R.color.black
-        } else {
-            R.color.material_grey_50
-        }
-    }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
         checkInScreenVisibility()
