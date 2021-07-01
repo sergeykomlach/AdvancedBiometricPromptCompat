@@ -18,8 +18,12 @@
  */
 package dev.skomlach.common.network
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.os.Build
 import android.text.TextUtils
 import androidx.annotation.WorkerThread
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.locale
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -83,6 +87,17 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
 
     @WorkerThread
     private fun startPing() {
+        val connectivityManager =
+            AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+        val hasConnection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            connectivityManager?.isDefaultNetworkActive == true
+        else
+            connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+
+        if(!hasConnection){
+            connectionStateListener.setState(false)
+            return
+        }
         for (host in hosts) {
             var urlConnection: HttpURLConnection? = null
             try {
