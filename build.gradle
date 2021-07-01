@@ -26,7 +26,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '1.0'
-    ext.libsMinorVersion = 98
+    ext.libsMinorVersion = 99
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -46,7 +46,7 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.1'
+        classpath 'com.android.tools.build:gradle:4.2.2'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.0.13"
         classpath 'org.owasp:dependency-check-gradle:6.1.6'
