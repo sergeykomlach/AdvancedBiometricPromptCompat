@@ -38,14 +38,7 @@ import javax.net.ssl.HttpsURLConnection
 object NetworkApi {
 
     fun hasInternet(): Boolean {
-        val connectivityManager =
-            AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        val hasConnection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            connectivityManager?.isDefaultNetworkActive == true
-        else
-            connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-
-        return hasConnection && Connection.isConnection
+        return Connection.isConnection
     }
 
     @Throws(Exception::class)
