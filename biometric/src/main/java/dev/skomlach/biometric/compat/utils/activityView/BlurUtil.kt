@@ -26,8 +26,8 @@ import android.graphics.Paint
 import android.os.Build
 import android.view.View
 import android.view.ViewDebug
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.reflect.Method
 import kotlin.math.roundToInt
 
@@ -51,34 +51,54 @@ object BlurUtil {
 
     @Synchronized
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
+
+        //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
+        val isBlackBerryBug = try {
+            val f = view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+            val isAccessible = f?.isAccessible ?: true
+            var value: Any? = null
+            try {
+                f?.isAccessible = true
+                value = f?.get(view)
+            } finally {
+                if (!isAccessible)
+                    f?.isAccessible = false
+            }
+            value == null
+        } catch (ignore: Throwable) {
+            false
+        }
+
         System.gc()
-        m?.let { method ->
-            val startMs = System.currentTimeMillis()
-            ExecutorHelper.INSTANCE.startOnBackground {
-                try {
-                    (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                        ExecutorHelper.INSTANCE.handler.post {
-                            try {
-                                BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
-                                blur(
-                                    view,
-                                    bm.copy(Bitmap.Config.ARGB_8888, false),
-                                    listener
-                                )
-                            } catch (e: Throwable) {
-                                BiometricLoggerImpl.e(e)
+        if (!isBlackBerryBug) {
+            m?.let { method ->
+                val startMs = System.currentTimeMillis()
+                ExecutorHelper.INSTANCE.startOnBackground {
+                    try {
+                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                            ExecutorHelper.INSTANCE.handler.post {
+                                try {
+                                    BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
+                                    blur(
+                                        view,
+                                        bm.copy(Bitmap.Config.ARGB_8888, false),
+                                        listener
+                                    )
+                                } catch (e: Throwable) {
+                                    BiometricLoggerImpl.e(e)
+                                }
                             }
                         }
-                    }
-                } catch (ignore: Throwable) {
-                    ExecutorHelper.INSTANCE.handler.post {
-                        fallbackViewCapture(view, listener)
+                    } catch (ignore: Throwable) {
+                        ExecutorHelper.INSTANCE.handler.post {
+                            fallbackViewCapture(view, listener)
+                        }
                     }
                 }
+                return
             }
-        } ?: run {
-            fallbackViewCapture(view, listener)
         }
+        fallbackViewCapture(view, listener)
     }
 
     private fun fallbackViewCapture(view: View, listener: OnPublishListener) {
