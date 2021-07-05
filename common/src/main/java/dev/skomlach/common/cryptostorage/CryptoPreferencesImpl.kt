@@ -229,11 +229,15 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
         }
 
         override fun putStringSet(key: String, values: Set<String>?): SharedPreferences.Editor {
-            return try {
-                CryptoEditor(editor.putStringSet(key, values))
+            try {
+                values?.let{
+                 return  CryptoEditor(editor.putStringSet(key, it))
+                }?:run{
+                    return  CryptoEditor(editor.remove(key))
+                }
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                return editor
             }
         }
 
