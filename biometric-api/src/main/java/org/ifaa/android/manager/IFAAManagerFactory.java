@@ -16,18 +16,12 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package org.ifaa.android.manager;
 
-package org.ifaa.android.manager.face
+import android.content.Context;
 
-abstract class IFAAFaceManager {
-    abstract fun authenticate(reqId: Int, flags: Int, authenticatorCallback: AuthenticatorCallback?)
-    abstract fun cancel(reqId: Int): Int
-    abstract val version: Int
-
-    abstract class AuthenticatorCallback {
-        fun onAuthenticationError(errorCode: Int) {}
-        fun onAuthenticationStatus(status: Int) {}
-        fun onAuthenticationSucceeded() {}
-        fun onAuthenticationFailed(errCode: Int) {}
+public class IFAAManagerFactory {
+    public static IFAAManager getIFAAManager(Context context, int authType) {
+        return null;
     }
 }

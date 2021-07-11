@@ -65,7 +65,9 @@ class DeviceInfoManager private constructor() {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
             val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
                     " auth"
                 )
             ) {
@@ -81,7 +83,9 @@ class DeviceInfoManager private constructor() {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
             val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
                     " auth"
                 )
             ) {

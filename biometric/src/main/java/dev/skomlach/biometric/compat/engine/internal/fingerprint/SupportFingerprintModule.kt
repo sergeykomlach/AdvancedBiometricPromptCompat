@@ -23,15 +23,11 @@ import android.content.Context
 import androidx.annotation.RestrictTo
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
@@ -48,7 +44,9 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
     init {
         managerCompat = try {
             FingerprintManagerCompat.from(context)
-        } catch (ignore: Throwable) {
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
             null
         }
         listener?.initFinished(biometricMethod, this@SupportFingerprintModule)

@@ -16,14 +16,12 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package org.ifaa.android.manager.face;
 
-package org.ifaa.android.manager
+import android.content.Context;
 
-import android.content.Context
-
-object IFAAManagerFactory {
-    @JvmStatic
-    fun getIFAAManager(context: Context?, authType: Int): IFAAManager? {
-        return null
+public class IFAAFaceManagerFactory {
+    public static synchronized IFAAFaceManager getIFAAFaceManager(Context context) {
+        return null;
     }
 }

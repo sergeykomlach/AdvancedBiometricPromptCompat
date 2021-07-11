@@ -24,19 +24,14 @@ import android.hardware.face.OppoMirrorFaceManager
 import android.os.Build
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
-import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -47,22 +42,26 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: OppoMirrorFaceManager? = null
 
     init {
-        if(VendorCheck.isOppo) {
-                manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    try {
-                        context.getSystemService(OppoMirrorFaceManager::class.java)
-                    } catch (ignore: Throwable) {
-                        null
-                    }
-                } else {
-                    try {
-                        context.getSystemService("face") as OppoMirrorFaceManager
-                    } catch (ignore: Throwable) {
-                        null
-                    }
+
+        manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                context.getSystemService(OppoMirrorFaceManager::class.java)
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
+                null
+            }
+        } else {
+            try {
+                context.getSystemService("face") as OppoMirrorFaceManager
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
+                null
+            }
                 }
 
-        }
+
         listener?.initFinished(biometricMethod, this@OppoFaceUnlockModule)
     }
     override fun getManagers(): Set<Any> {

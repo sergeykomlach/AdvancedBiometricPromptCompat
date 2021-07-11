@@ -32,7 +32,6 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.LockType
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
@@ -135,7 +134,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
                     (f[null] as String?)?.let { name ->
 
-                        if (name.contains(".hardware.") && (
+                        val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
+                        val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
+                        if ((isAOSP || isOEM) && (
                                     name.endsWith(".fingerprint")
                                             || name.endsWith(".face")
                                             || name.endsWith(".iris")

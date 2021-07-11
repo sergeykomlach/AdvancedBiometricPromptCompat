@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.engine.internal
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.RestrictTo
+import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -42,6 +43,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         private const val TS_PREF = "timestamp_"
         private const val ENROLLED_PREF = "enrolled_"
         private val timeout = TimeUnit.SECONDS.toMillis(31)
+        val DEBUG_MANAGERS = BuildConfig.DEBUG
     }
     private val tag: Int = biometricMethod.id
     private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")

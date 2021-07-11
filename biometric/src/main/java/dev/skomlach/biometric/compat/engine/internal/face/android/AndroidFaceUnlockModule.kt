@@ -26,17 +26,16 @@ import android.os.Build
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.*
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -47,26 +46,34 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         faceAuthenticationManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(FaceAuthenticationManager::class.java)
-            } catch (ignore: Throwable) {
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
                 null
             }
         } else {
             try {
                 context.getSystemService("face") as FaceAuthenticationManager
-            } catch (ignore: Throwable) {
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
                 null
             }
         }
         faceManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(FaceManager::class.java)
-            } catch (ignore: Throwable) {
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
                 null
             }
         } else {
             try {
                 context.getSystemService("face") as FaceManager
-            } catch (ignore: Throwable) {
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
                 null
             }
         }

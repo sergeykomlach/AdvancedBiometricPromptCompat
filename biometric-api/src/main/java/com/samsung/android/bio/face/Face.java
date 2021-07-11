@@ -16,15 +16,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package com.samsung.android.bio.face;
 
-package org.ifaa.android.manager.face
-
-import android.content.Context
-
-object IFAAFaceManagerFactory {
-    @Synchronized
-    @JvmStatic
-    fun getIFAAFaceManager(context: Context?): IFAAFaceManager? {
-        return null
-    }
+public class Face {
 }

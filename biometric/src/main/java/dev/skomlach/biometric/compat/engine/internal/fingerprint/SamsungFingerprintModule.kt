@@ -27,9 +27,9 @@ import com.samsung.android.sdk.pass.SpassFingerprint
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -46,7 +46,9 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                 throw RuntimeException("No hardware")
             }
             mSpassFingerprint = SpassFingerprint(context)
-        } catch (ignore: Throwable) {
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
             mSpass = null
             mSpassFingerprint = null
         }

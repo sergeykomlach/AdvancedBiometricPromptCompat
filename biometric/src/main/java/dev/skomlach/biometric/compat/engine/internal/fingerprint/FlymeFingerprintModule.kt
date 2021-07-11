@@ -27,9 +27,9 @@ import com.fingerprints.service.FingerprintManager.IdentifyCallback
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -43,12 +43,14 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             val servicemanager = Class.forName("android.os.ServiceManager")
             val getService = servicemanager.getMethod("getService", String::class.java)
             val binder = getService.invoke(null, "fingerprints_service") as IBinder?
-            binder?.let{
+            binder?.let {
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 isManagerAccessible =
                     mFingerprintServiceFingerprintManager != null && mFingerprintServiceFingerprintManager?.isSurpport == true
             }
-        } catch (ignore: Throwable) {
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
         } finally {
             cancelFingerprintServiceFingerprintRequest()
         }

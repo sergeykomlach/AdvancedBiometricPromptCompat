@@ -16,7 +16,26 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package org.ifaa.android.manager.face;
 
-package android.hardware.iris
+public abstract class IFAAFaceManager {
+    public abstract void authenticate(int reqId, int flags, AuthenticatorCallback authenticatorCallback);
 
-class Iris 
+    public abstract int cancel(int reqId);
+
+    public abstract int getVersion();
+
+    public static abstract class AuthenticatorCallback {
+        public void onAuthenticationError(int errorCode) {
+        }
+
+        public void onAuthenticationStatus(int status) {
+        }
+
+        public void onAuthenticationSucceeded() {
+        }
+
+        public void onAuthenticationFailed(int errCode) {
+        }
+    }
+}
