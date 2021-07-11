@@ -24,6 +24,7 @@ import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.hardware.Android28Hardware
+import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
 
@@ -54,19 +55,19 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         if (biometricAuthRequest.api == BiometricApi.LEGACY_API) {
             hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
         } else if (biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
-//            if (BuildCompat.isAtLeastQ()) {
-//                hardwareInfo =
-//                    Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
-//            } else
+            if (BuildCompat.isAtLeastQ()) {
+                hardwareInfo =
+                    Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
+            } else
             if (BuildCompat.isAtLeastP()) {
                 hardwareInfo =
                     Android28Hardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
             }
         } else { //AUTO
             hardwareInfo = when {
-//                BuildCompat.isAtLeastQ() -> {
-//                    Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
-//                }
+                BuildCompat.isAtLeastQ() -> {
+                    Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
+                }
                 BuildCompat.isAtLeastP() -> {
                     Android28Hardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
                 }
