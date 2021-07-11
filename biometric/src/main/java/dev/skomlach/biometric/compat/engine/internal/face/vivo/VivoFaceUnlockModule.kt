@@ -27,13 +27,12 @@ import com.vivo.framework.facedetect.FaceDetectManager.FaceAuthenticationCallbac
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
-import dev.skomlach.biometric.compat.utils.device.VendorCheck
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import java.util.HashSet
+import java.util.*
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -41,14 +40,15 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: FaceDetectManager? = null
 
     init {
-        if(VendorCheck.isVivo) {
                 manager = try {
                     FaceDetectManager.getInstance()
-                } catch (ignore: Throwable) {
+                } catch (e: Throwable) {
+                    if (DEBUG_MANAGERS)
+                        e(e, name)
                     null
                 }
 
-        }
+
         listener?.initFinished(biometricMethod, this@VivoFaceUnlockModule)
     }
     override fun getManagers(): Set<Any> {

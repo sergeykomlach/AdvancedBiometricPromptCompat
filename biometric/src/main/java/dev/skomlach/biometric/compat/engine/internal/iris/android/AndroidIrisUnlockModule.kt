@@ -25,17 +25,16 @@ import android.os.Build
 import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.*
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -46,13 +45,17 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(IrisManager::class.java)
-            } catch (ignore: Throwable) {
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
                 null
             }
         } else {
             try {
                 context.getSystemService("iris") as IrisManager
-            } catch (ignore: Throwable) {
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
                 null
             }
         }

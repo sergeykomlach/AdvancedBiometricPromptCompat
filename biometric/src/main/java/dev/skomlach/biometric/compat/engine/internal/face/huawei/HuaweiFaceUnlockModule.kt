@@ -33,7 +33,6 @@ import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFace
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
-import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -48,20 +47,24 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
     init {
         ExecutorHelper.INSTANCE.handler.post {
-            if(VendorCheck.isHuawei) {
-                try {
-                    huawei3DFaceManager = faceManager
-                    d("$name.huawei3DFaceManager - $huawei3DFaceManager")
-                } catch (ignore: Throwable) {
-                    huawei3DFaceManager = null
-                }
-                try {
-                    huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
-                    d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
-                } catch (ignore: Throwable) {
-                    huaweiFaceManagerLegacy = null
-                }
+
+            try {
+                huawei3DFaceManager = faceManager
+                d("$name.huawei3DFaceManager - $huawei3DFaceManager")
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
+                huawei3DFaceManager = null
             }
+            try {
+                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
+                d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
+                huaweiFaceManagerLegacy = null
+            }
+
             listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
         }
     }
