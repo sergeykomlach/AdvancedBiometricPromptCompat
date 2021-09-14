@@ -58,7 +58,7 @@ object DarkLightThemes {
                 }
                 val mUiModeManager =
                     context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
-                mUiModeManager?.currentModeType ?: UiModeManager.MODE_NIGHT_NO
+                mUiModeManager?.nightMode?: UiModeManager.MODE_NIGHT_NO
             }
         }
     }
