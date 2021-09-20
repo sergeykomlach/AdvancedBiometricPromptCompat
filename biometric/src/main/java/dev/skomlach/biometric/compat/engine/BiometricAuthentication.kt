@@ -197,13 +197,14 @@ object BiometricAuthentication {
         }
     val isLockOut: Boolean
         get() {
+            var isLocked = availableBiometrics.isNotEmpty()
             for (method in availableBiometrics) {
                 val module = getAvailableBiometricModule(method)
-                if (module?.isLockOut == true) {
-                    return true
+                if (module!=null && !module.isLockOut) {
+                    isLocked = false
                 }
             }
-            return false
+            return isLocked
         }
     val isHardwareDetected: Boolean
         get() {

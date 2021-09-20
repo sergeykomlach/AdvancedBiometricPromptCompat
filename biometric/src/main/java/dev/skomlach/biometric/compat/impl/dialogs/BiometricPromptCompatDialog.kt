@@ -164,8 +164,6 @@ internal class BiometricPromptCompatDialog(
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         container = rootView?.findViewById(R.id.auth_content_container)
 
-        fingerprintIcon?.setState(FingerprintIconView.State.ON, false)
-
         (rootView?.parent as View).setOnClickListener { cancel() }
         rootView?.setOnClickListener(null)
         val animation = AnimationUtils.loadAnimation(context, R.anim.move_in)

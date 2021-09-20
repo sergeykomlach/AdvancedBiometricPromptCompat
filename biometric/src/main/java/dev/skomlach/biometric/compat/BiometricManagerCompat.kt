@@ -41,7 +41,18 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
+        var result = true
+        if (api.api != BiometricApi.AUTO)
+            result = BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
+        else {
+            for (s in BiometricType.values()) {
+                if (!BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(s)) {
+                    result = false
+                    break
+                }
+            }
+        }
+        return result
     }
     @JvmStatic
     fun isHardwareDetected(
@@ -115,7 +126,7 @@ object BiometricManagerCompat {
         val result = if(api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isLockedOut || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isLockedOut
+            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isLockedOut && HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isLockedOut
 
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
         return result

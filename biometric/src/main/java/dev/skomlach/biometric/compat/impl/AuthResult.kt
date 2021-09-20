@@ -17,10 +17,13 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat
+package dev.skomlach.biometric.compat.impl
 
-data class BiometricAuthRequest(
-    val api: BiometricApi = BiometricApi.AUTO,
-    val type: BiometricType = BiometricType.BIOMETRIC_ANY,
-    val confirmation: BiometricConfirmation = BiometricConfirmation.ALL
-)
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+
+data class AuthResult(val authResultState: AuthResultState, val failureReason: AuthenticationFailureReason? = null) {
+    enum class AuthResultState {
+        SUCCESS,
+        FATAL_ERROR
+    }
+}
