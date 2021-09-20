@@ -28,16 +28,6 @@ dependencies {
     implementation "androidx.window:window:1.0.0-alpha05"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 }
-dependencyCheck {
-    failOnError = false
-}
-afterEvaluate {
-    android.libraryVariants.all { v ->
-        if (v.buildType.name == "release") {
-            v.assemble.finalizedBy(dependencyCheckAnalyze)
-        }
-    }
-}
 
 // Publishing
 ext {

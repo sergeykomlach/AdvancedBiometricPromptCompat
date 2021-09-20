@@ -46,9 +46,9 @@ buildscript {
 
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:7.0.2'
         //Dev Tools
-        classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.0.13"
+        classpath "net.ltgt.gradle:gradle-errorprone-plugin:2.0.2"
         classpath 'org.owasp:dependency-check-gradle:6.3.1'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -72,14 +72,32 @@ allprojects {
     dependencies {
         // Optional, some source of nullability annotations
         //noinspection GradleDynamicVersion,GradleDependency
-        errorprone "com.google.errorprone:error_prone_core:2.3.2"
+        errorprone "com.google.errorprone:error_prone_core:2.9.0"
     }
 
+//Tool for detect known vulnerabilities in 3-rd party libraries
+    dependencyCheck {
+//        failOnError = false
+        suppressionFile = "$projectDir/owasp-suppress.xml"
+        //by default the build will never fail
+        failBuildOnCVSS = 0//fail if any vulnerability detected
+    }
 }
 
 subprojects { project ->
     group = libsGroupId
     version = libVersion
+    afterEvaluate {
+        try {
+            android.libraryVariants.all { v ->
+                if (v.buildType.name == "release") {
+                    v.assemble.finalizedBy(dependencyCheckAnalyze)
+                }
+            }
+        } catch (Exception ignore) {
+        }
+
+    }
 }
 
 task clean(type: Delete) {

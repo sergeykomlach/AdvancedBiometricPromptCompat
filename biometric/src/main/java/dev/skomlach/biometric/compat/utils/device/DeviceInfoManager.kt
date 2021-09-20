@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
 import dev.skomlach.common.network.NetworkApi
 import org.jsoup.Jsoup
+import org.jsoup.select.Elements
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -170,7 +171,7 @@ class DeviceInfoManager private constructor() {
         if (html != null) {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
-            val rElements = body.getElementsByAttribute("data-spec")
+            val rElements = body?.getElementsByAttribute("data-spec")?: Elements()
             for (i in rElements.indices) {
                 val element = rElements[i]
                 if (element.attr("data-spec") == "sensors") {
@@ -196,7 +197,7 @@ class DeviceInfoManager private constructor() {
         if (html != null) {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
-            val rElements = body.getElementsByTag("a")
+            val rElements = body?.getElementsByTag("a")?:Elements()
             for (i in rElements.indices) {
                 val element = rElements[i]
                 val name = element.text()
