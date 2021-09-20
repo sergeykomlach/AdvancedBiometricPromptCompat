@@ -49,8 +49,8 @@ buildscript {
         classpath 'com.android.tools.build:gradle:4.2.2'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:0.0.13"
-        classpath 'org.owasp:dependency-check-gradle:6.1.6'
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.0"
+        classpath 'org.owasp:dependency-check-gradle:6.3.1'
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }

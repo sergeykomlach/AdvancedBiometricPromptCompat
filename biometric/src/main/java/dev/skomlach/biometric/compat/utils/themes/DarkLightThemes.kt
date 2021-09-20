@@ -23,8 +23,12 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.os.Build
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.SettingsHelper
+import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.Utils
+import java.time.LocalTime
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object DarkLightThemes {
@@ -43,22 +47,55 @@ object DarkLightThemes {
                 UiModeManager.MODE_NIGHT_NO
             }
             else -> {
-                if (context.resources.configuration.uiMode and
-                    Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-                ) {
-                    return UiModeManager.MODE_NIGHT_YES
+                val mUiModeManager =
+                    context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
+                val configs = arrayOf(
+                    context.resources.configuration,
+                    Resources.getSystem().configuration,
+                    AndroidContext.configuration
+                )
+                for (config in configs) {
+                    if (config != null) {
+                        if (config.uiMode and
+                            Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES ||
+                            (Utils.isAtLeastR && config.isNightModeActive)
+                        )
+                            return UiModeManager.MODE_NIGHT_YES
+                    }
                 }
-                if (Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) {
-                    return UiModeManager.MODE_NIGHT_YES
-                }
+
+
                 val modeFromSettings =
                     SettingsHelper.getInt(context, "ui_night_mode", UiModeManager.MODE_NIGHT_NO)
                 if (modeFromSettings != UiModeManager.MODE_NIGHT_NO) {
-                    return modeFromSettings
+                    if (modeFromSettings == UiModeManager.MODE_NIGHT_YES)
+                        return UiModeManager.MODE_NIGHT_YES
+                    else {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            val start = mUiModeManager?.customNightModeStart
+                            val end = mUiModeManager?.customNightModeEnd
+                            val now = LocalTime.now()
+                            if (now.isAfter(start) && now.isBefore(end))
+                                return UiModeManager.MODE_NIGHT_YES
+                        }
+                    }
+                } else {
+                    val nightMode = mUiModeManager?.nightMode ?: UiModeManager.MODE_NIGHT_NO
+                    if (nightMode != UiModeManager.MODE_NIGHT_NO) {
+                        if (nightMode == UiModeManager.MODE_NIGHT_YES)
+                            return UiModeManager.MODE_NIGHT_YES
+                        else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val start = mUiModeManager?.customNightModeStart
+                                val end = mUiModeManager?.customNightModeEnd
+                                val now = LocalTime.now()
+                                if ((now.equals(start) || now.equals(end)) || (now.isAfter(start) && now.isBefore(end)))
+                                    return UiModeManager.MODE_NIGHT_YES
+                            }
+                        }
+                    }
                 }
-                val mUiModeManager =
-                    context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
-                mUiModeManager?.nightMode?: UiModeManager.MODE_NIGHT_NO
+                UiModeManager.MODE_NIGHT_NO
             }
         }
     }
