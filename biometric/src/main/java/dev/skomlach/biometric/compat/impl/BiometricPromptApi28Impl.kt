@@ -380,10 +380,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val error = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
                 val success = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.SUCCESS }
                 if(success!=null) {
-                    val onlySuccess = authFinished.filter {
-                        it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                    val onlyFailures = authFinished.filter {
+                        it.value.authResultState == AuthResult.AuthResultState.FATAL_ERROR
                     }
-                    callback?.onSucceeded(onlySuccess.keys.toList().filterNotNull().toSet())
+                    val set = HashSet<BiometricType>(builder.allAvailableTypes)
+                    set.removeAll(onlyFailures.keys)
+                    callback?.onSucceeded(set.toList().toSet())
                 }
                 else if(error!=null){
                     callback?.onFailed(error.failureReason)
