@@ -77,10 +77,10 @@ allprojects {
 
 //Tool for detect known vulnerabilities in 3-rd party libraries
     dependencyCheck {
-//        failOnError = false
-        suppressionFile = "$projectDir/owasp-suppress.xml"
+        suppressionFile = "$rootProject.projectDir/owasp-suppress.xml"
+        outputDirectory = "$rootProject.projectDir/owasp_report/"
         //by default the build will never fail
-        failBuildOnCVSS = 0//fail if any vulnerability detected
+        failBuildOnCVSS = 11//do not fail if any vulnerability detected
     }
 }
 
@@ -90,9 +90,9 @@ subprojects { project ->
     afterEvaluate {
         try {
             android.libraryVariants.all { v ->
-                if (v.buildType.name == "release") {
+               // if (v.buildType.name == "release") {
                     v.assemble.finalizedBy(dependencyCheckAnalyze)
-                }
+               // }
             }
         } catch (Exception ignore) {
         }
