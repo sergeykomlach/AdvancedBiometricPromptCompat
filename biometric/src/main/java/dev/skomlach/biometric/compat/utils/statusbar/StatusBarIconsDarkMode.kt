@@ -24,6 +24,10 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import androidx.annotation.RestrictTo
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import dev.skomlach.common.misc.Utils
 import java.util.*
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -45,7 +49,7 @@ object StatusBarIconsDarkMode {
             0x00000010
         }
     }
-    private fun setMiuiIconDarkMode(window: Window, dark: Boolean, type: BarType): Boolean {
+    private fun setMiuiIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
         try {
             //constants for MIUI similar to "SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR" stored in separate class
             val layoutParams = Class.forName("android.view.MiuiWindowManager\$LayoutParams")
@@ -61,14 +65,14 @@ object StatusBarIconsDarkMode {
                 }
                 val darkModeFlag =
                     field.getInt(null) //because its static fields - access without object
-                return HelperTool.setMIUIFlag(window, dark, darkModeFlag)
+                return HelperTool.setMIUIFlag(window, lightBars, darkModeFlag)
             }
         } catch (e: Throwable) {
         }
         return false
     }
 
-    private fun setFlymeIconDarkMode(window: Window, dark: Boolean, type: BarType): Boolean {
+    private fun setFlymeIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
         try {
             //FlymeOS expand WindowManager.LayoutParams class and add some private fields
             val allFields = WindowManager.LayoutParams::class.java.declaredFields
@@ -83,28 +87,40 @@ object StatusBarIconsDarkMode {
                 }
                 field.isAccessible = true
                 val bits = field.getInt(null)
-                return HelperTool.setFlameFlag(window, dark, bits)
+                return HelperTool.setFlameFlag(window, lightBars, bits)
             }
         } catch (e: Throwable) {
         }
         return false
     }
 
-    fun setDarkIconMode(window: Window, dark: Boolean, type: BarType): Boolean {
+    fun setDarkIconMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
+        //TODO: Don't works properly with navbar
+
+//        if (Utils.isAtLeastR) {
+//           WindowCompat.getInsetsController(window, window.decorView)?.let { windowInsetsController ->
+//                if (type == BarType.STATUSBAR)
+//                    windowInsetsController.isAppearanceLightStatusBars = lightBars
+//                else
+//                    windowInsetsController.isAppearanceLightNavigationBars = lightBars
+//                return true
+//            }
+//        }
+
         //Android6+ should deal with DarkIcons without problems
         val bits =
             if (type == BarType.STATUSBAR) SYSTEM_UI_FLAG_LIGHT_STATUS_BAR else SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && bits != -1 && HelperTool.setUIVisibilityFlag(
                 window,
-                dark,
+                lightBars,
                 bits
             )
         ) return true
 
         //in other case - try to use OEM solutions
-        return if (setFlymeIconDarkMode(window, dark, type)) {
+        return if (setFlymeIconDarkMode(window, lightBars, type)) {
             true
-        } else setMiuiIconDarkMode(window, dark, type)
+        } else setMiuiIconDarkMode(window, lightBars, type)
     }
 
 }
