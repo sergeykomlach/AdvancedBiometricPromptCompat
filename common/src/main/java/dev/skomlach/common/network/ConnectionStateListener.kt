@@ -45,7 +45,7 @@ class ConnectionStateListener {
             AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         isConnectionOk.set(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                connectivityManager?.isDefaultNetworkActive == true
+                connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
             else
                 connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
         )

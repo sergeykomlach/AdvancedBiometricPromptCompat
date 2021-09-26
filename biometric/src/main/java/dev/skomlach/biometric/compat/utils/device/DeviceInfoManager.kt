@@ -147,7 +147,7 @@ class DeviceInfoManager private constructor() {
 
     private fun loadDeviceInfo(model: String): DeviceInfo? {
         BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $model")
-        return if (model.isNullOrEmpty()) null else try {
+        return if (model.isEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
             var html: String? = getHtml(url) ?: return null
             val detailsLink = getDetailsLink(url, html, model)
@@ -161,6 +161,7 @@ class DeviceInfoManager private constructor() {
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             DeviceInfo(model, l)
         } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
             null
         }
     }
