@@ -28,6 +28,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
+import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollChanged
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
@@ -166,6 +167,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 //just cache value
                                 hasEnrolled(biometricAuthRequest)
                                 isLockOut(biometricAuthRequest)
+                                isBiometricEnrollChanged(biometricAuthRequest)
                             }
                         }
                     }
@@ -186,7 +188,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 var found = false
                 for (v in builder.primaryAvailableTypes) {
                     val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
-                    if (isHardwareDetected(request) && hasEnrolled(request)) {
+                    if (isHardwareDetected(request) && hasEnrolled(request) && (!isLockOut(request) && !isBiometricSensorPermanentlyLocked(request)))  {
                         found = true
                         break
                     }
@@ -432,12 +434,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         type
                     )
                     BiometricLoggerImpl.d("primaryAvailableTypes - $request -> ${isHardwareDetected(request)}")
-                    if (isHardwareDetected(request) && hasEnrolled(request)) {
+                    if (isHardwareDetected(request) && hasEnrolled(request) && (!isLockOut(request) && !isBiometricSensorPermanentlyLocked(request))) {
                         types.add(type)
                     }
                 }
             } else {
-                if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest))
+                if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest)&& (!isLockOut(biometricAuthRequest) && !isBiometricSensorPermanentlyLocked(biometricAuthRequest)))
                 types.add(biometricAuthRequest.type)
             }
             types
@@ -454,13 +456,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             type
                         )
                         BiometricLoggerImpl.d("secondaryAvailableTypes - $request -> ${isHardwareDetected(request)}")
-                        if (isHardwareDetected(request) && hasEnrolled(request)) {
+                        if (isHardwareDetected(request) && hasEnrolled(request) && (!isLockOut(request) && !isBiometricSensorPermanentlyLocked(request))) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest))
-                    types.add(biometricAuthRequest.type)
+                    if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest)&& (!isLockOut(biometricAuthRequest) && !isBiometricSensorPermanentlyLocked(biometricAuthRequest)))
+                        types.add(biometricAuthRequest.type)
                 }
             }
             types

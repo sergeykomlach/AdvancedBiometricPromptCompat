@@ -20,14 +20,20 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.graphics.drawable.Animatable
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.TransitionDrawable
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
 import androidx.annotation.RestrictTo
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.content.ContextCompat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 
 class FingerprintIconView @JvmOverloads constructor(
@@ -39,30 +45,55 @@ class FingerprintIconView @JvmOverloads constructor(
 
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
-        setState(State.OFF, false)
+        setState(State.OFF, false, BiometricType.BIOMETRIC_FINGERPRINT)
     }
 
     private var state = State.OFF
-    fun setState(state: State) {
-        setState(state, true)
+    fun setState(state: State, type : BiometricType) {
+        setState(state, true, type)
     }
 
-    fun setState(state: State, animate: Boolean) {
+    fun setState(state: State, animate: Boolean, type : BiometricType) {
         if (state == this.state) return
-        @DrawableRes val resId = getDrawable(this.state, state, animate)
-        if (resId == 0) {
-            setImageDrawable(null)
-        } else {
-            var icon: Drawable? = null
-            if (animate) {
-                icon = AnimatedVectorDrawableCompat.create(context, resId)
+        if(type == BiometricType.BIOMETRIC_FINGERPRINT || type == BiometricType.BIOMETRIC_ANY) {
+            @DrawableRes val resId = getDrawable(this.state, state, animate)
+            if (resId == 0) {
+                setImageDrawable(null)
+            } else {
+                var icon: Drawable? = null
+                if (animate) {
+                    icon = AnimatedVectorDrawableCompat.create(context, resId)
+                }
+                if (icon == null) {
+                    icon = VectorDrawableCompat.create(resources, resId, context.theme)
+                }
+                setImageDrawable(icon)
+                if (icon is Animatable) {
+                    (icon as Animatable).start()
+                }
             }
-            if (icon == null) {
-                icon = VectorDrawableCompat.create(resources, resId, context.theme)
-            }
-            setImageDrawable(icon)
-            if (icon is Animatable) {
-                (icon as Animatable).start()
+        } else{
+            val prevDrawable = drawable ?: ColorDrawable(Color.TRANSPARENT)
+            val resId = getDrawable(this.state, state, false)
+            if (resId == 0) {
+                setImageDrawable(null)
+            } else {
+                val currentImage = if (state == State.ON)
+                    VectorDrawableCompat.create(resources, type.iconId, context.theme)?.apply {
+                            setTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.material_blue_500)))
+                        }
+                else {
+                    VectorDrawableCompat.create(resources, resId, context.theme)
+                }
+                val transitionDrawable = TransitionDrawable(
+                    arrayOf(
+                        prevDrawable,
+                        currentImage
+                    )
+                )
+                transitionDrawable.isCrossFadeEnabled = true
+                setImageDrawable(transitionDrawable)
+                transitionDrawable.startTransition(context.resources.getInteger(android.R.integer.config_shortAnimTime))
             }
         }
         this.state = state

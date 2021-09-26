@@ -22,6 +22,7 @@ package com.example.myapplication
 import android.app.ProgressDialog
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
 import android.view.Menu
@@ -33,6 +34,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
+import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 
 class MainActivity : AppCompatActivity() {
 
@@ -102,7 +104,7 @@ class MainActivity : AppCompatActivity() {
 
             scanTask.execute()
         }
-//        StatusBarTools.setNavBarAndStatusBarColors(window, Color.BLUE, Color.RED)
+//        StatusBarTools.setNavBarAndStatusBarColors(window, Color.WHITE, Color.TRANSPARENT, Color.WHITE)
     }
 
     fun showDialog() {

@@ -58,8 +58,7 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
             if (BuildCompat.isAtLeastQ()) {
                 hardwareInfo =
                     Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
-            } else
-            if (BuildCompat.isAtLeastP()) {
+            } else if (BuildCompat.isAtLeastP()) {
                 hardwareInfo =
                     Android28Hardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
             }
