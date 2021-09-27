@@ -21,6 +21,7 @@ package androidx.window
 
 import android.app.Activity
 import android.graphics.Rect
+import androidx.window.layout.WindowMetricsCalculator
 
 object WindowHelper {
     /* For some reasons exception happens on foldable devices if we use androidx.window.WindowManager(activity)
@@ -49,9 +50,9 @@ object WindowHelper {
       at android.os.Binder.execTransact(Binder.java:994)
    * */
     fun getMaximumWindowMetrics(mActivity : Activity): Rect {
-        return WindowBoundsHelper.getInstance().computeMaximumWindowBounds(mActivity)
+        return WindowMetricsCalculator.getOrCreate().computeMaximumWindowMetrics(mActivity).bounds
     }
     fun getCurrentWindowMetrics(mActivity : Activity): Rect {
-        return WindowBoundsHelper.getInstance().computeCurrentWindowBounds(mActivity)
+        return WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(mActivity).bounds
     }
 }
