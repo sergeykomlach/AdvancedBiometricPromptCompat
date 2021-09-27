@@ -71,7 +71,6 @@ allprojects {
 
     dependencies {
         // Optional, some source of nullability annotations
-        //noinspection GradleDynamicVersion,GradleDependency
         errorprone "com.google.errorprone:error_prone_core:2.9.0"
     }
 
