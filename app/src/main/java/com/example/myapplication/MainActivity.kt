@@ -35,6 +35,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 
 class MainActivity : AppCompatActivity() {
 
@@ -104,7 +105,8 @@ class MainActivity : AppCompatActivity() {
 
             scanTask.execute()
         }
-//        StatusBarTools.setNavBarAndStatusBarColors(window, Color.WHITE, Color.TRANSPARENT, Color.WHITE)
+        val color =  if(DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
+        StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
     }
 
     fun showDialog() {
