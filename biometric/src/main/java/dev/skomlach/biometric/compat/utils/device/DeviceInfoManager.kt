@@ -136,20 +136,24 @@ class DeviceInfoManager private constructor() {
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
-        val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
-            .edit()
-        sharedPreferences
-            .putStringSet("sensors", deviceInfo.sensors?:HashSet<String>())
-            .putString("model", deviceInfo.model)
-            .putBoolean("checked", true)
-            .apply()
+        try {
+            val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
+                .edit()
+            sharedPreferences
+                .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
+                .putString("model", deviceInfo.model)
+                .putBoolean("checked", true)
+                .apply()
+        } catch (e :Throwable){
+            BiometricLoggerImpl.e(e)
+        }
     }
 
     private fun loadDeviceInfo(model: String): DeviceInfo? {
         BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $model")
         return if (model.isEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
-            var html: String? = getHtml(url) ?: return null
+            var html: String? = getHtml(url) ?: return DeviceInfo(model, null)
             val detailsLink = getDetailsLink(url, html, model)
                 ?: return DeviceInfo(model, null)
 
@@ -162,14 +166,14 @@ class DeviceInfoManager private constructor() {
             DeviceInfo(model, l)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-            null
+            DeviceInfo(model, null)
         }
     }
 
     //parser
     private fun getSensorDetails(html: String?): Set<String> {
         val list: MutableSet<String> = HashSet()
-        if (html != null) {
+        html?.let {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
             val rElements = body?.getElementsByAttribute("data-spec")?: Elements()
@@ -195,7 +199,7 @@ class DeviceInfoManager private constructor() {
     }
 
     private fun getDetailsLink(url: String, html: String?, model: String): String? {
-        if (html != null) {
+        html?.let {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
             val rElements = body?.getElementsByTag("a")?:Elements()

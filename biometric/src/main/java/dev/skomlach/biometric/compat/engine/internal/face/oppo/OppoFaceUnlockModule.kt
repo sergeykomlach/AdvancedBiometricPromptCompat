@@ -45,7 +45,17 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
         manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(OppoMirrorFaceManager::class.java)
+                context.getSystemService(OppoMirrorFaceManager::class.java).also {
+                    it?.isHardwareDetected
+                    it?.javaClass?.methods?.firstOrNull { method ->
+                        method.name.startsWith(
+                            "hasEnrolled"
+                        )
+                    }?.invoke(it)?.let { it->
+                        if (it !is Boolean)
+                            throw RuntimeException("Unexpected type - $it")
+                    }
+                }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -53,7 +63,17 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             }
         } else {
             try {
-                context.getSystemService("face") as OppoMirrorFaceManager
+                (context.getSystemService("face") as OppoMirrorFaceManager).also {
+                    it.isHardwareDetected
+                    it.javaClass.methods?.firstOrNull { method ->
+                        method.name.startsWith(
+                            "hasEnrolled"
+                        )
+                    }?.invoke(it)?.let { it->
+                        if (it !is Boolean)
+                            throw RuntimeException("Unexpected type - $it")
+                    }
+                }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)

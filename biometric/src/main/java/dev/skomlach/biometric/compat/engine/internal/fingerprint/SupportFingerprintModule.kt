@@ -43,7 +43,10 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
     init {
         managerCompat = try {
-            FingerprintManagerCompat.from(context)
+            FingerprintManagerCompat.from(context).also {
+                it.isHardwareDetected
+                it.hasEnrolledFingerprints()
+            }
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)

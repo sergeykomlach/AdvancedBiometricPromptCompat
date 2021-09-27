@@ -49,6 +49,10 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 context.getSystemService(
                     FingerprintManager::class.java
                 )
+                    .also {
+                        it?.isHardwareDetected
+                        it?.hasEnrolledFingerprints()
+                    }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -56,7 +60,10 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             }
         } else {
             try {
-                context.getSystemService("fingerprint") as FingerprintManager
+                (context.getSystemService("fingerprint") as FingerprintManager).also {
+                    it.isHardwareDetected
+                    it.hasEnrolledFingerprints()
+                }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)

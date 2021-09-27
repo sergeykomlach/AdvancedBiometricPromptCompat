@@ -51,6 +51,8 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             if (manager?.isFaceFeatureSupport == false) {
                 throw RuntimeException("Miui 3DFace not supported")
             }
+            manager?.isFaceFeatureSupport
+            manager?.enrolledFaces
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)
@@ -59,6 +61,8 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 if (manager?.isFaceFeatureSupport == false) {
                     throw RuntimeException("Miui 2DFace not supported")
                 }
+                manager?.isFaceFeatureSupport
+                manager?.enrolledFaces
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)

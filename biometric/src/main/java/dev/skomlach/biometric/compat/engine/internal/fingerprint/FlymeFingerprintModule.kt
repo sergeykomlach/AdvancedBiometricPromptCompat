@@ -46,7 +46,12 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             binder?.let {
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 isManagerAccessible =
-                    mFingerprintServiceFingerprintManager != null && mFingerprintServiceFingerprintManager?.isSurpport == true
+                    mFingerprintServiceFingerprintManager != null && mFingerprintServiceFingerprintManager?.isSurpport == true &&
+                            try{
+                                mFingerprintServiceFingerprintManager?.isFingerEnable
+                                mFingerprintServiceFingerprintManager?.ids
+                                true
+                            } catch (ignore : Throwable){ false}
             }
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
