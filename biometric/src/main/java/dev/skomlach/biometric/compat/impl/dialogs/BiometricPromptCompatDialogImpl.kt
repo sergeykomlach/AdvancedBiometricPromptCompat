@@ -312,8 +312,8 @@ class BiometricPromptCompatDialogImpl(
         dialog.show()
     }
 
-    val container: View?
-        get() = dialog.container
+    val authPreview: View?
+        get() = dialog.authPreview
 
     fun dismissDialog() {
         if (dialog.isShowing) {

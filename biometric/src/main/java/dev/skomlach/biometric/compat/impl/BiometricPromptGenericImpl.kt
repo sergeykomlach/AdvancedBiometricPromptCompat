@@ -131,7 +131,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         val types: List<BiometricType?> = ArrayList(
             builder.allAvailableTypes
         )
-        authenticate(if (dialog != null) dialog?.container else null, types, fmAuthCallback)
+        authenticate(if (dialog != null) dialog?.authPreview else null, types, fmAuthCallback)
     }
 
     override fun stopAuth() {

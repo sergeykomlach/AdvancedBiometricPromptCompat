@@ -31,6 +31,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.RestrictTo
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -61,11 +62,15 @@ class FingerprintIconView @JvmOverloads constructor(
                 setImageDrawable(null)
             } else {
                 var icon: Drawable? = null
-                if (animate) {
-                    icon = AnimatedVectorDrawableCompat.create(context, resId)
-                }
-                if (icon == null) {
-                    icon = VectorDrawableCompat.create(resources, resId, context.theme)
+                try {
+                    if (animate) {
+                        icon = AnimatedVectorDrawableCompat.create(context, resId)
+                    }
+                    if (icon == null) {
+                        icon = VectorDrawableCompat.create(resources, resId, context.theme)
+                    }
+                } catch (ignore: Throwable) {
+                    icon = ContextCompat.getDrawable(context, resId)
                 }
                 setImageDrawable(icon)
                 if (icon is Animatable) {
@@ -79,11 +84,36 @@ class FingerprintIconView @JvmOverloads constructor(
                 setImageDrawable(null)
             } else {
                 val currentImage = if (state == State.ON)
-                    VectorDrawableCompat.create(resources, type.iconId, context.theme)?.apply {
-                            setTintList(ColorStateList.valueOf(ContextCompat.getColor(context,R.color.material_blue_500)))
+                    try {
+                        VectorDrawableCompat.create(resources, type.iconId, context.theme)?.apply {
+                            setTintList(
+                                ColorStateList.valueOf(
+                                    ContextCompat.getColor(
+                                        context,
+                                        R.color.material_blue_500
+                                    )
+                                )
+                            )
                         }
+                    } catch (ignore: Throwable) {
+                        ContextCompat.getDrawable(context, type.iconId)?.apply {
+                            DrawableCompat.setTintList(
+                                this,
+                                ColorStateList.valueOf(
+                                    ContextCompat.getColor(
+                                        context,
+                                        R.color.material_blue_500
+                                    )
+                                )
+                            )
+                        }
+                    }
                 else {
-                    VectorDrawableCompat.create(resources, resId, context.theme)
+                    try {
+                        VectorDrawableCompat.create(resources, resId, context.theme)
+                    } catch (ignore: Throwable) {
+                        ContextCompat.getDrawable(context, resId)
+                    }
                 }
                 val transitionDrawable = TransitionDrawable(
                     arrayOf(

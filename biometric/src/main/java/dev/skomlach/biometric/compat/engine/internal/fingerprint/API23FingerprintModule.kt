@@ -153,7 +153,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
                 BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
