@@ -36,6 +36,7 @@ import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import java.lang.RuntimeException
 import java.lang.reflect.InvocationTargetException
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -49,7 +50,39 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         ExecutorHelper.INSTANCE.handler.post {
 
             try {
-                huawei3DFaceManager = faceManager
+                huawei3DFaceManager = faceManager.also {  faceManager->
+                    faceManager?.isHardwareDetected
+                    var exceptionCount = 0
+                    try {
+                        faceManager?.hasEnrolledTemplates()
+                    } catch (ignore: Throwable) {
+                        exceptionCount++
+                    }
+                    try {
+                        val m = faceManager?.javaClass?.declaredMethods?.firstOrNull {
+                            it.name.contains("hasEnrolled", ignoreCase = true)
+                        }
+                        val isAccessible = m?.isAccessible ?: true
+                        var result = false
+                        try {
+                            if (!isAccessible)
+                                m?.isAccessible = true
+                            if (m?.returnType == Boolean::class.javaPrimitiveType)
+                                result = (m?.invoke(faceManager) as Boolean?) == true
+                            else
+                                if (m?.returnType == Int::class.javaPrimitiveType)
+                                    result = (m?.invoke(faceManager) as Int?) ?: 0 > 0
+                        } finally {
+                            if (!isAccessible)
+                                m?.isAccessible = false
+                        }
+                    } catch (ignore: Throwable) {
+                        exceptionCount++
+                    }
+
+                    if(exceptionCount == 2)
+                        throw RuntimeException("Huawei manager not accessible");
+                }
                 d("$name.huawei3DFaceManager - $huawei3DFaceManager")
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
@@ -57,7 +90,10 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 huawei3DFaceManager = null
             }
             try {
-                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
+                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context).also {
+                    it?.isHardwareDetected
+                    it?.hasEnrolledTemplates()
+                }
                 d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)

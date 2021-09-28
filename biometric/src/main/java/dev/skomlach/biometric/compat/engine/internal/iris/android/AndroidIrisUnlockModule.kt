@@ -45,6 +45,17 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 context.getSystemService(IrisManager::class.java)
+                    .also {
+                        it?.isHardwareDetected
+                        it?.javaClass?.methods?.firstOrNull { method ->
+                            method.name.startsWith(
+                                "hasEnrolled"
+                            )
+                        }?.invoke(it)?.let { it->
+                            if (it !is Boolean)
+                                throw RuntimeException("Unexpected type - $it")
+                        }
+                    }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -52,7 +63,17 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             }
         } else {
             try {
-                context.getSystemService("iris") as IrisManager
+                (context.getSystemService("iris") as IrisManager).also {
+                    it.isHardwareDetected
+                    it.javaClass.methods.firstOrNull { method ->
+                        method.name.startsWith(
+                            "hasEnrolled"
+                        )
+                    }?.invoke(it)?.let { it->
+                        if (it !is Boolean)
+                            throw RuntimeException("Unexpected type - $it")
+                    }
+                }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)

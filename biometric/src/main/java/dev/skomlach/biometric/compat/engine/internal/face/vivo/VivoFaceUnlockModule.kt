@@ -41,7 +41,10 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
     init {
                 manager = try {
-                    FaceDetectManager.getInstance()
+                    FaceDetectManager.getInstance().also {
+                        it?.isFaceUnlockEnable
+                        it?.hasFaceID()
+                    }
                 } catch (e: Throwable) {
                     if (DEBUG_MANAGERS)
                         e(e, name)
