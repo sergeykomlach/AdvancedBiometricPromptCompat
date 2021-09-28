@@ -24,9 +24,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
+import androidx.core.content.PackageManagerCompat
 import androidx.core.content.UnusedAppRestrictionsConstants
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
@@ -65,6 +69,9 @@ class PermissionsFragment : Fragment() {
             }
         }
     }
+
+    @Volatile
+    private var permissionsAutoRevokeFlowStarted = false
     override fun onDetach() {
         super.onDetach()
         sendGlobalBroadcastIntent(appContext, Intent(INTENT_KEY))
@@ -72,15 +79,6 @@ class PermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-//TODO: permissions auto-revoking
-
-//        val future: ListenableFuture<Int> =
-//            PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
-//        future.addListener(
-//            { onResult(future.get()) },
-//            ContextCompat.getMainExecutor(requireActivity())
-//        )
-
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
         if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
             requestPermissions(permissions.toTypedArray(), 100)
@@ -95,35 +93,45 @@ class PermissionsFragment : Fragment() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        activity?.supportFragmentManager?.beginTransaction()?.remove(this)
-            ?.commitNowAllowingStateLoss()
+        val future: ListenableFuture<Int> =
+            PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
+        future.addListener({ onResult(future.get()) },
+            ContextCompat.getMainExecutor(requireActivity())
+        )
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (permissionsAutoRevokeFlowStarted) {
+            permissionsAutoRevokeFlowStarted = false
+            activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+                ?.commitNowAllowingStateLoss()
+        }
     }
 
     private fun onResult(appRestrictionsStatus: Int) {
         when (appRestrictionsStatus) {
-            // Status could not be fetched. Check logs for details.
-            UnusedAppRestrictionsConstants.ERROR -> {
-            }
-
-            // Restrictions do not apply to your app on this device.
-            UnusedAppRestrictionsConstants.FEATURE_NOT_AVAILABLE -> {
-            }
-            // Restrictions have been disabled by the user for your app.
-            UnusedAppRestrictionsConstants.DISABLED -> {
-            }
-
             // If the user doesn't start your app for months, its permissions
             // will be revoked and/or it will be hibernated.
             // See the API_* constants for details.
             UnusedAppRestrictionsConstants.API_30_BACKPORT,
-            UnusedAppRestrictionsConstants.API_30, UnusedAppRestrictionsConstants.API_31 ->
-                handleRestrictions(appRestrictionsStatus)
+            UnusedAppRestrictionsConstants.API_30,
+            UnusedAppRestrictionsConstants.API_31 ->  handleRestrictions()
+
+            // Status could not be fetched. Check logs for details.
+            UnusedAppRestrictionsConstants.ERROR,
+                // Restrictions do not apply to your app on this device.
+            UnusedAppRestrictionsConstants.FEATURE_NOT_AVAILABLE,
+                // Restrictions have been disabled by the user for your app.
+            UnusedAppRestrictionsConstants.DISABLED -> {
+                activity?.supportFragmentManager?.beginTransaction()?.remove(this)
+                    ?.commitNowAllowingStateLoss()
+            }
         }
     }
 
-    private fun handleRestrictions(appRestrictionsStatus: Int) {
-
-        /*
+    private fun handleRestrictions() {
         // If your app works primarily in the background, you can ask the user
         // to disable these restrictions. Check if you have already asked the
         // user to disable these restrictions. If not, you can show a message to
@@ -131,13 +139,14 @@ class PermissionsFragment : Fragment() {
         // disabled. Tell them that they will now be redirected to a page where
         // they can disable these features.
 
-        val intent = IntentCompat.createManageUnusedAppRestrictionsIntent
-        (context, packageName)
+        val intent = IntentCompat.createManageUnusedAppRestrictionsIntent(
+            requireActivity(),
+            requireActivity().packageName
+        )
 
         // Must use startActivityForResult(), not startActivity(), even if
         // you don't use the result code returned in onActivityResult().
-        startActivityForResult(intent, REQUEST_CODE)
-
-         */
+        permissionsAutoRevokeFlowStarted = true
+        startActivityForResult(intent, 5678)
     }
 }

@@ -30,7 +30,10 @@ object Utils {
     val isAtLeastR: Boolean
         get() = (BuildCompat.isAtLeastR() //check only Preview
                 || Build.VERSION.SDK_INT >= 30) //check also release
-
+    @JvmStatic
+    val isAtLeastS: Boolean
+        get() = (BuildCompat.isAtLeastS() //check only Preview
+                || Build.VERSION.SDK_INT >= 31) //check also release
     @JvmStatic
     fun startActivity(intent: Intent, context: Context): Boolean {
         try {

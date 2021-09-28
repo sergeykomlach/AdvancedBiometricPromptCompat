@@ -56,6 +56,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
+import dev.skomlach.common.permissions.PermissionUtils
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -340,7 +341,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         PermissionsFragment.askForPermissions(
             impl.builder.context,
             impl.usedPermissions
-        ) { authenticateInternal(callback) }
+        ) {
+            if (impl.usedPermissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(
+                    impl.usedPermissions
+                )
+            ) {
+                callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+            } else
+                authenticateInternal(callback)
+        }
     }
 
     private fun authenticateInternal(callback: Result) {

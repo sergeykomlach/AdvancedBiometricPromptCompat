@@ -34,6 +34,7 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicReference
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -99,7 +100,7 @@ class BiometricNotificationManager private constructor() {
                                 appContext,
                                 1,
                                 clickIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
+                                if(Utils.isAtLeastS)PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
                         .setDeleteIntent(
@@ -107,7 +108,7 @@ class BiometricNotificationManager private constructor() {
                                 appContext,
                                 2,
                                 clickIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
+                                if(Utils.isAtLeastS)PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
                         .setSmallIcon(type.iconId).build()

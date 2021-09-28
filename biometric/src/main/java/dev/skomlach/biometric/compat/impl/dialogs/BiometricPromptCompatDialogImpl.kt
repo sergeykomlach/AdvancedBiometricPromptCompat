@@ -38,6 +38,7 @@ import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils.isAtLeastS
 import java.util.concurrent.atomic.AtomicBoolean
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -150,7 +151,7 @@ class BiometricPromptCompatDialogImpl(
             }
             list.removeAll(authFinishedCopy.keys)
             list.sortWith { o1, o2 -> o1.ordinal.compareTo(o2.ordinal)}
-            e("BiometricPromptGenericImpl" + ".primaryBiometricType - $list")
+            e("BiometricPromptGenericImpl.primaryBiometricType - $list")
             return if(list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]
         }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
@@ -184,14 +185,18 @@ class BiometricPromptCompatDialogImpl(
         }
     private var originalColor: ColorStateList? = null
     private fun getDialogTitle(): String {
+        //Attempt#1
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
-                if ((field.name.contains("biometric") || field.name.contains("fingerprint"))&& field.name.contains("dialog")) {
+                if ((field.name.contains("biometric") || field.name.contains("fingerprint")) && field.name.contains("dialog")) {
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true
-                        compatBuilder.context.getString(field[null] as Int)
+                        val s = compatBuilder.context.getString(field[null] as Int)
+                        if(s.isEmpty())
+                            throw RuntimeException("String is empty")
+                        s
                     } finally {
                         if (!isAccessible) field.isAccessible = false
                     }
@@ -200,6 +205,32 @@ class BiometricPromptCompatDialogImpl(
         } catch (e: Throwable) {
             e(e)
         }
+        //Attempt#2
+        try {
+            if (isAtLeastS) {
+                val biometricManager =
+                    compatBuilder.context.getSystemService(
+                        android.hardware.biometrics.BiometricManager::class.java
+                    )
+                val strings = biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                val prompt = strings.promptMessage
+                if(!prompt.isNullOrEmpty())
+                    return prompt.toString()
+            } else {
+                val biometricManager = androidx.biometric.BiometricManager.from(compatBuilder.context)
+                val string =
+                    biometricManager.javaClass.getMethod("getStrings", Int::class.javaPrimitiveType)
+                        .invoke(biometricManager, androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                val prompt = string.javaClass.getMethod("getPromptMessage").invoke(string)
+                if (prompt is CharSequence && prompt.isNotEmpty())
+                    return prompt.toString()
+                else if (prompt is String && prompt.isNotEmpty())
+                    return prompt
+            }
+        } catch (e: Throwable) {
+            e(e)
+        }
+        //Give up
         return compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
     }
 
