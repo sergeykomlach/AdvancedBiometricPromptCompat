@@ -45,10 +45,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     init {
 
         manager = try {
-            SemIrisManager.getSemIrisManager(context).also {
-                it?.isHardwareDetected
-                it?.hasEnrolledIrises()
-            }
+            SemIrisManager.getSemIrisManager(context)
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)

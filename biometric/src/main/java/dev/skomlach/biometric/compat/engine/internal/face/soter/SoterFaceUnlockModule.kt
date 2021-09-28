@@ -43,10 +43,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
     init {
         manager = try {
-            BiometricManagerCompat.from(context, ConstantsSoter.FACEID_AUTH).also {
-                it?.isHardwareDetected
-                it?.hasEnrolledBiometric()
-            }
+            BiometricManagerCompat.from(context, ConstantsSoter.FACEID_AUTH)
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)

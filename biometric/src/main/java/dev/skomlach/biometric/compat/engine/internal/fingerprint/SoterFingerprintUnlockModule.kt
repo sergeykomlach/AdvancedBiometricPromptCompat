@@ -43,10 +43,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
     init {
         manager = try {
-            BiometricManagerCompat.from(context, ConstantsSoter.FINGERPRINT_AUTH).also {
-                it?.isHardwareDetected
-                it?.hasEnrolledBiometric()
-            }
+            BiometricManagerCompat.from(context, ConstantsSoter.FINGERPRINT_AUTH)
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)

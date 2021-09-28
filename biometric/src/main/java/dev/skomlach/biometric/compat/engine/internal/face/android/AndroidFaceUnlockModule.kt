@@ -45,17 +45,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
     init {
         faceAuthenticationManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(FaceAuthenticationManager::class.java).also {
-                    it.isHardwareDetected
-                    it?.javaClass?.methods?.firstOrNull { method ->
-                        method.name.startsWith(
-                            "hasEnrolled"
-                        )
-                    }?.invoke(it)?.let { it->
-                        if (it !is Boolean)
-                            throw RuntimeException("Unexpected type - $it")
-                    }
-                }
+                context.getSystemService(FaceAuthenticationManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -63,17 +53,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             }
         } else {
             try {
-                (context.getSystemService("face") as FaceAuthenticationManager).also {
-                    it.isHardwareDetected
-                    it.javaClass.methods.firstOrNull { method ->
-                        method.name.startsWith(
-                            "hasEnrolled"
-                        )
-                    }?.invoke(it)?.let { it->
-                        if (it !is Boolean)
-                            throw RuntimeException("Unexpected type - $it")
-                    }
-                }
+                context.getSystemService("face") as FaceAuthenticationManager
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -82,17 +62,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
         faceManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(FaceManager::class.java).also {
-                    it.isHardwareDetected
-                    it.javaClass.methods.firstOrNull { method ->
-                        method.name.startsWith(
-                            "hasEnrolled"
-                        )
-                    }?.invoke(it)?.let { it->
-                        if (it !is Boolean)
-                            throw RuntimeException("Unexpected type - $it")
-                    }
-                }
+                context.getSystemService(FaceManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -100,17 +70,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             }
         } else {
             try {
-                (context.getSystemService("face") as FaceManager).also {
-                    it.isHardwareDetected
-                    it.javaClass.methods.firstOrNull { method ->
-                        method.name.startsWith(
-                            "hasEnrolled"
-                        )
-                    }?.invoke(it)?.let { it->
-                        if (it !is Boolean)
-                            throw RuntimeException("Unexpected type - $it")
-                    }
-                }
+                context.getSystemService("face") as FaceManager
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
