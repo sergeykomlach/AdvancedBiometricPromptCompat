@@ -38,6 +38,7 @@ import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils.isAtLeastS
 import java.util.concurrent.atomic.AtomicBoolean
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -185,6 +186,20 @@ class BiometricPromptCompatDialogImpl(
     private var originalColor: ColorStateList? = null
     private fun getDialogTitle(): String {
         try {
+            try {
+                if (isAtLeastS) {
+                    val biometricManager =
+                        compatBuilder.context.getSystemService(
+                            android.hardware.biometrics.BiometricManager::class.java
+                        )
+
+                    val prompt = biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK).promptMessage
+                    if(!prompt.isNullOrEmpty())
+                        return prompt.toString()
+                }
+            } catch (e: Throwable) {
+                e(e)
+            }
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
                 if ((field.name.contains("biometric") || field.name.contains("fingerprint"))&& field.name.contains("dialog")) {
