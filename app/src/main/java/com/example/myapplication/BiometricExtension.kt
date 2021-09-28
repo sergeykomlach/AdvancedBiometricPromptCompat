@@ -65,12 +65,12 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
         override fun onUIOpened() {
             BiometricLoggerImpl.e("CheckBiometric.onUIOpened()")
-//            Toast.makeText(context, "onUIOpened", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "onUIOpened", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIClosed() {
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
-//            Toast.makeText(context, "onUIClosed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
 }
