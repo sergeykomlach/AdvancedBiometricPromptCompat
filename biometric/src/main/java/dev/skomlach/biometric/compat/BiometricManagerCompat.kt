@@ -173,28 +173,6 @@ object BiometricManagerCompat {
             if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
                 return true
             }
-            if (Utils.startActivity(
-                    Intent().setComponent(
-                        ComponentName(
-                            "com.android.settings",
-                            "com.android.settings.Settings\$BiometricsAndSecuritySettingsActivity"
-                        )
-                    ), activity
-                )
-            ) {
-                return true
-            }
-            if (Utils.startActivity(
-                    Intent().setComponent(
-                        ComponentName(
-                            "com.android.settings",
-                            "com.android.settings.Settings\$SecuritySettingsActivity"
-                        )
-                    ), activity
-                )
-            ) {
-                return true
-            }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )
