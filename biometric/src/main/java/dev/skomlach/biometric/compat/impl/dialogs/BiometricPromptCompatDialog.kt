@@ -72,7 +72,7 @@ internal class BiometricPromptCompatDialog(
         private set
     var fingerprintIcon: FingerprintIconView? = null
         private set
-    var container: View? = null
+    var authPreview: View? = null
         private set
     var rootView: View? = null
         private set
@@ -162,7 +162,7 @@ internal class BiometricPromptCompatDialog(
         status = rootView?.findViewById(R.id.status)
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
-        container = rootView?.findViewById(R.id.auth_content_container)
+        authPreview = rootView?.findViewById(R.id.auth_preview)
 
         (rootView?.parent as View).setOnClickListener { cancel() }
         rootView?.setOnClickListener(null)

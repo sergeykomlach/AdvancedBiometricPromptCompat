@@ -132,6 +132,10 @@
                         tools:text="Verify your identity"
                         />
             </LinearLayout>
+            <FrameLayout
+                    android:id="@+id/auth_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
         </FrameLayout>
 
         <LinearLayout
