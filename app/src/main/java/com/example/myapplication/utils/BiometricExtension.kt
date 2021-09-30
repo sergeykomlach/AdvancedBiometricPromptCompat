@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication
+package com.example.myapplication.utils
 
 import android.graphics.Color
 import android.widget.Toast

@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication
+package com.example.myapplication.utils
 
 import android.app.Activity
 import android.content.Intent

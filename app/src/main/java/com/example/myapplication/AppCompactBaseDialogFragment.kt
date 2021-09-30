@@ -28,6 +28,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
+import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 
 class AppCompactBaseDialogFragment : DialogFragment() {
