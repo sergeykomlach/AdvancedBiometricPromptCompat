@@ -25,8 +25,9 @@ import android.os.FileObserver
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
+import android.util.Log
+import androidx.core.content.ContextCompat
 import com.github.anrwatchdog.ANRWatchDog
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.io.File
 import java.text.DecimalFormat
 
@@ -40,7 +41,14 @@ class AppMonitoringDevTools(val app: Application) {
     private val FILE_SIZE_LIMIT = 524288
     init {
         try {
-            val path = app.applicationInfo.dataDir
+            val path = try{
+                val dir = ContextCompat.getDataDir(app)
+                if(dir?.exists() == false)
+                    dir.mkdirs()
+                dir?.absolutePath?:app.applicationInfo.dataDir
+            } catch (e : Throwable){
+                app.applicationInfo.dataDir
+            }
             val allExceptAccessFlags = FileObserver.MODIFY or
                     FileObserver.ATTRIB or
                     FileObserver.CLOSE_WRITE or
@@ -57,7 +65,7 @@ class AppMonitoringDevTools(val app: Application) {
                 }
             }
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e("AppMonitoringDevTools", e.message, e)
+            Log.e("AppMonitoringDevTools", e.message, e)
         }
     }
 
@@ -77,7 +85,7 @@ class AppMonitoringDevTools(val app: Application) {
                     if (file.startsWith(path)) {
                         file = file.substring(path.length, file.length)
                     }
-                    BiometricLoggerImpl.e(
+                    Log.e(
                         "AppMonitoringDevTools",
                         "Found large file $file with size ${getReadableFileSize(fileOrDirectory.length() ?: 0)}"
                     )
@@ -102,13 +110,13 @@ class AppMonitoringDevTools(val app: Application) {
                     .setIgnoreDebugger(true)
                     .setReportMainThreadOnly()
                     .setInterruptionListener { exception ->
-                        BiometricLoggerImpl.e(
+                        Log.e(
                             "ANRWatchDog", "onInterrupted",
                             exception
                         )
                     }
                     .setANRListener { error ->
-                        BiometricLoggerImpl.e(
+                        Log.e(
                             "ANRWatchDog", "onAppNotResponding",
                             error
                         )
