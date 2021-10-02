@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BuildConfig
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -45,6 +46,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         private val timeout = TimeUnit.SECONDS.toMillis(31)
         val DEBUG_MANAGERS = BuildConfig.DEBUG
     }
+    private var firstTimeout : Long? = null
     private val tag: Int = biometricMethod.id
     private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
     val name: String
@@ -226,5 +228,23 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
           }
           return null
+      }
+      fun restartCauseTimeout(reason: AuthenticationFailureReason?) : Boolean{
+          if(reason == AuthenticationFailureReason.TIMEOUT){
+              val current = System.currentTimeMillis()
+              return if(firstTimeout == null){
+                  firstTimeout = current
+                  true
+              }else {
+                  val safeTimeout = current - (firstTimeout?:return false) <= TimeUnit.SECONDS.toMillis(30)
+                  if(!safeTimeout) {
+                      firstTimeout = null
+                  }
+                  safeTimeout
+              }
+          }
+
+          firstTimeout = null
+          return false
       }
   }

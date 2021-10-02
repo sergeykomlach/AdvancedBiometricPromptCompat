@@ -152,6 +152,10 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return
             }
+            if(restartCauseTimeout(failureReason)){
+                authenticate(cancellationSignal, listener, restartPredicate)
+            }
+            else
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
                 authenticate(cancellationSignal, listener, restartPredicate)

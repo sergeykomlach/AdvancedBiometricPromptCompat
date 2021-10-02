@@ -34,6 +34,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentSecondBinding
+import com.example.myapplication.devtools.LogCat
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.

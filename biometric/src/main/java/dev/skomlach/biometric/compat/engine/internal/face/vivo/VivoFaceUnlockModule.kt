@@ -131,6 +131,10 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 FaceDetectManager.FACE_DETECT_FAILED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
             }
+            if(restartCauseTimeout(failureReason)){
+                authenticate(cancellationSignal, listener, restartPredicate)
+            }
+            else
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
                 authenticate(cancellationSignal, listener, restartPredicate)

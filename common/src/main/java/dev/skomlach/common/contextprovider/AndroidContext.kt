@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.contextprovider
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
@@ -27,28 +28,49 @@ import androidx.core.os.ConfigurationCompat
 import java.io.IOException
 import java.util.*
 
+@SuppressLint("StaticFieldLeak")
 object AndroidContext {
-    private var application: Application? = null
+    private var appRef: Application? = null
         private set(value) {
             field = value
             field?.registerActivityLifecycleCallbacks(ActivityContextProvider)
+            ctxRef = field
         }
+
+    private var ctxRef: Context? = null
+        set(value) {
+            field = try {
+                value?.getFixedContext()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                value
+            }
+        }
+
     var configuration: Configuration? = null
         get() {
-            return ActivityContextProvider.configuration ?: application?.resources?.configuration
+            return ActivityContextProvider.configuration ?: appRef?.resources?.configuration
         }
         private set
 
-    @JvmStatic val appContext: Application
+    @JvmStatic val appInstance: Application
         get() {
-            application?.let {
+            return if(ctxRef is Application)
+                ctxRef as Application
+            else
+                ctxRef?.applicationContext as Application
+        }
+
+    @JvmStatic val appContext: Context
+        get() {
+            ctxRef?.let {
                 fixDirAccess(it)
                 return it
             }
             if (Looper.getMainLooper().thread !== Thread.currentThread()) throw IllegalThreadStateException(
                 "Main thread required for correct init"
             )
-            application = try {
+            appRef = try {
                 Class.forName("android.app.ActivityThread")
                     .getMethod("currentApplication")
                     .invoke(null) as Application
@@ -61,7 +83,7 @@ object AndroidContext {
                     throw RuntimeException(e)
                 }
             }
-            application?.let {
+            ctxRef?.let {
                 fixDirAccess(it)
                 return it
             }

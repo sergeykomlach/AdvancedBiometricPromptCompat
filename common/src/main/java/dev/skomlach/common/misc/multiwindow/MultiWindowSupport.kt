@@ -33,7 +33,7 @@ import androidx.core.util.ObjectsCompat
 import androidx.window.WindowHelper
 import com.jakewharton.rxrelay2.PublishRelay
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext.appInstance
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
@@ -48,7 +48,7 @@ class MultiWindowSupport(private val activity: Activity) {
         private val activityDestroyedRelay = PublishRelay.create<Activity>()
 
         init {
-            appContext
+            appInstance
                 .registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
                     override fun onActivityCreated(
                         activity: Activity,

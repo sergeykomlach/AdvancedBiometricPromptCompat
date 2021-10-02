@@ -71,6 +71,12 @@ dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+    //DevTools
+    //ANR's
+    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
+    //memory leaks
+    implementation 'com.squareup.leakcanary:leakcanary-android:2.7'
 }
 
 afterEvaluate {

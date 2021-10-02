@@ -22,6 +22,8 @@ package com.example.myapplication
 import android.os.Handler
 import android.os.Looper
 import androidx.multidex.MultiDexApplication
+import com.example.myapplication.devtools.AppMonitoringDevTools
+import com.example.myapplication.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import java.util.*
@@ -41,6 +43,7 @@ class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
+        AppMonitoringDevTools(this).enableMonitoringTools(true)
         LogCat.instance.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
             override fun log(string: String?) {
                 LogCat.instance.setLog2ViewCallback(null)

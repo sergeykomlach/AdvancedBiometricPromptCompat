@@ -138,6 +138,10 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
                     private fun fail(reason: AuthenticationFailureReason) {
                         var failureReason: AuthenticationFailureReason? = reason
+                        if(restartCauseTimeout(failureReason)){
+                            authenticate(cancellationSignal, listener, restartPredicate)
+                        }
+                        else
                         if (restartPredicate?.invoke(failureReason) == true) {
                             listener?.onFailure(failureReason, tag())
                             authenticate(cancellationSignal, listener, restartPredicate)
