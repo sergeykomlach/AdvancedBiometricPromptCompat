@@ -312,10 +312,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             biometricPrompt.authenticate(biometricPromptInfo)
             //fallback - sometimes we not able to cancel BiometricPrompt properly
             try {
-                val m = BiometricPrompt::class.java.getDeclaredMethod(
-                    "findBiometricFragment",
-                    FragmentManager::class.java
-                )
+                val m = BiometricPrompt::class.java.declaredMethods.first {
+                    it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
+                }
                 val isAccessible = m.isAccessible
                 try {
                     if (!isAccessible)

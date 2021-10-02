@@ -216,16 +216,6 @@ class BiometricPromptCompatDialogImpl(
                 val prompt = strings.promptMessage
                 if(!prompt.isNullOrEmpty())
                     return prompt.toString()
-            } else {
-                val biometricManager = androidx.biometric.BiometricManager.from(compatBuilder.context)
-                val string =
-                    biometricManager.javaClass.getMethod("getStrings", Int::class.javaPrimitiveType)
-                        .invoke(biometricManager, androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK)
-                val prompt = string.javaClass.getMethod("getPromptMessage").invoke(string)
-                if (prompt is CharSequence && prompt.isNotEmpty())
-                    return prompt.toString()
-                else if (prompt is String && prompt.isNotEmpty())
-                    return prompt
             }
         } catch (e: Throwable) {
             e(e)
