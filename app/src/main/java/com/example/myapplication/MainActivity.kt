@@ -92,12 +92,6 @@ class MainActivity : AppCompatActivity() {
                             "Advanced BiometricPromptCompat Report",
                             it
                         )
-                        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).text = it
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Report copied to clipboard",
-                            Toast.LENGTH_LONG
-                        ).show()
 
                     }
                 }
