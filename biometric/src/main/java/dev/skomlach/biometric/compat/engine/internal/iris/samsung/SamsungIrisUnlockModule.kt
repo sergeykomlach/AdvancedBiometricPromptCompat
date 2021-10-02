@@ -41,7 +41,6 @@ import java.lang.ref.WeakReference
 class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.IRIS_SAMSUNG) {
     private var manager: SemIrisManager? = null
-    private var viewWeakReference = WeakReference<View?>(null)
     init {
 
         manager = try {
@@ -62,10 +61,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
         return managers
     }
-    fun setCallerView(targetView: View?) {
-        d("$name.setCallerView: $targetView")
-        viewWeakReference = WeakReference(targetView)
-    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -113,7 +109,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     0,
                     callback,
                     ExecutorHelper.INSTANCE.handler,
-                    viewWeakReference.get()
+                    null
                 )
                 return
             } catch (e: Throwable) {
@@ -162,6 +158,10 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return
             }
+            if(restartCauseTimeout(failureReason)){
+                authenticate(cancellationSignal, listener, restartPredicate)
+            }
+            else
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
                 authenticate(cancellationSignal, listener, restartPredicate)

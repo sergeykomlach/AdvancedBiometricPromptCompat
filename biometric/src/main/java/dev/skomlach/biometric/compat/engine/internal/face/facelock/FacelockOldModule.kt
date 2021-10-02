@@ -178,6 +178,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
     private fun authorize(proxyListener: ProxyListener) {
         facelockProxyListener = proxyListener
+        faceLockHelper?.stopFaceLock()
         faceLockHelper?.initFacelock()
     }
 
@@ -221,6 +222,10 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return null
             }
+            if(restartCauseTimeout(failureReason)){
+                authenticate(cancellationSignal, listener, restartPredicate)
+            }
+            else
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
                 authenticate(cancellationSignal, listener, restartPredicate)

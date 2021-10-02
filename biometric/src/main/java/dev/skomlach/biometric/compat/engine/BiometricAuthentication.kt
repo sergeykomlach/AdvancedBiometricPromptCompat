@@ -251,12 +251,6 @@ object BiometricAuthentication {
                 is FacelockOldModule -> {
                     biometricModule.setCallerView(targetView)
                 }
-                is SamsungIrisUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is SamsungFaceUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
             }
             hashMap[biometricModule.tag()] = type
             isAtLeastOneFired = true
