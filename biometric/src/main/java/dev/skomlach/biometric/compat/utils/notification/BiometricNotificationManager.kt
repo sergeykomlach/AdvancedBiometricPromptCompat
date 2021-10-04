@@ -95,14 +95,6 @@ class BiometricNotificationManager private constructor() {
                             NotificationCompat.BigTextStyle()
                                 .bigText(builder.description)
                         )
-                        .setContentIntent(
-                            PendingIntent.getBroadcast(
-                                appContext,
-                                1,
-                                clickIntent,
-                                if(Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
-                            )
-                        )
                         .setDeleteIntent(
                             PendingIntent.getBroadcast(
                                 appContext,
