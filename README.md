@@ -41,7 +41,7 @@ Its interface is very close to the original `BiometricPrompt`.
 Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**  
   
 #### Key features  
-- Unified UI for all devices - starts from Android 4.1 and to Android 11  
+- Unified UI for all devices - starts from Android 4.1 and to Android 12  
 - Contains fix for devices WITHOUT system BiometricPrompt UI (like LG G8 or OnePlus 6T)  
 - Dark/Light themes supported; Also you able to get the background color of the current Biometric dialog  
 - Auth in Split-Screen Mode supported  
