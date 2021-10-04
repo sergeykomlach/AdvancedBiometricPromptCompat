@@ -37,6 +37,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
@@ -79,6 +80,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val availableAuthRequests = ArrayList<BiometricAuthRequest>()
         @JvmStatic
         fun logging(enabled: Boolean){
+            AbstractBiometricModule.DEBUG_MANAGERS = enabled
             LogCat.DEBUG = enabled
             BiometricLoggerImpl.DEBUG = enabled
         }

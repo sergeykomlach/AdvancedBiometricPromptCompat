@@ -44,7 +44,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         private const val TS_PREF = "timestamp_"
         private const val ENROLLED_PREF = "enrolled_"
         private val timeout = TimeUnit.SECONDS.toMillis(31)
-        val DEBUG_MANAGERS = BuildConfig.DEBUG
+        var DEBUG_MANAGERS = BuildConfig.DEBUG
     }
     private var firstTimeout : Long? = null
     private val tag: Int = biometricMethod.id
