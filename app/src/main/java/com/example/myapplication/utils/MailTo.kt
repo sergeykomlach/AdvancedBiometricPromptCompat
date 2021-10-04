@@ -33,35 +33,18 @@ object MailTo {
         extraText: String?
     ): Boolean {
 
+        var emailIntent = Intent()
         // first try
-        var emailIntent = Intent(
-            Intent.ACTION_SENDTO,
-            Uri.parse("mailto:$to")
-        )
-        emailIntent.putExtra(Intent.EXTRA_TEXT, extraText)
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, subject)
-
-        try {
-            ContextCompat.startActivity(
-                ctx,
-                emailIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK },
-                null
-            )
-            return true
-        } catch (ignored: Throwable) {
-        }
-
-        // another
-        val buffer = "mailto:" +
-                to +
-                "?subject=" +
-                subject
-        val uriString = buffer.replace(" ", "%20")
         emailIntent = Intent(
             Intent.ACTION_SENDTO,
-            Uri.parse(uriString)
+            Uri.parse("mailto:")
         )
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
         emailIntent.putExtra(Intent.EXTRA_TEXT, extraText)
+        emailIntent.putExtra(
+            Intent.EXTRA_SUBJECT,
+            subject
+        )
 
         try {
             ContextCompat.startActivity(
@@ -94,8 +77,7 @@ object MailTo {
         }
 
         // or
-        val builder: ShareCompat.IntentBuilder = ShareCompat.IntentBuilder
-            .from(ctx)
+        val builder: ShareCompat.IntentBuilder = ShareCompat.IntentBuilder(ctx)
         builder.setType("message/rfc822")
         builder.addEmailTo(to)
         builder.setText(extraText)

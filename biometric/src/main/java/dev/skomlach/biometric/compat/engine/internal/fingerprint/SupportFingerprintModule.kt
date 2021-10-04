@@ -54,7 +54,10 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         val manager = try{
-            val method = managerCompat?.javaClass?.getDeclaredMethod("getFingerprintManagerOrNull", Context::class.java)
+            val method = managerCompat?.javaClass?.declaredMethods?.firstOrNull {
+                it.parameterTypes.size == 1 && it.parameterTypes[0]  == Context::class.java &&
+                        it.returnType.methods.firstOrNull {  m -> m.name.equals("isHardwareDetected") } != null
+            }
             val isAccessible = method?.isAccessible?:true
             if(!isAccessible)
                 method?.isAccessible = true

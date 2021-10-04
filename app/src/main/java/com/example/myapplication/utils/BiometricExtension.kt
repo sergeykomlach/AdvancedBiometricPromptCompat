@@ -31,7 +31,8 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
     if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
-        BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
+        val result = BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
+        Toast.makeText(context, "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result", Toast.LENGTH_SHORT).show()
         return
     }
     val start = System.currentTimeMillis()
@@ -60,17 +61,18 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
         override fun onFailed(reason: AuthenticationFailureReason?) {
             BiometricLoggerImpl.e("CheckBiometric.onFailed() - $reason")
-            Toast.makeText(context, "Error: $reason", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failure: $reason", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIOpened() {
             BiometricLoggerImpl.e("CheckBiometric.onUIOpened()")
-            Toast.makeText(context, "onUIOpened", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(context, "onUIOpened", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIClosed() {
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
-            Toast.makeText(context, "onUIClosed", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(context, "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
+    Toast.makeText(context, "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}", Toast.LENGTH_SHORT).show()
 }
