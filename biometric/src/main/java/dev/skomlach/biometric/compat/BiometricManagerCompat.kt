@@ -146,10 +146,6 @@ object BiometricManagerCompat {
             return true
         }
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_BIOMETRIC required" - but not should be
-            if (Utils.startActivity(Intent("android.settings.BIOMETRIC_ENROLL"), activity)) {
-                return true
-            }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )
