@@ -46,8 +46,6 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                 throw RuntimeException("No hardware")
             }
             mSpassFingerprint = SpassFingerprint(context)
-            mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT)
-            mSpassFingerprint?.hasRegisteredFinger()
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)
