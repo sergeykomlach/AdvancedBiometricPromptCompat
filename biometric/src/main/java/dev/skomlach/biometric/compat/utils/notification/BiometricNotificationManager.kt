@@ -100,7 +100,7 @@ class BiometricNotificationManager private constructor() {
                                 appContext,
                                 1,
                                 clickIntent,
-                                if(Utils.isAtLeastS)PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
+                                if(Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
                         .setDeleteIntent(
@@ -108,7 +108,7 @@ class BiometricNotificationManager private constructor() {
                                 appContext,
                                 2,
                                 clickIntent,
-                                if(Utils.isAtLeastS)PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
+                                if(Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
                         .setSmallIcon(type.iconId).build()
