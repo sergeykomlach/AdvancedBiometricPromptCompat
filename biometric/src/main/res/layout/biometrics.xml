@@ -82,6 +82,7 @@
     </LinearLayout>
 
     <View
+            android:id="@+id/biometric_divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_below="@+id/biometrics"

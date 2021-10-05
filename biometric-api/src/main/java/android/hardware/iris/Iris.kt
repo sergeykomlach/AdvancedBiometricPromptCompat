@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +16,14 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package org.ifaa.android.manager;
 
-import android.content.Context;
+/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * @author s.komlach
+ * @date 2021/3/1
+ */
 
-public class IFAAManagerFactory {
-    public static IFAAManager getIFAAManager(Context context, int authType) {
-        return null;
-    }
-}
+package android.hardware.iris
+
+class Iris 

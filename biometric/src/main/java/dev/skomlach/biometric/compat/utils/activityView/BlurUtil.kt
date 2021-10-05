@@ -28,6 +28,7 @@ import android.view.View
 import android.view.ViewDebug
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import java.lang.reflect.Method
 import kotlin.math.roundToInt
 
@@ -46,7 +47,7 @@ object BlurUtil {
     }
 
     interface OnPublishListener {
-        fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap)
+        fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
     }
 
     @Synchronized
@@ -144,11 +145,16 @@ object BlurUtil {
     }
 
     private fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {
-        if(bkg.height == 0 || bkg.width == 0)
+        if (bkg.height == 0 || bkg.width == 0)
             return
         val startMs = System.currentTimeMillis()
-        val scaleFactor = 8f
-        val radius = 2f
+        if (Utils.isAtLeastS) {
+            listener.onBlurredScreenshot(bkg, null)
+            return
+        }
+
+        val scaleFactor = 1f
+        val radius = 8f
         var overlay = Bitmap.createBitmap(
             (view.measuredWidth / scaleFactor).toInt(),
             (view.measuredHeight / scaleFactor).toInt(), Bitmap.Config.ARGB_8888

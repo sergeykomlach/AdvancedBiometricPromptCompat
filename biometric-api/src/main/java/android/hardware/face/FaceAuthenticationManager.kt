@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,44 +16,32 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package android.hardware.face;
-/**
- * Copyright (C) 2014 The Android Open Source Project
- * <p>
+
+/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * @author s.komlach
+ * @date 2021/3/1
  */
 
-import android.os.CancellationSignal;
-import android.os.Handler;
+package android.hardware.face
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.os.CancellationSignal
+import android.os.Handler
+import java.security.Signature
+import javax.crypto.Cipher
+import javax.crypto.Mac
 
-import java.security.Signature;
-
-import javax.crypto.Cipher;
-import javax.crypto.Mac;
 
 /**
  * A class that coordinates access to the face authentication hardware.
  */
-public class FaceAuthenticationManager {
-
+class FaceAuthenticationManager {
     /**
      * Request authentication of a crypto object. This call operates the face recognition sensor
      * and starts capturing images. It terminates when
-     * {@link AuthenticationCallback#onAuthenticationError(int, CharSequence)} or
-     * {@link AuthenticationCallback#onAuthenticationSucceeded(AuthenticationResult)} is called, at
+     * [AuthenticationCallback.onAuthenticationError] or
+     * [AuthenticationCallback.onAuthenticationSucceeded] is called, at
      * which point the object is no longer valid. The operation can be canceled by using the
      * provided cancel object.
      *
@@ -63,13 +51,14 @@ public class FaceAuthenticationManager {
      * @param callback an object to receive authentication events
      * @param handler  an optional handler to handle callback events
      * @throws IllegalArgumentException if the crypto operation is not supported or is not backed
-     *                                  by <a href="{@docRoot}training/articles/keystore.html">Android Keystore
-     *                                  facility</a>.
+     * by [Android Keystore
+ * facility]({@docRoot}training/articles/keystore.html).
      * @throws IllegalStateException    if the crypto primitive is not initialized.
      */
-
-    public void authenticate(@Nullable CryptoObject crypto, @Nullable CancellationSignal cancel,
-                             int flags, @NonNull AuthenticationCallback callback, @Nullable Handler handler) {
+    fun authenticate(
+        crypto: CryptoObject?, cancel: CancellationSignal?,
+        flags: Int, callback: AuthenticationCallback, handler: Handler?
+    ) {
     }
 
     /**
@@ -77,31 +66,23 @@ public class FaceAuthenticationManager {
      *
      * @hide
      */
-
-    public void authenticate(@Nullable CryptoObject crypto, @Nullable CancellationSignal cancel,
-                             int flags, @NonNull AuthenticationCallback callback, Handler handler, int userId) {
+    fun authenticate(
+        crypto: CryptoObject?, cancel: CancellationSignal?,
+        flags: Int, callback: AuthenticationCallback, handler: Handler?, userId: Int
+    ) {
     }
 
     /**
      * Request face authentication enrollment. This call operates the face recognition sensor
      * and starts capturing images. Progress will be indicated by callbacks to the
-     * {@link EnrollmentCallback} object. It terminates when
-     * {@link EnrollmentCallback#onEnrollmentError(int, CharSequence)} or
-     * {@link EnrollmentCallback#onEnrollmentProgress(int) is called with remaining == 0, at
-     * which point the object is no longer valid. The operation can be canceled by using the
-     * provided cancel object.
-     *
-     * @param token    a unique token provided by a recent creation or verification of device
-     *                 credentials (e.g. pin, pattern or password).
-     * @param cancel   an object that can be used to cancel enrollment
-     * @param flags    optional flags
-     * @param userId   the user to whom this face will belong to
-     * @param callback an object to receive enrollment events
-     * @hide
+     * [EnrollmentCallback] object. It terminates when
+     * [EnrollmentCallback.onEnrollmentError] or
+     * [is called with remaining == 0, at][EnrollmentCallback.onEnrollmentProgress]
      */
-
-    public void enroll(byte[] token, CancellationSignal cancel, int flags,
-                       int userId, EnrollmentCallback callback) {
+    fun enroll(
+        token: ByteArray?, cancel: CancellationSignal?, flags: Int,
+        userId: Int, callback: EnrollmentCallback?
+    ) {
     }
 
     /**
@@ -110,9 +91,8 @@ public class FaceAuthenticationManager {
      *
      * @hide
      */
-
-    public long preEnroll() {
-        return 0;
+    fun preEnroll(): Long {
+        return 0
     }
 
     /**
@@ -120,9 +100,8 @@ public class FaceAuthenticationManager {
      *
      * @hide
      */
-
-    public int postEnroll() {
-        return 0;
+    fun postEnroll(): Int {
+        return 0
     }
 
     /**
@@ -132,10 +111,7 @@ public class FaceAuthenticationManager {
      * @param userId
      * @hide
      */
-
-    public void setActiveUser(int userId) {
-
-    }
+    fun setActiveUser(userId: Int) {}
 
     /**
      * Remove given face template from face hardware and/or protected storage.
@@ -143,11 +119,19 @@ public class FaceAuthenticationManager {
      * @param face     the face item to remove
      * @param userId   the user who this face belongs to
      * @param callback an optional callback to verify that face templates have been
-     *                 successfully removed. May be null if no callback is required.
+     * successfully removed. May be null if no callback is required.
      * @hide
      */
+    fun remove(face: Face?, userId: Int, callback: RemovalCallback?) {}
 
-    public void remove(Face face, int userId, RemovalCallback callback) {
+    /**
+     * Obtain the enrolled face template.
+     *
+     * @return the current face item
+     * @hide
+     */
+    fun getEnrolledFace(userId: Int): Face? {
+        return null
     }
 
     /**
@@ -156,37 +140,23 @@ public class FaceAuthenticationManager {
      * @return the current face item
      * @hide
      */
-
-    public Face getEnrolledFace(int userId) {
-        return null;
-    }
-
-    /**
-     * Obtain the enrolled face template.
-     *
-     * @return the current face item
-     * @hide
-     */
-
-    public Face getEnrolledFace() {
-        return null;
-    }
+    val enrolledFace: Face?
+        get() = null
 
     /**
      * Determine if there is a face enrolled.
      *
      * @return true if a face is enrolled, false otherwise
      */
-
-    public boolean hasEnrolledFace() {
-        return false;
+    fun hasEnrolledFace(): Boolean {
+        return false
     }
 
     /**
      * @hide
      */
-    public boolean hasEnrolledFace(int userId) {
-        return false;
+    fun hasEnrolledFace(userId: Int): Boolean {
+        return false
     }
 
     /**
@@ -194,10 +164,8 @@ public class FaceAuthenticationManager {
      *
      * @return true if hardware is present and functional, false otherwise.
      */
-
-    public boolean isHardwareDetected() {
-        return false;
-    }
+    val isHardwareDetected: Boolean
+        get() = false
 
     /**
      * Retrieves the authenticator token for binding keys to the lifecycle
@@ -205,50 +173,37 @@ public class FaceAuthenticationManager {
      *
      * @hide
      */
-    public long getAuthenticatorId() {
-        return 0;
-    }
+    val authenticatorId: Long
+        get() = 0
 
-    public static final class CryptoObject {
-
-        public Signature getSignature() {
-            return null;
-        }
-
-        public Cipher getCipher() {
-            return null;
-        }
-
-        public Mac getMac() {
-            return null;
-        }
+    class CryptoObject {
+        val signature: Signature?
+            get() = null
+        val cipher: Cipher?
+            get() = null
+        val mac: Mac?
+            get() = null
     }
 
     /**
-     * Container for callback data from {@link FaceAuthenticationManager#authenticate(CryptoObject,
-     * CancellationSignal, int, AuthenticationCallback, Handler)}.
+     * Container for callback data from [FaceAuthenticationManager.authenticate].
      */
-    public static class AuthenticationResult {
-
-        /**
-         * Authentication result
-         *
-         * @param crypto the crypto object
-         * @param face   the recognized face data, if allowed.
-         * @hide
-         */
-        public AuthenticationResult(CryptoObject crypto, Face face, int userId) {
-        }
-
+    class AuthenticationResult
+    /**
+     * Authentication result
+     *
+     * @param crypto the crypto object
+     * @param face   the recognized face data, if allowed.
+     * @hide
+     */
+        (crypto: CryptoObject?, face: Face?, userId: Int) {
         /**
          * Obtain the crypto object associated with this transaction
          *
-         * @return crypto object provided to {@link FaceAuthenticationManager#authenticate(CryptoObject,
-         * CancellationSignal, int, AuthenticationCallback, Handler)}.
+         * @return crypto object provided to [FaceAuthenticationManager.authenticate].
          */
-        public CryptoObject getCryptoObject() {
-            return null;
-        }
+        val cryptoObject: CryptoObject?
+            get() = null
 
         /**
          * Obtain the Face associated with this operation. Applications are strongly
@@ -256,29 +211,23 @@ public class FaceAuthenticationManager {
          *
          * @hide
          */
-        public Face getFace() {
-            return null;
-        }
+        val face: Face?
+            get() = null
 
         /**
          * Obtain the userId for which this face was authenticated.
          *
          * @hide
          */
-        public int getUserId() {
-            return 0;
-        }
+        val userId: Int
+            get() = 0
     }
 
     /**
-     * Callback structure provided to {@link FaceAuthenticationManager#authenticate(CryptoObject,
-     * CancellationSignal, int, AuthenticationCallback, Handler)}. Users of {@link
-     * FaceAuthenticationManager#authenticate(CryptoObject, CancellationSignal,
-     * int, AuthenticationCallback, Handler) } must provide an implementation of this for listening
+     * Callback structure provided to [FaceAuthenticationManager.authenticate]. Users of [ ][FaceAuthenticationManager.authenticate] must provide an implementation of this for listening
      * to face events.
      */
-    public static abstract class AuthenticationCallback {
-
+    abstract class AuthenticationCallback {
         /**
          * Called when an unrecoverable error has been encountered and the operation is complete.
          * No further callbacks will be made on this object.
@@ -286,8 +235,7 @@ public class FaceAuthenticationManager {
          * @param errorCode An integer identifying the error message
          * @param errString A human-readable error string that can be shown in UI
          */
-        public void onAuthenticationError(int errorCode, CharSequence errString) {
-        }
+        open fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {}
 
         /**
          * Called when a recoverable error has been encountered during authentication. The help
@@ -297,22 +245,19 @@ public class FaceAuthenticationManager {
          * @param helpCode   An integer identifying the error message
          * @param helpString A human-readable string that can be shown in UI
          */
-        public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-        }
+        open fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence?) {}
 
         /**
          * Called when a face is recognized.
          *
          * @param result An object containing authentication-related data
          */
-        public void onAuthenticationSucceeded(AuthenticationResult result) {
-        }
+        open fun onAuthenticationSucceeded(result: AuthenticationResult?) {}
 
         /**
          * Called when a face is detected but not recognized.
          */
-        public void onAuthenticationFailed() {
-        }
+        open fun onAuthenticationFailed() {}
 
         /**
          * Called when a face image has been acquired, but wasn't processed yet.
@@ -320,8 +265,7 @@ public class FaceAuthenticationManager {
          * @param acquireInfo one of FACE_ACQUIRED_* constants
          * @hide
          */
-        public void onAuthenticationAcquired(int acquireInfo) {
-        }
+        fun onAuthenticationAcquired(acquireInfo: Int) {}
     }
 
     /**
@@ -330,8 +274,7 @@ public class FaceAuthenticationManager {
      *
      * @hide
      */
-    public static abstract class EnrollmentCallback {
-
+    abstract class EnrollmentCallback {
         /**
          * Called when an unrecoverable error has been encountered and the operation is complete.
          * No further callbacks will be made on this object.
@@ -339,8 +282,7 @@ public class FaceAuthenticationManager {
          * @param errMsgId  An integer identifying the error message
          * @param errString A human-readable error string that can be shown in UI
          */
-        public void onEnrollmentError(int errMsgId, CharSequence errString) {
-        }
+        fun onEnrollmentError(errMsgId: Int, errString: CharSequence?) {}
 
         /**
          * Called when a recoverable error has been encountered during enrollment. The help
@@ -351,30 +293,27 @@ public class FaceAuthenticationManager {
          * @param helpMsgId  An integer identifying the error message
          * @param helpString A human-readable string that can be shown in UI
          */
-        public void onEnrollmentHelp(int helpMsgId, CharSequence helpString) {
-        }
+        fun onEnrollmentHelp(helpMsgId: Int, helpString: CharSequence?) {}
 
         /**
          * Called as each enrollment step progresses. Enrollment is considered complete when
          * remaining reaches 0. This function will not be called if enrollment fails. See
-         * {@link EnrollmentCallback#onEnrollmentError(int, CharSequence)}
+         * [EnrollmentCallback.onEnrollmentError]
          *
          * @param remaining The number of remaining steps
          */
-        public void onEnrollmentProgress(int remaining) {
-        }
+        fun onEnrollmentProgress(remaining: Int) {}
     }
 
     /**
-     * Callback structure provided to {@link #remove}. Users of {@link FaceAuthenticationManager} may
+     * Callback structure provided to [.remove]. Users of [FaceAuthenticationManager] may
      * optionally provide an implementation of this to
-     * {@link #remove(Face, int, RemovalCallback)} for listening to face template
+     * [.remove] for listening to face template
      * removal events.
      *
      * @hide
      */
-    public static abstract class RemovalCallback {
-
+    abstract class RemovalCallback {
         /**
          * Called when the given face can't be removed.
          *
@@ -382,28 +321,24 @@ public class FaceAuthenticationManager {
          * @param errMsgId  An associated error message id
          * @param errString An error message indicating why the face id can't be removed
          */
-        public void onRemovalError(Face face, int errMsgId, CharSequence errString) {
-        }
+        fun onRemovalError(face: Face?, errMsgId: Int, errString: CharSequence?) {}
 
         /**
          * Called when a given face is successfully removed.
          *
          * @param face The face template that was removed.
          */
-        public void onRemovalSucceeded(Face face) {
-        }
+        fun onRemovalSucceeded(face: Face?) {}
     }
 
     /**
      * @hide
      */
-    public static abstract class LockoutResetCallback {
-
+    abstract class LockoutResetCallback {
         /**
          * Called when lockout period expired and clients are allowed to listen for face authentication
          * again.
          */
-        public void onLockoutReset() {
-        }
+        fun onLockoutReset() {}
     }
 }
