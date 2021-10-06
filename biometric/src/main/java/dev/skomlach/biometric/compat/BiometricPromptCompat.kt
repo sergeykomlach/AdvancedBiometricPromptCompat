@@ -66,20 +66,25 @@ import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
+        const val API_ENABLED = true
         init {
-            AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    HiddenApiBypass.setHiddenApiExemptions("L");
+            if(API_ENABLED) {
+                AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        HiddenApiBypass.setHiddenApiExemptions("L");
+                    }
+                } catch (e: Throwable) {
+                    e.printStackTrace()
                 }
-            } catch (e : Throwable){
-                e.printStackTrace()
             }
         }
         @JvmStatic
         val availableAuthRequests = ArrayList<BiometricAuthRequest>()
         @JvmStatic
         fun logging(enabled: Boolean){
+            if(!API_ENABLED)
+                return
             AbstractBiometricModule.DEBUG_MANAGERS = enabled
             LogCat.DEBUG = enabled
             BiometricLoggerImpl.DEBUG = enabled
@@ -110,6 +115,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
+            if(!API_ENABLED)
+                return
             if (Looper.getMainLooper().thread !== Thread.currentThread())
                 throw IllegalThreadStateException("Main Thread required")
 
@@ -213,8 +220,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun authenticate(callbackOuter: Result) {
+
         if(isActivityFinished(builder.context)){
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
+            return
+        }
+        if(!API_ENABLED) {
+            callbackOuter.onFailed(AuthenticationFailureReason.NO_HARDWARE)
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
@@ -370,6 +382,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun cancelAuthenticate() {
+        if(!API_ENABLED) {
+            return
+        }
         ExecutorHelper.INSTANCE.startOnBackground {
             while (isDeviceInfoCheckInProgress || !isInit) {
                 try {
@@ -384,6 +399,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun cancelAuthenticateBecauseOnPause(): Boolean {
+        if(!API_ENABLED) {
+            return false
+        }
         return if(!isInit){
             ExecutorHelper.INSTANCE.startOnBackground {
                 while (isDeviceInfoCheckInProgress  || !isInit) {
@@ -402,6 +420,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     @ColorRes
     fun getDialogMainColor(): Int {
+        if(!API_ENABLED)
+            return R.color.material_grey_50
        return DialogMainColor.getColor(impl.isNightMode)
     }
 
@@ -478,35 +498,35 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             types
         }
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         var title: CharSequence? = null
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         var subtitle: CharSequence? = null
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         var description: CharSequence? = null
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         var negativeButtonText: CharSequence? = null
 
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         var negativeButtonListener: DialogInterface.OnClickListener? = null
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
-        var multiWindowSupport: MultiWindowSupport = MultiWindowSupport(context)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
+        lateinit var multiWindowSupport: MultiWindowSupport
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+
         var notificationEnabled = true
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
         var colorNavBar: Int = Color.TRANSPARENT
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
         var dividerColor: Int = Color.TRANSPARENT
 
-        @JvmField @RestrictTo(RestrictTo.Scope.LIBRARY)
+        @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
         var colorStatusBar: Int = Color.TRANSPARENT
         init {
@@ -516,6 +536,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 dividerColor = context.window.navigationBarDividerColor
+            }
+            if(API_ENABLED) {
+                multiWindowSupport = MultiWindowSupport(context)
             }
        }
         constructor(context: FragmentActivity) : this(

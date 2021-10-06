@@ -39,6 +39,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
+        if(!BiometricPromptCompat.API_ENABLED)
+            return false
         var result = true
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
@@ -59,6 +61,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
+        if(!BiometricPromptCompat.API_ENABLED)
+            return false
         if(!BiometricPromptCompat.isInit){
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
@@ -78,6 +82,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
+        if(!BiometricPromptCompat.API_ENABLED)
+            return false
         if(!BiometricPromptCompat.isInit){
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
@@ -97,6 +103,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
+        if(!BiometricPromptCompat.API_ENABLED)
+            return false
         BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")
         if(!BiometricPromptCompat.isInit){
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
@@ -117,6 +125,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
+        if(!BiometricPromptCompat.API_ENABLED)
+            return false
         if(!BiometricPromptCompat.isInit){
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isLockOut-${api.api}-${api.type}", false)
@@ -137,6 +147,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         ), forced: Boolean = true
     ): Boolean {
+        if(!BiometricPromptCompat.API_ENABLED)
+            return false
 
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(
                 activity,
