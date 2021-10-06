@@ -90,7 +90,7 @@ class FirstFragment : Fragment() {
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
             button.setOnClickListener {
-                startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type, BiometricConfirmation.ALL ))
+                startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type ))
             }
             buttonsList.addView(container)
         }

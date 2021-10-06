@@ -691,6 +691,11 @@
    "model": "A831L-D"
   },
   {
+   "device": "PH0M_EA_T32",
+   "name": "AOC Android TV",
+   "model": "AOC Android TV"
+  },
+  {
    "device": "Q10107L-ME",
    "name": "Q10107L-ME",
    "model": "Q10107L-ME"
@@ -104417,7 +104422,17 @@
   {
    "device": "PH0M_EA_T32",
    "name": "Philips Android TV",
+   "model": "2020/2021 FHD Android TV"
+  },
+  {
+   "device": "PH0M_EA_T32",
+   "name": "Philips Android TV",
    "model": "2020/2021 UHD Android TV"
+  },
+  {
+   "device": "PH0M_EA_T32",
+   "name": "Philips Android TV",
+   "model": "Philips FHD Android TV"
   },
   {
    "device": "PH1M_EA_9970A",
@@ -111220,6 +111235,11 @@
    "model": "RMX3085"
   },
   {
+   "device": "RMX2202L1",
+   "name": "realme  GT 5G",
+   "model": "RMX2202"
+  },
+  {
    "device": "RMX3031L1",
    "name": "realme  X7 Max",
    "model": "RMX3031"
@@ -111395,6 +111415,11 @@
    "model": "RMX3081"
   },
   {
+   "device": "RE54B4L1",
+   "name": "realme 8i",
+   "model": "RMX3151"
+  },
+  {
    "device": "RE58A0L1",
    "name": "realme 8s 5G",
    "model": "RMX3381"
@@ -111486,6 +111511,11 @@
   },
   {
    "device": "RMX3261",
+   "name": "realme C21 Y",
+   "model": "RMX3261"
+  },
+  {
+   "device": "RMX3261",
    "name": "realme C21Y",
    "model": "RMX3261"
   },
@@ -111503,6 +111533,11 @@
    "device": "RMX3193",
    "name": "realme C25",
    "model": "RMX3193"
+  },
+  {
+   "device": "RE54D1",
+   "name": "realme C25Y",
+   "model": "RMX3265"
   },
   {
    "device": "RMX3195",
@@ -111563,6 +111598,11 @@
    "device": "RE54ABL1",
    "name": "realme GT Master Edition",
    "model": "RMX3363"
+  },
+  {
+   "device": "RE5473",
+   "name": "realme GT Neo 2",
+   "model": "RMX3370"
   },
   {
    "device": "RMX2193",
@@ -128183,6 +128223,11 @@
    "device": "Sandata_T5",
    "name": "Sandata",
    "model": "T5"
+  },
+  {
+   "device": "Sandata_T5",
+   "name": "Sandata_T5",
+   "model": "T5"
   }
  ],
  "Sankey": [
@@ -144678,6 +144723,16 @@
    "device": "U3A_7_WIFI_Refresh",
    "name": "TKEE MINI NEW",
    "model": "9309X_EEA"
+  },
+  {
+   "device": "U3A_7_WIFI_Refresh",
+   "name": "TKEE MINI NEW",
+   "model": "9309X_RU"
+  },
+  {
+   "device": "U3A_7_WIFI_Refresh",
+   "name": "TKEE MINI NEW",
+   "model": "9309X_TR"
   },
   {
    "device": "Phoenix_7_Kids",
@@ -170623,26 +170678,6 @@
    "model": "EC55"
   },
   {
-   "device": "ET51L",
-   "name": "ET51",
-   "model": "ET51"
-  },
-  {
-   "device": "ET51S",
-   "name": "ET51",
-   "model": "ET51"
-  },
-  {
-   "device": "ET56L",
-   "name": "ET56",
-   "model": "ET56"
-  },
-  {
-   "device": "ET56S",
-   "name": "ET56",
-   "model": "ET56"
-  },
-  {
    "device": "ET56L",
    "name": "ET56CA",
    "model": "ET56"
@@ -170813,6 +170848,26 @@
    "model": "WT6000"
   },
   {
+   "device": "ET51L",
+   "name": "Zebra Technologies ET51",
+   "model": "ET51"
+  },
+  {
+   "device": "ET51S",
+   "name": "Zebra Technologies ET51",
+   "model": "ET51"
+  },
+  {
+   "device": "ET56L",
+   "name": "Zebra Technologies ET56",
+   "model": "ET56"
+  },
+  {
+   "device": "ET56S",
+   "name": "Zebra Technologies ET56",
+   "model": "ET56"
+  },
+  {
    "device": "L10A",
    "name": "Zebra Technologies L10",
    "model": "L10A"
@@ -170873,6 +170928,11 @@
    "model": "MC93"
   },
   {
+   "device": "TC26",
+   "name": "Zebra Technologies TC26",
+   "model": "TC26"
+  },
+  {
    "device": "TC52",
    "name": "Zebra Technologies TC52",
    "model": "TC52"
@@ -170929,6 +170989,11 @@
   },
   {
    "device": "VC8308",
+   "name": "Zebra Technologies VC8300",
+   "model": "VC8300"
+  },
+  {
+   "device": "VC8310",
    "name": "Zebra Technologies VC8300",
    "model": "VC8300"
   },

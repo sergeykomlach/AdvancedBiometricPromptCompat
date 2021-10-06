@@ -153,14 +153,21 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     private fun checkAuthResult(module: BiometricType?, authResult: AuthResult.AuthResultState, failureReason: AuthenticationFailureReason? = null){
-        authFinished[module] = AuthResult(authResult, failureReason)
-        dialog?.authFinishedCopy = authFinished
         if(authResult == AuthResult.AuthResultState.SUCCESS) {
             IconStateHelper.successType(module)
             if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL) {
                 Vibro.start()
             }
+        } else if(authResult == AuthResult.AuthResultState.FATAL_ERROR){
+            IconStateHelper.errorType(module)
+            dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
         }
+        //non fatal
+        when (failureReason) {
+            AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> return
+        }
+        authFinished[module] = AuthResult(authResult, failureReason)
+        dialog?.authFinishedCopy = authFinished
         BiometricNotificationManager.INSTANCE.dismiss(module)
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
@@ -168,14 +175,15 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             builder.allAvailableTypes
         )
         allList.removeAll(authFinishedList)
-        d("authFinished - $allList; ($authFinished / ${builder.allAvailableTypes})")
-        if (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY ||
-            builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty()
+        d("checkAuthResult.authFinished - ${builder.biometricAuthRequest}: $allList; ($authFinished / ${builder.allAvailableTypes})")
+        val error = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+        val success = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.SUCCESS }
+        d("checkAuthResult.authFinished - ${builder.biometricAuthRequest}: $error/$success")
+        if (((success != null || allList.isEmpty()) && builder.biometricAuthRequest.confirmation == BiometricConfirmation.ANY) ||
+            (builder.biometricAuthRequest.confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             ExecutorHelper.INSTANCE.handler.post {
                 cancelAuthenticate()
-                val error = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
-                val success = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.SUCCESS }
                 if(success!=null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -183,7 +191,14 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     callback?.onSucceeded(onlySuccess.keys.toList().filterNotNull().toSet())
                 }
                 else if(error!=null){
-                    callback?.onFailed(error.failureReason)
+                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
+                        callback?.onFailed(error.failureReason)
+                    } else {
+                        HardwareAccessImpl.getInstance(builder.biometricAuthRequest).lockout()
+                        ExecutorHelper.INSTANCE.handler.postDelayed({
+                            callback?.onFailed(error.failureReason)
+                        }, 2000)
+                    }
                 }
             }
         }
@@ -204,26 +219,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             failureReason: AuthenticationFailureReason?,
             module: BiometricType?
         ) {
-            if (dialog != null) {
-                IconStateHelper.errorType(module)
-                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
-            }
-            if (failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
-                //non fatal
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> return
-                }
-                ExecutorHelper.INSTANCE.handler.post {
-                    cancelAuthenticate()
-                    checkAuthResult(module, AuthResult.AuthResultState.FATAL_ERROR, failureReason)
-                }
-            } else {
-                HardwareAccessImpl.getInstance(builder.biometricAuthRequest).lockout()
-                ExecutorHelper.INSTANCE.handler.postDelayed({
-                    cancelAuthenticate()
-                    checkAuthResult(module, AuthResult.AuthResultState.FATAL_ERROR, failureReason)
-                }, 2000)
-            }
+            checkAuthResult(module, AuthResult.AuthResultState.FATAL_ERROR, failureReason)
         }
     }
 }
