@@ -42,10 +42,7 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
-import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
-import dev.skomlach.biometric.compat.utils.DialogMainColor
-import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
-import dev.skomlach.biometric.compat.utils.WideGamutBug
+import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
@@ -495,6 +492,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest)&& (!isLockOut(biometricAuthRequest) && !isBiometricSensorPermanentlyLocked(biometricAuthRequest)))
                         types.add(biometricAuthRequest.type)
                 }
+                if (DevicesWithKnownBugs.isSamsung) {
+                    primaryAvailableTypes.addAll(types)
+                    types.clear()
+                } else
+                    types.removeAll(primaryAvailableTypes)
             }
             types
         }

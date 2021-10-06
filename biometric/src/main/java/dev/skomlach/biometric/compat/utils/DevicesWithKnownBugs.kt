@@ -67,7 +67,12 @@ object DevicesWithKnownBugs {
                     return true
                 }
             }
-            return Build.BRAND.equals("Samsung", ignoreCase = true) && hasUnderDisplayFingerprint
+            return isSamsung && hasUnderDisplayFingerprint
+        }
+    @JvmStatic
+    val isSamsung: Boolean
+        get() {
+            return Build.BRAND.equals("Samsung", ignoreCase = true)
         }
     @JvmStatic
     val isMissedBiometricUI: Boolean
