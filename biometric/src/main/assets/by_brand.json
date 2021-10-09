@@ -3026,6 +3026,11 @@
    "model": "SP5712"
   },
   {
+   "device": "SP5732",
+   "name": "SP5732",
+   "model": "SP5732"
+  },
+  {
    "device": "SP5760",
    "name": "SP5760",
    "model": "SP5760"
@@ -4424,6 +4429,11 @@
   {
    "device": "H1003_LTE_PRO1",
    "name": "Viva H1003 LTE PRO/1",
+   "model": "H1003_LTE_PRO1"
+  },
+  {
+   "device": "H1003_LTE_PRO1_64",
+   "name": "Viva H1003 LTE PRO/1-64GB",
    "model": "H1003_LTE_PRO1"
   },
   {
@@ -7893,6 +7903,13 @@
    "model": "A712"
   }
  ],
+ "Astro mobile": [
+  {
+   "device": "Smart_A1_Plus",
+   "name": "Smart _A1_Plus",
+   "model": "Smart A1 Plus"
+  }
+ ],
  "AstroQueo": [
   {
    "device": "polaris-wifionly",
@@ -10457,6 +10474,16 @@
  ],
  "Azeyou": [
   {
+   "device": "AT1011U",
+   "name": "AT1011U",
+   "model": "AT1011U"
+  },
+  {
+   "device": "AT1012U",
+   "name": "AT1012U",
+   "model": "AT1012U"
+  },
+  {
    "device": "AT1031U",
    "name": "AT1031U",
    "model": "AT1031U"
@@ -12227,6 +12254,11 @@
    "device": "BQru_5503",
    "name": "BQ 5503 NICE 2",
    "model": "BQru-5503"
+  },
+  {
+   "device": "BQru-6353L",
+   "name": "BQ 6353L",
+   "model": "BQ-6353L"
   },
   {
    "device": "BQru-1020L",
@@ -14599,6 +14631,11 @@
    "device": "BV4900Pro",
    "name": "BV4900Pro",
    "model": "BV4900Pro"
+  },
+  {
+   "device": "BV4900s",
+   "name": "BV4900s",
+   "model": "BV4900s"
   },
   {
    "device": "BV5100",
@@ -17348,6 +17385,16 @@
    "device": "850_4G",
    "name": "850_4G",
    "model": "850_4G"
+  },
+  {
+   "device": "AMICO_SMARTPHONE_XL",
+   "name": "AMICO SMARTPHONE XL",
+   "model": "AMICO SMARTPHONE XL"
+  },
+  {
+   "device": "MIDNIGHT_SKY_EEA",
+   "name": "MIDNIGHT_SKY_EEA",
+   "model": "MIDNIGHT_SKY"
   }
  ],
  "Brookstone": [
@@ -22819,6 +22866,11 @@
    "device": "Coolpad_2041_S0",
    "name": "Cool 10A",
    "model": "Coolpad_2041_S0"
+  },
+  {
+   "device": "Coolpad_2041_T3",
+   "name": "Cool 10A",
+   "model": "Coolpad_2041_T3"
   },
   {
    "device": "Coolpad_2041_U0",
@@ -57391,6 +57443,11 @@
    "model": "E503F"
   },
   {
+   "device": "E506",
+   "name": "E506",
+   "model": "E506"
+  },
+  {
    "device": "E553",
    "name": "E553",
    "model": "E553"
@@ -57814,6 +57871,11 @@
    "device": "L503F_Plus",
    "name": "L503F Plus",
    "model": "L503F Plus"
+  },
+  {
+   "device": "L506",
+   "name": "L506",
+   "model": "L506"
   },
   {
    "device": "L553",
@@ -64296,6 +64358,11 @@
    "model": "KEMPLER_X_TV"
   },
   {
+   "device": "P1pro",
+   "name": "KemplerP1pro",
+   "model": "P1 Pro"
+  },
+  {
    "device": "Kempler_X_Pro",
    "name": "Kempler_X_Pro",
    "model": "Kempler_X_Pro"
@@ -65512,6 +65579,11 @@
   }
  ],
  "Kinstone": [
+  {
+   "device": "KST103SD",
+   "name": "KST103SD",
+   "model": "KST103SD"
+  },
   {
    "device": "Kinstone_SA070",
    "name": "SA070",
@@ -80439,6 +80511,16 @@
    "model": "Lenovo L70081"
   },
   {
+   "device": "X6C6NBF",
+   "name": "联想平板电脑 启天K10",
+   "model": "Lenovo TB-X6C6NBF"
+  },
+  {
+   "device": "X6C6NBX",
+   "name": "联想平板电脑 启天K10",
+   "model": "Lenovo TB-X6C6NBX"
+  },
+  {
    "device": "TB-X607Z",
    "name": "联想平板电脑K10 5G",
    "model": "Lenovo TB-X607Z"
@@ -82389,6 +82471,13 @@
    "model": "MAG500A"
   }
  ],
+ "MAGCH": [
+  {
+   "device": "T7_Pro",
+   "name": "T7",
+   "model": "T7"
+  }
+ ],
  "MARVUE": [
   {
    "device": "Pad_M10",
@@ -83700,6 +83789,11 @@
    "device": "komagome",
    "name": "MarQ",
    "model": "MarQ 2K Android TV"
+  },
+  {
+   "device": "GIONEE_MAX",
+   "name": "MarQ_M3",
+   "model": "MarQ_M3"
   }
  ],
  "Mara Phones": [
@@ -84705,6 +84799,11 @@
    "model": "8CY"
   },
   {
+   "device": "M-SP8DY_EEA",
+   "name": "8DY",
+   "model": "8DY"
+  },
+  {
    "device": "M-PPxG5M",
    "name": "G5M",
    "model": "M-PPxG5M"
@@ -84793,6 +84892,11 @@
    "device": "M-SP1AZ3",
    "name": "M-SP1AZ3_EEA",
    "model": "M-SP1AZ3"
+  },
+  {
+   "device": "M-SP1EY_EEA",
+   "name": "M-SP1EY",
+   "model": "1EY"
   },
   {
    "device": "M-SP7HXAH",
@@ -88952,6 +89056,11 @@
    "model": "M850"
   },
   {
+   "device": "Mavic_Plus",
+   "name": "Mavic_Plus_DS",
+   "model": "M610DS"
+  },
+  {
    "device": "Mavic_10",
    "name": "Morep Mavic 10",
    "model": "M830"
@@ -88960,6 +89069,11 @@
    "device": "Mavic_Plus",
    "name": "Morep Mavic Plus",
    "model": "M610"
+  },
+  {
+   "device": "Smart_V1",
+   "name": "Smart V1",
+   "model": "M521"
   }
  ],
  "Mosambee": [
@@ -92320,6 +92434,11 @@
    "model": "M8_4G"
   },
   {
+   "device": "ML_SO0F_M8_WIFI",
+   "name": "M8 Wifi",
+   "model": "M8_WIFI"
+  },
+  {
    "device": "ML_SO19_M8_4G",
    "name": "M8_4G",
    "model": "M8_4G"
@@ -92583,6 +92702,11 @@
    "device": "Multilaser_E_Lite",
    "name": "Multilaser E Lite",
    "model": "Multilaser_E_Lite"
+  },
+  {
+   "device": "Multilaser_E_Pro",
+   "name": "Multilaser E Pro",
+   "model": "Multilaser_E_Pro"
   },
   {
    "device": "Multilaser_Elite_2",
@@ -96391,9 +96515,24 @@
    "model": "Nokia G20"
   },
   {
+   "device": "PHR",
+   "name": "Nokia G50",
+   "model": "Nokia G50"
+  },
+  {
+   "device": "PHR_sprout",
+   "name": "Nokia G50",
+   "model": "Nokia G50"
+  },
+  {
    "device": "HND",
    "name": "Nokia Steaming Box 8000",
    "model": "Nokia Streaming Box 8000"
+  },
+  {
+   "device": "RDD",
+   "name": "Nokia T20",
+   "model": "Nokia T20"
   },
   {
    "device": "SCW",
@@ -97352,6 +97491,11 @@
    "device": "C20",
    "name": "C20",
    "model": "C20"
+  },
+  {
+   "device": "C20_Pro",
+   "name": "C20 Pro",
+   "model": "C20 Pro"
   }
  ],
  "OTHO": [
@@ -101227,6 +101371,11 @@
    "model": "C25"
   },
   {
+   "device": "C27_Pro",
+   "name": "C27_Pro_EEA",
+   "model": "C27 Pro"
+  },
+  {
    "device": "C6_Pro",
    "name": "C6 Pro",
    "model": "C6 Pro"
@@ -101470,6 +101619,11 @@
    "device": "WP15",
    "name": "WP15",
    "model": "WP15"
+  },
+  {
+   "device": "WP17",
+   "name": "WP17_EEA",
+   "model": "WP17"
   },
   {
    "device": "WP2",
@@ -101928,6 +102082,16 @@
    "device": "citrus",
    "name": "POCO M3",
    "model": "M2010J19CI"
+  },
+  {
+   "device": "camellia",
+   "name": "POCO M3 Pro 5G",
+   "model": "M2103K19PI"
+  },
+  {
+   "device": "camellian",
+   "name": "POCO M3 Pro 5G",
+   "model": "M2103K19PG"
   },
   {
    "device": "phoenixin",
@@ -108562,6 +108726,11 @@
    "model": "L8_EEA"
   },
   {
+   "device": "M10_A01",
+   "name": "M10",
+   "model": "M10"
+  },
+  {
    "device": "M10_Air",
    "name": "M10_Air",
    "model": "M10_Air"
@@ -111998,6 +112167,11 @@
    "device": "RX4702",
    "name": "RX4702",
    "model": "RX4702"
+  },
+  {
+   "device": "RX4802",
+   "name": "RX4802",
+   "model": "RX4802"
   }
  ],
  "Redmi": [
@@ -112360,6 +112534,11 @@
    "device": "secret",
    "name": "Redmi Note 10S",
    "model": "M2101K7BI"
+  },
+  {
+   "device": "camellian",
+   "name": "Redmi Note 10T",
+   "model": "M2103K19Y"
   },
   {
    "device": "camellia",
@@ -113021,6 +113200,13 @@
    "device": "FGAD",
    "name": "FGAD",
    "model": "FGAD"
+  }
+ ],
+ "Royole": [
+  {
+   "device": "RY1205",
+   "name": "VERTU Ayxta Fold 3",
+   "model": "VERTU Ayxta Fold 3"
   }
  ],
  "Royqueen": [
@@ -114971,6 +115157,11 @@
    "device": "NEON_PLUS",
    "name": "NEON PLUS",
    "model": "NEON PLUS"
+  },
+  {
+   "device": "NEON-RAY-2",
+   "name": "NEON-RAY-2",
+   "model": "NEON RAY 2"
   },
   {
    "device": "NEON_NOVA",
@@ -129861,6 +130052,21 @@
    "model": "SHG02"
   },
   {
+   "device": "Recoa",
+   "name": "AQUOS zero6",
+   "model": "A102SH"
+  },
+  {
+   "device": "Recoa",
+   "name": "AQUOS zero6",
+   "model": "SH-RM18"
+  },
+  {
+   "device": "XKH",
+   "name": "AQUOS zero6",
+   "model": "SHG04"
+  },
+  {
    "device": "SH-02L",
    "name": "AQUOS ケータイ SH-02L",
    "model": "SH-02L"
@@ -131497,6 +131703,11 @@
    "device": "Elite_D55",
    "name": "Elite D55",
    "model": "Elite_D55"
+  },
+  {
+   "device": "Elite_D5Max",
+   "name": "Elite D5Max",
+   "model": "Elite D5Max"
   },
   {
    "device": "Elite_D5Max_US",
@@ -148389,6 +148600,11 @@
    "model": "T9501"
   },
   {
+   "device": "T9503",
+   "name": "T9503",
+   "model": "T9503"
+  },
+  {
    "device": "Telemor_T9503",
    "name": "T9503",
    "model": "Telemor T9503"
@@ -150302,6 +150518,13 @@
    "model": "TVSTAR 4K Android TV"
   }
  ],
+ "TwinMOS": [
+  {
+   "device": "MQ703G",
+   "name": "MQ703G",
+   "model": "MQ703G"
+  }
+ ],
  "UBCtv": [
   {
    "device": "tamachi",
@@ -151997,6 +152220,11 @@
    "device": "V-E5",
    "name": "V-E5",
    "model": "V-E5"
+  },
+  {
+   "device": "V-N5",
+   "name": "V-N5",
+   "model": "V-N5"
   },
   {
    "device": "VZ-30",
@@ -162009,6 +162237,13 @@
    "model": "Mi Watch"
   }
  ],
+ "Xmobile": [
+  {
+   "device": "X1",
+   "name": "X1",
+   "model": "X1"
+  }
+ ],
  "Xolo": [
   {
    "device": "XE2X",
@@ -171235,6 +171470,13 @@
    "model": "ZTAB01B"
   }
  ],
+ "Zigo": [
+  {
+   "device": "Zigo_Nebula_10_1",
+   "name": "Zigo_Nebula_10_1",
+   "model": "Zigo_Nebula_10_1"
+  }
+ ],
  "Zilo": [
   {
    "device": "Zilo",
@@ -173233,6 +173475,11 @@
    "model": "TITAN P15000 PRO 5G"
   },
   {
+   "device": "Tablet_PC_10_PRO_EEA",
+   "name": "Tablet PC 10 PRO",
+   "model": "Tablet PC 10 PRO"
+  },
+  {
    "device": "Tian_P3000",
    "name": "Tian_P3000",
    "model": "Tian_P3000"
@@ -173261,6 +173508,11 @@
    "device": "Titan_P6000_PRO",
    "name": "Titan_P6000_PRO",
    "model": "Titan_P6000_PRO"
+  },
+  {
+   "device": "Titan_X_EEA",
+   "name": "Titan_X_EEA",
+   "model": "iHunt Titan X 5G"
   },
   {
    "device": "Cyber_Wolf_5G",
@@ -173784,6 +174036,11 @@
   }
  ],
  "iTab XPLUS": [
+  {
+   "device": "ITAB_X38T",
+   "name": "ITAB_X38T",
+   "model": "ITAB_X38T"
+  },
   {
    "device": "iTAB-A1",
    "name": "iTAB-A1",
