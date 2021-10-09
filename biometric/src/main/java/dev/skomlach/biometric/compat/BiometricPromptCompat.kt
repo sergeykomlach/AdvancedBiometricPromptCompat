@@ -492,11 +492,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest)&& (!isLockOut(biometricAuthRequest) && !isBiometricSensorPermanentlyLocked(biometricAuthRequest)))
                         types.add(biometricAuthRequest.type)
                 }
-                if (DevicesWithKnownBugs.isSamsung) {
-                    primaryAvailableTypes.addAll(types)
-                    types.clear()
-                } else
-                    types.removeAll(primaryAvailableTypes)
+                types.removeAll(primaryAvailableTypes)
             }
             types
         }
