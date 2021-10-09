@@ -49,7 +49,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:7.0.2'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:2.0.2"
-        classpath 'org.owasp:dependency-check-gradle:6.3.1'
+        classpath 'org.owasp:dependency-check-gradle:6.3.2'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
