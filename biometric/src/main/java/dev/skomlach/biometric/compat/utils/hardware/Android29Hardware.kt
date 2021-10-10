@@ -41,7 +41,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
             )
             if (biometricManager != null) {
                 code = if (isAtLeastR) {
-                    biometricManager.canAuthenticate(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                    biometricManager.canAuthenticate(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 } else {
                     biometricManager.canAuthenticate()
                 }
