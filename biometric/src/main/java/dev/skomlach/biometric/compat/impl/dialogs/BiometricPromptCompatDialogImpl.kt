@@ -212,7 +212,7 @@ class BiometricPromptCompatDialogImpl(
                     compatBuilder.context.getSystemService(
                         android.hardware.biometrics.BiometricManager::class.java
                     )
-                val strings = biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK)
+                val strings = biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 val prompt = strings.promptMessage
                 if(!prompt.isNullOrEmpty())
                     return prompt.toString()
