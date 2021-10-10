@@ -328,18 +328,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 } else
                 //general case
                 {
-                    if (!hasSecondaryFinished()) {
-                        val secondary = HashSet<BiometricType>(builder.secondaryAvailableTypes)
-                        if (secondary.isNotEmpty()) {
-                            d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.primaryAvailableTypes}")
-                            BiometricAuthentication.authenticate(
-                                null,
-                                ArrayList<BiometricType>(secondary),
-                                fmAuthCallback
-                            )
-                        }
-                    }
-
                     if (!hasPrimaryFinished()) {
                         showSystemUi(biometricPrompt)
                     }
