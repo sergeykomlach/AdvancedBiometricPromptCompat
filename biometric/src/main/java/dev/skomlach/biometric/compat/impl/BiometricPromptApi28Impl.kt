@@ -43,7 +43,6 @@ import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImp
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
-import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -271,56 +270,112 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
 
-        if (!hasSecondaryFinished()) {
-            val secondary = HashSet<BiometricType>(if(DevicesWithKnownBugs.isSamsung) builder.allAvailableTypes else builder.secondaryAvailableTypes)
-            if (secondary.isNotEmpty()) {
-                d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.primaryAvailableTypes}")
-                BiometricAuthentication.authenticate(
-                    null,
-                    ArrayList<BiometricType>(secondary),
-                    fmAuthCallback
-                )
-            }
-        }
+        val isSamsungWorkaroundRequired =
+            DevicesWithKnownBugs.isSamsung && builder.allAvailableTypes.size > 1
 
-        ExecutorHelper.INSTANCE.handler.postDelayed({
-            if(DevicesWithKnownBugs.isSamsung){
-                BiometricAuthentication.cancelAuthentication()
-                val success = authFinished.values.lastOrNull{ it.authResultState == AuthResult.AuthResultState.SUCCESS }
-                if(success != null) {
-                    cancelAuthenticate()
-                    callback?.onSucceeded(authFinished.filter { item -> item.value.authResultState == AuthResult.AuthResultState.SUCCESS}.keys.filterNotNull().toMutableSet())
-                    return@postDelayed
+        if (!isSamsungWorkaroundRequired) {
+            if (!hasSecondaryFinished()) {
+                val secondary = HashSet<BiometricType>(builder.secondaryAvailableTypes)
+                if (secondary.isNotEmpty()) {
+                    d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.primaryAvailableTypes}")
+                    BiometricAuthentication.authenticate(
+                        null,
+                        ArrayList<BiometricType>(secondary),
+                        fmAuthCallback
+                    )
                 }
             }
 
             if (!hasPrimaryFinished()) {
-
-                biometricPrompt.authenticate(biometricPromptInfo)
-                //fallback - sometimes we not able to cancel BiometricPrompt properly
-                try {
-                    val m = BiometricPrompt::class.java.declaredMethods.first {
-                        it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
-                    }
-                    val isAccessible = m.isAccessible
-                    try {
-                        if (!isAccessible)
-                            m.isAccessible = true
-                        biometricFragment = m.invoke(
-                            null,
-                            builder.context.supportFragmentManager
-                        ) as BiometricFragment?
-                    } finally {
-                        if (!isAccessible)
-                            m.isAccessible = false
-                    }
-                } catch (e: Throwable) {
-                    e(e)
-                }
+                showSystemUi(biometricPrompt)
             }
-        }, if(DevicesWithKnownBugs.isSamsung) builder.context.resources.getInteger(android.R.integer.config_longAnimTime).toLong() else 0)
+
+        } else {
+            val delay = builder.context.resources.getInteger(android.R.integer.config_longAnimTime).toLong()
+            val successList = mutableSetOf<BiometricType>()
+            BiometricAuthentication.authenticate(
+                null,
+                ArrayList<BiometricType>(builder.allAvailableTypes),
+                object : BiometricAuthenticationListener{
+                    override fun onSuccess(module: BiometricType?) {
+                        module?.let {
+                            successList.add(it)
+                        }
+                    }
+
+                    override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
+
+                    }
+
+                    override fun onFailure(
+                        failureReason: AuthenticationFailureReason?,
+                        module: BiometricType?
+                    ) {
+
+                    }
+                }
+            )
+            ExecutorHelper.INSTANCE.handler.postDelayed({
+                //Flow for Samsung devices
+                BiometricAuthentication.cancelAuthentication()
+
+                if (successList.isNotEmpty()) {
+                    showSystemUi()
+                    ExecutorHelper.INSTANCE.handler.postDelayed({
+                        cancelAuthenticate()
+                        callback?.onSucceeded(successList)
+                    }, delay)
+                } else
+                //general case
+                {
+                    if (!hasSecondaryFinished()) {
+                        val secondary = HashSet<BiometricType>(builder.secondaryAvailableTypes)
+                        if (secondary.isNotEmpty()) {
+                            d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.primaryAvailableTypes}")
+                            BiometricAuthentication.authenticate(
+                                null,
+                                ArrayList<BiometricType>(secondary),
+                                fmAuthCallback
+                            )
+                        }
+                    }
+
+                    if (!hasPrimaryFinished()) {
+                        showSystemUi(biometricPrompt)
+                    }
+                }
+
+            }, delay)
+        }
     }
 
+    private fun showSystemUi(biometricPrompt : BiometricPrompt = BiometricPrompt(
+        builder.context,
+        ExecutorHelper.INSTANCE.executor,
+        object : BiometricPrompt.AuthenticationCallback() {}
+    )){
+        biometricPrompt.authenticate(biometricPromptInfo)
+        //fallback - sometimes we not able to cancel BiometricPrompt properly
+        try {
+            val m = BiometricPrompt::class.java.declaredMethods.first {
+                it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
+            }
+            val isAccessible = m.isAccessible
+            try {
+                if (!isAccessible)
+                    m.isAccessible = true
+                biometricFragment = m.invoke(
+                    null,
+                    builder.context.supportFragmentManager
+                ) as BiometricFragment?
+            } finally {
+                if (!isAccessible)
+                    m.isAccessible = false
+            }
+        } catch (e: Throwable) {
+            e(e)
+        }
+    }
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
 
