@@ -31773,6 +31773,11 @@
    "model": "M20+Pro"
   },
   {
+   "device": "EVERTEK_M20S_Mini",
+   "name": "M20S_Mini",
+   "model": "M20S Mini"
+  },
+  {
    "device": "M20_Pro",
    "name": "M20_Pro",
    "model": "M20_Pro"
@@ -64484,6 +64489,11 @@
    "model": "KONKA Android TV 4K"
   },
   {
+   "device": "N7",
+   "name": "N7",
+   "model": "N7"
+  },
+  {
    "device": "RE1",
    "name": "RE1",
    "model": "RE1"
@@ -66342,6 +66352,11 @@
    "device": "NET_ADVANCE",
    "name": "NET_ADVANCE",
    "model": "NET_ADVANCE"
+  },
+  {
+   "device": "NET_K7",
+   "name": "NET_K7",
+   "model": "NET_K7"
   },
   {
    "device": "NET_LITE",
@@ -98876,6 +98891,11 @@
    "model": "CPH2139"
   },
   {
+   "device": "OP4E49",
+   "name": "A53 5G",
+   "model": "PECM20"
+  },
+  {
    "device": "A53",
    "name": "A53f",
    "model": "A53f"
@@ -99794,6 +99814,11 @@
    "device": "OP4E99",
    "name": "PEHM00",
    "model": "PEHT00"
+  },
+  {
+   "device": "OP4ED5",
+   "name": "PEQM00",
+   "model": "PEQM00"
   },
   {
    "device": "OPPO72_13076",
@@ -112194,6 +112219,11 @@
    "device": "davinci",
    "name": "Mi 9T",
    "model": "Mi 9T"
+  },
+  {
+   "device": "rango",
+   "name": "MiTV",
+   "model": "MiTV-AXFR0"
   },
   {
    "device": "pine",
@@ -145658,6 +145688,18 @@
    "model": "ANGEL_SMART"
   }
  ],
+ "TOKECY": [
+  {
+   "device": "T847",
+   "name": "T847",
+   "model": "T847"
+  },
+  {
+   "device": "T847_EEA",
+   "name": "T847_EEA",
+   "model": "T847_EEA"
+  }
+ ],
  "TONE": [
   {
    "device": "TONE_e20",
@@ -161935,6 +161977,11 @@
    "device": "dangalUHD",
    "name": "MiTV",
    "model": "MiTV-AXSO2"
+  },
+  {
+   "device": "hermano",
+   "name": "MiTV",
+   "model": "MiTV-MOSR0"
   },
   {
    "device": "machuca",
