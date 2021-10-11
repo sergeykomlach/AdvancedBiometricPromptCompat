@@ -22,10 +22,7 @@ package dev.skomlach.biometric.compat.utils.activityView
 import android.annotation.SuppressLint
 import android.content.ContextWrapper
 import android.content.res.ColorStateList
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.RenderEffect
-import android.graphics.Shader
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
@@ -246,18 +243,35 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.e(e)
         }
     }
+    private fun getResizedBitmap(bm: Bitmap?, newHeight: Int, newWidth: Int): Bitmap? {
+        if (bm == null) return bm
+        if (newHeight <= 0 || newWidth <= 0) return null
+        val width = bm.width
+        val height = bm.height
+        val scaleWidth = newWidth.toFloat() / width
+        val scaleHeight = newHeight.toFloat() / height
+        // CREATE A MATRIX FOR THE MANIPULATION
+        val matrix = Matrix()
+        // RESIZE THE BIT MAP
+        matrix.postScale(scaleWidth, scaleHeight)
 
+        // "RECREATE" THE NEW BITMAP
+        return Bitmap.createBitmap(
+            bm, 0, 0, width, height,
+            matrix, true
+        )
+    }
     private fun updateDefaultColor(bm: Bitmap) {
 
         try {
             var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
-            b = Bitmap.createScaledBitmap(b, 1, 1, false)
+            b = getResizedBitmap(getResizedBitmap(b, b.width/2, b.height/2), 1, 1)
             val isDark = ColorUtil.trueDarkColor(b.getPixel(0, 0))
             defaultColor = ContextCompat.getColor(
                 context,
                 DialogMainColor.getColor(!isDark)
             )
-            BiometricLoggerImpl.d("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - $defaultColor")
+            BiometricLoggerImpl.d("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${Integer.toHexString(defaultColor)}")
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

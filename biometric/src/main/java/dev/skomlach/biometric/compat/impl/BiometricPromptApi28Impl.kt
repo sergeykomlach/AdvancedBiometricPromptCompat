@@ -51,6 +51,7 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
@@ -291,7 +292,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
         } else {
-            val delay = builder.context.resources.getInteger(android.R.integer.config_longAnimTime).toLong()
+            val delay = TimeUnit.SECONDS.toMillis(1)
             val successList = mutableSetOf<BiometricType>()
             BiometricAuthentication.authenticate(
                 null,
