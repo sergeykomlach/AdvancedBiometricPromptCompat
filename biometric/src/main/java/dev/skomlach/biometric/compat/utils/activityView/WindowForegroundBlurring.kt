@@ -265,11 +265,11 @@ class WindowForegroundBlurring(
 
         try {
             var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
-            b = getResizedBitmap(b, 1, 1)
+            b = getResizedBitmap(getResizedBitmap(b, b.width/2, b.height/2), 1, 1)
             val isDark = ColorUtil.trueDarkColor(b.getPixel(0, 0))
             defaultColor = ContextCompat.getColor(
                 context,
-                DialogMainColor.getColor(isDark)
+                DialogMainColor.getColor(!isDark)
             )
             BiometricLoggerImpl.d("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${Integer.toHexString(defaultColor)}")
         } catch (e: Throwable) {
