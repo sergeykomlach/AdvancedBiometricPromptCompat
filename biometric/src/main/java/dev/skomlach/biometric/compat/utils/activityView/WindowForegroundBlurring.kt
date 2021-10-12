@@ -82,6 +82,11 @@ class WindowForegroundBlurring(
     }
 
     init {
+        val isDark = DarkLightThemes.isNightMode(compatBuilder.context)
+        defaultColor = ContextCompat.getColor(
+            context,
+            DialogMainColor.getColor(isDark)
+        )
         for (i in 0 until parentView.childCount) {
             val v = parentView.getChildAt(i)
             if (v is ViewGroup) {
@@ -269,7 +274,7 @@ class WindowForegroundBlurring(
             val isDark = ColorUtil.trueDarkColor(b.getPixel(0, 0))
             defaultColor = ContextCompat.getColor(
                 context,
-                DialogMainColor.getColor(!isDark)
+                DialogMainColor.getColor(isDark)
             )
             BiometricLoggerImpl.d("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${Integer.toHexString(defaultColor)}")
         } catch (e: Throwable) {
