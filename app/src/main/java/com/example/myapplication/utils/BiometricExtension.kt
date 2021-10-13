@@ -41,10 +41,10 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         biometricAuthRequest,
         requireActivity()
     )
-        .setTitle("Biometric for Fragment")
-        .setSubtitle("Biometric Subtitle")
-        .setDescription("BlaBlablabla Some very long text BlaBlablabla\n and more text and more and more and more")
-        .setNegativeButton("Cancel", null)
+        .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .setNegativeButton("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more", null)
         .build()
 
     BiometricLoggerImpl.e("CheckBiometric.isEnrollChanged -  ${BiometricManagerCompat.isBiometricEnrollChanged(biometricAuthRequest)}")
