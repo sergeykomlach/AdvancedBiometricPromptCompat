@@ -49,6 +49,7 @@ import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
+import dev.skomlach.biometric.compat.utils.TruncatedTextFix
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -231,7 +232,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val startTime = System.currentTimeMillis()
         var timeout = false
         ExecutorHelper.INSTANCE.startOnBackground {
-            while (isDeviceInfoCheckInProgress || !isInit) {
+            while (!builder.isTruncateChecked || isDeviceInfoCheckInProgress || !isInit) {
                 timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
                 if(timeout) {
                     break
@@ -527,6 +528,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         @ColorInt
         var colorStatusBar: Int = Color.TRANSPARENT
+        var isTruncateChecked = false
+        private set
         init {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 this.colorNavBar = context.window.navigationBarColor
@@ -600,6 +603,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun build(): BiometricPromptCompat {
+            TruncatedTextFix.recalculateTexts(this, object : TruncatedTextFix.OnTruncateChecked{
+                override fun onDone() {
+                    isTruncateChecked = true
+                }
+            })
             requireNotNull(title) { "You should set a title for BiometricPrompt." }
             requireNotNull(negativeButtonText) { "You should set a negativeButtonText for BiometricPrompt." }
             return BiometricPromptCompat(this)
