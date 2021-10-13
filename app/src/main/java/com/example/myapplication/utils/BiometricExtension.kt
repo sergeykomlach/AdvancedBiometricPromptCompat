@@ -42,6 +42,8 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         requireActivity()
     )
         .setTitle("Biometric for Fragment")
+        .setSubtitle("Biometric Subtitle")
+        .setDescription("BlaBlablabla Some very long text BlaBlablabla\n and more text and more and more and more")
         .setNegativeButton("Cancel", null)
         .build()
 

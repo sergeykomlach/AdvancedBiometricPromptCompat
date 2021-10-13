@@ -101,6 +101,9 @@ object StatusBarTools {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 window.navigationBarDividerColor = dividerColor
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = ColorUtil.colorDistance(color, Color.TRANSPARENT) <= 0.1
+            }
         } catch (e: Throwable) {
             e(e)
         }
@@ -127,6 +130,9 @@ object StatusBarTools {
             }
             if (Build.VERSION.SDK_INT >= 21) {
                 window.statusBarColor = color
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isStatusBarContrastEnforced = ColorUtil.colorDistance(color, Color.TRANSPARENT) <= 0.1
             }
         } catch (e: Throwable) {
             e(e)
