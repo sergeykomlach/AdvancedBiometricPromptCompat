@@ -123,6 +123,20 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                                   }
                               }
                           }
+                          is IntArray -> {
+                              for (i in result) {
+                                  e("$name: Int ids $i")
+                                  ids.add(getUniqueId(i))
+                              }
+
+                          }
+                          is LongArray -> {
+                              for (i in result) {
+                                  e("$name: Long ids $i")
+                                  ids.add(getUniqueId(i))
+                              }
+
+                          }
                           is Array<*> -> {
                               for (i in result)
                                   i?.let {
@@ -139,7 +153,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                       method?.isAccessible = false
               }
           } catch (e: Throwable) {
-              e(e)
+              e("$name", e)
           }
           return ids.filterNotNull()
       }
@@ -182,7 +196,8 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
       private fun getUniqueId(result: Any): String? {
           if (result is Int)
               return "$result"
-
+          if (result is Long)
+              return "$result"
           if (result is String)
               return result
 
@@ -213,7 +228,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
               if (s.isNotEmpty())
                   return s
           } catch (e: Throwable) {
-              e(e)
+              e("$name", e)
           }
           return null
       }
