@@ -292,7 +292,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
         } else {
-            val delayMillis = 1500
+            val delayMillis  = 1500L
             val shortDelayMillis = builder.context.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
             val successList = mutableSetOf<BiometricType>()
             BiometricAuthentication.authenticate(
