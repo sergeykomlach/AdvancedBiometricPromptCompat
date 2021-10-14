@@ -134,7 +134,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             for(module in builder.primaryAvailableTypes) {
                                 IconStateHelper.errorType(module)
                             }
-                           dialog?.onFailure(
+                            dialog?.onFailure(
                                 failureReason == AuthenticationFailureReason.LOCKED_OUT)
                             authenticate(callback)
                         }
@@ -199,21 +199,21 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun authenticate(cbk: BiometricPromptCompat.Result?) {
-            d("BiometricPromptApi28Impl.authenticate():")
-            callback = cbk
-            if (DevicesWithKnownBugs.isMissedBiometricUI) {
-                //1) LG G8 do not have BiometricPrompt UI
-                //2) One Plus 6T with InScreen fingerprint sensor
-                    dialog = BiometricPromptCompatDialogImpl(
-                    builder,
-                    this@BiometricPromptApi28Impl,
-                     isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
-                )
-                dialog?.showDialog()
-            } else {
-                startAuth()
-            }
-            onUiOpened()
+        d("BiometricPromptApi28Impl.authenticate():")
+        callback = cbk
+        if (DevicesWithKnownBugs.isMissedBiometricUI) {
+            //1) LG G8 do not have BiometricPrompt UI
+            //2) One Plus 6T with InScreen fingerprint sensor
+            dialog = BiometricPromptCompatDialogImpl(
+                builder,
+                this@BiometricPromptApi28Impl,
+                isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
+            )
+            dialog?.showDialog()
+        } else {
+            startAuth()
+        }
+        onUiOpened()
     }
 
     override fun cancelAuthenticateBecauseOnPause(): Boolean {
@@ -292,7 +292,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
         } else {
-            val delay = TimeUnit.SECONDS.toMillis(1)
+            val delayMillis  = 1500L
+            val shortDelayMillis = builder.context.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
             val successList = mutableSetOf<BiometricType>()
             BiometricAuthentication.authenticate(
                 null,
@@ -316,7 +317,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                 }
             )
-            ExecutorHelper.INSTANCE.handler.postDelayed({
+            val flag = AtomicBoolean(false)
+            val runnable = Runnable{
+                flag.set(true)
                 //Flow for Samsung devices
                 BiometricAuthentication.cancelAuthentication()
 
@@ -325,7 +328,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     ExecutorHelper.INSTANCE.handler.postDelayed({
                         cancelAuthenticate()
                         callback?.onSucceeded(successList)
-                    }, delay)
+                    }, shortDelayMillis)
                 } else
                 //general case
                 {
@@ -334,7 +337,21 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                 }
 
-            }, delay)
+            }
+            val resultCheckRunnable = object : Runnable{
+                override fun run() {
+                    if(!flag.get()) {
+                        if (successList.isNotEmpty()) {
+                            ExecutorHelper.INSTANCE.handler.removeCallbacks(runnable)
+                            runnable.run()
+                        } else {
+                            ExecutorHelper.INSTANCE.handler.postDelayed(this, shortDelayMillis)
+                        }
+                    }
+                }
+            }
+            ExecutorHelper.INSTANCE.handler.postDelayed(runnable, delayMillis)
+            ExecutorHelper.INSTANCE.handler.postDelayed(resultCheckRunnable, shortDelayMillis)
         }
     }
 
