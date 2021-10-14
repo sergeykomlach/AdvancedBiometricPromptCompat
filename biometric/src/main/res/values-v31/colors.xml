@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
@@ -18,17 +18,6 @@
   ~   limitations under the License.
   -->
 
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/black" />
-    <corners
-            android:bottomLeftRadius="8dp"
-            android:bottomRightRadius="8dp"
-            android:topLeftRadius="8dp"
-            android:topRightRadius="8dp" />
-    <padding
-            android:bottom="0dp"
-            android:left="0dp"
-            android:right="0dp"
-            android:top="0dp" />
-
-</shape>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="material_blue_500">@color/material_deep_teal_500</color>
+</resources>

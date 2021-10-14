@@ -305,7 +305,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.context.window,
                             ContextCompat.getColor(builder.context, getDialogMainColor()),
-                            ContextCompat.getColor(builder.context, android.R.color.darker_gray),
+                            ContextCompat.getColor(builder.context, R.color.darker_gray),
                             builder.colorStatusBar
                         )
                     }

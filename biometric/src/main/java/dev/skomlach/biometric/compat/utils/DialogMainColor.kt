@@ -26,7 +26,7 @@ object DialogMainColor {
     @ColorRes
     fun getColor(isNightMode : Boolean): Int {
         return if (isNightMode) {
-            android.R.color.black
+            R.color.black
         } else {
             R.color.material_grey_50
         }
