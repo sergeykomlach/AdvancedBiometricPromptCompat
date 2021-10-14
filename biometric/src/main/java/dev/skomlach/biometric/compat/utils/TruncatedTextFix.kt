@@ -26,6 +26,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicInteger
 
 /*
@@ -33,11 +34,19 @@ import java.util.concurrent.atomic.AtomicInteger
 * */
 object TruncatedTextFix {
     //Magic constants
-    private const val TITLE_SHIFT = 7
-    private const val SUBTITLE_SHIFT = 1
-    private const val DESCRIPTION_SHIFT = -6
-    private const val NEGATIVE_BUTTON_SHIFT = 4
+    private var TITLE_SHIFT = 7
+    private var SUBTITLE_SHIFT = 1
+    private var DESCRIPTION_SHIFT = 2
+    private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
+    init {
+        //Title and description should be fixed a bit for Android 12
+        if(Utils.isAtLeastS){
+            TITLE_SHIFT = 1
+            DESCRIPTION_SHIFT = 0
+        }
+
+    }
 
     interface OnTruncateChecked {
         fun onDone()

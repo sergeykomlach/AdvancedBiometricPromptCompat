@@ -88,7 +88,7 @@ class BiometricPromptCompatDialogImpl(
                     StatusBarTools.setNavBarAndStatusBarColors(
                         it,
                         ContextCompat.getColor(compatBuilder.context, DialogMainColor.getColor(isNightMode)),
-                        ContextCompat.getColor(compatBuilder.context, android.R.color.darker_gray),
+                        ContextCompat.getColor(compatBuilder.context, R.color.darker_gray),
                         compatBuilder.colorStatusBar
                     )
 

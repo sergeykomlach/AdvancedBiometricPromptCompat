@@ -20,7 +20,7 @@
 
 <resources>
 
-    <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault">
+    <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault.DayNight">
         <item name="android:windowMinWidthMajor">75%</item>
         <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowActionBar">false</item>
