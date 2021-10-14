@@ -26,6 +26,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -142,36 +143,42 @@ object TruncatedTextFix {
 
             vto.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
-                    if (tv.layout == null)
-                        return
-                    if (tv.text == it) {
-                        if (!isTextTruncated(tv)) {
-                            callback.invoke(s.toString())
-                            if(vto.isAlive)
-                            vto.removeOnGlobalLayoutListener(this)
-                        } else {
+                    try {
+                        if (tv.layout == null)
+                            return
+                        if (tv.text == it) {
+                            if (!isTextTruncated(tv)) {
+                                callback.invoke(s.toString())
+                                if (vto.isAlive)
+                                    vto.removeOnGlobalLayoutListener(this)
+                            } else {
+                                tv.text = it.substring(0, mid)
+                            }
+                            return
+                        }
+                        if (low <= high) {
+                            if (isTextTruncated(tv)) {
+                                high = mid - 1
+                            } else {
+                                low = mid + 1
+                            }
+                            mid = (low + high) / 2
                             tv.text = it.substring(0, mid)
-                        }
-                        return
-                    }
-                    if (low <= high) {
-                        if (isTextTruncated(tv)) {
-                            high = mid - 1
                         } else {
-                            low = mid + 1
+
+                            val str = it.substring(
+                                0,
+                                mid - FINALIZED_STRING.length - truncateFromEnd
+                            ) + FINALIZED_STRING
+                            callback.invoke(str)
+
+                            if (vto.isAlive)
+                                vto.removeOnGlobalLayoutListener(this)
                         }
-                        mid = (low + high) / 2
-                        tv.text = it.substring(0, mid)
-                    } else {
-
-                        val str = it.substring(
-                            0,
-                            mid - FINALIZED_STRING.length - truncateFromEnd
-                        ) + FINALIZED_STRING
-                        callback.invoke(str)
-
-                        if(vto.isAlive)
-                        vto.removeOnGlobalLayoutListener(this)
+                    } catch (e : Throwable){
+                        if (vto.isAlive)
+                            vto.removeOnGlobalLayoutListener(this)
+                        BiometricLoggerImpl.e(e)
                     }
                 }
             })
