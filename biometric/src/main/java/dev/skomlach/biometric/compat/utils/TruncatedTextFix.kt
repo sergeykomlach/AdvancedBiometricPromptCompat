@@ -147,6 +147,7 @@ object TruncatedTextFix {
                     if (tv.text == it) {
                         if (!isTextTruncated(tv)) {
                             callback.invoke(s.toString())
+                            if(vto.isAlive)
                             vto.removeOnGlobalLayoutListener(this)
                         } else {
                             tv.text = it.substring(0, mid)
@@ -169,6 +170,7 @@ object TruncatedTextFix {
                         ) + FINALIZED_STRING
                         callback.invoke(str)
 
+                        if(vto.isAlive)
                         vto.removeOnGlobalLayoutListener(this)
                     }
                 }
