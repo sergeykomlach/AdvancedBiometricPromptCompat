@@ -36,7 +36,7 @@ object TruncatedTextFix {
     //Magic constants
     private var TITLE_SHIFT = 7
     private var SUBTITLE_SHIFT = 1
-    private var DESCRIPTION_SHIFT = -6
+    private var DESCRIPTION_SHIFT = 2
     private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
     init {
