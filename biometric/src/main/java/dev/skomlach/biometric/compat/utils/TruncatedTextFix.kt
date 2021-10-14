@@ -176,6 +176,7 @@ object TruncatedTextFix {
                                 vto.removeOnGlobalLayoutListener(this)
                         }
                     } catch (e : Throwable){
+                        callback.invoke(s.toString())
                         if (vto.isAlive)
                             vto.removeOnGlobalLayoutListener(this)
                         BiometricLoggerImpl.e(e)
