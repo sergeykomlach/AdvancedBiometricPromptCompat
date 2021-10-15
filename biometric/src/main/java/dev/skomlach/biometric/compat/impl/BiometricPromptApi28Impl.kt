@@ -275,7 +275,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             it != BiometricType.BIOMETRIC_FINGERPRINT && it != BiometricType.BIOMETRIC_ANY
         }
         val isSamsungWorkaroundRequired =
-            DevicesWithKnownBugs.isSamsung && candidates.size > 1
+            DevicesWithKnownBugs.isSamsung && candidates.isNotEmpty()
 
         if (!isSamsungWorkaroundRequired) {
             if (!hasSecondaryFinished()) {
