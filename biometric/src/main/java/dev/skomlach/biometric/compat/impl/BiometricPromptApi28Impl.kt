@@ -19,12 +19,17 @@
 
 package dev.skomlach.biometric.compat.impl
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.KeyProperties
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorInt
+import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import androidx.biometric.BiometricFragment
 import androidx.biometric.BiometricManager
@@ -44,15 +49,20 @@ import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.isAtLeastR
+import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
@@ -363,7 +373,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         ExecutorHelper.INSTANCE.executor,
         object : BiometricPrompt.AuthenticationCallback() {}
     )){
-        biometricPrompt.authenticate(biometricPromptInfo)
+        //Should force to Fingerprint-only
+        if(builder.primaryAvailableTypes.size == 1 &&  builder.primaryAvailableTypes.toMutableList()[0] == BiometricType.BIOMETRIC_FINGERPRINT){
+            biometricPrompt.authenticate(biometricPromptInfo, cryptoObject)
+        }
+        else {
+            biometricPrompt.authenticate(biometricPromptInfo)
+        }
         //fallback - sometimes we not able to cancel BiometricPrompt properly
         try {
             val m = BiometricPrompt::class.java.declaredMethods.first {
@@ -544,4 +560,62 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             checkAuthResultForSecondary(module, AuthResult.AuthResultState.FATAL_ERROR, failureReason)
         }
     }
+
+    //====================================================================================
+    //region Dummy crypto object that is used just to block Face, Iris scan
+    //====================================================================================
+    private val ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM
+    private val ENCRYPTION_PADDING = KeyProperties.ENCRYPTION_PADDING_NONE
+    private val ENCRYPTION_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
+    private val KEY_SIZE = 128
+    /**
+     * Crypto object requires STRONG biometric methods, and currently Android considers only
+     * FingerPrint auth is STRONG enough. Therefore, providing a crypto object while calling
+     * [androidx.biometric.BiometricPrompt.authenticate] will block Face and Iris Scan methods
+     */
+    private val cryptoObject by lazy {
+        getDummyCryptoObject()
+    }
+    @SuppressLint("NewApi")
+    private fun getDummyCryptoObject(): BiometricPrompt.CryptoObject {
+        val transformation = "$ENCRYPTION_ALGORITHM/$ENCRYPTION_BLOCK_MODE/$ENCRYPTION_PADDING"
+        val cipher = Cipher.getInstance(transformation)
+        var secKey = getOrCreateSecretKey(false)
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, secKey)
+        }
+        catch (e: KeyPermanentlyInvalidatedException) {
+            e.printStackTrace()
+            secKey = getOrCreateSecretKey(true)
+            cipher.init(Cipher.ENCRYPT_MODE, secKey)
+        }
+        catch (e: Exception) {
+            e(e, "BiometricPromptApi28Impl")
+        }
+        return BiometricPrompt.CryptoObject(cipher)
+    }
+
+    private fun getOrCreateSecretKey(mustCreateNew: Boolean): SecretKey {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+        if (!mustCreateNew) {
+            keyStore.getKey("dummyKey", null)?.let { return it as SecretKey }
+        }
+
+        val paramsBuilder = KeyGenParameterSpec.Builder("dummyKey",
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+        paramsBuilder.apply {
+            setBlockModes(ENCRYPTION_BLOCK_MODE)
+            setEncryptionPaddings(ENCRYPTION_PADDING)
+            setKeySize(KEY_SIZE)
+            setUserAuthenticationRequired(true)
+        }
+
+        val keyGenParams = paramsBuilder.build()
+        val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,
+            "AndroidKeyStore")
+        keyGenerator.init(keyGenParams)
+        return keyGenerator.generateKey()
+    }
+    //endregion
 }
