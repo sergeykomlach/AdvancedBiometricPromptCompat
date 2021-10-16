@@ -20,11 +20,10 @@
 package com.example.myapplication
 
 import android.app.ProgressDialog
-import android.content.ClipboardManager
-import android.content.Context
 import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
@@ -36,15 +35,18 @@ import com.example.myapplication.devtools.Scan4Apis
 import com.example.myapplication.utils.MailTo
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
+    private var baseFlags = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        baseFlags = window.decorView.systemUiVisibility
 //        if (secure) {
             //prevent screen capturing
 //            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -99,8 +101,23 @@ class MainActivity : AppCompatActivity() {
 
             scanTask.execute()
         }
-        val color =  if(DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
+        val color = if (DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
         StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateFullScreen()
+    }
+
+    fun updateFullScreen() {
+        if (SharedPreferenceProvider.getCryptoPreferences("fullscreen")
+                .getBoolean("checked", false)
+        )
+            window.decorView.systemUiVisibility =
+                baseFlags or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+        else
+            window.decorView.systemUiVisibility = baseFlags
     }
 
     fun showDialog() {
