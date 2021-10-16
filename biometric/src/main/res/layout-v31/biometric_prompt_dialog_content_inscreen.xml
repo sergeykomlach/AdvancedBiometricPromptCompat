@@ -163,8 +163,8 @@
                         android:layout_height="wrap_content"
                         android:padding="0dp"
                         android:gravity="center"
-                        android:textAllCaps="true"
-                        android:textColor="@color/material_deep_teal_500"
+                        android:textAllCaps="false"
+                        android:textColor="@color/material_blue_500"
                         tools:text="Use password"
                         />
             </LinearLayout>
