@@ -33,12 +33,18 @@
             android:layout_centerInParent="true"
             android:gravity="center"
             />
+    <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/checkbox"
+            android:text="Fullscreen"
+            android:layout_below="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     <LinearLayout
             android:id="@+id/buttons_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/buttons"
-            android:layout_below="@+id/text"
+            android:layout_below="@+id/checkbox"
             android:orientation="vertical"
             />
     <LinearLayout

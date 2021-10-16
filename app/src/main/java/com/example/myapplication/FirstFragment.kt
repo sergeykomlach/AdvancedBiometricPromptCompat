@@ -34,6 +34,7 @@ import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -67,6 +68,12 @@ class FirstFragment : Fragment() {
             })
         } else {
             fillList(inflater, binding.buttonsList)
+        }
+        binding.checkbox.isChecked = SharedPreferenceProvider.getCryptoPreferences("fullscreen").getBoolean("checked", false)
+
+        binding.checkbox.setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getCryptoPreferences("fullscreen").edit().putBoolean("checked", isChecked).apply()
+            (activity as MainActivity).updateFullScreen()
         }
         binding.buttonFirst.setOnClickListener {
             NavHostFragment.findNavController(this@FirstFragment)
