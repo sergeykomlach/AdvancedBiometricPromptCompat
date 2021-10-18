@@ -255,15 +255,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private fun startAuth(callbackOuter: Result) {
         if(isActivityFinished(builder.context)){
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
-            callbackOuter.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+            callbackOuter.onCanceled()
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
-        val activityViewWatcher = ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback{
-            override fun onCloseBiometric() {
-                cancelAuthenticate()
-            }
-        })
+        val activityViewWatcher = try {
+            ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
+                override fun onCloseBiometric() {
+                    cancelAuthenticate()
+                }
+            })
+        } catch (e: Throwable) {
+            null
+        }
+
+        if (activityViewWatcher == null) {
+            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause no active windows")
+            callbackOuter.onCanceled()
+            return
+        }
 
         val callback = object : Result {
 
@@ -368,7 +378,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
         if(isActivityFinished(builder.context)){
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
-            callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+            callback.onCanceled()
             return
         }
         try {
