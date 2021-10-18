@@ -12062,6 +12062,11 @@
   {
    "device": "Bmobile_BL51_MV12",
    "name": "BL51",
+   "model": "BL51"
+  },
+  {
+   "device": "Bmobile_BL51_MV12",
+   "name": "BL51",
    "model": "BL51_MV12"
   },
   {
@@ -32450,6 +32455,11 @@
  ],
  "FCNT": [
   {
+   "device": "SD01",
+   "name": "SD01",
+   "model": "SD01"
+  },
+  {
    "device": "BZ02",
    "name": "arrows BZ02",
    "model": "BZ02"
@@ -48613,7 +48623,7 @@
   },
   {
    "device": "CT45P",
-   "name": "CT45P",
+   "name": "CT45XP",
    "model": "CT45P"
   },
   {
@@ -59453,6 +59463,11 @@
    "model": "Infinix PR652B"
   },
   {
+   "device": "Infinix-X6812B",
+   "name": "Infinix HOT 11S NFC",
+   "model": "Infinix X6812B"
+  },
+  {
    "device": "Infinix-X623",
    "name": "Infinix HOT 6X",
    "model": "Infinix X623"
@@ -64457,6 +64472,11 @@
    "device": "Better10",
    "name": "Better10",
    "model": "Better10"
+  },
+  {
+   "device": "R10A",
+   "name": "R10",
+   "model": "R10"
   }
  ],
  "KIRISUN": [
@@ -83980,6 +84000,11 @@
  ],
  "Masstel": [
   {
+   "device": "Masstel_Hapi_15",
+   "name": "Hipi 15",
+   "model": "Masstel Hapi 15"
+  },
+  {
    "device": "Masstel_Juno_Q6",
    "name": "Juno_Q6",
    "model": "Juno Q6"
@@ -97074,6 +97099,11 @@
    "model": "N5002L"
   },
   {
+   "device": "S6505LA",
+   "name": "B10",
+   "model": "S6505L"
+  },
+  {
    "device": "S6701LA",
    "name": "B15",
    "model": "S6701L"
@@ -99833,6 +99863,11 @@
    "model": "CPH2263"
   },
   {
+   "device": "OP4EB7",
+   "name": "OPPO A95 5G",
+   "model": "PELM00"
+  },
+  {
    "device": "OP4F1BL1",
    "name": "OPPO Find X3 Lite 5G",
    "model": "CPH2145"
@@ -99861,11 +99896,6 @@
    "device": "OP4EA7",
    "name": "OPPO Reno5 Pro+ 5G",
    "model": "PDRM00"
-  },
-  {
-   "device": "OP4EB7",
-   "name": "OPPO Reno5 Z",
-   "model": "PELM00"
   },
   {
    "device": "OP4F4DL1",
@@ -111500,6 +111530,11 @@
   }
  ],
  "Realme": [
+  {
+   "device": "YYT",
+   "name": "4K Google TV Stick",
+   "model": "4K Google TV Stick"
+  },
   {
    "device": "gangbyeon",
    "name": "50F1",
@@ -128510,6 +128545,11 @@
    "device": "zodiac",
    "name": "三星W20",
    "model": "SM-W2020"
+  },
+  {
+   "device": "v2q",
+   "name": "三星W22 5G",
+   "model": "SM-W2022"
   },
   {
    "device": "venenoltechn",
@@ -146893,6 +146933,11 @@
    "model": "P20HD_EEA"
   },
   {
+   "device": "P20HD_Pro_ROW",
+   "name": "P20HD_Pro_ROW",
+   "model": "P20HD"
+  },
+  {
    "device": "P20HD_ROW",
    "name": "P20HD_ROW",
    "model": "P20HD_ROW"
@@ -146981,6 +147026,11 @@
    "device": "T40",
    "name": "T40",
    "model": "TLA001"
+  },
+  {
+   "device": "T40Pro_EEA",
+   "name": "T40Pro_EEA",
+   "model": "T40Pro_EEA"
   },
   {
    "device": "T40_Plus_EEA",
@@ -151712,6 +151762,11 @@
    "model": "RP01"
   },
   {
+   "device": "BISON_X10_Pro",
+   "name": "BISON X10 Pro EEA",
+   "model": "RP01"
+  },
+  {
    "device": "BISON_GT",
    "name": "BISON_GT",
    "model": "BISON GT"
@@ -151780,6 +151835,11 @@
    "device": "Power_5",
    "name": "Power 5 EEA",
    "model": "Power 5"
+  },
+  {
+   "device": "Power_5S",
+   "name": "Power 5S",
+   "model": "MP02"
   },
   {
    "device": "Power_3",
@@ -152052,6 +152112,16 @@
    "device": "EA510",
    "name": "EA510",
    "model": "EA510"
+  },
+  {
+   "device": "EA520",
+   "name": "EA520",
+   "model": "EA520"
+  },
+  {
+   "device": "EA520_US",
+   "name": "EA520_US",
+   "model": "EA520_US"
   },
   {
    "device": "EA630",
@@ -159578,6 +159648,11 @@
    "model": "W-K211-TVM"
   },
   {
+   "device": "W-V770",
+   "name": "T3",
+   "model": "W-V770"
+  },
+  {
    "device": "P4901AC",
    "name": "TOMMY",
    "model": "TOMMY"
@@ -160011,6 +160086,11 @@
    "device": "W-K521",
    "name": "Y52",
    "model": "W-K521-EEA"
+  },
+  {
+   "device": "W-K521",
+   "name": "Y52",
+   "model": "W-K521-OPE"
   },
   {
    "device": "W-K510",
