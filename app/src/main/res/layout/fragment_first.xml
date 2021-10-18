@@ -71,6 +71,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/dialog"
                 />
+        <Button
+                android:layout_margin="6dp"
+                android:id="@+id/button_third"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/leak_canary_display_activity_label"
+                />
     </LinearLayout>
 
 </RelativeLayout>
