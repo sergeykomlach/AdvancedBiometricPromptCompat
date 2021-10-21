@@ -25,7 +25,7 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Build
 import android.text.TextUtils
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
 import dev.skomlach.common.contextprovider.AndroidContext.locale
 import dev.skomlach.common.logging.LogCat
@@ -37,7 +37,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
     * For some reasons, AndroidX Security throws exception where not should.
     * This is a "soft" workaround for this bug.
     * Bug applicable at least for androidx.security:security-crypto:1.1.0-alpha02
-    *
+    * 
     * I believe that issue related to the Android KeyStore internal code -
     *  perhaps some data remains in keystore after app delete or "Clear app data" call
 
@@ -67,15 +67,16 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
         var pref: SharedPreferences? = null
         //AndroidX Security impl.
         //may produce exceptions on some devices (Huawei)
-        if (!forceToFallback) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !forceToFallback) {
             try {
                 setLocale(context, Locale.US)
-                val masterKey = MasterKey.Builder(context).setRequestStrongBoxBacked(true).build()
+                val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
+                val masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
                 pref = EncryptedSharedPreferences
                     .create(
-                        context,
                         name,
-                        masterKey,
+                        masterKeyAlias,
+                        context,
                         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
                     )
