@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
+import leakcanary.LeakCanary
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -81,6 +82,9 @@ class FirstFragment : Fragment() {
         }
         binding.buttonSecond.setOnClickListener {
             (activity as MainActivity).showDialog()
+        }
+        binding.buttonThird.setOnClickListener {
+            activity?.startActivity(LeakCanary.newLeakDisplayActivityIntent())
         }
         return binding.root
     }

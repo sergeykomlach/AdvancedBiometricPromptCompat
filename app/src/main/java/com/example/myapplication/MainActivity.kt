@@ -23,9 +23,11 @@ import android.app.ProgressDialog
 import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -42,11 +44,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
-    private var baseFlags = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        baseFlags = window.decorView.systemUiVisibility
 //        if (secure) {
             //prevent screen capturing
 //            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -105,19 +104,37 @@ class MainActivity : AppCompatActivity() {
         StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateFullScreen()
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus)
+            updateFullScreen()
     }
+
 
     fun updateFullScreen() {
         if (SharedPreferenceProvider.getCryptoPreferences("fullscreen")
                 .getBoolean("checked", false)
         )
-            window.decorView.systemUiVisibility =
-                baseFlags or View.SYSTEM_UI_FLAG_FULLSCREEN or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            hideSystemUI()
         else
-            window.decorView.systemUiVisibility = baseFlags
+            showSystemUI()
+    }
+
+    private fun hideSystemUI() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, binding.root).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun showSystemUI() {
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowInsetsControllerCompat(
+            window,
+            binding.root
+        ).show(WindowInsetsCompat.Type.systemBars())
     }
 
     fun showDialog() {
