@@ -25,10 +25,13 @@ Unfortunately, this simplification hides a number of problems.
 - Some manufacturers have removed/do not display the biometric UI
 - Biometric Auth solutions like Samsung Pass SDK or Meizu Fingerprint need to implement separately
 - No way to identify what types of biometric auth are available on the device.
+- 
 #### How to use BiometricPromptCompat in old devices?
+
 BiometricPromptCompat is designed to be compatible with the largest number of Android devices.
 Its interface is very close to the original `BiometricPrompt`.
 Minimal supported SDK - **Android 4.1 JellyBean (API 16)**
+
 #### Key features
 - Unified UI for all devices - starts from Android 4.1 and to Android 12. Exception: some vendors (like Huawei or Samsung) provide custom UI
 - Contains fix for devices WITHOUT system BiometricPrompt UI (like LG G8 or OnePlus 6T)
@@ -36,6 +39,7 @@ Minimal supported SDK - **Android 4.1 JellyBean (API 16)**
 - Auth in Split-Screen Mode supported
 - Wide range of supported biometrics
 #### Supported types of biometric authentication
+
 | Type | Details | Tested on
 | - | - | - |
 | BiometricPrompt API | Android 9+ |Xiaomi POCO F1|
@@ -51,6 +55,7 @@ Minimal supported SDK - **Android 4.1 JellyBean (API 16)**
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
+
 ## Screenshots:
 **Xiaomi Pocophone F1**
 <p align="center">
@@ -72,8 +77,10 @@ Minimal supported SDK - **Android 4.1 JellyBean (API 16)**
 <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px" />
 </a>
 </p>
+
 **Video from Xiaomi Pocophone F1**
 [![Watch the video](https://img.youtube.com/vi/ttHroYJlgI0/maxresdefault.jpg)](https://youtu.be/ttHroYJlgI0)
+
 ## Setup
 VERSION = [![Maven Central](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fdev%2Fskomlach%2Fbiometric%2Fmaven-metadata.xml)](https://mvnrepository.com/artifact/dev.skomlach/biometric)
 Add dependency to Gradle
@@ -82,6 +89,7 @@ dependencies {
 implementation 'dev.skomlach:biometric:${VERSION}'
 }
 ```
+
 ## Usage
 **BiometricPromptCompat API**
 ##
