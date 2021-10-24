@@ -7,9 +7,9 @@
 
 
 ## PLEASE NOTE:  
-If your project has minSDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).  
+If your project has min SDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).  
   
-If you still need advanced Biometric authentication use **Fingerpint, Face or Iris** on the wide range of devices - see doc below.  
+If you still need advanced Biometric authentication use **Fingerprint, Face or Iris** on the wide range of devices - see doc below.  
   
   
   
@@ -24,7 +24,7 @@ Advanced BiometricPromptCompat
   
 This is a new API that declares that the system takes care of a unified way to use different biometric identification methods - fingerprint, face, iris, etc., as well as a unified way to display the UI on all devices.  
   
-To learn more, read [BiometricPrompt Reference](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt) in Android Developers site.  
+To learn more, read [BiometricPrompt Reference](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt) on the Android Developers site.  
   
 Unfortunately, this simplification hides a number of problems.  
 - On Android 9, there is no way to simply get information about whether there is available biometric hardware and whether biometric data is enrolled. Android 10 provides BiometricManager that partially solves this problem.  
@@ -60,7 +60,7 @@ Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**
 | Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
 | Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30|
 | Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
-| Xiomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
+| Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
@@ -229,7 +229,7 @@ The device manufacturer has implemented biometric authentication via fingerprint
 
 And unfortunately, sometimes manufacturers create such implementations that it is impossible to access using any known technic.
 
-Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.
+Anyway, research and testing are required for each case, so feel free to create issues or contact directly with me.
 
   
 ## Types of Biometrics
