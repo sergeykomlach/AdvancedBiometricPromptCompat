@@ -71,7 +71,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private val biometricPrompt: BiometricPrompt
     private val restartPredicate = defaultPredicate()
     private var dialog: BiometricPromptCompatDialogImpl? = null
-    private var callback: BiometricPromptCompat.Result? = null
+    private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val authFinished: MutableMap<BiometricType?, AuthResult> = HashMap<BiometricType?, AuthResult>()
     private var biometricFragment : BiometricFragment? = null
     private val fmAuthCallback: BiometricAuthenticationListener =
@@ -210,7 +210,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         return wordtoSpan
     }
 
-    override fun authenticate(cbk: BiometricPromptCompat.Result?) {
+    override fun authenticate(cbk: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptApi28Impl.authenticate():")
         callback = cbk
         if (DevicesWithKnownBugs.isMissedBiometricUI) {

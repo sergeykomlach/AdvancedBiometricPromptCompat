@@ -217,7 +217,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         iBiometricPromptImpl
     }
 
-    fun authenticate(callbackOuter: Result) {
+    fun authenticate(callbackOuter: AuthenticationCallback) {
 
         if(isActivityFinished(builder.context)){
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
@@ -252,7 +252,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    private fun startAuth(callbackOuter: Result) {
+    private fun startAuth(callbackOuter: AuthenticationCallback) {
         if(isActivityFinished(builder.context)){
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
             callbackOuter.onCanceled()
@@ -275,7 +275,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
 
-        val callback = object : Result {
+        val callback = object : AuthenticationCallback {
 
             var isOpened = false
             override fun onSucceeded(confirmed : Set<BiometricType>) {
@@ -374,7 +374,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    private fun authenticateInternal(callback: Result) {
+    private fun authenticateInternal(callback: AuthenticationCallback) {
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
         if(isActivityFinished(builder.context)){
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
@@ -433,7 +433,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
        return DialogMainColor.getColor(impl.isNightMode)
     }
 
-    interface Result {
+    interface AuthenticationCallback {
         @MainThread
         fun onSucceeded(confirmed : Set<BiometricType>)
 

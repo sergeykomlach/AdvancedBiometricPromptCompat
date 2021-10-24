@@ -36,7 +36,6 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInst
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
@@ -50,14 +49,14 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
-    private var callback: BiometricPromptCompat.Result? = null
+    private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val isFingerprint = AtomicBoolean(false)
     private val authFinished: MutableMap<BiometricType?, AuthResult> = HashMap<BiometricType?, AuthResult>()
     init {
         isFingerprint.set(builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
     }
 
-    override fun authenticate(callback: BiometricPromptCompat.Result?) {
+    override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptGenericImpl.authenticate():")
         this.callback = callback
         val doNotShowDialog = isFingerprint.get() && isHideDialogInstantly

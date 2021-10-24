@@ -191,7 +191,7 @@ BiometricPromptCompat.Builder builder =
    
  **BiometricPromptCompat:**  
     
-  `void authenticate(BiometricPromptCompat.Result resultCallback)` - start biometric auth workflow  
+  `void authenticate(BiometricPromptCompat.AuthenticationCallback resultCallback)` - start biometric auth workflow  
   
  `void cancelAuthenticate()` - cancel active biometric auth workflow  
    
@@ -201,7 +201,7 @@ Returns `false` and keep biometric auth on display if the app in Split-Screen mo
   `@ColorRes int getDialogMainColor()` - returns dialog background color  
    
   
-**BiometricPromptCompat.Result**  
+**BiometricPromptCompat.AuthenticationCallback**  
   
   `void onSucceeded(Set<BiometricType> confirmed)` - User successfully authenticated   
     
