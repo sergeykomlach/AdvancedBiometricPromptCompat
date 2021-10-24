@@ -19,7 +19,6 @@
 
 package com.example.myapplication.utils
 
-import android.graphics.Color
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.BiometricAuthRequest
@@ -50,7 +49,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
     BiometricLoggerImpl.e("CheckBiometric.isEnrollChanged -  ${BiometricManagerCompat.isBiometricEnrollChanged(biometricAuthRequest)}")
 
 
-    biometricPromptCompat.authenticate(object : BiometricPromptCompat.Result {
+    biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
         override fun onSucceeded(confirmed : Set<BiometricType>) {
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed")
             Toast.makeText(activity, "Succeeded - $confirmed", Toast.LENGTH_SHORT).show()

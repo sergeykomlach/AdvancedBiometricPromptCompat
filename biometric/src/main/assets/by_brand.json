@@ -859,6 +859,13 @@
    "model": "AT908_EEA"
   }
  ],
+ "ATILIM UNIVERSITY": [
+  {
+   "device": "ATILIM_mPAD07",
+   "name": "ATILIM_mPAD07",
+   "model": "ATILIM_mPAD07"
+  }
+ ],
  "ATM (Brazil)": [
   {
    "device": "R5",
@@ -9917,6 +9924,11 @@
    "device": "AT-E8T",
    "name": "AT-E8T",
    "model": "AT-E8T"
+  },
+  {
+   "device": "AP5702",
+   "name": "Athesi AP5702",
+   "model": "AP5702"
   },
   {
    "device": "AP5705S",
@@ -27988,6 +28000,11 @@
    "model": "N30E"
   },
   {
+   "device": "N40Plus",
+   "name": "N40Plus",
+   "model": "N40Pro"
+  },
+  {
    "device": "N40Pro",
    "name": "N40Pro",
    "model": "N40Pro"
@@ -38513,6 +38530,16 @@
    "model": "Pixel 5a"
   },
   {
+   "device": "oriole",
+   "name": "Pixel 6",
+   "model": "Pixel 6"
+  },
+  {
+   "device": "raven",
+   "name": "Pixel 6 Pro",
+   "model": "Pixel 6 Pro"
+  },
+  {
    "device": "dragon",
    "name": "Pixel C",
    "model": "Pixel C"
@@ -44086,6 +44113,11 @@
    "device": "XZPAD412LTE",
    "name": "XZPAD412LTE",
    "model": "XZPAD412LTE"
+  },
+  {
+   "device": "XZPAD414LTE",
+   "name": "XZPAD414LTE",
+   "model": "XZPAD414LTE"
   },
   {
    "device": "XZPAD470LTE",
@@ -57807,6 +57839,11 @@
    "model": "HT7WC1PBK"
   },
   {
+   "device": "HT8WB1RBK03",
+   "name": "HT8WB1RBK03",
+   "model": "HT8WB1RBK03"
+  },
+  {
    "device": "HY1_5085",
    "name": "HY1-5085",
    "model": "HY1-5085"
@@ -59709,6 +59746,16 @@
    "device": "Infinix-X693",
    "name": "Infinix NOTE 10",
    "model": "Infinix X693"
+  },
+  {
+   "device": "Infinix-X663",
+   "name": "Infinix NOTE 11",
+   "model": "Infinix X663"
+  },
+  {
+   "device": "Infinix-X663B",
+   "name": "Infinix NOTE 11",
+   "model": "Infinix X663B"
   },
   {
    "device": "Infinix-X604_sprout",
@@ -64657,6 +64704,11 @@
    "device": "R10A",
    "name": "R10",
    "model": "R10"
+  },
+  {
+   "device": "X5A",
+   "name": "X5",
+   "model": "X5"
   }
  ],
  "KIRISUN": [
@@ -85270,6 +85322,11 @@
    "model": "E1051X"
   },
   {
+   "device": "E1090X",
+   "name": "E1090X",
+   "model": "LIFETAB E1090X"
+  },
+  {
    "device": "E4502",
    "name": "E4502",
    "model": "MEDION E4502"
@@ -97759,6 +97816,13 @@
    "device": "Tab10",
    "name": "Tab10",
    "model": "Tab10"
+  }
+ ],
+ "OKSI": [
+  {
+   "device": "GEN-10",
+   "name": "GEN-10",
+   "model": "GEN-10"
   }
  ],
  "OKWU": [
@@ -147367,6 +147431,11 @@
    "model": "T40Pro_EEA"
   },
   {
+   "device": "T40Pro_ROW",
+   "name": "T40Pro_ROW",
+   "model": "T40Pro_ROW"
+  },
+  {
    "device": "T40_Plus_EEA",
    "name": "T40_Plus_EEA",
    "model": "T40_Plus_EEA"
@@ -148372,6 +148441,11 @@
    "device": "TECNO-CE9",
    "name": "TECNO CAMON 16 Premier",
    "model": "TECNO CE9"
+  },
+  {
+   "device": "TECNO-CH6h",
+   "name": "TECNO CAMON 18",
+   "model": "TECNO CH6h"
   },
   {
    "device": "TECNO-CH9",

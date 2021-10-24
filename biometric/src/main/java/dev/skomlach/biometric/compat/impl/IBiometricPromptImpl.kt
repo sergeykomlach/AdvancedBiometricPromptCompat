@@ -24,7 +24,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 interface IBiometricPromptImpl {
-    fun authenticate(callback: BiometricPromptCompat.Result?)
+    fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?)
     fun cancelAuthenticate()
     fun cancelAuthenticateBecauseOnPause(): Boolean
     val isNightMode: Boolean
