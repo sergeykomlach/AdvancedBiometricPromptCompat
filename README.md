@@ -290,8 +290,6 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 
 - Sonatype-Lift
 
-Apache License 2.0
-
 ## License
 
 Apache License 2.0
