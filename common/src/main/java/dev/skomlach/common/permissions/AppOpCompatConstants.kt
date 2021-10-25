@@ -21,7 +21,6 @@ package dev.skomlach.common.permissions
 
 import android.Manifest
 import android.os.Build.VERSION
-import android.text.TextUtils
 import androidx.core.app.AppOpsManagerCompat
 import java.util.*
 

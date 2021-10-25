@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/biometrics_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:id="@+id/biometrics_layout"
-        android:visibility="gone"
         android:padding="8dp"
+        android:visibility="gone"
         >
 
     <LinearLayout
@@ -23,8 +23,8 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_fingerprint"
+                app:tint="@color/white"
                 />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -32,8 +32,8 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_face"
+                app:tint="@color/white"
                 />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -41,8 +41,8 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_iris"
+                app:tint="@color/white"
                 />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -50,8 +50,8 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_voice"
+                app:tint="@color/white"
                 />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -59,8 +59,8 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_heartrate"
+                app:tint="@color/white"
                 />
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -68,16 +68,17 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_palm"
+                app:tint="@color/white"
                 />
+
         <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/typing"
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:padding="4dp"
-                app:tint="@color/white"
                 app:srcCompat="@drawable/bio_ic_behavior"
+                app:tint="@color/white"
                 />
     </LinearLayout>
 

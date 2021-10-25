@@ -50,13 +50,13 @@ class FingerprintIconView @JvmOverloads constructor(
     }
 
     private var state = State.OFF
-    fun setState(state: State, type : BiometricType) {
+    fun setState(state: State, type: BiometricType) {
         setState(state, true, type)
     }
 
-    fun setState(state: State, animate: Boolean, type : BiometricType) {
+    fun setState(state: State, animate: Boolean, type: BiometricType) {
         if (state == this.state) return
-        if(type == BiometricType.BIOMETRIC_FINGERPRINT || type == BiometricType.BIOMETRIC_ANY) {
+        if (type == BiometricType.BIOMETRIC_FINGERPRINT || type == BiometricType.BIOMETRIC_ANY) {
             @DrawableRes val resId = getDrawable(this.state, state, animate)
             if (resId == 0) {
                 setImageDrawable(null)
@@ -77,7 +77,7 @@ class FingerprintIconView @JvmOverloads constructor(
                     (icon as Animatable).start()
                 }
             }
-        } else{
+        } else {
             val prevDrawable = drawable ?: ColorDrawable(Color.TRANSPARENT)
             val resId = getDrawable(this.state, state, false)
             if (resId == 0) {

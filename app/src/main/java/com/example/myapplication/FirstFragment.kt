@@ -32,7 +32,6 @@ import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentFirstBinding
 import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 import leakcanary.LeakCanary
@@ -70,10 +69,12 @@ class FirstFragment : Fragment() {
         } else {
             fillList(inflater, binding.buttonsList)
         }
-        binding.checkbox.isChecked = SharedPreferenceProvider.getCryptoPreferences("fullscreen").getBoolean("checked", false)
+        binding.checkbox.isChecked =
+            SharedPreferenceProvider.getCryptoPreferences("fullscreen").getBoolean("checked", false)
 
         binding.checkbox.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("fullscreen").edit().putBoolean("checked", isChecked).apply()
+            SharedPreferenceProvider.getCryptoPreferences("fullscreen").edit()
+                .putBoolean("checked", isChecked).apply()
             (activity as MainActivity).updateFullScreen()
         }
         binding.buttonFirst.setOnClickListener {
@@ -101,7 +102,7 @@ class FirstFragment : Fragment() {
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
             button.setOnClickListener {
-                startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type ))
+                startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type))
             }
             buttonsList.addView(container)
         }

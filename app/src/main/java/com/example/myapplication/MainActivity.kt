@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        if (secure) {
-            //prevent screen capturing
+        //prevent screen capturing
 //            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        } else {
 //            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)

@@ -26,10 +26,10 @@ import android.os.Build
 import android.view.View
 import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule
@@ -135,7 +135,7 @@ object BiometricAuthentication {
                 override fun onBiometricReady() {}
             }
             for (method in list) {
-                ExecutorHelper.INSTANCE.startOnBackground {
+                ExecutorHelper.startOnBackground {
                     e("BiometricAuthentication.check started for $method")
                     var biometricModule: BiometricModule? = null
                     try {
@@ -185,7 +185,7 @@ object BiometricAuthentication {
             }
             return ArrayList(biometricMethodListInternal)
         }
-    @JvmStatic val availableBiometricMethods: List<BiometricMethod>
+    val availableBiometricMethods: List<BiometricMethod>
         get() {
             val biometricMethodListInternal = HashSet<BiometricMethod>()
             val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
@@ -200,7 +200,7 @@ object BiometricAuthentication {
             var isLocked = availableBiometrics.isNotEmpty()
             for (method in availableBiometrics) {
                 val module = getAvailableBiometricModule(method)
-                if (module!=null && !module.isLockOut) {
+                if (module != null && !module.isLockOut) {
                     isLocked = false
                 }
             }
@@ -220,12 +220,14 @@ object BiometricAuthentication {
         }
         return false
     }
+
     fun isEnrollChanged(): Boolean {
         for (method in availableBiometrics) {
             if (getAvailableBiometricModule(method)?.isBiometricEnrollChanged == true) return true
         }
         return false
     }
+
     fun authenticate(
         targetView: View?, method: BiometricType,
         listener: BiometricAuthenticationListener
@@ -233,7 +235,7 @@ object BiometricAuthentication {
         authenticate(targetView, listOf(method), listener)
     }
 
-    @JvmStatic
+
     fun authenticate(
         targetView: View?, requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener
@@ -281,7 +283,7 @@ object BiometricAuthentication {
         }
     }
 
-    @JvmStatic
+
     fun cancelAuthentication() {
         d("BiometricAuthentication.cancelAuthentication")
         for (method in availableBiometrics) {

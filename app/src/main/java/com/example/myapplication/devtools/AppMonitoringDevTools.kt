@@ -39,14 +39,15 @@ class AppMonitoringDevTools(val app: Application) {
     private var fileObserver: FileObserver? = null
 
     private val FILE_SIZE_LIMIT = 524288
+
     init {
         try {
-            val path = try{
+            val path = try {
                 val dir = ContextCompat.getDataDir(app)
-                if(dir?.exists() == false)
+                if (dir?.exists() == false)
                     dir.mkdirs()
-                dir?.absolutePath?:app.applicationInfo.dataDir
-            } catch (e : Throwable){
+                dir?.absolutePath ?: app.applicationInfo.dataDir
+            } catch (e: Throwable) {
                 app.applicationInfo.dataDir
             }
             val allExceptAccessFlags = FileObserver.MODIFY or

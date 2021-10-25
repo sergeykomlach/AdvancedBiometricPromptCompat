@@ -23,8 +23,8 @@ android {
 }
 
 dependencies {
-    implementation project(":"+libArtifactId_common)
-    compileOnly project(":"+libArtifactId_biometric_api)
+    implementation project(":" + libArtifactId_common)
+    compileOnly project(":" + libArtifactId_biometric_api)
     implementation 'androidx.core:core-ktx:1.7.0-beta02'
     implementation 'com.google.guava:guava:31.0.1-android'
     implementation fileTree(include: ['*.jar'], dir: 'libs')

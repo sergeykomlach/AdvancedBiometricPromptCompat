@@ -40,17 +40,18 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     private var manager: FaceDetectManager? = null
 
     init {
-                manager = try {
-                    FaceDetectManager.getInstance()
-                } catch (e: Throwable) {
-                    if (DEBUG_MANAGERS)
-                        e(e, name)
-                    null
-                }
+        manager = try {
+            FaceDetectManager.getInstance()
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+            null
+        }
 
 
         listener?.initFinished(biometricMethod, this@VivoFaceUnlockModule)
     }
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {
@@ -58,27 +59,28 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
         return managers
     }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    return manager?.isFaceUnlockEnable == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                return manager?.isFaceUnlockEnable == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
             return false
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                return manager?.isFaceUnlockEnable == true && manager?.hasFaceID() == true
-            } catch (e: Throwable) {
-                e(e, name)
-            }
+        try {
+            return manager?.isFaceUnlockEnable == true && manager?.hasFaceID() == true
+        } catch (e: Throwable) {
+            e(e, name)
+        }
 
         return false
     }
@@ -90,7 +92,7 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         restartPredicate: RestartPredicate?
     ) {
         d("$name.authenticate - $biometricMethod")
-        manager?.let{
+        manager?.let {
             try {
                 val callback: FaceAuthenticationCallback =
                     AuthCallback(restartPredicate, cancellationSignal, listener)
@@ -131,22 +133,21 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 FaceDetectManager.FACE_DETECT_FAILED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
             }
-            if(restartCauseTimeout(failureReason)){
+            if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
-            }
-            else
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
                 }
-                listener?.onFailure(failureReason, tag())
-            }
         }
     }
 

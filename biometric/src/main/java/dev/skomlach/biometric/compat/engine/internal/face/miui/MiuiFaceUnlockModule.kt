@@ -68,11 +68,12 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     e(e, name)
                 manager = null
             }
-            }
-            e("MiuiFaceUnlockModule - $manager")
+        }
+        e("MiuiFaceUnlockModule - $manager")
 
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {
@@ -80,27 +81,28 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
         return managers
     }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    return manager?.isFaceFeatureSupport == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                return manager?.isFaceFeatureSupport == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
             return false
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                return manager?.isFaceFeatureSupport == true && manager?.enrolledFaces?.isNotEmpty() == true
-            } catch (e: Throwable) {
-                e(e, name)
-            }
+        try {
+            return manager?.isFaceFeatureSupport == true && manager?.enrolledFaces?.isNotEmpty() == true
+        } catch (e: Throwable) {
+            e(e, name)
+        }
 
         return false
     }
@@ -128,7 +130,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     signalObject,
                     0,
                     callback,
-                    ExecutorHelper.INSTANCE.handler,
+                    ExecutorHelper.handler,
                     TimeUnit.SECONDS.toMillis(30)
                         .toInt()
                 )
@@ -157,7 +159,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
@@ -179,23 +181,22 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED, 123456 ->                     // Don't send a cancelled message.
                     return
             }
-            if(restartCauseTimeout(failureReason)){
+            if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
-            }
-            else
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
+                    if (manager?.isReleased == false) manager?.release()
                 }
-                listener?.onFailure(failureReason, tag())
-                if (manager?.isReleased == false) manager?.release()
-            }
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {

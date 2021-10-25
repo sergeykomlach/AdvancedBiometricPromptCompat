@@ -255,7 +255,7 @@ class FaceLock(private val mContext: Context) {
                 d(TAG + (" onTransact " + mMap[code]))
 
                 // Callback may be called outside the UI thread
-                ExecutorHelper.INSTANCE.handler.post {
+                ExecutorHelper.handler.post {
                     try {
                         IFaceLockCallback::class.java.getMethod(mMap[code]).invoke(mCallback)
                     } catch (e: IllegalArgumentException) {

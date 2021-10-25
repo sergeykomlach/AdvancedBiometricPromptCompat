@@ -55,7 +55,7 @@ object RestartPredicatesImpl {
      * A predicate that will never restart after any failure.
      */
     fun neverRestart(): RestartPredicate {
-        return object: RestartPredicate {
+        return object : RestartPredicate {
             override fun invoke(reason: AuthenticationFailureReason?): Boolean {
                 return false
             }

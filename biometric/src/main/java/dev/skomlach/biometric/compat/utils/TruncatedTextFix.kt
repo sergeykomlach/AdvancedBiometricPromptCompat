@@ -40,9 +40,10 @@ object TruncatedTextFix {
     private var DESCRIPTION_SHIFT = 2
     private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
+
     init {
         //Title and description should be fixed a bit for Android 12
-        if(Utils.isAtLeastS){
+        if (Utils.isAtLeastS) {
             TITLE_SHIFT = 1
             DESCRIPTION_SHIFT = 0
         }
@@ -175,7 +176,7 @@ object TruncatedTextFix {
                             if (vto.isAlive)
                                 vto.removeOnGlobalLayoutListener(this)
                         }
-                    } catch (e : Throwable){
+                    } catch (e: Throwable) {
                         callback.invoke(s.toString())
                         if (vto.isAlive)
                             vto.removeOnGlobalLayoutListener(this)

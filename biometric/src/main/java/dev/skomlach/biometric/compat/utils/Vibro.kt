@@ -43,7 +43,7 @@ object Vibro {
         return canVibrate
     }
 
-    @JvmStatic
+
     fun start() {
         if (canVibrate()) {
             if (Build.VERSION.SDK_INT < 26)

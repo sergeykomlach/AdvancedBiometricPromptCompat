@@ -19,8 +19,10 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import android.content.*
-import android.text.TextUtils
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -42,10 +44,11 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
             }
         }
     }
+
     override fun onReceive(context: Context, intent: Intent) {
         if (!intent.action.isNullOrEmpty()) {
             d("Device unlocked or boot completed")
-            BiometricErrorLockoutPermanentFix.INSTANCE.resetBiometricSensorPermanentlyLocked()
+            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
         }
     }
 

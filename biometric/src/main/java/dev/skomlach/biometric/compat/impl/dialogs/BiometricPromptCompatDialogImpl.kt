@@ -57,6 +57,7 @@ class BiometricPromptCompatDialogImpl(
     val WHAT_RESTORE_NORMAL_STATE = 0
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
+
     init {
         promptText = getDialogTitle()
         too_many_attempts =
@@ -85,12 +86,15 @@ class BiometricPromptCompatDialogImpl(
             e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.")
             dialog.window?.let {
 
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        it,
-                        ContextCompat.getColor(compatBuilder.context, DialogMainColor.getColor(isNightMode)),
-                        ContextCompat.getColor(compatBuilder.context, R.color.darker_gray),
-                        compatBuilder.colorStatusBar
-                    )
+                StatusBarTools.setNavBarAndStatusBarColors(
+                    it,
+                    ContextCompat.getColor(
+                        compatBuilder.context,
+                        DialogMainColor.getColor(isNightMode)
+                    ),
+                    ContextCompat.getColor(compatBuilder.context, R.color.darker_gray),
+                    compatBuilder.colorStatusBar
+                )
 
             }
 
@@ -121,38 +125,57 @@ class BiometricPromptCompatDialogImpl(
             dialog.status?.text = promptText
             originalColor = dialog.status?.textColors
 
-            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, false, primaryBiometricType)
+            dialog.fingerprintIcon?.setState(
+                FingerprintIconView.State.ON,
+                false,
+                primaryBiometricType
+            )
 
             checkInScreenVisibility()
             attachWindowListeners()
             startAuth()
         }
     }
+
     private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
         private set
         get() {
             val list = mutableListOf<BiometricType>()
             if (compatBuilder.secondaryAvailableTypes.isEmpty()) {
                 for (type in compatBuilder.primaryAvailableTypes) {
-                    val request = BiometricAuthRequest(compatBuilder.biometricAuthRequest.api, type, compatBuilder.biometricAuthRequest.confirmation)
+                    val request = BiometricAuthRequest(
+                        compatBuilder.biometricAuthRequest.api,
+                        type,
+                        compatBuilder.biometricAuthRequest.confirmation
+                    )
                     if (BiometricManagerCompat.isHardwareDetected(request) &&
                         BiometricManagerCompat.hasEnrolled(request) &&
-                            !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(request))
+                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                            request
+                        )
+                    )
                         list.add(type)
                 }
             } else {
                 for (type in compatBuilder.secondaryAvailableTypes) {
-                    val request = BiometricAuthRequest(compatBuilder.biometricAuthRequest.api, type, compatBuilder.biometricAuthRequest.confirmation)
+                    val request = BiometricAuthRequest(
+                        compatBuilder.biometricAuthRequest.api,
+                        type,
+                        compatBuilder.biometricAuthRequest.confirmation
+                    )
                     if (BiometricManagerCompat.isHardwareDetected(request) &&
                         BiometricManagerCompat.hasEnrolled(request) &&
-                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(request))
+                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                            request
+                        )
+                    )
                         list.add(type)
                 }
             }
             list.removeAll(authFinishedCopy.keys)
-            list.sortWith { o1, o2 -> o1.ordinal.compareTo(o2.ordinal)}
+            list.sortWith { o1, o2 -> o1.ordinal.compareTo(o2.ordinal) }
             e("BiometricPromptGenericImpl.primaryBiometricType - $list")
-            return if(list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]
+            return if (list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]
         }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
@@ -189,12 +212,15 @@ class BiometricPromptCompatDialogImpl(
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
-                if ((field.name.contains("biometric") || field.name.contains("fingerprint")) && field.name.contains("dialog")) {
+                if ((field.name.contains("biometric") || field.name.contains("fingerprint")) && field.name.contains(
+                        "dialog"
+                    )
+                ) {
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true
                         val s = compatBuilder.context.getString(field[null] as Int)
-                        if(s.isEmpty())
+                        if (s.isEmpty())
                             throw RuntimeException("String is empty")
                         s
                     } finally {
@@ -212,9 +238,10 @@ class BiometricPromptCompatDialogImpl(
                     compatBuilder.context.getSystemService(
                         android.hardware.biometrics.BiometricManager::class.java
                     )
-                val strings = biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                val strings =
+                    biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
                 val prompt = strings.promptMessage
-                if(!prompt.isNullOrEmpty())
+                if (!prompt.isNullOrEmpty())
                     return prompt.toString()
             }
         } catch (e: Throwable) {
@@ -276,9 +303,9 @@ class BiometricPromptCompatDialogImpl(
     private fun checkInScreenVisibility() {
         if (isInScreen) {
             if (isInScreenUIHackNeeded || compatBuilder.multiWindowSupport.screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    dialog.makeInvisible()
+                dialog.makeInvisible()
             } else {
-                    dialog.makeVisible()
+                dialog.makeVisible()
             }
         }
     }
@@ -314,7 +341,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onHelp(msg: CharSequence?) {
-        ExecutorHelper.INSTANCE.handler.post {
+        ExecutorHelper.handler.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
@@ -333,7 +360,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onFailure(isLockout: Boolean) {
-        ExecutorHelper.INSTANCE.handler.post {
+        ExecutorHelper.handler.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
@@ -355,7 +382,10 @@ class BiometricPromptCompatDialogImpl(
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 WHAT_RESTORE_NORMAL_STATE -> {
-                    dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, primaryBiometricType)
+                    dialog.fingerprintIcon?.setState(
+                        FingerprintIconView.State.ON,
+                        primaryBiometricType
+                    )
                     dialog.status?.text = promptText
                     dialog.status?.setTextColor(originalColor)
                 }

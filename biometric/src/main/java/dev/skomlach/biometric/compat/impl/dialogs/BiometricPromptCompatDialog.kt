@@ -29,7 +29,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
@@ -47,7 +46,6 @@ import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
-import dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -126,12 +124,14 @@ internal class BiometricPromptCompatDialog(
         }
     }
 
-    fun makeVisible(){
+    fun makeVisible() {
         (rootView?.parent as View?)?.alpha = 1f
     }
-    fun makeInvisible(){
+
+    fun makeInvisible() {
         (rootView?.parent as View?)?.alpha = 0.01f
     }
+
     override fun dismiss() {
         if (isShowing) {
             val animation = AnimationUtils.loadAnimation(context, R.anim.move_out)
@@ -175,7 +175,7 @@ internal class BiometricPromptCompatDialog(
         (rootView?.parent as View).background = crossfader
         crossfader.startTransition(animation.duration.toInt())
         rootView?.startAnimation(animation)
-        ScreenProtection().applyProtectionInWindow(window?:return)
+        ScreenProtection().applyProtectionInWindow(window ?: return)
     }
 
     fun setWindowFocusChangedListener(listener: WindowFocusChangedListener?) {
@@ -186,88 +186,100 @@ internal class BiometricPromptCompatDialog(
     val isNightMode: Boolean
         get() = "dark_theme" == rootView?.tag
 
-    private inner class ScreenProtection{
-            //disable next features:
+    private inner class ScreenProtection {
+        //disable next features:
 
-            //Screenshots
-            //Accessibility Services
-            //Android Oreo autofill in the app
+        //Screenshots
+        //Accessibility Services
+        //Android Oreo autofill in the app
 
-            fun applyProtectionInWindow(window: Window?) {
-                try {
-                    applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
-                } catch (e: Exception) {
-                    //not sure is exception can happens, but better to track at least
-                    BiometricLoggerImpl.e(e, "ActivityContextProvider")
-                }
+        fun applyProtectionInWindow(window: Window?) {
+            try {
+                applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
+            } catch (e: Exception) {
+                //not sure is exception can happens, but better to track at least
+                BiometricLoggerImpl.e(e, "ActivityContextProvider")
             }
+        }
 
-            fun applyProtectionInView(view: View) {
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                        ViewCompat.getImportantForAutofill(view) != View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+        fun applyProtectionInView(view: View) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    ViewCompat.getImportantForAutofill(view) != View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+                ) {
+                    ViewCompat.setImportantForAutofill(
+                        view,
+                        View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+                    )
+                }
+                //Note: View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS doesn't have affect
+                //for 3rd party password managers
+                view.accessibilityDelegate = object : View.AccessibilityDelegate() {
+                    override fun sendAccessibilityEvent(host: View, eventType: Int) {
+                    }
+
+                    override fun performAccessibilityAction(
+                        host: View,
+                        action: Int,
+                        args: Bundle?
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun sendAccessibilityEventUnchecked(
+                        host: View,
+                        event: AccessibilityEvent?
                     ) {
-                        ViewCompat.setImportantForAutofill(
-                            view,
-                            View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
-                        )
                     }
-                    //Note: View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS doesn't have affect
-                    //for 3rd party password managers
-                    view.accessibilityDelegate = object : View.AccessibilityDelegate() {
-                        override fun sendAccessibilityEvent(host: View, eventType: Int) {
-                        }
-                        override fun performAccessibilityAction(
-                            host: View,
-                            action: Int,
-                            args: Bundle?
-                        ): Boolean {
-                            return false
-                        }
-                        override fun sendAccessibilityEventUnchecked(
-                            host: View,
-                            event: AccessibilityEvent?
-                        ) {
-                        }
-                        override fun dispatchPopulateAccessibilityEvent(
-                            host: View,
-                            event: AccessibilityEvent?
-                        ): Boolean {
-                            return false
-                        }
-                        override fun onPopulateAccessibilityEvent(host: View, event: AccessibilityEvent?) {
-                        }
-                        override fun onInitializeAccessibilityEvent(
-                            host: View,
-                            event: AccessibilityEvent?
-                        ) {
-                        }
-                        override fun onInitializeAccessibilityNodeInfo(
-                            host: View,
-                            info: AccessibilityNodeInfo?
-                        ) {
-                        }
-                        override fun addExtraDataToAccessibilityNodeInfo(
-                            host: View,
-                            info: AccessibilityNodeInfo, extraDataKey: String,
-                            arguments: Bundle?
-                        ) {
-                        }
-                        override fun onRequestSendAccessibilityEvent(
-                            host: ViewGroup, child: View?,
-                            event: AccessibilityEvent?
-                        ): Boolean {
-                            return false
-                        }
-                        override fun getAccessibilityNodeProvider(host: View?): AccessibilityNodeProvider? {
-                            return null
-                        }
+
+                    override fun dispatchPopulateAccessibilityEvent(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ): Boolean {
+                        return false
                     }
-                } catch (e: Exception) {
-                    //not sure is exception can happens, but better to track at least
-                    BiometricLoggerImpl.e(e, e.message)
+
+                    override fun onPopulateAccessibilityEvent(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ) {
+                    }
+
+                    override fun onInitializeAccessibilityEvent(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ) {
+                    }
+
+                    override fun onInitializeAccessibilityNodeInfo(
+                        host: View,
+                        info: AccessibilityNodeInfo?
+                    ) {
+                    }
+
+                    override fun addExtraDataToAccessibilityNodeInfo(
+                        host: View,
+                        info: AccessibilityNodeInfo, extraDataKey: String,
+                        arguments: Bundle?
+                    ) {
+                    }
+
+                    override fun onRequestSendAccessibilityEvent(
+                        host: ViewGroup, child: View?,
+                        event: AccessibilityEvent?
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun getAccessibilityNodeProvider(host: View?): AccessibilityNodeProvider? {
+                        return null
+                    }
                 }
+            } catch (e: Exception) {
+                //not sure is exception can happens, but better to track at least
+                BiometricLoggerImpl.e(e, e.message)
             }
+        }
 
     }
 }

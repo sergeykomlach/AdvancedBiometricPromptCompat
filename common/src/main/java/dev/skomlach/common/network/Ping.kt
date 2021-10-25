@@ -50,7 +50,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     private var job: Runnable? = null
     fun cancelConnectionCheckQuery() {
         job?.let {
-            ExecutorHelper.INSTANCE.handler.removeCallbacks(it)
+            ExecutorHelper.handler.removeCallbacks(it)
         }
         job = null
     }
@@ -58,16 +58,16 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     fun updateConnectionCheckQuery(delaySeconds: Long) {
         cancelConnectionCheckQuery()
         job = Runnable {
-            ExecutorHelper.INSTANCE.startOnBackground { startPing() }
+            ExecutorHelper.startOnBackground { startPing() }
         }
         job?.let {
             if (delaySeconds > 0)
-                ExecutorHelper.INSTANCE.handler.postDelayed(
+                ExecutorHelper.handler.postDelayed(
                     it,
                     TimeUnit.SECONDS.toMillis(delaySeconds)
                 )
             else
-                ExecutorHelper.INSTANCE.handler.post(it)
+                ExecutorHelper.handler.post(it)
         }
     }
 
@@ -94,7 +94,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         else
             connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
 
-        if(!hasConnection){
+        if (!hasConnection) {
             connectionStateListener.setState(false)
             return
         }

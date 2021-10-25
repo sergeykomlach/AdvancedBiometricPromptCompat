@@ -38,6 +38,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_SAMSUNG) {
     private var mSpass: Spass? = null
     private var mSpassFingerprint: SpassFingerprint? = null
+
     init {
         try {
             mSpass = Spass()
@@ -54,6 +55,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         }
         listener?.initFinished(biometricMethod, this@SamsungFingerprintModule)
     }
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         mSpassFingerprint?.let {
@@ -61,13 +63,14 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         }
         return managers
     }
+
     override fun getIds(manager: Any): List<String> {
         val ids = ArrayList<String>()
         mSpassFingerprint?.let {
-            it.registeredFingerprintUniqueID?.let {  array->
-                for(i in 0 until array.size()) {
+            it.registeredFingerprintUniqueID?.let { array ->
+                for (i in 0 until array.size()) {
                     //Sparsearray contains String
-                    (array.get(i) as? String)?.let { s->
+                    (array.get(i) as? String)?.let { s ->
                         ids.add(s)
                     }
                 }
@@ -75,29 +78,30 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         }
         return ids
     }
+
     override val isManagerAccessible: Boolean
         get() = mSpass != null && mSpassFingerprint != null
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
             return false
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                if (mSpassFingerprint?.hasRegisteredFinger() == true) {
-                    return true
-                }
-            } catch (e: Throwable) {
-                e(e, name)
+        try {
+            if (mSpassFingerprint?.hasRegisteredFinger() == true) {
+                return true
             }
+        } catch (e: Throwable) {
+            e(e, name)
+        }
 
         return false
     }
@@ -136,22 +140,21 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
                     private fun fail(reason: AuthenticationFailureReason) {
                         var failureReason: AuthenticationFailureReason? = reason
-                        if(restartCauseTimeout(failureReason)){
+                        if (restartCauseTimeout(failureReason)) {
                             authenticate(cancellationSignal, listener, restartPredicate)
-                        }
-                        else
-                        if (restartPredicate?.invoke(failureReason) == true) {
-                            listener?.onFailure(failureReason, tag())
-                            authenticate(cancellationSignal, listener, restartPredicate)
-                        } else {
-                            when (failureReason) {
-                                AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                                    lockout()
-                                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        } else
+                            if (restartPredicate?.invoke(failureReason) == true) {
+                                listener?.onFailure(failureReason, tag())
+                                authenticate(cancellationSignal, listener, restartPredicate)
+                            } else {
+                                when (failureReason) {
+                                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                                        lockout()
+                                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+                                    }
                                 }
+                                listener?.onFailure(failureReason, tag())
                             }
-                            listener?.onFailure(failureReason, tag())
-                        }
                     }
 
                     override fun onReady() {}
@@ -174,7 +177,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
     private fun cancelFingerprintRequest() {
         try {
 
-                mSpassFingerprint?.cancelIdentify()
+            mSpassFingerprint?.cancelIdentify()
 
         } catch (t: Throwable) {
             // There's no way to query if there's an active identify request,

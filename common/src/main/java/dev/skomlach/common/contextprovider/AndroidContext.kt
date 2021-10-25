@@ -53,15 +53,15 @@ object AndroidContext {
         }
         private set
 
-    @JvmStatic val appInstance: Application
+    val appInstance: Application
         get() {
-            return if(ctxRef is Application)
+            return if (ctxRef is Application)
                 ctxRef as Application
             else
                 ctxRef?.applicationContext as Application
         }
 
-    @JvmStatic val appContext: Context
+    val appContext: Context
         get() {
             ctxRef?.let {
                 fixDirAccess(it)
@@ -133,7 +133,7 @@ object AndroidContext {
         }
     }
 
-    @JvmStatic val locale: Locale
+    val locale: Locale
         get() {
             val listCompat = ConfigurationCompat.getLocales(
                 appContext.resources.configuration

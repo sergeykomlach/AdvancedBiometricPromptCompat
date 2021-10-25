@@ -19,7 +19,6 @@
 
 package dev.skomlach.common.cryptostorage
 
-import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import java.util.*

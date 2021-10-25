@@ -36,7 +36,7 @@ buildscript {
     ext.libLicenses = ['Apache-2.0']
     ext.libVCSUrl = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat.git'
 
-    
+
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
@@ -89,9 +89,9 @@ subprojects { project ->
     afterEvaluate {
         try {
             android.libraryVariants.all { v ->
-               // if (v.buildType.name == "release") {
-                    v.assemble.finalizedBy(dependencyCheckAnalyze)
-               // }
+                // if (v.buildType.name == "release") {
+                v.assemble.finalizedBy(dependencyCheckAnalyze)
+                // }
             }
         } catch (Exception ignore) {
         }

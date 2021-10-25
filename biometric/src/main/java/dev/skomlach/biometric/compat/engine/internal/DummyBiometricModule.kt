@@ -36,9 +36,11 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
     init {
         listener?.initFinished(biometricMethod, this@DummyBiometricModule)
     }
+
     override fun getManagers(): Set<Any> {
         return emptySet()
     }
+
     //BuildConfig.DEBUG;
     override val isManagerAccessible: Boolean
         get() = false //BuildConfig.DEBUG;
@@ -56,7 +58,7 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
         restartPredicate: RestartPredicate?
     ) {
         d("$name.authenticate - $biometricMethod")
-        ExecutorHelper.INSTANCE.handler.postDelayed({
+        ExecutorHelper.handler.postDelayed({
             listener?.onFailure(
                 AuthenticationFailureReason.AUTHENTICATION_FAILED,
                 biometricMethod.id

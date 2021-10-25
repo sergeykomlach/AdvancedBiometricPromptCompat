@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -25,9 +24,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@null"
+        android:orientation="vertical"
         android:padding="4dp"
         android:tag="light_theme"
-        android:orientation="vertical"
         >
 
     <LinearLayout
@@ -139,10 +138,12 @@
                         />
 
             </LinearLayout>
+
             <FrameLayout
                     android:id="@+id/auth_preview"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent"
+                    />
         </FrameLayout>
 
         <LinearLayout

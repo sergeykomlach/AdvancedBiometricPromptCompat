@@ -38,7 +38,20 @@ import java.util.regex.Pattern
 import javax.net.ssl.SSLHandshakeException
 import kotlin.collections.HashSet
 
-class DeviceInfoManager private constructor() {
+object DeviceInfoManager {
+    val agents = arrayOf(
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
+    )
+
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     fun hasFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
@@ -144,7 +157,7 @@ class DeviceInfoManager private constructor() {
                 .putString("model", deviceInfo.model)
                 .putBoolean("checked", true)
                 .apply()
-        } catch (e :Throwable){
+        } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
     }
@@ -160,7 +173,7 @@ class DeviceInfoManager private constructor() {
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
             html = getHtml(detailsLink)
-            if (html == null) return  DeviceInfo(model, null)
+            if (html == null) return DeviceInfo(model, null)
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             DeviceInfo(model, l)
@@ -176,7 +189,7 @@ class DeviceInfoManager private constructor() {
         html?.let {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
-            val rElements = body?.getElementsByAttribute("data-spec")?: Elements()
+            val rElements = body?.getElementsByAttribute("data-spec") ?: Elements()
             for (i in rElements.indices) {
                 val element = rElements[i]
                 if (element.attr("data-spec") == "sensors") {
@@ -202,7 +215,7 @@ class DeviceInfoManager private constructor() {
         html?.let {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
-            val rElements = body?.getElementsByTag("a")?:Elements()
+            val rElements = body?.getElementsByTag("a") ?: Elements()
             for (i in rElements.indices) {
                 val element = rElements[i]
                 val name = element.text()
@@ -265,31 +278,15 @@ class DeviceInfoManager private constructor() {
         fun onReady(deviceInfo: DeviceInfo?)
     }
 
-    companion object {
-        @JvmField var INSTANCE = DeviceInfoManager()
-        val agents = arrayOf(
-            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
-        )
-
-        private fun capitalize(s: String?): String {
-            if (s.isNullOrEmpty()) {
-                return ""
-            }
-            val first = s[0]
-            return if (Character.isUpperCase(first)) {
-                s
-            } else {
-                Character.toUpperCase(first).toString() + s.substring(1)
-            }
+    private fun capitalize(s: String?): String {
+        if (s.isNullOrEmpty()) {
+            return ""
+        }
+        val first = s[0]
+        return if (Character.isUpperCase(first)) {
+            s
+        } else {
+            Character.toUpperCase(first).toString() + s.substring(1)
         }
     }
 }
