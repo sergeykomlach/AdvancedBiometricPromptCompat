@@ -278,6 +278,20 @@ Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
 
 Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 
+## Code security checks
+
+- FindBugs 
+  
+- Find Security Bugs
+  
+- OWAPS dependencies check
+  
+- Snyk  
+
+- Sonatype-Lift
+
+Apache License 2.0
+
 ## License
 
 Apache License 2.0
