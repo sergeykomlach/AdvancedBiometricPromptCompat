@@ -25,7 +25,6 @@ import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 class HuaweiFaceRecognizeManager(context: Context?) {
 

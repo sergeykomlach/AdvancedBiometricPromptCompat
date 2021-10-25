@@ -27,20 +27,9 @@ import java.io.InputStreamReader
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-class LogCat private constructor() {
-
-    companion object {
-        private var INSTANCE: LogCat? = null
-        val instance: LogCat
-            get() {
-                if (INSTANCE == null) {
-                    INSTANCE = LogCat()
-                }
-                return INSTANCE!!
-            }
-    }
+object LogCat {
     private val started = AtomicBoolean(false)
-    private val handler = Handler(Looper.getMainLooper())
+    private var handler: Handler = Handler(Looper.getMainLooper())
     private val cache: MutableList<String> = ArrayList()
     private var log2ViewCallback: Log2ViewCallback? = null
     private var FILTER = ""
@@ -68,7 +57,7 @@ class LogCat private constructor() {
                     if (stream.readLine().also { log = it } != null) {
                         val temp = truncate(log)
                         cache.add(temp)
-                        if (log2ViewCallback != null && (FILTER.isNullOrEmpty() || temp.contains(
+                        if (log2ViewCallback != null && (FILTER.isEmpty() || temp.contains(
                                 FILTER
                             ))
                         ) {

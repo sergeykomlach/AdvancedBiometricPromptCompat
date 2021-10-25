@@ -50,14 +50,14 @@ class PermissionsFragment : Fragment() {
             callback: Runnable?
         ) {
             e("BiometricPromptCompat.askForPermissions()")
-            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
+            if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
                 val fragment = PermissionsFragment()
                 val bundle = Bundle()
                 bundle.putStringArrayList(LIST_KEY, ArrayList(permissions))
                 fragment.arguments = bundle
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        if (callback != null) ExecutorHelper.INSTANCE.handler.post(callback)
+                        if (callback != null) ExecutorHelper.handler.post(callback)
                         unregisterGlobalBroadcastIntent(appContext, this)
                     }
                 }, IntentFilter(INTENT_KEY))
@@ -65,7 +65,7 @@ class PermissionsFragment : Fragment() {
                     .supportFragmentManager.beginTransaction()
                     .add(fragment, fragment.javaClass.name).commitAllowingStateLoss()
             } else {
-                if (callback != null) ExecutorHelper.INSTANCE.handler.post(callback)
+                if (callback != null) ExecutorHelper.handler.post(callback)
             }
         }
     }
@@ -80,7 +80,7 @@ class PermissionsFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-        if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
+        if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
             requestPermissions(permissions.toTypedArray(), 100)
         } else {
             activity?.supportFragmentManager?.beginTransaction()?.remove(this)
@@ -95,7 +95,8 @@ class PermissionsFragment : Fragment() {
     ) {
         val future: ListenableFuture<Int> =
             PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
-        future.addListener({ onResult(future.get()) },
+        future.addListener(
+            { onResult(future.get()) },
             ContextCompat.getMainExecutor(requireActivity())
         )
 
@@ -117,7 +118,7 @@ class PermissionsFragment : Fragment() {
             // See the API_* constants for details.
             UnusedAppRestrictionsConstants.API_30_BACKPORT,
             UnusedAppRestrictionsConstants.API_30,
-            UnusedAppRestrictionsConstants.API_31 ->  handleRestrictions()
+            UnusedAppRestrictionsConstants.API_31 -> handleRestrictions()
 
             // Status could not be fetched. Check logs for details.
             UnusedAppRestrictionsConstants.ERROR,

@@ -12,6 +12,7 @@ object ActivityContextProvider : ActivityLifecycleCallbacks {
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
         configuration = activity.resources.configuration
     }
+
     override fun onActivityStarted(activity: Activity) {}
     override fun onActivityResumed(activity: Activity) {}
     override fun onActivityPaused(activity: Activity) {}

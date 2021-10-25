@@ -24,13 +24,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.DrawableRes
 import androidx.annotation.RestrictTo
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
@@ -38,16 +36,9 @@ import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicReference
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
-class BiometricNotificationManager private constructor() {
-
-    companion object {
-        val INSTANCE = BiometricNotificationManager()
-        const val CHANNEL_ID = "biometric"
-    }
-
+object BiometricNotificationManager {
+    const val CHANNEL_ID = "biometric"
     private val notificationReference = AtomicReference<Runnable>(null)
-    private val notificationManagerCompat: NotificationManagerCompat =
-        NotificationManagerCompat.from(appContext)
 
     init {
         initNotificationsPreferences()
@@ -100,12 +91,12 @@ class BiometricNotificationManager private constructor() {
                                 appContext,
                                 2,
                                 clickIntent,
-                                if(Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
+                                if (Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
                         .setSmallIcon(type.iconId).build()
 
-                    notificationManagerCompat.notify(type.hashCode(), notif)
+                    NotificationManagerCompat.from(appContext).notify(type.hashCode(), notif)
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
@@ -113,16 +104,16 @@ class BiometricNotificationManager private constructor() {
         }
 
         notificationReference.set(notify)
-        ExecutorHelper.INSTANCE.handler.post(notify)
+        ExecutorHelper.handler.post(notify)
 
         //update notification to fix icon tinting in split-screen mode
         val delay = appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-        ExecutorHelper.INSTANCE.handler.postDelayed(notify, delay)
+        ExecutorHelper.handler.postDelayed(notify, delay)
     }
 
     fun dismissAll() {
         notificationReference.get()?.let {
-            ExecutorHelper.INSTANCE.handler.removeCallbacks(it)
+            ExecutorHelper.handler.removeCallbacks(it)
             notificationReference.set(null)
         }
         try {
@@ -136,7 +127,7 @@ class BiometricNotificationManager private constructor() {
 
     fun dismiss(type: BiometricType?) {
         try {
-            notificationManagerCompat.cancel(type?.hashCode() ?: return)
+            NotificationManagerCompat.from(appContext).cancel(type?.hashCode() ?: return)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

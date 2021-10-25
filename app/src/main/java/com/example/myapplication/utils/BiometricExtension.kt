@@ -31,7 +31,11 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
     if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
         val result = BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
-        Toast.makeText(activity, "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            activity,
+            "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result",
+            Toast.LENGTH_SHORT
+        ).show()
         return
     }
     val start = System.currentTimeMillis()
@@ -43,14 +47,23 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setNegativeButton("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more", null)
+        .setNegativeButton(
+            "Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more",
+            null
+        )
         .build()
 
-    BiometricLoggerImpl.e("CheckBiometric.isEnrollChanged -  ${BiometricManagerCompat.isBiometricEnrollChanged(biometricAuthRequest)}")
+    BiometricLoggerImpl.e(
+        "CheckBiometric.isEnrollChanged -  ${
+            BiometricManagerCompat.isBiometricEnrollChanged(
+                biometricAuthRequest
+            )
+        }"
+    )
 
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
-        override fun onSucceeded(confirmed : Set<BiometricType>) {
+        override fun onSucceeded(confirmed: Set<BiometricType>) {
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed")
             Toast.makeText(activity, "Succeeded - $confirmed", Toast.LENGTH_SHORT).show()
         }
@@ -75,5 +88,9 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 //            Toast.makeText(activity, "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
-    Toast.makeText(activity, "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}", Toast.LENGTH_SHORT).show()
+    Toast.makeText(
+        activity,
+        "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+        Toast.LENGTH_SHORT
+    ).show()
 }

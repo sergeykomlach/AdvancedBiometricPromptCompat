@@ -32,27 +32,28 @@ object IconStateHelper {
     fun unregisterListener(stateListener: IconStateListener) {
         listeners.remove(stateListener)
     }
+
     fun errorType(type: BiometricType?) {
-        ExecutorHelper.INSTANCE.handler.post {
+        ExecutorHelper.handler.post {
             for (stateListener in listeners) {
                 stateListener.onError(type)
             }
             var task = iconsTasks[type]
-            task?.let {  ExecutorHelper.INSTANCE.handler.removeCallbacks(it) }
+            task?.let { ExecutorHelper.handler.removeCallbacks(it) }
             task = object : Runnable {
                 override fun run() {
-                    ExecutorHelper.INSTANCE.handler.removeCallbacks(this)
+                    ExecutorHelper.handler.removeCallbacks(this)
                     for (stateListener in listeners) {
                         stateListener.reset(type)
                     }
                 }
             }
-            ExecutorHelper.INSTANCE.handler.postDelayed(task, 2000)
+            ExecutorHelper.handler.postDelayed(task, 2000)
         }
     }
 
     fun successType(type: BiometricType?) {
-        ExecutorHelper.INSTANCE.handler.post {
+        ExecutorHelper.handler.post {
             for (stateListener in listeners) {
                 stateListener.onSuccess(type)
             }

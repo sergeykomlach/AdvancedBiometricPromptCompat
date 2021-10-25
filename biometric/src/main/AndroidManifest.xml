@@ -20,12 +20,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.biometric.compat">
+
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Huawei FaceUnlock-->
-    <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION"/>
+    <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION" />
     <uses-permission android:name="android.permission.USE_FACERECOGNITION" />
 
 
@@ -49,7 +50,6 @@
     <uses-permission android:name="android.permission.USE_IRIS" />
     <uses-permission android:name="android.permission.USE_FACE_AUTHENTICATION" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-
 
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

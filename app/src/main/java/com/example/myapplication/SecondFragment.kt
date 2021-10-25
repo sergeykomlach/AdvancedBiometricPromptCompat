@@ -20,8 +20,6 @@
 package com.example.myapplication
 
 import android.annotation.SuppressLint
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -30,7 +28,6 @@ import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentSecondBinding
@@ -85,8 +82,8 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
             NavHostFragment.findNavController(this@SecondFragment)
                 .navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
-        LogCat.instance.setFilter("Biometric")
-        LogCat.instance.setLog2ViewCallback(this@SecondFragment)
+        LogCat.setFilter("Biometric")
+        LogCat.setLog2ViewCallback(this@SecondFragment)
     }
 
     override fun onDestroyView() {

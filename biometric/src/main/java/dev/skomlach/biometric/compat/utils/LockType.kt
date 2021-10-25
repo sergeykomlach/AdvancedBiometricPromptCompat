@@ -26,11 +26,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.os.UserHandle
-import android.text.TextUtils
 import androidx.annotation.RestrictTo
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.lang.reflect.Method
 import java.util.*
+
 @SuppressLint("PrivateApi")
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object LockType {
@@ -51,13 +51,13 @@ object LockType {
     /**
      * @return Whether the biometric weak liveliness is enabled.
      */
-    @JvmStatic
+
     fun isBiometricWeakLivelinessEnabled(context: Context): Boolean {
         val currentFlag = SettingsHelper.getLong(context, LOCK_BIOMETRIC_WEAK_FLAGS, 0L)
         return currentFlag and FLAG_BIOMETRIC_WEAK_LIVELINESS.toLong() != 0L
     }
 
-    @JvmStatic
+
     fun isBiometricWeakEnabled(context: Context): Boolean {
         return try {
             val mode: Int

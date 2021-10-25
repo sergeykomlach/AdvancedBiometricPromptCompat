@@ -46,8 +46,9 @@ private fun getDisplayContext(context: Context): Context {
     try {
         val dm = DisplayManagerCompat.getInstance(context)
         dm.getDisplay(Display.DEFAULT_DISPLAY)?.let { d ->
-        val ctx = context.createDisplayContext(d)//LOL - if you use AccessibilityService - warning anyway happens here :)
-        return ctx ?: context
+            val ctx =
+                context.createDisplayContext(d)//LOL - if you use AccessibilityService - warning anyway happens here :)
+            return ctx ?: context
         }
     } catch (ignore: Exception) {
     }

@@ -24,7 +24,7 @@ import dev.skomlach.biometric.compat.engine.BiometricCodes
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object CodeToString {
-    @JvmStatic
+
     fun getHelpCode(code: Int): String {
         return when (code) {
             BiometricCodes.BIOMETRIC_ACQUIRED_GOOD -> "BIOMETRIC_ACQUIRED_GOOD"
@@ -37,7 +37,7 @@ object CodeToString {
         }
     }
 
-    @JvmStatic
+
     fun getErrorCode(code: Int): String {
         return when (code) {
             BiometricCodes.BIOMETRIC_ERROR_CANCELED -> "BIOMETRIC_ERROR_CANCELED"

@@ -89,7 +89,7 @@ class Scan4Apis(private val context: Context) {
                                 val typeCopy = type.lowercase(Locale.ROOT)
                                 if (typeCopy.contains("/fingerprint") || typeCopy.contains("/biometric") ||
                                     typeCopy.contains("/face") || typeCopy.contains("/iris")
-                                    /*|| typeCopy.contains("/voice") || typeCopy.contains("/heart")*/
+                                /*|| typeCopy.contains("/voice") || typeCopy.contains("/heart")*/
                                 ) {
                                     if (!typeCopy.contains("/facebook") && !typeCopy.contains("androidx/") && !typeCopy.contains(
                                             "/support/"

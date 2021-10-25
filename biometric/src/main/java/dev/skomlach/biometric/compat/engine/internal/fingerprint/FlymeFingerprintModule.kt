@@ -56,6 +56,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         }
         listener?.initFinished(biometricMethod, this@FlymeFingerprintModule)
     }
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         mFingerprintServiceFingerprintManager?.let {
@@ -63,16 +64,18 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         }
         return managers
     }
+
     override fun getIds(manager: Any): List<String> {
         val ids = ArrayList<String>()
         mFingerprintServiceFingerprintManager?.let {
-            it.ids?.let {  array->
-                for(a in array)
+            it.ids?.let { array ->
+                for (a in array)
                     ids.add("$a")
             }
         }
         return ids
     }
+
     override var isManagerAccessible = false
     override val isHardwarePresent: Boolean
         get() {
@@ -95,7 +98,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             try {
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 val fingerprintIds = mFingerprintServiceFingerprintManager?.ids
-                return  fingerprintIds?.isNotEmpty() == true
+                return fingerprintIds?.isNotEmpty() == true
             } catch (e: Throwable) {
                 e(e, name)
             } finally {
@@ -129,23 +132,22 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
 
                         private fun fail(reason: AuthenticationFailureReason) {
                             var failureReason: AuthenticationFailureReason? = reason
-                            if(restartCauseTimeout(failureReason)){
+                            if (restartCauseTimeout(failureReason)) {
                                 authenticate(cancellationSignal, listener, restartPredicate)
-                            }
-                            else
-                            if (restartPredicate?.invoke(failureReason) == true) {
-                                listener?.onFailure(failureReason, tag())
-                                authenticate(cancellationSignal, listener, restartPredicate)
-                            } else {
-                                when (failureReason) {
-                                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                                        lockout()
-                                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+                            } else
+                                if (restartPredicate?.invoke(failureReason) == true) {
+                                    listener?.onFailure(failureReason, tag())
+                                    authenticate(cancellationSignal, listener, restartPredicate)
+                                } else {
+                                    when (failureReason) {
+                                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                                            lockout()
+                                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                                        }
                                     }
+                                    listener?.onFailure(failureReason, tag())
+                                    cancelFingerprintServiceFingerprintRequest()
                                 }
-                                listener?.onFailure(failureReason, tag())
-                                cancelFingerprintServiceFingerprintRequest()
-                            }
                         }
                     }, mFingerprintServiceFingerprintManager?.ids)
                 cancellationSignal?.setOnCancelListener { cancelFingerprintServiceFingerprintRequest() }
@@ -162,9 +164,9 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
     private fun cancelFingerprintServiceFingerprintRequest() {
         try {
 
-                mFingerprintServiceFingerprintManager?.abort()
-                mFingerprintServiceFingerprintManager?.release()
-                mFingerprintServiceFingerprintManager = null
+            mFingerprintServiceFingerprintManager?.abort()
+            mFingerprintServiceFingerprintManager?.release()
+            mFingerprintServiceFingerprintManager = null
 
         } catch (e: Throwable) {
             e(e, name)

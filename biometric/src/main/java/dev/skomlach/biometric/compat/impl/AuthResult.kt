@@ -21,7 +21,10 @@ package dev.skomlach.biometric.compat.impl
 
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 
-data class AuthResult(val authResultState: AuthResultState, val failureReason: AuthenticationFailureReason? = null) {
+data class AuthResult(
+    val authResultState: AuthResultState,
+    val failureReason: AuthenticationFailureReason? = null
+) {
     enum class AuthResultState {
         SUCCESS,
         FATAL_ERROR

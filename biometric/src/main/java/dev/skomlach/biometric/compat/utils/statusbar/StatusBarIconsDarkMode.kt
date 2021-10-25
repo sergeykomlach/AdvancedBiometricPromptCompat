@@ -25,8 +25,6 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.annotation.RestrictTo
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import dev.skomlach.common.misc.Utils
 import java.util.*
 
@@ -38,17 +36,18 @@ object StatusBarIconsDarkMode {
     init {
         SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = try {
             //Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-             View::class.java.getField("SYSTEM_UI_FLAG_LIGHT_STATUS_BAR").getInt(null)
+            View::class.java.getField("SYSTEM_UI_FLAG_LIGHT_STATUS_BAR").getInt(null)
         } catch (e: Exception) {
             0x00002000
         }
         SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = try {
             //Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-           View::class.java.getField("SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR").getInt(null)
+            View::class.java.getField("SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR").getInt(null)
         } catch (e: Exception) {
             0x00000010
         }
     }
+
     private fun setMiuiIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
         try {
             //constants for MIUI similar to "SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR" stored in separate class
@@ -96,13 +95,14 @@ object StatusBarIconsDarkMode {
 
     fun setDarkIconMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
         if (Utils.isAtLeastR) {
-           WindowCompat.getInsetsController(window, window.decorView)?.let { windowInsetsController ->
-                if (type == BarType.STATUSBAR && windowInsetsController.isAppearanceLightStatusBars != lightBars)
-                    windowInsetsController.isAppearanceLightStatusBars = lightBars
-                else  if (type == BarType.NAVBAR && windowInsetsController.isAppearanceLightNavigationBars != lightBars)
-                    windowInsetsController.isAppearanceLightNavigationBars = lightBars
-                return true
-            }
+            WindowCompat.getInsetsController(window, window.decorView)
+                ?.let { windowInsetsController ->
+                    if (type == BarType.STATUSBAR && windowInsetsController.isAppearanceLightStatusBars != lightBars)
+                        windowInsetsController.isAppearanceLightStatusBars = lightBars
+                    else if (type == BarType.NAVBAR && windowInsetsController.isAppearanceLightNavigationBars != lightBars)
+                        windowInsetsController.isAppearanceLightNavigationBars = lightBars
+                    return true
+                }
         }
 
         //Android6+ should deal with DarkIcons without problems

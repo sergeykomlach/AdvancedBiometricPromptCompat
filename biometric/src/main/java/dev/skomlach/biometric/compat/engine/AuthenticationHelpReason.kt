@@ -73,7 +73,7 @@ enum class AuthenticationHelpReason(val id: Int) {
     BIOMETRICT_ACQUIRED_VENDOR_BASE(1000);
 
     companion object {
-        @JvmStatic
+
         fun getByCode(id: Int): AuthenticationHelpReason? {
             for (helpReason in values()) {
                 if (helpReason.id == id) return helpReason

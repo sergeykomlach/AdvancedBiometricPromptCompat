@@ -55,7 +55,8 @@ object BlurUtil {
 
         //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
         val isBlackBerryBug = try {
-            val f = view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+            val f =
+                view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
             val isAccessible = f?.isAccessible ?: true
             var value: Any? = null
             try {
@@ -74,10 +75,10 @@ object BlurUtil {
         if (!isBlackBerryBug) {
             m?.let { method ->
                 val startMs = System.currentTimeMillis()
-                ExecutorHelper.INSTANCE.startOnBackground {
+                ExecutorHelper.startOnBackground {
                     try {
                         (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            ExecutorHelper.INSTANCE.handler.post {
+                            ExecutorHelper.handler.post {
                                 try {
                                     BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
                                     blur(
@@ -91,7 +92,7 @@ object BlurUtil {
                             }
                         }
                     } catch (ignore: Throwable) {
-                        ExecutorHelper.INSTANCE.handler.post {
+                        ExecutorHelper.handler.post {
                             fallbackViewCapture(view, listener)
                         }
                     }

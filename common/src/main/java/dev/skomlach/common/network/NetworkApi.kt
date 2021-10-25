@@ -19,10 +19,6 @@
 
 package dev.skomlach.common.network
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.os.Build
-import dev.skomlach.common.contextprovider.AndroidContext
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

@@ -19,7 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import android.content.*
+import android.content.Context
 import dalvik.system.DexFile
 import java.io.File
 
@@ -33,7 +33,7 @@ object SystemPropertiesProxy {
      * @return an empty string if the key isn't found
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    @JvmStatic
+
     @Throws(IllegalArgumentException::class)
     fun get(context: Context, key: String): String? {
         var ret = ""
@@ -65,7 +65,7 @@ object SystemPropertiesProxy {
      * @return if the key isn't found, return def if it isn't null, or an empty string otherwise
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    @JvmStatic
+
     @Throws(IllegalArgumentException::class)
     fun get(context: Context, key: String, def: String): String? {
         var ret = def
@@ -102,7 +102,7 @@ object SystemPropertiesProxy {
      * cannot be parsed
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    @JvmStatic
+
     @Throws(IllegalArgumentException::class)
     fun getInt(context: Context, key: String, def: Int): Int? {
         var ret = def
@@ -139,7 +139,7 @@ object SystemPropertiesProxy {
      * cannot be parsed
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    @JvmStatic
+
     @Throws(IllegalArgumentException::class)
     fun getLong(context: Context, key: String, def: Long): Long? {
         var ret = def
@@ -181,7 +181,7 @@ object SystemPropertiesProxy {
      * not able to be parsed as a boolean.
      * @throws IllegalArgumentException if the key exceeds 32 characters
      */
-    @JvmStatic
+
     @Throws(IllegalArgumentException::class)
     fun getBoolean(context: Context, key: String, def: Boolean): Boolean? {
         var ret = def
@@ -215,7 +215,7 @@ object SystemPropertiesProxy {
      * @throws IllegalArgumentException if the key exceeds 32 characters
      * @throws IllegalArgumentException if the value exceeds 92 characters
      */
-    @JvmStatic
+
     @Throws(IllegalArgumentException::class)
     fun set(context: Context, key: String?, value: String?) {
         try {

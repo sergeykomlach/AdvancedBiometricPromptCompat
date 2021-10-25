@@ -32,6 +32,7 @@ import dev.skomlach.common.misc.Utils
 object BiometricManagerCompat {
 
     private val preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricManagerCache")
+
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -39,14 +40,14 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        if(!BiometricPromptCompat.API_ENABLED)
+        if (!BiometricPromptCompat.API_ENABLED)
             return false
         var result = true
         if (api.api != BiometricApi.AUTO)
-            result = BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(api.type)
+            result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
         else {
             for (s in BiometricType.values()) {
-                if (!BiometricErrorLockoutPermanentFix.INSTANCE.isBiometricSensorPermanentlyLocked(s)) {
+                if (!BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
                     result = false
                     break
                 }
@@ -54,6 +55,7 @@ object BiometricManagerCompat {
         }
         return result
     }
+
     @JvmStatic
     fun isHardwareDetected(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -61,20 +63,31 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        if(!BiometricPromptCompat.API_ENABLED)
+        if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if(!BiometricPromptCompat.isInit){
+        if (!BiometricPromptCompat.isInit) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
         }
-        val result = if(api.api != BiometricApi.AUTO)
+        val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isHardwareAvailable
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isHardwareAvailable || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isHardwareAvailable
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isHardwareAvailable || HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isHardwareAvailable
 
         preferences.edit().putBoolean("isHardwareDetected-${api.api}-${api.type}", result).apply()
         return result
     }
+
     @JvmStatic
     fun hasEnrolled(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -82,20 +95,31 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        if(!BiometricPromptCompat.API_ENABLED)
+        if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if(!BiometricPromptCompat.isInit){
+        if (!BiometricPromptCompat.isInit) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
         }
-        val result = if(api.api != BiometricApi.AUTO)
+        val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isBiometricEnrolled
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isBiometricEnrolled || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isBiometricEnrolled
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isBiometricEnrolled || HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isBiometricEnrolled
 
         preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).apply()
         return result
     }
+
     @JvmStatic
     fun isBiometricEnrollChanged(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -103,21 +127,33 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        if(!BiometricPromptCompat.API_ENABLED)
+        if (!BiometricPromptCompat.API_ENABLED)
             return false
         BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")
-        if(!BiometricPromptCompat.isInit){
+        if (!BiometricPromptCompat.isInit) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
         }
-        val result = if(api.api != BiometricApi.AUTO)
+        val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isBiometricEnrollChanged
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isBiometricEnrollChanged
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isBiometricEnrollChanged
 
-        preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result).apply()
+        preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
+            .apply()
         return result
     }
+
     @JvmStatic
     fun isLockOut(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -125,16 +161,26 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        if(!BiometricPromptCompat.API_ENABLED)
+        if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if(!BiometricPromptCompat.isInit){
+        if (!BiometricPromptCompat.isInit) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isLockOut-${api.api}-${api.type}", false)
         }
-        val result = if(api.api != BiometricApi.AUTO)
+        val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
         else
-            HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.BIOMETRIC_API, api.type)).isLockedOut && HardwareAccessImpl.getInstance(BiometricAuthRequest(BiometricApi.LEGACY_API, api.type)).isLockedOut
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isLockedOut && HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isLockedOut
 
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
         return result
@@ -147,7 +193,7 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         ), forced: Boolean = true
     ): Boolean {
-        if(!BiometricPromptCompat.API_ENABLED)
+        if (!BiometricPromptCompat.API_ENABLED)
             return false
 
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(

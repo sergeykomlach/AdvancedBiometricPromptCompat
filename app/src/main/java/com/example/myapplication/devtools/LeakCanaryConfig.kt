@@ -18,9 +18,11 @@
  */
 
 package com.example.myapplication.devtools
+
 import leakcanary.LeakCanary
+
 object LeakCanaryConfig {
-    fun setup(enable : Boolean){
+    fun setup(enable: Boolean) {
         LeakCanary.config = LeakCanary.config.copy(dumpHeap = enable)
         LeakCanary.showLeakDisplayActivityLauncherIcon(enable)
     }

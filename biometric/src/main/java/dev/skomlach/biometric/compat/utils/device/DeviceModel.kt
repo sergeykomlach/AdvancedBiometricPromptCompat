@@ -56,11 +56,11 @@ object DeviceModel {
 
         val set = HashSet<String>(strings.values)
         val toRemove = HashSet<String>()
-        for(name1 in set){
-            for(name2 in set){
-                if(toRemove.contains(name2))
+        for (name1 in set) {
+            for (name2 in set) {
+                if (toRemove.contains(name2))
                     continue
-                if(name1.length < name2.length && name2.startsWith(name1, ignoreCase = true))
+                if (name1.length < name2.length && name2.startsWith(name1, ignoreCase = true))
                     toRemove.add(name1)
             }
         }

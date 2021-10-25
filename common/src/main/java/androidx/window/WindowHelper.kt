@@ -49,10 +49,11 @@ object WindowHelper {
       at android.os.Binder.execTransactInternal(Binder.java:1021)
       at android.os.Binder.execTransact(Binder.java:994)
    * */
-    fun getMaximumWindowMetrics(mActivity : Activity): Rect {
+    fun getMaximumWindowMetrics(mActivity: Activity): Rect {
         return WindowMetricsCalculator.getOrCreate().computeMaximumWindowMetrics(mActivity).bounds
     }
-    fun getCurrentWindowMetrics(mActivity : Activity): Rect {
+
+    fun getCurrentWindowMetrics(mActivity: Activity): Rect {
         return WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(mActivity).bounds
     }
 }

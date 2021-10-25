@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -19,7 +18,6 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -28,11 +26,12 @@
         >
 
     <LinearLayout
-            android:layout_weight="1"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:layout_weight="1"
             android:gravity="center"
             >
-        <include layout="@layout/biometrics"/>
+
+        <include layout="@layout/biometrics" />
     </LinearLayout>
 </LinearLayout>

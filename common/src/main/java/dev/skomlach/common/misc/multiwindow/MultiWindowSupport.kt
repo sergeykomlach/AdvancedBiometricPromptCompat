@@ -64,6 +64,7 @@ class MultiWindowSupport(private val activity: Activity) {
                     override fun onActivityPaused(activity: Activity) {
                         activityResumedRelay.accept(activity)
                     }
+
                     override fun onActivityStopped(activity: Activity) {}
                     override fun onActivitySaveInstanceState(
                         activity: Activity,
@@ -106,22 +107,24 @@ class MultiWindowSupport(private val activity: Activity) {
             }
         }
     }
+
     init {
         subscribeOnResume = subscribeOnResume()
         subscribeOnDestroy = subscribeOnDestroy()
         start()
     }
 
-    fun start(){
-        if(!isActive) {
+    fun start() {
+        if (!isActive) {
             isActive = true
             activityResumedRelay.accept(activity)
         }
     }
-    fun finish(){
-        if(isActive) {
+
+    fun finish() {
+        if (isActive) {
             activityDestroyedRelay.accept(activity)
-            ExecutorHelper.INSTANCE.handler.post {  isActive = false }
+            ExecutorHelper.handler.post { isActive = false }
         }
     }
 
@@ -163,9 +166,10 @@ class MultiWindowSupport(private val activity: Activity) {
         }
         currentConfiguration = activity.resources.configuration
         isMultiWindow = h != 0 || w != 0
-        val locationOnScreen  = IntArray(2)
+        val locationOnScreen = IntArray(2)
         decorView.getLocationOnScreen(locationOnScreen)
-        isWindowOnScreenBottom = isMultiWindow && (realScreenSize.y/2 < locationOnScreen[1] + (rect.width()/2))
+        isWindowOnScreenBottom =
+            isMultiWindow && (realScreenSize.y / 2 < locationOnScreen[1] + (rect.width() / 2))
 
         val sb = StringBuilder()
         sb.append(activity.javaClass.simpleName + " Activity screen:")
@@ -179,6 +183,7 @@ class MultiWindowSupport(private val activity: Activity) {
 
         LogCat.logError(sb.toString())
     }
+
     private fun log(msg: Any, sb: java.lang.StringBuilder) {
         sb.append(" [").append(msg).append("] ")
     }

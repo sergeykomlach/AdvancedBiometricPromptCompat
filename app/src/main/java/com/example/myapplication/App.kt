@@ -30,13 +30,11 @@ import java.util.*
 
 class App : MultiDexApplication() {
     companion object {
-        @JvmStatic
+
         val authRequestList = ArrayList<BiometricAuthRequest>()
 
-        @JvmStatic
         val onInitListeners = ArrayList<OnInitFinished>()
 
-        @JvmStatic
         var isReady = false
             private set
     }
@@ -44,9 +42,9 @@ class App : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         AppMonitoringDevTools(this).enableMonitoringTools(true)
-        LogCat.instance.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
+        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(string: String?) {
-                LogCat.instance.setLog2ViewCallback(null)
+                LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
                 BiometricPromptCompat.init {
                     checkForDeviceInfo()
@@ -54,7 +52,7 @@ class App : MultiDexApplication() {
             }
         })
 
-        LogCat.instance.start()
+        LogCat.start()
     }
 
     private fun checkForDeviceInfo() {

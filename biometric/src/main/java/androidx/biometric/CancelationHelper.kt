@@ -20,9 +20,10 @@
 package androidx.biometric
 
 object CancelationHelper {
-    fun forceCancel(biometricFragment : BiometricFragment?){
+    fun forceCancel(biometricFragment: BiometricFragment?) {
         try {
             biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT)
-        } catch (ignore : Throwable){}
+        } catch (ignore: Throwable) {
+        }
     }
 }

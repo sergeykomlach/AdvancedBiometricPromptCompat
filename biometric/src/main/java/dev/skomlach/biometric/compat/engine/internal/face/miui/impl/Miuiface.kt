@@ -26,7 +26,8 @@ import android.os.Parcelable.Creator
 class Miuiface : Parcelable {
 
     companion object {
-        @JvmField val CREATOR: Creator<Miuiface> = object : Creator<Miuiface> {
+        @JvmField
+        val CREATOR: Creator<Miuiface> = object : Creator<Miuiface> {
             override fun createFromParcel(p: Parcel): Miuiface {
                 return Miuiface(p)
             }

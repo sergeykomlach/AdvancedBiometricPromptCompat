@@ -32,12 +32,12 @@ import java.time.LocalTime
 
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object DarkLightThemes {
-    @JvmStatic
+
     fun isNightMode(context: Context): Boolean {
         return UiModeManager.MODE_NIGHT_YES == getNightMode(context)
     }
 
-    @JvmStatic
+
     fun getNightMode(context: Context): Int {
         return when (getIsOsDarkTheme(context)) {
             DarkThemeCheckResult.DARK -> {
@@ -89,7 +89,10 @@ object DarkLightThemes {
                                 val start = mUiModeManager?.customNightModeStart
                                 val end = mUiModeManager?.customNightModeEnd
                                 val now = LocalTime.now()
-                                if ((now.equals(start) || now.equals(end)) || (now.isAfter(start) && now.isBefore(end)))
+                                if ((now.equals(start) || now.equals(end)) || (now.isAfter(start) && now.isBefore(
+                                        end
+                                    ))
+                                )
                                     return UiModeManager.MODE_NIGHT_YES
                             }
                         }

@@ -56,46 +56,46 @@ object DeviceSettings {
                 if (mCur != null) {
                     mCur.moveToFirst()
                     while (!mCur.isAfterLast) {
-                        try{
-                        val nameIndex = mCur
-                            .getColumnIndexOrThrow("name")
-                        if (!mCur.isNull(nameIndex)) {
-                            val valueIndex = try {
-                                mCur
-                                    .getColumnIndexOrThrow("values")
-                            } catch (ignore: Throwable) {
-                                mCur
-                                    .getColumnIndexOrThrow("value")
+                        try {
+                            val nameIndex = mCur
+                                .getColumnIndexOrThrow("name")
+                            if (!mCur.isNull(nameIndex)) {
+                                val valueIndex = try {
+                                    mCur
+                                        .getColumnIndexOrThrow("values")
+                                } catch (ignore: Throwable) {
+                                    mCur
+                                        .getColumnIndexOrThrow("value")
+                                }
+                                val type = mCur.getType(valueIndex)
+                                val name = mCur.getString(nameIndex)
+                                when (type) {
+                                    Cursor.FIELD_TYPE_BLOB -> d(
+                                        "SystemSettings: $sub - $name:" + Base64.encodeToString(
+                                            mCur.getBlob(valueIndex),
+                                            Base64.DEFAULT
+                                        )
+                                    )
+                                    Cursor.FIELD_TYPE_FLOAT -> d(
+                                        "SystemSettings: $sub - $name:" + mCur.getFloat(
+                                            valueIndex
+                                        )
+                                    )
+                                    Cursor.FIELD_TYPE_INTEGER -> d(
+                                        "SystemSettings: $sub - $name:" + mCur.getInt(
+                                            valueIndex
+                                        )
+                                    )
+                                    Cursor.FIELD_TYPE_NULL -> d("SystemSettings: $sub - $name:NULL")
+                                    Cursor.FIELD_TYPE_STRING -> d(
+                                        "SystemSettings: $sub - $name:" + mCur.getString(
+                                            valueIndex
+                                        )
+                                    )
+                                    else -> d("SystemSettings: $sub - $name: unknown type - $type")
+                                }
                             }
-                            val type = mCur.getType(valueIndex)
-                            val name = mCur.getString(nameIndex)
-                            when (type) {
-                                Cursor.FIELD_TYPE_BLOB -> d(
-                                    "SystemSettings: $sub - $name:" + Base64.encodeToString(
-                                        mCur.getBlob(valueIndex),
-                                        Base64.DEFAULT
-                                    )
-                                )
-                                Cursor.FIELD_TYPE_FLOAT -> d(
-                                    "SystemSettings: $sub - $name:" + mCur.getFloat(
-                                        valueIndex
-                                    )
-                                )
-                                Cursor.FIELD_TYPE_INTEGER -> d(
-                                    "SystemSettings: $sub - $name:" + mCur.getInt(
-                                        valueIndex
-                                    )
-                                )
-                                Cursor.FIELD_TYPE_NULL -> d("SystemSettings: $sub - $name:NULL")
-                                Cursor.FIELD_TYPE_STRING -> d(
-                                    "SystemSettings: $sub - $name:" + mCur.getString(
-                                        valueIndex
-                                    )
-                                )
-                                else -> d("SystemSettings: $sub - $name: unknown type - $type")
-                            }
-                        }
-                        } catch (e: Throwable){
+                        } catch (e: Throwable) {
                             e(e)
                         }
                         mCur.moveToNext()

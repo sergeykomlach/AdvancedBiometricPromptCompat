@@ -19,16 +19,12 @@
 
 package dev.skomlach.common.misc
 
-import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class ExecutorHelper private constructor() {
-    companion object {
-        @JvmField var INSTANCE = ExecutorHelper()
-    }
+object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor(handler)

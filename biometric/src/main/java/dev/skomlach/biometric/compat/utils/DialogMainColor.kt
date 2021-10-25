@@ -24,7 +24,7 @@ import dev.skomlach.biometric.compat.R
 
 object DialogMainColor {
     @ColorRes
-    fun getColor(isNightMode : Boolean): Int {
+    fun getColor(isNightMode: Boolean): Int {
         return if (isNightMode) {
             R.color.black
         } else {

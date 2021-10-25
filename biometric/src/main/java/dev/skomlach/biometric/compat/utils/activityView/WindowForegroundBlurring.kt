@@ -24,7 +24,6 @@ import android.content.ContextWrapper
 import android.content.res.ColorStateList
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -248,6 +247,7 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.e(e)
         }
     }
+
     private fun getResizedBitmap(bm: Bitmap?, newHeight: Int, newWidth: Int): Bitmap? {
         if (bm == null) return bm
         if (newHeight <= 0 || newWidth <= 0) return null
@@ -266,17 +266,24 @@ class WindowForegroundBlurring(
             matrix, true
         )
     }
+
     private fun updateDefaultColor(bm: Bitmap) {
 
         try {
             var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
-            b = getResizedBitmap(getResizedBitmap(b, b.width/2, b.height/2), 1, 1)
+            b = getResizedBitmap(getResizedBitmap(b, b.width / 2, b.height / 2), 1, 1)
             val isDark = ColorUtil.trueDarkColor(b.getPixel(0, 0))
             defaultColor = ContextCompat.getColor(
                 context,
                 DialogMainColor.getColor(isDark)
             )
-            BiometricLoggerImpl.d("ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${Integer.toHexString(defaultColor)}")
+            BiometricLoggerImpl.d(
+                "ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${
+                    Integer.toHexString(
+                        defaultColor
+                    )
+                }"
+            )
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

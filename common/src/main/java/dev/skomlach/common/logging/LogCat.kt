@@ -31,26 +31,26 @@ object LogCat {
             return el.className + ":" + el.methodName + ", " + el.fileName + ":" + el.lineNumber
         }
 
-    @JvmStatic
+
     fun log(msg: String?) {
         if (DEBUG) {
             Log.d(method, msg ?: "")
         }
     }
 
-    @JvmStatic
+
     fun logError(msg: String?) {
         if (DEBUG) {
             Log.e(method, msg ?: "")
         }
     }
 
-    @JvmStatic
+
     fun logException(e: Throwable) {
         if (DEBUG) Log.e(method, e.message, e)
     }
 
-    @JvmStatic
+
     fun logException(msg: String?, e: Throwable?) {
         if (DEBUG) Log.e(method, msg, e)
     }

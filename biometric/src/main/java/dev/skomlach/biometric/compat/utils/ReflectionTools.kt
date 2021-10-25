@@ -33,6 +33,7 @@ import java.util.*
 @RestrictTo(RestrictTo.Scope.LIBRARY)
 object ReflectionTools {
     private val cache = WeakHashMap<String, PathClassLoader>()
+
     @Throws(Exception::class)
     private fun getPathClassLoaderForPkg(pkg: String): PathClassLoader {
         var pathClassLoader = cache[pkg]
@@ -57,7 +58,7 @@ object ReflectionTools {
         return pathClassLoader
     }
 
-    @JvmStatic
+
     @Throws(ClassNotFoundException::class)
     fun getClassFromPkg(pkg: String, cls: String): Class<*> {
         return try {
@@ -115,7 +116,7 @@ object ReflectionTools {
                 try {
                     val isReturnInt =
                         Int::class.javaPrimitiveType?.name == m.returnType.name || Int::class.java.name == m.returnType.name
-                    if (Modifier.isPublic(m.modifiers) && isReturnInt && m.name.startsWith(startWith) ) {
+                    if (Modifier.isPublic(m.modifiers) && isReturnInt && m.name.startsWith(startWith)) {
                         d("Method: " + m.name)
                         if (m.parameterTypes.isEmpty()) try {
                             return if (Int::class.javaPrimitiveType?.name == m.returnType.name) {
