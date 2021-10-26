@@ -77,8 +77,11 @@ object BiometricNotificationManager {
 
                     val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
                         .setOnlyAlertOnce(true)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
+                          //TODO: investigate why notifications remains on the screen
+//                        .setAutoCancel(false)
+//                        .setOngoing(true)
+
+                        .setAutoCancel(true)
                         .setLocalOnly(true)
                         .setContentTitle(builder.title)
                         .setContentText(builder.description)
