@@ -387,8 +387,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         )
     ) {
         //Should force to Fingerprint-only
-        if (forceToFingerprint) {
-            biometricPrompt.authenticate(biometricPromptInfo, cryptoObject)
+        val crpObject : BiometricPrompt.CryptoObject? = try{ cryptoObject} catch (e : Throwable){ null}
+        if (forceToFingerprint && crpObject!=null) {
+            biometricPrompt.authenticate(biometricPromptInfo, crpObject)
         } else {
             biometricPrompt.authenticate(biometricPromptInfo)
         }
