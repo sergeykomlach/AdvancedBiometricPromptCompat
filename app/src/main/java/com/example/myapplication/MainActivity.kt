@@ -19,6 +19,7 @@
 
 package com.example.myapplication
 
+import android.annotation.SuppressLint
 import android.app.ProgressDialog
 import android.graphics.Color
 import android.os.AsyncTask
@@ -67,7 +68,8 @@ class MainActivity : AppCompatActivity() {
                 "Please wait...", true
             )
 
-            val scanTask = object : AsyncTask<Void, Void, String>() {
+            val scanTask = @SuppressLint("StaticFieldLeak")
+            object : AsyncTask<Void, Void, String>() {
                 override fun onPreExecute() {
                     dialog.show()
                 }

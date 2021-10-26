@@ -21,6 +21,7 @@ package com.example.myapplication.devtools
 import android.content.Context
 import androidx.annotation.WorkerThread
 import com.example.myapplication.BuildConfig
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.network.NetworkApi
 import org.jf.dexlib2.DexFileFactory
@@ -35,25 +36,45 @@ class Scan4Apis(private val context: Context) {
     @WorkerThread
     fun getList(): String {
         try {
+            val file = File(context.cacheDir, "deviceapi.log")
+            if (file.exists())
+                file.delete()
+
             val cache = File(context.cacheDir, UUID.randomUUID().toString())
+            val fileWriter = FileWriter(file)
+            val writer = StringWriter()
             cache.mkdirs()
-            return try {
-                val jars = HashSet<String>()
-                jars.addAll(
-                    listOf(
-                        *System.getProperty("java.boot.class.path").split(":/").toTypedArray()
-                    )
-                )
+            try {
+                val paths = HashSet<String>()
+                val bootPath = splitString(System.getProperty("java.boot.class.path"), ":/")
+
+                paths.addAll(bootPath.toList())
+
+                val javaPath = splitString(System.getProperty("java.library.path"), ":/")
+                paths.addAll(javaPath.toList())
+                val javaHomePath = splitString(System.getProperty("java.home"), ":/")
+                paths.addAll(javaHomePath.toList())
+                val userDir = splitString(System.getProperty("user.dir"), ":/")
+                paths.addAll(userDir.toList())
+
                 val path = HashSet<File>()
-                path.add(File(System.getProperty("java.library.path")))
-                path.add(File(System.getProperty("java.home")))
-                path.add(File(System.getProperty("user.dir")))
+                for (p in paths) {
+                    path.add(File(p))
+                }
+
                 val roots = File.listRoots()
                 for (r in roots) {
                     path.add(r)
                 }
+
+                val jars = HashSet<String>()
                 for (r in path) {
-                    scanRecursivly(r, jars)
+                    if(r.isDirectory) {
+                        BiometricLoggerImpl.d("Scan4Apis.check path $r")
+                        scanRecursivly(r, jars)
+                    } else
+                        if(r.isFile)
+                        jars.add(r.absolutePath)
                 }
                 val stringBuilder = StringBuilder("\n\n")
                 for (s in jars) {
@@ -96,6 +117,12 @@ class Scan4Apis(private val context: Context) {
                                         )
                                     ) {
                                         sb.append(type).append("\n")
+                                        if(counter == 0){
+                                            writer.write("\n-------------------------\n")
+                                            writer.write(s)
+                                            writer.write("\n")
+                                        }
+                                        writer.write(type+"\n")
                                         counter++
                                     }
                                 }
@@ -109,6 +136,7 @@ class Scan4Apis(private val context: Context) {
                             stringBuilder.append("\n")
                             stringBuilder.append(sb.toString())
                             stringBuilder.append("\n")
+                             writer.write("\n")
                         }
                     } catch (e: Throwable) {
                         e.printStackTrace()
@@ -119,6 +147,8 @@ class Scan4Apis(private val context: Context) {
                 stringBuilder.toString()
             } finally {
                 deleteRecursive(cache)
+                fileWriter.write(writer.toString())
+                fileWriter.close()
             }
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -206,6 +236,8 @@ class Scan4Apis(private val context: Context) {
         try {
             if (fileOrDirectory == null || !fileOrDirectory.exists() || fileOrDirectory.name.contains(
                     BuildConfig.APPLICATION_ID
+                ) || fileOrDirectory.absolutePath.startsWith(
+                    "/proc/"
                 )
             ) return
             if (fileOrDirectory.isDirectory) {
@@ -330,4 +362,24 @@ class Scan4Apis(private val context: Context) {
         }
         return null
     }
+
+    private fun splitString(str: String?, delimiter: String?): Array<String> {
+        if (str.isNullOrEmpty()) {
+            return arrayOf()
+        }
+        if (delimiter.isNullOrEmpty()) {
+            return arrayOf(str)
+        }
+        val list = ArrayList<String>()
+        var start = 0
+        var end = str.indexOf(delimiter, start)
+        while (end != -1) {
+            list.add(str.substring(start, end))
+            start = end + delimiter.length
+            end = str.indexOf(delimiter, start)
+        }
+        list.add(str.substring(start))
+        return list.toTypedArray()
+    }
+
 }
