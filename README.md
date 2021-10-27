@@ -59,7 +59,7 @@ Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|
 and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
-
+| Windows Subsystem for Android & Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 ## Screenshots:
 
 **Xiaomi Pocophone F1**

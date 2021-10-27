@@ -32,6 +32,7 @@ import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
 import androidx.window.WindowHelper
 import com.jakewharton.rxrelay2.PublishRelay
+import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appInstance
 import dev.skomlach.common.logging.LogCat
@@ -346,30 +347,17 @@ class MultiWindowSupport(private val activity: Activity) {
         }
 
     private fun isTablet(): Boolean {
-        AndroidContext.configuration?.let { configuration ->
-            //sometimes return value less then 600 even on tablets (example: Huawei MatePad Pro)
-            if (configuration.smallestScreenWidthDp != Configuration.SMALLEST_SCREEN_WIDTH_DP_UNDEFINED && configuration.smallestScreenWidthDp >= 600) {
-                return true
-            }
-            try {
-                val windowConfigField =
-                    Configuration::class.java.getDeclaredField("compatSmallestScreenWidthDp")
-                windowConfigField.isAccessible = true
-                val compatSmallestScreenWidthDp = windowConfigField[configuration] as Int?
-                compatSmallestScreenWidthDp?.let {
-                    if (it != Configuration.SMALLEST_SCREEN_WIDTH_DP_UNDEFINED && it >= 600) {
-                        return true
-                    }
-                }
-            } catch (ignore: Throwable) {
-
-            }
-
-            if (configuration.screenLayout != Configuration.SCREENLAYOUT_SIZE_UNDEFINED && (configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_LARGE) {
-                return true
-            }
+        val ctx = AndroidContext.appContext
+        val resources = ctx.resources
+        val configuration = AndroidContext.configuration?:resources.configuration
+        val context = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ctx.createConfigurationContext(configuration)
+        } else {
+            @Suppress("DEPRECATION")
+            resources.updateConfiguration(configuration, resources.displayMetrics)
+            ctx
         }
-        return false
+        return context.resources.getBoolean(R.bool.biometric_compat_is_tablet)
     }
 
 }
