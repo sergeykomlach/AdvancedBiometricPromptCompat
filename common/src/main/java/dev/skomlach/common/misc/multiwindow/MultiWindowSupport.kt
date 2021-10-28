@@ -78,6 +78,19 @@ class MultiWindowSupport(private val activity: Activity) {
                     }
                 })
         }
+        fun isTablet(): Boolean {
+            val ctx = AndroidContext.appContext
+            val resources = ctx.resources
+            val configuration = AndroidContext.configuration?:resources.configuration
+            val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                ctx.createConfigurationContext(configuration).resources
+            } else {
+                @Suppress("DEPRECATION")
+                resources.updateConfiguration(configuration, resources.displayMetrics)
+                resources
+            }
+            return res.getBoolean(R.bool.biometric_compat_is_tablet)
+        }
     }
 
     private lateinit var subscribeOnResume: Disposable
@@ -346,18 +359,6 @@ class MultiWindowSupport(private val activity: Activity) {
             return orientation
         }
 
-    private fun isTablet(): Boolean {
-        val ctx = AndroidContext.appContext
-        val resources = ctx.resources
-        val configuration = AndroidContext.configuration?:resources.configuration
-        val context = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            ctx.createConfigurationContext(configuration)
-        } else {
-            @Suppress("DEPRECATION")
-            resources.updateConfiguration(configuration, resources.displayMetrics)
-            ctx
-        }
-        return context.resources.getBoolean(R.bool.biometric_compat_is_tablet)
-    }
+
 
 }
