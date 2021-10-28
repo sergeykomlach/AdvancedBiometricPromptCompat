@@ -41,6 +41,7 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
   dialog
 - Auth in Split-Screen Mode supported
 - Wide range of supported biometrics
+- Android 12 microphone and camera toggles handling
 
 #### Supported types of biometric authentication
 
