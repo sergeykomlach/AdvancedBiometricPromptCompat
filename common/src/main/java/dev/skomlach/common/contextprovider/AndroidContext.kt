@@ -33,7 +33,6 @@ object AndroidContext {
     private var appRef: Application? = null
         private set(value) {
             field = value
-            field?.registerActivityLifecycleCallbacks(ActivityContextProvider)
             ctxRef = field
         }
 
@@ -49,7 +48,7 @@ object AndroidContext {
 
     var configuration: Configuration? = null
         get() {
-            return ActivityContextProvider.configuration ?: appRef?.resources?.configuration
+            return appRef?.resources?.configuration
         }
         private set
 
@@ -136,7 +135,7 @@ object AndroidContext {
     val locale: Locale
         get() {
             val listCompat = ConfigurationCompat.getLocales(
-                appContext.resources.configuration
+                configuration ?: return Locale.getDefault()
             )
             var l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
             if (l == null) {
