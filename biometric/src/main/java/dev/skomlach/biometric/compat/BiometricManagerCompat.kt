@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
+import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
@@ -196,7 +197,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if (api.type == BiometricType.BIOMETRIC_FACE &&
+        if ((api.type == BiometricType.BIOMETRIC_FACE || (api.type == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(BiometricPromptCompat.deviceInfo))) &&
             SensorPrivacyCheck.isCameraBlocked()) {
             return false
         } else if (api.type == BiometricType.BIOMETRIC_VOICE &&

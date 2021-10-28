@@ -32619,6 +32619,21 @@
    "device": "F41B",
    "name": "arrows Be4 Plus F-41B",
    "model": "F-41B"
+  },
+  {
+   "device": "A101FC",
+   "name": "arrows We A101FC",
+   "model": "A101FC"
+  },
+  {
+   "device": "F51B",
+   "name": "arrows We F-51B",
+   "model": "F-51B"
+  },
+  {
+   "device": "FCG01",
+   "name": "arrows We FCG01",
+   "model": "FCG01"
   }
  ],
  "FEITIAN": [
@@ -100204,6 +100219,11 @@
    "model": "N5117"
   },
   {
+   "device": "OP4EEA",
+   "name": "OPPO A33",
+   "model": "CPH2137"
+  },
+  {
    "device": "OP4E7B",
    "name": "OPPO A35",
    "model": "PEFM00"
@@ -133975,6 +133995,11 @@
    "model": "XQ-AS72"
   },
   {
+   "device": "SO-53B",
+   "name": "Xperia 5 III",
+   "model": "SO-53B"
+  },
+  {
    "device": "XQ-BQ52",
    "name": "Xperia 5 III",
    "model": "XQ-BQ52"
@@ -138750,6 +138775,21 @@
    "device": "A3A_XL_4G",
    "name": "C9",
    "model": "5199I"
+  },
+  {
+   "device": "BeyondTV4",
+   "name": "G03_4K_US",
+   "model": "Smart TV Pro"
+  },
+  {
+   "device": "BeyondTV4",
+   "name": "G03_4K_US_NF",
+   "model": "Smart TV"
+  },
+  {
+   "device": "G05",
+   "name": "G05_4K_US",
+   "model": "Smart TV Pro"
   },
   {
    "device": "U3A_PLUS_4G",
@@ -170762,6 +170802,11 @@
    "device": "P870A01",
    "name": "ZTE A2322",
    "model": "ZTE A2322"
+  },
+  {
+   "device": "P870A02",
+   "name": "ZTE A2322G",
+   "model": "ZTE A2322G"
   },
   {
    "device": "Z3052O",

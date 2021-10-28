@@ -272,7 +272,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callbackOuter.onCanceled()
             return
         }
-        if (impl.builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_FACE) &&
+        //Case for Pixel 4
+        val isFaceId = impl.builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_FACE) ||
+                (impl.builder.allAvailableTypes.size == 1 && impl.builder.allAvailableTypes.toList()[0] == BiometricType.BIOMETRIC_ANY
+                        && DeviceInfoManager.hasFaceID(deviceInfo))
+        if (isFaceId &&
             SensorPrivacyCheck.isCameraBlocked()) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera blocked")
             callbackOuter.onCanceled()
