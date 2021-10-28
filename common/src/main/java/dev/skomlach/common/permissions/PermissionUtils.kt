@@ -348,7 +348,7 @@ object PermissionUtils {
         }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    private fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
+    fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
         try {
             val manager = appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val clazz: Class<*> = AppOpsManager::class.java

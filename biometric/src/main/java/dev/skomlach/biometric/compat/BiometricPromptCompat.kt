@@ -272,6 +272,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callbackOuter.onCanceled()
             return
         }
+        if (impl.builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_FACE) &&
+            SensorPrivacyCheck.isCameraBlocked()) {
+            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera blocked")
+            callbackOuter.onCanceled()
+            return
+        } else if (impl.builder.allAvailableTypes.contains(BiometricType.BIOMETRIC_VOICE) &&
+            SensorPrivacyCheck.isMicrophoneBlocked()) {
+            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause mic blocked")
+            callbackOuter.onCanceled()
+            return
+        }
         BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
         val activityViewWatcher = try {
             ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
