@@ -22,6 +22,7 @@ Unfortunately, this simplification hides a number of problems.
 - Some manufacturers have removed/do not display the biometric UI
 - Biometric Auth solutions like Samsung Pass SDK or Meizu Fingerprint need to implement separately
 - No way to identify what types of biometric auth available on the device.
+- On Android 12 and devices with FaceUnlock (like Pixel 4), when user disable Camera via QuickSettings, Face setup and FaceUnlock stop working and no API to handle this case
 
 #### How to use BiometricPromptCompat in old devices?
 
