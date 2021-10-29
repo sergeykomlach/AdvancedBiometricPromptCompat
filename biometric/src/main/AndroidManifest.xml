@@ -55,7 +55,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
 
-    <uses-sdk tools:overrideLibrary="com.huawei.security.localauthentication" />
+    <uses-sdk tools:overrideLibrary="com.huawei.security.localauthentication,com.kieronquinn.monetcompat" />
     <application>
         <receiver
                 android:name="dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver"

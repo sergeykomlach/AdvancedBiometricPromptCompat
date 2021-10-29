@@ -18,19 +18,5 @@
   -->
 
 <resources>
-    <color name="darker_gray">#aaa</color>
-    <color name="transparent">#00000000</color>
-    <color name="white">#ffffffff</color>
-    <color name="black">#ff000000</color>
-
-    <color name="window_bg">#aa000000</color>
-    <color name="material_blue_500">#3380ea</color>
-
-    <color name="material_red_500">#e51c23</color>
-    <color name="material_grey_300">#ffe0e0e0</color>
-    <color name="material_grey_50">#fffafafa</color>
-
-    <color name="material_deep_teal_500">#ff009688</color>
-
-    <color name="textColor">@color/black</color>
+    <color name="textColor">@color/material_grey_300</color>
 </resources>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-  ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+  ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
   ~   Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,19 +18,8 @@
   -->
 
 <resources>
-    <color name="darker_gray">#aaa</color>
-    <color name="transparent">#00000000</color>
-    <color name="white">#ffffffff</color>
-    <color name="black">#ff000000</color>
 
-    <color name="window_bg">#aa000000</color>
-    <color name="material_blue_500">#3380ea</color>
-
-    <color name="material_red_500">#e51c23</color>
-    <color name="material_grey_300">#ffe0e0e0</color>
-    <color name="material_grey_50">#fffafafa</color>
-
-    <color name="material_deep_teal_500">#ff009688</color>
-
-    <color name="textColor">@color/black</color>
+    <style name="DialogContent">
+        <item name="android:layout_width">@dimen/dialog_width</item>
+    </style>
 </resources>

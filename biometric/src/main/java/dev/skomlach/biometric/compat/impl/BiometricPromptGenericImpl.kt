@@ -84,7 +84,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override val isNightMode: Boolean
-        get() = if (dialog != null) dialog?.isNightMode == true else {
+        get() = if (dialog != null) isNightMode(builder.context) else {
             isNightMode(builder.context)
         }
     override val usedPermissions: List<String>
