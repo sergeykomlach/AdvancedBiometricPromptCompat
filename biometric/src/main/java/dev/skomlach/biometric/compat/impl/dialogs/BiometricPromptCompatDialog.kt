@@ -44,10 +44,10 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
-import com.kieronquinn.monetcompat.core.MonetCompat
-import com.kieronquinn.monetcompat.extensions.toArgb
-import com.kieronquinn.monetcompat.interfaces.MonetColorsChangedListener
-import dev.kdrag0n.monet.theme.ColorScheme
+import com.kieronquinn.monetcompat_light.core.MonetCompat
+import com.kieronquinn.monetcompat_light.extensions.toArgb
+import com.kieronquinn.monetcompat_light.interfaces.MonetColorsChangedListener
+import dev.kdrag0n.monet_light.theme.ColorScheme
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
