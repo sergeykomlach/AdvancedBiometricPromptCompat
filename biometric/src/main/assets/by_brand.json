@@ -1054,6 +1054,11 @@
    "model": "CreaPad_1009A"
   },
   {
+   "device": "CreaPad_1009A_EEA",
+   "name": "CreaPad_1009A_EEA",
+   "model": "CreaPad_1009A_EEA"
+  },
+  {
    "device": "CreaPad_1009_EEA",
    "name": "CreaPad_1009_EEA",
    "model": "CreaPad_1009_EEA"
@@ -20986,6 +20991,11 @@
    "model": "Sunshine_T1"
   },
   {
+   "device": "Sunshine_T1_Elite",
+   "name": "Sunshine_T1_Elite",
+   "model": "Sunshine_T1_Elite"
+  },
+  {
    "device": "Typhoon_C6",
    "name": "Typhoon_C6",
    "model": "Typhoon_C6"
@@ -23422,6 +23432,11 @@
    "device": "Y92-9",
    "name": "Y92-9",
    "model": "Coolpad Y92-9"
+  },
+  {
+   "device": "k69v1_64",
+   "name": "coolpad COOL 20",
+   "model": "CP03"
   },
   {
    "device": "2021",
@@ -29271,6 +29286,13 @@
    "model": "EchosonicTV"
   }
  ],
+ "ECONNECT": [
+  {
+   "device": "BH505GS",
+   "name": "BH505GS",
+   "model": "BH505GS"
+  }
+ ],
  "ECS": [
   {
    "device": "RealPad_MA7BX2_1",
@@ -29361,6 +29383,11 @@
    "device": "TU10MK_3",
    "name": "TU10MK",
    "model": "TU10MK"
+  },
+  {
+   "device": "TU11MK2",
+   "name": "TU11MK2",
+   "model": "TU11MK2"
   }
  ],
  "EDENWOOD": [
@@ -48869,6 +48896,11 @@
   },
   {
    "device": "CT45P",
+   "name": "CT45 XP",
+   "model": "CT45P"
+  },
+  {
+   "device": "CT45P",
    "name": "CT45XP",
    "model": "CT45P"
   },
@@ -61808,6 +61840,11 @@
    "model": "S100"
   },
   {
+   "device": "S100E",
+   "name": "S100E",
+   "model": "S100E"
+  },
+  {
    "device": "S401",
    "name": "S401",
    "model": "S401"
@@ -61836,6 +61873,11 @@
    "device": "S501Pro",
    "name": "S501Pro",
    "model": "S501 Plus"
+  },
+  {
+   "device": "Soda6S",
+   "name": "Soda6S",
+   "model": "Soda6S"
   },
   {
    "device": "WIN",
@@ -63355,6 +63397,11 @@
    "model": "itel L6503"
   },
   {
+   "device": "itel-S661W",
+   "name": "itel S17",
+   "model": "itel S661W"
+  },
+  {
    "device": "itel-S32LTE",
    "name": "itel S32LTE",
    "model": "itel S32LTE"
@@ -63373,6 +63420,11 @@
    "device": "itel-L6005",
    "name": "itel Vision1(P36 Play)",
    "model": "itel L6005"
+  },
+  {
+   "device": "itel-P651L",
+   "name": "itel Vision2s",
+   "model": "itel P651L"
   },
   {
    "device": "itel-W4001",
@@ -113184,6 +113236,21 @@
    "model": "TBD"
   },
   {
+   "device": "evergo",
+   "name": "Redmi Note 11 5G",
+   "model": "21091116AC"
+  },
+  {
+   "device": "pissarro",
+   "name": "Redmi Note 11 Pro",
+   "model": "21091116C"
+  },
+  {
+   "device": "pissarropro",
+   "name": "Redmi Note 11 Pro+",
+   "model": "21091116UC"
+  },
+  {
    "device": "lavender",
    "name": "Redmi Note 7",
    "model": "Redmi Note 7"
@@ -115771,6 +115838,11 @@
    "device": "mdt1005_mk_32",
    "name": "SLTDVD1024",
    "model": "SLTDVD1024"
+  },
+  {
+   "device": "SLTDVD1024_B",
+   "name": "SLTDVD1024_B",
+   "model": "SLTDVD1024_B"
   },
   {
    "device": "SLTDVD9220-C",
@@ -130648,6 +130720,21 @@
    "device": "SarahH",
    "name": "AQUOS sense5G SH-S50",
    "model": "SH-S50"
+  },
+  {
+   "device": "Chara",
+   "name": "AQUOS sense6",
+   "model": "SH-RM19"
+  },
+  {
+   "device": "SH-54B",
+   "name": "AQUOS sense6",
+   "model": "SH-54B"
+  },
+  {
+   "device": "ZMJ",
+   "name": "AQUOS sense6",
+   "model": "SHG05"
   },
   {
    "device": "SG801SH",
@@ -152199,6 +152286,11 @@
    "model": "MP01"
   },
   {
+   "device": "A11S",
+   "name": "A11S EEA",
+   "model": "MP01"
+  },
+  {
    "device": "A3",
    "name": "A3",
    "model": "A3"
@@ -155797,11 +155889,6 @@
    "device": "2012",
    "name": "I2012",
    "model": "I2012"
-  },
-  {
-   "device": "2017",
-   "name": "I2017",
-   "model": "I2017"
   },
   {
    "device": "2018",
@@ -163164,7 +163251,17 @@
   {
    "device": "vili",
    "name": "Xiaomi 11T Pro",
+   "model": "2107113SI"
+  },
+  {
+   "device": "vili",
+   "name": "Xiaomi 11T Pro",
    "model": "2107113SR"
+  },
+  {
+   "device": "mona",
+   "name": "Xiaomi Civi",
+   "model": "2109119BC"
   },
   {
    "device": "nabu",
@@ -163940,6 +164037,23 @@
    "device": "ZXT-10HL323S",
    "name": "ZXT-10HL323S",
    "model": "ZXT-10HL323S"
+  }
+ ],
+ "ZEEKER": [
+  {
+   "device": "ZEEKER_P10",
+   "name": "ZEEKER_P10",
+   "model": "ZEEKER P10"
+  },
+  {
+   "device": "ZEEKER_P10",
+   "name": "ZEEKER_P10_EEA",
+   "model": "ZEEKER P10"
+  },
+  {
+   "device": "ZEEKER_P10",
+   "name": "ZEEKER_P10_RU",
+   "model": "ZEEKER P10"
   }
  ],
  "ZENTALITY": [
@@ -171713,6 +171827,11 @@
  ],
  "ZUOPU": [
   {
+   "device": "JH105",
+   "name": "JH105",
+   "model": "ZER A10"
+  },
+  {
    "device": "JH101",
    "name": "JH101",
    "model": "JH101"
@@ -173606,6 +173725,11 @@
    "device": "JT10-X1",
    "name": "JT10-X1",
    "model": "JT10-X1"
+  },
+  {
+   "device": "JT10LTE-X1",
+   "name": "JT10LTE-X1",
+   "model": "JT10LTE-X1"
   },
   {
    "device": "JT07-X",
@@ -175525,6 +175649,11 @@
    "device": "HY43X",
    "name": "Strong-SRT4150",
    "model": "Strong-SRT4150"
+  },
+  {
+   "device": "HY43X",
+   "name": "Strong-SRT4250",
+   "model": "Strong-SRT4250"
   }
  ],
  "sincoole": [
