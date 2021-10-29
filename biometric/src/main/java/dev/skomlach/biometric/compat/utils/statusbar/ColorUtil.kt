@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.utils.statusbar
 
 import android.graphics.Color
-import androidx.annotation.RestrictTo
 import androidx.core.graphics.ColorUtils
 import kotlin.math.roundToInt
 
@@ -29,7 +28,7 @@ import kotlin.math.roundToInt
  *
  * @author [GeoSoft](mailto:info@geosoft.no)
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object ColorUtil {
     /**
      * Blend two colors.

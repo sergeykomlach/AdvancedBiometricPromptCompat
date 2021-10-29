@@ -197,11 +197,15 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if ((api.type == BiometricType.BIOMETRIC_FACE || (api.type == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(BiometricPromptCompat.deviceInfo))) &&
-            SensorPrivacyCheck.isCameraBlocked()) {
+        if ((api.type == BiometricType.BIOMETRIC_FACE || (api.type == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(
+                BiometricPromptCompat.deviceInfo
+            ))) &&
+            SensorPrivacyCheck.isCameraBlocked()
+        ) {
             return false
         } else if (api.type == BiometricType.BIOMETRIC_VOICE &&
-            SensorPrivacyCheck.isMicrophoneBlocked()) {
+            SensorPrivacyCheck.isMicrophoneBlocked()
+        ) {
             return false
         }
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(

@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.engine.internal
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
@@ -36,7 +35,7 @@ import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule,
     BiometricCodes {
     companion object {

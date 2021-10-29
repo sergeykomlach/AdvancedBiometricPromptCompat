@@ -24,10 +24,9 @@ import android.os.Build
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import androidx.annotation.ColorInt
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object StatusBarTools {
     /* //FIXME: Display cutout support
      * https://github.com/QMUI/QMUI_Android/tree/2689199dda27a6c9163fe54faa05e2d3a8447416/qmui/src/main/java/com/qmuiteam/qmui/util

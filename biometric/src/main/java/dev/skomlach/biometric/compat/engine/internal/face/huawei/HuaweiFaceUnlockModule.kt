@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
 import android.content.*
 import android.os.*
-import androidx.annotation.RestrictTo
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -38,7 +37,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.reflect.InvocationTargetException
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_HUAWEI) {
     //EMUI 10.1.0

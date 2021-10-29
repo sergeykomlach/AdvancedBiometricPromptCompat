@@ -20,10 +20,9 @@
 package dev.skomlach.biometric.compat.utils.logging
 
 import android.util.Log
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BuildConfig
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object BiometricLoggerImpl {
     var DEBUG = BuildConfig.DEBUG
 

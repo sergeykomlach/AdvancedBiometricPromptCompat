@@ -32,7 +32,6 @@ import android.os.Binder
 import android.os.IBinder
 import android.os.Parcel
 import android.os.RemoteException
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakLivelinessEnabled
 import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -42,7 +41,7 @@ import java.lang.reflect.InvocationTargetException
 import java.util.*
 
 @SuppressLint("PrivateApi")
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class FaceLock(private val mContext: Context) {
     protected var mFaceLockService: Any? = null
     private var mServiceConnection: ServiceConnectionWrapper? = null

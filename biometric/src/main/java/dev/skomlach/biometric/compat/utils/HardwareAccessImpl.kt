@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.RestrictTo
 import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
@@ -28,7 +27,7 @@ import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class HardwareAccessImpl private constructor(val biometricAuthRequest: BiometricAuthRequest) {
     companion object {
 

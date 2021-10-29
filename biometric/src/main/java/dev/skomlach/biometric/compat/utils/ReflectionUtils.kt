@@ -19,11 +19,10 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.lang.reflect.Modifier
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object ReflectionUtils {
     fun printClass(name: String?) {
         try {

@@ -23,7 +23,6 @@ import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.view.View
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
@@ -39,7 +38,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.lang.ref.WeakReference
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class FacelockOldModule(private var listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACELOCK) {
     private var faceLockHelper: FaceLockHelper? = null
@@ -184,7 +183,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         faceLockHelper?.initFacelock()
     }
 
-    @RestrictTo(RestrictTo.Scope.LIBRARY)
+
     inner class ProxyListener(
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,

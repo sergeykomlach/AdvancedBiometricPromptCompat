@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
 import android.content.Context
-import androidx.annotation.RestrictTo
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.*
@@ -36,7 +35,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 //actually perhaps not necessary impl.
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class SupportFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_SUPPORT) {
     private var managerCompat: FingerprintManagerCompat? = null

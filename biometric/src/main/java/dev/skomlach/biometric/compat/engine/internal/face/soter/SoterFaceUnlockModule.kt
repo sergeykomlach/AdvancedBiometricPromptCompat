@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.soter
 
 import android.annotation.SuppressLint
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
@@ -36,7 +35,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private val listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_SOTERAPI) {
     private var manager: BiometricManagerCompat? = null

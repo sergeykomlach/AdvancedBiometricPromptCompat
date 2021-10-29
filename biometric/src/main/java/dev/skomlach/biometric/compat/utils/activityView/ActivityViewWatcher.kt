@@ -27,7 +27,7 @@ class ActivityViewWatcher(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val forceToCloseCallback: ForceToCloseCallback
 ) {
-    private val views = ActiveWindow.getActiveWindows(compatBuilder.context).toMutableList()
+    private val views = ActiveWindow.getActiveWindows(compatBuilder.getContext()).toMutableList()
     private val activeView = ActiveWindow.getActiveWindow(views)
     private val windowForegroundBlurring =
         WindowForegroundBlurring(

@@ -28,13 +28,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewParent
 import android.view.WindowManager
-import androidx.annotation.RestrictTo
 import androidx.core.util.ObjectsCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.util.*
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object ActiveWindow {
     private var clazz: Class<*>? = null
     private var windowManager: Any? = null

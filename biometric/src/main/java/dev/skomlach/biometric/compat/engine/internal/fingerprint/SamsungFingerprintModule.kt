@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
 import android.content.*
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.samsung.android.sdk.pass.Spass
 import com.samsung.android.sdk.pass.SpassFingerprint
@@ -33,7 +32,7 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class SamsungFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_SAMSUNG) {
     private var mSpass: Spass? = null

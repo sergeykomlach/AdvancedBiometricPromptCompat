@@ -1,4 +1,3 @@
-
 Advanced BiometricPromptCompat
 ====  
 
@@ -22,7 +21,8 @@ Unfortunately, this simplification hides a number of problems.
 - Some manufacturers have removed/do not display the biometric UI
 - Biometric Auth solutions like Samsung Pass SDK or Meizu Fingerprint need to implement separately
 - No way to identify what types of biometric auth available on the device.
-- On Android 12 and devices with FaceUnlock (like Pixel 4), when user disable Camera via QuickSettings, Face setup and FaceUnlock stop working and no API to handle this case
+- On Android 12 and devices with FaceUnlock (like Pixel 4), when user disable Camera via
+  QuickSettings, Face setup and FaceUnlock stop working and no API to handle this case
 
 #### How to use BiometricPromptCompat in old devices?
 
@@ -32,7 +32,8 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
 
 #### Key features
 
-- Unified UI for all devices - starts from Android 4.1 and to Android 12. Exception: some vendors (like Huawei or Samsung) provide custom UI
+- Unified UI for all devices - starts from Android 4.1 and to Android 12. Exception: some vendors (
+  like Huawei or Samsung) provide custom UI
 - Contains fix for devices WITHOUT system BiometricPrompt UI (like LG G8 or OnePlus 6T)
 - Dark/Light themes supported; Also you able to get the background color of the current Biometric
   dialog
@@ -43,23 +44,24 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
 
 #### Supported types of biometric authentication
 
-
 | Type | Details | Tested on  
 |--|--|--|  
 | BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
 | Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|   
 | Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
-| In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro|
-| Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 |
-| Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
-| Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30|
-| Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
-| Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1|
-| Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
+| In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| | Meizu Fingerprint | Android
+5.0-5.1 and Meizu devices | Meizu Pro 5 | | Face Unlock (aka Trusted Faces) | Android 4.1+
+|Prestigio PAP3400|  
+| Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30| | Huawei 3D FaceID |
+Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
+| Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| | Samsung FaceID | Android 7+
+and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
-| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
-| Windows Subsystem for Android & Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
+| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| | Windows Subsystem for Android &
+Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner &
+Windows 11 |
+
 ## Screenshots:
 
 **Xiaomi Pocophone F1**
@@ -108,7 +110,7 @@ dependencies {
 
 **BiometricPromptCompat API**
 
-##    
+##     
 
 At first, better in `Application.onCreate()`, call
 
@@ -118,7 +120,7 @@ BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something
 
 **BiometricManagerCompat**
 
-##    
+##     
 
 `static boolean hasEnrolled()` - returns `true` if specified biometric enrolled
 
@@ -142,13 +144,15 @@ biometric.
 **NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return
 incorrect result in many cases**
 
-##    
+##     
 
 **BiometricAuthRequest**
 
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi and BiometricType;  
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` -  means any available BiometricApi and BiometricType
+Default
+is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)`
+- means any available BiometricApi and BiometricType
 
 **BiometricConfirmation:**
 
@@ -175,7 +179,7 @@ and custom UI
 
 `BiometricType.BIOMETRIC_ANY` - use any available biometric (multiple types supported)
 
-##    
+##     
 
 **BiometricPromptCompat.Builder**
 
@@ -208,7 +212,8 @@ and cancel active biometric auth otherwise
 
 `void onCanceled()` - Biometric authentication was canceled
 
-`void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*
+`void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *
+AuthenticationFailureReason*
 
 `void onUIOpened()/void onUIClosed` - Biometric UI on display or closed
 
@@ -257,23 +262,21 @@ Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Androi
 
 IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
 
-
 ## Code security checks
 
-- FindBugs 
-  
+- FindBugs
+
 - Find Security Bugs
-  
+
 - OWAPS dependencies check
-  
-- Snyk  
+
+- Snyk
 
 - Sonatype-Lift
 
 ## License
 
 Apache License 2.0
-
 
 ## Contact author
 

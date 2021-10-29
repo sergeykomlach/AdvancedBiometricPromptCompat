@@ -30,8 +30,8 @@
 
     <LinearLayout
             android:id="@+id/dialogLayout"
-            android:layout_height="match_parent"
             style="@style/DialogContent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:background="@drawable/layout_bg"
             android:minWidth="400dp"
@@ -107,8 +107,8 @@
                         android:gravity="top|center_horizontal"
                         android:maxLines="2"
                         android:minHeight="32dp"
-                        android:textColor="@color/textColor"
                         android:textAppearance="@android:style/TextAppearance.Small"
+                        android:textColor="@color/textColor"
                         android:textSize="12sp"
                         android:visibility="invisible"
                         tools:text="Verify your identity"
@@ -130,8 +130,8 @@
                         android:gravity="center"
                         android:maxLines="2"
                         android:minHeight="32dp"
-                        android:textColor="@color/textColor"
                         android:textAppearance="@android:style/TextAppearance.Small"
+                        android:textColor="@color/textColor"
                         android:textSize="12sp"
                         tools:text="Verify your identity"
                         />

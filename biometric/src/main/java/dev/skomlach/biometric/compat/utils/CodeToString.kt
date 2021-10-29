@@ -19,10 +19,9 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object CodeToString {
 
     fun getHelpCode(code: Int): String {

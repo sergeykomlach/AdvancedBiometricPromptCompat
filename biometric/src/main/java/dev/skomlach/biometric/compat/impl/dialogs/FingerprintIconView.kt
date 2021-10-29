@@ -28,7 +28,6 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.util.AttributeSet
 import androidx.annotation.DrawableRes
-import androidx.annotation.RestrictTo
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
@@ -138,7 +137,7 @@ class FingerprintIconView @JvmOverloads constructor(
     }
 
     // Keep in sync with attrs.
-    @RestrictTo(RestrictTo.Scope.LIBRARY)
+
     enum class State {
         OFF, ON, ERROR
     }
