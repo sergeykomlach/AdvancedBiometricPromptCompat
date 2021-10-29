@@ -147,10 +147,7 @@ incorrect result in many cases**
 
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi and BiometricType;  
-Default
-is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)`
-
-- means any available BiometricApi and BiometricType
+Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` -  means any available BiometricApi and BiometricType
 
 **BiometricConfirmation:**
 
@@ -210,8 +207,7 @@ and cancel active biometric auth otherwise
 
 `void onCanceled()` - Biometric authentication was canceled
 
-`void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *
-AuthenticationFailureReason*
+`void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*
 
 `void onUIOpened()/void onUIClosed` - Biometric UI on display or closed
 
