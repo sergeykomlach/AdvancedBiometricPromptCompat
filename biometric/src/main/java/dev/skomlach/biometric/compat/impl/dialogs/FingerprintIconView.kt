@@ -32,6 +32,7 @@ import androidx.annotation.RestrictTo
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -47,6 +48,13 @@ class FingerprintIconView @JvmOverloads constructor(
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
         setState(State.OFF, false, BiometricType.BIOMETRIC_FINGERPRINT)
+    }
+
+    fun tintColor(color: Int?) {
+        ImageViewCompat.setImageTintList(
+            this,
+            if (color == null) null else ColorStateList.valueOf(color)
+        )
     }
 
     private var state = State.OFF

@@ -37,6 +37,7 @@ import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.isAtLeastS
 import java.util.concurrent.atomic.AtomicBoolean
@@ -90,7 +91,7 @@ class BiometricPromptCompatDialogImpl(
                     it,
                     ContextCompat.getColor(
                         compatBuilder.context,
-                        DialogMainColor.getColor(isNightMode)
+                        DialogMainColor.getColor(DarkLightThemes.isNightMode(compatBuilder.context))
                     ),
                     ContextCompat.getColor(compatBuilder.context, R.color.darker_gray),
                     compatBuilder.colorStatusBar
@@ -250,10 +251,6 @@ class BiometricPromptCompatDialogImpl(
         //Give up
         return compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
     }
-
-    val isNightMode: Boolean
-        get() = dialog.isNightMode
-
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if (isMultiWindowHack) {
             false

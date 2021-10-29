@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.app.UiModeManager
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -43,13 +44,18 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
+import com.kieronquinn.monetcompat.core.MonetCompat
+import com.kieronquinn.monetcompat.extensions.toArgb
+import com.kieronquinn.monetcompat.interfaces.MonetColorsChangedListener
+import dev.kdrag0n.monet.theme.ColorScheme
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightMode
+import dev.skomlach.common.misc.Utils
 
 internal class BiometricPromptCompatDialog(
     compatBuilder: BiometricPromptCompat.Builder,
@@ -57,7 +63,7 @@ internal class BiometricPromptCompatDialog(
 ) : AppCompatDialog(
     ContextThemeWrapper(compatBuilder.context, R.style.Theme_BiometricPromptDialog),
     R.style.Theme_BiometricPromptDialog
-) {
+), MonetColorsChangedListener {
     private val crossfader: TransitionDrawable
 
     @LayoutRes
@@ -82,6 +88,9 @@ internal class BiometricPromptCompatDialog(
     private var focusListener: WindowFocusChangedListener? = null
 
     init {
+        if (Utils.isAtLeastS) {
+            MonetCompat.enablePaletteCompat()
+        }
         val NIGHT_MODE: Int
         val currentMode = getNightMode(context)
         NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
@@ -159,6 +168,13 @@ internal class BiometricPromptCompatDialog(
             override fun onViewAttachedToWindow(v: View) {}
             override fun onViewDetachedFromWindow(v: View) {
                 if (isShowing) super@BiometricPromptCompatDialog.dismiss()
+                if (Utils.isAtLeastS) {
+                    try {
+                        MonetCompat.getInstance()
+                            .removeMonetColorsChangedListener(this@BiometricPromptCompatDialog)
+                    } catch (e: Throwable) {
+                    }
+                }
             }
         })
         title = rootView?.findViewById(R.id.title)
@@ -175,16 +191,72 @@ internal class BiometricPromptCompatDialog(
         (rootView?.parent as View).background = crossfader
         crossfader.startTransition(animation.duration.toInt())
         rootView?.startAnimation(animation)
+        if (Utils.isAtLeastS) {
+            setupMonet()
+        }
         ScreenProtection().applyProtectionInWindow(window ?: return)
+    }
+
+    private fun setupMonet() {
+        MonetCompat.useSystemColorsOnAndroid12 = false
+        val monet = MonetCompat.setup(context)
+        monet.addMonetColorsChangedListener(this, notifySelf = true)
+        monet.updateMonetColors()
+    }
+
+    override fun onMonetColorsChanged(
+        monet: MonetCompat,
+        monetColors: ColorScheme,
+        isInitialChange: Boolean
+    ) {
+        updateColors(monetColors)
+    }
+
+    private fun updateColors(monetColors: ColorScheme) {
+        try {
+            if (DarkLightThemes.isNightMode(context)) {
+                fingerprintIcon?.tintColor(monetColors.accent1[300]!!.toArgb())
+                negativeButton?.setTextColor(monetColors.accent2[100]!!.toArgb())
+                rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                    setTextToTextViews(it, monetColors.neutral1[50]!!.toArgb())
+                    ViewCompat.setBackgroundTintList(
+                        it,
+                        ColorStateList.valueOf(monetColors.neutral1[900]!!.toArgb())
+                    )
+                }
+            } else {
+                fingerprintIcon?.tintColor(monetColors.accent1[600]!!.toArgb())
+
+                negativeButton?.setTextColor(monetColors.neutral2[500]!!.toArgb())
+                rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                    setTextToTextViews(it, monetColors.neutral1[900]!!.toArgb())
+                    ViewCompat.setBackgroundTintList(
+                        it,
+                        ColorStateList.valueOf(monetColors.neutral1[50]!!.toArgb())
+                    )
+                }
+
+            }
+
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e, "Monet colors")
+        }
+    }
+
+    private fun setTextToTextViews(view: View?, color: Int) {
+        if (view is TextView && view !is Button) {
+            view.setTextColor(color)
+        } else if (view is ViewGroup) {
+            val count = view.childCount
+            for (i in 0 until count) {
+                setTextToTextViews(view.getChildAt(i), color)
+            }
+        }
     }
 
     fun setWindowFocusChangedListener(listener: WindowFocusChangedListener?) {
         focusListener = listener
     }
-
-    //https://developer.android.com/preview/features/darktheme#configuration_changes
-    val isNightMode: Boolean
-        get() = "dark_theme" == rootView?.tag
 
     private inner class ScreenProtection {
         //disable next features:
