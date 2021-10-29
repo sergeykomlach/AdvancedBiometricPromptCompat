@@ -31,8 +31,9 @@
 
     <LinearLayout
             android:id="@+id/dialogLayout"
-            android:layout_width="wrap_content"
+
             android:layout_height="match_parent"
+            style="@style/DialogContent"
             android:layout_gravity="center"
             android:background="@drawable/layout_bg"
             android:minWidth="400dp"
@@ -48,7 +49,8 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="24dp"
                 android:gravity="center"
-                android:textAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Title"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Title"
+                android:textColor="@color/textColor"
 
                 android:textSize="20sp"
                 tools:text="Title"
@@ -61,7 +63,8 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:textAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Subtitle"
+                android:textColor="@color/textColor"
 
                 android:textSize="16sp"
                 tools:text="Subtitle"
@@ -74,7 +77,8 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:textAppearance="@android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle"
+                android:textAppearance="@android:style/TextAppearance.DeviceDefault.Widget.ActionBar.Subtitle"
+                android:textColor="@color/textColor"
 
                 android:textSize="16sp"
                 tools:text="Description: blabla."
@@ -108,6 +112,7 @@
                         android:gravity="top|center_horizontal"
                         android:maxLines="2"
                         android:minHeight="32dp"
+                        android:textColor="@color/textColor"
                         android:textAppearance="@android:style/TextAppearance.Small"
                         android:textSize="12sp"
 
@@ -131,6 +136,7 @@
                         android:gravity="center"
                         android:maxLines="2"
                         android:minHeight="32dp"
+                        android:textColor="@color/textColor"
                         android:textAppearance="@android:style/TextAppearance.Small"
 
                         android:textSize="12sp"

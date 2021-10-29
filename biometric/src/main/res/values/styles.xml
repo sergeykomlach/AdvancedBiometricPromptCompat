@@ -37,4 +37,8 @@
     <style name="DialogTitle" parent="@android:style/TextAppearance.DialogWindowTitle">
         <item name="android:visibility">gone</item>
     </style>
+
+    <style name="DialogContent">
+        <item name="android:layout_width">wrap_content</item>
+    </style>
 </resources>
