@@ -1,7 +1,3 @@
-<p align="center">
-  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-  </a>
-</p>
 
 Advanced BiometricPromptCompat
 ====  
@@ -268,6 +264,12 @@ IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scann
 Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
 
 Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+  </a>
+</p>
+
 
 ## Code security checks
 
