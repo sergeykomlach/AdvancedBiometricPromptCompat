@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
 import android.os.IBinder
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.fingerprints.service.FingerprintManager
 import com.fingerprints.service.FingerprintManager.IdentifyCallback
@@ -33,7 +32,7 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class FlymeFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_FLYME) {
     private var mFingerprintServiceFingerprintManager: FingerprintManager? = null

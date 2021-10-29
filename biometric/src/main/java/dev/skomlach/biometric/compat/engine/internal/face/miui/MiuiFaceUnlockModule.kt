@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.miui
 
 import android.annotation.SuppressLint
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -39,7 +38,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_MIUI) {
     private var manager: IMiuiFaceManager? = null

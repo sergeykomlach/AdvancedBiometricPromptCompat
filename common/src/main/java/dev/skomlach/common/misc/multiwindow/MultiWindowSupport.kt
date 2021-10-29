@@ -78,6 +78,7 @@ class MultiWindowSupport(private val activity: Activity) {
                     }
                 })
         }
+
         fun isTablet(): Boolean {
             val ctx = AndroidContext.appContext
             val resources = ctx.resources
@@ -358,7 +359,6 @@ class MultiWindowSupport(private val activity: Activity) {
             }
             return orientation
         }
-
 
 
 }

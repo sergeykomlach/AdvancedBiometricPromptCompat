@@ -24,7 +24,6 @@ import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.os.Build
 import android.view.View
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -48,7 +47,7 @@ import dev.skomlach.common.misc.Utils.startActivity
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object BiometricAuthentication {
     private val moduleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, BiometricModule>())

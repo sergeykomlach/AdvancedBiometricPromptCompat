@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils
 import android.database.Cursor
 import android.net.Uri
 import android.util.Base64
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -32,7 +31,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 //Dev tool
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object DeviceSettings {
     private val pattern = Pattern.compile("\\[(.+)\\]: \\[(.+)\\]")
     fun printAll() {

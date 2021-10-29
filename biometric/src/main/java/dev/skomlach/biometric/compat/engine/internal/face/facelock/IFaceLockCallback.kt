@@ -20,9 +20,8 @@
 package dev.skomlach.biometric.compat.engine.internal.face.facelock
 
 import android.os.RemoteException
-import androidx.annotation.RestrictTo
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 interface IFaceLockCallback {
     @Throws(RemoteException::class)
     fun unlock()

@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils.hardware
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
-import androidx.annotation.RestrictTo
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -30,7 +29,7 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
 
 @TargetApi(Build.VERSION_CODES.Q)
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
     @SuppressLint("WrongConstant")
     private fun canAuthenticate(): Int {

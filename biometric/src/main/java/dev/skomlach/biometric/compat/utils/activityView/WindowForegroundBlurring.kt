@@ -47,7 +47,7 @@ class WindowForegroundBlurring(
     private val parentView: ViewGroup,
     private val forceToCloseCallback: ActivityViewWatcher.ForceToCloseCallback
 ) : IconStateHelper.IconStateListener {
-    private val context = compatBuilder.context
+    private val context = compatBuilder.getContext()
     private var contentView: ViewGroup? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
@@ -60,7 +60,7 @@ class WindowForegroundBlurring(
     )
 
     private val list: List<BiometricType> by lazy {
-        ArrayList<BiometricType>(compatBuilder.allAvailableTypes)
+        ArrayList<BiometricType>(compatBuilder.getAllAvailableTypes())
     }
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
@@ -81,7 +81,7 @@ class WindowForegroundBlurring(
     }
 
     init {
-        val isDark = DarkLightThemes.isNightMode(compatBuilder.context)
+        val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
         defaultColor = ContextCompat.getColor(
             context,
             DialogMainColor.getColor(isDark)

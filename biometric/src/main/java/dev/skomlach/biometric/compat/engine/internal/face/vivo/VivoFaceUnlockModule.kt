@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.vivo
 
 import android.annotation.SuppressLint
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.vivo.framework.facedetect.FaceDetectManager
 import com.vivo.framework.facedetect.FaceDetectManager.FaceAuthenticationCallback
@@ -34,7 +33,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.util.*
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_VIVO) {
     private var manager: FaceDetectManager? = null

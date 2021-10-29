@@ -24,7 +24,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.RestrictTo
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -35,7 +34,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicReference
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object BiometricNotificationManager {
     const val CHANNEL_ID = "biometric"
     private val notificationReference = AtomicReference<Runnable>(null)
@@ -73,21 +72,21 @@ object BiometricNotificationManager {
         val notify = Runnable {
             try {
                 val clickIntent = Intent()
-                for (type in builder.allAvailableTypes) {
+                for (type in builder.getAllAvailableTypes()) {
 
                     val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
                         .setOnlyAlertOnce(true)
-                          //TODO: investigate why notifications remains on the screen
+                        //TODO: investigate why notifications remains on the screen
 //                        .setAutoCancel(false)
 //                        .setOngoing(true)
 
                         .setAutoCancel(true)
                         .setLocalOnly(true)
-                        .setContentTitle(builder.title)
-                        .setContentText(builder.description)
+                        .setContentTitle(builder.getTitle())
+                        .setContentText(builder.getDescription())
                         .setStyle(
                             NotificationCompat.BigTextStyle()
-                                .bigText(builder.description)
+                                .bigText(builder.getDescription())
                         )
                         .setDeleteIntent(
                             PendingIntent.getBroadcast(

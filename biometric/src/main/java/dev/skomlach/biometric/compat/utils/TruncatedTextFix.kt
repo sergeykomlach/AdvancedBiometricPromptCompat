@@ -59,8 +59,8 @@ object TruncatedTextFix {
         builder: BiometricPromptCompat.Builder,
         onTruncateChecked: OnTruncateChecked
     ) {
-        val windowView = builder.context.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
-        val layout = LayoutInflater.from(builder.context)
+        val windowView = builder.getContext().findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
+        val layout = LayoutInflater.from(builder.getContext())
             .inflate(R.layout.biometric_prompt_dialog_content, null).apply {
                 this.visibility = View.INVISIBLE
                 windowView.addView(
@@ -84,17 +84,17 @@ object TruncatedTextFix {
             onTruncateChecked.onDone()
         }
         val counter = AtomicInteger(4)
-        getMaxStringForCurrentConfig(builder.title, title, { str ->
-            builder.title = str
+        getMaxStringForCurrentConfig(builder.getTitle(), title, { str ->
+            builder.setTitle(str)
             if (counter.decrementAndGet() == 0) {
                 action.invoke()
             }
         }, TITLE_SHIFT)
         getMaxStringForCurrentConfig(
-            builder.subtitle,
+            builder.getSubtitle(),
             subtitle,
             { str ->
-                builder.subtitle = str
+                builder.setSubtitle(str)
                 if (counter.decrementAndGet() == 0) {
                     action.invoke()
                 }
@@ -102,10 +102,10 @@ object TruncatedTextFix {
             SUBTITLE_SHIFT
         )
         getMaxStringForCurrentConfig(
-            builder.description,
+            builder.getDescription(),
             description,
             { str ->
-                builder.description = str
+                builder.setDescription(str)
                 if (counter.decrementAndGet() == 0) {
                     action.invoke()
                 }
@@ -113,10 +113,12 @@ object TruncatedTextFix {
             DESCRIPTION_SHIFT
         )
         getMaxStringForCurrentConfig(
-            builder.negativeButtonText,
+            builder.getNegativeButtonText(),
             negativeButton,
             { str ->
-                builder.negativeButtonText = str
+                str?.let {
+                    builder.setNegativeButton(it, builder.getNegativeButtonListener())
+                }
                 if (counter.decrementAndGet() == 0) {
                     action.invoke()
                 }

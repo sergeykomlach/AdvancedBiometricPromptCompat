@@ -23,12 +23,11 @@ import android.os.Build
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import androidx.annotation.RestrictTo
 import androidx.core.view.WindowCompat
 import dev.skomlach.common.misc.Utils
 import java.util.*
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object StatusBarIconsDarkMode {
     private var SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = 0x00002000
     private var SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = 0x00000010

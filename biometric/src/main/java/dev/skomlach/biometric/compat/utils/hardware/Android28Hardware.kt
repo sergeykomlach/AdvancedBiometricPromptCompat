@@ -27,7 +27,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
@@ -47,7 +46,7 @@ import javax.crypto.KeyGenerator
 
 //Set of tools that tried to behave like BiometricManager API from Android 10
 @TargetApi(Build.VERSION_CODES.P)
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
 
     companion object {

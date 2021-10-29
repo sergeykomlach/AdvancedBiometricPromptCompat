@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -38,7 +37,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 @TargetApi(Build.VERSION_CODES.M)
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_API23) {
     private var manager: FingerprintManager? = null

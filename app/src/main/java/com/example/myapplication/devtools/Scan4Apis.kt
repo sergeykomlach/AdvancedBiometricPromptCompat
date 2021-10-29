@@ -69,12 +69,12 @@ class Scan4Apis(private val context: Context) {
 
                 val jars = HashSet<String>()
                 for (r in path) {
-                    if(r.isDirectory) {
+                    if (r.isDirectory) {
                         BiometricLoggerImpl.d("Scan4Apis.check path $r")
                         scanRecursivly(r, jars)
                     } else
-                        if(r.isFile)
-                        jars.add(r.absolutePath)
+                        if (r.isFile)
+                            jars.add(r.absolutePath)
                 }
                 val stringBuilder = StringBuilder("\n\n")
                 for (s in jars) {
@@ -117,12 +117,12 @@ class Scan4Apis(private val context: Context) {
                                         )
                                     ) {
                                         sb.append(type).append("\n")
-                                        if(counter == 0){
+                                        if (counter == 0) {
                                             writer.write("\n-------------------------\n")
                                             writer.write(s)
                                             writer.write("\n")
                                         }
-                                        writer.write(type+"\n")
+                                        writer.write(type + "\n")
                                         counter++
                                     }
                                 }
@@ -136,7 +136,7 @@ class Scan4Apis(private val context: Context) {
                             stringBuilder.append("\n")
                             stringBuilder.append(sb.toString())
                             stringBuilder.append("\n")
-                             writer.write("\n")
+                            writer.write("\n")
                         }
                     } catch (e: Throwable) {
                         e.printStackTrace()

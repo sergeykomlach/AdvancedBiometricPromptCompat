@@ -25,7 +25,6 @@ import android.annotation.TargetApi
 import android.hardware.SensorPrivacyManager
 import android.os.Build
 import android.os.Process
-import androidx.annotation.RestrictTo
 import androidx.core.app.AppOpsManagerCompat
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
@@ -33,7 +32,7 @@ import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
 
 @TargetApi(Build.VERSION_CODES.S)
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object SensorPrivacyCheck {
     fun isMicrophoneBlocked(): Boolean {
         return Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.MICROPHONE)

@@ -32,8 +32,8 @@
     <LinearLayout
             android:id="@+id/dialogLayout"
 
-            android:layout_height="match_parent"
             style="@style/DialogContent"
+            android:layout_height="match_parent"
             android:layout_gravity="center"
             android:background="@drawable/layout_bg"
             android:minWidth="400dp"
@@ -49,8 +49,8 @@
                 android:layout_marginTop="12dp"
 
 
-                android:textColor="@color/textColor"
                 android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Title"
+                android:textColor="@color/textColor"
 
                 android:textSize="22sp"
                 tools:text="Title"
@@ -62,8 +62,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
 
-                android:textColor="@color/textColor"
                 android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
+                android:textColor="@color/textColor"
 
                 android:textSize="16sp"
                 tools:text="Subtitle"
@@ -75,8 +75,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
 
-                android:textColor="@color/textColor"
                 android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
+                android:textColor="@color/textColor"
                 android:textSize="14sp"
                 tools:text="Description: blabla."
                 />
@@ -109,8 +109,8 @@
                         android:gravity="top|center_horizontal"
                         android:maxLines="2"
                         android:minHeight="32dp"
-                        android:textColor="@color/textColor"
                         android:textAppearance="@android:style/TextAppearance.Small"
+                        android:textColor="@color/textColor"
                         android:textSize="12sp"
 
                         android:visibility="invisible"
@@ -133,8 +133,8 @@
                         android:gravity="center"
                         android:maxLines="2"
                         android:minHeight="32dp"
-                        android:textColor="@color/textColor"
                         android:textAppearance="@android:style/TextAppearance.Small"
+                        android:textColor="@color/textColor"
 
                         android:textSize="12sp"
                         tools:text="Verify your identity"

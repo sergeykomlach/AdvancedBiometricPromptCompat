@@ -21,10 +21,9 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.SharedPreferences
 import android.os.Build
-import androidx.annotation.RestrictTo
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object BiometricAuthWasCanceledByError {
     private const val TS_PREF = "error_cancel"
     private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")

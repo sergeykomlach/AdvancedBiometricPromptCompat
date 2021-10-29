@@ -61,7 +61,7 @@ internal class BiometricPromptCompatDialog(
     compatBuilder: BiometricPromptCompat.Builder,
     isInscreenLayout: Boolean
 ) : AppCompatDialog(
-    ContextThemeWrapper(compatBuilder.context, R.style.Theme_BiometricPromptDialog),
+    ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog),
     R.style.Theme_BiometricPromptDialog
 ), MonetColorsChangedListener {
     private val crossfader: TransitionDrawable

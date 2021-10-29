@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.iris.samsung
 
 import android.annotation.SuppressLint
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.samsung.android.camera.iris.SemIrisManager
 import dev.skomlach.biometric.compat.engine.*
@@ -35,7 +34,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.IRIS_SAMSUNG) {
     private var manager: SemIrisManager? = null

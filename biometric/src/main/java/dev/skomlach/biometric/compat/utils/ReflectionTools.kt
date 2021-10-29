@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.annotation.RestrictTo
 import androidx.core.os.BuildCompat
 import dalvik.system.PathClassLoader
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -30,7 +29,7 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.lang.reflect.Modifier
 import java.util.*
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object ReflectionTools {
     private val cache = WeakHashMap<String, PathClassLoader>()
 

@@ -24,13 +24,12 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.SettingsHelper
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
 import java.time.LocalTime
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object DarkLightThemes {
 
     fun isNightMode(context: Context): Boolean {

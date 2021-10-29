@@ -20,11 +20,10 @@
 package dev.skomlach.biometric.compat.utils
 
 import android.content.SharedPreferences
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object BiometricErrorLockoutPermanentFix {
     private const val TS_PREF = "user_unlock_device"
     private val sharedPreferences: SharedPreferences =
