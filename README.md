@@ -259,17 +259,6 @@ Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Androi
 
 IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
 
-## Contact author
-
-Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
-
-Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
-
-<p align="center">
-  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-  </a>
-</p>
-
 
 ## Code security checks
 
@@ -286,4 +275,16 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 ## License
 
 Apache License 2.0
+
+
+## Contact author
+
+Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
+
+Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+  </a>
+</p>
 
