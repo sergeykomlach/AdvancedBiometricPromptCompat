@@ -144,6 +144,7 @@ object AndroidContext {
             }
             return l
         }
+
     init {
         val context = appContext
         LogCat.logError("Pkg ${context.packageName}")

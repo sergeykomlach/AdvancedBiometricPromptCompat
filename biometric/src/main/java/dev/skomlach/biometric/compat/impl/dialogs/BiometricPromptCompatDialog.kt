@@ -44,12 +44,12 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
-import com.kieronquinn.monetcompat_light.core.MonetCompat
-import com.kieronquinn.monetcompat_light.extensions.toArgb
-import com.kieronquinn.monetcompat_light.interfaces.MonetColorsChangedListener
-import dev.kdrag0n.monet_light.theme.ColorScheme
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.monetsupport.core.MonetCompat
+import dev.skomlach.biometric.compat.monetsupport.extensions.toArgb
+import dev.skomlach.biometric.compat.monetsupport.interfaces.MonetColorsChangedListener
+import dev.skomlach.biometric.compat.monetsupport.utils.theme.ColorScheme
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -88,9 +88,6 @@ internal class BiometricPromptCompatDialog(
     private var focusListener: WindowFocusChangedListener? = null
 
     init {
-        if (Utils.isAtLeastS) {
-            MonetCompat.enablePaletteCompat()
-        }
         val NIGHT_MODE: Int
         val currentMode = getNightMode(context)
         NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
@@ -165,7 +162,12 @@ internal class BiometricPromptCompatDialog(
         setContentView(res)
         rootView = findViewById(R.id.dialogContent)
         rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) {}
+            override fun onViewAttachedToWindow(v: View) {
+                if (Utils.isAtLeastS) {
+                    setupMonet()
+                }
+            }
+
             override fun onViewDetachedFromWindow(v: View) {
                 if (isShowing) super@BiometricPromptCompatDialog.dismiss()
                 if (Utils.isAtLeastS) {
@@ -191,17 +193,18 @@ internal class BiometricPromptCompatDialog(
         (rootView?.parent as View).background = crossfader
         crossfader.startTransition(animation.duration.toInt())
         rootView?.startAnimation(animation)
-        if (Utils.isAtLeastS) {
-            setupMonet()
-        }
         ScreenProtection().applyProtectionInWindow(window ?: return)
     }
 
     private fun setupMonet() {
-        MonetCompat.useSystemColorsOnAndroid12 = false
-        val monet = MonetCompat.setup(context)
-        monet.addMonetColorsChangedListener(this, notifySelf = true)
-        monet.updateMonetColors()
+        try {
+            MonetCompat.useSystemColorsOnAndroid12 = false
+            val monet = MonetCompat.setup(context)
+            monet.addMonetColorsChangedListener(this, notifySelf = true)
+            monet.updateMonetColors()
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e, "setupMonet")
+        }
     }
 
     override fun onMonetColorsChanged(

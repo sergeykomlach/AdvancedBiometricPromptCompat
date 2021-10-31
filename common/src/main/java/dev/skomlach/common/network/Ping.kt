@@ -50,7 +50,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     private var job: Runnable? = null
     fun cancelConnectionCheckQuery() {
         job?.let {
-            ExecutorHelper.handler.removeCallbacks(it)
+            ExecutorHelper.removeCallbacks(it)
         }
         job = null
     }
@@ -62,12 +62,12 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         }
         job?.let {
             if (delaySeconds > 0)
-                ExecutorHelper.handler.postDelayed(
+                ExecutorHelper.postDelayed(
                     it,
                     TimeUnit.SECONDS.toMillis(delaySeconds)
                 )
             else
-                ExecutorHelper.handler.post(it)
+                ExecutorHelper.post(it)
         }
     }
 

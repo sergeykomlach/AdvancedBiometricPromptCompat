@@ -45,7 +45,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     private var huawei3DFaceManager: FaceManager? = null
 
     init {
-        ExecutorHelper.handler.post {
+        ExecutorHelper.post {
 
             try {
                 huawei3DFaceManager = faceManager
@@ -341,7 +341,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 if (restartPredicate?.invoke(failureReason) == true) {
                     listener?.onFailure(failureReason, tag())
                     huaweiFaceManagerLegacy?.cancel(0)
-                    ExecutorHelper.handler.postDelayed({
+                    ExecutorHelper.postDelayed({
                         authenticate(cancellationSignal, listener, restartPredicate)
                     }, 250)
                 } else {

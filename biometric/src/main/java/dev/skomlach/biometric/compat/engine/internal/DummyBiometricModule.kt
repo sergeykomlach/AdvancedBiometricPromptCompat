@@ -57,7 +57,7 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
         restartPredicate: RestartPredicate?
     ) {
         d("$name.authenticate - $biometricMethod")
-        ExecutorHelper.handler.postDelayed({
+        ExecutorHelper.postDelayed({
             listener?.onFailure(
                 AuthenticationFailureReason.AUTHENTICATION_FAILED,
                 biometricMethod.id

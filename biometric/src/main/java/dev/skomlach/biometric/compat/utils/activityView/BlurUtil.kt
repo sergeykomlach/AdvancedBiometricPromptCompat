@@ -78,7 +78,7 @@ object BlurUtil {
                 ExecutorHelper.startOnBackground {
                     try {
                         (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            ExecutorHelper.handler.post {
+                            ExecutorHelper.post {
                                 try {
                                     BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
                                     blur(
@@ -92,7 +92,7 @@ object BlurUtil {
                             }
                         }
                     } catch (ignore: Throwable) {
-                        ExecutorHelper.handler.post {
+                        ExecutorHelper.post {
                             fallbackViewCapture(view, listener)
                         }
                     }

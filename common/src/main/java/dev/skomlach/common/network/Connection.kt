@@ -144,11 +144,11 @@ object Connection {
 
     private fun notifyNetworkChange() {
         job?.let {
-            ExecutorHelper.handler.removeCallbacks(it)
+            ExecutorHelper.removeCallbacks(it)
         }
         job = Runnable { notifyNetworkChangedTask.invoke() }
         job?.let {
-            ExecutorHelper.handler.postDelayed(it, TimeUnit.SECONDS.toMillis(1))
+            ExecutorHelper.postDelayed(it, TimeUnit.SECONDS.toMillis(1))
         }
     }
 

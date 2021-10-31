@@ -74,6 +74,7 @@ enum class AuthenticationFailureReason {
      * The authentication failed for an unknown reason.
      */
     UNKNOWN,
+
     /**
      * Internal API error
      */
@@ -83,6 +84,7 @@ enum class AuthenticationFailureReason {
      * API not initialized
      */
     NOT_INITIALIZED_ERROR,
+
     /**
      * Biometric can't be starte due to missing permissions
      */

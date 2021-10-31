@@ -314,7 +314,7 @@ object PermissionUtils {
                     if (permissionToOp == op && pkgName == packageName) {
                         logError("PermissionUtils.onOpChanged - $op - $packageName")
                         //https://stackoverflow.com/a/40649631
-                        ExecutorHelper.handler.postDelayed(runnable, 250)
+                        ExecutorHelper.postDelayed(runnable, 250)
                     }
                 }
             } catch (e: Throwable) {

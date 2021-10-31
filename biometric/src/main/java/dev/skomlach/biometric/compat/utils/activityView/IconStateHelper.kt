@@ -34,26 +34,26 @@ object IconStateHelper {
     }
 
     fun errorType(type: BiometricType?) {
-        ExecutorHelper.handler.post {
+        ExecutorHelper.post {
             for (stateListener in listeners) {
                 stateListener.onError(type)
             }
             var task = iconsTasks[type]
-            task?.let { ExecutorHelper.handler.removeCallbacks(it) }
+            task?.let { ExecutorHelper.removeCallbacks(it) }
             task = object : Runnable {
                 override fun run() {
-                    ExecutorHelper.handler.removeCallbacks(this)
+                    ExecutorHelper.removeCallbacks(this)
                     for (stateListener in listeners) {
                         stateListener.reset(type)
                     }
                 }
             }
-            ExecutorHelper.handler.postDelayed(task, 2000)
+            ExecutorHelper.postDelayed(task, 2000)
         }
     }
 
     fun successType(type: BiometricType?) {
-        ExecutorHelper.handler.post {
+        ExecutorHelper.post {
             for (stateListener in listeners) {
                 stateListener.onSuccess(type)
             }

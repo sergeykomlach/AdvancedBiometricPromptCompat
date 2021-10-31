@@ -139,7 +139,7 @@ class MultiWindowSupport(private val activity: Activity) {
     fun finish() {
         if (isActive) {
             activityDestroyedRelay.accept(activity)
-            ExecutorHelper.handler.post { isActive = false }
+            ExecutorHelper.post { isActive = false }
         }
     }
 
