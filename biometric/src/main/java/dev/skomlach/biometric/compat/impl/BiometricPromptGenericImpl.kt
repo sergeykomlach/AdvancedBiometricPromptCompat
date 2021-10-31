@@ -54,7 +54,9 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         HashMap<BiometricType?, AuthResult>()
 
     init {
-        isFingerprint.set(builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT))
+        isFingerprint.set(
+            builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
+        )
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
@@ -188,7 +190,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
-            ExecutorHelper.handler.post {
+            ExecutorHelper.post {
                 cancelAuthenticate()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
@@ -200,7 +202,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                         callback?.onFailed(error.failureReason)
                     } else {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).lockout()
-                        ExecutorHelper.handler.postDelayed({
+                        ExecutorHelper.postDelayed({
                             callback?.onFailed(error.failureReason)
                         }, 2000)
                     }

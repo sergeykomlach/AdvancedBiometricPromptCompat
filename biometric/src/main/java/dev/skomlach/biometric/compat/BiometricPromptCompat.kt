@@ -141,7 +141,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             if (isBiometricInit.get()) {
                 BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
-                execute?.let { ExecutorHelper.handler.post(it) }
+                execute?.let { ExecutorHelper.post(it) }
             } else {
                 if (initInProgress.get()) {
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() - pending")
@@ -204,7 +204,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
 
                     for (task in pendingTasks) {
-                        task?.let { ExecutorHelper.handler.post(it) }
+                        task?.let { ExecutorHelper.post(it) }
                     }
                     pendingTasks.clear()
                 }
@@ -231,10 +231,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 break
                             }
                         }
-                    found
-                } else {
-                    false
-                }
+                        found
+                    } else {
+                        false
+                    }
         BiometricLoggerImpl.d(
             "BiometricPromptCompat.IBiometricPromptImpl - " +
                     "$isBiometricPrompt"
@@ -272,9 +272,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 } catch (ignore: InterruptedException) {
                 }
             }
-            ExecutorHelper.handler.post {
+            ExecutorHelper.post {
                 if (timeout) {
-                    callbackOuter.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                    callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR)
                 } else
                     startAuth(callbackOuter)
             }
@@ -425,7 +425,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     impl.usedPermissions
                 )
             ) {
-                callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                callback.onFailed(AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR)
             } else
                 authenticateInternal(callback)
         }
@@ -457,7 +457,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 } catch (ignore: InterruptedException) {
                 }
             }
-            ExecutorHelper.handler.post {
+            ExecutorHelper.post {
                 impl.cancelAuthenticate()
             }
         }
@@ -476,7 +476,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     } catch (ignore: InterruptedException) {
                     }
                 }
-                ExecutorHelper.handler.post {
+                ExecutorHelper.post {
                     impl.cancelAuthenticate()
                 }
             }

@@ -25,6 +25,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
+import dev.skomlach.common.logging.LogCat
 import java.io.IOException
 import java.util.*
 
@@ -143,4 +144,9 @@ object AndroidContext {
             }
             return l
         }
+
+    init {
+        val context = appContext
+        LogCat.logError("Pkg ${context.packageName}")
+    }
 }

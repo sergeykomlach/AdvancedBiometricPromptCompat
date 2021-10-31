@@ -61,9 +61,11 @@ class BiometricPromptCompatDialogImpl(
     init {
         promptText = getDialogTitle()
         too_many_attempts =
-            compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_error_lockout)
+            compatBuilder.getContext()
+                .getString(androidx.biometric.R.string.fingerprint_error_lockout)
         not_recognized =
-            compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_not_recognized)
+            compatBuilder.getContext()
+                .getString(androidx.biometric.R.string.fingerprint_not_recognized)
         animateHandler = AnimateHandler(Looper.getMainLooper())
         dialog = BiometricPromptCompatDialog(compatBuilder, isInScreen)
         dialog.setOnDismissListener { dialogInterface: DialogInterface? ->
@@ -248,7 +250,8 @@ class BiometricPromptCompatDialogImpl(
             e(e)
         }
         //Give up
-        return compatBuilder.getContext().getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
+        return compatBuilder.getContext()
+            .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
     }
 
     fun cancelAuthenticateBecauseOnPause(): Boolean {
@@ -283,7 +286,8 @@ class BiometricPromptCompatDialogImpl(
     //in case devices is InScreenScanner and app switched to the SplitScreen mode and app placed on the top of screen
     //we need to show Fingerprint icon
     private val isInScreenUIHackNeeded: Boolean
-        get() = compatBuilder.getMultiWindowSupport().isInMultiWindow && !compatBuilder.getMultiWindowSupport().isWindowOnScreenBottom()
+        get() = compatBuilder.getMultiWindowSupport().isInMultiWindow && !compatBuilder.getMultiWindowSupport()
+            .isWindowOnScreenBottom()
 
     //in case app switched to the SplitScreen mode we need to skip onPause on lost focus cases
     private val isMultiWindowHack: Boolean
@@ -338,7 +342,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onHelp(msg: CharSequence?) {
-        ExecutorHelper.handler.post {
+        ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
@@ -357,7 +361,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onFailure(isLockout: Boolean) {
-        ExecutorHelper.handler.post {
+        ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
             dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)

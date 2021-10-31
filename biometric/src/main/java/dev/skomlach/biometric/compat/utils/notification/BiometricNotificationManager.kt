@@ -106,16 +106,16 @@ object BiometricNotificationManager {
         }
 
         notificationReference.set(notify)
-        ExecutorHelper.handler.post(notify)
+        ExecutorHelper.post(notify)
 
         //update notification to fix icon tinting in split-screen mode
         val delay = appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-        ExecutorHelper.handler.postDelayed(notify, delay)
+        ExecutorHelper.postDelayed(notify, delay)
     }
 
     fun dismissAll() {
         notificationReference.get()?.let {
-            ExecutorHelper.handler.removeCallbacks(it)
+            ExecutorHelper.removeCallbacks(it)
             notificationReference.set(null)
         }
         try {

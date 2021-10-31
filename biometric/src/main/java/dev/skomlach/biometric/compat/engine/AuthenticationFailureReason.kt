@@ -75,5 +75,18 @@ enum class AuthenticationFailureReason {
      */
     UNKNOWN,
 
-    INTERNAL_ERROR
+    /**
+     * Internal API error
+     */
+    INTERNAL_ERROR,
+
+    /**
+     * API not initialized
+     */
+    NOT_INITIALIZED_ERROR,
+
+    /**
+     * Biometric can't be starte due to missing permissions
+     */
+    MISSING_PERMISSIONS_ERROR
 }

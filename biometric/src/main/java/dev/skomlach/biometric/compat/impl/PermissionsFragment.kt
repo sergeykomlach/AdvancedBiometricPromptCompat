@@ -57,7 +57,7 @@ class PermissionsFragment : Fragment() {
                 fragment.arguments = bundle
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        if (callback != null) ExecutorHelper.handler.post(callback)
+                        if (callback != null) ExecutorHelper.post(callback)
                         unregisterGlobalBroadcastIntent(appContext, this)
                     }
                 }, IntentFilter(INTENT_KEY))
@@ -65,7 +65,7 @@ class PermissionsFragment : Fragment() {
                     .supportFragmentManager.beginTransaction()
                     .add(fragment, fragment.javaClass.name).commitAllowingStateLoss()
             } else {
-                if (callback != null) ExecutorHelper.handler.post(callback)
+                if (callback != null) ExecutorHelper.post(callback)
             }
         }
     }
