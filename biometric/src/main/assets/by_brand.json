@@ -92852,6 +92852,11 @@
    "model": "M7_WIFI"
   },
   {
+   "device": "ML_SO1E_M7_Wifi",
+   "name": "M7 WIFI",
+   "model": "M7_WIFI"
+  },
+  {
    "device": "ML-JI21-M7-3G-PLUS",
    "name": "M7-3G PLUS",
    "model": "M7-3G-PLUS"
@@ -93327,9 +93332,19 @@
    "model": "Multilaser_F"
   },
   {
+   "device": "Obasmart_Conectamax",
+   "name": "OBASMART",
+   "model": "OBA_Conecta_Max"
+  },
+  {
    "device": "OBASMART_3",
    "name": "OBASMART 3",
    "model": "OBASMART_3"
+  },
+  {
+   "device": "Oba_Conecta_4G",
+   "name": "Oba Conecta 4G",
+   "model": "Oba_Conecta_4G"
   },
   {
    "device": "Multilaser_GMax_2_Sikur",
@@ -152518,6 +152533,16 @@
   {
    "device": "Power_5S",
    "name": "Power 5S EEA",
+   "model": "MP02"
+  },
+  {
+   "device": "Power_5S",
+   "name": "Power 5S RU",
+   "model": "MP02"
+  },
+  {
+   "device": "Power_5S",
+   "name": "Power 5S TR",
    "model": "MP02"
   },
   {
