@@ -274,7 +274,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             ExecutorHelper.handler.post {
                 if (timeout) {
-                    callbackOuter.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                    callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR)
                 } else
                     startAuth(callbackOuter)
             }
@@ -425,7 +425,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     impl.usedPermissions
                 )
             ) {
-                callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
+                callback.onFailed(AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR)
             } else
                 authenticateInternal(callback)
         }
