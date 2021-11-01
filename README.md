@@ -117,8 +117,6 @@ At first, better in `Application.onCreate()`, call
 BiometricPromptCompat.Companion.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
 ```   
 
-
-
 `fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
 
 
@@ -129,6 +127,7 @@ For development purpose only:
 
 `fun logging(enabled: Boolean)` - allow to enable/disable logging
 
+
 `fun apiEnabled(enabled: Boolean)`  - allow to enable/disable this library
 
 
@@ -137,9 +136,9 @@ For development purpose only:
 **BiometricAuthRequest**
 
 Allows you to configure the type of target biometrics.  
-It can be any combination of BiometricApi and BiometricType;  
+It can be any combination of BiometricApi, BiometricConfirmation and BiometricType;  
 Default
-is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` - means any available BiometricApi and BiometricType
+is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)`
 
 **BiometricConfirmation:**
 
@@ -170,7 +169,6 @@ and custom UI
 
 **BiometricManagerCompat**
 
-##
 `fun hasEnrolled(): Boolean` - returns `true` if specified biometric enrolled
 
 `fun isBiometricSensorPermanentlyLocked(): Boolean` - returns `true` if specified biometric
