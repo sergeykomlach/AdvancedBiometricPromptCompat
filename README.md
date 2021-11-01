@@ -202,7 +202,7 @@ Methods `builder.setTitle()` and `builder.setNegativeButton()` are mandatory.
 
 **BiometricPromptCompat:**
 
-`fun authenticate(BiometricPromptCompat.AuthenticationCallback resultCallback)` - start biometric
+`fun authenticate(BiometricPromptCompat.AuthenticationCallback)` - start biometric
 auth workflow
 
 `fun cancelAuthenticate()` - cancel active biometric auth workflow
