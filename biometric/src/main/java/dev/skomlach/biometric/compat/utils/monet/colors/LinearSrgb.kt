@@ -1,4 +1,4 @@
-package dev.skomlach.biometric.compat.monetsupport.utils.colors
+package  dev.skomlach.biometric.compat.utils.monet.colors
 
 import kotlin.math.pow
 

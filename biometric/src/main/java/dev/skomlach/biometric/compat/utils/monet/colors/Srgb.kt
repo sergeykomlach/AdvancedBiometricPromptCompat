@@ -1,7 +1,7 @@
-package dev.skomlach.biometric.compat.monetsupport.utils.colors
+package  dev.skomlach.biometric.compat.utils.monet.colors
 
 import kotlin.math.roundToInt
-import dev.skomlach.biometric.compat.monetsupport.utils.colors.LinearSrgb.Companion.toLinearSrgb as realToLinearSrgb
+import  dev.skomlach.biometric.compat.utils.monet.colors.LinearSrgb.Companion.toLinearSrgb as realToLinearSrgb
 
 data class Srgb(
     val r: Double,
@@ -14,6 +14,7 @@ data class Srgb(
         g.toDouble() / 255.0,
         b.toDouble() / 255.0,
     )
+
     constructor(color: Int) : this(
         android.graphics.Color.red(color),
         android.graphics.Color.green(color),

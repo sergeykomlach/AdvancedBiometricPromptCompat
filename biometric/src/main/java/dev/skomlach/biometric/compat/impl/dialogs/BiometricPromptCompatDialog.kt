@@ -20,6 +20,10 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.app.UiModeManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -46,13 +50,11 @@ import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.biometric.compat.monetsupport.core.MonetCompat
-import dev.skomlach.biometric.compat.monetsupport.extensions.toArgb
-import dev.skomlach.biometric.compat.monetsupport.interfaces.MonetColorsChangedListener
-import dev.skomlach.biometric.compat.monetsupport.utils.theme.ColorScheme
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
+import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightMode
 import dev.skomlach.common.misc.Utils
@@ -63,7 +65,7 @@ internal class BiometricPromptCompatDialog(
 ) : AppCompatDialog(
     ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog),
     R.style.Theme_BiometricPromptDialog
-), MonetColorsChangedListener {
+) {
     private val crossfader: TransitionDrawable
 
     @LayoutRes
@@ -86,6 +88,12 @@ internal class BiometricPromptCompatDialog(
     var rootView: View? = null
         private set
     private var focusListener: WindowFocusChangedListener? = null
+
+    private val wallpaperChangedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            updateMonetColorsInternal()
+        }
+    }
 
     init {
         val NIGHT_MODE: Int
@@ -128,6 +136,7 @@ internal class BiometricPromptCompatDialog(
                 }
             }
         }
+        updateMonetColorsInternal()
     }
 
     fun makeVisible() {
@@ -163,19 +172,24 @@ internal class BiometricPromptCompatDialog(
         rootView = findViewById(R.id.dialogContent)
         rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
-                if (Utils.isAtLeastS) {
-                    setupMonet()
+                try {
+                    @Suppress("DEPRECATION")
+                    context.registerReceiver(
+                        wallpaperChangedReceiver,
+                        IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
+                    )
+                    updateMonetColorsInternal()
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e, "setupMonet")
                 }
             }
 
             override fun onViewDetachedFromWindow(v: View) {
-                if (isShowing) super@BiometricPromptCompatDialog.dismiss()
-                if (Utils.isAtLeastS) {
-                    try {
-                        MonetCompat.getInstance()
-                            .removeMonetColorsChangedListener(this@BiometricPromptCompatDialog)
-                    } catch (e: Throwable) {
-                    }
+                if (isShowing)
+                    super@BiometricPromptCompatDialog.dismiss()
+                try {
+                    context.unregisterReceiver(wallpaperChangedReceiver)
+                } catch (e: Throwable) {
                 }
             }
         })
@@ -195,54 +209,36 @@ internal class BiometricPromptCompatDialog(
         rootView?.startAnimation(animation)
         ScreenProtection().applyProtectionInWindow(window ?: return)
     }
+    private fun updateMonetColorsInternal() {
+        if (Utils.isAtLeastS) {
+            try {
+                val monetColors = SystemColorScheme(context)
+                if (DarkLightThemes.isNightMode(context)) {
+                    fingerprintIcon?.tintColor(monetColors.accent1[300]!!.toArgb())
+                    negativeButton?.setTextColor(monetColors.accent2[100]!!.toArgb())
+                    rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                        setTextToTextViews(it, monetColors.neutral1[50]!!.toArgb())
+                        ViewCompat.setBackgroundTintList(
+                            it,
+                            ColorStateList.valueOf(monetColors.neutral1[900]!!.toArgb())
+                        )
+                    }
+                } else {
+                    fingerprintIcon?.tintColor(monetColors.accent1[600]!!.toArgb())
+                    negativeButton?.setTextColor(monetColors.neutral2[500]!!.toArgb())
+                    rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                        setTextToTextViews(it, monetColors.neutral1[900]!!.toArgb())
+                        ViewCompat.setBackgroundTintList(
+                            it,
+                            ColorStateList.valueOf(monetColors.neutral1[50]!!.toArgb())
+                        )
+                    }
 
-    private fun setupMonet() {
-        try {
-            MonetCompat.useSystemColorsOnAndroid12 = false
-            val monet = MonetCompat.setup(context)
-            monet.addMonetColorsChangedListener(this, notifySelf = true)
-            monet.updateMonetColors()
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e, "setupMonet")
-        }
-    }
-
-    override fun onMonetColorsChanged(
-        monet: MonetCompat,
-        monetColors: ColorScheme,
-        isInitialChange: Boolean
-    ) {
-        updateColors(monetColors)
-    }
-
-    private fun updateColors(monetColors: ColorScheme) {
-        try {
-            if (DarkLightThemes.isNightMode(context)) {
-                fingerprintIcon?.tintColor(monetColors.accent1[300]!!.toArgb())
-                negativeButton?.setTextColor(monetColors.accent2[100]!!.toArgb())
-                rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
-                    setTextToTextViews(it, monetColors.neutral1[50]!!.toArgb())
-                    ViewCompat.setBackgroundTintList(
-                        it,
-                        ColorStateList.valueOf(monetColors.neutral1[900]!!.toArgb())
-                    )
-                }
-            } else {
-                fingerprintIcon?.tintColor(monetColors.accent1[600]!!.toArgb())
-
-                negativeButton?.setTextColor(monetColors.neutral2[500]!!.toArgb())
-                rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
-                    setTextToTextViews(it, monetColors.neutral1[900]!!.toArgb())
-                    ViewCompat.setBackgroundTintList(
-                        it,
-                        ColorStateList.valueOf(monetColors.neutral1[50]!!.toArgb())
-                    )
                 }
 
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e, "Monet colors")
             }
-
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e, "Monet colors")
         }
     }
 

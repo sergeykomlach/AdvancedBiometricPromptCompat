@@ -1,4 +1,4 @@
-package dev.skomlach.biometric.compat.monetsupport.utils.colors
+package  dev.skomlach.biometric.compat.utils.monet.colors
 
 interface Color {
     // All colors should have a conversion path to linear sRGB
