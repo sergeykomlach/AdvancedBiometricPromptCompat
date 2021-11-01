@@ -139,8 +139,7 @@ For development purpose only:
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi and BiometricType;  
 Default
-is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)`
-- means any available BiometricApi and BiometricType
+is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` - means any available BiometricApi and BiometricType
 
 **BiometricConfirmation:**
 
