@@ -101,50 +101,38 @@ VERSION
 Add dependency to Gradle
 
 ```groovy  
-dependencies {
  implementation 'dev.skomlach:biometric:${VERSION}' 
-}
 ```  
 
 ## Usage
 
 **BiometricPromptCompat API**
 
-##     
+##
+
+**BiometricPromptCompat.Companion:**
 
 At first, better in `Application.onCreate()`, call
 
-```java  
-BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
+```kotlin  
+BiometricPromptCompat.Companion.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
 ```   
 
-**BiometricManagerCompat**
 
-##     
 
-`static boolean hasEnrolled()` - returns `true` if specified biometric enrolled
+`fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
 
-`static boolean isBiometricSensorPermanentlyLocked()` - returns `true` if specified biometric
-permanently locked; Device lock-unlock or reboot required from the user
 
-`static boolean isHardwareDetected()` - returns `true` if specified biometric hardware available
+`fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
 
-`static boolean isLockOut()` - returns `true` if specified biometric temporarily locked; Usually
-need to wait for 30 seconds and the system will reset this lock
+`var deviceInfo: DeviceInfo?` - return device hardware specifications
 
-`static boolean isNewBiometricApi()` - returns `true` if BiometricPrompt API used for specified
-biometric
+For development purpose only:
 
-`static boolean openSettings(Activity)` - returns `true` if open the "Enroll biometric" settings
-screen for specified biometric
+`fun logging(enabled: Boolean)` - allow to enable/disable logging
 
-`static boolean isBiometricEnrollChanged` - returns `true` if enrollment changed for specified
-biometric.
-
-**NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return
-incorrect result in many cases**
-
-##     
+`fun apiEnabled(enabled: Boolean)`  - allow to enable/disable this library,
+##    
 
 **BiometricAuthRequest**
 
@@ -181,11 +169,35 @@ and custom UI
 
 ##     
 
+**BiometricManagerCompat**
+
+##
+`fun hasEnrolled(): Boolean` - returns `true` if specified biometric enrolled
+
+`fun isBiometricSensorPermanentlyLocked(): Boolean` - returns `true` if specified biometric
+permanently locked; Device lock-unlock or reboot required from the user
+
+`fun isHardwareDetected(): Boolean` - returns `true` if specified biometric hardware available
+
+`fun isLockOut(): Boolean` - returns `true` if specified biometric temporarily locked; Usually
+need to wait for 30 seconds and the system will reset this lock
+
+`fun openSettings(Activity): Boolean` - returns `true` if open the "Enroll biometric" settings
+screen for specified biometric
+
+`fun isBiometricEnrollChanged(): Boolean` - returns `true` if enrollment changed for specified
+biometric.
+
+**NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return
+incorrect result in many cases**
+
+##
 **BiometricPromptCompat.Builder**
 
-```java  
-BiometricPromptCompat.Builder builder =  
- new BiometricPromptCompat.Builder(getActivity()) .setTitle("Biometric demo") .setNegativeButton("Cancel", null); BiometricPromptCompat biometricPromptCompat = builder.build();    
+Simplest builder:
+```kotlin  
+ val builder = BiometricPromptCompat.Builder(activity).setTitle("Biometric demo") .setNegativeButton("Cancel", null)
+ val biometricPromptCompat = builder.build()
  ```   
 
 ***Please note:***  
@@ -193,29 +205,29 @@ Methods `builder.setTitle()` and `builder.setNegativeButton()` are mandatory.
 
 **BiometricPromptCompat:**
 
-`void authenticate(BiometricPromptCompat.AuthenticationCallback resultCallback)` - start biometric
+`fun authenticate(BiometricPromptCompat.AuthenticationCallback resultCallback)` - start biometric
 auth workflow
 
-`void cancelAuthenticate()` - cancel active biometric auth workflow
+`fun cancelAuthenticate()` - cancel active biometric auth workflow
 
-`boolean cancelAuthenticateBecauseOnPause()` - Useful if you need to allow biometric auth in
+`fun cancelAuthenticateBecauseOnPause(): Boolean` - Useful if you need to allow biometric auth in
 Split-Screen mode; Recommended to call this method in `onPause()` and use returned value to avoid
 biometric auth restart.   
 Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true`
 and cancel active biometric auth otherwise
 
-`@ColorRes int getDialogMainColor()` - returns dialog background color
+`@ColorRes fun getDialogMainColor(): Int` - returns dialog background color
 
 **BiometricPromptCompat.AuthenticationCallback**
 
-`void onSucceeded(Set<BiometricType> confirmed)` - User successfully authenticated
+`fun onSucceeded(Set<BiometricType>)` - User successfully authenticated
 
-`void onCanceled()` - Biometric authentication was canceled
+`fun onCanceled()` - Biometric authentication was canceled
 
-`void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *
+`fun onFailed(AuthenticationFailureReason)` - Error happens, see details in *
 AuthenticationFailureReason*
 
-`void onUIOpened()/void onUIClosed` - Biometric UI on display or closed
+`fun onUIOpened()/fun onUIClosed` - Biometric UI on display or closed
 
 ## False-positive and/or False-negative detection
 
