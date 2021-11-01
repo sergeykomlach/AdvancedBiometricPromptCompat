@@ -123,9 +123,8 @@ BiometricPromptCompat.Companion.init(callback);//Callback - null or Runnable{ do
 `fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
 
 
-`fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
-
 `var deviceInfo: DeviceInfo?` - return device hardware specifications
+
 
 For development purpose only:
 
