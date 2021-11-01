@@ -130,7 +130,9 @@ For development purpose only:
 
 `fun logging(enabled: Boolean)` - allow to enable/disable logging
 
-`fun apiEnabled(enabled: Boolean)`  - allow to enable/disable this library,
+`fun apiEnabled(enabled: Boolean)`  - allow to enable/disable this library
+
+
 ##    
 
 **BiometricAuthRequest**
