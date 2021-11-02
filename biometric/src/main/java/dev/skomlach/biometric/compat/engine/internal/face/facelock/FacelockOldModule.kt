@@ -142,8 +142,8 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
             if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
                 return false
             }
-            val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
-            return if (dpm.getCameraDisabled(null)) {
+            val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
+            return if (dpm?.getCameraDisabled(null) == true) {
                 false
             } else hasEnrolled()
         }

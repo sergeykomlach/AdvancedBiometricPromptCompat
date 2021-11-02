@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -236,13 +237,18 @@ class BiometricPromptCompatDialogImpl(
         //Attempt#2
         try {
             if (isAtLeastS) {
-                val biometricManager =
-                    compatBuilder.getContext().getSystemService(
-                        android.hardware.biometrics.BiometricManager::class.java
-                    )
+                var biometricManager : android.hardware.biometrics.BiometricManager? = compatBuilder.getContext().getSystemService(
+                    android.hardware.biometrics.BiometricManager::class.java
+                )
+
+                if(biometricManager == null){
+                    biometricManager = compatBuilder.getContext().getSystemService(
+                        Context.BIOMETRIC_SERVICE
+                    ) as android.hardware.biometrics.BiometricManager?
+                }
                 val strings =
-                    biometricManager.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                val prompt = strings.promptMessage
+                    biometricManager?.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                val prompt = strings?.promptMessage
                 if (!prompt.isNullOrEmpty())
                     return prompt.toString()
             }

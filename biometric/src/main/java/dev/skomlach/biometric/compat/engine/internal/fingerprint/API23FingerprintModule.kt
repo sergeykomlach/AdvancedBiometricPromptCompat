@@ -43,24 +43,25 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
     private var manager: FingerprintManager? = null
 
     init {
-        manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(
+                manager = context.getSystemService(
                     FingerprintManager::class.java
                 )
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
 
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-                null
             }
-        } else {
+        }
+
+        if(manager == null){
             try {
-                context.getSystemService("fingerprint") as FingerprintManager
+               manager = context.getSystemService("fingerprint") as FingerprintManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
+
             }
         }
         listener?.initFinished(biometricMethod, this@API23FingerprintModule)

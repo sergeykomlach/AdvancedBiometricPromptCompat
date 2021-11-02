@@ -110730,6 +110730,18 @@
    "model": "W55"
   }
  ],
+ "Qisur": [
+  {
+   "device": "R106",
+   "name": "R106",
+   "model": "R106"
+  },
+  {
+   "device": "X72",
+   "name": "X72",
+   "model": "X72"
+  }
+ ],
  "Qoobex": [
   {
    "device": "Qphone2019_A",
@@ -146456,6 +146468,13 @@
    "device": "TOP10",
    "name": "TOP10",
    "model": "TOP10"
+  }
+ ],
+ "TOAD": [
+  {
+   "device": "Q863",
+   "name": "Q863",
+   "model": "Q863"
   }
  ],
  "TOCHMOBILE": [

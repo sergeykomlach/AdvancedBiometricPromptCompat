@@ -34,7 +34,7 @@ import java.util.zip.ZipInputStream
 
 class Scan4Apis(private val context: Context) {
     @WorkerThread
-    fun getList(): String {
+    fun getList(): String? {
         try {
             val file = File(context.cacheDir, "deviceapi.log")
             if (file.exists())
@@ -144,7 +144,7 @@ class Scan4Apis(private val context: Context) {
                         dexInternalStoragePath.delete()
                     }
                 }
-                stringBuilder.toString()
+                return stringBuilder.toString()
             } finally {
                 deleteRecursive(cache)
                 fileWriter.write(writer.toString())
@@ -153,7 +153,7 @@ class Scan4Apis(private val context: Context) {
         } catch (e: Throwable) {
             e.printStackTrace()
         }
-        return ""
+        return null
     }
 
     private fun isZipFile(fileZip: File): Boolean {
