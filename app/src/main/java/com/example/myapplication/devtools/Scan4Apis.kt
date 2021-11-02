@@ -144,7 +144,7 @@ class Scan4Apis(private val context: Context) {
                         dexInternalStoragePath.delete()
                     }
                 }
-                stringBuilder.toString()
+                return stringBuilder.toString()
             } finally {
                 deleteRecursive(cache)
                 fileWriter.write(writer.toString())
