@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.utils.hardware
 
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.content.Context
 import android.os.Build
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
@@ -35,9 +36,15 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
     private fun canAuthenticate(): Int {
         var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
         try {
-            val biometricManager = appContext.getSystemService(
+            var biometricManager : android.hardware.biometrics.BiometricManager? = appContext.getSystemService(
                 android.hardware.biometrics.BiometricManager::class.java
             )
+
+            if(biometricManager == null){
+                biometricManager = appContext.getSystemService(
+                   Context.BIOMETRIC_SERVICE
+                ) as android.hardware.biometrics.BiometricManager?
+            }
             if (biometricManager != null) {
                 code = if (isAtLeastR) {
                     biometricManager.canAuthenticate(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)

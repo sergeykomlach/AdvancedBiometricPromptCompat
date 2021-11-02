@@ -46,10 +46,10 @@ object BiometricNotificationManager {
     private fun initNotificationsPreferences() {
         if (Build.VERSION.SDK_INT >= 26) {
             try {
-                val notificationManager = appContext.getSystemService(
+                val notificationManager: NotificationManager? = appContext.getSystemService(
                     NotificationManager::class.java
                 )
-                var notificationChannel1 = notificationManager.getNotificationChannel(CHANNEL_ID)
+                var notificationChannel1 = notificationManager?.getNotificationChannel(CHANNEL_ID)
                 if (notificationChannel1 == null) {
                     notificationChannel1 = NotificationChannel(
                         CHANNEL_ID,
@@ -58,7 +58,7 @@ object BiometricNotificationManager {
                     )
                 }
                 notificationChannel1.setShowBadge(false)
-                notificationManager.createNotificationChannel(notificationChannel1)
+                notificationManager?.createNotificationChannel(notificationChannel1)
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }

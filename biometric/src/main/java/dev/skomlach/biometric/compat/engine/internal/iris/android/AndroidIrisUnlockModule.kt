@@ -41,21 +41,21 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var manager: IrisManager? = null
 
     init {
-        manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(IrisManager::class.java)
+                manager = context.getSystemService(IrisManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
             }
-        } else {
+        }
+
+        if(manager == null){
             try {
-                context.getSystemService("iris") as IrisManager
+                manager = context.getSystemService("iris") as IrisManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
             }
         }
         listener?.initFinished(biometricMethod, this@AndroidIrisUnlockModule)

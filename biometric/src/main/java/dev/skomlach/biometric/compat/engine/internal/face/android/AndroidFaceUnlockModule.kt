@@ -43,38 +43,38 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var faceManager: FaceManager? = null
 
     init {
-        faceAuthenticationManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(FaceAuthenticationManager::class.java)
+                faceAuthenticationManager = context.getSystemService(FaceAuthenticationManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
-            }
-        } else {
-            try {
-                context.getSystemService("face") as FaceAuthenticationManager
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-                null
             }
         }
-        faceManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+        if(faceAuthenticationManager == null){
             try {
-                context.getSystemService(FaceManager::class.java)
+                faceAuthenticationManager =  context.getSystemService("face") as FaceAuthenticationManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
             }
-        } else {
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService("face") as FaceManager
+                faceManager = context.getSystemService(FaceManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
+            }
+        }
+
+        if(faceManager == null){
+            try {
+                faceManager = context.getSystemService("face") as FaceManager?
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
             }
         }
         listener?.initFinished(biometricMethod, this@AndroidFaceUnlockModule)

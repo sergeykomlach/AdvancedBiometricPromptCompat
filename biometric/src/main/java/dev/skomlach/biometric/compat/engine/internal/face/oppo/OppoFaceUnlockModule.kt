@@ -42,21 +42,21 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
     init {
 
-        manager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                context.getSystemService(OppoMirrorFaceManager::class.java)
+                manager = context.getSystemService(OppoMirrorFaceManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
             }
-        } else {
+        }
+
+        if(manager == null){
             try {
-                context.getSystemService("face") as OppoMirrorFaceManager
+                manager = context.getSystemService("face") as OppoMirrorFaceManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
-                null
             }
         }
 

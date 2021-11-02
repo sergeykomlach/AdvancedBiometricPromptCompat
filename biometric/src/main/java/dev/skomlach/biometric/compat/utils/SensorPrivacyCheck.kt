@@ -26,6 +26,7 @@ import android.hardware.SensorPrivacyManager
 import android.os.Build
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
@@ -44,9 +45,10 @@ object SensorPrivacyCheck {
 
     @SuppressLint("PrivateApi", "BlockedPrivateApi")
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
-        val sensorPrivacyManager: SensorPrivacyManager =
+        try{
+        val sensorPrivacyManager: SensorPrivacyManager? =
             AndroidContext.appContext.getSystemService(SensorPrivacyManager::class.java)
-        if (sensorPrivacyManager.supportsSensorToggle(sensor)) {
+        if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
             try {
                 val permissionToOp: String =
                     AppOpCompatConstants.getAppOpFromPermission(
@@ -71,8 +73,11 @@ object SensorPrivacyCheck {
                 }
                 return noteOp != AppOpsManagerCompat.MODE_ALLOWED
             } catch (e: Throwable) {
-                e.printStackTrace()
+               BiometricLoggerImpl.e(e)
             }
+        }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
         return false
     }
