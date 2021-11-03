@@ -490,7 +490,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun getDialogMainColor(): Int {
         if (!API_ENABLED)
             return ContextCompat.getColor(builder.getContext(), R.color.material_grey_50)
-        return DialogMainColor.getColor(builder.getContext(), impl.isNightMode)
+        return DialogMainColor.getColor(builder.getContext(), DarkLightThemes.isNightMode(builder.getContext()))
     }
 
     interface AuthenticationCallback {

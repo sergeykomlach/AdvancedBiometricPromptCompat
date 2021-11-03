@@ -52,6 +52,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
@@ -187,7 +188,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 getFixedString(
                     it, color = if (Utils.isAtLeastS) {
                         val monetColors = SystemColorScheme(builder.getContext())
-                        if (isNightMode) monetColors.accent2[100]!!.toArgb()
+                        if (DarkLightThemes.isNightMode(builder.getContext())) monetColors.accent2[100]!!.toArgb()
                         else
                             monetColors.neutral2[500]!!.toArgb()
                     } else ContextCompat.getColor(builder.getContext(), R.color.material_deep_teal_500 )
@@ -255,10 +256,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     }
 
-    override val isNightMode: Boolean
-        get() = if (dialog != null) isNightMode(builder.getContext()) else {
-            isNightMode(builder.getContext())
-        }
     override val usedPermissions: List<String>
         get() {
             val permission: MutableSet<String> = HashSet()
