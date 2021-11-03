@@ -19,16 +19,28 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.ColorRes
+import android.content.Context
+import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
+import dev.skomlach.biometric.compat.utils.monet.toArgb
+import dev.skomlach.common.misc.Utils
 
 object DialogMainColor {
-    @ColorRes
-    fun getColor(isNightMode: Boolean): Int {
-        return if (isNightMode) {
-            R.color.black
+    @ColorInt
+    fun getColor(context: Context, isNightMode: Boolean): Int {
+        return if (Utils.isAtLeastS) {
+            val monetColors = SystemColorScheme(context)
+            if (isNightMode) monetColors.neutral1[900]!!.toArgb()
+            else
+                monetColors.neutral1[50]!!.toArgb()
         } else {
-            R.color.material_grey_50
+            if (isNightMode) {
+                ContextCompat.getColor(context, R.color.black)
+            } else {
+                ContextCompat.getColor(context, R.color.material_grey_50)
+            }
         }
     }
 }

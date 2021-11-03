@@ -21,13 +21,19 @@ package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.Animatable
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.TransitionDrawable
+import android.graphics.ImageDecoder
+import android.graphics.drawable.*
+import android.os.Build
 import android.util.AttributeSet
+import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
@@ -44,41 +50,57 @@ class FingerprintIconView @JvmOverloads constructor(
     context, attrs
 ) {
 
+    private var state = State.OFF
+    private var type = BiometricType.BIOMETRIC_FACE
+    private var color: Int? = null
+
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
-        setState(State.OFF, false, BiometricType.BIOMETRIC_FINGERPRINT)
+        setState(state, false, type)
     }
 
     fun tintColor(color: Int?) {
-        ImageViewCompat.setImageTintList(
-            this,
-            if (color == null) null else ColorStateList.valueOf(color)
-        )
+        this.color = color
+        setTint(state)
     }
 
-    private var state = State.OFF
     fun setState(state: State, type: BiometricType) {
         setState(state, true, type)
     }
 
+    private fun setTint(state: State) {
+        if (state == State.ON) {
+            color?.let {
+                ImageViewCompat.setImageTintList(
+                    this,
+                    ColorStateList.valueOf(it)
+                )
+                return
+            }
+        }
+        ImageViewCompat.setImageTintList(this, null)
+    }
+
     fun setState(state: State, animate: Boolean, type: BiometricType) {
         if (state == this.state) return
+        setTint(state)
         if (type == BiometricType.BIOMETRIC_FINGERPRINT || type == BiometricType.BIOMETRIC_ANY) {
             @DrawableRes val resId = getDrawable(this.state, state, animate)
             if (resId == 0) {
                 setImageDrawable(null)
             } else {
                 var icon: Drawable? = null
-                try {
-                    if (animate) {
+
+                if (animate) {
+                    try {
                         icon = AnimatedVectorDrawableCompat.create(context, resId)
+                    } catch (ignore: Throwable) {
                     }
-                    if (icon == null) {
-                        icon = VectorDrawableCompat.create(resources, resId, context.theme)
-                    }
-                } catch (ignore: Throwable) {
-                    icon = ContextCompat.getDrawable(context, resId)
                 }
+                if (icon == null) {
+                    icon = getDrawable(context, resId, context.theme)
+                }
+
                 setImageDrawable(icon)
                 if (icon is Animatable) {
                     (icon as Animatable).start()
@@ -91,36 +113,19 @@ class FingerprintIconView @JvmOverloads constructor(
                 setImageDrawable(null)
             } else {
                 val currentImage = if (state == State.ON)
-                    try {
-                        VectorDrawableCompat.create(resources, type.iconId, context.theme)?.apply {
-                            setTintList(
-                                ColorStateList.valueOf(
-                                    ContextCompat.getColor(
-                                        context,
-                                        R.color.material_blue_500
-                                    )
+                    getDrawable(context, type.iconId, context.theme)?.apply {
+                        DrawableCompat.setTintList(
+                            this,
+                            ColorStateList.valueOf(
+                                ContextCompat.getColor(
+                                    context,
+                                    R.color.material_blue_500
                                 )
                             )
-                        }
-                    } catch (ignore: Throwable) {
-                        ContextCompat.getDrawable(context, type.iconId)?.apply {
-                            DrawableCompat.setTintList(
-                                this,
-                                ColorStateList.valueOf(
-                                    ContextCompat.getColor(
-                                        context,
-                                        R.color.material_blue_500
-                                    )
-                                )
-                            )
-                        }
+                        )
                     }
                 else {
-                    try {
-                        VectorDrawableCompat.create(resources, resId, context.theme)
-                    } catch (ignore: Throwable) {
-                        ContextCompat.getDrawable(context, resId)
-                    }
+                    getDrawable(context, resId, context.theme)
                 }
                 val transitionDrawable = TransitionDrawable(
                     arrayOf(
@@ -143,6 +148,80 @@ class FingerprintIconView @JvmOverloads constructor(
     }
 
     companion object {
+        //fix java.lang.IllegalStateException: Software rendering doesn't support hardware bitmaps
+        //solution from https://stackoverflow.com/a/50015989
+        @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
+        private val isAndroidO = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        private val format = if (isAndroidO) Bitmap.Config.ARGB_8888 else Bitmap.Config.ARGB_4444
+
+        @RequiresApi(Build.VERSION_CODES.P)
+        private fun getDrawableAndroidR(context: Context, resId: Int): Drawable? {
+            var dr: Drawable? = null
+            try {
+                val source = ImageDecoder.createSource(context.resources, resId)
+                dr =
+                    ImageDecoder.decodeDrawable(source) { decoder, info, source ->
+                        //https://developer.android.com/reference/android/graphics/ImageDecoder#ALLOCATOR_HARDWARE
+                        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                    }
+            } catch (ex: Throwable) {
+                dr = null
+            }
+            return dr
+        }
+
+        private fun getDrawable(
+            context: Context,
+            @DrawableRes resId: Int,
+            theme: Resources.Theme?
+        ): Drawable? {
+            var dr: Drawable?
+            dr = try {
+                AppCompatResources.getDrawable(context, resId)
+            } catch (e: Exception) {
+                null
+            }
+            if (dr == null) dr = try {
+                ContextCompat.getDrawable(context, resId)
+            } catch (e: Exception) {
+                null
+            }
+            if (dr == null) try {
+                var targetThemeRes = 0
+                try {
+                    val wrapper: Class<*> = Context::class.java
+                    val method = wrapper.getMethod("getThemeResId")
+                    method.isAccessible = true
+                    targetThemeRes = method.invoke(context) as Int
+                } catch (ex: Exception) {
+                }
+                if (targetThemeRes == 0) targetThemeRes = R.style.Theme_BiometricPromptDialog
+                dr = VectorDrawableCompat.create(
+                    context.resources,
+                    resId,
+                    theme ?: ContextThemeWrapper(context, targetThemeRes).theme
+                )
+            } catch (e: Exception) {
+                dr = null
+            }
+
+            //try to use ImageDecoder API (Android P+)
+            if (dr == null && Build.VERSION.SDK_INT >= 28) {
+                dr = getDrawableAndroidR(context, resId)
+            } else if (dr == null) try {
+                val options = BitmapFactory.Options()
+                options.inPreferredConfig = format
+                if (Build.VERSION.SDK_INT >= 26) {
+                    options.outConfig = format
+                }
+                val bm = BitmapFactory.decodeResource(context.resources, resId, options)
+                dr = BitmapDrawable(bm)
+            } catch (e: Exception) {
+                dr = null
+            }
+            return dr
+        }
+
         @DrawableRes
         private fun getDrawable(currentState: State, newState: State, animate: Boolean): Int {
             return when (newState) {

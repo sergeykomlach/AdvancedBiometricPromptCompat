@@ -52,6 +52,7 @@ import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -371,8 +372,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (impl is BiometricPromptApi28Impl) {
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.getContext().window,
-                            ContextCompat.getColor(builder.getContext(), getDialogMainColor()),
-                            ContextCompat.getColor(builder.getContext(), R.color.darker_gray),
+                            DialogMainColor.getColor( builder.getContext(), DarkLightThemes.isNightMode(builder.getContext())),
+                            DialogMainColor.getColor( builder.getContext(), !DarkLightThemes.isNightMode(builder.getContext())),
                             builder.getStatusBarColor()
                         )
                     }
@@ -485,11 +486,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             impl.cancelAuthenticateBecauseOnPause()
     }
 
-    @ColorRes
+    @ColorInt
     fun getDialogMainColor(): Int {
         if (!API_ENABLED)
-            return R.color.material_grey_50
-        return DialogMainColor.getColor(impl.isNightMode)
+            return ContextCompat.getColor(builder.getContext(), R.color.material_grey_50)
+        return DialogMainColor.getColor(builder.getContext(), DarkLightThemes.isNightMode(builder.getContext()))
     }
 
     interface AuthenticationCallback {

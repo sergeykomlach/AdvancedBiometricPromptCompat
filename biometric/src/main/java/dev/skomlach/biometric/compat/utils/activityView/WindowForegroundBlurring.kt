@@ -54,10 +54,8 @@ class WindowForegroundBlurring(
     private var isAttached = false
     private var drawingInProgress = false
     private var biometricsLayout: View? = null
-    private var defaultColor = ContextCompat.getColor(
-        context,
-        DialogMainColor.getColor(!DarkLightThemes.isNightMode(context))
-    )
+    private var defaultColor = DialogMainColor.getColor(context, !DarkLightThemes.isNightMode(context))
+
 
     private val list: List<BiometricType> by lazy {
         ArrayList<BiometricType>(compatBuilder.getAllAvailableTypes())
@@ -82,10 +80,9 @@ class WindowForegroundBlurring(
 
     init {
         val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
-        defaultColor = ContextCompat.getColor(
-            context,
-            DialogMainColor.getColor(isDark)
-        )
+        defaultColor =
+            DialogMainColor.getColor(context, isDark)
+
         for (i in 0 until parentView.childCount) {
             val v = parentView.getChildAt(i)
             if (v is ViewGroup) {
@@ -273,10 +270,8 @@ class WindowForegroundBlurring(
             var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
             b = getResizedBitmap(getResizedBitmap(b, b.width / 2, b.height / 2), 1, 1)
             val isDark = ColorUtil.trueDarkColor(b.getPixel(0, 0))
-            defaultColor = ContextCompat.getColor(
-                context,
-                DialogMainColor.getColor(isDark)
-            )
+            defaultColor =
+                DialogMainColor.getColor(context, isDark)
             BiometricLoggerImpl.d(
                 "ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${
                     Integer.toHexString(

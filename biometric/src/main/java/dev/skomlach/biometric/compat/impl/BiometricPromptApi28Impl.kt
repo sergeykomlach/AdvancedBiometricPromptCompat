@@ -49,9 +49,13 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBio
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
+import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import java.security.KeyStore
 import java.util.*
@@ -182,9 +186,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         builder.getNegativeButtonText()?.let {
             if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
                 getFixedString(
-                    it, ContextCompat.getColor(
-                        builder.getContext(), R.color.material_deep_teal_500
-                    )
+                    it, color = if (Utils.isAtLeastS) {
+                        val monetColors = SystemColorScheme(builder.getContext())
+                        if (DarkLightThemes.isNightMode(builder.getContext())) monetColors.accent2[100]!!.toArgb()
+                        else
+                            monetColors.neutral2[500]!!.toArgb()
+                    } else ContextCompat.getColor(builder.getContext(), R.color.material_deep_teal_500 )
                 )
             )
         }
@@ -249,10 +256,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     }
 
-    override val isNightMode: Boolean
-        get() = if (dialog != null) isNightMode(builder.getContext()) else {
-            isNightMode(builder.getContext())
-        }
     override val usedPermissions: List<String>
         get() {
             val permission: MutableSet<String> = HashSet()

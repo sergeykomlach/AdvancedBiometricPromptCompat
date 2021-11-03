@@ -26,7 +26,6 @@ interface IBiometricPromptImpl {
     fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?)
     fun cancelAuthenticate()
     fun cancelAuthenticateBecauseOnPause(): Boolean
-    val isNightMode: Boolean
     val builder: BiometricPromptCompat.Builder
     val usedPermissions: List<String>
 }
