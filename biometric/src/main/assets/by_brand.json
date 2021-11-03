@@ -5177,6 +5177,13 @@
    "model": "OB_628"
   }
  ],
+ "Altus": [
+  {
+   "device": "shinagawa",
+   "name": "Altus Android TV",
+   "model": "Altus Android TV"
+  }
+ ],
  "Americamovil": [
   {
    "device": "Azumi_KIREI_A5Q_PLUS_AC06",
@@ -7740,6 +7747,11 @@
  ],
  "Arçelik": [
   {
+   "device": "shinagawa",
+   "name": "Arcelik Android TV",
+   "model": "Arcelik Android TV"
+  },
+  {
    "device": "sinchon",
    "name": "Arçelik Android TV",
    "model": "Arcelik Android TV"
@@ -7979,6 +7991,11 @@
    "device": "A750",
    "name": "A750",
    "model": "A750"
+  },
+  {
+   "device": "DCG-P10",
+   "name": "DCG-P10",
+   "model": "DCG-P10"
   },
   {
    "device": "G10",
@@ -10544,6 +10561,11 @@
    "device": "AT1012U",
    "name": "AT1012U",
    "model": "AT1012U"
+  },
+  {
+   "device": "AT1031E",
+   "name": "AT1031E",
+   "model": "AT1031E"
   },
   {
    "device": "AT1031U",
@@ -13575,6 +13597,11 @@
   }
  ],
  "Beko": [
+  {
+   "device": "shinagawa",
+   "name": "Beko Android TV",
+   "model": "Beko Android TV"
+  },
   {
    "device": "sinchon",
    "name": "Beko Android TV",
@@ -25410,6 +25437,11 @@
    "model": "DNA Android TV"
   },
   {
+   "device": "m393gena",
+   "name": "DNA Hubi 2.0",
+   "model": "DNA Hubi 2.0"
+  },
+  {
    "device": "dctiw384",
    "name": "DNA TV-hubi",
    "model": "DNA Android TV"
@@ -25541,6 +25573,13 @@
    "device": "People_Plus",
    "name": "People Plus",
    "model": "People_Plus"
+  }
+ ],
+ "Daihatsu": [
+  {
+   "device": "balticaAA",
+   "name": "A-DA",
+   "model": "MY22ADA"
   }
  ],
  "Danew": [
@@ -29751,6 +29790,11 @@
    "device": "DV8519",
    "name": "SDOTT0202",
    "model": "SDOTT0202"
+  },
+  {
+   "device": "DV8945C-KSU",
+   "name": "SDSTB01",
+   "model": "SDSTB01"
   }
  ],
  "EPI(Columbia)": [
@@ -30046,6 +30090,13 @@
    "device": "DC-M700",
    "name": "DC-M700",
    "model": "DC-M700"
+  }
+ ],
+ "EWIS": [
+  {
+   "device": "T800MC",
+   "name": "T800MC",
+   "model": "T800MC"
   }
  ],
  "EXCEED": [
@@ -36727,6 +36778,11 @@
    "model": "GTABPND"
   },
   {
+   "device": "GTKIDS7-100",
+   "name": "GTKIDS7-100",
+   "model": "GTKIDS7-100"
+  },
+  {
    "device": "GTKIDS7A",
    "name": "GTKIDS7A",
    "model": "GTKIDS7A"
@@ -38902,6 +38958,11 @@
    "device": "GTB850",
    "name": "GTB850",
    "model": "GTB 850"
+  },
+  {
+   "device": "shinagawa",
+   "name": "Grundig Android TV",
+   "model": "Grundig Android TV"
   },
   {
    "device": "sinchon",
@@ -44707,6 +44768,11 @@
    "model": "A26"
   },
   {
+   "device": "A27",
+   "name": "A27",
+   "model": "A27"
+  },
+  {
    "device": "Fun5",
    "name": "Fun5",
    "model": "Fun5"
@@ -49130,18 +49196,18 @@
    "model": "HMS-PD-X1C-3"
   },
   {
+   "device": "TA60A-L0-C",
+   "name": "RT10A",
+   "model": "TA60A"
+  },
+  {
+   "device": "TA60A-L1-C",
+   "name": "RT10A",
+   "model": "TA60A"
+  },
+  {
    "device": "TA60A-L1-C",
    "name": "T60A",
-   "model": "TA60A"
-  },
-  {
-   "device": "TA60A-L0-C",
-   "name": "TA60A",
-   "model": "TA60A"
-  },
-  {
-   "device": "TA60A-L1-C",
-   "name": "TA60A",
    "model": "TA60A"
   },
   {
@@ -49163,6 +49229,13 @@
    "device": "VM3A-L0-P",
    "name": "VM3A",
    "model": "VM3A"
+  }
+ ],
+ "Honor": [
+  {
+   "device": "HNNTH",
+   "name": "HONOR 50",
+   "model": "NTH-NX9"
   }
  ],
  "Hoozo": [
@@ -58820,6 +58893,11 @@
  ],
  "IQU_GROUP": [
   {
+   "device": "IQU_T10_4G",
+   "name": "IQU_T10_4G",
+   "model": "IQU T10 4G"
+  },
+  {
    "device": "IQU_T8_4G",
    "name": "IQU_T8_4G",
    "model": "IQU T8 4G"
@@ -63292,6 +63370,11 @@
    "model": "itel A611W"
   },
   {
+   "device": "itel-A611WP",
+   "name": "itel A57 2GB",
+   "model": "itel A611WP"
+  },
+  {
    "device": "itel-A14",
    "name": "itel AC12",
    "model": "itel A14"
@@ -66788,6 +66871,11 @@
    "device": "KRONO_776PLUS",
    "name": "776PLUS",
    "model": "776PLUS"
+  },
+  {
+   "device": "COLORS",
+   "name": "COLORS",
+   "model": "COLORS"
   },
   {
    "device": "NETWORK",
@@ -76395,6 +76483,11 @@
    "model": "LAVA LMX04"
   },
   {
+   "device": "LZG403",
+   "name": "Z3",
+   "model": "LAVA LZG403"
+  },
+  {
    "device": "AH9910",
    "name": "Z30",
    "model": "AH9910"
@@ -79567,6 +79660,11 @@
    "model": "Lenovo TB-X6C6NBF"
   },
   {
+   "device": "X6C6NBL",
+   "name": "Lenovo Tab K10",
+   "model": "Lenovo TB-X6C6NBL"
+  },
+  {
    "device": "X6C6NBX",
    "name": "Lenovo Tab K10",
    "model": "Lenovo TB-X6C6NBX"
@@ -81435,6 +81533,11 @@
    "device": "F10XIPS",
    "name": "F10XIPS",
    "model": "LINSAY F10XIPS"
+  },
+  {
+   "device": "F10XIPSQ",
+   "name": "F10XIPSQ",
+   "model": "F10XIPSQ"
   },
   {
    "device": "F7HD4CORE",
@@ -92752,6 +92855,11 @@
    "model": "M10_4G_PRO"
   },
   {
+   "device": "ML_SO1G_M10_4G_PRO",
+   "name": "M10 4G PRO",
+   "model": "M10_4G_PRO"
+  },
+  {
    "device": "ML-JI06-M10-3G",
    "name": "M10-3G",
    "model": "M10-3G"
@@ -95891,6 +95999,11 @@
    "model": "M002N"
   },
   {
+   "device": "M002Q-2",
+   "name": "M002Q-2",
+   "model": "M002Q-2"
+  },
+  {
    "device": "M002U-2T",
    "name": "M002U-2T",
    "model": "M002U-2T"
@@ -97933,6 +98046,11 @@
    "model": "OK 4K Android TV"
   },
   {
+   "device": "shinagawa",
+   "name": "OK 2K TV",
+   "model": "OK 2K TV"
+  },
+  {
    "device": "samseong",
    "name": "Smart TV",
    "model": "AI PONT"
@@ -98907,6 +99025,11 @@
    "device": "mid1035_mq",
    "name": "100026203",
    "model": "100026203"
+  },
+  {
+   "device": "mid1105_mp",
+   "name": "100043279",
+   "model": "100043279"
   },
   {
    "device": "100044018G",
@@ -100396,9 +100519,19 @@
    "model": "OPPO Watch"
   },
   {
+   "device": "OP4E8F",
+   "name": "PEGM00",
+   "model": "PEGM00"
+  },
+  {
    "device": "OP4E99",
    "name": "PEHM00",
    "model": "PEHT00"
+  },
+  {
+   "device": "OP4ECB",
+   "name": "PEPM00",
+   "model": "PEPM00"
   },
   {
    "device": "OP4ED5",
@@ -102457,6 +102590,18 @@
    "model": "M50"
   }
  ],
+ "PBS Kids": [
+  {
+   "device": "PBDV704DVDB",
+   "name": "PBDV704DVDB",
+   "model": "PBDV704DVDB"
+  },
+  {
+   "device": "PBS700DVD",
+   "name": "PBS700DVD",
+   "model": "PBS700DVD"
+  }
+ ],
  "PC Smart": [
   {
    "device": "PCSGOB10LTE-V2",
@@ -103364,6 +103509,11 @@
    "model": "NEXT"
   },
   {
+   "device": "NEXT821",
+   "name": "Eco4K13",
+   "model": "NEXT"
+  },
+  {
    "device": "NEXT820",
    "name": "Eco4K13A",
    "model": "NEXT"
@@ -103446,6 +103596,11 @@
   {
    "device": "NEXT820",
    "name": "Elite4K18A",
+   "model": "NEXT"
+  },
+  {
+   "device": "NEXT820",
+   "name": "Elite4K32A",
    "model": "NEXT"
   },
   {
@@ -105966,6 +106121,11 @@
  ],
  "PlayPoland": [
   {
+   "device": "DV8545-PLAY",
+   "name": "PLAY NOW TV BOX 2",
+   "model": "PLAY NOW TV BOX 2"
+  },
+  {
    "device": "dctiw362p",
    "name": "Play Now",
    "model": "DCTIW362_PLAY"
@@ -107063,6 +107223,11 @@
    "device": "T800",
    "name": "T800",
    "model": "TabQ8-T800"
+  },
+  {
+   "device": "T810",
+   "name": "T810",
+   "model": "T810"
   },
   {
    "device": "S520",
@@ -114838,6 +115003,11 @@
    "device": "GRAVITY-2",
    "name": "GRAVITY-2",
    "model": "GRAVITY 2"
+  },
+  {
+   "device": "GRAVITY-2-MAX",
+   "name": "GRAVITY-2-MAX",
+   "model": "GRAVITY-2-MAX"
   },
   {
    "device": "GRAVITY-PRO-2",
@@ -128397,6 +128567,11 @@
    "model": "SM-G525F"
   },
   {
+   "device": "xcover5",
+   "name": "Galaxy XCover 5",
+   "model": "SM-G525N"
+  },
+  {
    "device": "haechiy19",
    "name": "Galaxy XCover Field Pro",
    "model": "SM-G889F"
@@ -137701,6 +137876,13 @@
    "device": "WIN4",
    "name": "Wintech",
    "model": "WIN4"
+  }
+ ],
+ "Subaru": [
+  {
+   "device": "balticaBA",
+   "name": "A-DA",
+   "model": "MY22ADA"
   }
  ],
  "Sugar": [
@@ -147607,6 +147789,11 @@
    "model": "P20_RUS"
   },
   {
+   "device": "P25_ROW",
+   "name": "P25_ROW",
+   "model": "P25_ROW"
+  },
+  {
    "device": "P80X",
    "name": "P80X",
    "model": "P80X"
@@ -148799,6 +148986,11 @@
    "model": "TECNO BD1"
   },
   {
+   "device": "TECNO-BD4",
+   "name": "TECNO POP 5 LTE",
+   "model": "TECNO BD4"
+  },
+  {
    "device": "TECNO-L6502S",
    "name": "TECNO POP X5",
    "model": "TECNO L6502S"
@@ -148977,6 +149169,11 @@
    "device": "TECNO-KC1",
    "name": "TECNO SPARK Go",
    "model": "TECNO KC1"
+  },
+  {
+   "device": "TECNO-KG5",
+   "name": "TECNO SPARK Go 2022",
+   "model": "TECNO KG5"
   },
   {
    "device": "TECNO-P704",
@@ -152325,6 +152522,11 @@
    "model": "MP01"
   },
   {
+   "device": "A11_Tab-EEA",
+   "name": "A11_Tab-EEA",
+   "model": "MT01"
+  },
+  {
    "device": "A3",
    "name": "A3",
    "model": "A3"
@@ -153895,9 +154097,19 @@
    "model": "VCT9B06Q23"
   },
   {
+   "device": "VCT9C0AT",
+   "name": "VCT9C0AT",
+   "model": "VCT9C0AT"
+  },
+  {
    "device": "VCT9F08Q22D",
    "name": "VCT9F08Q22D",
    "model": "VCT9F08Q22D"
+  },
+  {
+   "device": "VCT9F0A68R",
+   "name": "VCT9F0A68R",
+   "model": "VCT9F0A68R"
   },
   {
    "device": "VCT9F0A68R23EU",
@@ -172779,6 +172991,11 @@
    "model": "K70_EEA"
   },
   {
+   "device": "K710",
+   "name": "K710",
+   "model": "K710"
+  },
+  {
    "device": "K710_EEA",
    "name": "K710_EEA",
    "model": "K710_EEA"
@@ -173256,6 +173473,11 @@
    "device": "M700",
    "name": "M700",
    "model": "M700"
+  },
+  {
+   "device": "AH9110",
+   "name": "benco Y11",
+   "model": "AH9110"
   },
   {
    "device": "AF9030",
