@@ -51,7 +51,6 @@ class OnePlusFaceUnlock(  //https://github.com/xayron/OPSystemUI/tree/d805abc13d
     private var mFaceLockService: Any? = null
     private var mServiceConnection: ServiceConnectionWrapper? = null
     private var mMap = HashMap<IOPFacelockCallback?, Any>()
-    private var onePlusFaceSettings: OnePlusFaceSettings? = null
 
     init {
         val FACELOCK_INTERFACE = "com.oneplus.faceunlock.internal.IOPFacelockService"
@@ -61,19 +60,10 @@ class OnePlusFaceUnlock(  //https://github.com/xayron/OPSystemUI/tree/d805abc13d
             flInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_INTERFACE\$Stub")
             flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK)
             flCallbackInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_CALLBACK\$Stub")
-            onePlusFaceSettings = OnePlusFaceSettings(mContext)
         } catch (ignored: Throwable) {
         }
         if (flCallbackInterfaceStub == null)
             throw RuntimeException(TAG + " not supported")
-    }
-
-    fun checkState(): Int {
-        try {
-            return onePlusFaceSettings?.checkState() ?: -1
-        } catch (ignored: Throwable) {
-        }
-        return -1
     }
 
     fun bind(connection: ServiceConnection): Boolean {

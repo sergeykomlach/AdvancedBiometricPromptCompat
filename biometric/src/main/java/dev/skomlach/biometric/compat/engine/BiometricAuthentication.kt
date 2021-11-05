@@ -293,6 +293,10 @@ object BiometricAuthentication {
             if (biometricModule is FacelockOldModule) {
                 biometricModule.stopAuth()
             }
+            else if (biometricModule is OnePlusFacelockModule) {
+                biometricModule.stopAuth()
+            }
+
         }
         Core.cancelAuthentication()
     }

@@ -186,13 +186,4 @@ class OnePlusFaceUnlockHelper constructor(
             e(TAG + ".startOnePlusFaceUnlock() attempted while running")
         }
     }
-
-    @Synchronized
-    fun hasBiometric(): Boolean {
-        try {
-            return mOnePlusFaceUnlock?.checkState() == 0
-        } catch (e: Throwable) {
-        }
-        return false
-    }
 }

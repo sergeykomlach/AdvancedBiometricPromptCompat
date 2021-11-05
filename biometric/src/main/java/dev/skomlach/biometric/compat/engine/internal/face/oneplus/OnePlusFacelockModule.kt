@@ -39,6 +39,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_ONEPLUS) {
     private var faceLockHelper: OnePlusFaceUnlockHelper? = null
+    private var faceLockSettingsHelper: OnePlusFaceSettingsHelper? = null
     private var facelockProxyListener: ProxyListener? = null
     override fun getManagers(): Set<Any> {
         //No way to detect enrollments
@@ -88,6 +89,7 @@ class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
                     isManagerAccessible = true
                     listener?.initFinished(biometricMethod, this@OnePlusFacelockModule)
                     listener = null
+                    faceLockSettingsHelper?.destroy()
                     faceLockHelper?.stopFaceLock()
                 } else {
                     faceLockHelper?.startFaceLock()
@@ -105,22 +107,26 @@ class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
                 if (listener != null) {
                     listener?.initFinished(biometricMethod, this@OnePlusFacelockModule)
                     listener = null
+                    faceLockSettingsHelper?.destroy()
                     faceLockHelper?.stopFaceLock()
                 }
             }
         }
         faceLockHelper = OnePlusFaceUnlockHelper(context, faceLockInterface)
+        faceLockSettingsHelper = OnePlusFaceSettingsHelper(context)
         if (!isHardwarePresent) {
             if (listener != null) {
                 listener?.initFinished(biometricMethod, this@OnePlusFacelockModule)
                 listener = null
             }
         } else {
+            faceLockSettingsHelper?.init()
             faceLockHelper?.initFacelock()
         }
     }
 
     fun stopAuth() {
+        faceLockSettingsHelper?.destroy()
         faceLockHelper?.stopFaceLock()
         faceLockHelper?.destroy()
     }
@@ -142,7 +148,7 @@ class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
 
     @Throws(SecurityException::class)
     override fun hasEnrolled(): Boolean {
-        return faceLockHelper?.hasBiometric() == true
+        return faceLockSettingsHelper?.hasBiometric() == true
     }
 
     @Throws(SecurityException::class)
@@ -166,6 +172,7 @@ class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
 
     private fun authorize(proxyListener: ProxyListener) {
         facelockProxyListener = proxyListener
+        faceLockSettingsHelper?.init()
         faceLockHelper?.initFacelock()
     }
 
