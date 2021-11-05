@@ -21,7 +21,6 @@
         xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.biometric.compat">
     <!-- OnePlus FaceUnlock-->
-    <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_SETTING"/>
     <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_UNLOCK" />
 
     <uses-permission android:name="android.permission.VIBRATE" />

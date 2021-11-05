@@ -27,16 +27,14 @@ import android.os.Binder
 import android.os.IBinder
 import android.os.Parcel
 import android.os.RemoteException
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.reflect.InvocationTargetException
-import java.util.*
 
 @SuppressLint("PrivateApi")
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class OnePlusFaceUnlock(  //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
     private val mContext: Context
 ) {
@@ -215,7 +213,7 @@ class OnePlusFaceUnlock(  //https://github.com/xayron/OPSystemUI/tree/d805abc13d
                 d(TAG + (" onTransact " + mMap[code]))
 
                 // Callback may be called outside the UI thread
-                ExecutorHelper.INSTANCE.handler.post {
+                ExecutorHelper.post {
                     try {
                         IOPFacelockCallback::class.java.getMethod(mMap[code] ?: return@post)
                             .invoke(mCallback)

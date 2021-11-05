@@ -19,9 +19,8 @@
 package dev.skomlach.biometric.compat.engine.internal.face.oneplus
 
 import android.os.RemoteException
-import androidx.annotation.RestrictTo
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 interface IOPFacelockService {
     @Throws(RemoteException::class)
     fun prepare()

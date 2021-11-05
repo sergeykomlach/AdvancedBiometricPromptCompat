@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.oneplus
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
@@ -36,11 +35,15 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_ONEPLUS) {
     private var faceLockHelper: OnePlusFaceUnlockHelper? = null
     private var facelockProxyListener: ProxyListener? = null
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return emptySet()
+    }
 
     override var isManagerAccessible = false
 
@@ -166,7 +169,7 @@ class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
         faceLockHelper?.initFacelock()
     }
 
-    @RestrictTo(RestrictTo.Scope.LIBRARY)
+
     inner class ProxyListener(
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
@@ -184,7 +187,7 @@ class OnePlusFacelockModule(private var listener: BiometricInitListener?) :
                 BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE

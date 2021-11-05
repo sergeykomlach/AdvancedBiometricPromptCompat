@@ -5,11 +5,10 @@ import android.content.Context
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.RemoteException
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class OnePlusFaceUnlockHelper constructor(
     context: Context,
     onePlusFaceUnlockInterface: FaceLockInterface

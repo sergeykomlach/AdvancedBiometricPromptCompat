@@ -25,15 +25,13 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.RemoteException
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.lang.reflect.InvocationTargetException
-import java.util.*
 
 @SuppressLint("PrivateApi")
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 internal class OnePlusFaceSettings(  //https://github.com/xayron/OPSystemUI/tree/d805abc13d081bd3579355a1075d4ae5e8be9270/sources/com/oneplus/faceunlock/internal
     private val mContext: Context
 ) {
