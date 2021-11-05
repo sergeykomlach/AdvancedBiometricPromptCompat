@@ -25,7 +25,7 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 object SharedPreferenceProvider {
     private var dependencies: CryptoPreferencesProvider? = null
 
-    @JvmStatic
+
     @Synchronized
     fun getCryptoPreferences(name: String): SharedPreferences {
         if (dependencies == null) {

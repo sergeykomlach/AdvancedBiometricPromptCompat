@@ -19,30 +19,24 @@
 
 package dev.skomlach.biometric.compat.utils
 
-import androidx.annotation.RestrictTo
 import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.hardware.Android28Hardware
 import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class HardwareAccessImpl private constructor(val biometricAuthRequest: BiometricAuthRequest) {
     companion object {
-        @JvmStatic
+
         fun getInstance(api: BiometricAuthRequest): HardwareAccessImpl {
             return HardwareAccessImpl(api)
         }
     }
 
     private var hardwareInfo: HardwareInfo? = null
-    private fun isHardwareReady(info: HardwareInfo?): Boolean {
-        return info?.isHardwareAvailable == true && info.isBiometricEnrolled
-    }
-
     val isNewBiometricApi: Boolean
         get() = hardwareInfo !is LegacyHardware
     val isHardwareAvailable: Boolean
@@ -51,6 +45,12 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         get() = hardwareInfo?.isBiometricEnrolled ?: false
     val isLockedOut: Boolean
         get() = hardwareInfo?.isLockedOut ?: false
+    val isBiometricEnrollChanged: Boolean
+        get() = hardwareInfo?.isBiometricEnrollChanged ?: false
+
+    fun updateBiometricEnrollChanged() {
+        hardwareInfo?.updateBiometricEnrollChanged()
+    }
 
     init {
         if (biometricAuthRequest.api == BiometricApi.LEGACY_API) {

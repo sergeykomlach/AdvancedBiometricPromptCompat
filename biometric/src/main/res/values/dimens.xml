@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -23,4 +22,5 @@
     <dimen name="fingerprint_icon_size">64dp</dimen>
     <dimen name="fingerprint_status_layout_margin_vertical_top">48dp</dimen>
     <dimen name="fingerprint_status_layout_margin_vertical_bottom">48dp</dimen>
+    <dimen name="dialog_width">0dp</dimen>
 </resources>

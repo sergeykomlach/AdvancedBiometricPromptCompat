@@ -19,25 +19,58 @@
 
 package dev.skomlach.common.contextprovider
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
+import dev.skomlach.common.logging.LogCat
 import java.io.IOException
 import java.util.*
 
+@SuppressLint("StaticFieldLeak")
 object AndroidContext {
-    private var application: Application? = null
-    @JvmStatic val appContext: Application
+    private var appRef: Application? = null
+        private set(value) {
+            field = value
+            ctxRef = field
+        }
+
+    private var ctxRef: Context? = null
+        set(value) {
+            field = try {
+                value?.getFixedContext()
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                value
+            }
+        }
+
+    var configuration: Configuration? = null
         get() {
-            application?.let {
+            return appRef?.resources?.configuration
+        }
+        private set
+
+    val appInstance: Application
+        get() {
+            return if (ctxRef is Application)
+                ctxRef as Application
+            else
+                ctxRef?.applicationContext as Application
+        }
+
+    val appContext: Context
+        get() {
+            ctxRef?.let {
                 fixDirAccess(it)
                 return it
             }
             if (Looper.getMainLooper().thread !== Thread.currentThread()) throw IllegalThreadStateException(
                 "Main thread required for correct init"
             )
-            application = try {
+            appRef = try {
                 Class.forName("android.app.ActivityThread")
                     .getMethod("currentApplication")
                     .invoke(null) as Application
@@ -50,7 +83,7 @@ object AndroidContext {
                     throw RuntimeException(e)
                 }
             }
-            application?.let {
+            ctxRef?.let {
                 fixDirAccess(it)
                 return it
             }
@@ -100,10 +133,10 @@ object AndroidContext {
         }
     }
 
-    @JvmStatic val locale: Locale
+    val locale: Locale
         get() {
             val listCompat = ConfigurationCompat.getLocales(
-                appContext.resources.configuration
+                configuration ?: return Locale.getDefault()
             )
             var l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
             if (l == null) {
@@ -111,4 +144,9 @@ object AndroidContext {
             }
             return l
         }
+
+    init {
+        val context = appContext
+        LogCat.logError("Pkg ${context.packageName}")
+    }
 }

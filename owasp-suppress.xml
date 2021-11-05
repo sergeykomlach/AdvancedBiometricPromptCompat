@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
+    <!-- hide tools warnings -->
+    <suppress>
+        <notes><![CDATA[
+   file name: httpclient-4.2.6.jar
+   ]]></notes>
+        <gav regex="true">^org\.apache\.httpcomponents:httpclient:.*$</gav>
+        <cpe>cpe:/a:apache:httpclient</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: httpmime-4.1.jar
+   ]]></notes>
+        <gav regex="true">^org\.apache\.httpcomponents:httpmime:.*$</gav>
+        <cpe>cpe:/a:apache:httpclient</cpe>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+   file name: intellij-core-26.1.0-alpha04.jar\META-INF/maven/com.thoughtworks.xstream/xstream/pom.xml
+   ]]></notes>
+        <gav regex="true">^com\.thoughtworks\.xstream:xstream:.*$</gav>
+        <cpe>cpe:/a:xstream_project:xstream</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: intellij-core-26.1.0-alpha04.jar\META-INF/maven/com.thoughtworks.xstream/xstream/pom.xml
+   ]]></notes>
+        <gav regex="true">^com\.thoughtworks\.xstream:xstream:.*$</gav>
+        <cpe>cpe:/a:x-stream:xstream</cpe>
+    </suppress>
+
+
+    <suppress>
+        <notes><![CDATA[
+   file name: groovy-all-2.4.11.jar
+   ]]></notes>
+        <gav regex="true">^org\.codehaus\.groovy:groovy-all:.*$</gav>
+        <cpe>cpe:/a:apache:groovy</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: protobuf-java-3.0.0.jar
+   ]]></notes>
+        <gav regex="true">^com\.google\.protobuf:protobuf-java:.*$</gav>
+        <cpe>cpe:/a:google:protobuf</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: intellij-core-26.1.0-alpha04.jar\META-INF/maven/com.google.protobuf/protobuf-java/pom.xml
+   ]]></notes>
+        <gav regex="true">^com\.google\.protobuf:protobuf-java:.*$</gav>
+        <cpe>cpe:/a:google:protobuf</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: AppleJavaExtensions-1.4.jar
+   ]]></notes>
+        <gav regex="true">^com\.apple:AppleJavaExtensions:.*$</gav>
+        <cpe>cpe:/a:apple:java</cpe>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+   file name: builder-3.1.0-alpha04.jar: libthrowable_extension.jar
+   ]]></notes>
+        <filePath regex="true">.*\blibthrowable_extension\.jar</filePath>
+        <cpe>cpe:/a:google:android</cpe>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   file name: findsecbugs-plugin-1.7.1.jar
+   ]]></notes>
+        <gav regex="true">^com\.h3xstream\.findsecbugs:findsecbugs-plugin:.*$</gav>
+        <cpe>cpe:/a:mod_security:mod_security</cpe>
+    </suppress>
+
+
+    <suppress>
+        <notes><![CDATA[
+   file name: protobuf-lite-3.0.1.jar
+   ]]></notes>
+        <gav regex="true">^com\.google\.protobuf:protobuf-lite:.*$</gav>
+        <cpe>cpe:/a:google:protobuf</cpe>
+    </suppress>
+
+    <suppress>
+        <notes><![CDATA[
+   file name: kxml2-2.3.0.jar
+   ]]></notes>
+        <gav regex="true">^org\.robolectric:android-kxml2:.*$</gav>
+        <cpe>cpe:/a:google:android</cpe>
+    </suppress>
+
+</suppressions>

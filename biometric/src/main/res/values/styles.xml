@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -20,12 +19,12 @@
 
 <resources>
 
-    <style name="Theme.BiometricPromptDialog" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault">
         <item name="android:windowMinWidthMajor">75%</item>
         <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/transparent</item>
         <item name="android:windowTitleStyle">@style/DialogTitle</item>
     </style>
 
@@ -37,5 +36,9 @@
 
     <style name="DialogTitle" parent="@android:style/TextAppearance.DialogWindowTitle">
         <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="DialogContent">
+        <item name="android:layout_width">wrap_content</item>
     </style>
 </resources>

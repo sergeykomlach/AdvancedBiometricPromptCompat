@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,13 @@
  *   limitations under the License.
  */
 
+/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * @author s.komlach
+ * @date 2021/3/1
+ */
+
 package com.samsung.android.bio.face
 
 import android.content.Context
@@ -28,7 +35,7 @@ import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.Mac
 
-class SemBioFaceManager {
+object SemBioFaceManager {
     fun authenticate(
         cryptoObject: CryptoObject?,
         cancellationSignal: CancellationSignal?,
@@ -110,11 +117,11 @@ class SemBioFaceManager {
             get() = if (mCrypto is Signature) mCrypto else null
     }
 
-    companion object {
-        @Synchronized
-        @JvmStatic
-        fun getInstance(context: Context?): SemBioFaceManager? {
-            return null
-        }
+
+    @Synchronized
+    @JvmStatic
+    fun getInstance(context: Context?): SemBioFaceManager? {
+        return null
     }
+
 }

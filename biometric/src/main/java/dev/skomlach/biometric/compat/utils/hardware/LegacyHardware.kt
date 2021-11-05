@@ -19,12 +19,12 @@
 
 package dev.skomlach.biometric.compat.utils.hardware
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
     val availableBiometricsCount: Int
         get() {
@@ -67,4 +67,16 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
             )
             return biometricModule != null && biometricModule.isLockOut
         }
+    override val isBiometricEnrollChanged: Boolean
+        get() {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.isEnrollChanged()
+            val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
+                biometricAuthRequest.type
+            )
+            return biometricModule != null && biometricModule.isBiometricEnrollChanged
+        }
+
+    override fun updateBiometricEnrollChanged() {
+        (BiometricAuthentication.getAvailableBiometricModule(biometricAuthRequest.type) as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
+    }
 }

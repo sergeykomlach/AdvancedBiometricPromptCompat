@@ -23,13 +23,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.text.TextUtils
 import dev.skomlach.common.logging.LogCat.logError
 
 object BroadcastTools {
     private const val androidIntentAction = "android."
 
-    @JvmStatic
+
     fun sendGlobalBroadcastIntent(context: Context, intent: Intent) {
         val action = intent.action
         if (!action.isNullOrEmpty() && !action.startsWith(androidIntentAction)) {
@@ -38,7 +37,7 @@ object BroadcastTools {
         context.sendBroadcast(intent)
     }
 
-    @JvmStatic
+
     fun registerGlobalBroadcastIntent(
         context: Context,
         broadcastReceiver: BroadcastReceiver?,
@@ -54,7 +53,7 @@ object BroadcastTools {
         context.registerReceiver(broadcastReceiver, filter)
     }
 
-    @JvmStatic
+
     fun unregisterGlobalBroadcastIntent(context: Context, broadcastReceiver: BroadcastReceiver?) {
         context.unregisterReceiver(broadcastReceiver)
     }

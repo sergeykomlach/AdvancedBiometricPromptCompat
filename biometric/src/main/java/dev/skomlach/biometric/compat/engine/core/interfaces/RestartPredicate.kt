@@ -19,10 +19,9 @@
 
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 interface RestartPredicate {
     /**
      * Return true if the authentication should be restarted after the given non-fatal failure.

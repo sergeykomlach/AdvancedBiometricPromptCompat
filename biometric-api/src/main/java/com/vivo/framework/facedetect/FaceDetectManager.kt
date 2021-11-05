@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +17,16 @@
  *   limitations under the License.
  */
 
+/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * @author s.komlach
+ * @date 2021/3/1
+ */
+
 package com.vivo.framework.facedetect
 
-class FaceDetectManager private constructor() {
+object FaceDetectManager {
     abstract class FaceAuthenticationCallback {
         open fun onFaceAuthenticationResult(errorCode: Int, retry_times: Int) {}
     }
@@ -37,15 +44,17 @@ class FaceDetectManager private constructor() {
     fun stopFaceUnlock() {}
     fun release() {}
 
-    companion object {
-        //https://github.com/SivanLiu/VivoFramework/blob/8d31381ecc788afb023960535bafbfa3b7df7d9b/Vivo_y93/src/main/java/com/vivo/framework/facedetect/FaceDetectManager.java
-        const val FACE_DETECT_BUSY = -3
-        const val FACE_DETECT_FAILED = -1
-        const val FACE_DETECT_NO_FACE = -2
-        const val FACE_DETECT_SUCEESS = 0
-        @JvmStatic
-        fun getInstance(): FaceDetectManager? {
-           return null
-        }
+
+    //https://github.com/SivanLiu/VivoFramework/blob/8d31381ecc788afb023960535bafbfa3b7df7d9b/Vivo_y93/src/main/java/com/vivo/framework/facedetect/FaceDetectManager.java
+    const val FACE_DETECT_BUSY = -3
+    const val FACE_DETECT_FAILED = -1
+    const val FACE_DETECT_NO_FACE = -2
+    const val FACE_DETECT_SUCEESS = 0
+
+    @Synchronized
+    @JvmStatic
+    fun getInstance(): FaceDetectManager? {
+        return null
     }
+
 }

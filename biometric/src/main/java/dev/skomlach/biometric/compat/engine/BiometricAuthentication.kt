@@ -24,12 +24,11 @@ import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.os.Build
 import android.view.View
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule
@@ -49,7 +48,7 @@ import dev.skomlach.common.misc.Utils.startActivity
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object BiometricAuthentication {
     private val moduleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
@@ -137,7 +136,7 @@ object BiometricAuthentication {
                 override fun onBiometricReady() {}
             }
             for (method in list) {
-                ExecutorHelper.INSTANCE.startOnBackground {
+                ExecutorHelper.startOnBackground {
                     e("BiometricAuthentication.check started for $method")
                     var biometricModule: BiometricModule? = null
                     try {
@@ -188,7 +187,7 @@ object BiometricAuthentication {
             }
             return ArrayList(biometricMethodListInternal)
         }
-    @JvmStatic val availableBiometricMethods: List<BiometricMethod>
+    val availableBiometricMethods: List<BiometricMethod>
         get() {
             val biometricMethodListInternal = HashSet<BiometricMethod>()
             val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
@@ -200,13 +199,14 @@ object BiometricAuthentication {
         }
     val isLockOut: Boolean
         get() {
+            var isLocked = availableBiometrics.isNotEmpty()
             for (method in availableBiometrics) {
                 val module = getAvailableBiometricModule(method)
-                if (module?.isLockOut == true) {
-                    return true
+                if (module != null && !module.isLockOut) {
+                    isLocked = false
                 }
             }
-            return false
+            return isLocked
         }
     val isHardwareDetected: Boolean
         get() {
@@ -223,6 +223,13 @@ object BiometricAuthentication {
         return false
     }
 
+    fun isEnrollChanged(): Boolean {
+        for (method in availableBiometrics) {
+            if (getAvailableBiometricModule(method)?.isBiometricEnrollChanged == true) return true
+        }
+        return false
+    }
+
     fun authenticate(
         targetView: View?, method: BiometricType,
         listener: BiometricAuthenticationListener
@@ -230,7 +237,7 @@ object BiometricAuthentication {
         authenticate(targetView, listOf(method), listener)
     }
 
-    @JvmStatic
+
     fun authenticate(
         targetView: View?, requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener
@@ -246,12 +253,6 @@ object BiometricAuthentication {
             Core.registerModule(biometricModule)
             when (biometricModule) {
                 is FacelockOldModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is SamsungIrisUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is SamsungFaceUnlockModule -> {
                     biometricModule.setCallerView(targetView)
                 }
             }
@@ -284,7 +285,7 @@ object BiometricAuthentication {
         }
     }
 
-    @JvmStatic
+
     fun cancelAuthentication() {
         d("BiometricAuthentication.cancelAuthentication")
         for (method in availableBiometrics) {
@@ -339,20 +340,7 @@ object BiometricAuthentication {
         ) {
             return true
         }
-
-        //for unknown reasons on some devices happens SecurityException - "Permission.MANAGE_FINGERPRINT required" - but not should be
-        if (BiometricType.BIOMETRIC_FINGERPRINT == method
-            && startActivity(Intent("android.settings.FINGERPRINT_ENROLL"), context)
-        ) {
-            return true
-        }
-        if (BiometricType.BIOMETRIC_FACE == method
-            && startActivity(Intent("android.settings.FACE_ENROLL"), context)
-        ) {
-            return true
-        }
-        return (BiometricType.BIOMETRIC_IRIS == method
-                && startActivity(Intent("android.settings.IRIS_ENROLL"), context))
+        return false
     }
 
     fun getAvailableBiometricModule(biometricMethod: BiometricType?): BiometricModule? {

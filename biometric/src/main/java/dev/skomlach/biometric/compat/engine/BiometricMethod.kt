@@ -19,10 +19,9 @@
 
 package dev.skomlach.biometric.compat.engine
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.BiometricType
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
     FINGERPRINT_API23(100, BiometricType.BIOMETRIC_FINGERPRINT), FINGERPRINT_SUPPORT(
         101,

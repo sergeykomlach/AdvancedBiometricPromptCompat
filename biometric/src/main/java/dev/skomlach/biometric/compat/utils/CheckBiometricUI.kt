@@ -93,7 +93,7 @@ object CheckBiometricUI {
                 if (checkApk(f))
                     return true
             }
-        } catch (e : Throwable){
+        } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
         return false

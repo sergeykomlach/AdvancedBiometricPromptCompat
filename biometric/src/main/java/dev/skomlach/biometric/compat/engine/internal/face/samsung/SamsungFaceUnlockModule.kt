@@ -20,70 +20,66 @@
 package dev.skomlach.biometric.compat.engine.internal.face.samsung
 
 import android.annotation.SuppressLint
-import android.view.View
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
-import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
-import java.lang.ref.WeakReference
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
 class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_SAMSUNG) {
     private var manager: SemBioFaceManager? = null
-    private var viewWeakReference = WeakReference<View?>(null)
+
     init {
-        if(VendorCheck.isSamsung) {
-            manager = try {
-                SemBioFaceManager.getInstance(context)
-            } catch (ignore: Throwable) {
-                null
-            }
+        manager = try {
+            SemBioFaceManager.getInstance(context)
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+            null
         }
+
         listener?.initFinished(biometricMethod, this@SamsungFaceUnlockModule)
     }
 
-    fun setCallerView(targetView: View?) {
-        d("$name.setCallerView: $targetView")
-        viewWeakReference = WeakReference(targetView)
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
     }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    return manager?.isHardwareDetected == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                return manager?.isHardwareDetected == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
             return false
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                return manager?.isHardwareDetected == true && manager?.hasEnrolledFaces() == true
-            } catch (e: Throwable) {
-                e(e, name)
-            }
+        try {
+            return manager?.isHardwareDetected == true && manager?.hasEnrolledFaces() == true
+        } catch (e: Throwable) {
+            e(e, name)
+        }
 
         return false
     }
@@ -111,8 +107,8 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     signalObject,
                     0,
                     callback,
-                    ExecutorHelper.INSTANCE.handler,
-                    viewWeakReference.get()
+                    ExecutorHelper.handler,
+                    null
                 )
                 return
             } catch (e: Throwable) {
@@ -139,12 +135,14 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
                 BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
@@ -159,18 +157,21 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return
             }
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
+            if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
                 }
-                listener?.onFailure(failureReason, tag())
-            }
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {

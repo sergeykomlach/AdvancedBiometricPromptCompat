@@ -30,7 +30,6 @@ import android.os.Build
 import android.os.Build.VERSION
 import android.os.Process
 import android.provider.Settings
-import android.text.TextUtils
 import androidx.annotation.RequiresApi
 import androidx.core.app.AppOpsManagerCompat
 import androidx.core.app.NotificationManagerCompat
@@ -41,14 +40,12 @@ import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.*
 
-class PermissionUtils internal constructor() {
+object PermissionUtils {
 
-    companion object {
-        private val appOpCache: MutableMap<String, Boolean> = HashMap()
-        @JvmField var INSTANCE = PermissionUtils()
-        private var isAllowedOverlayPermission: Boolean? = null
-        private var isAllowedUsageStatPermission: Boolean? = null
-    }
+    private val appOpCache: MutableMap<String, Boolean> = HashMap()
+
+    private var isAllowedOverlayPermissionFlag: Boolean? = null
+    private var isAllowedUsageStatPermissionFlag: Boolean? = null
 
     /**
      * Checks all given permissions have been granted.
@@ -276,18 +273,18 @@ class PermissionUtils internal constructor() {
 
     val isAllowedOverlayPermission: Boolean
         get() {
-            if (VERSION.SDK_INT >= 19 && Companion.isAllowedOverlayPermission != null) {
-                return Companion.isAllowedOverlayPermission == true || isOverlayGrantedUseCheckOp
+            if (VERSION.SDK_INT >= 19 && isAllowedOverlayPermissionFlag != null) {
+                return isAllowedOverlayPermissionFlag == true || isOverlayGrantedUseCheckOp
             }
             try {
-                return isOverlayGrantedUseCheckOp.also { Companion.isAllowedOverlayPermission = it }
+                return isOverlayGrantedUseCheckOp.also { isAllowedOverlayPermissionFlag = it }
             } finally {
                 if (VERSION.SDK_INT >= 19) {
                     startWatchingByPermission(
-                        Manifest.permission.SYSTEM_ALERT_WINDOW,
-                        Runnable {
-                            Companion.isAllowedOverlayPermission = isOverlayGrantedUseCheckOp
-                        })
+                        Manifest.permission.SYSTEM_ALERT_WINDOW
+                    ) {
+                        isAllowedOverlayPermissionFlag = isOverlayGrantedUseCheckOp
+                    }
                 }
             }
         }
@@ -317,7 +314,7 @@ class PermissionUtils internal constructor() {
                     if (permissionToOp == op && pkgName == packageName) {
                         logError("PermissionUtils.onOpChanged - $op - $packageName")
                         //https://stackoverflow.com/a/40649631
-                        ExecutorHelper.INSTANCE.handler.postDelayed(runnable, 250)
+                        ExecutorHelper.postDelayed(runnable, 250)
                     }
                 }
             } catch (e: Throwable) {
@@ -328,16 +325,16 @@ class PermissionUtils internal constructor() {
 
     val isAllowedPermissionForUsageStat: Boolean
         get() {
-            if (VERSION.SDK_INT >= 23 && isAllowedUsageStatPermission != null) {
-                return isAllowedUsageStatPermission == true || isUsageStatGrantedUseCheckOp
+            if (VERSION.SDK_INT >= 23 && isAllowedUsageStatPermissionFlag != null) {
+                return isAllowedUsageStatPermissionFlag == true || isUsageStatGrantedUseCheckOp
             }
             try {
-                return isUsageStatGrantedUseCheckOp.also { isAllowedUsageStatPermission = it }
+                return isUsageStatGrantedUseCheckOp.also { isAllowedUsageStatPermissionFlag = it }
             } finally {
                 if (VERSION.SDK_INT >= 23) {
                     startWatchingByPermission(
                         Manifest.permission.PACKAGE_USAGE_STATS
-                    ) { isAllowedUsageStatPermission = isUsageStatGrantedUseCheckOp }
+                    ) { isAllowedUsageStatPermissionFlag = isUsageStatGrantedUseCheckOp }
                 }
             }
         }
@@ -351,7 +348,7 @@ class PermissionUtils internal constructor() {
         }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
-    private fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
+    fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
         try {
             val manager = appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val clazz: Class<*> = AppOpsManager::class.java

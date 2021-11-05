@@ -1,226 +1,269 @@
-<p align="center">
-  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-  </a>
-</p>
-
-                                    
-
-
-## PLEASE NOTE:  
-If your project has minSDK 23 and should support only ***basic Fingerprint Authorization on most devices*** - take a look first at the  [AndroidX's Biometric ](https://developer.android.com/jetpack/androidx/releases/biometric).  
-  
-If you still need advanced Biometric authentication use **Fingerpint, Face or Iris** on the wide range of devices - see doc below.  
-  
-  
-  
-Advanced BiometricPromptCompat  
+Advanced BiometricPromptCompat
 ====  
-  
-  
-## Introduction  
-  
-#### What is `BiometricPrompt API`?  
-  
-  
-This is a new API that declares that the system takes care of a unified way to use different biometric identification methods - fingerprint, face, iris, etc., as well as a unified way to display the UI on all devices.  
-  
-To learn more, read [BiometricPrompt Reference](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt) in Android Developers site.  
-  
-Unfortunately, this simplification hides a number of problems.  
-- On Android 9, there is no way to simply get information about whether there is available biometric hardware and whether biometric data is enrolled. Android 10 provides BiometricManager that partially solves this problem.  
-- Some manufacturers have removed/do not display the biometric UI  
-- Biometric Auth solutions like Samsung Pass SDK or Meizu Fingerprint need to implement separately  
-- No way to identify what types of biometric auth available on the device.  
-  
-  
-  
-#### How to use BiometricPromptCompat in old devices?  
-  
+
+## Introduction
+
+#### What is `BiometricPrompt API`?
+
+This is a new API that declares that the system takes care of a unified way to use different
+biometric identification methods - fingerprint, face, iris, etc., as well as a unified way to
+display the UI on all devices.
+
+To learn more,
+read [BiometricPrompt Reference](https://developer.android.com/reference/android/hardware/biometrics/BiometricPrompt)
+on the Android Developers site.
+
+Unfortunately, this simplification hides a number of problems.
+
+- On Android 9, there is no way to simply get information about whether there is available biometric
+  hardware and whether biometric data is enrolled. Android 10 provides BiometricManager that
+  partially solves this problem.
+- Some manufacturers have removed/do not display the biometric UI
+- Biometric Auth solutions like Samsung Pass SDK or Meizu Fingerprint need to implement separately
+- No way to identify what types of biometric auth available on the device.
+- On Android 12 and devices with FaceUnlock (like Pixel 4), when user disable Camera via
+  QuickSettings, Face setup and FaceUnlock stop working and no API to handle this case
+
+#### How to use BiometricPromptCompat in old devices?
+
 BiometricPromptCompat is designed to be compatible with the largest number of Android devices.  
 Its interface is very close to the original `BiometricPrompt`.  
-Minimal supported SDK -  **Android 4.1  JellyBean (API 16)**  
-  
-#### Key features  
-- Unified UI for all devices - starts from Android 4.1 and to Android 11  
-- Contains fix for devices WITHOUT system BiometricPrompt UI (like LG G8 or OnePlus 6T)  
-- Dark/Light themes supported; Also you able to get the background color of the current Biometric dialog  
-- Auth in Split-Screen Mode supported  
-- Wide range of supported biometrics  
-  
-#### Supported types of biometric authentication  
-  
-|  Type | Details | Tested on  
+Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
+
+#### Key features
+
+- Unified UI for all devices - starts from Android 4.1 and to Android 12. Exception: some vendors (
+  like Huawei or Samsung) provide custom UI
+- Contains fix for devices WITHOUT system BiometricPrompt UI (like LG G8 or OnePlus 6T)
+- Dark/Light themes supported; Also you able to get the background color of the current Biometric
+  dialog
+- Auth in Split-Screen Mode supported
+- Wide range of supported biometrics
+- Android 12 microphone and camera toggles handling
+- DynamicColors (MaterialYou/Monet) theming supported
+
+#### Supported types of biometric authentication
+
+| Type | Details | Tested on  
 |--|--|--|  
 | BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
 | Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|   
 | Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
-| In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro|
-| Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 |
-| Face Unlock (aka Trusted Faces) | Android 4.1+ |Prestigio PAP3400|  
-| Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30|
+| In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| 
+| Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 | 
+| Face Unlock (aka TrustedFaces) | Android 4.1+ |Prestigio PAP3400|  
+| Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30| 
 | Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
-| Xiomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
+| Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
-| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
+| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| 
+| Windows Subsystem for Android & Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
+## Screenshots:
 
-## Screenshots:  
-  
-**Xiaomi Pocophone F1**  
+**Xiaomi Pocophone F1**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg" alt="Pocophone F1" width="500px" />  
   </a>  
 </p>  
-  
-  
-**Samsung Galaxy S5**  
+
+
+**Samsung Galaxy S5**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
   </a>  
 </p>  
-  
-**Huawei Mate P40 Pro**  
+
+**Huawei Mate P40 Pro**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
   </a>  
 </p>  
-  
-  **Prestigio PAP3400**  
+
+**Prestigio PAP3400**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
   </a>  
 </p>  
 
 
-## Setup  
-[![Download](https://api.bintray.com/packages/salat-cx65/Maven/dev.skomlach:biometric/images/download.svg) ](https://bintray.com/salat-cx65/Maven/dev.skomlach:biometric)  
-  
-  
-Add dependency to Gradle:  
+**Video from Xiaomi Pocophone F1**  
+[![Watch the video](https://img.youtube.com/vi/ttHroYJlgI0/maxresdefault.jpg)](https://youtu.be/ttHroYJlgI0)
+
+## Setup
+
+VERSION
+= [![Maven Central](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fdev%2Fskomlach%2Fbiometric%2Fmaven-metadata.xml)](https://mvnrepository.com/artifact/dev.skomlach/biometric)
+
+Add dependency to Gradle
+
 ```groovy  
-dependencies {
- implementation 'dev.skomlach:biometric:X.X.X' 
-}
+ implementation 'dev.skomlach:biometric:${VERSION}' 
 ```  
 
+## Usage
 
-## Usage  
-  
-  
-  
-**BiometricPromptCompat API**  
-##  
-At first, better in `Application.onCreate()`, call  
-  
-```java  
-BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
+**BiometricPromptCompat API**
+
+##
+
+**BiometricPromptCompat.Companion:**
+
+At first, better in `Application.onCreate()`, call
+
+```kotlin  
+BiometricPromptCompat.Companion.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
 ```   
 
+`fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
+
+
+`var deviceInfo: DeviceInfo?` - return device hardware specifications
+
+
+For development purpose only:
+
+`fun logging(enabled: Boolean)` - allow to enable/disable logging
+
+
+`fun apiEnabled(enabled: Boolean)`  - allow to enable/disable this library
+
+
+##    
+
+**BiometricAuthRequest**
+
+Allows you to configure the type of target biometrics.  
+It can be any combination of BiometricApi, BiometricConfirmation and BiometricType;  
+Default
+is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)`
+
+**BiometricConfirmation:**
+
+`BiometricConfirmation.ANY` - any biometric confirm the user
+
+`BiometricConfirmation.ALL` - all (one-by-one) biometrics confirm the user
+
+**BiometricApi:**
+
+`BiometricApi.AUTO` - the library will peek at the best-matched API
+
+`BiometricApi.LEGACY_API` - forced usage of legacy biometric APIs like Fingerprint or FaceUnlock,
+and custom UI
+
+`BiometricApi.BIOMETRIC_API` - forced usage of new BiometricPrompt API
+
+**BiometricType:**
+
+`BiometricType.BIOMETRIC_FINGERPRINT` - Use only **Fingerprint** biometric, ignore others
+
+`BiometricType.BIOMETRIC_FACE` - Use only **FaceId** biometric, ignore others
+
+`BiometricType.BIOMETRIC_IRIS` - Use only **Iris** biometric, ignore others
+
+`BiometricType.BIOMETRIC_ANY` - use any available biometric (multiple types supported)
+
+##     
 
 **BiometricManagerCompat**
 
-##  
-  
- `static boolean hasEnrolled()` - returns `true` if specified biometric enrolled  
-   
- `static boolean isBiometricSensorPermanentlyLocked()` - returns `true` if specified biometric permanently locked; Device lock-unlock or reboot required from the user  
-   
- `static boolean isHardwareDetected()` - returns `true` if specified biometric hardware available  
-   
- `static boolean isLockOut()` - returns `true` if specified biometric temporarily locked; Usually need to wait for 30 seconds and the system will reset this lock  
-   
- `static boolean isNewBiometricApi()` - returns `true` if BiometricPrompt API used for specified biometric  
-   
- `static boolean openSettings(Activity)` -  returns `true` if open the "Enroll biometric" settings screen for specified biometric  
-##  
-  
-  
-  
-  **BiometricAuthRequest**   
-  
-Allows you to configure the type of target biometrics.  
-It can be any combination of BiometricApi and BiometricType;  
-Default is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)` - means any available BiometricApi and BiometricType  
-    
- **BiometricConfirmation:**  
-  
-  `BiometricConfirmation.ANY` - any biometric confirm the user
-    
-  `BiometricConfirmation.ALL` - all (one-by-one) biometrics confirm the user
-  
- **BiometricApi:**  
-  
-  `BiometricApi.AUTO` - the library will peek at the best-matched API  
-    
-  `BiometricApi.LEGACY_API` - forced usage of legacy biometric APIs like Fingerprint or FaceUnlock, and custom UI  
-    
-  `BiometricApi.BIOMETRIC_API` - forced usage of new BiometricPrompt API  
-    
- **BiometricType:**  
-  
-  `BiometricType.BIOMETRIC_FINGERPRINT` - Use only **Fingerprint** biometric, ignore others  
-    
-  `BiometricType.BIOMETRIC_FACE` -  Use only **FaceId** biometric, ignore others  
-    
-  `BiometricType.BIOMETRIC_IRIS` -  Use only **Iris** biometric, ignore others  
-    
-  `BiometricType.BIOMETRIC_ANY` - use any available biometric (multiple types supported)  
-  
-##  
-  
-**BiometricPromptCompat.Builder**  
-  
-```java  
-BiometricPromptCompat.Builder builder =  
- new BiometricPromptCompat.Builder(getActivity()) .setTitle("Biometric demo") .setNegativeButton("Cancel", null); BiometricPromptCompat biometricPromptCompat = builder.build();    
+`fun hasEnrolled(): Boolean` - returns `true` if specified biometric enrolled
+
+`fun isBiometricSensorPermanentlyLocked(): Boolean` - returns `true` if specified biometric
+permanently locked; Device lock-unlock or reboot required from the user
+
+`fun isHardwareDetected(): Boolean` - returns `true` if specified biometric hardware available
+
+`fun isLockOut(): Boolean` - returns `true` if specified biometric temporarily locked; Usually
+need to wait for 30 seconds and the system will reset this lock
+
+`fun openSettings(Activity): Boolean` - returns `true` if open the "Enroll biometric" settings
+screen for specified biometric
+
+`fun isBiometricEnrollChanged(): Boolean` - returns `true` if enrollment changed for specified
+biometric.
+
+**NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return
+incorrect result in many cases**
+
+##
+**BiometricPromptCompat.Builder**
+
+Simplest builder:
+```kotlin  
+ val builder = BiometricPromptCompat.Builder(activity).setTitle("Biometric demo") .setNegativeButton("Cancel", null)
+ val biometricPromptCompat = builder.build()
  ```   
- ***Please note:***  
-  Methods `builder.setTitle()` and `builder.setNegativeButton()` are mandatory.  
-  
-   
- **BiometricPromptCompat:**  
-    
-  `void authenticate(BiometricPromptCompat.Result resultCallback)` - start biometric auth workflow  
-  
- `void cancelAuthenticate()` - cancel active biometric auth workflow  
-   
- `boolean cancelAuthenticateBecauseOnPause()` - Useful if you need to allow biometric auth in Split-Screen mode; Recommended to call this method in `onPause()` and use returned value to avoid biometric auth restart.   
-Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true` and cancel active biometric auth otherwise  
-  
-  `@ColorRes int getDialogMainColor()` - returns dialog background color  
-   
-  
-**BiometricPromptCompat.Result**  
-  
-  `void onSucceeded(Set<BiometricType> confirmed)` - User successfully authenticated   
-    
-  `void onCanceled()` - Biometric authentication was canceled  
-    
-  `void onFailed(AuthenticationFailureReason reason)` - Error happens, see details in *AuthenticationFailureReason*  
-  
-  `void onUIOpened()/void onUIClosed` - Biometric UI on display or closed 
-  
-  
-  
-## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?  
-  
-Yes, this is, unfortunately, happening very often. Many functions demanded by the market are often implemented by device manufacturers before the same API appears in the official Android SDK.  
-  
-The device manufacturer has implemented biometric authentication via fingerprint/face/iris, but "forgot" to provide access to this implementation for third-party developers. Therefore, preinstalled (system) applications developed by the device manufacturer can use biometrics, while banking applications, password managers, and other third-party applications cannot.  
 
-And unfortunately, sometimes manufacturers create such implementations that it is impossible to access using any known technic.
+***Please note:***  
+Methods `builder.setTitle()` and `builder.setNegativeButton()` are mandatory.
 
-Anyway, research and testing required for each case, so feel free to create issues or contact directly with me.
+**BiometricPromptCompat:**
 
-  
+`fun authenticate(BiometricPromptCompat.AuthenticationCallback)` - start biometric
+auth workflow
+
+`fun cancelAuthenticate()` - cancel active biometric auth workflow
+
+`fun cancelAuthenticateBecauseOnPause(): Boolean` - Useful if you need to allow biometric auth in
+Split-Screen mode; Recommended to call this method in `onPause()` and use returned value to avoid
+biometric auth restart.   
+Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true`
+and cancel active biometric auth otherwise
+
+`@ColorRes fun getDialogMainColor(): Int` - returns dialog background color
+
+**BiometricPromptCompat.AuthenticationCallback**
+
+`fun onSucceeded(Set<BiometricType>)` - User successfully authenticated
+
+`fun onCanceled()` - Biometric authentication was canceled
+
+`fun onFailed(AuthenticationFailureReason)` - Error happens, see details in *
+AuthenticationFailureReason*
+
+`fun onUIOpened()/fun onUIClosed` - Biometric UI on display or closed
+
+## False-positive and/or False-negative detection
+
+On **pure** API28 implementation (built-in BiometricPrompt API) is no way to get '
+isBiometricEnrolled' results for specific biometric, like Iris/Face, etc. So, some tricks have used
+that try to determine by indirect signs which biometric data are used (like "if NOT fingerprint, BUT
+something enrolled in the System Settings").
+
+There are edge cases where we cannot tell exactly what type of biometrics is enrolled - for example,
+if it is Samsung with Face and Iris - in this case, the code can give a incorrect result. It can
+happen if you set ```BiometricApi.BIOMETRIC_API + BiometricType.BIOMETRIC_FACE```
+or ```BiometricApi.BIOMETRIC_API + BiometricType.BIOMETRIC_IRIS```
+
+Fortunately, for Samsung with Face and Iris, the 'legacy' check should work correctly, so for
+general cases when you
+use ```BiometricApi.AUTO/LEGACY_API + BiometricType.BIOMETRIC_FACE/BIOMETRIC_IRIS``` all should work
+fine.
+
+## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?
+
+Yes, this is, unfortunately, happening very often. Many functions demanded by the market are often
+implemented by device manufacturers before the same API appears in the official Android SDK.
+
+The device manufacturer has implemented biometric authentication via fingerprint/face/iris, but "
+forgot" to provide access to this implementation for third-party developers. Therefore,
+preinstalled (system) applications developed by the device manufacturer can use biometrics, while
+banking applications, password managers, and other third-party applications cannot.
+
+And unfortunately, sometimes manufacturers create such implementations that it is impossible to
+access using any known technic.
+
+Anyway, research and testing are required for each case, so feel free to create issues or contact
+directly with me.
+
 ## Types of Biometrics
+
 https://www.biometricsinstitute.org/what-is-biometrics/types-of-biometrics/
 
-
-
-## HOWTO SETUP 
+## HOWTO SETUP
 
 FaceUnlock: https://www.xda-developers.com/face-unlock/
 
@@ -228,16 +271,30 @@ Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Androi
 
 IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
 
-  
+## Code security checks
 
-## Contact author  
-  
-Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)  
-  
-Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)  
-  
-## License  
-  
+- FindBugs
+
+- Find Security Bugs
+
+- OWAPS dependencies check
+
+- Snyk
+
+- Sonatype-Lift
+
+## License
+
 Apache License 2.0
 
+## Contact author
+
+Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
+
+Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+  </a>
+</p>
 

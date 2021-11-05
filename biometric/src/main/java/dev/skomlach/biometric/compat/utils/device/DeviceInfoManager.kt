@@ -19,15 +19,14 @@
 
 package dev.skomlach.biometric.compat.utils.device
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.network.NetworkApi
 import org.jsoup.Jsoup
+import org.jsoup.select.Elements
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -37,13 +36,27 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.net.ssl.SSLHandshakeException
+import kotlin.collections.HashSet
 
-class DeviceInfoManager private constructor() {
+object DeviceInfoManager {
+    val agents = arrayOf(
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
+    )
+
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     fun hasFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase(Locale.US)
+            val s = str.lowercase(Locale.ROOT)
             if (s.contains("fingerprint")) {
                 return true
             }
@@ -54,7 +67,7 @@ class DeviceInfoManager private constructor() {
     fun hasUnderDisplayFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase(Locale.US)
+            val s = str.lowercase(Locale.ROOT)
             if (s.contains("fingerprint") && s.contains("under display")) {
                 return true
             }
@@ -65,8 +78,10 @@ class DeviceInfoManager private constructor() {
     fun hasIrisScanner(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase(Locale.US)
-            if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(
+            val s = str.lowercase(Locale.ROOT)
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
                     " auth"
                 )
             ) {
@@ -81,8 +96,10 @@ class DeviceInfoManager private constructor() {
     fun hasFaceID(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
-            val s = str.toLowerCase(Locale.US)
-            if (s.contains(" id") || s.contains(" recognition") || s.contains(" unlock") || s.contains(
+            val s = str.lowercase(Locale.ROOT)
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
                     " auth"
                 )
             ) {
@@ -107,27 +124,23 @@ class DeviceInfoManager private constructor() {
         val strings = getNames()
         for (m in strings) {
             deviceInfo = loadDeviceInfo(m)
-            if (deviceInfo?.sensors != null) {
+            if (deviceInfo != null) {
                 BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
                 setCachedDeviceInfo(deviceInfo)
                 onDeviceInfoListener.onReady(deviceInfo)
                 return
             }
         }
-        if (deviceInfo != null) {
-            BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
-            setCachedDeviceInfo(deviceInfo)
-        }
-        onDeviceInfoListener.onReady(deviceInfo)
+        onDeviceInfoListener.onReady(null)
     }
 
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
+                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
-                    val sensors = sharedPreferences.getStringSet("sensors", null) ?: return null
+                    val sensors = sharedPreferences.getStringSet("sensors", null)
                     field = DeviceInfo(model, sensors)
                 }
             }
@@ -136,42 +149,47 @@ class DeviceInfoManager private constructor() {
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
-        val sharedPreferences = getCryptoPreferences("StoredDeviceInfo")
-            .edit()
-        sharedPreferences
-            .putStringSet("sensors", deviceInfo.sensors)
-            .putString("model", deviceInfo.model)
-            .putBoolean("checked", true)
-            .apply()
+        try {
+            val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
+                .edit()
+            sharedPreferences
+                .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
+                .putString("model", deviceInfo.model)
+                .putBoolean("checked", true)
+                .apply()
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
     }
 
     private fun loadDeviceInfo(model: String): DeviceInfo? {
         BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $model")
-        return if (model.isNullOrEmpty()) null else try {
+        return if (model.isEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
-            var html: String? = getHtml(url) ?: return null
+            var html: String? = getHtml(url) ?: return DeviceInfo(model, null)
             val detailsLink = getDetailsLink(url, html, model)
                 ?: return DeviceInfo(model, null)
 
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
             html = getHtml(detailsLink)
-            if (html == null) return null
+            if (html == null) return DeviceInfo(model, null)
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             DeviceInfo(model, l)
         } catch (e: Throwable) {
-            null
+            BiometricLoggerImpl.e(e)
+            DeviceInfo(model, null)
         }
     }
 
     //parser
     private fun getSensorDetails(html: String?): Set<String> {
         val list: MutableSet<String> = HashSet()
-        if (html != null) {
+        html?.let {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
-            val rElements = body.getElementsByAttribute("data-spec")
+            val rElements = body?.getElementsByAttribute("data-spec") ?: Elements()
             for (i in rElements.indices) {
                 val element = rElements[i]
                 if (element.attr("data-spec") == "sensors") {
@@ -194,10 +212,10 @@ class DeviceInfoManager private constructor() {
     }
 
     private fun getDetailsLink(url: String, html: String?, model: String): String? {
-        if (html != null) {
+        html?.let {
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
-            val rElements = body.getElementsByTag("a")
+            val rElements = body?.getElementsByTag("a") ?: Elements()
             for (i in rElements.indices) {
                 val element = rElements[i]
                 val name = element.text()
@@ -205,7 +223,7 @@ class DeviceInfoManager private constructor() {
                     continue
                 }
                 if (name.equals(model, ignoreCase = true)) {
-                    return Network.resolveUrl(url, element.attr("href"))
+                    return NetworkApi.resolveUrl(url, element.attr("href"))
                 }
             }
         }
@@ -216,11 +234,9 @@ class DeviceInfoManager private constructor() {
     private fun getHtml(url: String): String? {
         try {
             var urlConnection: HttpURLConnection? = null
-            val connectivityManager =
-                appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-            if (connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true) {
+            if (NetworkApi.hasInternet()) {
                 return try {
-                    urlConnection = Network.createConnection(
+                    urlConnection = NetworkApi.createConnection(
                         url, TimeUnit.SECONDS.toMillis(30)
                             .toInt()
                     )
@@ -236,7 +252,7 @@ class DeviceInfoManager private constructor() {
                     var inputStream: InputStream? = null
                     inputStream = urlConnection.inputStream
                     if (inputStream == null) inputStream = urlConnection.errorStream
-                    Network.fastCopy(inputStream, byteArrayOutputStream)
+                    NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                     inputStream.close()
                     val data = byteArrayOutputStream.toByteArray()
                     byteArrayOutputStream.close()
@@ -262,31 +278,15 @@ class DeviceInfoManager private constructor() {
         fun onReady(deviceInfo: DeviceInfo?)
     }
 
-    companion object {
-        @JvmField var INSTANCE = DeviceInfoManager()
-        val agents = arrayOf(
-            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
-        )
-
-        private fun capitalize(s: String?): String {
-            if (s.isNullOrEmpty()) {
-                return ""
-            }
-            val first = s[0]
-            return if (Character.isUpperCase(first)) {
-                s
-            } else {
-                Character.toUpperCase(first).toString() + s.substring(1)
-            }
+    private fun capitalize(s: String?): String {
+        if (s.isNullOrEmpty()) {
+            return ""
+        }
+        val first = s[0]
+        return if (Character.isUpperCase(first)) {
+            s
+        } else {
+            Character.toUpperCase(first).toString() + s.substring(1)
         }
     }
 }

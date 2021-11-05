@@ -19,14 +19,13 @@
 
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
 
 /**
  * A listener that is notified of the results of fingerprint authentication.
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 interface AuthenticationListener {
     fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?)
 

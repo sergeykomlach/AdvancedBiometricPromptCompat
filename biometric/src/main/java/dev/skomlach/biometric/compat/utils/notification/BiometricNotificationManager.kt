@@ -24,29 +24,20 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.DrawableRes
-import androidx.annotation.RestrictTo
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicReference
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
-class BiometricNotificationManager private constructor() {
 
-    companion object {
-        val INSTANCE = BiometricNotificationManager()
-        const val CHANNEL_ID = "biometric"
-    }
-
+object BiometricNotificationManager {
+    const val CHANNEL_ID = "biometric"
     private val notificationReference = AtomicReference<Runnable>(null)
-    private val notificationManagerCompat: NotificationManagerCompat =
-        NotificationManagerCompat.from(appContext)
 
     init {
         initNotificationsPreferences()
@@ -55,10 +46,10 @@ class BiometricNotificationManager private constructor() {
     private fun initNotificationsPreferences() {
         if (Build.VERSION.SDK_INT >= 26) {
             try {
-                val notificationManager = appContext.getSystemService(
+                val notificationManager: NotificationManager? = appContext.getSystemService(
                     NotificationManager::class.java
                 )
-                var notificationChannel1 = notificationManager.getNotificationChannel(CHANNEL_ID)
+                var notificationChannel1 = notificationManager?.getNotificationChannel(CHANNEL_ID)
                 if (notificationChannel1 == null) {
                     notificationChannel1 = NotificationChannel(
                         CHANNEL_ID,
@@ -67,7 +58,7 @@ class BiometricNotificationManager private constructor() {
                     )
                 }
                 notificationChannel1.setShowBadge(false)
-                notificationManager.createNotificationChannel(notificationChannel1)
+                notificationManager?.createNotificationChannel(notificationChannel1)
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
@@ -81,38 +72,33 @@ class BiometricNotificationManager private constructor() {
         val notify = Runnable {
             try {
                 val clickIntent = Intent()
-                for (type in builder.allAvailableTypes) {
+                for (type in builder.getAllAvailableTypes()) {
 
                     val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
                         .setOnlyAlertOnce(true)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
+                        //TODO: investigate why notifications remains on the screen
+//                        .setAutoCancel(false)
+//                        .setOngoing(true)
+
+                        .setAutoCancel(true)
                         .setLocalOnly(true)
-                        .setContentTitle(builder.title)
-                        .setContentText(builder.description)
+                        .setContentTitle(builder.getTitle())
+                        .setContentText(builder.getDescription())
                         .setStyle(
                             NotificationCompat.BigTextStyle()
-                                .bigText(builder.description)
-                        )
-                        .setContentIntent(
-                            PendingIntent.getBroadcast(
-                                appContext,
-                                1,
-                                clickIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                            )
+                                .bigText(builder.getDescription())
                         )
                         .setDeleteIntent(
                             PendingIntent.getBroadcast(
                                 appContext,
                                 2,
                                 clickIntent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
+                                if (Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
                             )
                         )
                         .setSmallIcon(type.iconId).build()
 
-                    notificationManagerCompat.notify(type.hashCode(), notif)
+                    NotificationManagerCompat.from(appContext).notify(type.hashCode(), notif)
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
@@ -120,16 +106,16 @@ class BiometricNotificationManager private constructor() {
         }
 
         notificationReference.set(notify)
-        ExecutorHelper.INSTANCE.handler.post(notify)
+        ExecutorHelper.post(notify)
 
         //update notification to fix icon tinting in split-screen mode
         val delay = appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-        ExecutorHelper.INSTANCE.handler.postDelayed(notify, delay)
+        ExecutorHelper.postDelayed(notify, delay)
     }
 
     fun dismissAll() {
         notificationReference.get()?.let {
-            ExecutorHelper.INSTANCE.handler.removeCallbacks(it)
+            ExecutorHelper.removeCallbacks(it)
             notificationReference.set(null)
         }
         try {
@@ -143,7 +129,7 @@ class BiometricNotificationManager private constructor() {
 
     fun dismiss(type: BiometricType?) {
         try {
-            notificationManagerCompat.cancel(type?.hashCode() ?: return)
+            NotificationManagerCompat.from(appContext).cancel(type?.hashCode() ?: return)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Build
-import android.text.TextUtils
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
@@ -229,11 +228,15 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
         }
 
         override fun putStringSet(key: String, values: Set<String>?): SharedPreferences.Editor {
-            return try {
-                CryptoEditor(editor.putStringSet(key, values))
+            try {
+                values?.let {
+                    return CryptoEditor(editor.putStringSet(key, it))
+                } ?: run {
+                    return CryptoEditor(editor.remove(key))
+                }
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                return editor
             }
         }
 

@@ -21,29 +21,23 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
 import android.content.*
 import android.os.*
-import androidx.annotation.RestrictTo
 import com.huawei.facerecognition.FaceManager
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
-import dev.skomlach.biometric.compat.utils.device.VendorCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.reflect.InvocationTargetException
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_HUAWEI) {
     //EMUI 10.1.0
@@ -51,21 +45,25 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     private var huawei3DFaceManager: FaceManager? = null
 
     init {
-        ExecutorHelper.INSTANCE.handler.post {
-            if(VendorCheck.isHuawei) {
-                try {
-                    huawei3DFaceManager = faceManager
-                    d("$name.huawei3DFaceManager - $huawei3DFaceManager")
-                } catch (ignore: Throwable) {
-                    huawei3DFaceManager = null
-                }
-                try {
-                    huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
-                    d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
-                } catch (ignore: Throwable) {
-                    huaweiFaceManagerLegacy = null
-                }
+        ExecutorHelper.post {
+
+            try {
+                huawei3DFaceManager = faceManager
+                d("$name.huawei3DFaceManager - $huawei3DFaceManager")
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
+                huawei3DFaceManager = null
             }
+            try {
+                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
+                d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
+            } catch (e: Throwable) {
+                if (DEBUG_MANAGERS)
+                    e(e, name)
+                huaweiFaceManagerLegacy = null
+            }
+
             listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
         }
     }
@@ -87,6 +85,27 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             }
             return null
         }
+
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        //pass only EMUI 10.1.0 manager
+        huawei3DFaceManager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
+    override fun getIds(manager: Any): List<String> {
+        val ids = ArrayList<String>(super.getIds(manager))
+        huaweiFaceManagerLegacy?.let {
+            it.getEnrolledTemplates()?.let { array ->
+                for (a in array)
+                    ids.add("$a")
+            }
+        }
+        return ids
+    }
+
     override val isManagerAccessible: Boolean
         get() = huaweiFaceManagerLegacy != null || huawei3DFaceManager != null
     override val isHardwarePresent: Boolean
@@ -107,7 +126,29 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
     override fun hasEnrolled(): Boolean {
         try {
-            if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) return true
+            val hasEnrolled = try {
+                huawei3DFaceManager?.hasEnrolledTemplates() == true
+            } catch (ignore: Throwable) {
+                val m = huawei3DFaceManager?.javaClass?.declaredMethods?.firstOrNull {
+                    it.name.contains("hasEnrolled", ignoreCase = true)
+                }
+                val isAccessible = m?.isAccessible ?: true
+                var result = false
+                try {
+                    if (!isAccessible)
+                        m?.isAccessible = true
+                    if (m?.returnType == Boolean::class.javaPrimitiveType)
+                        result = (m?.invoke(huawei3DFaceManager) as Boolean?) == true
+                    else
+                        if (m?.returnType == Int::class.javaPrimitiveType)
+                            result = (m?.invoke(huawei3DFaceManager) as Int?) ?: 0 > 0
+                } finally {
+                    if (!isAccessible)
+                        m?.isAccessible = false
+                }
+                result
+            }
+            if (huawei3DFaceManager?.isHardwareDetected == true && hasEnrolled) return true
         } catch (e: Throwable) {
             e(e, name)
         }
@@ -154,7 +195,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                         signalObject,
                         0,
                         AuthCallback3DFace(restartPredicate, cancellationSignal, listener),
-                        ExecutorHelper.INSTANCE.handler
+                        ExecutorHelper.handler
                     )
                     return
                 } catch (e: Throwable) {
@@ -201,12 +242,14 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
                 BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
@@ -221,18 +264,21 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return
             }
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
+            if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
                 }
-                listener?.onFailure(failureReason, tag())
-            }
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
@@ -267,12 +313,14 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
                 BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
@@ -287,21 +335,24 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return
             }
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
-                huaweiFaceManagerLegacy?.cancel(0)
-                ExecutorHelper.INSTANCE.handler.postDelayed({
-                    authenticate(cancellationSignal, listener, restartPredicate)
-                }, 250)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            if (restartCauseTimeout(failureReason)) {
+                authenticate(cancellationSignal, listener, restartPredicate)
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    huaweiFaceManagerLegacy?.cancel(0)
+                    ExecutorHelper.postDelayed({
+                        authenticate(cancellationSignal, listener, restartPredicate)
+                    }, 250)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
                 }
-                listener?.onFailure(failureReason, tag())
-            }
         }
 
         override fun onAuthenticationStatus(helpMsgId: Int) {

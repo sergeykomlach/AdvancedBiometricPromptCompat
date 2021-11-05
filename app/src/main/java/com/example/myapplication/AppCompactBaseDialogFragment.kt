@@ -23,11 +23,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.fragment.app.DialogFragment
+import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 
 class AppCompactBaseDialogFragment : DialogFragment() {
@@ -52,6 +50,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
 
         val buttonsList = view.findViewById<LinearLayout>(R.id.buttons_list)
         view.findViewById<LinearLayout>(R.id.buttons).visibility = View.GONE
+        view.findViewById<CheckBox>(R.id.checkbox).visibility = View.GONE
         if (!App.isReady) {
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {

@@ -19,11 +19,10 @@
 
 package dev.skomlach.biometric.compat.engine.core
 
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object RestartPredicatesImpl {
     /**
      * A predicate that will retry all non-fatal failures indefinitely, and timeouts a given number
@@ -55,7 +54,7 @@ object RestartPredicatesImpl {
      * A predicate that will never restart after any failure.
      */
     fun neverRestart(): RestartPredicate {
-        return object: RestartPredicate {
+        return object : RestartPredicate {
             override fun invoke(reason: AuthenticationFailureReason?): Boolean {
                 return false
             }

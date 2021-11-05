@@ -53,11 +53,11 @@ object DevicesWithKnownBugs {
         //Velvet 4G Dual Sim
         "G910",
     )
-    @JvmStatic
+
     val isOnePlusWithBiometricBug: Boolean
         get() = Build.BRAND.equals("OnePlus", ignoreCase = true) &&
                 !listOf(*onePlusModelsWithoutBiometricBug).contains(Build.MODEL)
-    @JvmStatic
+
     val isHideDialogInstantly: Boolean
         get() {
             val modelPrefixes =
@@ -67,18 +67,23 @@ object DevicesWithKnownBugs {
                     return true
                 }
             }
-            return false
+            return isSamsung && hasUnderDisplayFingerprint
         }
-    @JvmStatic
+
+    val isSamsung: Boolean
+        get() {
+            return Build.BRAND.equals("Samsung", ignoreCase = true)
+        }
+
     val isMissedBiometricUI: Boolean
         get() = (Build.BRAND.equals("LG", ignoreCase = true) &&
                 listOf(*lgWithMissedBiometricUI).any { knownModel ->
-            Build.MODEL.contains(
-                knownModel,
-                ignoreCase = true
-            )
-        }) || !CheckBiometricUI.hasExists(appContext)
-    @JvmStatic
+                    Build.MODEL.contains(
+                        knownModel,
+                        ignoreCase = true
+                    )
+                }) || !CheckBiometricUI.hasExists(appContext)
+
     val hasUnderDisplayFingerprint: Boolean
-        get() = DeviceInfoManager.INSTANCE.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
+        get() = DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
 }

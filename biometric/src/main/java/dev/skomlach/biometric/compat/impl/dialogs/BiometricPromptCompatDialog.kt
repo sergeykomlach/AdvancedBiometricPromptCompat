@@ -20,6 +20,11 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.app.UiModeManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -27,8 +32,11 @@ import android.graphics.drawable.TransitionDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowManager
+import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityNodeProvider
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -42,17 +50,20 @@ import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
-import dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
+import dev.skomlach.biometric.compat.utils.monet.toArgb
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightMode
+import dev.skomlach.common.misc.Utils
 
 internal class BiometricPromptCompatDialog(
     compatBuilder: BiometricPromptCompat.Builder,
     isInscreenLayout: Boolean
 ) : AppCompatDialog(
-    ContextThemeWrapper(compatBuilder.context, R.style.Theme_BiometricPromptDialog),
+    ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog),
     R.style.Theme_BiometricPromptDialog
 ) {
     private val crossfader: TransitionDrawable
@@ -72,11 +83,17 @@ internal class BiometricPromptCompatDialog(
         private set
     var fingerprintIcon: FingerprintIconView? = null
         private set
-    var container: View? = null
+    var authPreview: View? = null
         private set
     var rootView: View? = null
         private set
     private var focusListener: WindowFocusChangedListener? = null
+
+    private val wallpaperChangedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            updateMonetColorsInternal()
+        }
+    }
 
     init {
         val NIGHT_MODE: Int
@@ -119,14 +136,17 @@ internal class BiometricPromptCompatDialog(
                 }
             }
         }
+        updateMonetColorsInternal()
     }
 
-    fun makeVisible(){
+    fun makeVisible() {
         (rootView?.parent as View?)?.alpha = 1f
     }
-    fun makeInvisible(){
+
+    fun makeInvisible() {
         (rootView?.parent as View?)?.alpha = 0.01f
     }
+
     override fun dismiss() {
         if (isShowing) {
             val animation = AnimationUtils.loadAnimation(context, R.anim.move_out)
@@ -147,15 +167,30 @@ internal class BiometricPromptCompatDialog(
     }
 
     override fun onCreate(bundle: Bundle?) {
-
         super.onCreate(bundle)
-        window?.addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
         setContentView(res)
         rootView = findViewById(R.id.dialogContent)
         rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) {}
+            override fun onViewAttachedToWindow(v: View) {
+                try {
+                    @Suppress("DEPRECATION")
+                    context.registerReceiver(
+                        wallpaperChangedReceiver,
+                        IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
+                    )
+                    updateMonetColorsInternal()
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e, "setupMonet")
+                }
+            }
+
             override fun onViewDetachedFromWindow(v: View) {
-                if (isShowing) super@BiometricPromptCompatDialog.dismiss()
+                if (isShowing)
+                    super@BiometricPromptCompatDialog.dismiss()
+                try {
+                    context.unregisterReceiver(wallpaperChangedReceiver)
+                } catch (e: Throwable) {
+                }
             }
         })
         title = rootView?.findViewById(R.id.title)
@@ -164,9 +199,7 @@ internal class BiometricPromptCompatDialog(
         status = rootView?.findViewById(R.id.status)
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
-        container = rootView?.findViewById(R.id.auth_content_container)
-
-        fingerprintIcon?.setState(FingerprintIconView.State.ON, false)
+        authPreview = rootView?.findViewById(R.id.auth_preview)
 
         (rootView?.parent as View).setOnClickListener { cancel() }
         rootView?.setOnClickListener(null)
@@ -174,13 +207,150 @@ internal class BiometricPromptCompatDialog(
         (rootView?.parent as View).background = crossfader
         crossfader.startTransition(animation.duration.toInt())
         rootView?.startAnimation(animation)
+        ScreenProtection().applyProtectionInWindow(window ?: return)
+    }
+    private fun updateMonetColorsInternal() {
+        if (Utils.isAtLeastS) {
+            try {
+                val monetColors = SystemColorScheme(context)
+                if (DarkLightThemes.isNightMode(context)) {
+                    fingerprintIcon?.tintColor(monetColors.accent1[300]!!.toArgb())
+                    negativeButton?.setTextColor(monetColors.accent2[100]!!.toArgb())
+                    rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                        setTextToTextViews(it, monetColors.neutral1[50]!!.toArgb())
+                        ViewCompat.setBackgroundTintList(
+                            it,
+                            ColorStateList.valueOf(monetColors.neutral1[900]!!.toArgb())
+                        )
+                    }
+                } else {
+                    fingerprintIcon?.tintColor(monetColors.accent1[600]!!.toArgb())
+                    negativeButton?.setTextColor(monetColors.neutral2[500]!!.toArgb())
+                    rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                        setTextToTextViews(it, monetColors.neutral1[900]!!.toArgb())
+                        ViewCompat.setBackgroundTintList(
+                            it,
+                            ColorStateList.valueOf(monetColors.neutral1[50]!!.toArgb())
+                        )
+                    }
+
+                }
+
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e, "Monet colors")
+            }
+        }
+    }
+
+    private fun setTextToTextViews(view: View?, color: Int) {
+        if (view is TextView && view !is Button) {
+            view.setTextColor(color)
+        } else if (view is ViewGroup) {
+            val count = view.childCount
+            for (i in 0 until count) {
+                setTextToTextViews(view.getChildAt(i), color)
+            }
+        }
     }
 
     fun setWindowFocusChangedListener(listener: WindowFocusChangedListener?) {
         focusListener = listener
     }
 
-    //https://developer.android.com/preview/features/darktheme#configuration_changes
-    val isNightMode: Boolean
-        get() = "dark_theme" == rootView?.tag
+    private inner class ScreenProtection {
+        //disable next features:
+
+        //Screenshots
+        //Accessibility Services
+        //Android Oreo autofill in the app
+
+        fun applyProtectionInWindow(window: Window?) {
+            try {
+                applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
+            } catch (e: Exception) {
+                //not sure is exception can happens, but better to track at least
+                BiometricLoggerImpl.e(e, "ActivityContextProvider")
+            }
+        }
+
+        fun applyProtectionInView(view: View) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    ViewCompat.getImportantForAutofill(view) != View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+                ) {
+                    ViewCompat.setImportantForAutofill(
+                        view,
+                        View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+                    )
+                }
+                //Note: View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS doesn't have affect
+                //for 3rd party password managers
+                view.accessibilityDelegate = object : View.AccessibilityDelegate() {
+                    override fun sendAccessibilityEvent(host: View, eventType: Int) {
+                    }
+
+                    override fun performAccessibilityAction(
+                        host: View,
+                        action: Int,
+                        args: Bundle?
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun sendAccessibilityEventUnchecked(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ) {
+                    }
+
+                    override fun dispatchPopulateAccessibilityEvent(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun onPopulateAccessibilityEvent(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ) {
+                    }
+
+                    override fun onInitializeAccessibilityEvent(
+                        host: View,
+                        event: AccessibilityEvent?
+                    ) {
+                    }
+
+                    override fun onInitializeAccessibilityNodeInfo(
+                        host: View,
+                        info: AccessibilityNodeInfo?
+                    ) {
+                    }
+
+                    override fun addExtraDataToAccessibilityNodeInfo(
+                        host: View,
+                        info: AccessibilityNodeInfo, extraDataKey: String,
+                        arguments: Bundle?
+                    ) {
+                    }
+
+                    override fun onRequestSendAccessibilityEvent(
+                        host: ViewGroup, child: View?,
+                        event: AccessibilityEvent?
+                    ): Boolean {
+                        return false
+                    }
+
+                    override fun getAccessibilityNodeProvider(host: View?): AccessibilityNodeProvider? {
+                        return null
+                    }
+                }
+            } catch (e: Exception) {
+                //not sure is exception can happens, but better to track at least
+                BiometricLoggerImpl.e(e, e.message)
+            }
+        }
+
+    }
 }

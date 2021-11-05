@@ -23,9 +23,8 @@ import android.graphics.Rect
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import androidx.annotation.RestrictTo
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object HelperTool {
     /**
      * Whether the view is at least certain % visible

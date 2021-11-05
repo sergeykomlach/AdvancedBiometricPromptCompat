@@ -19,19 +19,19 @@
 
 package dev.skomlach.biometric.compat.utils
 
+import android.annotation.SuppressLint
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.os.UserHandle
-import android.text.TextUtils
-import androidx.annotation.RestrictTo
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.lang.reflect.Method
 import java.util.*
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+@SuppressLint("PrivateApi")
+
 object LockType {
     /**
      * The bit in LOCK_BIOMETRIC_WEAK_FLAGS to be used to indicate whether liveliness should be used
@@ -50,13 +50,13 @@ object LockType {
     /**
      * @return Whether the biometric weak liveliness is enabled.
      */
-    @JvmStatic
+
     fun isBiometricWeakLivelinessEnabled(context: Context): Boolean {
         val currentFlag = SettingsHelper.getLong(context, LOCK_BIOMETRIC_WEAK_FLAGS, 0L)
         return currentFlag and FLAG_BIOMETRIC_WEAK_LIVELINESS.toLong() != 0L
     }
 
-    @JvmStatic
+
     fun isBiometricWeakEnabled(context: Context): Boolean {
         return try {
             val mode: Int
@@ -106,7 +106,7 @@ object LockType {
                             mCur.moveToNext()
                             continue
                         }
-                        val s = name.toLowerCase(Locale.US)
+                        val s = name.lowercase(Locale.ROOT)
                         if (s.contains(type)) {
                             if (s.contains("_unl") && s.contains("_enable")) {
                                 keyValue.add(name)
@@ -119,7 +119,8 @@ object LockType {
                 mCur = null
             }
             for (s in keyValue) {
-                if (SettingsHelper.getInt(context, s, -1) == 1) {
+                //-1 not exists, 0 - disabled
+                if (SettingsHelper.getInt(context, s, -1) > 0) {
                     return true
                 }
             }
@@ -151,7 +152,7 @@ object LockType {
                             mCur.moveToNext()
                             continue
                         }
-                        val s = name.toLowerCase(Locale.US)
+                        val s = name.lowercase(Locale.ROOT)
                         if (s.contains("fingerprint")
                             || s.contains("face")
                             || s.contains("iris")
@@ -168,7 +169,8 @@ object LockType {
                 mCur = null
             }
             for (s in keyValue) {
-                if (SettingsHelper.getInt(context, s, -1) == 1) {
+                //-1 not exists, 0 - disabled
+                if (SettingsHelper.getInt(context, s, -1) > 0) {
                     return true
                 }
             }

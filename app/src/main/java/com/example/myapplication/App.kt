@@ -22,28 +22,29 @@ package com.example.myapplication
 import android.os.Handler
 import android.os.Looper
 import androidx.multidex.MultiDexApplication
+import com.example.myapplication.devtools.AppMonitoringDevTools
+import com.example.myapplication.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import java.util.*
 
 class App : MultiDexApplication() {
     companion object {
-        @JvmStatic
+
         val authRequestList = ArrayList<BiometricAuthRequest>()
 
-        @JvmStatic
         val onInitListeners = ArrayList<OnInitFinished>()
 
-        @JvmStatic
         var isReady = false
             private set
     }
 
     override fun onCreate() {
         super.onCreate()
-        LogCat.instance.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
+        AppMonitoringDevTools(this).enableMonitoringTools(true)
+        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(string: String?) {
-                LogCat.instance.setLog2ViewCallback(null)
+                LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
                 BiometricPromptCompat.init {
                     checkForDeviceInfo()
@@ -51,12 +52,12 @@ class App : MultiDexApplication() {
             }
         })
 
-        LogCat.instance.start()
+        LogCat.start()
     }
 
     private fun checkForDeviceInfo() {
         if (BiometricPromptCompat.deviceInfo != null) {
-            authRequestList.addAll(BiometricPromptCompat.availableAuthRequests)
+            authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
             for (listener in onInitListeners) {
                 listener.onFinished()
             }

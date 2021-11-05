@@ -22,15 +22,14 @@ package dev.skomlach.biometric.compat.utils
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
-import androidx.annotation.RestrictTo
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object SettingsHelper {
-    @JvmStatic
+
     fun getInt(context: Context, secureSettingKey: String?, defaultValue: Int): Int {
         return getLong(context, secureSettingKey, defaultValue.toLong()).toInt()
     }
-    @JvmStatic
+
     fun getLong(context: Context, secureSettingKey: String?, defaultValue: Long): Long {
         var result = getLongInternal(context, secureSettingKey, defaultValue)
         if (result == defaultValue) {
@@ -38,7 +37,7 @@ object SettingsHelper {
         }
         return result
     }
-    @JvmStatic
+
     fun getString(context: Context, secureSettingKey: String?, defaultValue: String): String {
         try {
             val result = Settings.Secure.getString(context.contentResolver, secureSettingKey)

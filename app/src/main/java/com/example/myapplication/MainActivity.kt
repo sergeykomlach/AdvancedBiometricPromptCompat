@@ -19,20 +19,26 @@
 
 package com.example.myapplication
 
+import android.annotation.SuppressLint
 import android.app.ProgressDialog
-import android.content.ClipboardManager
-import android.content.Context
+import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.devtools.Scan4Apis
+import com.example.myapplication.utils.MailTo
+import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 
 class MainActivity : AppCompatActivity() {
 
@@ -41,9 +47,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 //        if (secure) {
-            //prevent screen capturing
+        //prevent screen capturing
 //            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 //        } else {
 //            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -63,7 +68,8 @@ class MainActivity : AppCompatActivity() {
                 "Please wait...", true
             )
 
-            val scanTask = object : AsyncTask<Void, Void, String>() {
+            val scanTask = @SuppressLint("StaticFieldLeak")
+            object : AsyncTask<Void, Void, String>() {
                 override fun onPreExecute() {
                     dialog.show()
                 }
@@ -89,12 +95,6 @@ class MainActivity : AppCompatActivity() {
                             "Advanced BiometricPromptCompat Report",
                             it
                         )
-                        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).text = it
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Report copied to clipboard",
-                            Toast.LENGTH_LONG
-                        ).show()
 
                     }
                 }
@@ -102,28 +102,46 @@ class MainActivity : AppCompatActivity() {
 
             scanTask.execute()
         }
-//        StatusBarTools.setNavBarAndStatusBarColors(window, Color.BLUE, Color.RED)
+        val color = if (DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
+        StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus)
+            updateFullScreen()
+    }
+
+
+    fun updateFullScreen() {
+        if (SharedPreferenceProvider.getCryptoPreferences("fullscreen")
+                .getBoolean("checked", false)
+        )
+            hideSystemUI()
+        else
+            showSystemUI()
+    }
+
+    private fun hideSystemUI() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowInsetsControllerCompat(window, binding.root).let { controller ->
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    private fun showSystemUI() {
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        WindowInsetsControllerCompat(
+            window,
+            binding.root
+        ).show(WindowInsetsCompat.Type.systemBars())
     }
 
     fun showDialog() {
         val dialogFragment = AppCompactBaseDialogFragment()
         dialogFragment.show(supportFragmentManager, null)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {

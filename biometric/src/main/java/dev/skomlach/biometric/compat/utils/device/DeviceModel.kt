@@ -20,12 +20,12 @@
 package dev.skomlach.biometric.compat.utils.device
 
 import android.os.Build
-import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import com.jaredrummler.android.device.DeviceName
 import dev.skomlach.biometric.compat.utils.SystemPropertiesProxy
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.network.NetworkApi
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -43,18 +43,30 @@ object DeviceModel {
         var s: String? = getSimpleDeviceName()
         BiometricLoggerImpl.d("AndroidModel - $s")
         s?.let {
-            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
         s = getNameFromAssets()
         s?.let {
-            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
         s = getNameFromDatabase()
         s?.let {
-            strings.put(it.toLowerCase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
         }
-        BiometricLoggerImpl.d("AndroidModel.names ${strings.values}")
-        return HashSet<String>(strings.values)
+
+        val set = HashSet<String>(strings.values)
+        val toRemove = HashSet<String>()
+        for (name1 in set) {
+            for (name2 in set) {
+                if (toRemove.contains(name2))
+                    continue
+                if (name1.length < name2.length && name2.startsWith(name1, ignoreCase = true))
+                    toRemove.add(name1)
+            }
+        }
+        set.removeAll(toRemove)
+        BiometricLoggerImpl.d("AndroidModel.names $set")
+        return set
     }
 
     private fun fixVendorName(string: String): String {
@@ -116,7 +128,7 @@ object DeviceModel {
             val inputStream =
                 AndroidContext.appContext.assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()
-            Network.fastCopy(inputStream, byteArrayOutputStream)
+            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
             inputStream.close()
             byteArrayOutputStream.close()
             val data = byteArrayOutputStream.toByteArray()
@@ -135,7 +147,7 @@ object DeviceModel {
         return if (info != null) {
             val fullName = getFullName(info.name)
             getName(
-                if (!TextUtils.isEmpty(info.manufacturer)) info.manufacturer else brand,
+                if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
                 fullName
             )
         } else {

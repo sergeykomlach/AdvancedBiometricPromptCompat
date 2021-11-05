@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.core.Core
 
@@ -30,11 +29,12 @@ import dev.skomlach.biometric.compat.engine.core.Core
  * Implement this interface to add a new api to Core, then pass an instance of this interface to
  * [Core.registerModule]
  */
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 interface BiometricModule {
     val isManagerAccessible: Boolean
     val isHardwarePresent: Boolean
     val isLockOut: Boolean
+    val isBiometricEnrollChanged: Boolean
     fun hasEnrolled(): Boolean
 
     /**

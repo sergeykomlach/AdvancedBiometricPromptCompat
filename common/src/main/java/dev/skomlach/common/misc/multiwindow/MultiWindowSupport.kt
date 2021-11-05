@@ -32,15 +32,15 @@ import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
 import androidx.window.WindowHelper
 import com.jakewharton.rxrelay2.PublishRelay
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.R
+import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appInstance
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.Consumer
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 class MultiWindowSupport(private val activity: Activity) {
     companion object {
@@ -49,7 +49,7 @@ class MultiWindowSupport(private val activity: Activity) {
         private val activityDestroyedRelay = PublishRelay.create<Activity>()
 
         init {
-            appContext
+            appInstance
                 .registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
                     override fun onActivityCreated(
                         activity: Activity,
@@ -65,6 +65,7 @@ class MultiWindowSupport(private val activity: Activity) {
                     override fun onActivityPaused(activity: Activity) {
                         activityResumedRelay.accept(activity)
                     }
+
                     override fun onActivityStopped(activity: Activity) {}
                     override fun onActivitySaveInstanceState(
                         activity: Activity,
@@ -77,6 +78,20 @@ class MultiWindowSupport(private val activity: Activity) {
                     }
                 })
         }
+
+        fun isTablet(): Boolean {
+            val ctx = AndroidContext.appContext
+            val resources = ctx.resources
+            val configuration = resources.configuration
+            val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                ctx.createConfigurationContext(configuration).resources
+            } else {
+                @Suppress("DEPRECATION")
+                resources.updateConfiguration(configuration, resources.displayMetrics)
+                resources
+            }
+            return res.getBoolean(R.bool.biometric_compat_is_tablet)
+        }
     }
 
     private lateinit var subscribeOnResume: Disposable
@@ -84,6 +99,7 @@ class MultiWindowSupport(private val activity: Activity) {
     private var isActive = false
     private var isMultiWindow = false
     private var isWindowOnScreenBottom = false
+
     private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
         if (ObjectsCompat.equals(activity1, activity)) {
             try {
@@ -106,22 +122,24 @@ class MultiWindowSupport(private val activity: Activity) {
             }
         }
     }
+
     init {
         subscribeOnResume = subscribeOnResume()
         subscribeOnDestroy = subscribeOnDestroy()
         start()
     }
 
-    fun start(){
-        if(!isActive) {
+    fun start() {
+        if (!isActive) {
             isActive = true
             activityResumedRelay.accept(activity)
         }
     }
-    fun finish(){
-        if(isActive) {
+
+    fun finish() {
+        if (isActive) {
             activityDestroyedRelay.accept(activity)
-            ExecutorHelper.INSTANCE.handler.post {  isActive = false }
+            ExecutorHelper.post { isActive = false }
         }
     }
 
@@ -156,16 +174,17 @@ class MultiWindowSupport(private val activity: Activity) {
         val navigationBarWidth = navigationBarWidth
         var h = realScreenSize.y - rect.height() - statusBarHeight - navigationBarHeight
         var w = realScreenSize.x - rect.width()
-        val isSmartphone = diagonalSize() < 7.0
+        val isSmartphone = !isTablet()
         if (isSmartphone && screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             h += navigationBarHeight
             w -= navigationBarWidth
         }
         currentConfiguration = activity.resources.configuration
         isMultiWindow = h != 0 || w != 0
-        val locationOnScreen  = IntArray(2)
+        val locationOnScreen = IntArray(2)
         decorView.getLocationOnScreen(locationOnScreen)
-        isWindowOnScreenBottom = isMultiWindow && (realScreenSize.y/2 < locationOnScreen[1] + (rect.width()/2))
+        isWindowOnScreenBottom =
+            isMultiWindow && (realScreenSize.y / 2 < locationOnScreen[1] + (rect.width() / 2))
 
         val sb = StringBuilder()
         sb.append(activity.javaClass.simpleName + " Activity screen:")
@@ -179,6 +198,7 @@ class MultiWindowSupport(private val activity: Activity) {
 
         LogCat.logError(sb.toString())
     }
+
     private fun log(msg: Any, sb: java.lang.StringBuilder) {
         sb.append(" [").append(msg).append("] ")
     }
@@ -229,7 +249,7 @@ class MultiWindowSupport(private val activity: Activity) {
             }
             val resources = activity.resources
             val orientation = screenOrientation
-            val isSmartphone = diagonalSize() < 7.0
+            val isSmartphone = !isTablet()
             val resourceId: Int = if (!isSmartphone) {
                 resources.getIdentifier(
                     if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height" else "navigation_bar_height_landscape",
@@ -254,7 +274,7 @@ class MultiWindowSupport(private val activity: Activity) {
             }
             val resources = activity.resources
             val orientation = screenOrientation
-            val isSmartphone = diagonalSize() < 7.0
+            val isSmartphone = !isTablet()
             val resourceId: Int = if (!isSmartphone) {
                 resources.getIdentifier(
                     if (orientation == Configuration.ORIENTATION_PORTRAIT) "navigation_bar_height_landscape" else "navigation_bar_height",
@@ -340,15 +360,5 @@ class MultiWindowSupport(private val activity: Activity) {
             return orientation
         }
 
-    private fun diagonalSize(): Double {
 
-        // Compute real screen size
-        val dm = activity.resources.displayMetrics
-        val realSize = realScreenSize
-        val screenWidth = realSize.x / dm.xdpi
-        val screenHeight = realSize.y / dm.ydpi
-        return sqrt(
-            screenWidth.toDouble().pow(2.0) + screenHeight.toDouble().pow(2.0)
-        )
-    }
 }

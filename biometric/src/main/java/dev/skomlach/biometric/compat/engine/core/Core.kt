@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.core
 
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -27,16 +26,16 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import java.util.*
 import kotlin.collections.set
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object Core {
     private val cancellationSignals =
         Collections.synchronizedMap(HashMap<BiometricModule, CancellationSignal>())
     private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
-    @JvmStatic
+
     fun cleanModules() {
         reprintModuleHashMap.clear()
     }
-    @JvmStatic
+
     fun registerModule(module: BiometricModule?) {
         if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
             return
@@ -45,7 +44,7 @@ object Core {
             reprintModuleHashMap[module.tag()] = module
         }
     }
-    @JvmStatic
+
     val isLockOut: Boolean
         get() {
             for (module in reprintModuleHashMap.values) {
@@ -55,7 +54,7 @@ object Core {
             }
             return false
         }
-    @JvmStatic
+
     val isHardwareDetected: Boolean
         get() {
             for (module in reprintModuleHashMap.values) {
@@ -63,7 +62,7 @@ object Core {
             }
             return false
         }
-    @JvmStatic
+
     fun hasEnrolled(): Boolean {
         for (module in reprintModuleHashMap.values) {
             if (module.hasEnrolled()) return true
@@ -85,7 +84,7 @@ object Core {
      *
      * @param listener The listener that will be notified of authentication events.
      */
-    @JvmStatic
+
     @JvmOverloads
     fun authenticate(
         listener: AuthenticationListener?,
@@ -95,7 +94,7 @@ object Core {
             authenticate(module, listener, restartPredicate)
         }
     }
-    @JvmStatic
+
     fun authenticate(
         module: BiometricModule,
         listener: AuthenticationListener?,
@@ -112,14 +111,14 @@ object Core {
         cancellationSignals[module] = cancellationSignal
         module.authenticate(cancellationSignal, listener, restartPredicate)
     }
-    @JvmStatic
+
     fun cancelAuthentication() {
         for (module in reprintModuleHashMap.values) {
             cancelAuthentication(module)
         }
     }
 
-    @JvmStatic
+
     fun cancelAuthentication(module: BiometricModule) {
         val signal = cancellationSignals[module]
         if (signal != null && !signal.isCanceled) {
@@ -137,7 +136,7 @@ object Core {
      *
      * @param listener The listener that will be notified of authentication events.
      */
-    @JvmStatic
+
     fun authenticateWithoutRestart(listener: AuthenticationListener?) {
         authenticate(listener, RestartPredicatesImpl.neverRestart())
     }

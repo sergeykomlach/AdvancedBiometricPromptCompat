@@ -26,12 +26,15 @@ import androidx.core.os.BuildCompat
 import dev.skomlach.common.logging.LogCat
 
 object Utils {
-    @JvmStatic
+
     val isAtLeastR: Boolean
         get() = (BuildCompat.isAtLeastR() //check only Preview
                 || Build.VERSION.SDK_INT >= 30) //check also release
 
-    @JvmStatic
+    val isAtLeastS: Boolean
+        get() = (BuildCompat.isAtLeastS() //check only Preview
+                || Build.VERSION.SDK_INT >= 31) //check also release
+
     fun startActivity(intent: Intent, context: Context): Boolean {
         try {
             if (intentCanBeResolved(intent, context)) {
@@ -52,7 +55,7 @@ object Utils {
         return pkgAppsList.size > 0
     }
 
-    @JvmStatic
+
     fun checkClass(className: String): Boolean {
         try {
             return Class.forName(className) != null

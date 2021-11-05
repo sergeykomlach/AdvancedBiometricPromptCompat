@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.annotation.RestrictTo
 import androidx.core.os.BuildCompat
 import dalvik.system.PathClassLoader
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -30,9 +29,10 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.lang.reflect.Modifier
 import java.util.*
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object ReflectionTools {
     private val cache = WeakHashMap<String, PathClassLoader>()
+
     @Throws(Exception::class)
     private fun getPathClassLoaderForPkg(pkg: String): PathClassLoader {
         var pathClassLoader = cache[pkg]
@@ -57,7 +57,7 @@ object ReflectionTools {
         return pathClassLoader
     }
 
-    @JvmStatic
+
     @Throws(ClassNotFoundException::class)
     fun getClassFromPkg(pkg: String, cls: String): Class<*> {
         return try {
@@ -115,7 +115,7 @@ object ReflectionTools {
                 try {
                     val isReturnInt =
                         Int::class.javaPrimitiveType?.name == m.returnType.name || Int::class.java.name == m.returnType.name
-                    if (Modifier.isPublic(m.modifiers) && isReturnInt && m.name.startsWith(startWith) ) {
+                    if (Modifier.isPublic(m.modifiers) && isReturnInt && m.name.startsWith(startWith)) {
                         d("Method: " + m.name)
                         if (m.parameterTypes.isEmpty()) try {
                             return if (Int::class.javaPrimitiveType?.name == m.returnType.name) {

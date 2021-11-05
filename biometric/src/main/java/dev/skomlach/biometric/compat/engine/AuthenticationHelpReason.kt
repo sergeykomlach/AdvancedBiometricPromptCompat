@@ -19,12 +19,11 @@
 
 package dev.skomlach.biometric.compat.engine
 
-import androidx.annotation.RestrictTo
 
 //
 // Image acquisition messages.
 //
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 enum class AuthenticationHelpReason(val id: Int) {
     /**
      * The image acquired was good.
@@ -73,7 +72,7 @@ enum class AuthenticationHelpReason(val id: Int) {
     BIOMETRICT_ACQUIRED_VENDOR_BASE(1000);
 
     companion object {
-        @JvmStatic
+
         fun getByCode(id: Int): AuthenticationHelpReason? {
             for (helpReason in values()) {
                 if (helpReason.id == id) return helpReason

@@ -20,20 +20,19 @@
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
 import android.os.IBinder
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.fingerprints.service.FingerprintManager
 import com.fingerprints.service.FingerprintManager.IdentifyCallback
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class FlymeFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_FLYME) {
     private var mFingerprintServiceFingerprintManager: FingerprintManager? = null
@@ -43,17 +42,39 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             val servicemanager = Class.forName("android.os.ServiceManager")
             val getService = servicemanager.getMethod("getService", String::class.java)
             val binder = getService.invoke(null, "fingerprints_service") as IBinder?
-            binder?.let{
+            binder?.let {
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 isManagerAccessible =
                     mFingerprintServiceFingerprintManager != null && mFingerprintServiceFingerprintManager?.isSurpport == true
             }
-        } catch (ignore: Throwable) {
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
         } finally {
             cancelFingerprintServiceFingerprintRequest()
         }
         listener?.initFinished(biometricMethod, this@FlymeFingerprintModule)
     }
+
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        mFingerprintServiceFingerprintManager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
+    override fun getIds(manager: Any): List<String> {
+        val ids = ArrayList<String>()
+        mFingerprintServiceFingerprintManager?.let {
+            it.ids?.let { array ->
+                for (a in array)
+                    ids.add("$a")
+            }
+        }
+        return ids
+    }
+
     override var isManagerAccessible = false
     override val isHardwarePresent: Boolean
         get() {
@@ -76,7 +97,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             try {
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 val fingerprintIds = mFingerprintServiceFingerprintManager?.ids
-                return  fingerprintIds?.isNotEmpty() == true
+                return fingerprintIds?.isNotEmpty() == true
             } catch (e: Throwable) {
                 e(e, name)
             } finally {
@@ -110,19 +131,22 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
 
                         private fun fail(reason: AuthenticationFailureReason) {
                             var failureReason: AuthenticationFailureReason? = reason
-                            if (restartPredicate?.invoke(failureReason) == true) {
-                                listener?.onFailure(failureReason, tag())
+                            if (restartCauseTimeout(failureReason)) {
                                 authenticate(cancellationSignal, listener, restartPredicate)
-                            } else {
-                                when (failureReason) {
-                                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                                        lockout()
-                                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+                            } else
+                                if (restartPredicate?.invoke(failureReason) == true) {
+                                    listener?.onFailure(failureReason, tag())
+                                    authenticate(cancellationSignal, listener, restartPredicate)
+                                } else {
+                                    when (failureReason) {
+                                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                                            lockout()
+                                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                                        }
                                     }
+                                    listener?.onFailure(failureReason, tag())
+                                    cancelFingerprintServiceFingerprintRequest()
                                 }
-                                listener?.onFailure(failureReason, tag())
-                                cancelFingerprintServiceFingerprintRequest()
-                            }
                         }
                     }, mFingerprintServiceFingerprintManager?.ids)
                 cancellationSignal?.setOnCancelListener { cancelFingerprintServiceFingerprintRequest() }
@@ -139,9 +163,9 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
     private fun cancelFingerprintServiceFingerprintRequest() {
         try {
 
-                mFingerprintServiceFingerprintManager?.abort()
-                mFingerprintServiceFingerprintManager?.release()
-                mFingerprintServiceFingerprintManager = null
+            mFingerprintServiceFingerprintManager?.abort()
+            mFingerprintServiceFingerprintManager?.release()
+            mFingerprintServiceFingerprintManager = null
 
         } catch (e: Throwable) {
             e(e, name)

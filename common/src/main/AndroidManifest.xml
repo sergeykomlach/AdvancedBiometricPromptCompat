@@ -17,8 +17,13 @@
   ~   limitations under the License.
   -->
 
-<manifest xmlns:tools="http://schemas.android.com/tools"
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.common">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <uses-sdk tools:overrideLibrary="androidx.security" />
     <application />
 </manifest>

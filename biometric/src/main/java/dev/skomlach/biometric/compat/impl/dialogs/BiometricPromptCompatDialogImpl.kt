@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -28,23 +29,20 @@ import android.os.Message
 import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
-import androidx.annotation.ColorRes
-import androidx.annotation.RestrictTo
 import androidx.core.content.ContextCompat
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.impl.AuthCallback
+import dev.skomlach.biometric.compat.impl.AuthResult
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.ExecutorHelper
-
+import dev.skomlach.common.misc.Utils.isAtLeastS
 import java.util.concurrent.atomic.AtomicBoolean
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class BiometricPromptCompatDialogImpl(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val authCallback: AuthCallback?,
@@ -59,12 +57,16 @@ class BiometricPromptCompatDialogImpl(
     private val inProgress = AtomicBoolean(false)
     val WHAT_RESTORE_NORMAL_STATE = 0
 
+    var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
+
     init {
         promptText = getDialogTitle()
         too_many_attempts =
-            compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_error_lockout)
+            compatBuilder.getContext()
+                .getString(androidx.biometric.R.string.fingerprint_error_lockout)
         not_recognized =
-            compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_not_recognized)
+            compatBuilder.getContext()
+                .getString(androidx.biometric.R.string.fingerprint_not_recognized)
         animateHandler = AnimateHandler(Looper.getMainLooper())
         dialog = BiometricPromptCompatDialog(compatBuilder, isInScreen)
         dialog.setOnDismissListener { dialogInterface: DialogInterface? ->
@@ -87,34 +89,34 @@ class BiometricPromptCompatDialogImpl(
             e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.")
             dialog.window?.let {
 
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        it,
-                        ContextCompat.getColor(compatBuilder.context, DialogMainColor.getColor(isNightMode)),
-                        ContextCompat.getColor(compatBuilder.context, android.R.color.darker_gray),
-                        compatBuilder.colorStatusBar
-                    )
+                StatusBarTools.setNavBarAndStatusBarColors(
+                    it,
+                    DialogMainColor.getColor( compatBuilder.getContext(),DarkLightThemes.isNightMode(compatBuilder.getContext())),
+                    DialogMainColor.getColor( compatBuilder.getContext(), !DarkLightThemes.isNightMode(compatBuilder.getContext())),
+                    compatBuilder.getStatusBarColor()
+                )
 
             }
 
-            if (compatBuilder.title == null) {
+            if (compatBuilder.getTitle() == null) {
                 dialog.title?.visibility = View.GONE
             } else {
-                dialog.title?.text = compatBuilder.title
+                dialog.title?.text = compatBuilder.getTitle()
             }
-            if (compatBuilder.subtitle == null) {
+            if (compatBuilder.getSubtitle() == null) {
                 dialog.subtitle?.visibility = View.GONE
             } else {
-                dialog.subtitle?.text = compatBuilder.subtitle
+                dialog.subtitle?.text = compatBuilder.getSubtitle()
             }
-            if (compatBuilder.description == null) {
+            if (compatBuilder.getDescription() == null) {
                 dialog.description?.visibility = View.GONE
             } else {
-                dialog.description?.text = compatBuilder.description
+                dialog.description?.text = compatBuilder.getDescription()
             }
-            if (compatBuilder.negativeButtonText == null) {
+            if (compatBuilder.getNegativeButtonText() == null) {
                 dialog.negativeButton?.visibility = View.INVISIBLE
             } else {
-                dialog.negativeButton?.text = compatBuilder.negativeButtonText
+                dialog.negativeButton?.text = compatBuilder.getNegativeButtonText()
                 dialog.negativeButton?.setOnClickListener { v: View? ->
                     dismissDialog()
                     authCallback?.cancelAuth()
@@ -123,21 +125,58 @@ class BiometricPromptCompatDialogImpl(
             dialog.status?.text = promptText
             originalColor = dialog.status?.textColors
 
-            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, false)
+            dialog.fingerprintIcon?.setState(
+                FingerprintIconView.State.ON,
+                false,
+                primaryBiometricType
+            )
 
             checkInScreenVisibility()
             attachWindowListeners()
             startAuth()
         }
     }
-    @ColorRes
-    private fun getDialogMainColor(): Int {
-        return if (isNightMode) {
-            android.R.color.black
-        } else {
-            R.color.material_grey_50
+
+    private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
+        private set
+        get() {
+            val list = mutableListOf<BiometricType>()
+            if (compatBuilder.getSecondaryAvailableTypes().isEmpty()) {
+                for (type in compatBuilder.getPrimaryAvailableTypes()) {
+                    val request = BiometricAuthRequest(
+                        compatBuilder.getBiometricAuthRequest().api,
+                        type,
+                        compatBuilder.getBiometricAuthRequest().confirmation
+                    )
+                    if (BiometricManagerCompat.isHardwareDetected(request) &&
+                        BiometricManagerCompat.hasEnrolled(request) &&
+                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                            request
+                        )
+                    )
+                        list.add(type)
+                }
+            } else {
+                for (type in compatBuilder.getSecondaryAvailableTypes()) {
+                    val request = BiometricAuthRequest(
+                        compatBuilder.getBiometricAuthRequest().api,
+                        type,
+                        compatBuilder.getBiometricAuthRequest().confirmation
+                    )
+                    if (BiometricManagerCompat.isHardwareDetected(request) &&
+                        BiometricManagerCompat.hasEnrolled(request) &&
+                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                            request
+                        )
+                    )
+                        list.add(type)
+                }
+            }
+            list.removeAll(authFinishedCopy.keys)
+            list.sortWith { o1, o2 -> o1.ordinal.compareTo(o2.ordinal) }
+            e("BiometricPromptGenericImpl.primaryBiometricType - $list")
+            return if (list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]
         }
-    }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
         checkInScreenVisibility()
@@ -169,14 +208,21 @@ class BiometricPromptCompatDialogImpl(
         }
     private var originalColor: ColorStateList? = null
     private fun getDialogTitle(): String {
+        //Attempt#1
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
-                if ((field.name.contains("biometric") || field.name.contains("fingerprint"))&& field.name.contains("dialog")) {
+                if ((field.name.contains("biometric") || field.name.contains("fingerprint")) && field.name.contains(
+                        "dialog"
+                    )
+                ) {
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true
-                        compatBuilder.context.getString(field[null] as Int)
+                        val s = compatBuilder.getContext().getString(field[null] as Int)
+                        if (s.isEmpty())
+                            throw RuntimeException("String is empty")
+                        s
                     } finally {
                         if (!isAccessible) field.isAccessible = false
                     }
@@ -185,11 +231,31 @@ class BiometricPromptCompatDialogImpl(
         } catch (e: Throwable) {
             e(e)
         }
-        return compatBuilder.context.getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
-    }
+        //Attempt#2
+        try {
+            if (isAtLeastS) {
+                var biometricManager : android.hardware.biometrics.BiometricManager? = compatBuilder.getContext().getSystemService(
+                    android.hardware.biometrics.BiometricManager::class.java
+                )
 
-    val isNightMode: Boolean
-        get() = dialog.isNightMode
+                if(biometricManager == null){
+                    biometricManager = compatBuilder.getContext().getSystemService(
+                        Context.BIOMETRIC_SERVICE
+                    ) as android.hardware.biometrics.BiometricManager?
+                }
+                val strings =
+                    biometricManager?.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                val prompt = strings?.promptMessage
+                if (!prompt.isNullOrEmpty())
+                    return prompt.toString()
+            }
+        } catch (e: Throwable) {
+            e(e)
+        }
+        //Give up
+        return compatBuilder.getContext()
+            .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
+    }
 
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if (isMultiWindowHack) {
@@ -223,11 +289,12 @@ class BiometricPromptCompatDialogImpl(
     //in case devices is InScreenScanner and app switched to the SplitScreen mode and app placed on the top of screen
     //we need to show Fingerprint icon
     private val isInScreenUIHackNeeded: Boolean
-        get() = compatBuilder.multiWindowSupport.isInMultiWindow && !compatBuilder.multiWindowSupport.isWindowOnScreenBottom()
+        get() = compatBuilder.getMultiWindowSupport().isInMultiWindow && !compatBuilder.getMultiWindowSupport()
+            .isWindowOnScreenBottom()
 
     //in case app switched to the SplitScreen mode we need to skip onPause on lost focus cases
     private val isMultiWindowHack: Boolean
-        get() = if (compatBuilder.multiWindowSupport.isInMultiWindow && inProgress.get() && dialog.isShowing) {
+        get() = if (compatBuilder.getMultiWindowSupport().isInMultiWindow && inProgress.get() && dialog.isShowing) {
             e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - perform hack")
             authCallback?.stopAuth()
             authCallback?.startAuth()
@@ -239,10 +306,10 @@ class BiometricPromptCompatDialogImpl(
 
     private fun checkInScreenVisibility() {
         if (isInScreen) {
-            if (isInScreenUIHackNeeded || compatBuilder.multiWindowSupport.screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    dialog.makeInvisible()
+            if (isInScreenUIHackNeeded || compatBuilder.getMultiWindowSupport().screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+                dialog.makeInvisible()
             } else {
-                    dialog.makeVisible()
+                dialog.makeVisible()
             }
         }
     }
@@ -266,8 +333,8 @@ class BiometricPromptCompatDialogImpl(
         dialog.show()
     }
 
-    val container: View?
-        get() = dialog.container
+    val authPreview: View?
+        get() = dialog.authPreview
 
     fun dismissDialog() {
         if (dialog.isShowing) {
@@ -278,15 +345,15 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onHelp(msg: CharSequence?) {
-        ExecutorHelper.INSTANCE.handler.post {
+        ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
-            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR)
+            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
 
             dialog.status?.text = msg
             dialog.status?.setTextColor(
                 ContextCompat.getColor(
-                    compatBuilder.context, R.color.material_red_500
+                    compatBuilder.getContext(), R.color.material_red_500
                 )
             )
             animateHandler.sendEmptyMessageDelayed(
@@ -297,15 +364,15 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onFailure(isLockout: Boolean) {
-        ExecutorHelper.INSTANCE.handler.post {
+        ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
-            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR)
+            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
 
             dialog.status?.text = if (isLockout) too_many_attempts else not_recognized
             dialog.status?.setTextColor(
                 ContextCompat.getColor(
-                    compatBuilder.context, R.color.material_red_500
+                    compatBuilder.getContext(), R.color.material_red_500
                 )
             )
             animateHandler.sendEmptyMessageDelayed(
@@ -319,7 +386,10 @@ class BiometricPromptCompatDialogImpl(
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 WHAT_RESTORE_NORMAL_STATE -> {
-                    dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON)
+                    dialog.fingerprintIcon?.setState(
+                        FingerprintIconView.State.ON,
+                        primaryBiometricType
+                    )
                     dialog.status?.text = promptText
                     dialog.status?.setTextColor(originalColor)
                 }

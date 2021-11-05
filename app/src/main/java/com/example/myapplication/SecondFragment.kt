@@ -20,8 +20,6 @@
 package com.example.myapplication
 
 import android.annotation.SuppressLint
-import android.content.ClipboardManager
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -30,10 +28,11 @@ import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentSecondBinding
+import com.example.myapplication.devtools.LogCat
+import com.example.myapplication.utils.MailTo
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
@@ -71,18 +70,20 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
         })
         logs = binding.logs
         logs.setOnLongClickListener {
-            val clipboardManager =
-                it.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            clipboardManager.text = logs.text
-            Toast.makeText(it.context, "Log copied to clipboard", Toast.LENGTH_LONG).show()
+            MailTo.startMailClient(
+                requireActivity(),
+                "s.komlach@gmail.com",
+                "Advanced BiometricPromptCompat Logs",
+                logs.text.toString()
+            )
             true
         }
         binding.buttonSecond.setOnClickListener {
             NavHostFragment.findNavController(this@SecondFragment)
                 .navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
-        LogCat.instance.setFilter("Biometric")
-        LogCat.instance.setLog2ViewCallback(this@SecondFragment)
+        LogCat.setFilter("Biometric")
+        LogCat.setLog2ViewCallback(this@SecondFragment)
     }
 
     override fun onDestroyView() {

@@ -20,58 +20,66 @@
 package dev.skomlach.biometric.compat.engine.internal.face.vivo
 
 import android.annotation.SuppressLint
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.vivo.framework.facedetect.FaceDetectManager
 import com.vivo.framework.facedetect.FaceDetectManager.FaceAuthenticationCallback
 import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
-import dev.skomlach.biometric.compat.utils.device.VendorCheck
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.util.*
 
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
 class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_VIVO) {
     private var manager: FaceDetectManager? = null
 
     init {
-        if(VendorCheck.isVivo) {
-                manager = try {
-                    FaceDetectManager.getInstance()
-                } catch (ignore: Throwable) {
-                    null
-                }
-
+        manager = try {
+            FaceDetectManager.getInstance()
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+            null
         }
+
+
         listener?.initFinished(biometricMethod, this@VivoFaceUnlockModule)
     }
+
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    return manager?.isFaceUnlockEnable == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                return manager?.isFaceUnlockEnable == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
             return false
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                return manager?.isFaceUnlockEnable == true && manager?.hasFaceID() == true
-            } catch (e: Throwable) {
-                e(e, name)
-            }
+        try {
+            return manager?.isFaceUnlockEnable == true && manager?.hasFaceID() == true
+        } catch (e: Throwable) {
+            e(e, name)
+        }
 
         return false
     }
@@ -83,7 +91,7 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         restartPredicate: RestartPredicate?
     ) {
         d("$name.authenticate - $biometricMethod")
-        manager?.let{
+        manager?.let {
             try {
                 val callback: FaceAuthenticationCallback =
                     AuthCallback(restartPredicate, cancellationSignal, listener)
@@ -124,18 +132,21 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 FaceDetectManager.FACE_DETECT_FAILED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
             }
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
+            if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
                 }
-                listener?.onFailure(failureReason, tag())
-            }
         }
     }
 

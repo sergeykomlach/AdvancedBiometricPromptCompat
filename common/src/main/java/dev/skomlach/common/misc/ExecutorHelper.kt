@@ -19,31 +19,53 @@
 
 package dev.skomlach.common.misc
 
-import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
+import kotlinx.coroutines.*
+import java.util.*
 import java.util.concurrent.Executor
-import java.util.concurrent.Executors
 
-class ExecutorHelper private constructor() {
-    companion object {
-        @JvmField var INSTANCE = ExecutorHelper()
-    }
+object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
-    val executor: Executor = HandlerExecutor(handler)
-
+    val executor: Executor = HandlerExecutor()
+    private val tasksInMain = Collections.synchronizedMap(
+        mutableMapOf<Runnable, Job>()
+    )
 
     fun startOnBackground(task: Runnable) {
-        Executors.newCachedThreadPool().execute(task)
+        GlobalScope.launch(Dispatchers.IO) {
+            task.run()
+        }
+    }
+
+    fun postDelayed(task: Runnable, delay: Long) {
+        val job = GlobalScope.launch(Dispatchers.Main) {
+            delay(delay)
+            task.run()
+            tasksInMain.remove(task)
+        }
+        tasksInMain[task] = job
+    }
+
+    fun post(task: Runnable) {
+        val job = GlobalScope.launch(Dispatchers.Main) {
+            task.run()
+            tasksInMain.remove(task)
+        }
+        tasksInMain[task] = job
+    }
+
+    fun removeCallbacks(task: Runnable) {
+        tasksInMain[task]?.cancel()
     }
 
     /**
      * An [Executor] which posts to a [Handler].
      */
-    class HandlerExecutor(private val mHandler: Handler) : Executor {
+    class HandlerExecutor() : Executor {
         override fun execute(runnable: Runnable) {
-            mHandler.post(runnable)
+            handler.post(runnable)
         }
     }
 }

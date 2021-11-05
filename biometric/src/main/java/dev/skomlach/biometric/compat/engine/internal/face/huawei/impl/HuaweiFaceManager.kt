@@ -25,6 +25,7 @@ abstract class HuaweiFaceManager {
     abstract val version: Int
     abstract val isHardwareDetected: Boolean
     abstract fun hasEnrolledTemplates(): Boolean
+    abstract fun getEnrolledTemplates(): IntArray?
     abstract class AuthenticatorCallback {
         open fun onAuthenticationError(errorCode: Int) {}
         open fun onAuthenticationStatus(status: Int) {}

@@ -20,19 +20,14 @@
 package dev.skomlach.biometric.compat.engine.internal.face.soter
 
 import android.annotation.SuppressLint
-import androidx.annotation.RestrictTo
 import androidx.core.os.CancellationSignal
 import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
@@ -40,7 +35,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private val listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_SOTERAPI) {
     private var manager: BiometricManagerCompat? = null
@@ -48,32 +43,40 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
     init {
         manager = try {
             BiometricManagerCompat.from(context, ConstantsSoter.FACEID_AUTH)
-        } catch (ignore: Throwable) {
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
             null
         }
         listener?.initFinished(biometricMethod, this@SoterFaceUnlockModule)
     }
+
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return emptySet()
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    return manager?.isHardwareDetected == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                }
+            try {
+                return manager?.isHardwareDetected == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
             return false
         }
 
     override fun hasEnrolled(): Boolean {
 
-            try {
-                return manager?.isHardwareDetected == true && manager?.hasEnrolledBiometric() == true
-            } catch (e: Throwable) {
-                e(e, name)
-            }
+        try {
+            return manager?.isHardwareDetected == true && manager?.hasEnrolledBiometric() == true
+        } catch (e: Throwable) {
+            e(e, name)
+        }
 
         return false
     }
@@ -101,7 +104,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                     0,
                     signalObject,
                     callback,
-                    ExecutorHelper.INSTANCE.handler
+                    ExecutorHelper.handler
                 )
                 return
             } catch (e: Throwable) {
@@ -128,12 +131,14 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.INSTANCE.setBiometricSensorPermanentlyLocked(
+                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
                 BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
@@ -148,18 +153,21 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
                     return
             }
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
+            if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
-            } else {
-                when (failureReason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
+            } else
+                if (restartPredicate?.invoke(failureReason) == true) {
+                    listener?.onFailure(failureReason, tag())
+                    authenticate(cancellationSignal, listener, restartPredicate)
+                } else {
+                    when (failureReason) {
+                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
+                            lockout()
+                            failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
                     }
+                    listener?.onFailure(failureReason, tag())
                 }
-                listener?.onFailure(failureReason, tag())
-            }
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {

@@ -27,12 +27,11 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.RemoteException
 import android.view.View
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.lang.reflect.InvocationTargetException
 
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
     private val faceLockInterface: FaceLockInterface
     private val context: Context? = null

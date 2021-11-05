@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils
 import android.database.Cursor
 import android.net.Uri
 import android.util.Base64
-import androidx.annotation.RestrictTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -32,7 +31,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 //Dev tool
-@RestrictTo(RestrictTo.Scope.LIBRARY)
+
 object DeviceSettings {
     private val pattern = Pattern.compile("\\[(.+)\\]: \\[(.+)\\]")
     fun printAll() {
@@ -56,41 +55,51 @@ object DeviceSettings {
                 if (mCur != null) {
                     mCur.moveToFirst()
                     while (!mCur.isAfterLast) {
-                        val nameIndex = mCur
-                            .getColumnIndexOrThrow("name")
-                        val valueIndex = mCur
-                            .getColumnIndexOrThrow("values")
-                        if (!mCur.isNull(nameIndex)) {
-                            val type = mCur.getType(valueIndex)
-                            val name = mCur.getString(nameIndex)
-                            when (type) {
-                                Cursor.FIELD_TYPE_BLOB -> d(
-                                    "SystemSettings: $sub - $name:" + Base64.encodeToString(
-                                        mCur.getBlob(valueIndex),
-                                        Base64.DEFAULT
+                        try {
+                            val nameIndex = mCur
+                                .getColumnIndexOrThrow("name")
+                            if (!mCur.isNull(nameIndex)) {
+                                val valueIndex = try {
+                                    mCur
+                                        .getColumnIndexOrThrow("values")
+                                } catch (ignore: Throwable) {
+                                    mCur
+                                        .getColumnIndexOrThrow("value")
+                                }
+                                val type = mCur.getType(valueIndex)
+                                val name = mCur.getString(nameIndex)
+                                when (type) {
+                                    Cursor.FIELD_TYPE_BLOB -> d(
+                                        "SystemSettings: $sub - $name:" + Base64.encodeToString(
+                                            mCur.getBlob(valueIndex),
+                                            Base64.DEFAULT
+                                        )
                                     )
-                                )
-                                Cursor.FIELD_TYPE_FLOAT -> d(
-                                    "SystemSettings: $sub - $name:" + mCur.getFloat(
-                                        valueIndex
+                                    Cursor.FIELD_TYPE_FLOAT -> d(
+                                        "SystemSettings: $sub - $name:" + mCur.getFloat(
+                                            valueIndex
+                                        )
                                     )
-                                )
-                                Cursor.FIELD_TYPE_INTEGER -> d(
-                                    "SystemSettings: $sub - $name:" + mCur.getInt(
-                                        valueIndex
+                                    Cursor.FIELD_TYPE_INTEGER -> d(
+                                        "SystemSettings: $sub - $name:" + mCur.getInt(
+                                            valueIndex
+                                        )
                                     )
-                                )
-                                Cursor.FIELD_TYPE_NULL -> d("SystemSettings: $sub - $name:NULL")
-                                Cursor.FIELD_TYPE_STRING -> d(
-                                    "SystemSettings: $sub - $name:" + mCur.getString(
-                                        valueIndex
+                                    Cursor.FIELD_TYPE_NULL -> d("SystemSettings: $sub - $name:NULL")
+                                    Cursor.FIELD_TYPE_STRING -> d(
+                                        "SystemSettings: $sub - $name:" + mCur.getString(
+                                            valueIndex
+                                        )
                                     )
-                                )
-                                else -> d("SystemSettings: $sub - $name: unknown type - $type")
+                                    else -> d("SystemSettings: $sub - $name: unknown type - $type")
+                                }
                             }
+                        } catch (e: Throwable) {
+                            e(e)
                         }
                         mCur.moveToNext()
                     }
+
                     mCur.close()
                 }
             }
@@ -100,13 +109,13 @@ object DeviceSettings {
     }
 
     private fun printProperties() {
-        var line: String
+        var line: String? = null
         var m: Matcher
         try {
             val p = Runtime.getRuntime().exec("getprop")
             val input = BufferedReader(InputStreamReader(p.inputStream))
-            while (input.readLine().also { line = it } != null) {
-                m = pattern.matcher(line)
+            while (input.readLine()?.also { line = it } != null) {
+                m = pattern.matcher(line!!)
                 if (m.find()) {
                     val result = m.toMatchResult()
                     val key = result.group(1)

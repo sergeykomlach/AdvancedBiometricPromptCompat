@@ -28,7 +28,6 @@ import android.os.*
 import android.os.IBinder.DeathRecipient
 import android.provider.Settings
 import android.view.Surface
-import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.*
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -125,8 +124,8 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
 
         @Volatile
         private var INSTANCE: IMiuiFaceManager? = null
-        private var SERVICE_DESCRIPTOR: String? = null
-        private var SERVICE_NAME: String? = null
+        private var SERVICE_DESCRIPTOR: String
+        private var SERVICE_NAME: String
         fun getInstance(con: Context): IMiuiFaceManager? {
             if (INSTANCE == null) {
                 synchronized(MiuiFaceManagerImpl::class.java) {
@@ -164,7 +163,7 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
             flags: Int
         ): Boolean {
             var i = code
-            val TAG = TAG
+
             val stringBuilder = StringBuilder()
             stringBuilder.append("mServiceReceiver callback: ")
             stringBuilder.append(i)
@@ -1270,7 +1269,7 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
 
         override fun handleMessage(msg: Message) {
             if (DEBUG) {
-                val TAG = TAG
+
                 val stringBuilder = StringBuilder()
                 stringBuilder.append(" handleMessage  callback what:")
                 stringBuilder.append(msg.what)

@@ -19,11 +19,11 @@
 
 package dev.skomlach.common.cryptostorage
 
-import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import java.util.*
 
-class EncryptedPreferencesProvider(private val application: Application) :
+class EncryptedPreferencesProvider(private val application: Context) :
     CryptoPreferencesProvider {
     override fun getCryptoPreferences(name: String): SharedPreferences {
         var preferences = cache[name]
