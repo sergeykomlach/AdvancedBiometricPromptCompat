@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.utils.statusbar
 
 import android.graphics.Color
 import androidx.core.graphics.ColorUtils
-import kotlin.math.roundToInt
 
 /**
  * Common color utilities.
@@ -51,71 +50,6 @@ object ColorUtil {
     }
 
     /**
-     * Make an even blend between two colors.
-     *
-     * @param color1 First color to blend.
-     * @param color2 Second color to blend.
-     * @return Blended color.
-     */
-    fun blend(color1: Int, color2: Int): Int {
-        return blend(color1, color2, 0.5)
-    }
-
-    /**
-     * Make a color darker.
-     *
-     * @param color    Color to make darker.
-     * @param fraction Darkness fraction.
-     * @return Darker color.
-     */
-    fun darker(color: Int, fraction: Double): Int {
-        var red = (Color.red(color) * (1.0 - fraction)).roundToInt()
-        var green = (Color.green(color) * (1.0 - fraction)).roundToInt()
-        var blue = (Color.blue(color) * (1.0 - fraction)).roundToInt()
-        if (red < 0) red = 0 else if (red > 255) red = 255
-        if (green < 0) green = 0 else if (green > 255) green = 255
-        if (blue < 0) blue = 0 else if (blue > 255) blue = 255
-        val alpha = Color.alpha(color)
-        return Color.argb(alpha, red, green, blue)
-    }
-
-    /**
-     * Make a color lighter.
-     *
-     * @param color    Color to make lighter.
-     * @param fraction Darkness fraction.
-     * @return Lighter color.
-     */
-    fun lighter(color: Int, fraction: Double): Int {
-        var red = (Color.red(color) * (1.0 + fraction)).roundToInt()
-        var green = (Color.green(color) * (1.0 + fraction)).roundToInt()
-        var blue = (Color.blue(color) * (1.0 + fraction)).roundToInt()
-        if (red < 0) red = 0 else if (red > 255) red = 255
-        if (green < 0) green = 0 else if (green > 255) green = 255
-        if (blue < 0) blue = 0 else if (blue > 255) blue = 255
-        val alpha = Color.alpha(color)
-        return Color.argb(alpha, red, green, blue)
-    }
-
-    /**
-     * Return the hex name of a specified color.
-     *
-     * @param color Color to get hex name of.
-     * @return Hex name of color: "rrggbb".
-     */
-    fun getHexName(color: Int): String {
-        val r = Color.red(color)
-        val g = Color.green(color)
-        val b = Color.blue(color)
-        val rHex = r.toString(16)
-        val gHex = g.toString(16)
-        val bHex = b.toString(16)
-        return (if (rHex.length == 2) "" + rHex else "0$rHex") +
-                (if (gHex.length == 2) "" + gHex else "0$gHex") +
-                if (bHex.length == 2) "" + bHex else "0$bHex"
-    }
-
-    /**
      * Return the "distance" between two colors. The rgb entries are taken
      * to be coordinates in a 3D space [0.0-1.0], and this method returnes
      * the distance between the coordinates for the first and second color.
@@ -132,20 +66,6 @@ object ColorUtil {
         val b = g2 - g1
         val c = b2 - b1
         return Math.sqrt(a * a + b * b + c * c)
-    }
-
-    /**
-     * Return the "distance" between two colors.
-     *
-     * @param color1 First color [r,g,b].
-     * @param color2 Second color [r,g,b].
-     * @return Distance bwetween colors.
-     */
-    fun colorDistance(color1: DoubleArray, color2: DoubleArray): Double {
-        return colorDistance(
-            color1[0], color1[1], color1[2],
-            color2[0], color2[1], color2[2]
-        )
     }
 
     /**
@@ -176,21 +96,6 @@ object ColorUtil {
      * @return True if this is a "dark" color, false otherwise.
      */
     fun isDark(color: Int): Boolean {
-        val tmpHsl = FloatArray(3)
-        ColorUtils.colorToHSL(color, tmpHsl)
-        return tmpHsl[2] < 0.45f
-    }
-
-    fun trueDarkColor(c: Int): Boolean {
-        var color = c
-        val ratio = 0.9 //keep X of origin color
-        var isDark = isDark(blend(color, Color.GRAY))
-        color = if (isDark) {
-            blend(color, Color.WHITE, ratio)
-        } else {
-            blend(color, Color.BLACK, ratio)
-        }
-        isDark = isDark(color)
-        return isDark
+        return ColorUtils.calculateLuminance(color) < 0.5;
     }
 }

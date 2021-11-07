@@ -76,7 +76,7 @@ object StatusBarTools {
         try {
             if (TURNOFF_TINT) return
             if (translucentNavBar) color = Color.TRANSPARENT
-            val isDark = ColorUtil.trueDarkColor(color)
+            val isDark = ColorUtil.isDark(color)
 
             //emulate navbar color via translucent and custom views
             //On Android6+ and some OEM device we can enable DarkIcons
@@ -111,7 +111,7 @@ object StatusBarTools {
         try {
             if (TURNOFF_TINT) return
             if (translucentStatusBar) color = Color.TRANSPARENT
-            val isDark = ColorUtil.trueDarkColor(color)
+            val isDark = ColorUtil.isDark(color)
 
             //emulate statusbar color via translucent and custom views
             //On Android6+ and some OEM device we can enable DarkIcons
