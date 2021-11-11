@@ -269,7 +269,7 @@ class WindowForegroundBlurring(
         try {
             var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
             b = getResizedBitmap(getResizedBitmap(b, b.width / 2, b.height / 2), 1, 1)
-            val isDark = ColorUtil.trueDarkColor(b.getPixel(0, 0))
+            val isDark = ColorUtil.isDark(b.getPixel(0, 0))
             defaultColor =
                 DialogMainColor.getColor(context, isDark)
             BiometricLoggerImpl.d(

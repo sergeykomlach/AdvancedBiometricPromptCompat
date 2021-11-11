@@ -20,9 +20,12 @@
 package dev.skomlach.biometric.compat.engine.core
 
 import androidx.core.os.CancellationSignal
+import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
+import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.util.*
 import kotlin.collections.set
 
@@ -32,40 +35,63 @@ object Core {
         Collections.synchronizedMap(HashMap<BiometricModule, CancellationSignal>())
     private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
 
+    @Synchronized
     fun cleanModules() {
-        reprintModuleHashMap.clear()
+        try {
+            reprintModuleHashMap.clear()
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
     }
 
+    @Synchronized
     fun registerModule(module: BiometricModule?) {
-        if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
-            return
-        }
-        if (module.isHardwarePresent) {
-            reprintModuleHashMap[module.tag()] = module
+        try {
+            if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
+                return
+            }
+            if (module.isHardwarePresent) {
+                reprintModuleHashMap[module.tag()] = module
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
     }
-
     val isLockOut: Boolean
+        @Synchronized
         get() {
-            for (module in reprintModuleHashMap.values) {
-                if (module.isLockOut) {
-                    return true
+            try {
+                for (module in reprintModuleHashMap.values) {
+                    if (module.isLockOut) {
+                        return true
+                    }
                 }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
             return false
         }
-
     val isHardwareDetected: Boolean
+        @Synchronized
         get() {
-            for (module in reprintModuleHashMap.values) {
-                if (module.isHardwarePresent) return true
+            try {
+                for (module in reprintModuleHashMap.values) {
+                    if (module.isHardwarePresent) return true
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
             return false
         }
 
+    @Synchronized
     fun hasEnrolled(): Boolean {
-        for (module in reprintModuleHashMap.values) {
-            if (module.hasEnrolled()) return true
+        try {
+            for (module in reprintModuleHashMap.values) {
+                if (module.hasEnrolled()) return true
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
         return false
     }
@@ -84,47 +110,65 @@ object Core {
      *
      * @param listener The listener that will be notified of authentication events.
      */
-
+    @Synchronized
     @JvmOverloads
     fun authenticate(
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate()
     ) {
-        for (module in reprintModuleHashMap.values) {
-            authenticate(module, listener, restartPredicate)
+        var m: BiometricModule? = null
+        try {
+            for (module in reprintModuleHashMap.values) {
+                m = module
+                authenticate(module, listener, restartPredicate)
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+            listener?.onFailure(
+                AuthenticationFailureReason.INTERNAL_ERROR,
+                m?.tag() ?: DummyBiometricModule(null).tag()
+            )
         }
     }
 
+    @Synchronized
     fun authenticate(
         module: BiometricModule,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        if (!module.isHardwarePresent || !module.hasEnrolled() || module.isLockOut) throw RuntimeException(
-            "Module " + module.javaClass.simpleName + " not ready"
-        )
-        var cancellationSignal = cancellationSignals[module]
-        if (cancellationSignal != null && !cancellationSignal.isCanceled) cancelAuthentication(
-            module
-        )
-        cancellationSignal = CancellationSignal()
-        cancellationSignals[module] = cancellationSignal
-        module.authenticate(cancellationSignal, listener, restartPredicate)
+        try {
+            if (!module.isHardwarePresent || !module.hasEnrolled() || module.isLockOut) throw RuntimeException(
+                "Module " + module.javaClass.simpleName + " not ready"
+            )
+            cancelAuthentication(module)
+            val cancellationSignal = CancellationSignal()
+            cancellationSignals[module] = cancellationSignal
+            module.authenticate(cancellationSignal, listener, restartPredicate)
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+            listener?.onFailure(AuthenticationFailureReason.INTERNAL_ERROR, module.tag())
+        }
     }
 
+    @Synchronized
     fun cancelAuthentication() {
         for (module in reprintModuleHashMap.values) {
             cancelAuthentication(module)
         }
     }
 
-
+    @Synchronized
     fun cancelAuthentication(module: BiometricModule) {
-        val signal = cancellationSignals[module]
-        if (signal != null && !signal.isCanceled) {
-            signal.cancel()
+        try {
+            val signal = cancellationSignals[module]
+            if (signal != null && !signal.isCanceled) {
+                signal.cancel()
+            }
+            cancellationSignals.remove(module)
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
-        cancellationSignals.remove(module)
     }
 
     /**
@@ -136,7 +180,7 @@ object Core {
      *
      * @param listener The listener that will be notified of authentication events.
      */
-
+    @Synchronized
     fun authenticateWithoutRestart(listener: AuthenticationListener?) {
         authenticate(listener, RestartPredicatesImpl.neverRestart())
     }
