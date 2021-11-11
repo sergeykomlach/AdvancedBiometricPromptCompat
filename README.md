@@ -225,7 +225,85 @@ and cancel active biometric auth otherwise
 AuthenticationFailureReason*
 
 `fun onUIOpened()/fun onUIClosed` - Biometric UI on display or closed
+## Minamal code exanple:
 
+```kotlin
+private fun startBioAuth() {
+   val iris = BiometricAuthRequest(
+       BiometricApi.AUTO,
+       BiometricType.BIOMETRIC_IRIS,
+       BiometricConfirmation.ANY
+   )
+   val faceId = BiometricAuthRequest(
+       BiometricApi.AUTO,
+       BiometricType.BIOMETRIC_FACE,
+       BiometricConfirmation.ANY
+   )
+   val fingerprint = BiometricAuthRequest(
+       BiometricApi.AUTO,
+       BiometricType.BIOMETRIC_FINGERPRINT,
+       BiometricConfirmation.ANY
+   )
+   var title = ""
+   val currentBiometric =
+       if (BiometricManagerCompat.isHardwareDetected(iris)
+           && BiometricManagerCompat.hasEnrolled(iris)
+       ) {
+           title =
+               "Your eyes are not only beautiful, but you can use them to unlock our app"
+           iris
+       } else
+           if (BiometricManagerCompat.isHardwareDetected(faceId)
+               && BiometricManagerCompat.hasEnrolled(faceId)
+           ) {
+               title = "Use your smiling face to enter the app"
+               faceId
+           } else if (BiometricManagerCompat.isHardwareDetected(fingerprint)
+               && BiometricManagerCompat.hasEnrolled(fingerprint)
+           ) {
+               title = "Your unique fingerprints can unlock this app"
+               fingerprint
+           } else {
+               null
+           }
+
+   currentBiometric?.let { biometricAuthRequest ->
+       if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest)
+           || BiometricManagerCompat.isLockOut(biometricAuthRequest)
+       ) {
+           showToast("Biometric not available right now. Try again later")
+           return
+       }
+
+       val prompt = BiometricPromptCompat.Builder(this).apply {
+           this.setTitle(title)
+           this.setNegativeButton("Cancel", null)
+       }.build()
+
+       prompt.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
+           override fun onSucceeded(confirmed: Set<BiometricType>) {
+               showToast("User authorized :)")
+           }
+
+           override fun onCanceled() {
+               showToast("Auth canceled :|")
+           }
+
+           override fun onFailed(reason: AuthenticationFailureReason?) {
+               showToast("Fatal error happens :(\nReason $reason")
+           }
+
+           override fun onUIOpened() {}
+
+           override fun onUIClosed() {}
+       })
+   } ?: run {
+       showToast("No available biometric on this device")
+   }
+
+}
+
+```
 ## False-positive and/or False-negative detection
 
 On **pure** API28 implementation (built-in BiometricPrompt API) is no way to get '
