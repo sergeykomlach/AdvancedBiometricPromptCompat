@@ -225,7 +225,7 @@ and cancel active biometric auth otherwise
 AuthenticationFailureReason*
 
 `fun onUIOpened()/fun onUIClosed` - Biometric UI on display or closed
-## Minamal code exanple:
+## Minimal code exanple:
 
 ```kotlin
 private fun startBioAuth() {
