@@ -197,9 +197,6 @@ Simplest builder:
  val biometricPromptCompat = builder.build()
  ```   
 
-***Please note:***  
-Methods `builder.setTitle()` and `builder.setNegativeButton()` are mandatory.
-
 **BiometricPromptCompat:**
 
 `fun authenticate(BiometricPromptCompat.AuthenticationCallback)` - start biometric
@@ -225,6 +222,24 @@ and cancel active biometric auth otherwise
 AuthenticationFailureReason*
 
 `fun onUIOpened()/fun onUIClosed` - Biometric UI on display or closed
+
+
+
+**DeviceInfoManager:**
+
+Helper tool to check some biometric-related stuff in device specification
+
+`fun hasFingerprint(DeviceInfo): Boolean` 
+
+`fun hasUnderDisplayFingerprint(DeviceInfo): Boolean` 
+
+`fun hasIrisScanner(DeviceInfo): Boolean`
+
+`fun hasFaceID(DeviceInfo): Boolean`
+
+DeviceInfo instance can be retrieved via `BiometricPromptCompat.deviceInfo`
+
+
 ## Minimal code example:
 
 ```kotlin
