@@ -215,6 +215,13 @@ object BiometricManagerCompat {
         ) {
             return true
         }
+        //Windows able to open Windows Hello screen
+        if (BiometricPromptCompat.deviceInfo?.model == "Windows" && Utils.startActivity(
+                Intent(Settings.ACTION_BIOMETRIC_ENROLL), activity
+            )
+        )
+        return true
+
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
