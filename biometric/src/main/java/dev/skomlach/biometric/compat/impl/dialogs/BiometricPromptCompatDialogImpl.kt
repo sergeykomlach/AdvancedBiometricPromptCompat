@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
+import dev.skomlach.biometric.compat.utils.BiometricTitle
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -60,7 +61,7 @@ class BiometricPromptCompatDialogImpl(
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
 
     init {
-        promptText = getDialogTitle()
+        promptText = BiometricTitle.getRelevantTitle(compatBuilder.getContext(), compatBuilder.getAllAvailableTypes())
         too_many_attempts =
             compatBuilder.getContext()
                 .getString(androidx.biometric.R.string.fingerprint_error_lockout)
@@ -207,55 +208,7 @@ class BiometricPromptCompatDialogImpl(
             }
         }
     private var originalColor: ColorStateList? = null
-    private fun getDialogTitle(): String {
-        //Attempt#1
-        try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if ((field.name.contains("biometric") || field.name.contains("fingerprint")) && field.name.contains(
-                        "dialog"
-                    )
-                ) {
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = compatBuilder.getContext().getString(field[null] as Int)
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            e(e)
-        }
-        //Attempt#2
-        try {
-            if (isAtLeastS) {
-                var biometricManager : android.hardware.biometrics.BiometricManager? = compatBuilder.getContext().getSystemService(
-                    android.hardware.biometrics.BiometricManager::class.java
-                )
 
-                if(biometricManager == null){
-                    biometricManager = compatBuilder.getContext().getSystemService(
-                        Context.BIOMETRIC_SERVICE
-                    ) as android.hardware.biometrics.BiometricManager?
-                }
-                val strings =
-                    biometricManager?.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                val prompt = strings?.promptMessage
-                if (!prompt.isNullOrEmpty())
-                    return prompt.toString()
-            }
-        } catch (e: Throwable) {
-            e(e)
-        }
-        //Give up
-        return compatBuilder.getContext()
-            .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
-    }
 
     fun cancelAuthenticateBecauseOnPause(): Boolean {
         return if (isMultiWindowHack) {

@@ -27,5 +27,4 @@ interface IBiometricPromptImpl {
     fun cancelAuthenticate()
     fun cancelAuthenticateBecauseOnPause(): Boolean
     val builder: BiometricPromptCompat.Builder
-    val usedPermissions: List<String>
 }

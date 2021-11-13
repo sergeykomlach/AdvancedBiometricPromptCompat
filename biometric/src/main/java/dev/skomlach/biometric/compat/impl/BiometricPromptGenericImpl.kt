@@ -84,35 +84,6 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         onUiClosed()
     }
 
-    override val usedPermissions: List<String>
-        get() {
-            val permission: MutableSet<String> = HashSet()
-            val biometricMethodList: MutableList<BiometricMethod> = ArrayList()
-            for (m in availableBiometricMethods) {
-                if (builder.getAllAvailableTypes().contains(m.biometricType)) {
-                    biometricMethodList.add(m)
-                }
-            }
-            for (method in biometricMethodList) {
-                when (method) {
-                    BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
-                    BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
-                    BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
-                    BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
-                    BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
-                    BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
-                    BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
-                    BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                    BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
-                        "android.permission.USE_FINGERPRINT"
-                    )
-                    BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
-                    BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
-                }
-            }
-            return ArrayList(permission)
-        }
-
     override fun cancelAuthenticateBecauseOnPause(): Boolean {
         d("BiometricPromptGenericImpl.cancelAuthenticateBecauseOnPause():")
         return if (dialog != null) {

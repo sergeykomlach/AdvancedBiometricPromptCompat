@@ -960,6 +960,13 @@
    "model": "AV7"
   }
  ],
+ "AVATEL": [
+  {
+   "device": "DV8547-KSA",
+   "name": "DV8547_Avatel",
+   "model": "DV8547_Avatel"
+  }
+ ],
  "AVH San Luis S.A.": [
   {
    "device": "ActionKids3_0",
@@ -2435,6 +2442,11 @@
    "model": "ET-108-11A"
   },
   {
+   "device": "Walle",
+   "name": "Walle",
+   "model": "ET-108-11AR"
+  },
+  {
    "device": "Z1",
    "name": "Z110",
    "model": "Z110"
@@ -2859,6 +2871,11 @@
    "device": "ADVAN_TAB_Gallilea",
    "name": "TAB Gallilea",
    "model": "8003"
+  },
+  {
+   "device": "ADVAN_TAB_VX",
+   "name": "TAB VX",
+   "model": "1013"
   },
   {
    "device": "ADVAN_TAB_10",
@@ -10732,6 +10749,11 @@
   {
    "device": "AZUMI_V5_AC01",
    "name": "AZUMI_V5_AC01",
+   "model": "Azumi V51"
+  },
+  {
+   "device": "AZUMI_V5_AC01",
+   "name": "AZUMI_V5_AC01",
    "model": "V5"
   },
   {
@@ -13622,6 +13644,11 @@
  ],
  "BenQ": [
   {
+   "device": "redwood",
+   "name": "730",
+   "model": "AI PONT"
+  },
+  {
    "device": "A3",
    "name": "A3",
    "model": "A3"
@@ -13808,11 +13835,6 @@
   },
   {
    "device": "longshan",
-   "name": "Smart TV",
-   "model": "AI PONT"
-  },
-  {
-   "device": "redwood",
    "name": "Smart TV",
    "model": "AI PONT"
   },
@@ -18025,6 +18047,11 @@
  ],
  "CHiQ": [
   {
+   "device": "redwood",
+   "name": "H7",
+   "model": "AI PONT"
+  },
+  {
    "device": "samseong",
    "name": "H7A",
    "model": "AI PONT"
@@ -18036,11 +18063,6 @@
   },
   {
    "device": "longshan",
-   "name": "Smart TV",
-   "model": "AI PONT"
-  },
-  {
-   "device": "redwood",
    "name": "Smart TV",
    "model": "AI PONT"
   }
@@ -19715,6 +19737,11 @@
    "model": "GIU6860"
   },
   {
+   "device": "redwood",
+   "name": "H7",
+   "model": "AI PONT"
+  },
+  {
    "device": "sindorim",
    "name": "Korea",
    "model": "AI PONT"
@@ -19736,11 +19763,6 @@
   },
   {
    "device": "longshan",
-   "name": "Smart TV",
-   "model": "AI PONT"
-  },
-  {
-   "device": "redwood",
    "name": "Smart TV",
    "model": "AI PONT"
   },
@@ -20463,6 +20485,11 @@
    "model": "Superion_S2_Plus"
   },
   {
+   "device": "Superion_Tab_Pro",
+   "name": "Superion Tab Pro",
+   "model": "Superion Tab Pro"
+  },
+  {
    "device": "Touch_HD",
    "name": "Touch HD",
    "model": "Cherry_Mobile_Touch_HD"
@@ -20801,6 +20828,11 @@
   {
    "device": "ikebukuro",
    "name": "EGS42FHD",
+   "model": "AI PONT"
+  },
+  {
+   "device": "redwood",
+   "name": "G7N",
    "model": "AI PONT"
   }
  ],
@@ -38573,6 +38605,11 @@
    "model": "dedede"
   },
   {
+   "device": "keeby_cheets",
+   "name": "Intel Jasper Lake Chromebook",
+   "model": "keeby"
+  },
+  {
    "device": "nami_cheets",
    "name": "Intel Kaby Lake U Chromebook",
    "model": "nami"
@@ -49241,6 +49278,21 @@
    "device": "HNNTH",
    "name": "HONOR 50",
    "model": "NTH-NX9"
+  },
+  {
+   "device": "HNNTN",
+   "name": "HONOR 50 Lite",
+   "model": "NTN-L22"
+  },
+  {
+   "device": "HNNTN",
+   "name": "HONOR 50 Lite",
+   "model": "NTN-LX1"
+  },
+  {
+   "device": "HNNTN",
+   "name": "HONOR 50 Lite",
+   "model": "NTN-LX3"
   }
  ],
  "Hoozo": [
@@ -66124,6 +66176,11 @@
  ],
  "Kinstone": [
   {
+   "device": "KST070CH_D",
+   "name": "KST070CH_D",
+   "model": "KST070CH_D"
+  },
+  {
    "device": "KST103SD",
    "name": "KST103SD",
    "model": "KST103SD"
@@ -66708,6 +66765,11 @@
    "model": "Kogan SmarterTV"
   },
   {
+   "device": "redwood",
+   "name": "RF9220",
+   "model": "AI PONT"
+  },
+  {
    "device": "longshan",
    "name": "Smart TV",
    "model": "AI PONT"
@@ -66872,6 +66934,13 @@
    "device": "shibuya",
    "name": "KOODA 2K TV",
    "model": "KOODA 2K TV"
+  }
+ ],
+ "Korea Telecom": [
+  {
+   "device": "MA4000",
+   "name": "MA4000",
+   "model": "MA4000"
   }
  ],
  "Krik Krak": [
@@ -67340,6 +67409,11 @@
    "model": "901KC"
   },
   {
+   "device": "KY21L-ST100",
+   "name": "DIGNO BX2",
+   "model": "A101KC"
+  },
+  {
    "device": "WX04K",
    "name": "DIGNO Dual",
    "model": "WX04K"
@@ -67488,6 +67562,11 @@
    "device": "E6782L",
    "name": "DuraScout",
    "model": "E6782L"
+  },
+  {
+   "device": "KY21L-RG100",
+   "name": "DuraSport 5G",
+   "model": "C6930"
   },
   {
    "device": "KSP8000",
@@ -67947,6 +68026,11 @@
    "device": "ACE_I",
    "name": "ACE_I",
    "model": "ACE_I"
+  },
+  {
+   "device": "IPF10",
+   "name": "IPF10",
+   "model": "IPF10"
   },
   {
    "device": "J10PRO",
@@ -83087,6 +83171,13 @@
    "model": "T7"
   }
  ],
+ "MAGNUMTECH": [
+  {
+   "device": "MG715",
+   "name": "MG715",
+   "model": "MG715"
+  }
+ ],
  "MARVUE": [
   {
    "device": "Pad_M10",
@@ -91063,6 +91154,11 @@
    "model": "XT1225"
   },
   {
+   "device": "mototabg70",
+   "name": "Moto Tab g70",
+   "model": "moto tab g70"
+  },
+  {
    "device": "quark_umts",
    "name": "Moto Turbo",
    "model": "XT1225"
@@ -92856,6 +92952,11 @@
   },
   {
    "device": "ML-JI0A-M10-4G",
+   "name": "M10 4G",
+   "model": "M10-4G"
+  },
+  {
+   "device": "ML-WI0C-M10-4G",
    "name": "M10 4G",
    "model": "M10-4G"
   },
@@ -94977,6 +95078,11 @@
    "device": "H10",
    "name": "H10",
    "model": "H10"
+  },
+  {
+   "device": "M16QF9ES",
+   "name": "M16QF9ES",
+   "model": "M16QF9ES"
   },
   {
    "device": "MW75QF6",
@@ -100074,6 +100180,16 @@
    "model": "CPH2077"
   },
   {
+   "device": "OP4BFB",
+   "name": "CPH2083",
+   "model": "CPH2083"
+  },
+  {
+   "device": "OP4F1BL1",
+   "name": "CPH2145",
+   "model": "CPH2145"
+  },
+  {
    "device": "OP4EE8L1",
    "name": "CPH2161",
    "model": "CPH2161"
@@ -104071,6 +104187,11 @@
   {
    "device": "NEXT820",
    "name": "NEXT Elite-4K 43",
+   "model": "NEXT"
+  },
+  {
+   "device": "NEXT821",
+   "name": "NEXT Premium Hand-Set (PHS)",
    "model": "NEXT"
   },
   {
@@ -112511,11 +112632,6 @@
    "model": "RMX2195"
   },
   {
-   "device": "RMX2195L1",
-   "name": "realme C15 Qualcomm Edition",
-   "model": "RMX2195"
-  },
-  {
    "device": "RE50BF",
    "name": "realme C17",
    "model": "RMX2101"
@@ -113908,6 +114024,11 @@
    "model": "RD16QE"
   },
   {
+   "device": "RD40TE",
+   "name": "RD40TE",
+   "model": "RD40TE"
+  },
+  {
    "device": "RD50T",
    "name": "RD50T",
    "model": "RD50T"
@@ -114434,6 +114555,18 @@
    "model": "P850"
   }
  ],
+ "SABA": [
+  {
+   "device": "longshan",
+   "name": "A11",
+   "model": "AI PONT"
+  },
+  {
+   "device": "redwood",
+   "name": "A11",
+   "model": "AI PONT"
+  }
+ ],
  "SAELITE": [
   {
    "device": "MD1063B",
@@ -114767,6 +114900,11 @@
   }
  ],
  "SK Broadband": [
+  {
+   "device": "INTEKS21SI",
+   "name": "AI2 ATV",
+   "model": "BID-AI100"
+  },
   {
    "device": "BHX-S100",
    "name": "B tv smart",
@@ -124245,6 +124383,31 @@
    "device": "o1s",
    "name": "Galaxy S21 5G",
    "model": "SM-G991N"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G9900"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990B"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990U"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990W"
+  },
+  {
+   "device": "r9s",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990E"
   },
   {
    "device": "SC-52B",
@@ -134129,6 +134292,11 @@
    "model": "SOG03"
   },
   {
+   "device": "XQ-BC42",
+   "name": "Xperia 1 III",
+   "model": "XQ-BC42"
+  },
+  {
    "device": "XQ-BC52",
    "name": "Xperia 1 III",
    "model": "XQ-BC52"
@@ -134314,9 +134482,19 @@
    "model": "XQ-AS72"
   },
   {
+   "device": "A103SO",
+   "name": "Xperia 5 III",
+   "model": "A103SO"
+  },
+  {
    "device": "SO-53B",
    "name": "Xperia 5 III",
    "model": "SO-53B"
+  },
+  {
+   "device": "SOG05",
+   "name": "Xperia 5 III",
+   "model": "SOG05"
   },
   {
    "device": "XQ-BQ52",
@@ -138683,6 +138861,11 @@
    "model": "Z20"
   },
   {
+   "device": "Z22",
+   "name": "Z22",
+   "model": "Symphony Z22"
+  },
+  {
    "device": "Z25",
    "name": "Z25",
    "model": "Z25"
@@ -138915,6 +139098,11 @@
    "model": "T790Z"
   },
   {
+   "device": "Newcastle",
+   "name": "REVVL V",
+   "model": "TMRVL4G"
+  },
+  {
    "device": "Sprout",
    "name": "REVVL V+ 5G",
    "model": "REVVL V+ 5G"
@@ -139113,6 +139301,11 @@
    "model": "Smart TV"
   },
   {
+   "device": "BeyondTV4",
+   "name": "G03_4K_US_NF",
+   "model": "Smart TV Pro"
+  },
+  {
    "device": "G05",
    "name": "G05_4K_US",
    "model": "Smart TV Pro"
@@ -139201,6 +139394,11 @@
    "device": "tcl",
    "name": "South America",
    "model": "Percee TV"
+  },
+  {
+   "device": "Odin2",
+   "name": "TAB 10s 2022",
+   "model": "9081X"
   },
   {
    "device": "Seattle",
@@ -149794,6 +149992,11 @@
    "model": "Telenor K530"
   },
   {
+   "device": "MediaBox_B866V2",
+   "name": "MediaBox",
+   "model": "MediaBox"
+  },
+  {
    "device": "Telenor_N940",
    "name": "N940",
    "model": "Telenor N940"
@@ -150238,6 +150441,11 @@
    "device": "TEO7RK",
    "name": "TEO7RK",
    "model": "TEO7RK"
+  },
+  {
+   "device": "TEO8-A2BK32",
+   "name": "TEO8-A2BK32",
+   "model": "TEO8-A2BK32"
   },
   {
    "device": "TEOX102",
@@ -151992,6 +152200,11 @@
   },
   {
    "device": "Armor_8",
+   "name": "Armor 8",
+   "model": "Armor 8"
+  },
+  {
+   "device": "Armor_8_R",
    "name": "Armor 8",
    "model": "Armor 8"
   },
@@ -154283,6 +154496,11 @@
    "device": "sti6220d315",
    "name": "Stream TV",
    "model": "Stream TV"
+  },
+  {
+   "device": "WTVIS01",
+   "name": "Visible Midnight",
+   "model": "WTVIS01"
   }
  ],
  "Verizon Wireless": [
@@ -156192,6 +156410,11 @@
    "model": "I2012"
   },
   {
+   "device": "2017",
+   "name": "I2017",
+   "model": "I2017"
+  },
+  {
    "device": "2018",
    "name": "I2018",
    "model": "I2018"
@@ -157017,9 +157240,19 @@
    "model": "V2114"
   },
   {
+   "device": "2116",
+   "name": "V2115",
+   "model": "V2115"
+  },
+  {
    "device": "PD2115",
    "name": "V2115A",
    "model": "V2115A"
+  },
+  {
+   "device": "2116",
+   "name": "V2116",
+   "model": "V2116"
   },
   {
    "device": "2120",
@@ -158504,6 +158737,11 @@
    "model": "Jax X"
   },
   {
+   "device": "MAGNET_G90",
+   "name": "MAGNET_G90",
+   "model": "MAGNET_G90"
+  },
+  {
    "device": "Magnet_M1_A7",
    "name": "Magnet M1_A7",
    "model": "Magnet M1"
@@ -158757,6 +158995,11 @@
    "device": "Zun_N",
    "name": "Zun_N",
    "model": "Zun_N"
+  },
+  {
+   "device": "iMart_MAX",
+   "name": "iMart_MAX",
+   "model": "iMart_MAX"
   },
   {
    "device": "iMart_Pro",
@@ -171740,6 +171983,11 @@
   },
   {
    "device": "P963F50_A",
+   "name": "ZTE Blade A51 Lite",
+   "model": "ZTE Blade A51 Lite"
+  },
+  {
+   "device": "P963F50_A",
    "name": "ZTE Blade A51 Lite RU",
    "model": "ZTE Blade A51 Lite RU"
   },
@@ -173815,6 +174063,11 @@
  ],
  "cosmos": [
   {
+   "device": "Aries_8in",
+   "name": "Aries_8in",
+   "model": "Aries_8in"
+  },
+  {
    "device": "Lynx_10in",
    "name": "Lynx_10in",
    "model": "Lynx_10in"
@@ -175880,6 +176133,21 @@
    "device": "YYT",
    "name": "4K Google TV Stick",
    "model": "4K Google TV Stick"
+  },
+  {
+   "device": "RMX2195L1",
+   "name": "realme C15 Qualcomm Edition",
+   "model": "RMX2195"
+  },
+  {
+   "device": "RED8D1",
+   "name": "realme C21-Y",
+   "model": "RMX3263"
+  },
+  {
+   "device": "RMX2202L1",
+   "name": "realme GT 5G",
+   "model": "RMX2202"
   }
  ],
  "redfox": [

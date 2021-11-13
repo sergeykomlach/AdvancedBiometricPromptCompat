@@ -256,15 +256,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     }
 
-    override val usedPermissions: List<String>
-        get() {
-            val permission: MutableSet<String> = HashSet()
-            permission.add("android.permission.USE_FINGERPRINT")
-            if (Build.VERSION.SDK_INT >= 28) {
-                permission.add("android.permission.USE_BIOMETRIC")
-            }
-            return ArrayList(permission)
-        }
 
     override fun cancelAuthenticate() {
         d("BiometricPromptApi28Impl.cancelAuthenticate():")
