@@ -237,8 +237,6 @@ Helper tool to check some biometric-related stuff in device specification
 
 `fun hasFaceID(DeviceInfo): Boolean`
 
-DeviceInfo instance can be retrieved via `BiometricPromptCompat.deviceInfo`
-
 
 ## Minimal code example:
 
