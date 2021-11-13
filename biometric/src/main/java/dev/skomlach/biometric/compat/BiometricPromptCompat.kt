@@ -24,7 +24,6 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Looper
 import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
 import androidx.annotation.MainThread
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
@@ -63,7 +62,6 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.collections.HashSet
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -756,13 +754,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun build(): BiometricPromptCompat {
+            if (title == null)
+                title = BiometricTitle.getRelevantTitle(context, getAllAvailableTypes())
+            if (negativeButtonText == null)
+                negativeButtonText = context.getString(android.R.string.cancel)
             TruncatedTextFix.recalculateTexts(this, object : TruncatedTextFix.OnTruncateChecked {
                 override fun onDone() {
                     isTruncateChecked = true
                 }
             })
-            requireNotNull(title) { "You should set a title for BiometricPrompt." }
-            requireNotNull(negativeButtonText) { "You should set a negativeButtonText for BiometricPrompt." }
             return BiometricPromptCompat(this)
         }
     }
