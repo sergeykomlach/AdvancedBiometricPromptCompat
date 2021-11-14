@@ -21,7 +21,9 @@ package dev.skomlach.biometric.compat
 
 import android.app.Activity
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
+import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
@@ -215,14 +217,21 @@ object BiometricManagerCompat {
         ) {
             return true
         }
-        //Windows able to open Windows Hello screen
-        if (BiometricPromptCompat.deviceInfo?.model == "Windows" && Utils.startActivity(
-                Intent(Settings.ACTION_BIOMETRIC_ENROLL), activity
-            )
-        )
-        return true
 
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+                enrollIntent.putExtra(
+                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+                )
+                if (Utils.startActivity(enrollIntent, activity))
+                    return true
+            } else {
+                val enrollIntent = Intent(Settings.ACTION_SECURITY_SETTINGS)
+                if (Utils.startActivity(enrollIntent, activity))
+                    return true
+            }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )
