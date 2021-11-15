@@ -34,7 +34,6 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollCha
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -308,7 +307,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val activityViewWatcher = try {
             ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
                 override fun onCloseBiometric() {
-                    cancelAuthenticate()
+                    cancelAuthentication()
                 }
             })
         } catch (e: Throwable) {
@@ -321,7 +320,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
 
-        val callback = object : AuthenticationCallback {
+        val callback = object : AuthenticationCallback() {
 
             var isOpened = false
             override fun onSucceeded(confirmed: Set<BiometricType>) {
@@ -479,7 +478,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    fun cancelAuthenticate() {
+    fun cancelAuthentication() {
         if (!API_ENABLED) {
             return
         }
@@ -491,13 +490,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             }
             ExecutorHelper.post {
-                impl.cancelAuthenticate()
+                impl.cancelAuthentication()
             }
         }
 
     }
 
-    fun cancelAuthenticateBecauseOnPause(): Boolean {
+    fun cancelAuthenticationBecauseOnPause(): Boolean {
         if (!API_ENABLED) {
             return false
         }
@@ -510,12 +509,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
                 ExecutorHelper.post {
-                    impl.cancelAuthenticate()
+                    impl.cancelAuthentication()
                 }
             }
             true
         } else
-            impl.cancelAuthenticateBecauseOnPause()
+            impl.cancelAuthenticationBecauseOnPause()
     }
 
     @ColorInt
@@ -525,21 +524,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         return DialogMainColor.getColor(builder.getContext(), DarkLightThemes.isNightMode(builder.getContext()))
     }
 
-    interface AuthenticationCallback {
+    abstract class AuthenticationCallback {
         @MainThread
-        fun onSucceeded(confirmed: Set<BiometricType>)
+        open fun onSucceeded(confirmed: Set<BiometricType>){}
 
         @MainThread
-        fun onCanceled()
+        open fun onCanceled(){}
 
         @MainThread
-        fun onFailed(reason: AuthenticationFailureReason?)
+        open fun onFailed(reason: AuthenticationFailureReason?){}
 
         @MainThread
-        fun onUIOpened()
+        open fun onUIOpened(){}
 
         @MainThread
-        fun onUIClosed()
+        open fun onUIClosed(){}
     }
 
     class Builder(
@@ -769,6 +768,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return this
         }
 
+        fun setNegativeButtonText(text: CharSequence): Builder {
+            negativeButtonText = text
+            return this
+        }
+        fun setNegativeButtonText( @StringRes res: Int): Builder {
+            negativeButtonText = context.getString(res)
+            return this
+        }
         fun setNegativeButton(
             text: CharSequence,
             listener: DialogInterface.OnClickListener?

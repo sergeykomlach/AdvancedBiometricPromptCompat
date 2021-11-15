@@ -25,7 +25,7 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
@@ -62,7 +62,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
     )
 
 
-    biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
+    biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<BiometricType>) {
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed")
             Toast.makeText(activity, "Succeeded - $confirmed", Toast.LENGTH_SHORT).show()

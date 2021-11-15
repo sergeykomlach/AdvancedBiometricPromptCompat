@@ -20,6 +20,8 @@
 package dev.skomlach.biometric.compat.engine
 
 import androidx.annotation.WorkerThread
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.BiometricType
 
 

@@ -23,6 +23,8 @@ import android.annotation.SuppressLint
 import androidx.core.os.CancellationSignal
 import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener

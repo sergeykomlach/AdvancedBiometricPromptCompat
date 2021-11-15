@@ -19,12 +19,8 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyPermanentlyInvalidatedException
-import android.security.keystore.KeyProperties
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -36,10 +32,7 @@ import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.biometric.CancelationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
-import dev.skomlach.biometric.compat.BiometricConfirmation
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
@@ -53,16 +46,11 @@ import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
-import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
@@ -88,7 +76,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
                 if (isOnePlusWithBiometricBug) {
                     onePlusWithBiometricBugFailure = true
-                    cancelAuthenticate()
+                    cancelAuthentication()
                 } else {
                     //...normal failed processing...//
                     for (module in builder.getPrimaryAvailableTypes()) {
@@ -137,7 +125,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
                         BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
                             callback?.onCanceled()
-                            cancelAuthenticate()
+                            cancelAuthentication()
                             return@Runnable
                         }
                     }
@@ -238,19 +226,19 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
     }
 
-    override fun cancelAuthenticateBecauseOnPause(): Boolean {
-        d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():")
+    override fun cancelAuthenticationBecauseOnPause(): Boolean {
+        d("BiometricPromptApi28Impl.cancelAuthenticationBecauseOnPause():")
         return if (dialog != null) {
-            dialog?.cancelAuthenticateBecauseOnPause() == true
+            dialog?.cancelAuthenticationBecauseOnPause() == true
         } else {
-            cancelAuthenticate()
+            cancelAuthentication()
             true
         }
     }
 
 
-    override fun cancelAuthenticate() {
-        d("BiometricPromptApi28Impl.cancelAuthenticate():")
+    override fun cancelAuthentication() {
+        d("BiometricPromptApi28Impl.cancelAuthentication():")
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
@@ -340,7 +328,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (successList.isNotEmpty()) {
                     showSystemUi()
                     ExecutorHelper.postDelayed({
-                        cancelAuthenticate()
+                        cancelAuthentication()
                         callback?.onSucceeded(successList)
                     }, shortDelayMillis)
                 } else
@@ -464,7 +452,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.isSamsung || allList.isEmpty()))
         ) {
             ExecutorHelper.post {
-                cancelAuthenticate()
+                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -534,7 +522,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             ExecutorHelper.post {
-                cancelAuthenticate()
+                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
