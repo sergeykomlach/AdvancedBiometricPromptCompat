@@ -23,7 +23,7 @@ import android.os.IBinder
 import androidx.core.os.CancellationSignal
 import com.fingerprints.service.FingerprintManager
 import com.fingerprints.service.FingerprintManager.IdentifyCallback
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener

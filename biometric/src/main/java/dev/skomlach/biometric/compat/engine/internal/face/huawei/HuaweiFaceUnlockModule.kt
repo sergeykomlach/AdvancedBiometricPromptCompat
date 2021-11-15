@@ -22,6 +22,8 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei
 import android.content.*
 import android.os.*
 import com.huawei.facerecognition.FaceManager
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener

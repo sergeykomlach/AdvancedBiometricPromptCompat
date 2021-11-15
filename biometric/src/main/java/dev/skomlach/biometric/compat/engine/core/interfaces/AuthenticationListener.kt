@@ -19,8 +19,8 @@
 
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationHelpReason
 
 /**
  * A listener that is notified of the results of fingerprint authentication.

@@ -210,7 +210,7 @@ class BiometricPromptCompatDialogImpl(
     private var originalColor: ColorStateList? = null
 
 
-    fun cancelAuthenticateBecauseOnPause(): Boolean {
+    fun cancelAuthenticationBecauseOnPause(): Boolean {
         return if (isMultiWindowHack) {
             false
         } else {

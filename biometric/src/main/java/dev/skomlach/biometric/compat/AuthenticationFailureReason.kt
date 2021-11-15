@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.engine
+package dev.skomlach.biometric.compat
 
 /**
  * General categories for authentication failures.

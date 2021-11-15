@@ -36,7 +36,16 @@ import dev.skomlach.common.misc.Utils
 object BiometricManagerCompat {
 
     private val preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricManagerCache")
-
+    @JvmStatic
+    fun isBiometricReady(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        return isHardwareDetected(api) && hasEnrolled(api) &&
+                !(isLockOut(api) || isBiometricSensorPermanentlyLocked(api))
+    }
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
         api: BiometricAuthRequest = BiometricAuthRequest(

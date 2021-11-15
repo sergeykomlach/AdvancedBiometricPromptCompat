@@ -19,7 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 
 
 interface RestartPredicate {
