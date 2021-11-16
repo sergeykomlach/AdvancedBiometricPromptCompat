@@ -19,45 +19,30 @@
 
 package dev.skomlach.common.misc
 
+import android.os.AsyncTask
 import android.os.Handler
 import android.os.Looper
-import kotlinx.coroutines.*
-import java.util.*
 import java.util.concurrent.Executor
 
 object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
-    private val tasksInMain = Collections.synchronizedMap(
-        mutableMapOf<Runnable, Job>()
-    )
 
     fun startOnBackground(task: Runnable) {
-        GlobalScope.launch(Dispatchers.IO) {
-            task.run()
-        }
+        AsyncTask.execute(task)
     }
 
     fun postDelayed(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(Dispatchers.Main) {
-            delay(delay)
-            task.run()
-            tasksInMain.remove(task)
-        }
-        tasksInMain[task] = job
+        handler.postDelayed(task, delay)
     }
 
     fun post(task: Runnable) {
-        val job = GlobalScope.launch(Dispatchers.Main) {
-            task.run()
-            tasksInMain.remove(task)
-        }
-        tasksInMain[task] = job
+        handler.post(task)
     }
 
     fun removeCallbacks(task: Runnable) {
-        tasksInMain[task]?.cancel()
+        handler.removeCallbacks(task)
     }
 
     /**

@@ -319,7 +319,7 @@ class Scan4Apis(private val context: Context) {
             val p = Runtime.getRuntime().exec(findPathForBinary("sh") + " -")
             val os = DataOutputStream(p.outputStream)
             try {
-                if (fileOrDirectory!!.isDirectory) os.writeBytes(
+                if (fileOrDirectory?.isDirectory == true) os.writeBytes(
                     """
     rm -f ${fileOrDirectory.absolutePath}
     
@@ -327,7 +327,7 @@ class Scan4Apis(private val context: Context) {
                 ) //remove file
                 else os.writeBytes(
                     """
-    rm -f -d ${fileOrDirectory.absolutePath}
+    rm -f -d ${fileOrDirectory?.absolutePath}
     
     """.trimIndent()
                 ) //remove empty dir
@@ -336,7 +336,7 @@ class Scan4Apis(private val context: Context) {
             os.writeBytes("exit\n")
             os.close()
             p.destroy()
-            return !fileOrDirectory!!.exists()
+            return fileOrDirectory?.exists() == false
         } catch (e: Throwable) {
             e(e)
         }

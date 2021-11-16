@@ -5,7 +5,7 @@ apply plugin: 'kotlin-android'
 Note: Keep module in Java to keep compatibility with OEM/AOSP API's
 */
 android {
-    compileSdkVersion targetSDK
+    compileSdkVersion compileSDK
     defaultConfig {
         minSdkVersion minSDK
         targetSdkVersion targetSDK

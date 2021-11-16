@@ -211,27 +211,51 @@ internal class BiometricPromptCompatDialog(
     }
     private fun updateMonetColorsInternal() {
         if (Utils.isAtLeastS) {
+            val negativeButtonColor = ContextCompat.getColor(
+                context,
+                if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+            )
+
+            val textColor = ContextCompat.getColor(context, R.color.textColor)
+
             try {
                 val monetColors = SystemColorScheme(context)
                 if (DarkLightThemes.isNightMode(context)) {
-                    fingerprintIcon?.tintColor(monetColors.accent1[300]!!.toArgb())
-                    negativeButton?.setTextColor(monetColors.accent2[100]!!.toArgb())
+                    fingerprintIcon?.tintColor(monetColors.accent1[300]?.toArgb())
+                    negativeButton?.setTextColor(
+                        monetColors.accent2[100]?.toArgb() ?: negativeButtonColor
+                    )
                     rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
-                        setTextToTextViews(it, monetColors.neutral1[50]!!.toArgb())
-                        ViewCompat.setBackgroundTintList(
-                            it,
-                            ColorStateList.valueOf(monetColors.neutral1[900]!!.toArgb())
-                        )
+                        setTextToTextViews(it, monetColors.neutral1[50]?.toArgb() ?: textColor)
+                        monetColors.neutral1[900]?.toArgb()?.let { color ->
+                            ViewCompat.setBackgroundTintList(
+                                it,
+                                ColorStateList.valueOf(color)
+                            )
+                        } ?: run {
+                            ViewCompat.setBackgroundTintList(
+                                it, null
+                            )
+                        }
+
                     }
                 } else {
-                    fingerprintIcon?.tintColor(monetColors.accent1[600]!!.toArgb())
-                    negativeButton?.setTextColor(monetColors.neutral2[500]!!.toArgb())
+                    fingerprintIcon?.tintColor(monetColors.accent1[600]?.toArgb())
+                    negativeButton?.setTextColor(
+                        monetColors.neutral2[500]?.toArgb() ?: negativeButtonColor
+                    )
                     rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
-                        setTextToTextViews(it, monetColors.neutral1[900]!!.toArgb())
-                        ViewCompat.setBackgroundTintList(
-                            it,
-                            ColorStateList.valueOf(monetColors.neutral1[50]!!.toArgb())
-                        )
+                        setTextToTextViews(it, monetColors.neutral1[900]?.toArgb() ?: textColor)
+                        monetColors.neutral1[50]?.toArgb()?.let { color ->
+                            ViewCompat.setBackgroundTintList(
+                                it,
+                                ColorStateList.valueOf(color)
+                            )
+                        } ?: run {
+                            ViewCompat.setBackgroundTintList(
+                                it, null
+                            )
+                        }
                     }
 
                 }

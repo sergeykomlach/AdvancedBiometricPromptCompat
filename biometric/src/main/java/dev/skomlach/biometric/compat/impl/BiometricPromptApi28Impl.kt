@@ -169,15 +169,28 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         builder.getDescription()?.let {
             promptInfoBuilder.setDescription(it)
         }
+        var buttonTextColor: Int =
+            ContextCompat.getColor(
+                builder.getContext(),
+                if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+            )
+
+        if (Utils.isAtLeastS) {
+            val monetColors = SystemColorScheme(builder.getContext())
+            if (DarkLightThemes.isNightMode(builder.getContext()))
+                monetColors.accent2[100]?.toArgb()?.let {
+                    buttonTextColor = it
+                }
+            else
+                monetColors.neutral2[500]?.toArgb()?.let {
+                    buttonTextColor = it
+                }
+        }
+
         builder.getNegativeButtonText()?.let {
             if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
                 getFixedString(
-                    it, color = if (Utils.isAtLeastS) {
-                        val monetColors = SystemColorScheme(builder.getContext())
-                        if (DarkLightThemes.isNightMode(builder.getContext())) monetColors.accent2[100]!!.toArgb()
-                        else
-                            monetColors.neutral2[500]!!.toArgb()
-                    } else ContextCompat.getColor(builder.getContext(), R.color.material_deep_teal_500 )
+                    it, color = buttonTextColor
                 )
             )
         }
