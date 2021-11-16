@@ -19,6 +19,8 @@
 
 package dev.skomlach.biometric.compat.impl
 
+//import androidx.core.content.PackageManagerCompat
+//import androidx.core.content.UnusedAppRestrictionsConstants
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -28,15 +30,10 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat
-import androidx.core.content.PackageManagerCompat
-import androidx.core.content.UnusedAppRestrictionsConstants
 import androidx.core.text.TextUtilsCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
@@ -136,37 +133,38 @@ class PermissionsFragment : Fragment() {
         if (permissionsRequestState != PermissionRequestState.NONE) {
             ExecutorHelper.postDelayed({
                 try {
-                    activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                    activity?.supportFragmentManager?.beginTransaction()
+                        ?.remove(this@PermissionsFragment)
                         ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable){
+                } catch (e: Throwable) {
                     e("PermissionsFragment", e.message, e)
                 }
             }, 250)
         }
     }
 
-    private fun onResult(appRestrictionsStatus: Int) {
-        permissionsRequestState = PermissionRequestState.MANUAL_REQUEST
-        when (appRestrictionsStatus) {
-            // If the user doesn't start your app for months, its permissions
-            // will be revoked and/or it will be hibernated.
-            // See the API_* constants for details.
-            UnusedAppRestrictionsConstants.API_30_BACKPORT,
-            UnusedAppRestrictionsConstants.API_30,
-            UnusedAppRestrictionsConstants.API_31 -> handleRestrictions()
+//    private fun onResult(appRestrictionsStatus: Int) {
+//        permissionsRequestState = PermissionRequestState.MANUAL_REQUEST
+//        when (appRestrictionsStatus) {
+//            // If the user doesn't start your app for months, its permissions
+//            // will be revoked and/or it will be hibernated.
+//            // See the API_* constants for details.
+//            UnusedAppRestrictionsConstants.API_30_BACKPORT,
+//            UnusedAppRestrictionsConstants.API_30,
+//            UnusedAppRestrictionsConstants.API_31 -> handleRestrictions()
+//
+//            // Status could not be fetched. Check logs for details.
+//            UnusedAppRestrictionsConstants.ERROR,
+//                // Restrictions do not apply to your app on this device.
+//            UnusedAppRestrictionsConstants.FEATURE_NOT_AVAILABLE,
+//                // Restrictions have been disabled by the user for your app.
+//            UnusedAppRestrictionsConstants.DISABLED -> {
+//                unusedAppRestrictionsDisabled()
+//            }
+//        }
+//    }
 
-            // Status could not be fetched. Check logs for details.
-            UnusedAppRestrictionsConstants.ERROR,
-                // Restrictions do not apply to your app on this device.
-            UnusedAppRestrictionsConstants.FEATURE_NOT_AVAILABLE,
-                // Restrictions have been disabled by the user for your app.
-            UnusedAppRestrictionsConstants.DISABLED -> {
-                unusedAppRestrictionsDisabled()
-            }
-        }
-    }
-
-    private fun unusedAppRestrictionsDisabled(){
+    private fun unusedAppRestrictionsDisabled() {
         permissionsRequestState = PermissionRequestState.MANUAL_REQUEST
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
         if (!permissions.any {
@@ -184,38 +182,39 @@ class PermissionsFragment : Fragment() {
         } else
             ExecutorHelper.postDelayed({
                 try {
-                    activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                    activity?.supportFragmentManager?.beginTransaction()
+                        ?.remove(this@PermissionsFragment)
                         ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable){
+                } catch (e: Throwable) {
                     e("PermissionsFragment", e.message, e)
                 }
             }, 250)
     }
 
-    private fun handleRestrictions() {
-        try {
-            // If your app works primarily in the background, you can ask the user
-            // to disable these restrictions. Check if you have already asked the
-            // user to disable these restrictions. If not, you can show a message to
-            // the user explaining why permission auto-reset and Hibernation should be
-            // disabled. Tell them that they will now be redirected to a page where
-            // they can disable these features.
-
-            val intent = IntentCompat.createManageUnusedAppRestrictionsIntent(
-                requireActivity(),
-                requireActivity().packageName
-            )
-
-            // Must use startActivityForResult(), not startActivity(), even if
-            // you don't use the result code returned in onActivityResult().
-            startActivityForResult(intent, 5678)
-        } catch (e: Throwable) {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            val uri = Uri.fromParts("package", requireActivity().packageName, null)
-            intent.data = uri
-            startActivity(intent)
-        }
-    }
+//    private fun handleRestrictions() {
+//        try {
+//            // If your app works primarily in the background, you can ask the user
+//            // to disable these restrictions. Check if you have already asked the
+//            // user to disable these restrictions. If not, you can show a message to
+//            // the user explaining why permission auto-reset and Hibernation should be
+//            // disabled. Tell them that they will now be redirected to a page where
+//            // they can disable these features.
+//
+//            val intent = IntentCompat.createManageUnusedAppRestrictionsIntent(
+//                requireActivity(),
+//                requireActivity().packageName
+//            )
+//
+//            // Must use startActivityForResult(), not startActivity(), even if
+//            // you don't use the result code returned in onActivityResult().
+//            startActivityForResult(intent, 5678)
+//        } catch (e: Throwable) {
+//            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+//            val uri = Uri.fromParts("package", requireActivity().packageName, null)
+//            intent.data = uri
+//            startActivity(intent)
+//        }
+//    }
 
     private fun requestPermissions(permissions: List<String>) {
         if (permissions.any {
@@ -301,16 +300,16 @@ class PermissionsFragment : Fragment() {
             ?: getString("global_action_settings")
         val title = getString("grant_permissions_header_text")
         if (text.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
-            try {
-                val future: ListenableFuture<Int> =
-                    PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
-                future.addListener(
-                    { onResult(future.get()) },
-                    ContextCompat.getMainExecutor(requireActivity())
-                )
-            } catch (e: Throwable){
-                unusedAppRestrictionsDisabled()
-            }
+//            try {
+//                val future: ListenableFuture<Int> =
+//                    PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
+//                future.addListener(
+//                    { onResult(future.get()) },
+//                    ContextCompat.getMainExecutor(requireActivity())
+//                )
+//            } catch (e: Throwable){
+            unusedAppRestrictionsDisabled()
+//            }
         }
 
         AlertDialog.Builder(requireActivity()).apply {
@@ -329,16 +328,16 @@ class PermissionsFragment : Fragment() {
             }
             setPositiveButton(button) { dialog, _ ->
                 dialog.dismiss()
-                try{
-                val future: ListenableFuture<Int> =
-                    PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
-                future.addListener(
-                    { onResult(future.get()) },
-                    ContextCompat.getMainExecutor(requireActivity())
-                )
-                } catch (e: Throwable){
-                    unusedAppRestrictionsDisabled()
-                }
+//                try{
+//                val future: ListenableFuture<Int> =
+//                    PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
+//                future.addListener(
+//                    { onResult(future.get()) },
+//                    ContextCompat.getMainExecutor(requireActivity())
+//                )
+//                } catch (e: Throwable){
+                unusedAppRestrictionsDisabled()
+//                }
             }
         }.show()
     }
