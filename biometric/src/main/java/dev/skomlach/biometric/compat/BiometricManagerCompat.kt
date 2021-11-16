@@ -44,7 +44,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) && hasEnrolled(api) &&
-                !(isLockOut(api) || isBiometricSensorPermanentlyLocked(api))
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
