@@ -19,12 +19,8 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyPermanentlyInvalidatedException
-import android.security.keystore.KeyProperties
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -36,10 +32,7 @@ import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.biometric.CancelationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
-import dev.skomlach.biometric.compat.BiometricConfirmation
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
@@ -53,16 +46,11 @@ import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
-import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
 import kotlin.collections.ArrayList
 import kotlin.collections.HashSet
 
@@ -88,7 +76,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
                 if (isOnePlusWithBiometricBug) {
                     onePlusWithBiometricBugFailure = true
-                    cancelAuthenticate()
+                    cancelAuthentication()
                 } else {
                     //...normal failed processing...//
                     for (module in builder.getPrimaryAvailableTypes()) {
@@ -137,7 +125,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
                         BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
                             callback?.onCanceled()
-                            cancelAuthenticate()
+                            cancelAuthentication()
                             return@Runnable
                         }
                     }
@@ -168,8 +156,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     private val isFingerprint = AtomicBoolean(false)
 
-    private var forceToFingerprint = false
-
     init {
         val promptInfoBuilder = PromptInfo.Builder()
         builder.getTitle()?.let {
@@ -183,26 +169,33 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         builder.getDescription()?.let {
             promptInfoBuilder.setDescription(it)
         }
+        var buttonTextColor: Int =
+            ContextCompat.getColor(
+                builder.getContext(),
+                if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+            )
+
+        if (Utils.isAtLeastS) {
+            val monetColors = SystemColorScheme(builder.getContext())
+            if (DarkLightThemes.isNightMode(builder.getContext()))
+                monetColors.accent2[100]?.toArgb()?.let {
+                    buttonTextColor = it
+                }
+            else
+                monetColors.neutral2[500]?.toArgb()?.let {
+                    buttonTextColor = it
+                }
+        }
+
         builder.getNegativeButtonText()?.let {
             if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
                 getFixedString(
-                    it, color = if (Utils.isAtLeastS) {
-                        val monetColors = SystemColorScheme(builder.getContext())
-                        if (DarkLightThemes.isNightMode(builder.getContext())) monetColors.accent2[100]!!.toArgb()
-                        else
-                            monetColors.neutral2[500]!!.toArgb()
-                    } else ContextCompat.getColor(builder.getContext(), R.color.material_deep_teal_500 )
+                    it, color = buttonTextColor
                 )
             )
         }
-        //Should force to Fingerprint-only
-        if (builder.getPrimaryAvailableTypes().size == 1 && builder.getPrimaryAvailableTypes()
-                .toMutableList()[0] == BiometricType.BIOMETRIC_FINGERPRINT
-        ) {
-            forceToFingerprint = true
-        }
         if (isAtLeastR) {
-            promptInfoBuilder.setAllowedAuthenticators(if (forceToFingerprint) BiometricManager.Authenticators.BIOMETRIC_STRONG else BiometricManager.Authenticators.BIOMETRIC_WEAK)
+            promptInfoBuilder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
         } else {
             promptInfoBuilder.setDeviceCredentialAllowed(false)
         }
@@ -246,19 +239,19 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
     }
 
-    override fun cancelAuthenticateBecauseOnPause(): Boolean {
-        d("BiometricPromptApi28Impl.cancelAuthenticateBecauseOnPause():")
+    override fun cancelAuthenticationBecauseOnPause(): Boolean {
+        d("BiometricPromptApi28Impl.cancelAuthenticationBecauseOnPause():")
         return if (dialog != null) {
-            dialog?.cancelAuthenticateBecauseOnPause() == true
+            dialog?.cancelAuthenticationBecauseOnPause() == true
         } else {
-            cancelAuthenticate()
+            cancelAuthentication()
             true
         }
     }
 
 
-    override fun cancelAuthenticate() {
-        d("BiometricPromptApi28Impl.cancelAuthenticate():")
+    override fun cancelAuthentication() {
+        d("BiometricPromptApi28Impl.cancelAuthentication():")
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
@@ -348,7 +341,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (successList.isNotEmpty()) {
                     showSystemUi()
                     ExecutorHelper.postDelayed({
-                        cancelAuthenticate()
+                        cancelAuthentication()
                         callback?.onSucceeded(successList)
                     }, shortDelayMillis)
                 } else
@@ -384,17 +377,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             object : BiometricPrompt.AuthenticationCallback() {}
         )
     ) {
-        //Should force to Fingerprint-only
-        val crpObject: BiometricPrompt.CryptoObject? = try {
-            cryptoObject
-        } catch (e: Throwable) {
-            null
-        }
-        if (forceToFingerprint && crpObject != null) {
-            biometricPrompt.authenticate(biometricPromptInfo, crpObject)
-        } else {
-            biometricPrompt.authenticate(biometricPromptInfo)
-        }
+
+        biometricPrompt.authenticate(biometricPromptInfo)
+
         //fallback - sometimes we not able to cancel BiometricPrompt properly
         try {
             val m = BiometricPrompt::class.java.declaredMethods.first {
@@ -480,7 +465,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.isSamsung || allList.isEmpty()))
         ) {
             ExecutorHelper.post {
-                cancelAuthenticate()
+                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -550,7 +535,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             ExecutorHelper.post {
-                cancelAuthenticate()
+                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -593,66 +578,4 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             )
         }
     }
-
-    //====================================================================================
-    //region Dummy crypto object that is used just to block Face, Iris scan
-    //====================================================================================
-    private val ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM
-    private val ENCRYPTION_PADDING = KeyProperties.ENCRYPTION_PADDING_NONE
-    private val ENCRYPTION_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
-    private val KEY_SIZE = 128
-
-    /**
-     * Crypto object requires STRONG biometric methods, and currently Android considers only
-     * FingerPrint auth is STRONG enough. Therefore, providing a crypto object while calling
-     * [androidx.biometric.BiometricPrompt.authenticate] will block Face and Iris Scan methods
-     */
-    private val cryptoObject by lazy {
-        getDummyCryptoObject()
-    }
-
-    @SuppressLint("NewApi")
-    private fun getDummyCryptoObject(): BiometricPrompt.CryptoObject {
-        val transformation = "$ENCRYPTION_ALGORITHM/$ENCRYPTION_BLOCK_MODE/$ENCRYPTION_PADDING"
-        val cipher = Cipher.getInstance(transformation)
-        var secKey = getOrCreateSecretKey(false)
-        try {
-            cipher.init(Cipher.ENCRYPT_MODE, secKey)
-        } catch (e: KeyPermanentlyInvalidatedException) {
-            e.printStackTrace()
-            secKey = getOrCreateSecretKey(true)
-            cipher.init(Cipher.ENCRYPT_MODE, secKey)
-        } catch (e: Exception) {
-            e(e, "BiometricPromptApi28Impl")
-        }
-        return BiometricPrompt.CryptoObject(cipher)
-    }
-
-    private fun getOrCreateSecretKey(mustCreateNew: Boolean): SecretKey {
-        val keyStore = KeyStore.getInstance("AndroidKeyStore")
-        keyStore.load(null)
-        if (!mustCreateNew) {
-            keyStore.getKey("dummyKey", null)?.let { return it as SecretKey }
-        }
-
-        val paramsBuilder = KeyGenParameterSpec.Builder(
-            "dummyKey",
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-        )
-        paramsBuilder.apply {
-            setBlockModes(ENCRYPTION_BLOCK_MODE)
-            setEncryptionPaddings(ENCRYPTION_PADDING)
-            setKeySize(KEY_SIZE)
-            setUserAuthenticationRequired(true)
-        }
-
-        val keyGenParams = paramsBuilder.build()
-        val keyGenerator = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
-            "AndroidKeyStore"
-        )
-        keyGenerator.init(keyGenParams)
-        return keyGenerator.generateKey()
-    }
-    //endregion
 }

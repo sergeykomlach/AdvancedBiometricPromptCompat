@@ -149,12 +149,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (BiometricManagerCompat.isHardwareDetected(request) &&
-                        BiometricManagerCompat.hasEnrolled(request) &&
-                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                            request
-                        )
-                    )
+                    if (BiometricManagerCompat.isBiometricReady(request))
                         list.add(type)
                 }
             } else {
@@ -164,12 +159,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (BiometricManagerCompat.isHardwareDetected(request) &&
-                        BiometricManagerCompat.hasEnrolled(request) &&
-                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                            request
-                        )
-                    )
+                    if (BiometricManagerCompat.isBiometricReady(request))
                         list.add(type)
                 }
             }
@@ -179,7 +169,7 @@ class BiometricPromptCompatDialogImpl(
             return if (list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]
         }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
-        e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
+        e( "BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
         checkInScreenVisibility()
     }
     private val onWindowFocusChangeListener: WindowFocusChangedListener =
@@ -189,20 +179,20 @@ class BiometricPromptCompatDialogImpl(
             }
 
             override fun hasFocus(hasFocus: Boolean) {
-                e("BiometricPromptGenericImplBiometricPromptGenericImpl.onWindowFocusChanged - fallback dialog $hasFocus")
+                e("BiometricPromptGenericImpl.onWindowFocusChanged - fallback dialog $hasFocus")
                 if (hasFocus) {
                     startAuth()
                 } else {
                     if (isMultiWindowHack) {
                         if (isInScreen && isInScreenUIHackNeeded) {
-                            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - inScreenDevice and app on top")
+                            e( "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - inScreenDevice and app on top")
                             return
                         } else {
-                            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - regular device in multiwindow")
+                            e( "BiometricPromptGenericImpl.onWindowFocusChanged - do not cancelAuth - regular device in multiwindow")
                             return
                         }
                     }
-                    e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.onWindowFocusChanged - cancelAuth")
+                    e( "BiometricPromptGenericImpl.onWindowFocusChanged - cancelAuth")
                     cancelAuth()
                 }
             }
@@ -210,7 +200,7 @@ class BiometricPromptCompatDialogImpl(
     private var originalColor: ColorStateList? = null
 
 
-    fun cancelAuthenticateBecauseOnPause(): Boolean {
+    fun cancelAuthenticationBecauseOnPause(): Boolean {
         return if (isMultiWindowHack) {
             false
         } else {
@@ -222,7 +212,9 @@ class BiometricPromptCompatDialogImpl(
     private fun attachWindowListeners() {
         try {
             val v = dialog.findViewById<View>(Window.ID_ANDROID_CONTENT)
-            dialog.setWindowFocusChangedListener(onWindowFocusChangeListener)
+            if(!isInScreen) {
+                dialog.setWindowFocusChangedListener(onWindowFocusChangeListener)
+            }
             v?.viewTreeObserver?.addOnGlobalLayoutListener(onGlobalLayoutListener)
         } catch (we: Throwable) {
             e(we)
@@ -232,7 +224,9 @@ class BiometricPromptCompatDialogImpl(
     private fun detachWindowListeners() {
         try {
             val v = dialog.findViewById<View>(Window.ID_ANDROID_CONTENT)
-            dialog.setWindowFocusChangedListener(null)
+            if(!isInScreen) {
+                dialog.setWindowFocusChangedListener(null)
+            }
             v?.viewTreeObserver?.removeOnGlobalLayoutListener(onGlobalLayoutListener)
         } catch (we: Throwable) {
             e(we)
@@ -248,12 +242,12 @@ class BiometricPromptCompatDialogImpl(
     //in case app switched to the SplitScreen mode we need to skip onPause on lost focus cases
     private val isMultiWindowHack: Boolean
         get() = if (compatBuilder.getMultiWindowSupport().isInMultiWindow && inProgress.get() && dialog.isShowing) {
-            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - perform hack")
+            e( "BiometricPromptGenericImpl.isMultiWindowHack - perform hack")
             authCallback?.stopAuth()
             authCallback?.startAuth()
             true
         } else {
-            e("BiometricPromptGenericImpl" + "BiometricPromptGenericImpl.isMultiWindowHack - do not perform hack")
+            e( "BiometricPromptGenericImpl.isMultiWindowHack - do not perform hack")
             false
         }
 

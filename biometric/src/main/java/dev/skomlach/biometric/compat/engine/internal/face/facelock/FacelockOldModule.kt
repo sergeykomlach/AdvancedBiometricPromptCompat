@@ -24,7 +24,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.view.View
 import androidx.core.os.CancellationSignal
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod

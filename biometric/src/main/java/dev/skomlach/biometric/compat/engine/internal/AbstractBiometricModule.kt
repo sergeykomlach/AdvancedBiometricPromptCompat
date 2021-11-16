@@ -22,7 +22,7 @@ package dev.skomlach.biometric.compat.engine.internal
 import android.content.Context
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.BuildConfig
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule

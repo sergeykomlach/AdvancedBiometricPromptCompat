@@ -61,7 +61,7 @@ object LogCat {
                                 FILTER
                             ))
                         ) {
-                            handler.post { log2ViewCallback!!.log(temp) }
+                            handler.post { log2ViewCallback?.log(temp) }
                         }
                     }
                 }

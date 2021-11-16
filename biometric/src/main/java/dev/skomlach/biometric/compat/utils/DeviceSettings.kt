@@ -115,7 +115,7 @@ object DeviceSettings {
             val p = Runtime.getRuntime().exec("getprop")
             val input = BufferedReader(InputStreamReader(p.inputStream))
             while (input.readLine()?.also { line = it } != null) {
-                m = pattern.matcher(line!!)
+                m = pattern.matcher(line ?: continue)
                 if (m.find()) {
                     val result = m.toMatchResult()
                     val key = result.group(1)

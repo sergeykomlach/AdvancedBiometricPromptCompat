@@ -19,7 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
 
 data class AuthResult(
     val authResultState: AuthResultState,

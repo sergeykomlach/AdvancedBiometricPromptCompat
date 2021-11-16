@@ -24,6 +24,8 @@ import android.annotation.TargetApi
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
 import androidx.core.os.CancellationSignal
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener

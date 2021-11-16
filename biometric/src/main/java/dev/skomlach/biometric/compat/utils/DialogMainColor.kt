@@ -30,17 +30,21 @@ import dev.skomlach.common.misc.Utils
 object DialogMainColor {
     @ColorInt
     fun getColor(context: Context, isNightMode: Boolean): Int {
-        return if (Utils.isAtLeastS) {
+        if (Utils.isAtLeastS) {
             val monetColors = SystemColorScheme(context)
-            if (isNightMode) monetColors.neutral1[900]!!.toArgb()
-            else
-                monetColors.neutral1[50]!!.toArgb()
-        } else {
-            if (isNightMode) {
-                ContextCompat.getColor(context, R.color.black)
-            } else {
-                ContextCompat.getColor(context, R.color.material_grey_50)
+            if (isNightMode) monetColors.neutral1[900]?.toArgb()?.let {
+                return it
             }
+            else
+                monetColors.neutral1[50]?.toArgb()?.let {
+                    return it
+                }
         }
+        return if (isNightMode) {
+            ContextCompat.getColor(context, R.color.black)
+        } else {
+            ContextCompat.getColor(context, R.color.material_grey_50)
+        }
+
     }
 }

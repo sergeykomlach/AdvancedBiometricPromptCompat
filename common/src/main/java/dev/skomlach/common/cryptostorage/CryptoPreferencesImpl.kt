@@ -24,6 +24,7 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Build
 import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
 import dev.skomlach.common.contextprovider.AndroidContext.locale
@@ -32,21 +33,11 @@ import java.util.*
 
 class CryptoPreferencesImpl internal constructor(context: Context, name: String) :
     SharedPreferences {
-    /*
-    * For some reasons, AndroidX Security throws exception where not should.
-    * This is a "soft" workaround for this bug.
-    * Bug applicable at least for androidx.security:security-crypto:1.1.0-alpha02
-    * 
-    * I believe that issue related to the Android KeyStore internal code -
-    *  perhaps some data remains in keystore after app delete or "Clear app data" call
-
-       "Caused by java.lang.SecurityException: Could not decrypt value. decryption failed
-       at androidx.security.crypto.EncryptedSharedPreferences.getDecryptedObject(EncryptedSharedPreferences.java:580)
-       at androidx.security.crypto.EncryptedSharedPreferences.getLong(EncryptedSharedPreferences.java:437)"
-    *
-    */
-
     companion object {
+        private const val VERSION_1: Int = 1
+        private const val VERSION_2: Int = 2
+        private const val CURRENT_VERSION: Int = VERSION_2
+
         //workaround for known date parsing issue in KeyPairGenerator
         private fun setLocale(context: Context, locale: Locale) {
             Locale.setDefault(locale)
@@ -60,39 +51,80 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
     private var sharedPreferences: SharedPreferences
 
     init {
-        val defaultLocale = locale
-        val fallbackCheck = context.getSharedPreferences("FallbackCheck", Context.MODE_PRIVATE)
-        val forceToFallback = fallbackCheck.getBoolean("forceToFallback", false)
-        var pref: SharedPreferences? = null
-        //AndroidX Security impl.
-        //may produce exceptions on some devices (Huawei)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !forceToFallback) {
-            try {
-                setLocale(context, Locale.US)
-                val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
-                val masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
-                pref = EncryptedSharedPreferences
-                    .create(
-                        name,
-                        masterKeyAlias,
-                        context,
-                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-                    )
-            } catch (e: Exception) {
-                pref = null
-                setLocale(context, defaultLocale)
-                fallbackCheck.edit().putBoolean("forceToFallback", true).apply()
-            }
-        }
+        sharedPreferences = if (CURRENT_VERSION == VERSION_2) {
+            SharedPreferencesMigrationHelper.migrate(
+                context,
+                name,
+                initV1(context, name),
+                initV2(context, name)
+            )
+            initV2(context, name)
+        } else
+            initV1(context, name)
+    }
 
-        //fallback
-        if (pref == null) {
+    private fun initV1(
+        context: Context,
+        name: String
+    ): SharedPreferences {
+        val defaultLocale = locale
+        try {
             setLocale(context, Locale.US)
-            pref = SecurePreferences(context, null, name, 5000)
+            val fallbackCheck = context.getSharedPreferences("FallbackCheck", Context.MODE_PRIVATE)
+            val forceToFallback = fallbackCheck.getBoolean("forceToFallback", false)
+            var pref: SharedPreferences? = null
+            //AndroidX Security impl.
+            //may produce exceptions on some devices (Huawei)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !forceToFallback) {
+                try {
+                    val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
+                    val masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
+                    pref = EncryptedSharedPreferences
+                        .create(
+                            name,
+                            masterKeyAlias,
+                            context,
+                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                        )
+                } catch (e: Exception) {
+                    pref = null
+                    fallbackCheck.edit().putBoolean("forceToFallback", true).apply()
+                }
+            }
+
+            //fallback
+            if (pref == null) {
+                pref = SecurePreferences(context, null, name, 5000)
+            }
+            return pref
+        } finally {
+            setLocale(context, defaultLocale)
         }
-        setLocale(context, defaultLocale)
-        sharedPreferences = pref
+    }
+
+    private fun initV2(
+        context: Context,
+        name: String
+    ): SharedPreferences {
+        val defaultLocale = locale
+        setLocale(context, Locale.US)
+        return try {
+            val masterKeyAlias =
+                MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+            EncryptedSharedPreferences
+                .create(
+                    context,
+                    "$name-EncrV2",
+                    masterKeyAlias,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+        } finally {
+            setLocale(context, defaultLocale)
+        }
     }
 
     private fun checkAndDeleteIfNeed(key: String?, e: Throwable): Boolean {

@@ -22,13 +22,10 @@ package dev.skomlach.biometric.compat.impl
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.AuthenticationHelpReason
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication.authenticate
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication.availableBiometricMethods
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication.cancelAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
-import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInstantly
@@ -37,7 +34,6 @@ import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.isNightMode
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -76,20 +72,20 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         onUiOpened()
     }
 
-    override fun cancelAuthenticate() {
-        d("BiometricPromptGenericImpl.cancelAuthenticate():")
+    override fun cancelAuthentication() {
+        d("BiometricPromptGenericImpl.cancelAuthentication():")
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
         onUiClosed()
     }
 
-    override fun cancelAuthenticateBecauseOnPause(): Boolean {
-        d("BiometricPromptGenericImpl.cancelAuthenticateBecauseOnPause():")
+    override fun cancelAuthenticationBecauseOnPause(): Boolean {
+        d("BiometricPromptGenericImpl.cancelAuthenticationBecauseOnPause():")
         return if (dialog != null) {
-            dialog?.cancelAuthenticateBecauseOnPause() == true
+            dialog?.cancelAuthenticationBecauseOnPause() == true
         } else {
-            cancelAuthenticate()
+            cancelAuthentication()
             true
         }
     }
@@ -158,7 +154,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             ExecutorHelper.post {
-                cancelAuthenticate()
+                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS

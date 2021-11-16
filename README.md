@@ -202,9 +202,9 @@ Simplest builder:
 `fun authenticate(BiometricPromptCompat.AuthenticationCallback)` - start biometric
 auth workflow
 
-`fun cancelAuthenticate()` - cancel active biometric auth workflow
+`fun cancelAuthentication()` - cancel active biometric auth workflow
 
-`fun cancelAuthenticateBecauseOnPause(): Boolean` - Useful if you need to allow biometric auth in
+`fun cancelAuthenticationBecauseOnPause(): Boolean` - Useful if you need to allow biometric auth in
 Split-Screen mode; Recommended to call this method in `onPause()` and use returned value to avoid
 biometric auth restart.   
 Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true`

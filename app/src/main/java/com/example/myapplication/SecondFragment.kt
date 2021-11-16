@@ -38,14 +38,14 @@ import com.example.myapplication.utils.MailTo
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
 class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
-    lateinit var scrollView: ScrollView
-    lateinit var logs: TextView
-    var autoscroll = true
+    private var scrollView: ScrollView? = null
+    private var logs: TextView? = null
+    private var autoscroll = true
     private var _binding: FragmentSecondBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
-    private val binding get() = _binding!!
+    private val binding get() = _binding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,14 +53,14 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
     ): View? {
 
         _binding = FragmentSecondBinding.inflate(inflater, container, false)
-        return binding.root
+        return binding?.root
     }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        scrollView = binding.scrollView
-        scrollView.setOnTouchListener(OnTouchListener { _, event ->
+        scrollView = binding?.scrollView
+        scrollView?.setOnTouchListener(OnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 autoscroll = false
             } else if (event.action == MotionEvent.ACTION_UP) {
@@ -68,17 +68,17 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
             }
             false
         })
-        logs = binding.logs
-        logs.setOnLongClickListener {
+        logs = binding?.logs
+        logs?.setOnLongClickListener {
             MailTo.startMailClient(
                 requireActivity(),
                 "s.komlach@gmail.com",
                 "Advanced BiometricPromptCompat Logs",
-                logs.text.toString()
+                logs?.text.toString()
             )
             true
         }
-        binding.buttonSecond.setOnClickListener {
+        binding?.buttonSecond?.setOnClickListener {
             NavHostFragment.findNavController(this@SecondFragment)
                 .navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
@@ -92,11 +92,11 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
     }
 
     override fun log(log: String?) {
-        val sb: StringBuilder = StringBuilder(logs.text)
+        val sb: StringBuilder = StringBuilder(logs?.text ?: "")
         sb.append(log).append("\n")
-        logs.text = sb.toString()
+        logs?.text = sb.toString()
         if (autoscroll) {
-            scrollView.smoothScrollTo(0, logs.bottom)
+            scrollView?.smoothScrollTo(0, logs?.bottom ?: return)
         }
     }
 }

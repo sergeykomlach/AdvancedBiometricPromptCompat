@@ -21,12 +21,13 @@
 buildscript {
     ext.kotlin_version = '1.5.31'
     ext.minSDK = 16
+    ext.compileSDK = 31
     ext.targetSDK = 31
     ext.javaVersion = JavaVersion.VERSION_1_8
 
 
     ext.libsMajorVersion = '2.0'
-    ext.libsMinorVersion = 30
+    ext.libsMinorVersion = 37
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
