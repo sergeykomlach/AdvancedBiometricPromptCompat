@@ -26,7 +26,7 @@ dependencies {
     implementation project(":" + libArtifactId_common)
     compileOnly project(":" + libArtifactId_biometric_api)
 //    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'com.google.guava:guava:31.0.1-aжndroid'
+    implementation 'com.google.guava:guava:31.0.1-android'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:2.0'
     implementation 'com.jaredrummler:android-device-names:2.0.0'
