@@ -35,7 +35,7 @@ object SystemPropertiesProxy {
      */
 
     @Throws(IllegalArgumentException::class)
-    fun get(context: Context, key: String): String? {
+    fun get(context: Context, key: String): String {
         var ret = ""
         try {
             val cl = context.classLoader
@@ -67,7 +67,7 @@ object SystemPropertiesProxy {
      */
 
     @Throws(IllegalArgumentException::class)
-    fun get(context: Context, key: String, def: String): String? {
+    fun get(context: Context, key: String, def: String): String {
         var ret = def
         try {
             val cl = context.classLoader
@@ -104,7 +104,7 @@ object SystemPropertiesProxy {
      */
 
     @Throws(IllegalArgumentException::class)
-    fun getInt(context: Context, key: String, def: Int): Int? {
+    fun getInt(context: Context, key: String, def: Int): Int {
         var ret = def
         try {
             val cl = context.classLoader
@@ -141,7 +141,7 @@ object SystemPropertiesProxy {
      */
 
     @Throws(IllegalArgumentException::class)
-    fun getLong(context: Context, key: String, def: Long): Long? {
+    fun getLong(context: Context, key: String, def: Long): Long {
         var ret = def
         try {
             val cl = context.classLoader
@@ -183,7 +183,7 @@ object SystemPropertiesProxy {
      */
 
     @Throws(IllegalArgumentException::class)
-    fun getBoolean(context: Context, key: String, def: Boolean): Boolean? {
+    fun getBoolean(context: Context, key: String, def: Boolean): Boolean {
         var ret = def
         try {
             val cl = context.classLoader

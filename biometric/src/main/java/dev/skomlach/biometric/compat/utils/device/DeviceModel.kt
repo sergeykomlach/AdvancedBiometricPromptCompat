@@ -34,10 +34,19 @@ import kotlin.collections.HashSet
 
 object DeviceModel {
 
-    private val brand = (Build.BRAND ?: "").replace("  ", " ")
+    private var brand = (Build.BRAND ?: "").replace("  ", " ")
     private val model = (Build.MODEL ?: "").replace("  ", " ")
     private val device = (Build.DEVICE ?: "").replace("  ", " ")
 
+    init {
+        if(brand == "Amazon") {
+            SystemPropertiesProxy.get(AndroidContext.appContext, "ro.build.characteristics").let {
+                if (it == "tablet")
+                    brand = "$brand Kindle"
+            }
+        }
+
+    }
     fun getNames(): Set<String> {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
@@ -80,7 +89,12 @@ object DeviceModel {
     }
 
     private fun getSimpleDeviceName(): String? {
-        SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name")?.let {
+        SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name").let {
+            if(it.isNotEmpty())
+            return getName(brand, it)
+        }
+        SystemPropertiesProxy.get(AndroidContext.appContext, "ro.camera.model").let {
+            if(it.isNotEmpty())
             return getName(brand, it)
         }
         return null
