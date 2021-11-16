@@ -221,10 +221,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         var found = false
                         for (v in builder.getPrimaryAvailableTypes()) {
                             val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
-                            if (isHardwareDetected(request) && hasEnrolled(request) && (!isLockOut(
-                                    request
-                                ) && !isBiometricSensorPermanentlyLocked(request))
-                            ) {
+                            if (BiometricManagerCompat.isBiometricReady(request)){
                                 found = true
                                 break
                             }
@@ -570,18 +567,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             )
                         }"
                     )
-                    if (isHardwareDetected(request) && hasEnrolled(request) && (!isLockOut(request) && !isBiometricSensorPermanentlyLocked(
-                            request
-                        ))
-                    ) {
+                    if (BiometricManagerCompat.isBiometricReady(request)){
                         types.add(type)
                     }
                 }
             } else {
-                if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest) && (!isLockOut(
-                        biometricAuthRequest
-                    ) && !isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-                )
+                if (BiometricManagerCompat.isBiometricReady(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
             }
             types
@@ -604,18 +595,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                             }"
                         )
-                        if (isHardwareDetected(request) && hasEnrolled(request) && (!isLockOut(
-                                request
-                            ) && !isBiometricSensorPermanentlyLocked(request))
-                        ) {
+                        if (BiometricManagerCompat.isBiometricReady(request)) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (isHardwareDetected(biometricAuthRequest) && hasEnrolled(biometricAuthRequest) && (!isLockOut(
-                            biometricAuthRequest
-                        ) && !isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-                    )
+                    if (BiometricManagerCompat.isBiometricReady(biometricAuthRequest))
                         types.add(biometricAuthRequest.type)
                 }
                 types.removeAll(primaryAvailableTypes)

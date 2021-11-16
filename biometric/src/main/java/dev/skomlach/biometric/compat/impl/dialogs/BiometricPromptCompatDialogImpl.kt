@@ -149,12 +149,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (BiometricManagerCompat.isHardwareDetected(request) &&
-                        BiometricManagerCompat.hasEnrolled(request) &&
-                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                            request
-                        )
-                    )
+                    if (BiometricManagerCompat.isBiometricReady(request))
                         list.add(type)
                 }
             } else {
@@ -164,12 +159,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (BiometricManagerCompat.isHardwareDetected(request) &&
-                        BiometricManagerCompat.hasEnrolled(request) &&
-                        !BiometricManagerCompat.isLockOut(request) && !BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                            request
-                        )
-                    )
+                    if (BiometricManagerCompat.isBiometricReady(request))
                         list.add(type)
                 }
             }
