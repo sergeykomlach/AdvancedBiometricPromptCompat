@@ -161,30 +161,35 @@ class PermissionsFragment : Fragment() {
             UnusedAppRestrictionsConstants.FEATURE_NOT_AVAILABLE,
                 // Restrictions have been disabled by the user for your app.
             UnusedAppRestrictionsConstants.DISABLED -> {
-                val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-                if (!permissions.any {
-                        ActivityCompat.shouldShowRequestPermissionRationale(
-                            requireActivity(),
-                            it
-                        )
-                    } && (SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions")
-                        .getBoolean("denied", false))
-                ) {
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    val uri = Uri.fromParts("package", requireActivity().packageName, null)
-                    intent.data = uri
-                    startActivity(intent)
-                } else
-                    ExecutorHelper.postDelayed({
-                        try {
-                            activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
-                                ?.commitNowAllowingStateLoss()
-                        } catch (e: Throwable){
-                            e("PermissionsFragment", e.message, e)
-                        }
-                    }, 250)
+                unusedAppRestrictionsDisabled()
             }
         }
+    }
+
+    private fun unusedAppRestrictionsDisabled(){
+        permissionsRequestState = PermissionRequestState.MANUAL_REQUEST
+        val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
+        if (!permissions.any {
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    requireActivity(),
+                    it
+                )
+            } && (SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions")
+                .getBoolean("denied", false))
+        ) {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            val uri = Uri.fromParts("package", requireActivity().packageName, null)
+            intent.data = uri
+            startActivity(intent)
+        } else
+            ExecutorHelper.postDelayed({
+                try {
+                    activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                        ?.commitNowAllowingStateLoss()
+                } catch (e: Throwable){
+                    e("PermissionsFragment", e.message, e)
+                }
+            }, 250)
     }
 
     private fun handleRestrictions() {
@@ -296,12 +301,16 @@ class PermissionsFragment : Fragment() {
             ?: getString("global_action_settings")
         val title = getString("grant_permissions_header_text")
         if (text.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
-            val future: ListenableFuture<Int> =
-                PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
-            future.addListener(
-                { onResult(future.get()) },
-                ContextCompat.getMainExecutor(requireActivity())
-            )
+            try {
+                val future: ListenableFuture<Int> =
+                    PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
+                future.addListener(
+                    { onResult(future.get()) },
+                    ContextCompat.getMainExecutor(requireActivity())
+                )
+            } catch (e: Throwable){
+                unusedAppRestrictionsDisabled()
+            }
         }
 
         AlertDialog.Builder(requireActivity()).apply {
@@ -320,12 +329,16 @@ class PermissionsFragment : Fragment() {
             }
             setPositiveButton(button) { dialog, _ ->
                 dialog.dismiss()
+                try{
                 val future: ListenableFuture<Int> =
                     PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
                 future.addListener(
                     { onResult(future.get()) },
                     ContextCompat.getMainExecutor(requireActivity())
                 )
+                } catch (e: Throwable){
+                    unusedAppRestrictionsDisabled()
+                }
             }
         }.show()
     }
