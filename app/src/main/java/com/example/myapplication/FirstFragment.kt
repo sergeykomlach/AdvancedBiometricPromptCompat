@@ -45,7 +45,7 @@ class FirstFragment : Fragment() {
 
     // This property is only valid between onCreateView and
     // onDestroyView.
-    private val binding get() = _binding!!
+    private val binding get() = _binding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -61,41 +61,41 @@ class FirstFragment : Fragment() {
             )
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
-                    fillList(inflater, binding.buttonsList)
+                    fillList(inflater, binding?.buttonsList)
                     checkDeviceInfo()
                     dialog.dismiss()
                 }
             })
         } else {
-            fillList(inflater, binding.buttonsList)
+            fillList(inflater, binding?.buttonsList)
         }
-        binding.checkbox.isChecked =
+        binding?.checkbox?.isChecked =
             SharedPreferenceProvider.getCryptoPreferences("fullscreen").getBoolean("checked", false)
 
-        binding.checkbox.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding?.checkbox?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getCryptoPreferences("fullscreen").edit()
                 .putBoolean("checked", isChecked).apply()
             (activity as MainActivity).updateFullScreen()
         }
-        binding.buttonFirst.setOnClickListener {
+        binding?.buttonFirst?.setOnClickListener {
             NavHostFragment.findNavController(this@FirstFragment)
                 .navigate(R.id.action_FirstFragment_to_SecondFragment)
         }
-        binding.buttonSecond.setOnClickListener {
+        binding?.buttonSecond?.setOnClickListener {
             (activity as MainActivity).showDialog()
         }
-        binding.buttonThird.setOnClickListener {
+        binding?.buttonThird?.setOnClickListener {
             activity?.startActivity(LeakCanary.newLeakDisplayActivityIntent())
         }
-        return binding.root
+        return binding?.root
     }
 
     private fun checkDeviceInfo() {
         val deviceInfo = BiometricPromptCompat.deviceInfo
-        binding.text.text = deviceInfo.toString()
+        binding?.text?.text = deviceInfo.toString()
     }
 
-    private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout) {
+    private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout?) {
         for (authRequest in App.authRequestList) {
             val container: FrameLayout =
                 inflater.inflate(R.layout.button, buttonsList, false) as FrameLayout
@@ -104,7 +104,7 @@ class FirstFragment : Fragment() {
             button.setOnClickListener {
                 startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type))
             }
-            buttonsList.addView(container)
+            buttonsList?.addView(container)
         }
     }
 
