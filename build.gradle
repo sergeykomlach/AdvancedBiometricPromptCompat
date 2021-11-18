@@ -19,7 +19,7 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.5.31'
+    ext.kotlin_version = '1.6.0'
     ext.minSDK = 16
     ext.compileSDK = 31
     ext.targetSDK = 31
@@ -27,7 +27,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.0'
-    ext.libsMinorVersion = 37
+    ext.libsMinorVersion = 38
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -82,6 +82,7 @@ allprojects {
         //by default the build will never fail
         failBuildOnCVSS = 11//do not fail if any vulnerability detected
     }
+
 }
 
 subprojects { project ->
