@@ -53,6 +53,10 @@ enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
         BiometricType.BIOMETRIC_FACE
     ),  //old FaceLock impl
 
+    FACE_ONEPLUS(
+        210,
+        BiometricType.BIOMETRIC_FACE
+    ),  //old FaceLock impl
     //https://forum.xda-developers.com/showthread.php?p=25572510#post25572510
     FACELOCK(
         299,

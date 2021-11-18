@@ -37,6 +37,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnl
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockModule
+import dev.skomlach.biometric.compat.engine.internal.face.oneplus.OnePlusFacelockModule
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule
@@ -94,6 +95,7 @@ object BiometricAuthentication {
         if (Build.VERSION.SDK_INT >= 26) {
             allMethods.add(BiometricMethod.FACE_VIVO)
             allMethods.add(BiometricMethod.FACE_HUAWEI)
+            allMethods.add(BiometricMethod.FACE_ONEPLUS)
         }
         //Android biometric - Pie (9.0)
         if (Build.VERSION.SDK_INT >= 28) {
@@ -163,6 +165,7 @@ object BiometricAuthentication {
                             BiometricMethod.FACE_SAMSUNG -> SamsungFaceUnlockModule(initListener)
                             BiometricMethod.FACE_ANDROIDAPI -> AndroidFaceUnlockModule(initListener)
                             BiometricMethod.FACE_VIVO -> VivoFaceUnlockModule(initListener)
+                            BiometricMethod.FACE_ONEPLUS -> OnePlusFacelockModule(initListener)
                             BiometricMethod.IRIS_SAMSUNG -> SamsungIrisUnlockModule(initListener)
                             BiometricMethod.IRIS_ANDROIDAPI -> AndroidIrisUnlockModule(initListener)
                             else -> throw IllegalStateException("Uknowon biometric type - $method")
@@ -294,6 +297,10 @@ object BiometricAuthentication {
             if (biometricModule is FacelockOldModule) {
                 biometricModule.stopAuth()
             }
+            else if (biometricModule is OnePlusFacelockModule) {
+                biometricModule.stopAuth()
+            }
+
         }
         Core.cancelAuthentication()
     }
