@@ -66,11 +66,6 @@ enum class AuthenticationFailureReason {
     AUTHENTICATION_FAILED,
 
     /**
-     * Permissions missing
-     */
-    PERMISSIONS_REQUIRED,
-
-    /**
      * The authentication failed for an unknown reason.
      */
     UNKNOWN,

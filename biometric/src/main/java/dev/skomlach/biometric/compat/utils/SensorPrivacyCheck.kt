@@ -22,7 +22,11 @@ package dev.skomlach.biometric.compat.utils
 import android.Manifest
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
+import android.content.Context
 import android.hardware.SensorPrivacyManager
+import android.hardware.camera2.CameraManager
+import android.media.AudioManager
+import android.media.AudioRecordingConfiguration
 import android.os.Build
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
@@ -32,9 +36,28 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
 
-@TargetApi(Build.VERSION_CODES.S)
 
 object SensorPrivacyCheck {
+    private var cameraManager: CameraManager? = null
+    private var cameraCallback: CameraManager.AvailabilityCallback? = null
+
+    private var audioManager: AudioManager? = null
+    private var micCallback: AudioManager.AudioRecordingCallback? = null
+    private var isCameraInUse = false
+    private var isMicInUse = false
+
+    init {
+        startCallBacks(AndroidContext.appContext)
+    }
+
+    fun isMicrophoneInUse(): Boolean {
+        return isMicInUse
+    }
+
+    fun isCameraInUse(): Boolean {
+        return isCameraInUse
+    }
+
     fun isMicrophoneBlocked(): Boolean {
         return Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.MICROPHONE)
     }
@@ -43,42 +66,104 @@ object SensorPrivacyCheck {
         return Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
     }
 
+    @TargetApi(Build.VERSION_CODES.S)
     @SuppressLint("PrivateApi", "BlockedPrivateApi")
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
-        try{
-        val sensorPrivacyManager: SensorPrivacyManager? =
-            AndroidContext.appContext.getSystemService(SensorPrivacyManager::class.java)
-        if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
-            try {
-                val permissionToOp: String =
-                    AppOpCompatConstants.getAppOpFromPermission(
-                        if (sensor == SensorPrivacyManager.Sensors.CAMERA)
-                            Manifest.permission.CAMERA else Manifest.permission.RECORD_AUDIO
-                    ) ?: return false
+        try {
+            val sensorPrivacyManager: SensorPrivacyManager? =
+                AndroidContext.appContext.getSystemService(SensorPrivacyManager::class.java)
+            if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
+                try {
+                    val permissionToOp: String =
+                        AppOpCompatConstants.getAppOpFromPermission(
+                            if (sensor == SensorPrivacyManager.Sensors.CAMERA)
+                                Manifest.permission.CAMERA else Manifest.permission.RECORD_AUDIO
+                        ) ?: return false
 
-                val noteOp: Int = try {
-                    AppOpsManagerCompat.noteOpNoThrow(
-                        AndroidContext.appContext,
-                        permissionToOp,
-                        Process.myUid(),
-                        AndroidContext.appContext.packageName
-                    )
-                } catch (ignored: Throwable) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                        PermissionUtils.appOpPermissionsCheckMiui(
+                    val noteOp: Int = try {
+                        AppOpsManagerCompat.noteOpNoThrow(
+                            AndroidContext.appContext,
                             permissionToOp,
                             Process.myUid(),
                             AndroidContext.appContext.packageName
-                        ) else AppOpsManagerCompat.MODE_IGNORED
+                        )
+                    } catch (ignored: Throwable) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                            PermissionUtils.appOpPermissionsCheckMiui(
+                                permissionToOp,
+                                Process.myUid(),
+                                AndroidContext.appContext.packageName
+                            ) else AppOpsManagerCompat.MODE_IGNORED
+                    }
+                    return noteOp != AppOpsManagerCompat.MODE_ALLOWED
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
                 }
-                return noteOp != AppOpsManagerCompat.MODE_ALLOWED
-            } catch (e: Throwable) {
-               BiometricLoggerImpl.e(e)
             }
-        }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
         return false
     }
+
+    private fun startCallBacks(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (cameraManager == null) cameraManager =
+                context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            cameraManager?.registerAvailabilityCallback(getCameraCallback(), null)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (audioManager == null) audioManager =
+                context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            audioManager?.registerAudioRecordingCallback(getMicCallback(), null)
+        }
+
+    }
+
+    private fun stopCallBacks() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            unRegisterCameraCallBack()
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            unRegisterMicCallback()
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun getCameraCallback(): CameraManager.AvailabilityCallback {
+        cameraCallback = object : CameraManager.AvailabilityCallback() {
+            override fun onCameraAvailable(cameraId: String) {
+                super.onCameraAvailable(cameraId)
+                isCameraInUse = false
+            }
+
+            override fun onCameraUnavailable(cameraId: String) {
+                super.onCameraUnavailable(cameraId)
+                isCameraInUse = true
+            }
+        }
+        return cameraCallback as CameraManager.AvailabilityCallback
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    private fun getMicCallback(): AudioManager.AudioRecordingCallback {
+        micCallback = object : AudioManager.AudioRecordingCallback() {
+            override fun onRecordingConfigChanged(configs: List<AudioRecordingConfiguration>) {
+                super.onRecordingConfigChanged(configs)
+                isMicInUse = configs.isNotEmpty()
+            }
+        }
+        return micCallback as AudioManager.AudioRecordingCallback
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun unRegisterCameraCallBack() {
+        cameraManager?.unregisterAvailabilityCallback(cameraCallback ?: return)
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    private fun unRegisterMicCallback() {
+        audioManager?.unregisterAudioRecordingCallback(micCallback ?: return)
+    }
+
 }
