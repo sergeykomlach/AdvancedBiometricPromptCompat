@@ -30,8 +30,9 @@ import android.os.Bundle
 import android.view.*
 import androidx.collection.LruCache
 import androidx.core.util.ObjectsCompat
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.window.WindowHelper
-import com.jakewharton.rxrelay2.PublishRelay
 import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appInstance
@@ -39,14 +40,12 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
-import io.reactivex.disposables.Disposable
-import io.reactivex.functions.Consumer
 
 class MultiWindowSupport(private val activity: Activity) {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
-        private val activityResumedRelay = PublishRelay.create<Activity>()
-        private val activityDestroyedRelay = PublishRelay.create<Activity>()
+        private val activityResumedRelay = MutableLiveData<Activity>()
+        private val activityDestroyedRelay = MutableLiveData<Activity>()
 
         init {
             appInstance
@@ -59,11 +58,11 @@ class MultiWindowSupport(private val activity: Activity) {
 
                     override fun onActivityStarted(activity: Activity) {}
                     override fun onActivityResumed(activity: Activity) {
-                        activityResumedRelay.accept(activity)
+                        activityResumedRelay.postValue(activity)
                     }
 
                     override fun onActivityPaused(activity: Activity) {
-                        activityResumedRelay.accept(activity)
+                        activityResumedRelay.postValue(activity)
                     }
 
                     override fun onActivityStopped(activity: Activity) {}
@@ -74,7 +73,7 @@ class MultiWindowSupport(private val activity: Activity) {
                     }
 
                     override fun onActivityDestroyed(activity: Activity) {
-                        activityDestroyedRelay.accept(activity)
+                        activityDestroyedRelay.postValue(activity)
                     }
                 })
         }
@@ -94,24 +93,21 @@ class MultiWindowSupport(private val activity: Activity) {
         }
     }
 
-    private lateinit var subscribeOnResume: Disposable
-    private lateinit var subscribeOnDestroy: Disposable
     private var isActive = false
     private var isMultiWindow = false
     private var isWindowOnScreenBottom = false
 
-    private val onDestroyListener: Consumer<Activity> = Consumer { activity1 ->
+    private val onDestroyListener: Observer<Activity> = Observer { activity1 ->
         if (ObjectsCompat.equals(activity1, activity)) {
             try {
-                subscribeOnResume.dispose()
-                subscribeOnDestroy.dispose()
+                stopObserve()
             } catch (e: Exception) {
                 logException(e)
             }
         }
     }
     private var currentConfiguration: Configuration? = null
-    private val onResumedListener: Consumer<Activity> = Consumer { activity1 ->
+    private val onResumedListener: Observer<Activity> = Observer { activity1 ->
         if (ObjectsCompat.equals(activity1, activity)) {
             try {
                 if (!isActivityFinished(activity)) {
@@ -124,31 +120,32 @@ class MultiWindowSupport(private val activity: Activity) {
     }
 
     init {
-        subscribeOnResume = subscribeOnResume()
-        subscribeOnDestroy = subscribeOnDestroy()
+        startObserve()
         start()
     }
 
     fun start() {
         if (!isActive) {
             isActive = true
-            activityResumedRelay.accept(activity)
+            activityResumedRelay.postValue(activity)
         }
     }
 
     fun finish() {
         if (isActive) {
-            activityDestroyedRelay.accept(activity)
+            activityDestroyedRelay.postValue(activity)
             ExecutorHelper.post { isActive = false }
         }
     }
 
-    private fun subscribeOnResume(): Disposable {
-        return activityResumedRelay.subscribe(onResumedListener)
+    private fun startObserve() {
+        activityResumedRelay.observeForever(onResumedListener)
+        activityDestroyedRelay.observeForever(onDestroyListener)
     }
 
-    private fun subscribeOnDestroy(): Disposable {
-        return activityDestroyedRelay.subscribe(onDestroyListener)
+    private fun stopObserve() {
+        activityResumedRelay.removeObserver(onResumedListener)
+        activityDestroyedRelay.removeObserver(onDestroyListener)
     }
 
     private fun updateState() {
