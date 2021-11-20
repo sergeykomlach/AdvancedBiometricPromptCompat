@@ -81,16 +81,18 @@ class CryptoWrapper private constructor() {
                 setLocale(appContext, Locale.US)
                 //fallback for L and older
                 val securePreferences = SecurePreferences(appContext, 5000)
-                val field = SecurePreferences::class.java.getDeclaredField("keys")
-                val isAccessible = field.isAccessible
-                if (!isAccessible) {
-                    field.isAccessible = true
+                val field = SecurePreferences::class.java.declaredFields.firstOrNull {
+                    it.type == SecretKeys::class.java
                 }
-                val keys = field[securePreferences] as SecretKeys
+                val isAccessible = field?.isAccessible ?: true
                 if (!isAccessible) {
-                    field.isAccessible = false
+                    field?.isAccessible = true
                 }
-                secretKey = keys.confidentialityKey
+                val keys = field?.let { it[securePreferences] as SecretKeys } ?: kotlin.run { null }
+                if (!isAccessible) {
+                    field?.isAccessible = false
+                }
+                secretKey = keys?.confidentialityKey
                 TRANSFORMATION = "AES/CBC/PKCS5Padding"
             } catch (e: Throwable) {
                 LogCat.logException(e)
