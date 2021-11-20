@@ -24,6 +24,7 @@ import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
 import android.hardware.SensorPrivacyManager
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.media.AudioRecordingConfiguration
@@ -47,7 +48,7 @@ object SensorPrivacyCheck {
     private var isMicInUse = false
 
     init {
-        startCallBacks(AndroidContext.appContext)
+        startListeners(AndroidContext.appContext)
     }
 
     fun isMicrophoneInUse(): Boolean {
@@ -106,26 +107,33 @@ object SensorPrivacyCheck {
         return false
     }
 
-    private fun startCallBacks(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (cameraManager == null) cameraManager =
-                context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            cameraManager?.registerAvailabilityCallback(getCameraCallback(), null)
+    private fun startListeners(context: Context) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (cameraManager == null) cameraManager =
+                    context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                cameraManager?.registerAvailabilityCallback(getCameraCallback(), null)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (audioManager == null) audioManager =
+                    context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioManager?.registerAudioRecordingCallback(getMicCallback(), null)
+            }
+        } catch (e: Throwable){
+            BiometricLoggerImpl.e(e)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            if (audioManager == null) audioManager =
-                context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            audioManager?.registerAudioRecordingCallback(getMicCallback(), null)
-        }
-
     }
 
-    private fun stopCallBacks() {
+    private fun stopListeners() {
+        try{
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             unRegisterCameraCallBack()
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             unRegisterMicCallback()
+        }
+        } catch (e: Throwable){
+            BiometricLoggerImpl.e(e)
         }
     }
 
@@ -134,12 +142,20 @@ object SensorPrivacyCheck {
         cameraCallback = object : CameraManager.AvailabilityCallback() {
             override fun onCameraAvailable(cameraId: String) {
                 super.onCameraAvailable(cameraId)
-                isCameraInUse = false
+                cameraManager?.getCameraCharacteristics(cameraId)?.let {
+                    if(it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
+                        isCameraInUse = false
+                    }
+                }
             }
 
             override fun onCameraUnavailable(cameraId: String) {
                 super.onCameraUnavailable(cameraId)
-                isCameraInUse = true
+                cameraManager?.getCameraCharacteristics(cameraId)?.let {
+                    if(it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
+                        isCameraInUse = true
+                    }
+                }
             }
         }
         return cameraCallback as CameraManager.AvailabilityCallback
