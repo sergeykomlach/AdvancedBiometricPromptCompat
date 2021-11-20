@@ -35,6 +35,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
+import android.hardware.camera2.CameraCharacteristics
 
 
 object SensorPrivacyCheck {
@@ -134,12 +135,22 @@ object SensorPrivacyCheck {
         cameraCallback = object : CameraManager.AvailabilityCallback() {
             override fun onCameraAvailable(cameraId: String) {
                 super.onCameraAvailable(cameraId)
-                isCameraInUse = false
+                cameraManager?.getCameraCharacteristics(cameraId)?.let {
+                    val cOrientation = it.get(CameraCharacteristics.LENS_FACING);
+                    if(cOrientation == CameraCharacteristics.LENS_FACING_FRONT) {
+                        isCameraInUse = false
+                    }
+                }
             }
 
             override fun onCameraUnavailable(cameraId: String) {
                 super.onCameraUnavailable(cameraId)
-                isCameraInUse = true
+                cameraManager?.getCameraCharacteristics(cameraId)?.let {
+                    val cOrientation = it.get(CameraCharacteristics.LENS_FACING);
+                    if(cOrientation == CameraCharacteristics.LENS_FACING_FRONT) {
+                        isCameraInUse = true
+                    }
+                }
             }
         }
         return cameraCallback as CameraManager.AvailabilityCallback
