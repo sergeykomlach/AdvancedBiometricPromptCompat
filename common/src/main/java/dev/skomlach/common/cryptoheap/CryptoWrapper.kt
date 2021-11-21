@@ -19,21 +19,26 @@
 
 package dev.skomlach.common.cryptoheap
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
+import android.util.Base64
 import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
 import com.tozny.crypto.android.AesCbcWithIntegrity.SecretKeys
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.contextprovider.AndroidContext.locale
 import dev.skomlach.common.logging.LogCat
-import java.io.Serializable
+import java.io.*
 import java.security.KeyStore
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SealedObject
 import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.IvParameterSpec
 
+@SuppressLint("NewApi")
 class CryptoWrapper private constructor() {
     private var secretKey: SecretKey? = null
     private var TRANSFORMATION: String? = null
@@ -102,25 +107,61 @@ class CryptoWrapper private constructor() {
         }
     }
 
-    fun wrapObject(obj: Serializable?): SealedObject? {
+    fun wrapObject(obj: Serializable?): EncryptedData? {
         return try {
             if (obj == null) return null
             val cipher = Cipher.getInstance(TRANSFORMATION)
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-            SealedObject(obj, cipher)
+            val sealedObject = SealedObject(obj, cipher)
+            EncryptedData(sealedObject, cipher.iv)
         } catch (e: Throwable) {
             throw RuntimeException(e)
         }
     }
 
-    fun unwrapObject(sealedObject: SealedObject?): Serializable? {
+    fun unwrapObject(sealedObject: EncryptedData?): Serializable? {
         return try {
             if (sealedObject == null) return null
             val cipher = Cipher.getInstance(TRANSFORMATION)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey)
-            sealedObject.getObject(cipher) as Serializable
+            if (TRANSFORMATION == "AES/GCM/NoPadding") {
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, sealedObject.iv))
+            } else {
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(sealedObject.iv))
+            }
+            sealedObject.sealedObject?.getObject(cipher) as Serializable?
         } catch (e: Throwable) {
             throw RuntimeException(e)
         }
     }
+
+    fun wrapString(str: String?): String? {
+        if (str == null) return null
+        val string = StringWrapper(str)
+        val sealed = wrapObject(string)
+
+        val outputStream = ByteArrayOutputStream()
+        val oos = ObjectOutputStream(outputStream)
+        oos.writeObject(sealed)
+        outputStream.close()
+
+        val values: ByteArray = outputStream.toByteArray()
+        return Base64.encodeToString(values, Base64.DEFAULT)
+    }
+
+    fun unwrapString(string: String?): String? {
+        if (string == null) return null
+        val bytes = Base64.decode(string, Base64.DEFAULT)
+
+        val inputStream = ByteArrayInputStream(bytes)
+
+        val ois = ObjectInputStream(inputStream)
+        val sealed = ois.readObject() as EncryptedData
+        inputStream.close()
+
+        return (unwrapObject(sealed) as StringWrapper).value
+    }
+
+    data class EncryptedData(val sealedObject: SealedObject?, val iv: ByteArray?) : Serializable
+
+    private data class StringWrapper(val value: String?) : Serializable
 }
