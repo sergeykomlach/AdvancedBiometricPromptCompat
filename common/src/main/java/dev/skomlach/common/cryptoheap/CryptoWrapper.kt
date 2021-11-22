@@ -38,7 +38,7 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 
-@SuppressLint("NewApi")
+
 class CryptoWrapper private constructor() {
     private var secretKey: SecretKey? = null
     private var TRANSFORMATION: String? = null

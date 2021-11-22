@@ -22,7 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.pm.ActivityInfo
 import android.os.Build
 import androidx.fragment.app.FragmentActivity
-import dev.skomlach.biometric.compat.BuildConfig
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 object WideGamutBug {
     private val error: String = "WARNING!!!\n" +
@@ -30,12 +30,15 @@ object WideGamutBug {
             "https://www.reddit.com/r/redditsync/comments/9ta7df/updated_my_oneplus_6_recently_opening_images/\n" +
             "On OnePlus 6T stop working Fingerprint Sensor O_o"
 
-    fun checkColorMode(activity: FragmentActivity) {
-        if (BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    fun unsupportedColorMode(activity: FragmentActivity): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (activity.window.colorMode == ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT ||
                 (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && activity.window.isWideColorGamut)
-            )
-                throw IllegalArgumentException(error)
+            ) {
+                BiometricLoggerImpl.e(error)
+                return true
+            }
         }
+        return false
     }
 }

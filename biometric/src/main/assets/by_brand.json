@@ -18477,6 +18477,11 @@
    "model": "C80W_EEA"
   },
   {
+   "device": "C82W",
+   "name": "C82W",
+   "model": "C82W"
+  },
+  {
    "device": "F80L",
    "name": "F80L",
    "model": "F80L"
@@ -21359,6 +21364,11 @@
   }
  ],
  "Cogeco": [
+  {
+   "device": "m393gena_c",
+   "name": "EPICO 4K",
+   "model": "EPICO 4K"
+  },
   {
    "device": "uiw4020cog",
    "name": "TV",
@@ -26505,6 +26515,11 @@
    "device": "TIQ104",
    "name": "TIQ-104",
    "model": "TIQ-104"
+  },
+  {
+   "device": "TIQ-1044",
+   "name": "TIQ-1044",
+   "model": "TIQ-1044"
   },
   {
    "device": "TIQ-1049",
@@ -32752,6 +32767,13 @@
    "model": "Facilotab L Rubis"
   }
  ],
+ "FAMIX": [
+  {
+   "device": "F10L",
+   "name": "F10L",
+   "model": "F10L"
+  }
+ ],
  "FANGOR": [
   {
    "device": "F-863",
@@ -32874,6 +32896,11 @@
    "device": "FFFTAB10a3",
    "name": "FFFTAB10a3",
    "model": "FFFTAB10a3"
+  },
+  {
+   "device": "FFFTAB10a4",
+   "name": "FFFTAB10a4",
+   "model": "FFFTAB10a4"
   },
   {
    "device": "FFFTAB7",
@@ -35324,6 +35351,11 @@
    "device": "F104Ev2_EEA",
    "name": "F104Ev2_EEA",
    "model": "F104Ev2_EEA"
+  },
+  {
+   "device": "F104Ev2_PRO",
+   "name": "F104Ev2_PRO",
+   "model": "F104Ev2_PRO"
   },
   {
    "device": "F104EvII",
@@ -39028,6 +39060,11 @@
   }
  ],
  "Greentel": [
+  {
+   "device": "A10_premium",
+   "name": "A10_premium",
+   "model": "A10_premium"
+  },
   {
    "device": "A8",
    "name": "A8",
@@ -58197,6 +58234,11 @@
    "device": "HT7WC1PBK",
    "name": "HT7WC1PBK",
    "model": "HT7WC1PBK"
+  },
+  {
+   "device": "HT8WB1RBK01",
+   "name": "HT8WB1RBK01",
+   "model": "HT8WB1RBK01"
   },
   {
    "device": "HT8WB1RBK03",
@@ -96423,6 +96465,11 @@
    "model": "M002U-2T"
   },
   {
+   "device": "M002W-2T",
+   "name": "M002W-2T",
+   "model": "M002W-2T"
+  },
+  {
    "device": "M002N-3T",
    "name": "MOO2N-3T",
    "model": "M002N-3T"
@@ -130306,6 +130353,11 @@
    "model": "BrailleSensePolaris"
   },
   {
+   "device": "BrailleSenseMini",
+   "name": "BrailleSenseMini",
+   "model": "H620B"
+  },
+  {
    "device": "BrailleSense",
    "name": "BrailleSense_EEA",
    "model": "H632B"
@@ -133121,6 +133173,11 @@
    "device": "Elite_5T_SV",
    "name": "ELITE 5T",
    "model": "Elite 5T"
+  },
+  {
+   "device": "ELITE_P55LIFE",
+   "name": "ELITE P55",
+   "model": "Elite P55"
   },
   {
    "device": "Elite_T57_GT",
@@ -138788,6 +138845,11 @@
    "device": "K7",
    "name": "K7",
    "model": "K7"
+  },
+  {
+   "device": "K7S",
+   "name": "K7S",
+   "model": "K7S"
   },
   {
    "device": "P10P",
@@ -147245,6 +147307,11 @@
    "model": "MT-715QR"
   },
   {
+   "device": "MT-750QU_Pro",
+   "name": "MT-750QU_Pro",
+   "model": "MT-750QU_Pro"
+  },
+  {
    "device": "MT-761QU",
    "name": "MT-761QU",
    "model": "MT-761QU"
@@ -151249,6 +151316,13 @@
    "model": "T7"
   }
  ],
+ "Todos": [
+  {
+   "device": "Tab64",
+   "name": "Tab64",
+   "model": "Tab64"
+  }
+ ],
  "Togocel": [
   {
    "device": "Togocel_EGO_plus",
@@ -153288,6 +153362,11 @@
    "model": "MP01"
   },
   {
+   "device": "A11_Tab",
+   "name": "A11_Tab",
+   "model": "MT01"
+  },
+  {
    "device": "A11_Tab-EEA",
    "name": "A11_Tab-EEA",
    "model": "MT01"
@@ -153443,6 +153522,11 @@
    "model": "RP01"
   },
   {
+   "device": "BISON_X10",
+   "name": "BISON X10 RU",
+   "model": "RP01"
+  },
+  {
    "device": "BISON_GT",
    "name": "BISON_GT",
    "model": "BISON GT"
@@ -153456,6 +153540,11 @@
    "device": "BISON_Pro",
    "name": "BISON_Pro_TR",
    "model": "BISON Pro"
+  },
+  {
+   "device": "BISON_X10",
+   "name": "BISON_X10_TR",
+   "model": "RP01"
   },
   {
    "device": "F1",
@@ -156684,6 +156773,11 @@
   }
  ],
  "Visual Land": [
+  {
+   "device": "Elite10QH",
+   "name": "Elite10QH",
+   "model": "Elite10QH"
+  },
   {
    "device": "Elite10QI",
    "name": "Prestige Elite10QI",
@@ -177027,6 +177121,13 @@
    "device": "SEI700WP",
    "name": "waipu tv stick",
    "model": "waipu tv stick"
+  }
+ ],
+ "weelikeit": [
+  {
+   "device": "F11W",
+   "name": "F11W",
+   "model": "F11W"
   }
  ],
  "xTouch": [
