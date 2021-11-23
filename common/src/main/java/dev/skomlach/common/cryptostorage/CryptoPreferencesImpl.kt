@@ -23,12 +23,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
 import dev.skomlach.common.contextprovider.AndroidContext.locale
 import dev.skomlach.common.logging.LogCat
+import java.io.File
 import java.util.*
 
 class CryptoPreferencesImpl internal constructor(context: Context, name: String) :
@@ -52,12 +54,14 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     init {
         sharedPreferences = if (CURRENT_VERSION == VERSION_2) {
-            SharedPreferencesMigrationHelper.migrate(
-                context,
-                name,
-                initV1(context, name),
-                initV2(context, name)
-            )
+            if (File(ContextCompat.getDataDir(context), "shared_prefs/$name.xml").exists()) {
+                SharedPreferencesMigrationHelper.migrate(
+                    context,
+                    name,
+                    initV1(context, name),
+                    initV2(context, name)
+                )
+            }
             initV2(context, name)
         } else
             initV1(context, name)
@@ -250,79 +254,87 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     private class CryptoEditor(private val editor: SharedPreferences.Editor) :
         SharedPreferences.Editor {
-        override fun putString(key: String, value: String?): SharedPreferences.Editor {
+        override fun putString(key: String, value: String?): CryptoEditor {
             return try {
-                CryptoEditor(editor.putString(key, value))
+                editor.putString(key, value)
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
-        override fun putStringSet(key: String, values: Set<String>?): SharedPreferences.Editor {
-            try {
+        override fun putStringSet(key: String, values: Set<String>?): CryptoEditor {
+            return try {
                 values?.let {
-                    return CryptoEditor(editor.putStringSet(key, it))
+                    editor.putStringSet(key, it)
                 } ?: run {
-                    return CryptoEditor(editor.remove(key))
+                    editor.remove(key)
                 }
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                return editor
+                this
             }
         }
 
-        override fun putInt(key: String, value: Int): SharedPreferences.Editor {
+        override fun putInt(key: String, value: Int): CryptoEditor {
             return try {
-                CryptoEditor(editor.putInt(key, value))
+                editor.putInt(key, value)
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
-        override fun putLong(key: String, value: Long): SharedPreferences.Editor {
+        override fun putLong(key: String, value: Long): CryptoEditor {
             return try {
-                CryptoEditor(editor.putLong(key, value))
+                editor.putLong(key, value)
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
-        override fun putFloat(key: String, value: Float): SharedPreferences.Editor {
+        override fun putFloat(key: String, value: Float): CryptoEditor {
             return try {
-                CryptoEditor(editor.putFloat(key, value))
+                editor.putFloat(key, value)
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
-        override fun putBoolean(key: String, value: Boolean): SharedPreferences.Editor {
+        override fun putBoolean(key: String, value: Boolean): CryptoEditor {
             return try {
-                CryptoEditor(editor.putBoolean(key, value))
+                editor.putBoolean(key, value)
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
-        override fun remove(key: String): SharedPreferences.Editor {
+        override fun remove(key: String): CryptoEditor {
             return try {
-                CryptoEditor(editor.remove(key))
+                editor.remove(key)
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
-        override fun clear(): SharedPreferences.Editor {
+        override fun clear(): CryptoEditor {
             return try {
-                CryptoEditor(editor.clear())
+                editor.clear()
+                this
             } catch (e: Throwable) {
                 LogCat.logException(e)
-                editor
+                this
             }
         }
 
