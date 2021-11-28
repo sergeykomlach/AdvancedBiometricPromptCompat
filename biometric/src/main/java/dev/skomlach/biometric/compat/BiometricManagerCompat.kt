@@ -236,10 +236,6 @@ object BiometricManagerCompat {
                 )
                 if (Utils.startActivity(enrollIntent, activity))
                     return true
-            } else {
-                val enrollIntent = Intent(Settings.ACTION_SECURITY_SETTINGS)
-                if (Utils.startActivity(enrollIntent, activity))
-                    return true
             }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity

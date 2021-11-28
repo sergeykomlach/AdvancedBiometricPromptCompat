@@ -61,6 +61,10 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| 
 | Windows Subsystem for Android & Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
+## Test app
+
+You can check how the library works on your device using this [APK](https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/app/app-debug.apk)
+
 ## Screenshots:
 
 **Xiaomi Pocophone F1**

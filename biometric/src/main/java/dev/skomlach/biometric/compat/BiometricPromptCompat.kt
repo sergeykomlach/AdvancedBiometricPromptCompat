@@ -253,7 +253,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
-        WideGamutBug.checkColorMode(builder.getContext())
+        if(WideGamutBug.unsupportedColorMode(builder.getContext())){
+            callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
+            return
+        }
         val startTime = System.currentTimeMillis()
         var timeout = false
         ExecutorHelper.startOnBackground {
