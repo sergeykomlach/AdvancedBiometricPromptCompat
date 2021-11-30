@@ -33,7 +33,7 @@ import dev.skomlach.common.logging.LogCat
 import java.io.File
 import java.util.*
 
-class CryptoPreferencesImpl internal constructor(context: Context, name: String) :
+class CryptoPreferencesImpl internal constructor(private val context: Context, private val name: String) :
     SharedPreferences {
     companion object {
         private const val VERSION_1: Int = 1
@@ -50,27 +50,36 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
         }
     }
 
-    private var sharedPreferences: SharedPreferences
-
-    init {
-        sharedPreferences = if (CURRENT_VERSION == VERSION_2) {
-            if (File(ContextCompat.getDataDir(context), "shared_prefs/$name.xml").exists()) {
-                SharedPreferencesMigrationHelper.migrate(
-                    context,
-                    name,
-                    initV1(context, name),
-                    initV2(context, name)
-                )
+    private var sharedPreferences: SharedPreferences? = null
+    get() {
+        if(field == null) {
+            try {
+                field = if (CURRENT_VERSION == VERSION_2) {
+                    val pref = initV2()
+                    if (File(
+                            ContextCompat.getDataDir(context),
+                            "shared_prefs/$name.xml"
+                        ).exists()
+                    ) {
+                        SharedPreferencesMigrationHelper.migrate(
+                            context,
+                            name,
+                            initV1(),
+                            pref
+                        )
+                    }
+                    pref
+                } else
+                    initV1()
+            } catch (e: Throwable) {
+                LogCat.logException(e)
             }
-            initV2(context, name)
-        } else
-            initV1(context, name)
+        }
+
+        return field
     }
 
-    private fun initV1(
-        context: Context,
-        name: String
-    ): SharedPreferences {
+    private fun initV1(): SharedPreferences {
         val defaultLocale = locale
         try {
             setLocale(context, Locale.US)
@@ -107,10 +116,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
         }
     }
 
-    private fun initV2(
-        context: Context,
-        name: String
-    ): SharedPreferences {
+    private fun initV2(): SharedPreferences {
         val defaultLocale = locale
         setLocale(context, Locale.US)
         return try {
@@ -154,7 +160,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getAll(): Map<String, *>? {
         try {
-            return sharedPreferences.all
+            return sharedPreferences?.all
         } catch (e: Throwable) {
             checkException(null, e)
             LogCat.logException(e)
@@ -164,7 +170,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getString(key: String, defValue: String?): String? {
         try {
-            return sharedPreferences.getString(key, defValue)
+            return sharedPreferences?.getString(key, defValue)
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -174,7 +180,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getStringSet(key: String, defValues: Set<String>?): Set<String>? {
         try {
-            return sharedPreferences.getStringSet(key, defValues)
+            return sharedPreferences?.getStringSet(key, defValues)
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -184,7 +190,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getInt(key: String, defValue: Int): Int {
         try {
-            return sharedPreferences.getInt(key, defValue)
+            return sharedPreferences?.getInt(key, defValue)?:defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -194,7 +200,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getLong(key: String, defValue: Long): Long {
         try {
-            return sharedPreferences.getLong(key, defValue)
+            return sharedPreferences?.getLong(key, defValue)?:defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -204,7 +210,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getFloat(key: String, defValue: Float): Float {
         try {
-            return sharedPreferences.getFloat(key, defValue)
+            return sharedPreferences?.getFloat(key, defValue)?:defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -214,7 +220,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun getBoolean(key: String, defValue: Boolean): Boolean {
         try {
-            return sharedPreferences.getBoolean(key, defValue)
+            return sharedPreferences?.getBoolean(key, defValue)?:defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -224,7 +230,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun contains(key: String): Boolean {
         try {
-            return sharedPreferences.contains(key)
+            return sharedPreferences?.contains(key)?:false
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -233,12 +239,16 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
     }
 
     override fun edit(): SharedPreferences.Editor {
-        return CryptoEditor(sharedPreferences.edit())
+        val editor = sharedPreferences?.edit()
+        if(editor == null)
+            throw IllegalStateException("SharedPreferences not initialized")
+        else
+        return CryptoEditor(editor)
     }
 
     override fun registerOnSharedPreferenceChangeListener(listener: OnSharedPreferenceChangeListener) {
         try {
-            sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+            sharedPreferences?.registerOnSharedPreferenceChangeListener(listener)
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
@@ -246,7 +256,7 @@ class CryptoPreferencesImpl internal constructor(context: Context, name: String)
 
     override fun unregisterOnSharedPreferenceChangeListener(listener: OnSharedPreferenceChangeListener) {
         try {
-            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+            sharedPreferences?.unregisterOnSharedPreferenceChangeListener(listener)
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
