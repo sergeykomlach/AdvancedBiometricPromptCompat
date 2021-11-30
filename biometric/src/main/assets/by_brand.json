@@ -27196,6 +27196,11 @@
    "model": "CITI 609 4G CS6063ML"
   },
   {
+   "device": "CS3242ML",
+   "name": "CITI_13_X703_4G",
+   "model": "CITI_13_X703_4G_CS3242ML"
+  },
+  {
    "device": "CS1207MG",
    "name": "CITI_1590_3G_CS1207MG",
    "model": "CITI 1590 3G CS1207MG"
@@ -92449,6 +92454,16 @@
    "model": "moto g pro"
   },
   {
+   "device": "ellis",
+   "name": "moto g pure",
+   "model": "moto g power"
+  },
+  {
+   "device": "ellis",
+   "name": "moto g pure",
+   "model": "moto g pure"
+  },
+  {
    "device": "sofiap",
    "name": "moto g stylus",
    "model": "moto g stylus"
@@ -93576,6 +93591,11 @@
    "model": "M7_WIFI"
   },
   {
+   "device": "ML_JI2D_M7_WIFI",
+   "name": "M7 WIFI",
+   "model": "M7_WIFI"
+  },
+  {
    "device": "ML_SO0E_M7_WIFI",
    "name": "M7 WIFI",
    "model": "M7_WIFI"
@@ -93979,6 +93999,11 @@
    "device": "Multilaser_E_A10",
    "name": "Multilaser E",
    "model": "Multilaser_E"
+  },
+  {
+   "device": "Multilaser_E_2",
+   "name": "Multilaser E 2",
+   "model": "Multilaser_E_2"
   },
   {
    "device": "Multilaser_E_Lite",
@@ -101075,11 +101100,6 @@
    "model": "PCNM00"
   },
   {
-   "device": "OP4E9F",
-   "name": "K9 5G",
-   "model": "PEXM00"
-  },
-  {
    "device": "N1",
    "name": "N1",
    "model": "N1"
@@ -101243,6 +101263,11 @@
    "device": "OP4ED5",
    "name": "PEQM00",
    "model": "PEQM00"
+  },
+  {
+   "device": "OP4E9F",
+   "name": "PEXM00",
+   "model": "PEXM00"
   },
   {
    "device": "OP5259",
@@ -103888,6 +103913,16 @@
    "device": "DX600C",
    "name": "55DX600C",
    "model": "TH-55DX600C"
+  },
+  {
+   "device": "balticaCA",
+   "name": "A-DA",
+   "model": "MY21ADA"
+  },
+  {
+   "device": "balticaDA",
+   "name": "A-DA",
+   "model": "MY21ADA"
   },
   {
    "device": "AS650C",
@@ -115561,7 +115596,7 @@
   },
   {
    "device": "BIP-EB100",
-   "name": "Home Entertainment Box",
+   "name": "PlayZ",
    "model": "BIP-EB100"
   },
   {
@@ -131019,6 +131054,11 @@
    "device": "tcve8sj",
    "name": "8T-C**DW1",
    "model": "AQUOS-8KTVJ21"
+  },
+  {
+   "device": "tcba8sx",
+   "name": "8T-C**DW1X",
+   "model": "AQUOS-TVH21A"
   },
   {
    "device": "tcba8sx",
@@ -155411,6 +155451,16 @@
    "model": "Stream TV"
   },
   {
+   "device": "sti6251d315",
+   "name": "Stream TV Soundbar",
+   "model": "Stream TV Soundbar"
+  },
+  {
+   "device": "sti6250d315",
+   "name": "Stream TV Soundbar Pro",
+   "model": "Stream TV Soundbar Pro"
+  },
+  {
    "device": "WTVIS01",
    "name": "Visible Midnight",
    "model": "WTVIS01"
@@ -172330,6 +172380,11 @@
    "model": "ZTE 9030RU"
   },
   {
+   "device": "P653S11",
+   "name": "ZTE 9040N",
+   "model": "ZTE 9040N"
+  },
+  {
    "device": "P637S15",
    "name": "ZTE A0616",
    "model": "ZTE A0616"
@@ -177155,6 +177210,16 @@
    "device": "RMX2202L1",
    "name": "realme GT 5G",
    "model": "RMX2202"
+  },
+  {
+   "device": "RED8AF",
+   "name": "realme narzo 50A",
+   "model": "RMX3430"
+  },
+  {
+   "device": "RE54C1L1",
+   "name": "realme pad",
+   "model": "RMP2103"
   },
   {
    "device": "RE548B",
