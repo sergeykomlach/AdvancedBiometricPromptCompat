@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils.notification
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -32,12 +33,16 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.permissions.PermissionUtils
 import java.util.concurrent.atomic.AtomicReference
 
 
 object BiometricNotificationManager {
     const val CHANNEL_ID = "biometric"
     private val notificationReference = AtomicReference<Runnable>(null)
+
+    @SuppressLint("StaticFieldLeak")
+    private val notificationCompat = NotificationManagerCompat.from(appContext)
 
     init {
         initNotificationsPreferences()
@@ -46,10 +51,7 @@ object BiometricNotificationManager {
     private fun initNotificationsPreferences() {
         if (Build.VERSION.SDK_INT >= 26) {
             try {
-                val notificationManager: NotificationManager? = appContext.getSystemService(
-                    NotificationManager::class.java
-                )
-                var notificationChannel1 = notificationManager?.getNotificationChannel(CHANNEL_ID)
+                var notificationChannel1 = notificationCompat.getNotificationChannel(CHANNEL_ID)
                 if (notificationChannel1 == null) {
                     notificationChannel1 = NotificationChannel(
                         CHANNEL_ID,
@@ -58,7 +60,7 @@ object BiometricNotificationManager {
                     )
                 }
                 notificationChannel1.setShowBadge(false)
-                notificationManager?.createNotificationChannel(notificationChannel1)
+                notificationCompat.createNotificationChannel(notificationChannel1)
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
@@ -68,7 +70,17 @@ object BiometricNotificationManager {
     fun showNotification(
         builder: BiometricPromptCompat.Builder
     ) {
-        dismissAll()
+        try {
+            for (type in BiometricType.values()) {
+                try {
+                    notificationCompat.cancel(type.hashCode())
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
         val notify = Runnable {
             try {
                 val clickIntent = Intent()
@@ -76,18 +88,12 @@ object BiometricNotificationManager {
 
                     val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
                         .setOnlyAlertOnce(true)
-                        //TODO: investigate why notifications remains on the screen
-//                        .setAutoCancel(false)
-//                        .setOngoing(true)
-
+                        .setAutoCancel(false)
+                        .setOngoing(true)
                         .setAutoCancel(true)
                         .setLocalOnly(true)
                         .setContentTitle(builder.getTitle())
                         .setContentText(builder.getDescription())
-                        .setStyle(
-                            NotificationCompat.BigTextStyle()
-                                .bigText(builder.getDescription())
-                        )
                         .setDeleteIntent(
                             PendingIntent.getBroadcast(
                                 appContext,
@@ -98,19 +104,24 @@ object BiometricNotificationManager {
                         )
                         .setSmallIcon(type.iconId).build()
 
-                    NotificationManagerCompat.from(appContext).notify(type.hashCode(), notif)
+                    if (PermissionUtils.isAllowedNotificationsChannelPermission(CHANNEL_ID) && PermissionUtils.isAllowedNotificationsPermission) {
+                        notificationCompat.notify(type.hashCode(), notif)
+                    }
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
         }
 
-        notificationReference.set(notify)
+
         ExecutorHelper.post(notify)
 
-        //update notification to fix icon tinting in split-screen mode
-        val delay = appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-        ExecutorHelper.postDelayed(notify, delay)
+        if (builder.getMultiWindowSupport().isInMultiWindow) {
+            notificationReference.set(notify)
+            val delay =
+                appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+            ExecutorHelper.postDelayed(notify, delay)
+        }
     }
 
     fun dismissAll() {
@@ -118,20 +129,37 @@ object BiometricNotificationManager {
             ExecutorHelper.removeCallbacks(it)
             notificationReference.set(null)
         }
-        try {
-            for (type in BiometricType.values()) {
-                dismiss(type)
+        val notify = Runnable {
+            try {
+                for (type in BiometricType.values()) {
+                    try {
+                        notificationCompat.cancel(type.hashCode())
+                    } catch (e: Throwable) {
+                        BiometricLoggerImpl.e(e)
+                    }
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
         }
+        ExecutorHelper.post(notify)
+        val delay =
+            appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+        ExecutorHelper.postDelayed(notify, delay)
     }
 
     fun dismiss(type: BiometricType?) {
-        try {
-            NotificationManagerCompat.from(appContext).cancel(type?.hashCode() ?: return)
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+        val notify = Runnable {
+            try {
+                notificationCompat.cancel(type?.hashCode() ?: return@Runnable)
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
         }
+        ExecutorHelper.post(notify)
+        val delay =
+            appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+        ExecutorHelper.postDelayed(notify, delay)
+
     }
 }

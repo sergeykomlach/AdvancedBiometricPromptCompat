@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
-import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -40,7 +39,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils.isAtLeastS
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -60,6 +58,7 @@ class BiometricPromptCompatDialogImpl(
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
 
+    private var stopWatcher: Runnable? = null
     init {
         promptText = BiometricTitle.getRelevantTitle(compatBuilder.getContext(), compatBuilder.getAllAvailableTypes())
         too_many_attempts =
@@ -77,6 +76,8 @@ class BiometricPromptCompatDialogImpl(
                 authCallback?.stopAuth()
             }
             authCallback?.onUiClosed()
+            stopWatcher?.run()
+            stopWatcher = null
         }
         dialog.setOnCancelListener {
             authCallback?.cancelAuth()
@@ -138,6 +139,20 @@ class BiometricPromptCompatDialogImpl(
         }
     }
 
+    private val homeWatcher =
+        HomeWatcher(compatBuilder.getContext(), object : HomeWatcher.OnHomePressedListener {
+            override fun onHomePressed() {
+                dialog.cancel()
+            }
+
+            override fun onRecentAppPressed() {
+                dialog.cancel()
+            }
+
+            override fun onPowerPressed() {
+                dialog.cancel()
+            }
+        })
     private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
         private set
         get() {
@@ -277,6 +292,7 @@ class BiometricPromptCompatDialogImpl(
 
     fun showDialog() {
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
+        stopWatcher = homeWatcher.startWatch()
         dialog.show()
     }
 
