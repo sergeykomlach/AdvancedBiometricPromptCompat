@@ -24,6 +24,7 @@ import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
 import android.hardware.SensorPrivacyManager
+import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
@@ -37,7 +38,7 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
 
-
+@SuppressLint("NewApi")
 object SensorPrivacyCheck {
     private var cameraManager: CameraManager? = null
     private var cameraCallback: CameraManager.AvailabilityCallback? = null
@@ -119,20 +120,20 @@ object SensorPrivacyCheck {
                     context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 audioManager?.registerAudioRecordingCallback(getMicCallback(), null)
             }
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
     }
 
     private fun stopListeners() {
-        try{
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            unRegisterCameraCallBack()
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            unRegisterMicCallback()
-        }
-        } catch (e: Throwable){
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                unRegisterCameraCallBack()
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                unRegisterMicCallback()
+            }
+        } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
     }
@@ -140,19 +141,69 @@ object SensorPrivacyCheck {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private fun getCameraCallback(): CameraManager.AvailabilityCallback {
         cameraCallback = object : CameraManager.AvailabilityCallback() {
+            private var facingCamera: String? = null
+                get() {
+                    try {
+                        if (field == null) {
+                            cameraManager?.let {
+                                for (i in it.cameraIdList.indices) {
+                                    val cameraId = it.cameraIdList[i]
+                                    val characteristics = it.getCameraCharacteristics(cameraId!!)
+                                    if (characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
+                                        field = cameraId
+                                        break
+                                    }
+                                }
+
+                            }
+                        }
+                    } catch (e: CameraAccessException) {
+                        BiometricLoggerImpl.e(e)
+                    } catch (ex: Throwable) {
+                        BiometricLoggerImpl.e(ex)
+                    }
+                    return field
+                }
+
+            init {
+                BiometricLoggerImpl.d("FacingCamera $facingCamera")
+            }
+
             override fun onCameraAvailable(cameraId: String) {
-                super.onCameraAvailable(cameraId)
-                cameraManager?.getCameraCharacteristics(cameraId)?.let {
-                    if(it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
-                        isCameraInUse = false
+                try {
+                    super.onCameraAvailable(cameraId)
+                    cameraManager?.getCameraCharacteristics(cameraId)?.let {
+                        if (it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
+                            isCameraInUse = false
+                        }
+                    }
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                    //Caused by android.hardware.camera2.CameraAccessException: CAMERA_DISCONNECTED (2): Camera service is currently unavailable
+                    if (e is CameraAccessException &&
+                        e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
+                        cameraId == facingCamera
+                    ) {
+                        isCameraInUse = true
                     }
                 }
             }
 
             override fun onCameraUnavailable(cameraId: String) {
-                super.onCameraUnavailable(cameraId)
-                cameraManager?.getCameraCharacteristics(cameraId)?.let {
-                    if(it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
+                try {
+                    super.onCameraUnavailable(cameraId)
+                    cameraManager?.getCameraCharacteristics(cameraId)?.let {
+                        if (it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
+                            isCameraInUse = true
+                        }
+                    }
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                    //Caused by android.hardware.camera2.CameraAccessException: CAMERA_DISCONNECTED (2): Camera service is currently unavailable
+                    if (e is CameraAccessException &&
+                        e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
+                        cameraId == facingCamera
+                    ) {
                         isCameraInUse = true
                     }
                 }
@@ -165,8 +216,12 @@ object SensorPrivacyCheck {
     private fun getMicCallback(): AudioManager.AudioRecordingCallback {
         micCallback = object : AudioManager.AudioRecordingCallback() {
             override fun onRecordingConfigChanged(configs: List<AudioRecordingConfiguration>) {
-                super.onRecordingConfigChanged(configs)
-                isMicInUse = configs.isNotEmpty()
+                try {
+                    super.onRecordingConfigChanged(configs)
+                    isMicInUse = configs.isNotEmpty()
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
             }
         }
         return micCallback as AudioManager.AudioRecordingCallback
