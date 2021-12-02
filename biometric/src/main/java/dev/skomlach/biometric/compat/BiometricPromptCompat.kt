@@ -395,18 +395,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onUIClosed() {
                 if (isOpened.get()) {
                     isOpened.set(false)
-                    builder.getMultiWindowSupport().finish()
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        builder.getContext().window,
-                        builder.getNavBarColor(),
-                        builder.getDividerColor(),
-                        builder.getStatusBarColor()
-                    )
-
                     if (builder.isNotificationEnabled()) {
                         BiometricNotificationManager.dismissAll()
                     }
-                    activityViewWatcher.resetListeners()
+                    val closeAll = Runnable {
+                        builder.getMultiWindowSupport().finish()
+                        activityViewWatcher.resetListeners()
+                        StatusBarTools.setNavBarAndStatusBarColors(
+                            builder.getContext().window,
+                            builder.getNavBarColor(),
+                            builder.getDividerColor(),
+                            builder.getStatusBarColor()
+                        )
+                    }
+                    ExecutorHelper.post(closeAll)
+                    val delay =
+                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                    ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
                 }
             }
