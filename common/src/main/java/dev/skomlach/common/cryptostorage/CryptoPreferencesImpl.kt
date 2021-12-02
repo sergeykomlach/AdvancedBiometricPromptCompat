@@ -30,6 +30,8 @@ import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
 import dev.skomlach.common.contextprovider.AndroidContext.locale
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
@@ -50,9 +52,10 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
         }
     }
 
+    private var cache: MutableMap<String, Any>? = null
     private var sharedPreferences: SharedPreferences? = null
         get() {
-            if(field == null) {
+            if (field == null) {
                 try {
                     field = if (CURRENT_VERSION == VERSION_2) {
                         val pref = initV2()
@@ -74,10 +77,23 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
                 } catch (e: Throwable) {
                     LogCat.logException(e)
                 }
+                invalidateCache(field?.all)
             }
 
             return field
         }
+
+    init {
+        GlobalScope.launch {
+            var count = 0
+            var edit = sharedPreferences
+            while (edit == null && count < 5) {
+                count++
+                edit = sharedPreferences
+                Thread.sleep(100)
+            }
+        }
+    }
 
     private fun initV1(): SharedPreferences {
         val defaultLocale = locale
@@ -137,6 +153,37 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
         }
     }
 
+    private fun invalidateCache(map: Map<String, *>?) {
+        map?.let { it ->
+            val tmpCache = mutableMapOf<String, Any>()
+            for (k in it.keys) {
+                when (val v = it[k]) {
+                    is String -> {
+                        tmpCache[k] = v
+                    }
+                    is Long -> {
+                        tmpCache[k] = v
+                    }
+                    is Int -> {
+                        tmpCache[k] = v
+                    }
+                    is Boolean -> {
+                        tmpCache[k] = v
+                    }
+                    is Float -> {
+                        tmpCache[k] = v
+                    }
+                    is Set<*> -> {
+                        tmpCache[k] = HashSet(v as Set<String>)
+                    }
+                }
+            }
+            cache = mutableMapOf<String, Any>().also { cache ->
+                cache.putAll(tmpCache)
+            }
+        }
+    }
+
     private fun checkAndDeleteIfNeed(key: String?, e: Throwable): Boolean {
         if (!e.toString().contains("Could not decrypt value")) {
             if (!key.isNullOrEmpty()) {
@@ -160,10 +207,12 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getAll(): Map<String, *>? {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.all
+            if (cache != null)
+                return cache
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.all
         } catch (e: Throwable) {
             checkException(null, e)
             LogCat.logException(e)
@@ -173,10 +222,13 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getString(key: String, defValue: String?): String? {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.getString(key, defValue)
+            val value = cache?.get(key)
+            if (value is String)
+                return value
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.getString(key, defValue)
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -186,10 +238,14 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getStringSet(key: String, defValues: Set<String>?): Set<String>? {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.getStringSet(key, defValues)
+            val value = cache?.get(key)
+            if (value is Set<*>)
+                return value as Set<String>
+
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.getStringSet(key, defValues)
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -199,10 +255,14 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getInt(key: String, defValue: Int): Int {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.getInt(key, defValue) ?: defValue
+            val value = cache?.get(key)
+            if (value is Int)
+                return value
+
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.getInt(key, defValue) ?: defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -212,10 +272,14 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getLong(key: String, defValue: Long): Long {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.getLong(key, defValue) ?: defValue
+            val value = cache?.get(key)
+            if (value is Long)
+                return value
+
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.getLong(key, defValue) ?: defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -225,10 +289,14 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getFloat(key: String, defValue: Float): Float {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.getFloat(key, defValue) ?: defValue
+            val value = cache?.get(key)
+            if (value is Float)
+                return value
+
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.getFloat(key, defValue) ?: defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -238,10 +306,14 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun getBoolean(key: String, defValue: Boolean): Boolean {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.getBoolean(key, defValue) ?: defValue
+            val value = cache?.get(key)
+            if (value is Boolean)
+                return value
+
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.getBoolean(key, defValue) ?: defValue
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -251,10 +323,14 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     override fun contains(key: String): Boolean {
         try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.contains(key) ?: false
+            val value = cache?.get(key)
+            if (value != null)
+                return true
+
+//            if (sharedPreferences == null)
+//                throw IllegalStateException("SharedPreferences not initialized")
+//            else
+//                return sharedPreferences?.contains(key) ?: false
         } catch (e: Throwable) {
             checkException(key, e)
             LogCat.logException(e)
@@ -263,12 +339,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
     }
 
     override fun edit(): SharedPreferences.Editor {
-        val edit = sharedPreferences?.edit()
-        if (edit == null)
-            throw IllegalStateException("SharedPreferences not initialized")
-        else {
-            return CryptoEditor(edit)
-        }
+        return CryptoEditor(this)
     }
 
     override fun registerOnSharedPreferenceChangeListener(listener: OnSharedPreferenceChangeListener) {
@@ -293,11 +364,12 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
         }
     }
 
-    private class CryptoEditor(private val editor: SharedPreferences.Editor) :
+    private class CryptoEditor(private val cryptoPreferencesImpl: CryptoPreferencesImpl) :
         SharedPreferences.Editor {
+        private val editor = cryptoPreferencesImpl.sharedPreferences?.edit()
         override fun putString(key: String, value: String?): CryptoEditor {
             return try {
-                editor.putString(key, value)
+                editor?.putString(key, value)
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -308,9 +380,9 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
         override fun putStringSet(key: String, values: Set<String>?): CryptoEditor {
             return try {
                 values?.let {
-                    editor.putStringSet(key, it)
+                    editor?.putStringSet(key, it)
                 } ?: run {
-                    editor.remove(key)
+                    editor?.remove(key)
                 }
                 this
             } catch (e: Throwable) {
@@ -321,7 +393,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun putInt(key: String, value: Int): CryptoEditor {
             return try {
-                editor.putInt(key, value)
+                editor?.putInt(key, value)
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -331,7 +403,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun putLong(key: String, value: Long): CryptoEditor {
             return try {
-                editor.putLong(key, value)
+                editor?.putLong(key, value)
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -341,7 +413,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun putFloat(key: String, value: Float): CryptoEditor {
             return try {
-                editor.putFloat(key, value)
+                editor?.putFloat(key, value)
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -351,7 +423,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun putBoolean(key: String, value: Boolean): CryptoEditor {
             return try {
-                editor.putBoolean(key, value)
+                editor?.putBoolean(key, value)
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -361,7 +433,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun remove(key: String): CryptoEditor {
             return try {
-                editor.remove(key)
+                editor?.remove(key)
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -371,7 +443,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun clear(): CryptoEditor {
             return try {
-                editor.clear()
+                editor?.clear()
                 this
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -381,18 +453,22 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
         override fun commit(): Boolean {
             return try {
-                editor.commit()
+                editor?.commit() ?: false
             } catch (e: Throwable) {
                 LogCat.logException(e)
                 false
+            } finally {
+                cryptoPreferencesImpl.invalidateCache(cryptoPreferencesImpl.sharedPreferences?.all)
             }
         }
 
         override fun apply() {
             try {
-                editor.apply()
+                editor?.apply()
             } catch (e: Throwable) {
                 LogCat.logException(e)
+            } finally {
+                cryptoPreferencesImpl.invalidateCache(cryptoPreferencesImpl.sharedPreferences?.all)
             }
         }
     }
