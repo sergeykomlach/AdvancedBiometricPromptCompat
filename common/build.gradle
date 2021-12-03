@@ -22,11 +22,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.security:security-crypto:1.1.0-alpha03"
-    implementation('com.google.crypto.tink:tink-android') {
-        version {
-            strictly '1.4.0'
-        }
-    }
+    implementation 'com.google.crypto.tink:tink-android:1.6.1'
     implementation 'com.scottyab:secure-preferences-lib:0.1.7'
     implementation "androidx.appcompat:appcompat:1.4.0"
     implementation "androidx.window:window:1.0.0-beta04"

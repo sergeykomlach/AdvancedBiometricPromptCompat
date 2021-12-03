@@ -27,7 +27,36 @@ import java.io.File
 import java.util.*
 
 object SharedPreferencesMigrationHelper {
-    fun migrate(
+    fun migrateIfNeeded(
+        context: Context,
+        name: String,
+        src: SharedPreferences?,
+        dest: SharedPreferences?
+    ) {
+        try {
+            if ((src != null && dest != null) && !isMigrated(dest, name)) {
+                synchronized(SharedPreferencesMigrationHelper) {
+                    if (!isMigrated(dest, name)) {
+                        doMigrate(
+                            context,
+                            name,
+                            src,
+                            dest
+                        )
+                        setIsMigrated(dest, name)
+                    }
+                }
+            }
+        } finally {
+            deletePreferences(context, name)
+        }
+    }
+
+    private fun setIsMigrated(dest: SharedPreferences, name: String) {
+        dest.edit().putBoolean("Shared_Preferences_migrated-$name",true).apply()
+    }
+
+    private fun doMigrate(
         context: Context,
         name: String,
         src: SharedPreferences,
@@ -63,12 +92,21 @@ object SharedPreferencesMigrationHelper {
                     }
                 }
             }
-            e.commit()
+            e.apply()
             return
         } finally {
-            src.edit().clear().commit()
-            ExecutorHelper.startOnBackground { deletePreferencesFile(context, "$name.xml") }
+            deletePreferences(context, name)
         }
+    }
+
+    private fun isMigrated(newSharedPreference: SharedPreferences, name: String): Boolean {
+        return newSharedPreference.getBoolean("Shared_Preferences_migrated-$name", false)
+    }
+
+    fun deletePreferences(context: Context, name: String) {
+        ExecutorHelper.startOnBackground({
+            deletePreferencesFile(context, "$name.xml")
+        }, 250)
     }
 
     private fun deletePreferencesFile(context: Context, name: String) {

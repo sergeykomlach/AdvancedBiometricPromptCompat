@@ -23,14 +23,17 @@ import android.content.SharedPreferences
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object SharedPreferenceProvider {
-    private var dependencies: CryptoPreferencesProvider? = null
+    private lateinit var dependencies: CryptoPreferencesProvider
 
-
-    @Synchronized
     fun getCryptoPreferences(name: String): SharedPreferences {
-        if (dependencies == null) {
-            dependencies = EncryptedPreferencesProvider(appContext)
+        if (!::dependencies.isInitialized) {
+            synchronized(SharedPreferenceProvider::class.java){
+                if (!::dependencies.isInitialized) {
+                    dependencies = EncryptedPreferencesProvider(appContext)
+                }
+            }
+
         }
-        return (dependencies as CryptoPreferencesProvider).getCryptoPreferences(name)
+        return dependencies .getCryptoPreferences(name)
     }
 }

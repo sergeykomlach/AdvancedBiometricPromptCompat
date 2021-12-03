@@ -15859,6 +15859,11 @@
    "model": "C5L 2021"
   },
   {
+   "device": "C0170WW",
+   "name": "C5L Max",
+   "model": "C5L Max"
+  },
+  {
    "device": "C0130WW",
    "name": "C5L+ 2021",
    "model": "C5L+ 2021"
@@ -20744,6 +20749,11 @@
    "model": "HiPadPlus"
   },
   {
+   "device": "HiPadX",
+   "name": "HiPadX_11",
+   "model": "HiPadX"
+  },
+  {
    "device": "CH108Q",
    "name": "HiPad_Pro",
    "model": "HiPad Pro"
@@ -23939,6 +23949,11 @@
    "device": "HS8937QCs",
    "name": "Action-X3",
    "model": "Action-X3"
+  },
+  {
+   "device": "L752",
+   "name": "Action-X5",
+   "model": "Action-X5"
   },
   {
    "device": "CORE-M4",
@@ -44541,6 +44556,11 @@
   }
  ],
  "Haitech": [
+  {
+   "device": "Tablet",
+   "name": "HPAD_IA65",
+   "model": "KITYPRO"
+  },
   {
    "device": "HPAD_IP8045",
    "name": "HPAD_IP8045",
@@ -85817,6 +85837,11 @@
    "model": "KD1"
   },
   {
+   "device": "KD2",
+   "name": "KD2",
+   "model": "KD2"
+  },
+  {
    "device": "KM1",
    "name": "KM1",
    "model": "KM1"
@@ -92774,9 +92799,39 @@
    "model": "moto g(10) power"
   },
   {
+   "device": "cofud",
+   "name": "moto g31",
+   "model": "moto g31(w)"
+  },
+  {
+   "device": "cofud",
+   "name": "moto g31",
+   "model": "motorola"
+  },
+  {
+   "device": "coful",
+   "name": "moto g31",
+   "model": "moto g31"
+  },
+  {
+   "device": "coful",
+   "name": "moto g31",
+   "model": "motorola"
+  },
+  {
    "device": "hanoip",
    "name": "moto g40 fusion",
    "model": "moto g(40) fusion"
+  },
+  {
+   "device": "corfu",
+   "name": "moto g41",
+   "model": "moto g41"
+  },
+  {
+   "device": "corfu",
+   "name": "moto g41",
+   "model": "motorola"
   },
   {
    "device": "cypfq",
@@ -92787,6 +92842,16 @@
    "device": "cypfq",
    "name": "moto g51",
    "model": "moto[SPACE]g(50)"
+  },
+  {
+   "device": "cypfq",
+   "name": "moto g51 5G",
+   "model": "moto g(50)"
+  },
+  {
+   "device": "cypfq",
+   "name": "moto g51 5G",
+   "model": "moto g51 5G"
   },
   {
    "device": "jeter",
@@ -112919,6 +112984,11 @@
    "device": "P710",
    "name": "Rakuten Hand",
    "model": "P710"
+  },
+  {
+   "device": "P780",
+   "name": "Rakuten Hand5G",
+   "model": "P780"
   }
  ],
  "Ratel": [
@@ -113886,6 +113956,11 @@
    "device": "selene",
    "name": "Redmi 10",
    "model": "21061119AL"
+  },
+  {
+   "device": "selene",
+   "name": "Redmi 10",
+   "model": "21121119SG"
   },
   {
    "device": "apricot",
@@ -131798,6 +131873,11 @@
   {
    "device": "Sarah",
    "name": "AQUOS sense5G",
+   "model": "A105SH"
+  },
+  {
+   "device": "Sarah",
+   "name": "AQUOS sense5G",
    "model": "SH-M17"
   },
   {
@@ -135699,6 +135779,11 @@
    "device": "XQ-BE52",
    "name": "Xperia PRO-I",
    "model": "XQ-BE52"
+  },
+  {
+   "device": "XQ-BE62",
+   "name": "Xperia PRO-I",
+   "model": "XQ-BE62"
   },
   {
    "device": "XQ-BE72",
@@ -158326,6 +158411,11 @@
    "device": "PD2148",
    "name": "V2148A",
    "model": "V2148A"
+  },
+  {
+   "device": "PD2154",
+   "name": "V2154A",
+   "model": "V2154A"
   },
   {
    "device": "PD2156",

@@ -26,10 +26,18 @@ import java.util.*
 class EncryptedPreferencesProvider(private val application: Context) :
     CryptoPreferencesProvider {
     override fun getCryptoPreferences(name: String): SharedPreferences {
-        var preferences = cache[name]
-        if (preferences == null) {
-            preferences = CryptoPreferencesImpl(application, name)
-            cache[name] = preferences
+        lateinit var preferences: SharedPreferences
+        cache[name]?.let {
+            preferences = it
+        }?:run{
+            synchronized(EncryptedPreferencesProvider::class.java){
+                cache[name]?.let {
+                    preferences = it
+                }?:run{
+                    preferences = CryptoPreferencesImpl(application, name)
+                    cache[name] = preferences
+                }
+            }
         }
         return preferences
     }

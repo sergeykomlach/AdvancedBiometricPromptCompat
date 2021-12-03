@@ -336,7 +336,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         val callback = object : AuthenticationCallback() {
 
-            var isOpened = false
+            private var isOpened = AtomicBoolean(false)
             override fun onSucceeded(confirmed: Set<BiometricType>) {
                 if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                     HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -373,8 +373,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onUIOpened() {
-                if (!isOpened) {
-                    isOpened = true
+                if (!isOpened.get()) {
+                    isOpened.set(true)
                     builder.getMultiWindowSupport().start()
                     callbackOuter.onUIOpened()
                     if (builder.isNotificationEnabled()) {
@@ -393,20 +393,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onUIClosed() {
-                if (isOpened) {
-                    isOpened = false
-                    builder.getMultiWindowSupport().finish()
-                    StatusBarTools.setNavBarAndStatusBarColors(
-                        builder.getContext().window,
-                        builder.getNavBarColor(),
-                        builder.getDividerColor(),
-                        builder.getStatusBarColor()
-                    )
-
+                if (isOpened.get()) {
+                    isOpened.set(false)
                     if (builder.isNotificationEnabled()) {
                         BiometricNotificationManager.dismissAll()
                     }
-                    activityViewWatcher.resetListeners()
+                    val closeAll = Runnable {
+                        builder.getMultiWindowSupport().finish()
+                        activityViewWatcher.resetListeners()
+                        StatusBarTools.setNavBarAndStatusBarColors(
+                            builder.getContext().window,
+                            builder.getNavBarColor(),
+                            builder.getDividerColor(),
+                            builder.getStatusBarColor()
+                        )
+                    }
+                    ExecutorHelper.post(closeAll)
+                    val delay =
+                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                    ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
                 }
             }
