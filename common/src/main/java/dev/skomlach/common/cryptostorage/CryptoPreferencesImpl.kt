@@ -55,26 +55,30 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
     private var sharedPreferences: SharedPreferences? = null
         get() {
             if(field == null) {
-                try {
-                    field = if (CURRENT_VERSION == VERSION_2) {
-                        val pref = initV2()
-                        if (File(
-                                ContextCompat.getDataDir(context),
-                                "shared_prefs/$name.xml"
-                            ).exists()
-                        ) {
-                            SharedPreferencesMigrationHelper.migrateIfNeeded(
-                                context,
-                                name,
-                                initV1(),
+                synchronized(CryptoPreferencesImpl::class.java){
+                    if ( field == null){
+                        try {
+                            field = if (CURRENT_VERSION == VERSION_2) {
+                                val pref = initV2()
+                                if (File(
+                                        ContextCompat.getDataDir(context),
+                                        "shared_prefs/$name.xml"
+                                    ).exists()
+                                ) {
+                                    SharedPreferencesMigrationHelper.migrateIfNeeded(
+                                        context,
+                                        name,
+                                        initV1(),
+                                        pref
+                                    )
+                                }
                                 pref
-                            )
+                            } else
+                                initV1()
+                        } catch (e: Throwable) {
+                            LogCat.logException(e)
                         }
-                        pref
-                    } else
-                        initV1()
-                } catch (e: Throwable) {
-                    LogCat.logException(e)
+                    }
                 }
             }
 
