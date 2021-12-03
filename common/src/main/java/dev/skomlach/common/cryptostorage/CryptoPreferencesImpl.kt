@@ -25,13 +25,12 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferencesWorkaround
 import androidx.security.crypto.MasterKey
 import androidx.security.crypto.MasterKeys
 import com.securepreferences.SecurePreferences
 import dev.skomlach.common.contextprovider.AndroidContext.locale
 import dev.skomlach.common.logging.LogCat
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.File
 import java.util.*
 
@@ -40,7 +39,8 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
     companion object {
         private const val VERSION_1: Int = 1
         private const val VERSION_2: Int = 2
-        private const val CURRENT_VERSION: Int = VERSION_2
+        private const val VERSION_3: Int = 3
+        private const val CURRENT_VERSION: Int = VERSION_3
 
         //workaround for known date parsing issue in KeyPairGenerator
         private fun setLocale(context: Context, locale: Locale) {
@@ -54,27 +54,57 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
 
     private var sharedPreferences: SharedPreferences? = null
         get() {
-            if(field == null) {
-                synchronized(CryptoPreferencesImpl::class.java){
-                    if ( field == null){
+            if (field == null) {
+                synchronized(CryptoPreferencesImpl::class.java) {
+                    if (field == null) {
                         try {
-                            field = if (CURRENT_VERSION == VERSION_2) {
-                                val pref = initV2()
-                                if (File(
-                                        ContextCompat.getDataDir(context),
-                                        "shared_prefs/$name.xml"
-                                    ).exists()
-                                ) {
-                                    SharedPreferencesMigrationHelper.migrateIfNeeded(
-                                        context,
-                                        name,
-                                        initV1(),
-                                        pref
-                                    )
+                            field = when (CURRENT_VERSION) {
+                                VERSION_3 -> {
+                                    val pref = initV3()
+                                    if (File(
+                                            ContextCompat.getDataDir(context),
+                                            "shared_prefs/$name.xml"
+                                        ).exists()
+                                    ) {
+                                        SharedPreferencesMigrationHelper.migrateIfNeeded(
+                                            context,
+                                            name,
+                                            initV1(),
+                                            pref
+                                        )
+                                    } else
+                                        if (File(
+                                                ContextCompat.getDataDir(context),
+                                                "shared_prefs/$name-EncrV2.xml"
+                                            ).exists()
+                                        ) {
+                                            SharedPreferencesMigrationHelper.migrateIfNeeded(
+                                                context,
+                                                "$name-EncrV2",
+                                                initV2(),
+                                                pref
+                                            )
+                                        }
+                                    pref
                                 }
-                                pref
-                            } else
-                                initV1()
+                                VERSION_2 -> {
+                                    val pref = initV2()
+                                    if (File(
+                                            ContextCompat.getDataDir(context),
+                                            "shared_prefs/$name.xml"
+                                        ).exists()
+                                    ) {
+                                        SharedPreferencesMigrationHelper.migrateIfNeeded(
+                                            context,
+                                            name,
+                                            initV1(),
+                                            pref
+                                        )
+                                    }
+                                    pref
+                                }
+                                else -> initV1()
+                            }
                         } catch (e: Throwable) {
                             LogCat.logException(e)
                         }
@@ -85,17 +115,19 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
             return field
         }
 
-    private fun initV1(): SharedPreferences {
-        val defaultLocale = locale
+    private fun initV1(): SharedPreferences? {
         try {
-            setLocale(context, Locale.US)
-            val fallbackCheck = context.getSharedPreferences("FallbackCheck", Context.MODE_PRIVATE)
-            val forceToFallback = fallbackCheck.getBoolean("forceToFallback", false)
-            var pref: SharedPreferences? = null
-            //AndroidX Security impl.
-            //may produce exceptions on some devices (Huawei)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !forceToFallback) {
-                try {
+            val defaultLocale = locale
+            try {
+                setLocale(context, Locale.US)
+                val fallbackCheck =
+                    context.getSharedPreferences("FallbackCheck", Context.MODE_PRIVATE)
+                val forceToFallback = fallbackCheck.getBoolean("forceToFallback", false)
+                var pref: SharedPreferences? = null
+                //AndroidX Security impl.
+                //may produce exceptions on some devices (Huawei)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !forceToFallback) {
+                    try {
                     val keyGenParameterSpec = MasterKeys.AES256_GCM_SPEC
                     val masterKeyAlias = MasterKeys.getOrCreate(keyGenParameterSpec)
                     pref = EncryptedSharedPreferences
@@ -110,36 +142,73 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
                     pref = null
                     fallbackCheck.edit().putBoolean("forceToFallback", true).apply()
                 }
-            }
+                }
 
-            //fallback
-            if (pref == null) {
-                pref = SecurePreferences(context, null, name, 5000)
+                //fallback
+                if (pref == null) {
+                    pref = SecurePreferences(context, null, name, 5000)
+                }
+                return pref
+            } finally {
+                setLocale(context, defaultLocale)
             }
-            return pref
-        } finally {
-            setLocale(context, defaultLocale)
+        } catch (e: Throwable) {
+            SharedPreferencesMigrationHelper.deletePreferences(context, name)
+            LogCat.logException(e)
+            return null
         }
     }
 
-    private fun initV2(): SharedPreferences {
-        val defaultLocale = locale
-        setLocale(context, Locale.US)
-        return try {
-            val masterKeyAlias =
-                MasterKey.Builder(context)
-                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build()
-            EncryptedSharedPreferences
-                .create(
-                    context,
-                    "$name-EncrV2",
-                    masterKeyAlias,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-                )
-        } finally {
-            setLocale(context, defaultLocale)
+    private fun initV2(): SharedPreferences? {
+        try {
+            val defaultLocale = locale
+            setLocale(context, Locale.US)
+            return try {
+                val masterKeyAlias =
+                    MasterKey.Builder(context)
+                        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                        .build()
+                EncryptedSharedPreferences
+                    .create(
+                        context,
+                        "$name-EncrV2",
+                        masterKeyAlias,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                    )
+            } finally {
+                setLocale(context, defaultLocale)
+            }
+        } catch (e: Throwable) {
+            SharedPreferencesMigrationHelper.deletePreferences(context, "$name-EncrV2")
+            LogCat.logException(e)
+            return null
+        }
+    }
+
+    private fun initV3(): SharedPreferences? {
+        try {
+            val defaultLocale = locale
+            setLocale(context, Locale.US)
+            return try {
+                val masterKeyAlias =
+                    MasterKey.Builder(context)
+                        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                        .build()
+                EncryptedSharedPreferencesWorkaround
+                    .create(
+                        context,
+                        "$name-EncrV3",
+                        masterKeyAlias,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                    )
+            } finally {
+                setLocale(context, defaultLocale)
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+            return null
         }
     }
 
