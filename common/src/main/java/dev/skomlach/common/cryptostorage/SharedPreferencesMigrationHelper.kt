@@ -27,7 +27,32 @@ import java.io.File
 import java.util.*
 
 object SharedPreferencesMigrationHelper {
-    fun migrate(
+    fun migrateIfNeeded(
+        context: Context,
+        name: String,
+        src: SharedPreferences,
+        dest: SharedPreferences
+    ) {
+        if (!isMigrated(dest, name)) {
+            synchronized(SharedPreferencesMigrationHelper) {
+                if (!isMigrated(dest, name)) {
+                    doMigrate(
+                        context,
+                        name,
+                        src,
+                        dest
+                    )
+                    setIsMigrated(dest,name)
+                }
+            }
+        }
+    }
+
+    private fun setIsMigrated(dest: SharedPreferences, name: String) {
+        dest.edit().putBoolean("Shared_Preferences_migrated-$name",true).apply()
+    }
+
+    private fun doMigrate(
         context: Context,
         name: String,
         src: SharedPreferences,
@@ -63,12 +88,16 @@ object SharedPreferencesMigrationHelper {
                     }
                 }
             }
-            e.commit()
+            e.apply()
             return
         } finally {
-            src.edit().clear().commit()
+            src.edit().clear().apply()
             ExecutorHelper.startOnBackground { deletePreferencesFile(context, "$name.xml") }
         }
+    }
+
+    private fun isMigrated(newSharedPreference: SharedPreferences, name: String): Boolean {
+        return newSharedPreference.getBoolean("Shared_Preferences_migrated-$name", false)
     }
 
     private fun deletePreferencesFile(context: Context, name: String) {
