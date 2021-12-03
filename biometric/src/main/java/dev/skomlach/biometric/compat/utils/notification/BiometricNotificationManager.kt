@@ -88,8 +88,8 @@ object BiometricNotificationManager {
 
                     val notif = NotificationCompat.Builder(appContext, CHANNEL_ID)
                         .setOnlyAlertOnce(true)
-                        .setAutoCancel(false)
-                        .setOngoing(true)
+//                        .setAutoCancel(false)
+//                        .setOngoing(true)
                         .setAutoCancel(true)
                         .setLocalOnly(true)
                         .setContentTitle(builder.getTitle())
