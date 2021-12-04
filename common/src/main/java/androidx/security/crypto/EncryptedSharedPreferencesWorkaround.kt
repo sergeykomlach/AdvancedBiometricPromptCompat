@@ -28,7 +28,9 @@ import com.google.crypto.tink.DeterministicAead
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.daead.DeterministicAeadConfig
 import com.google.crypto.tink.integration.android.AndroidKeysetManager
+import dev.skomlach.common.logging.LogCat
 import java.io.IOException
+import java.lang.reflect.Modifier
 import java.security.GeneralSecurityException
 
 object EncryptedSharedPreferencesWorkaround {
@@ -97,7 +99,7 @@ object EncryptedSharedPreferencesWorkaround {
                 KEY_KEYSET_ALIAS,
                 fileName
             )
-            .doNotUseKeystore()
+            .doNotUseKeystore()//Disable AndroidKeystore
             .build().keysetHandle
         val aeadKeysetHandle = AndroidKeysetManager.Builder()
             .withKeyTemplate(prefValueEncryptionScheme.keyTemplate)
@@ -106,7 +108,7 @@ object EncryptedSharedPreferencesWorkaround {
                 VALUE_KEYSET_ALIAS,
                 fileName
             )
-            .doNotUseKeystore()
+            .doNotUseKeystore()//Disable AndroidKeystore
             .build().keysetHandle
         val daead = daeadKeysetHandle.getPrimitive(
             DeterministicAead::class.java
@@ -117,5 +119,69 @@ object EncryptedSharedPreferencesWorkaround {
             applicationContext.getSharedPreferences(fileName, Context.MODE_PRIVATE), aead,
             daead
         )
+    }
+
+    private fun decryptKey(pref: EncryptedSharedPreferences, key: String): String {
+        return pref.decryptKey(key)
+    }
+
+    private fun decryptObject(pref: EncryptedSharedPreferences, key: String): Any? {
+        val method = EncryptedSharedPreferences::class.java.declaredMethods.firstOrNull {
+            Modifier.isPrivate(it.modifiers) &&
+                    it.returnType == Object::class.java &&
+                    it.parameterTypes.size == 1 && it.parameterTypes[0] == String::class.java
+        }
+        val isAccessible = method?.isAccessible
+        try {
+            if (isAccessible == false)
+                method.isAccessible = true
+            return method?.invoke(pref, key)
+        } finally {
+            if (isAccessible == false)
+                method.isAccessible = false
+        }
+    }
+
+    fun getAll(sharedPreferences: SharedPreferences?): Map<String, *>? {
+        try {
+            if (sharedPreferences == null)
+                throw IllegalStateException("SharedPreferences not initialized")
+            else
+                return sharedPreferences.all
+        } catch (e: Throwable) {
+            //workaround
+            sharedPreferences?.let {
+                if (it is EncryptedSharedPreferences)
+                    try {
+                        val all = it.mSharedPreferences.all ?: emptyMap()
+                        val map = mutableMapOf<String, Any?>()
+                        for (encryptedKey in all.keys) {
+                            try {
+                                if (it.isReservedKey(encryptedKey))
+                                    continue
+
+                                val plaintextKey = decryptKey(
+                                    it,
+                                    encryptedKey
+                                )
+                                map[plaintextKey] = null
+                                val plaintextValue =
+                                    decryptObject(
+                                        it,
+                                        plaintextKey
+                                    )
+                                map[plaintextKey] = plaintextValue
+                            } catch (ignore: Throwable) {
+                                LogCat.logException(ignore)
+                            }
+                        }
+                        return map
+                    } catch (ex: Throwable) {
+                        LogCat.logException(ex)
+                    }
+            }
+            LogCat.logException(e)
+        }
+        return null
     }
 }
