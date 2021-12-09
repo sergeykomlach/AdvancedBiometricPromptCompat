@@ -22,6 +22,7 @@ package dev.skomlach.common.cryptostorage
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.ContextCompat
+import androidx.security.crypto.EncryptedSharedPreferencesWorkaround
 import dev.skomlach.common.misc.ExecutorHelper
 import java.io.File
 import java.util.*
@@ -63,7 +64,7 @@ object SharedPreferencesMigrationHelper {
         dest: SharedPreferences
     ) {
         try {
-            val allSrc = src.all?.filter {
+            val allSrc = EncryptedSharedPreferencesWorkaround.getAll(src)?.filter {
                 !it.key.startsWith("__androidx_security_crypto_encrypted_prefs_")
             }
             if (allSrc == null || allSrc.isEmpty()) {

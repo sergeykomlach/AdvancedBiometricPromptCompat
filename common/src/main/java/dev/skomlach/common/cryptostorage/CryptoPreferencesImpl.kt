@@ -212,21 +212,18 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
         }
     }
 
-    private fun checkAndDeleteIfNeed(key: String?, e: Throwable): Boolean {
+    private fun checkAndDeleteIfNeed(key: String, e: Throwable): Boolean {
         if (!e.toString().contains("Could not decrypt value")) {
-            if (!key.isNullOrEmpty()) {
+            if (key.isNotEmpty()) {
                 LogCat.log("Remove broken value for key '$key'")
                 edit().remove(key).apply()
-            } else {
-                LogCat.log("Remove all broken values")
-                edit().clear().apply()
             }
             return true
         }
         return false
     }
 
-    private fun checkException(key: String?, e: Throwable?) {
+    private fun checkException(key: String, e: Throwable?) {
         if (e == null || checkAndDeleteIfNeed(key, e)) {
             return
         }
@@ -234,16 +231,7 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
     }
 
     override fun getAll(): Map<String, *>? {
-        try {
-            if (sharedPreferences == null)
-                throw IllegalStateException("SharedPreferences not initialized")
-            else
-                return sharedPreferences?.all
-        } catch (e: Throwable) {
-            checkException(null, e)
-            LogCat.logException(e)
-        }
-        return null
+       return EncryptedSharedPreferencesWorkaround.getAll(sharedPreferences)
     }
 
     override fun getString(key: String, defValue: String?): String? {
