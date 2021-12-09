@@ -6,8 +6,6 @@ android {
     defaultConfig {
         minSdkVersion minSDK
         targetSdkVersion targetSDK
-        versionCode libsMinorVersion
-        versionName libsMajorVersion + "." + libsMinorVersion
         consumerProguardFiles "proguard-project-common.pro"
     }
     compileOptions {
