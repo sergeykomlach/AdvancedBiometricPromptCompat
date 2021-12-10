@@ -91,7 +91,7 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
         _binding = null
     }
 
-    override fun log(log: String?) {
+    override fun log(log: String) {
         val sb: StringBuilder = StringBuilder(logs?.text ?: "")
         sb.append(log).append("\n")
         logs?.text = sb.toString()

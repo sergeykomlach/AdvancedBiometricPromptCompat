@@ -52,7 +52,7 @@ class FingerprintIconView @JvmOverloads constructor(
 
     private var state = State.OFF
     private var type = BiometricType.BIOMETRIC_FACE
-    private var color: Int? = null
+    private var color: Int? = R.color.material_blue_500
 
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
@@ -113,17 +113,7 @@ class FingerprintIconView @JvmOverloads constructor(
                 setImageDrawable(null)
             } else {
                 val currentImage = if (state == State.ON)
-                    getDrawable(context, type.iconId, context.theme)?.apply {
-                        DrawableCompat.setTintList(
-                            this,
-                            ColorStateList.valueOf(
-                                ContextCompat.getColor(
-                                    context,
-                                    R.color.material_blue_500
-                                )
-                            )
-                        )
-                    }
+                    getDrawable(context, type.iconId, context.theme)
                 else {
                     getDrawable(context, resId, context.theme)
                 }

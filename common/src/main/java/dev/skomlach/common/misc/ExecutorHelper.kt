@@ -33,16 +33,24 @@ object ExecutorHelper {
         mutableMapOf<Runnable, Job>()
     )
 
-    fun startOnBackground(task: Runnable, delay: Long = 0) {
-        GlobalScope.launch(Dispatchers.IO) {
+    private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
+
+    fun startOnBackground(task: Runnable, delay: Long) {
+        val job = GlobalScope.launch(Dispatchers.IO) {
             delay(delay)
             task.run()
         }
+        tasksInMain[task] = job
     }
 
     fun startOnBackground(task: Runnable) {
-        GlobalScope.launch(Dispatchers.IO) {
+        if (!isMain()) {
             task.run()
+        } else {
+            val job = GlobalScope.launch(Dispatchers.IO) {
+                task.run()
+            }
+            tasksInMain[task] = job
         }
     }
 
@@ -56,11 +64,15 @@ object ExecutorHelper {
     }
 
     fun post(task: Runnable) {
-        val job = GlobalScope.launch(Dispatchers.Main) {
+        if (isMain()) {
             task.run()
-            tasksInMain.remove(task)
+        } else {
+            val job = GlobalScope.launch(Dispatchers.Main) {
+                task.run()
+                tasksInMain.remove(task)
+            }
+            tasksInMain[task] = job
         }
-        tasksInMain[task] = job
     }
 
     fun removeCallbacks(task: Runnable) {

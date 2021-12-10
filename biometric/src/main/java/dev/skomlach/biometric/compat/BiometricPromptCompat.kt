@@ -338,38 +338,47 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             private var isOpened = AtomicBoolean(false)
             override fun onSucceeded(confirmed: Set<BiometricType>) {
-                if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
-                    HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
-                        .updateBiometricEnrollChanged()
-                } else {
-                    HardwareAccessImpl.getInstance(
-                        BiometricAuthRequest(
-                            BiometricApi.BIOMETRIC_API,
-                            builder.getBiometricAuthRequest().type
+                try {
+                    if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                            .updateBiometricEnrollChanged()
+                    } else {
+                        HardwareAccessImpl.getInstance(
+                            BiometricAuthRequest(
+                                BiometricApi.BIOMETRIC_API,
+                                builder.getBiometricAuthRequest().type
+                            )
                         )
-                    )
-                        .updateBiometricEnrollChanged()
-                    HardwareAccessImpl.getInstance(
-                        BiometricAuthRequest(
-                            BiometricApi.LEGACY_API,
-                            builder.getBiometricAuthRequest().type
+                            .updateBiometricEnrollChanged()
+                        HardwareAccessImpl.getInstance(
+                            BiometricAuthRequest(
+                                BiometricApi.LEGACY_API,
+                                builder.getBiometricAuthRequest().type
+                            )
                         )
-                    )
-                        .updateBiometricEnrollChanged()
-                }
+                            .updateBiometricEnrollChanged()
+                    }
 
-                callbackOuter.onSucceeded(confirmed)
-                onUIClosed()
+                    callbackOuter.onSucceeded(confirmed)
+                } finally {
+                    onUIClosed()
+                }
             }
 
             override fun onCanceled() {
-                callbackOuter.onCanceled()
-                onUIClosed()
+                try {
+                    callbackOuter.onCanceled()
+                } finally {
+                    onUIClosed()
+                }
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
+                try{
                 callbackOuter.onFailed(reason)
-                onUIClosed()
+                 } finally {
+                    onUIClosed()
+                }
             }
 
             override fun onUIOpened() {
@@ -377,7 +386,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     isOpened.set(true)
                     builder.getMultiWindowSupport().start()
                     callbackOuter.onUIOpened()
-                    if (builder.isNotificationEnabled()) {
+                    if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                         BiometricNotificationManager.showNotification(builder)
                     }
                     if (impl is BiometricPromptApi28Impl) {
@@ -395,10 +404,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onUIClosed() {
                 if (isOpened.get()) {
                     isOpened.set(false)
-                    if (builder.isNotificationEnabled()) {
-                        BiometricNotificationManager.dismissAll()
-                    }
                     val closeAll = Runnable {
+                        if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                            BiometricNotificationManager.dismissAll()
+                        }
                         builder.getMultiWindowSupport().finish()
                         activityViewWatcher.resetListeners()
                         StatusBarTools.setNavBarAndStatusBarColors(

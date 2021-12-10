@@ -70,17 +70,7 @@ object BiometricNotificationManager {
     fun showNotification(
         builder: BiometricPromptCompat.Builder
     ) {
-        try {
-            for (type in BiometricType.values()) {
-                try {
-                    notificationCompat.cancel(type.hashCode())
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
+        dismissAll()
         val notify = Runnable {
             try {
                 val clickIntent = Intent()
@@ -129,37 +119,25 @@ object BiometricNotificationManager {
             ExecutorHelper.removeCallbacks(it)
             notificationReference.set(null)
         }
-        val notify = Runnable {
-            try {
-                for (type in BiometricType.values()) {
-                    try {
-                        notificationCompat.cancel(type.hashCode())
-                    } catch (e: Throwable) {
-                        BiometricLoggerImpl.e(e)
-                    }
+
+        try {
+            for (type in BiometricType.values()) {
+                try {
+                    notificationCompat.cancel(type.hashCode())
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
                 }
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
             }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
-        ExecutorHelper.post(notify)
-        val delay =
-            appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-        ExecutorHelper.postDelayed(notify, delay)
     }
 
     fun dismiss(type: BiometricType?) {
-        val notify = Runnable {
-            try {
-                notificationCompat.cancel(type?.hashCode() ?: return@Runnable)
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
-            }
+        try {
+            notificationCompat.cancel(type?.hashCode()?:return)
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
-        ExecutorHelper.post(notify)
-        val delay =
-            appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-        ExecutorHelper.postDelayed(notify, delay)
-
     }
 }

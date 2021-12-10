@@ -34,11 +34,18 @@
             />
 
     <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/checkbox"
+            android:id="@+id/checkboxFullscreen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/text"
             android:text="Fullscreen"
+            />
+    <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/checkboxWindowSecure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/checkboxFullscreen"
+            android:text="Window Secured"
             />
 
     <LinearLayout
@@ -46,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/buttons"
-            android:layout_below="@+id/checkbox"
+            android:layout_below="@+id/checkboxWindowSecure"
             android:orientation="vertical"
             />
 
@@ -60,13 +67,6 @@
             android:orientation="horizontal"
             >
 
-        <Button
-                android:id="@+id/button_first"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="6dp"
-                android:text="@string/logging"
-                />
 
         <Button
                 android:id="@+id/button_second"
@@ -76,6 +76,13 @@
                 android:text="@string/dialog"
                 />
 
+        <Button
+                android:id="@+id/button_first"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="6dp"
+                android:text="@string/send_logs"
+                />
         <Button
                 android:id="@+id/button_third"
                 android:layout_width="wrap_content"

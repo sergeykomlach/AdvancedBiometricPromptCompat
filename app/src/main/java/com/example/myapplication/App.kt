@@ -43,7 +43,7 @@ class App : MultiDexApplication() {
         super.onCreate()
         AppMonitoringDevTools(this).enableMonitoringTools(true)
         LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
-            override fun log(string: String?) {
+            override fun log(string: String) {
                 LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
                 BiometricPromptCompat.init {
