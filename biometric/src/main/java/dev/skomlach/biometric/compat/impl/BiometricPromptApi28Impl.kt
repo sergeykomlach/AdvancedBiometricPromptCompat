@@ -195,7 +195,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             )
         }
         if (isAtLeastR) {
-            promptInfoBuilder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+            promptInfoBuilder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
         } else {
             promptInfoBuilder.setDeviceCredentialAllowed(false)
         }

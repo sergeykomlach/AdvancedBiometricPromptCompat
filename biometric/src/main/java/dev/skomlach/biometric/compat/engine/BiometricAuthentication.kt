@@ -372,7 +372,7 @@ object BiometricAuthentication {
                 val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
                 enrollIntent.putExtra(
                     Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
                 )
                 if (startActivity(enrollIntent, context))
                     return true
@@ -390,7 +390,7 @@ object BiometricAuthentication {
                 val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
                 enrollIntent.putExtra(
                     Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
                 )
                 if (startActivity(enrollIntent, context))
                     return true

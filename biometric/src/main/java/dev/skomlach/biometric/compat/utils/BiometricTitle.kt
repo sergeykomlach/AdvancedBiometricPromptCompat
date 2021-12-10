@@ -31,16 +31,25 @@ object BiometricTitle {
             remove(BiometricType.BIOMETRIC_ANY)
         }
         if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FACE))
-            getFromSystem(context, "face")?.let {
+            getSystemTitle(context, "face")?.let {
                 return it
             }
         else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
-            getFromSystem(context, "iris")?.let {
+            getSystemTitle(context, "iris")?.let {
                 return it
             }
-        else getFromSystem(context, "biometric")?.let {
-            return it
+        else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FINGERPRINT)) {
+            getSystemTitle(context, "fingerprint")?.let {
+                return it
+            }
+            return context
+                .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
         }
+        else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
+            getSystemTitle(context, "voice")?.let {
+                return it
+            }
+
         //Attempt#2
         try {
             if (Utils.isAtLeastS) {
@@ -64,7 +73,7 @@ object BiometricTitle {
             BiometricLoggerImpl.e(e)
         }
 
-        getFromSystem(context, "fingerprint")?.let {
+        getSystemTitle(context, "biometric")?.let {
             return it
         }
         //Give up
@@ -72,11 +81,39 @@ object BiometricTitle {
             .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
     }
 
-    private fun getFromSystem(context: Context, alias: String): String? {
+    private fun getSystemTitle(context: Context, alias: String): String?{
+     return getFromSystemTitle(context, alias)?: getFromSystemSubtitle(context, alias)
+    }
+    private fun getFromSystemSubtitle(context: Context, alias: String): String? {
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
                 if (field.name.equals(alias + "_dialog_default_subtitle")) {
+                    BiometricLoggerImpl.d("BiometricTitle", field.name)
+                    val isAccessible = field.isAccessible
+                    return try {
+                        if (!isAccessible) field.isAccessible = true
+                        val s = context.getString(field[null] as Int)
+                        if (s.isEmpty())
+                            throw RuntimeException("String is empty")
+                        s
+                    } finally {
+                        if (!isAccessible) field.isAccessible = false
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+        return null
+    }
+
+    private fun getFromSystemTitle(context: Context, alias: String): String? {
+        try {
+            val fields = Class.forName("com.android.internal.R\$string").declaredFields
+            for (field in fields) {
+                if (field.name.equals(alias + "_dialog_default_title")) {
+                    BiometricLoggerImpl.d("BiometricTitle", field.name)
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true
