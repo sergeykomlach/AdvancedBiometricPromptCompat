@@ -27,6 +27,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentFirstBinding
@@ -69,17 +70,29 @@ class FirstFragment : Fragment() {
         } else {
             fillList(inflater, binding?.buttonsList)
         }
-        binding?.checkbox?.isChecked =
-            SharedPreferenceProvider.getCryptoPreferences("fullscreen").getBoolean("checked", false)
+        binding?.checkboxFullscreen?.isChecked =
+            SharedPreferenceProvider.getCryptoPreferences("app_settings").getBoolean("checkboxFullscreen", false)
 
-        binding?.checkbox?.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("fullscreen").edit()
-                .putBoolean("checked", isChecked).apply()
-            (activity as MainActivity).updateFullScreen()
+        binding?.checkboxFullscreen?.setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+                .putBoolean("checkboxFullscreen", isChecked).apply()
+            (activity as MainActivity).updateUI()
+            Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }
+
+        binding?.checkboxWindowSecure?.isChecked =
+            SharedPreferenceProvider.getCryptoPreferences("app_settings").getBoolean("checkboxWindowSecure", false)
+
+        binding?.checkboxWindowSecure?.setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+                .putBoolean("checkboxWindowSecure", isChecked).apply()
+            (activity as MainActivity).updateUI()
+            Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
+        }
+
         binding?.buttonFirst?.setOnClickListener {
-            NavHostFragment.findNavController(this@FirstFragment)
-                .navigate(R.id.action_FirstFragment_to_SecondFragment)
+            (activity as MainActivity).sendLogs()
+
         }
         binding?.buttonSecond?.setOnClickListener {
             (activity as MainActivity).showDialog()

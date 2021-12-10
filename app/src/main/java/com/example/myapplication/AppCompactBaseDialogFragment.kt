@@ -27,6 +27,7 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
 
 class AppCompactBaseDialogFragment : DialogFragment() {
 
@@ -50,7 +51,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
 
         val buttonsList = view.findViewById<LinearLayout>(R.id.buttons_list)
         view.findViewById<LinearLayout>(R.id.buttons).visibility = View.GONE
-        view.findViewById<CheckBox>(R.id.checkbox).visibility = View.GONE
+        view.findViewById<CheckBox>(R.id.checkboxFullscreen).visibility = View.GONE
         if (!App.isReady) {
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
@@ -61,7 +62,16 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         } else {
             fillList(inflater, buttonsList)
         }
+        view.findViewById<CheckBox>(R.id.checkboxWindowSecure).isChecked =
+            SharedPreferenceProvider.getCryptoPreferences("app_settings")
+                .getBoolean("checkboxWindowSecure", false)
 
+        view.findViewById<CheckBox>(R.id.checkboxWindowSecure).setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+                .putBoolean("checkboxWindowSecure", isChecked).apply()
+            (activity as MainActivity).updateUI()
+            Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
+        }
         return view
     }
 

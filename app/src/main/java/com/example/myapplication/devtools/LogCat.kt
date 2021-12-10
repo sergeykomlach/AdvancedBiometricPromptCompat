@@ -94,7 +94,7 @@ object LogCat {
     }
 
     interface Log2ViewCallback {
-        fun log(string: String?)
+        fun log(log: String)
     }
 
 }

@@ -24,6 +24,7 @@ import android.app.ProgressDialog
 import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
@@ -34,6 +35,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.devtools.LogCat
 import com.example.myapplication.devtools.Scan4Apis
 import com.example.myapplication.utils.MailTo
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
@@ -47,12 +49,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        if (secure) {
-        //prevent screen capturing
-//            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-//        } else {
-//            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
-//        }
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -109,19 +106,44 @@ class MainActivity : AppCompatActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus)
-            updateFullScreen()
+            updateUI()
     }
 
 
-    fun updateFullScreen() {
-        if (SharedPreferenceProvider.getCryptoPreferences("fullscreen")
-                .getBoolean("checked", false)
+    fun updateUI() {
+        if (SharedPreferenceProvider.getCryptoPreferences("app_settings")
+                .getBoolean("checkboxFullscreen", false)
         )
             hideSystemUI()
         else
             showSystemUI()
+
+        if (SharedPreferenceProvider.getCryptoPreferences("app_settings")
+                .getBoolean("checkboxWindowSecure", false)
+        ) {
+//        prevent screen capturing
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+
+
     }
 
+    fun sendLogs(){
+        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
+            override fun log(log: String) {
+                LogCat.setLog2ViewCallback(null)
+                MailTo.startMailClient(
+                    this@MainActivity,
+                    "s.komlach@gmail.com",
+                    "Advanced BiometricPromptCompat Logs",
+                    log
+                )
+            }
+        })
+
+    }
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, binding.root).let { controller ->
