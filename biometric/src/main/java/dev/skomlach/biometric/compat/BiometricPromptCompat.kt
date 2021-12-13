@@ -384,7 +384,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             override fun onUIOpened() {
                 if (!isOpened.get()) {
                     isOpened.set(true)
-                    builder.getMultiWindowSupport().start()
                     callbackOuter.onUIOpened()
                     if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                         BiometricNotificationManager.showNotification(builder)
@@ -408,7 +407,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                             BiometricNotificationManager.dismissAll()
                         }
-                        builder.getMultiWindowSupport().finish()
                         activityViewWatcher.resetListeners()
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.getContext().window,

@@ -23,6 +23,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme
 import androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme
+import androidx.security.crypto.MasterKey.KEYSTORE_PATH_URI
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.DeterministicAead
 import com.google.crypto.tink.aead.AeadConfig
@@ -99,6 +100,7 @@ object EncryptedSharedPreferencesWorkaround {
                 KEY_KEYSET_ALIAS,
                 fileName
             )
+            .withMasterKeyUri(KEYSTORE_PATH_URI + masterKeyAlias)
             .doNotUseKeystore()//Disable AndroidKeystore
             .build().keysetHandle
         val aeadKeysetHandle = AndroidKeysetManager.Builder()
@@ -108,6 +110,7 @@ object EncryptedSharedPreferencesWorkaround {
                 VALUE_KEYSET_ALIAS,
                 fileName
             )
+            .withMasterKeyUri(KEYSTORE_PATH_URI + masterKeyAlias)
             .doNotUseKeystore()//Disable AndroidKeystore
             .build().keysetHandle
         val daead = daeadKeysetHandle.getPrimitive(

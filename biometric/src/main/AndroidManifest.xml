@@ -20,6 +20,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.biometric.compat">
+
+    <uses-feature
+            android:name="android.hardware.fingerprint"
+            android:required="false" />
+    <uses-feature
+            android:name="android.hardware.camera"
+            android:required="false" />
+    <uses-feature
+            android:name="android.hardware.camera.any"
+            android:required="false" />
+    <uses-feature
+            android:name="android.hardware.microphone"
+            android:required="false" />
+    <uses-feature
+            android:name="android.hardware.sensor.heartrate"
+            android:required="false" />
+
     <!-- OnePlus FaceUnlock-->
     <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_SETTING"/>
     <uses-permission android:name="com.oneplus.faceunlock.permission.FACE_UNLOCK" />
