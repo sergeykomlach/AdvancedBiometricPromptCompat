@@ -58,6 +58,9 @@ class CryptoPreferencesImpl internal constructor(private val context: Context, p
                 synchronized(CryptoPreferencesImpl::class.java) {
                     if (field == null) {
                         try {
+                            if (Build.VERSION.SDK_INT < 19)
+                                field = initV1()
+                            else
                             field = when (CURRENT_VERSION) {
                                 VERSION_3 -> {
                                     val pref = initV3()
