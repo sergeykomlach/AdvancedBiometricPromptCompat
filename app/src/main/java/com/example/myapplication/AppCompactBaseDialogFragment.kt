@@ -63,11 +63,11 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             fillList(inflater, buttonsList)
         }
         view.findViewById<CheckBox>(R.id.checkboxWindowSecure).isChecked =
-            SharedPreferenceProvider.getCryptoPreferences("app_settings")
+            SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxWindowSecure", false)
 
         view.findViewById<CheckBox>(R.id.checkboxWindowSecure).setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxWindowSecure", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()

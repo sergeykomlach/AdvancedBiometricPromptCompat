@@ -75,20 +75,20 @@ class FirstFragment : Fragment() {
             fillList(inflater, binding?.buttonsList)
         }
         binding?.checkboxFullscreen?.isChecked =
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").getBoolean("checkboxFullscreen", false)
+            SharedPreferenceProvider.getPreferences("app_settings").getBoolean("checkboxFullscreen", false)
 
         binding?.checkboxFullscreen?.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxFullscreen", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }
 
         binding?.checkboxWindowSecure?.isChecked =
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").getBoolean("checkboxWindowSecure", false)
+            SharedPreferenceProvider.getPreferences("app_settings").getBoolean("checkboxWindowSecure", false)
 
         binding?.checkboxWindowSecure?.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxWindowSecure", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()

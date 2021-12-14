@@ -111,14 +111,14 @@ class MainActivity : AppCompatActivity() {
 
 
     fun updateUI() {
-        if (SharedPreferenceProvider.getCryptoPreferences("app_settings")
+        if (SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxFullscreen", false)
         )
             hideSystemUI()
         else
             showSystemUI()
 
-        if (SharedPreferenceProvider.getCryptoPreferences("app_settings")
+        if (SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxWindowSecure", false)
         ) {
 //        prevent screen capturing

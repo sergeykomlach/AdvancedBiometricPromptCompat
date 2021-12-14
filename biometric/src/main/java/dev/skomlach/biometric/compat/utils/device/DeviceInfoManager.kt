@@ -23,7 +23,7 @@ import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.network.NetworkApi
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
@@ -141,7 +141,7 @@ object DeviceInfoManager {
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getCryptoPreferences("BiometricCompat_DeviceInfo")
+                val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
                     val sensors = sharedPreferences.getStringSet("sensors", null)
@@ -154,7 +154,7 @@ object DeviceInfoManager {
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
         try {
-            val sharedPreferences = getCryptoPreferences("BiometricCompat_DeviceInfo")
+            val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 .edit()
             sharedPreferences
                 .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())

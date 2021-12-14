@@ -19,21 +19,29 @@
 
 package dev.skomlach.common.cryptostorage
 
+import android.content.Context
 import android.content.SharedPreferences
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object SharedPreferenceProvider {
     private lateinit var dependencies: CryptoPreferencesProvider
-
-    fun getCryptoPreferences(name: String): SharedPreferences {
-        if (!::dependencies.isInitialized) {
-            synchronized(SharedPreferenceProvider::class.java){
-                if (!::dependencies.isInitialized) {
-                    dependencies = EncryptedPreferencesProvider(appContext)
+    fun getPreferences(name: String): SharedPreferences {
+        return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+    }
+    @Deprecated("Use getPreferences (aka plaintext) instead; `androidx.security` contains too many bugs:(")
+    fun getCryptoPreferences(name: String, forcePlaintextPrefs : Boolean = true): SharedPreferences {
+        return if(forcePlaintextPrefs){
+            getPreferences(name)
+        } else {
+            if (!::dependencies.isInitialized) {
+                synchronized(SharedPreferenceProvider::class.java) {
+                    if (!::dependencies.isInitialized) {
+                        dependencies = EncryptedPreferencesProvider(appContext)
+                    }
                 }
-            }
 
+            }
+            dependencies.getCryptoPreferences(name)
         }
-        return dependencies .getCryptoPreferences(name)
     }
 }
