@@ -30,7 +30,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
 
 object BiometricManagerCompat {

@@ -33,7 +33,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException

@@ -27,7 +27,7 @@ import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
+import dev.skomlach.common.storage.SharedPreferenceProvider
 
 class AppCompactBaseDialogFragment : DialogFragment() {
 

@@ -23,7 +23,7 @@ import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.network.NetworkApi
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements

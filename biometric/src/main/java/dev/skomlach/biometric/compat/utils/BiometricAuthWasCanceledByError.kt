@@ -21,7 +21,7 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.SharedPreferences
 import android.os.Build
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 
 
 object BiometricAuthWasCanceledByError {

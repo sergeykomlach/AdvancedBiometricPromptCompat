@@ -40,7 +40,7 @@ import com.example.myapplication.devtools.Scan4Apis
 import com.example.myapplication.utils.MailTo
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
+import dev.skomlach.common.storage.SharedPreferenceProvider
 
 class MainActivity : AppCompatActivity() {
 

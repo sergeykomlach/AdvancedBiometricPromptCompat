@@ -17,32 +17,19 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.common.cryptostorage
+package dev.skomlach.common.storage
 
 import android.content.Context
 import android.content.SharedPreferences
-import java.util.*
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
-class EncryptedPreferencesProvider(private val application: Context) :
-    CryptoPreferencesProvider {
-    override fun getCryptoPreferences(name: String): SharedPreferences {
-        lateinit var preferences: SharedPreferences
-        cache[name]?.let {
-            preferences = it
-        }?:run{
-            synchronized(EncryptedPreferencesProvider::class.java){
-                cache[name]?.let {
-                    preferences = it
-                }?:run{
-                    preferences = CryptoPreferencesImpl(application, name)
-                    cache[name] = preferences
-                }
-            }
-        }
-        return preferences
+object SharedPreferenceProvider {
+
+    fun getPreferences(name: String): SharedPreferences {
+        return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
-
-    companion object {
-        private val cache: MutableMap<String, SharedPreferences> = HashMap()
+    @Deprecated("Use getPreferences (aka plaintext) instead; `androidx.security` contains too many bugs:(")
+    fun getCryptoPreferences(name: String): SharedPreferences {
+        return getPreferences(name)
     }
 }
