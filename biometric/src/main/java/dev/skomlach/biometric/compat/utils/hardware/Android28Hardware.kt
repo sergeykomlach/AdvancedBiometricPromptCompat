@@ -54,7 +54,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         private val timeout = TimeUnit.SECONDS.toMillis(31)
     }
 
-    private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
+    private val preferences: SharedPreferences = getCryptoPreferences("BiometricCompat_sdk28Hardware")
     override val isHardwareAvailable: Boolean
         get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType
     override val isBiometricEnrolled: Boolean

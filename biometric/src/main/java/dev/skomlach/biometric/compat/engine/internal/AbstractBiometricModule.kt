@@ -48,7 +48,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     private var firstTimeout: Long? = null
     private val tag: Int = biometricMethod.id
-    private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
+    private val preferences: SharedPreferences = getCryptoPreferences("BiometricCompat_AbstractModule")
     val name: String
         get() = javaClass.simpleName
     val context: Context

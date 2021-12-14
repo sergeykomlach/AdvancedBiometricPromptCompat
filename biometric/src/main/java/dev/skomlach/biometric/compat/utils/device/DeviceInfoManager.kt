@@ -141,7 +141,7 @@ object DeviceInfoManager {
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
+                val sharedPreferences = getCryptoPreferences("BiometricCompat_DeviceInfo")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
                     val sensors = sharedPreferences.getStringSet("sensors", null)
@@ -154,7 +154,7 @@ object DeviceInfoManager {
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
         try {
-            val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
+            val sharedPreferences = getCryptoPreferences("BiometricCompat_DeviceInfo")
                 .edit()
             sharedPreferences
                 .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())

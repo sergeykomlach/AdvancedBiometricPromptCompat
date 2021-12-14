@@ -26,7 +26,7 @@ import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPrefe
 
 object BiometricAuthWasCanceledByError {
     private const val TS_PREF = "error_cancel"
-    private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
+    private val preferences: SharedPreferences = getCryptoPreferences("BiometricCompat_AuthWasCanceledByError")
     fun setCanceledByError() {
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) preferences.edit()
             .putBoolean(TS_PREF, true).apply()

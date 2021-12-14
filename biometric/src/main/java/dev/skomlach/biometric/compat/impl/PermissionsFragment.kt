@@ -155,7 +155,7 @@ class PermissionsFragment : Fragment() {
                     requireActivity(),
                     it
                 )
-            } && (SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions")
+            } && (SharedPreferenceProvider.getCryptoPreferences("BiometricCompat_PermissionsFragment")
                 .getBoolean("denied", false))
         ) {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -227,7 +227,7 @@ class PermissionsFragment : Fragment() {
                     it
                 )
             }) {
-            SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions").edit()
+            SharedPreferenceProvider.getCryptoPreferences("BiometricCompat_PermissionsFragment").edit()
                 .putBoolean("denied", true).apply()
             showPermissionDeniedDialog(permissions, 1001)
             return
@@ -237,7 +237,7 @@ class PermissionsFragment : Fragment() {
                         requireActivity(),
                         it
                     )
-                } && (SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions")
+                } && (SharedPreferenceProvider.getCryptoPreferences("BiometricCompat_PermissionsFragment")
                     .getBoolean("denied", false))
             ) {
                 showMandatoryPermissionsNeedDialog(permissions)

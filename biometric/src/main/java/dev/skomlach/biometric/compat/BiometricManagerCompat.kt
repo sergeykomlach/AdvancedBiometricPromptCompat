@@ -35,7 +35,7 @@ import dev.skomlach.common.misc.Utils
 
 object BiometricManagerCompat {
 
-    private val preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricManagerCache")
+    private val preferences = SharedPreferenceProvider.getCryptoPreferences("BiometricCompat_ManagerCompat")
     @JvmStatic
     fun isBiometricReady(
         api: BiometricAuthRequest = BiometricAuthRequest(
