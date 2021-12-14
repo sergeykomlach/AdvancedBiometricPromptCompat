@@ -62,9 +62,13 @@ class FirstFragment : Fragment() {
             )
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
+                    try {
+                        dialog.dismiss()
+                    } catch (e : Throwable){}
                     fillList(inflater, binding?.buttonsList)
                     checkDeviceInfo()
-                    dialog.dismiss()
+
+
                 }
             })
         } else {
