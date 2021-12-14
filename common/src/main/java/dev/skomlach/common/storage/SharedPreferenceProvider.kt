@@ -17,23 +17,19 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.common.cryptostorage
+package dev.skomlach.common.storage
 
+import android.content.Context
 import android.content.SharedPreferences
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object SharedPreferenceProvider {
-    private lateinit var dependencies: CryptoPreferencesProvider
 
+    fun getPreferences(name: String): SharedPreferences {
+        return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+    }
+    @Deprecated("Use getPreferences (aka plaintext) instead; `androidx.security` contains too many bugs:(")
     fun getCryptoPreferences(name: String): SharedPreferences {
-        if (!::dependencies.isInitialized) {
-            synchronized(SharedPreferenceProvider::class.java){
-                if (!::dependencies.isInitialized) {
-                    dependencies = EncryptedPreferencesProvider(appContext)
-                }
-            }
-
-        }
-        return dependencies .getCryptoPreferences(name)
+        return getPreferences(name)
     }
 }

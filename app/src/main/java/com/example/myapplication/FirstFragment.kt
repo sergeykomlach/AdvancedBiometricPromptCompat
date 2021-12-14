@@ -29,12 +29,11 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.NavHostFragment
 import com.example.myapplication.databinding.FragmentFirstBinding
 import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import leakcanary.LeakCanary
 
 /**
@@ -62,29 +61,33 @@ class FirstFragment : Fragment() {
             )
             App.onInitListeners.add(object : App.OnInitFinished {
                 override fun onFinished() {
+                    try {
+                        dialog.dismiss()
+                    } catch (e : Throwable){}
                     fillList(inflater, binding?.buttonsList)
                     checkDeviceInfo()
-                    dialog.dismiss()
+
+
                 }
             })
         } else {
             fillList(inflater, binding?.buttonsList)
         }
         binding?.checkboxFullscreen?.isChecked =
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").getBoolean("checkboxFullscreen", false)
+            SharedPreferenceProvider.getPreferences("app_settings").getBoolean("checkboxFullscreen", false)
 
         binding?.checkboxFullscreen?.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxFullscreen", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }
 
         binding?.checkboxWindowSecure?.isChecked =
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").getBoolean("checkboxWindowSecure", false)
+            SharedPreferenceProvider.getPreferences("app_settings").getBoolean("checkboxWindowSecure", false)
 
         binding?.checkboxWindowSecure?.setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getCryptoPreferences("app_settings").edit()
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxWindowSecure", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()

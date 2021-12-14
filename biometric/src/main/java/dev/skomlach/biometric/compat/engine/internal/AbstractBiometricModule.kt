@@ -30,7 +30,7 @@ import dev.skomlach.biometric.compat.utils.HexUtils
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
@@ -48,7 +48,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     private var firstTimeout: Long? = null
     private val tag: Int = biometricMethod.id
-    private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
+    private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
     val name: String
         get() = javaClass.simpleName
     val context: Context

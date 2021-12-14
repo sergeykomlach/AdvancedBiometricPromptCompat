@@ -62,11 +62,11 @@ class WindowForegroundBlurring(
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View?) {
-            BiometricLoggerImpl.d("ActivityViewWatcher.onViewAttachedToWindow")
+            BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
         }
 
         override fun onViewDetachedFromWindow(v: View?) {
-            BiometricLoggerImpl.d("ActivityViewWatcher.onViewDetachedFromWindow")
+            BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
             resetListeners()
             forceToCloseCallback.onCloseBiometric()
         }
@@ -93,7 +93,7 @@ class WindowForegroundBlurring(
     private fun updateBackground() {
         if (!isAttached || drawingInProgress)
             return
-        BiometricLoggerImpl.d("ActivityViewWatcher.updateBackground")
+        BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
             contentView?.let {
                 BlurUtil.takeScreenshotAndBlur(
@@ -117,7 +117,7 @@ class WindowForegroundBlurring(
     private fun setDrawable(bm: Bitmap?) {
         if (!isAttached || drawingInProgress)
             return
-        BiometricLoggerImpl.d("ActivityViewWatcher.setDrawable")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setDrawable")
         drawingInProgress = true
         try {
             v?.let {
@@ -158,7 +158,7 @@ class WindowForegroundBlurring(
     }
 
     fun setupListeners() {
-        BiometricLoggerImpl.d("ActivityViewWatcher.setupListeners")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
         isAttached = true
         IconStateHelper.registerListener(this)
         try {
@@ -171,7 +171,7 @@ class WindowForegroundBlurring(
     }
 
     fun resetListeners() {
-        BiometricLoggerImpl.d("ActivityViewWatcher.resetListeners")
+        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
         isAttached = false
         IconStateHelper.unregisterListener(this)
         try {
@@ -194,6 +194,7 @@ class WindowForegroundBlurring(
     }
 
     private fun updateBiometricIconsLayout() {
+        BiometricLoggerImpl.d("${this.javaClass.name}.updateBiometricIconsLayout")
         try {
             biometricsLayout?.let { biometrics_layout ->
                 biometrics_layout.findViewById<View>(R.id.face)?.apply {
@@ -264,15 +265,15 @@ class WindowForegroundBlurring(
     }
 
     private fun updateDefaultColor(bm: Bitmap) {
-
+        BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
             var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
             b = getResizedBitmap(b, 3, 3)
-            val isDark = ColorUtil.isDark(b.getPixel(b.width/2, b.height/2))
+            val isDark = ColorUtil.isDark(b.getPixel(b.width / 2, b.height / 2))
             defaultColor =
-                DialogMainColor.getColor(context, isDark)
+                DialogMainColor.getColor(context, !isDark)
             BiometricLoggerImpl.d(
-                "ActivityViewWatcher.updateDefaultColor isDark - $isDark; color - ${
+                "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
                     Integer.toHexString(
                         defaultColor
                     )
@@ -284,6 +285,7 @@ class WindowForegroundBlurring(
     }
 
     private fun updateIcons() {
+        BiometricLoggerImpl.d("${this.javaClass.name}.updateIcons")
         try {
             biometricsLayout?.let { biometrics_layout ->
 
@@ -338,6 +340,7 @@ class WindowForegroundBlurring(
     }
 
     private fun setIconState(type: BiometricType?, iconStates: IconStates) {
+        BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
         try {
             biometricsLayout?.let { biometrics_layout ->
                 val color = when (iconStates) {

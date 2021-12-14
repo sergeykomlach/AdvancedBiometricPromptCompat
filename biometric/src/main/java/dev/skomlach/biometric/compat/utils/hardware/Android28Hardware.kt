@@ -33,7 +33,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException
@@ -54,7 +54,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         private val timeout = TimeUnit.SECONDS.toMillis(31)
     }
 
-    private val preferences: SharedPreferences = getCryptoPreferences("BiometricModules")
+    private val preferences: SharedPreferences = getPreferences("BiometricCompat_sdk28Hardware")
     override val isHardwareAvailable: Boolean
         get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType
     override val isBiometricEnrolled: Boolean

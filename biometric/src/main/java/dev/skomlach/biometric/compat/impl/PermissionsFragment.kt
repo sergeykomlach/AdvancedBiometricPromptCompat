@@ -39,7 +39,7 @@ import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
@@ -155,7 +155,7 @@ class PermissionsFragment : Fragment() {
                     requireActivity(),
                     it
                 )
-            } && (SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions")
+            } && (SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment")
                 .getBoolean("denied", false))
         ) {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -227,7 +227,7 @@ class PermissionsFragment : Fragment() {
                     it
                 )
             }) {
-            SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions").edit()
+            SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
                 .putBoolean("denied", true).apply()
             showPermissionDeniedDialog(permissions, 1001)
             return
@@ -237,7 +237,7 @@ class PermissionsFragment : Fragment() {
                         requireActivity(),
                         it
                     )
-                } && (SharedPreferenceProvider.getCryptoPreferences("BiometricPermissions")
+                } && (SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment")
                     .getBoolean("denied", false))
             ) {
                 showMandatoryPermissionsNeedDialog(permissions)

@@ -46,11 +46,11 @@ class WindowBackgroundBlurring(
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View?) {
-            BiometricLoggerImpl.d("ActivityViewWatcher.onViewAttachedToWindow")
+            BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
         }
 
         override fun onViewDetachedFromWindow(v: View?) {
-            BiometricLoggerImpl.d("ActivityViewWatcher.onViewDetachedFromWindow")
+            BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
             resetListeners()
         }
     }
@@ -72,7 +72,7 @@ class WindowBackgroundBlurring(
     private fun updateBackground() {
         if (!isAttached || drawingInProgress)
             return
-        BiometricLoggerImpl.d("ActivityViewWatcher.updateBackground")
+        BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
             contentView?.let {
                 BlurUtil.takeScreenshotAndBlur(
@@ -95,7 +95,7 @@ class WindowBackgroundBlurring(
     private fun setDrawable(bm: Bitmap?) {
         if (!isAttached || drawingInProgress)
             return
-        BiometricLoggerImpl.d("ActivityViewWatcher.setDrawable")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setDrawable")
         drawingInProgress = true
         try {
             v?.let {
@@ -134,7 +134,7 @@ class WindowBackgroundBlurring(
     }
 
     fun setupListeners() {
-        BiometricLoggerImpl.d("ActivityViewWatcher.setupListeners")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
         isAttached = true
         try {
             updateBackground()
@@ -146,7 +146,7 @@ class WindowBackgroundBlurring(
     }
 
     fun resetListeners() {
-        BiometricLoggerImpl.d("ActivityViewWatcher.resetListeners")
+        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
         isAttached = false
         try {
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)

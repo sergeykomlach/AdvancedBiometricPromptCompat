@@ -47,7 +47,7 @@ object DeviceModel {
         }
 
     }
-    fun getNames(): Set<String> {
+    fun getNames(): List<String> {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
         BiometricLoggerImpl.d("AndroidModel - $s")
@@ -74,8 +74,11 @@ object DeviceModel {
             }
         }
         set.removeAll(toRemove)
-        BiometricLoggerImpl.d("AndroidModel.names $set")
-        return set
+        val list = set.toMutableList().also {
+            it.sort()
+        }
+        BiometricLoggerImpl.d("AndroidModel.names $list")
+        return list
     }
 
     private fun fixVendorName(string: String): String {

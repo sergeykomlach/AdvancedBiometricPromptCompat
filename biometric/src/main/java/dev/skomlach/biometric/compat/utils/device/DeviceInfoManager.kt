@@ -23,7 +23,7 @@ import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.network.NetworkApi
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
@@ -31,6 +31,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URLEncoder
+import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -131,13 +132,16 @@ object DeviceInfoManager {
                 return
             }
         }
+        if (strings.isNotEmpty()) {
+            setCachedDeviceInfo(DeviceInfo(strings.toList()[0], null))
+        }
         onDeviceInfoListener.onReady(null)
     }
 
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
+                val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
                     val sensors = sharedPreferences.getStringSet("sensors", null)
@@ -150,7 +154,7 @@ object DeviceInfoManager {
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
         try {
-            val sharedPreferences = getCryptoPreferences("StoredDeviceInfo-v3")
+            val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 .edit()
             sharedPreferences
                 .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
@@ -166,7 +170,7 @@ object DeviceInfoManager {
         BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $model")
         return if (model.isEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
-            var html: String? = getHtml(url) ?: return DeviceInfo(model, null)
+            var html: String? = getHtml(url) ?: return null
             val detailsLink = getDetailsLink(url, html, model)
                 ?: return DeviceInfo(model, null)
 
@@ -179,7 +183,7 @@ object DeviceInfoManager {
             DeviceInfo(model, l)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-            DeviceInfo(model, null)
+            null
         }
     }
 
@@ -256,7 +260,7 @@ object DeviceInfoManager {
                     inputStream.close()
                     val data = byteArrayOutputStream.toByteArray()
                     byteArrayOutputStream.close()
-                    String(data)
+                    String(data, Charset.forName("UTF-8"))
                 } finally {
                     if (urlConnection != null) {
                         urlConnection.disconnect()

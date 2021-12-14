@@ -21,13 +21,13 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.common.cryptostorage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 
 
 object BiometricErrorLockoutPermanentFix {
     private const val TS_PREF = "user_unlock_device"
     private val sharedPreferences: SharedPreferences =
-        getCryptoPreferences("BiometricErrorLockoutPermanentFix")
+        getPreferences("BiometricCompat_ErrorLockoutPermanentFix")
 
     fun setBiometricSensorPermanentlyLocked(type: BiometricType) {
         sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).apply()
