@@ -65,13 +65,25 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
     override fun getIds(manager: Any): List<String> {
         val ids = ArrayList<String>()
-
-        mSpassFingerprint?.let {
-            it.registeredFingerprintName?.let { array ->
-                for (i in 0 until array.size()) {
-                    //Sparsearray contains String
-                    (array.get(i) as? String)?.let { s ->
-                        ids.add(s)
+        try {
+            mSpassFingerprint?.let {
+                it.registeredFingerprintUniqueID?.let { array ->
+                    for (i in 0 until array.size()) {
+                        //Sparsearray contains String
+                        (array.get(i) as? String)?.let { s ->
+                            ids.add(s)
+                        }
+                    }
+                }
+            }
+        } catch (e: Throwable){
+            mSpassFingerprint?.let {
+                it.registeredFingerprintName?.let { array ->
+                    for (i in 0 until array.size()) {
+                        //Sparsearray contains String
+                        (array.get(i) as? String)?.let { s ->
+                            ids.add(s)
+                        }
                     }
                 }
             }
