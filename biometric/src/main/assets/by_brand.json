@@ -1136,6 +1136,13 @@
    "model": "UTBook_EEA"
   }
  ],
+ "AXON": [
+  {
+   "device": "Evolution",
+   "name": "Evolution",
+   "model": "Evolution"
+  }
+ ],
  "AXSTV": [
   {
    "device": "SEI130PTS",
@@ -12182,6 +12189,11 @@
    "model": "B55"
   },
   {
+   "device": "Bmobile_B60Pro_MV03SP",
+   "name": "B60Pro",
+   "model": "B60Pro"
+  },
+  {
    "device": "Bmobile_B60Pro_DG",
    "name": "B60Pro_DG",
    "model": "B60Pro_DG"
@@ -14080,6 +14092,13 @@
    "device": "K010",
    "name": "Transformer Pad (TF103C)",
    "model": "K010"
+  }
+ ],
+ "Bestreha": [
+  {
+   "device": "BRN01",
+   "name": "BRN01",
+   "model": "BRN01"
   }
  ],
  "Beyond": [
@@ -16829,6 +16848,11 @@
    "device": "S970EQ",
    "name": "Studio X10",
    "model": "Studio X10"
+  },
+  {
+   "device": "S011EQ",
+   "name": "Studio X10 2022",
+   "model": "Studio X10 2022"
   },
   {
    "device": "S990EQ",
@@ -20044,6 +20068,11 @@
    "device": "A940",
    "name": "A940",
    "model": "A940"
+  },
+  {
+   "device": "Aqua_S10",
+   "name": "Aqua S10",
+   "model": "Aqua S10"
   },
   {
    "device": "Aqua_S10_Pro",
@@ -25837,6 +25866,11 @@
    "model": "10 Plus"
   },
   {
+   "device": "S30",
+   "name": "S30",
+   "model": "S30"
+  },
+  {
    "device": "TAB_A7_US",
    "name": "TAB_A7_US",
    "model": "TAB_A7_US"
@@ -29496,11 +29530,6 @@
    "device": "sti6130d350",
    "name": "STI6130-D350",
    "model": "Dynalink TV Box"
-  },
-  {
-   "device": "sti6130d350",
-   "name": "dynalinktvbox",
-   "model": "Dynalink TV Box"
   }
  ],
  "Dyon": [
@@ -29789,6 +29818,13 @@
    "device": "ELITE_10",
    "name": "ELITE_10",
    "model": "ELITE_10"
+  }
+ ],
+ "EGBOK": [
+  {
+   "device": "P803",
+   "name": "P803",
+   "model": "P803"
   }
  ],
  "EGOTEK": [
@@ -47513,6 +47549,11 @@
   {
    "device": "HS7731ESP",
    "name": "Hisense U964",
+   "model": "Hisense U50 Lite"
+  },
+  {
+   "device": "HS7731ESP",
+   "name": "Hisense U964",
    "model": "Hisense U50 lite"
   },
   {
@@ -49269,6 +49310,11 @@
    "device": "yebisuDA",
    "name": "A-DA",
    "model": "MY21ADA"
+  },
+  {
+   "device": "yebisuGA",
+   "name": "A-DA",
+   "model": "MY22ADA"
   },
   {
    "device": "koelsch",
@@ -60153,11 +60199,6 @@
   }
  ],
  "Indurama": [
-  {
-   "device": "sunnyvale",
-   "name": "MONDIAL Smart TV",
-   "model": "MONDIAL Smart TV"
-  },
   {
    "device": "shinjuku",
    "name": "indurama 2K TV",
@@ -84098,6 +84139,11 @@
    "device": "DV8555-MEO",
    "name": "MEO TV Box 4K",
    "model": "MEO TV Box 4K"
+  },
+  {
+   "device": "DIW3930-MEO",
+   "name": "MEOBox 4K",
+   "model": "MEO TV Box 4K (DIW3930)"
   }
  ],
  "MG Series": [
@@ -90541,6 +90587,11 @@
    "model": "MONDIAL 4K TV"
   },
   {
+   "device": "sunnyvale",
+   "name": "MONDIAL Smart TV",
+   "model": "MONDIAL Smart TV"
+  },
+  {
    "device": "shinjuku",
    "name": "MONDIAL TV",
    "model": "MONDIAL TV"
@@ -96388,6 +96439,11 @@
    "device": "DV8535-KPN",
    "name": "DV 8535 4K",
    "model": "DV 8535 4K"
+  },
+  {
+   "device": "DV8935-KPN",
+   "name": "DV 8935 X4",
+   "model": "DV 8935 X4"
   }
  ],
  "NSPRE": [
@@ -101196,6 +101252,11 @@
    "model": "CPH1909"
   },
   {
+   "device": "OP4883",
+   "name": "CPH1938",
+   "model": "CPH1938"
+  },
+  {
    "device": "OP4B9B",
    "name": "CPH2001",
    "model": "CPH2001"
@@ -101344,6 +101405,11 @@
    "device": "OP4F39L1",
    "name": "CPH2263",
    "model": "CPH2263"
+  },
+  {
+   "device": "OP52E1L1",
+   "name": "CPH2293",
+   "model": "CPH2293"
   },
   {
    "device": "OP4883",
@@ -104162,6 +104228,11 @@
    "device": "SW4H_FF",
    "name": "PrismPlus 4K Pro Android TV",
    "model": "PrismPlus 4K Pro Android TV"
+  },
+  {
+   "device": "sunnyvale",
+   "name": "PrismPlus Android TV",
+   "model": "PrismPlus Android TV"
   },
   {
    "device": "shibuya",
@@ -114244,11 +114315,6 @@
    "device": "RMX2202CN",
    "name": "真我GT",
    "model": "RMX2202"
-  },
-  {
-   "device": "RMX3031CN",
-   "name": "真我GT Neo",
-   "model": "RMX3031"
   },
   {
    "device": "RE5469",
@@ -130919,6 +130985,11 @@
    "model": "AiPlus2K"
   },
   {
+   "device": "sunnyvale",
+   "name": "SANSUI SmartTV",
+   "model": "SANSUI SmartTV"
+  },
+  {
    "device": "SW4H",
    "name": "SANSUITV UHD",
    "model": "SANSUITV UHD"
@@ -132459,6 +132530,11 @@
    "model": "SHG05"
   },
   {
+   "device": "SX1",
+   "name": "AQUOS wish",
+   "model": "SH-WS10"
+  },
+  {
    "device": "SG801SH",
    "name": "AQUOS zero",
    "model": "801SH"
@@ -132522,6 +132598,11 @@
    "device": "Recoa",
    "name": "AQUOS zero6",
    "model": "SH-RM18"
+  },
+  {
+   "device": "Recoa",
+   "name": "AQUOS zero6",
+   "model": "SH-Z60"
   },
   {
    "device": "XKH",
@@ -133900,6 +133981,11 @@
    "model": "ATV R2"
   },
   {
+   "device": "sunnyvale",
+   "name": "SINGER ANDROID TV",
+   "model": "SINGER ANDROID TV"
+  },
+  {
    "device": "SW4H_FF",
    "name": "SINGER BD SMART TV",
    "model": "SINGER BD SMART TV"
@@ -134405,6 +134491,11 @@
    "device": "Elite_J55",
    "name": "Elite_J55",
    "model": "Elite J55"
+  },
+  {
+   "device": "Elite_OctaXkk3",
+   "name": "Elite_OctaX",
+   "model": "Elite OctaX"
   },
   {
    "device": "Elite_P55",
@@ -148304,6 +148395,11 @@
    "model": "MT-715QR"
   },
   {
+   "device": "MT-717QW",
+   "name": "MT-717QW",
+   "model": "MT-717QW"
+  },
+  {
    "device": "MT-750QU_Pro",
    "name": "MT-750QU_Pro",
    "model": "MT-750QU_Pro"
@@ -150784,6 +150880,11 @@
    "device": "TECNO-BD2",
    "name": "TECNO POP 5",
    "model": "TECNO BD2"
+  },
+  {
+   "device": "TECNO-BD2d",
+   "name": "TECNO POP 5",
+   "model": "TECNO BD2d"
   },
   {
    "device": "TECNO-BD2p",
@@ -178107,6 +178208,11 @@
    "model": "RMX3269"
   },
   {
+   "device": "RMX3085L1",
+   "name": "realme 8",
+   "model": "RMX3085"
+  },
+  {
    "device": "RMX3081L1",
    "name": "realme 8 Pro",
    "model": "RMX3081"
@@ -178140,6 +178246,11 @@
    "device": "RE54C1L1",
    "name": "realme pad",
    "model": "RMP2103"
+  },
+  {
+   "device": "RMX3031CN",
+   "name": "真我GT Neo",
+   "model": "RMX3031"
   },
   {
    "device": "RE548B",
