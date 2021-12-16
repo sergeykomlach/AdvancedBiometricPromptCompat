@@ -153,6 +153,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                     method?.isAccessible = false
             }
         } catch (e: Throwable) {
+            if(DEBUG_MANAGERS)
             e("$name", e)
         }
         return ids.filterNotNull()
@@ -228,6 +229,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
             if (s.isNotEmpty())
                 return s
         } catch (e: Throwable) {
+            if(DEBUG_MANAGERS)
             e("$name", e)
         }
         return null
