@@ -38,10 +38,13 @@ import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
-import dev.skomlach.biometric.compat.utils.themes.HINT_SUPPORTS_DARK_THEME
-import dev.skomlach.biometric.compat.utils.themes.calculateDarkHints
 import dev.skomlach.common.misc.Utils
 import java.util.*
+
+import androidx.palette.graphics.Palette
+
+
+
 
 class WindowForegroundBlurring(
     private val compatBuilder: BiometricPromptCompat.Builder,
@@ -255,8 +258,9 @@ class WindowForegroundBlurring(
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
-            val darkHints = calculateDarkHints(bm)
-            val isDark = (darkHints and HINT_SUPPORTS_DARK_THEME != 0)
+            val color  = Palette.from(bm).generate()
+                .getVibrantColor(DialogMainColor.getColor(context, !DarkLightThemes.isNightMode(compatBuilder.getContext())))
+            val isDark = ColorUtil.isDark(color)
             defaultColor =
                 DialogMainColor.getColor(context, isDark)
             BiometricLoggerImpl.d(

@@ -59,7 +59,7 @@ private const val HINT_SUPPORTS_DARK_TEXT = 1 shl 0
  * eg. A launcher may set its drawer color to black if this flag is specified.
  * @hide
  */
-const val HINT_SUPPORTS_DARK_THEME = 1 shl 1
+private const val HINT_SUPPORTS_DARK_THEME = 1 shl 1
 
 fun getIsOsDarkTheme(context: Context): DarkThemeCheckResult {
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O)
@@ -111,7 +111,7 @@ private fun generateBitmapFromColors(
     return bitmap
 }
 
-fun calculateDarkHints(source: Bitmap?): Int {
+private fun calculateDarkHints(source: Bitmap?): Int {
     if (source == null) {
         return 0
     }

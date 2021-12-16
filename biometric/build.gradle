@@ -32,6 +32,7 @@ dependencies {
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'com.google.guava:guava:31.0.1-android'
+    implementation "androidx.palette:palette-ktx:1.0.0"
 }
 
 afterEvaluate {
