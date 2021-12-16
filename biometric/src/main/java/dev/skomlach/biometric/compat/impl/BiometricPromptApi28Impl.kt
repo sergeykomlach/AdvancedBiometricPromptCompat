@@ -100,30 +100,30 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 ExecutorHelper.post(Runnable {
                     var failureReason = AuthenticationFailureReason.UNKNOWN
                     when (errorCode) {
-                        BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                        BiometricPrompt.ERROR_NO_BIOMETRICS -> failureReason =
                             AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                        BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                        BiometricPrompt.ERROR_HW_NOT_PRESENT -> failureReason =
                             AuthenticationFailureReason.NO_HARDWARE
-                        BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                        BiometricPrompt.ERROR_HW_UNAVAILABLE -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                        BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                        BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
                             BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                                 builder.getBiometricAuthRequest().type
                             )
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         }
-                        BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                        BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                        BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                        BiometricPrompt.ERROR_NO_SPACE -> failureReason =
                             AuthenticationFailureReason.SENSOR_FAILED
-                        BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                        BiometricPrompt.ERROR_TIMEOUT -> failureReason =
                             AuthenticationFailureReason.TIMEOUT
-                        BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                        BiometricPrompt.ERROR_LOCKOUT -> {
                             HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
                                 .lockout()
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
                         }
-                        BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_NEGATIVE_BUTTON, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                        BiometricPrompt.ERROR_USER_CANCELED, BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_CANCELED -> {
                             callback?.onCanceled()
                             cancelAuthentication()
                             return@Runnable
