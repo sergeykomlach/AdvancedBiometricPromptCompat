@@ -359,7 +359,7 @@ class BiometricClient(context: Context) {
             stringBuilder.append(":handle_startService - bindService Exception ERROR: ")
             stringBuilder.append(e)
             d(str2, stringBuilder.toString())
-            e.printStackTrace()
+           e(e)
         }
         accessLock_.unlock()
         if (BiometricConnect.DEBUG_LOG) {
@@ -387,7 +387,7 @@ class BiometricClient(context: Context) {
             stringBuilder.append(":handle_startService - ERROR: ")
             stringBuilder.append(e2)
             d(str2, stringBuilder.toString())
-            e2.printStackTrace()
+            e(e2)
             accessLock_.lock()
             mServiceConnectStatus = 12
             accessLock_.unlock()
@@ -510,7 +510,7 @@ class BiometricClient(context: Context) {
                 stringBuilder3.append(":handle_getServiceVersion - ERROR: ")
                 stringBuilder3.append(ex)
                 d(str2, stringBuilder3.toString())
-                ex.printStackTrace()
+                e(ex)
             }
         } catch (e: RemoteException) {
             stringBuilder2 = StringBuilder()
@@ -519,7 +519,7 @@ class BiometricClient(context: Context) {
             stringBuilder2.append(":handle_getServiceVersion - RemoteException ERROR: ")
             stringBuilder2.append(e)
             d(str2, stringBuilder2.toString())
-            e.printStackTrace()
+            e(e)
         } catch (e2: Exception) {
             stringBuilder2 = StringBuilder()
             stringBuilder2.append(str)
@@ -527,7 +527,7 @@ class BiometricClient(context: Context) {
             stringBuilder2.append(":handle_getServiceVersion - Exception ERROR: ")
             stringBuilder2.append(e2)
             d(str2, stringBuilder2.toString())
-            e2.printStackTrace()
+            e(e2)
         }
         if (BiometricConnect.DEBUG_LOG) {
             stringBuilder = StringBuilder()
@@ -586,7 +586,7 @@ class BiometricClient(context: Context) {
                 stringBuilder.append(str)
                 stringBuilder.append(ex)
                 d(str3, stringBuilder.toString())
-                ex.printStackTrace()
+                e(ex)
             }
         } catch (ex2: RemoteException) {
             stringBuilder = StringBuilder()
@@ -595,7 +595,7 @@ class BiometricClient(context: Context) {
             stringBuilder.append(str)
             stringBuilder.append(ex2)
             d(str3, stringBuilder.toString())
-            ex2.printStackTrace()
+            e(ex2)
         } catch (e: Exception) {
             stringBuilder3 = StringBuilder()
             stringBuilder3.append(str2)
@@ -603,7 +603,7 @@ class BiometricClient(context: Context) {
             stringBuilder3.append(":handle_sendService - Exception ERROR: ")
             stringBuilder3.append(e)
             d(str3, stringBuilder3.toString())
-            e.printStackTrace()
+            e(e)
         }
         if (BiometricConnect.DEBUG_LOG) {
             stringBuilder2 = StringBuilder()

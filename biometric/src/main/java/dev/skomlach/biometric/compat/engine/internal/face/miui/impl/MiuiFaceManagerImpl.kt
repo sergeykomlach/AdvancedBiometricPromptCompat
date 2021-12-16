@@ -421,7 +421,7 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
                 binderCallCancelAuthention(mMiuiFaceService, mToken, mContext.packageName)
             }
         } catch (e: RemoteException) {
-            e.printStackTrace()
+            e(e)
         }
     }
 
@@ -435,7 +435,7 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
                 binderCallCancelEnrollment(mMiuiFaceService, mToken)
             }
         } catch (e: RemoteException) {
-            e.printStackTrace()
+            e(e)
         }
     }
 

@@ -41,6 +41,11 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.Utils
 import java.util.*
 
+import androidx.palette.graphics.Palette
+
+
+
+
 class WindowForegroundBlurring(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val parentView: ViewGroup,
@@ -53,7 +58,7 @@ class WindowForegroundBlurring(
     private var isAttached = false
     private var drawingInProgress = false
     private var biometricsLayout: View? = null
-    private var defaultColor = DialogMainColor.getColor(context, !DarkLightThemes.isNightMode(context))
+    private var defaultColor = Color.TRANSPARENT
 
 
     private val list: List<BiometricType> by lazy {
@@ -78,9 +83,15 @@ class WindowForegroundBlurring(
     }
 
     init {
-        val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
+        val isDark = !DarkLightThemes.isNightMode(compatBuilder.getContext())
         defaultColor =
             DialogMainColor.getColor(context, isDark)
+        BiometricLoggerImpl.d(
+            "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
+                Integer.toHexString(
+                    defaultColor
+                )
+            }")
 
         for (i in 0 until parentView.childCount) {
             val v = parentView.getChildAt(i)
@@ -244,34 +255,14 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.e(e)
         }
     }
-
-    private fun getResizedBitmap(bm: Bitmap?, newHeight: Int, newWidth: Int): Bitmap? {
-        if (bm == null) return bm
-        if (newHeight <= 0 || newWidth <= 0) return null
-        val width = bm.width
-        val height = bm.height
-        val scaleWidth = newWidth.toFloat() / width
-        val scaleHeight = newHeight.toFloat() / height
-        // CREATE A MATRIX FOR THE MANIPULATION
-        val matrix = Matrix()
-        // RESIZE THE BIT MAP
-        matrix.postScale(scaleWidth, scaleHeight)
-
-        // "RECREATE" THE NEW BITMAP
-        return Bitmap.createBitmap(
-            bm, 0, 0, width, height,
-            matrix, true
-        )
-    }
-
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
-            var b = Bitmap.createBitmap(bm, 0, 0, bm.width, bm.height / 2)
-            b = getResizedBitmap(b, 3, 3)
-            val isDark = ColorUtil.isDark(b.getPixel(b.width / 2, b.height / 2))
+            val color  = Palette.from(bm).generate()
+                .getVibrantColor(DialogMainColor.getColor(context, !DarkLightThemes.isNightMode(compatBuilder.getContext())))
+            val isDark = ColorUtil.isDark(color)
             defaultColor =
-                DialogMainColor.getColor(context, !isDark)
+                DialogMainColor.getColor(context, isDark)
             BiometricLoggerImpl.d(
                 "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
                     Integer.toHexString(

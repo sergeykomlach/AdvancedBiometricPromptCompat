@@ -267,7 +267,11 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         get() {
             try {
                 for (key in preferences.all.keys) {
-                    val ts = preferences.getLong(key, 0)
+                    val ts = try {
+                        preferences.getLong(key, 0)//may produce ClassCastException
+                    } catch (e: Throwable) {
+                        0
+                    }
                     if (ts > 0) {
                         return if (System.currentTimeMillis() - ts > timeout) {
                             preferences.edit().putLong(key, 0).apply()

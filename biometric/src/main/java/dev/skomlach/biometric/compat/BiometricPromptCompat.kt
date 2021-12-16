@@ -96,7 +96,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun logging(enabled: Boolean) {
             if (!API_ENABLED)
                 return
-            AbstractBiometricModule.DEBUG_MANAGERS = enabled
+//            AbstractBiometricModule.DEBUG_MANAGERS = enabled
             LogCat.DEBUG = enabled
             BiometricLoggerImpl.DEBUG = enabled
         }

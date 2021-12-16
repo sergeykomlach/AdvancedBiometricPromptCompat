@@ -118,14 +118,14 @@ object DeviceInfoManager {
             "Worker thread required"
         )
         var deviceInfo = cachedDeviceInfo
-        if (deviceInfo != null) {
+        if (deviceInfo?.sensors != null) {
             onDeviceInfoListener.onReady(deviceInfo)
             return
         }
         val strings = getNames()
         for (m in strings) {
             deviceInfo = loadDeviceInfo(m)
-            if (deviceInfo != null) {
+            if (deviceInfo?.sensors != null) {
                 BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
                 setCachedDeviceInfo(deviceInfo)
                 onDeviceInfoListener.onReady(deviceInfo)
@@ -157,7 +157,7 @@ object DeviceInfoManager {
             val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 .edit()
             sharedPreferences
-                .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
+                .putStringSet("sensors", deviceInfo.sensors)
                 .putString("model", deviceInfo.model)
                 .putBoolean("checked", true)
                 .apply()

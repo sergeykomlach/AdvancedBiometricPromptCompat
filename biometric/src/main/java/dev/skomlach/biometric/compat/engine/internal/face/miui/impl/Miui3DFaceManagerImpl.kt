@@ -902,9 +902,9 @@ class Miui3DFaceManagerImpl constructor(private val mContext: Context) : IMiuiFa
                 sReleaseFunc?.invoke(boostFramework)
             }
         } catch (e: IllegalAccessException) {
-            e.printStackTrace()
+            e(e)
         } catch (e2: InvocationTargetException) {
-            e2.printStackTrace()
+            e(e2)
         }
         str = LOG_TAG
         stringBuilder = StringBuilder()
@@ -959,9 +959,9 @@ class Miui3DFaceManagerImpl constructor(private val mContext: Context) : IMiuiFa
                     method?.invoke(obj, *objArr)
                 }
             } catch (e: IllegalAccessException) {
-                e.printStackTrace()
+                e(e)
             } catch (e2: InvocationTargetException) {
-                e2.printStackTrace()
+                e(e2)
             }
             str = LOG_TAG
             stringBuilder = StringBuilder()
