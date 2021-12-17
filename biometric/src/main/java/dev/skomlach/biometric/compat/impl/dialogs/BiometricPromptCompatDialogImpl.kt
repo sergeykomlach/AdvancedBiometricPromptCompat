@@ -214,16 +214,6 @@ class BiometricPromptCompatDialogImpl(
         }
     private var originalColor: ColorStateList? = null
 
-
-    fun cancelAuthenticationBecauseOnPause(): Boolean {
-        return if (isMultiWindowHack) {
-            false
-        } else {
-            dismissDialog()
-            true
-        }
-    }
-
     private fun attachWindowListeners() {
         try {
             val v = dialog.findViewById<View>(Window.ID_ANDROID_CONTENT)

@@ -25,6 +25,5 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 interface IBiometricPromptImpl {
     fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?)
     fun cancelAuthentication()
-    fun cancelAuthenticationBecauseOnPause(): Boolean
     val builder: BiometricPromptCompat.Builder
 }

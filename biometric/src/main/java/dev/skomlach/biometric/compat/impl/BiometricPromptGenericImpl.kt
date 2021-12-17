@@ -81,15 +81,6 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         onUiClosed()
     }
 
-    override fun cancelAuthenticationBecauseOnPause(): Boolean {
-        d("BiometricPromptGenericImpl.cancelAuthenticationBecauseOnPause():")
-        return if (dialog != null) {
-            dialog?.cancelAuthenticationBecauseOnPause() == true
-        } else {
-            cancelAuthentication()
-            true
-        }
-    }
 
     override fun startAuth() {
 
