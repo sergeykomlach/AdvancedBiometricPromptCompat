@@ -228,15 +228,15 @@ object BiometricManagerCompat {
         }
 
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-                enrollIntent.putExtra(
-                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
-                )
-                if (Utils.startActivity(enrollIntent, activity))
-                    return true
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+//                enrollIntent.putExtra(
+//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+//                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+//                )
+//                if (Utils.startActivity(enrollIntent, activity))
+//                    return true
+//            }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )

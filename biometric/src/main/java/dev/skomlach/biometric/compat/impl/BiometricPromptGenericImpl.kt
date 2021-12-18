@@ -192,5 +192,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         ) {
             checkAuthResult(module, AuthResult.AuthResultState.FATAL_ERROR, failureReason)
         }
+
+        override fun onCanceled(module: BiometricType?) {
+            cancelAuth()
+            cancelAuthentication()
+        }
     }
 }

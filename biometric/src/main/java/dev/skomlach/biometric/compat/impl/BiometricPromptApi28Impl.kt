@@ -330,6 +330,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     ) {
 
                     }
+
+                    override fun onCanceled(module: BiometricType?) {
+                        cancelAuth()
+                        cancelAuthentication()
+                    }
                 }
             )
             val flag = AtomicBoolean(false)
@@ -576,6 +581,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 AuthResult.AuthResultState.FATAL_ERROR,
                 failureReason
             )
+        }
+
+        override fun onCanceled(module: BiometricType?) {
+            cancelAuth()
+            cancelAuthentication()
         }
     }
 }
