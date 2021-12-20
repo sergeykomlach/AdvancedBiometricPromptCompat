@@ -286,9 +286,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         //Case for Pixel 4
-        val isFaceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FACE) ||
-                (impl.builder.getAllAvailableTypes().size == 1 && impl.builder.getAllAvailableTypes()
-                    .toList()[0] == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(deviceInfo))
+        val isFaceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FACE)
+                || (impl.builder.getAllAvailableTypes().size == 1 && impl.builder.getAllAvailableTypes().toList()[0] != BiometricType.BIOMETRIC_FINGERPRINT
+                && DeviceInfoManager.hasFaceID(deviceInfo))
 
         val isVoiceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_VOICE)
 
