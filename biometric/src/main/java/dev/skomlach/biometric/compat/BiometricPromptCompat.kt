@@ -330,7 +330,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             private var isOpened = AtomicBoolean(false)
             override fun onSucceeded(confirmed: Set<BiometricType>) {
-                if (isOpened.get())
                 try {
                     if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -359,7 +358,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onCanceled() {
-                if (isOpened.get())
                 try {
                     callbackOuter.onCanceled()
                 } finally {
@@ -368,7 +366,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
-                if (isOpened.get())
                 try{
                 callbackOuter.onFailed(reason)
                  } finally {
