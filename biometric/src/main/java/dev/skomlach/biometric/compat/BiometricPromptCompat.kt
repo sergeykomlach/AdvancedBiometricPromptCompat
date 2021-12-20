@@ -246,6 +246,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         if (isActivityFinished(builder.getContext())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
+            callbackOuter.onCanceled()
             return
         }
         if (!API_ENABLED) {
@@ -286,36 +287,32 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         //Case for Pixel 4
-        val isFaceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FACE) ||
-                (impl.builder.getAllAvailableTypes().size == 1 && impl.builder.getAllAvailableTypes()
-                    .toList()[0] == BiometricType.BIOMETRIC_ANY
-                        && DeviceInfoManager.hasFaceID(deviceInfo))
-        if (isFaceId &&
-            SensorPrivacyCheck.isCameraBlocked()
-        ) {
-            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera blocked")
-            callbackOuter.onCanceled()
-            return
-        } else if (impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_VOICE) &&
-            SensorPrivacyCheck.isMicrophoneBlocked()
-        ) {
-            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause mic blocked")
-            callbackOuter.onCanceled()
-            return
-        } else if (isFaceId &&
-                SensorPrivacyCheck.isCameraInUse()
-            ) {
-                BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera in use")
-                callbackOuter.onFailed(AuthenticationFailureReason.LOCKED_OUT)
+        val isFaceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FACE)
+        val isVoiceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_VOICE)
+
+        if (isFaceId) {
+            if (SensorPrivacyCheck.isCameraBlocked()) {
+                BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera blocked")
+                callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
                 return
-            } else if (impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_VOICE) &&
-                SensorPrivacyCheck.isMicrophoneInUse()
-            ) {
+            } else
+                if (SensorPrivacyCheck.isCameraInUse()) {
+                    BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera in use")
+                    callbackOuter.onFailed(AuthenticationFailureReason.LOCKED_OUT)
+                    return
+                }
+        }
+        if (isVoiceId) {
+            if (SensorPrivacyCheck.isMicrophoneBlocked()) {
+                BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause mic blocked")
+                callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
+                return
+            } else if (SensorPrivacyCheck.isMicrophoneInUse()) {
                 BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause mic in use")
                 callbackOuter.onFailed(AuthenticationFailureReason.LOCKED_OUT)
                 return
             }
-
+        }
 
         BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
         val activityViewWatcher = try {
@@ -325,19 +322,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             })
         } catch (e: Throwable) {
+            BiometricLoggerImpl.e( e)
             null
-        }
-
-        if (activityViewWatcher == null) {
-            BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause no active windows")
-            callbackOuter.onCanceled()
-            return
         }
 
         val callback = object : AuthenticationCallback() {
 
             private var isOpened = AtomicBoolean(false)
             override fun onSucceeded(confirmed: Set<BiometricType>) {
+                if (isOpened.get())
                 try {
                     if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -366,6 +359,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onCanceled() {
+                if (isOpened.get())
                 try {
                     callbackOuter.onCanceled()
                 } finally {
@@ -374,6 +368,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
+                if (isOpened.get())
                 try{
                 callbackOuter.onFailed(reason)
                  } finally {
@@ -396,7 +391,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             builder.getStatusBarColor()
                         )
                     }
-                    activityViewWatcher.setupListeners()
+                    activityViewWatcher?.setupListeners()
                 }
             }
 
@@ -407,7 +402,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                             BiometricNotificationManager.dismissAll()
                         }
-                        activityViewWatcher.resetListeners()
+                        activityViewWatcher?.resetListeners()
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.getContext().window,
                             builder.getNavBarColor(),
@@ -522,26 +517,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     }
 
-    fun cancelAuthenticationBecauseOnPause(): Boolean {
-        if (!API_ENABLED) {
-            return false
-        }
-        return if (!isInit) {
-            ExecutorHelper.startOnBackground {
-                while (isDeviceInfoCheckInProgress || !isInit) {
-                    try {
-                        Thread.sleep(250)
-                    } catch (ignore: InterruptedException) {
-                    }
-                }
-                ExecutorHelper.post {
-                    impl.cancelAuthentication()
-                }
-            }
-            true
-        } else
-            impl.cancelAuthenticationBecauseOnPause()
-    }
+
 
     @ColorInt
     fun getDialogMainColor(): Int {

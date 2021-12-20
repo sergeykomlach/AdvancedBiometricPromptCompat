@@ -208,16 +208,25 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if ((api.type == BiometricType.BIOMETRIC_FACE || (api.type == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(
-                BiometricPromptCompat.deviceInfo
-            ))) &&
-            SensorPrivacyCheck.isCameraBlocked()
-        ) {
-            return false
-        } else if (api.type == BiometricType.BIOMETRIC_VOICE &&
-            SensorPrivacyCheck.isMicrophoneBlocked()
-        ) {
-            return false
+        //Case for Pixel 4
+        val isFaceId = api.type == BiometricType.BIOMETRIC_FACE ||
+                (api.type == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(
+                    BiometricPromptCompat.deviceInfo
+                ))
+
+        val isVoiceId = api.type == BiometricType.BIOMETRIC_VOICE
+        if (isFaceId) {
+            if (SensorPrivacyCheck.isCameraBlocked()) {
+                BiometricLoggerImpl.e("Unable to start BiometricManagerCompat.openSettings() cause camera blocked")
+                return false
+            }
+
+        }
+        if (isVoiceId) {
+            if (SensorPrivacyCheck.isMicrophoneBlocked()) {
+                BiometricLoggerImpl.e("Unable to start BiometricManagerCompat.openSettings() cause mic blocked")
+                return false
+            }
         }
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(
                 activity,
@@ -228,15 +237,15 @@ object BiometricManagerCompat {
         }
 
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-                enrollIntent.putExtra(
-                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
-                )
-                if (Utils.startActivity(enrollIntent, activity))
-                    return true
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+//                enrollIntent.putExtra(
+//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+//                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+//                )
+//                if (Utils.startActivity(enrollIntent, activity))
+//                    return true
+//            }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )

@@ -118,14 +118,14 @@ object DeviceInfoManager {
             "Worker thread required"
         )
         var deviceInfo = cachedDeviceInfo
-        if (deviceInfo?.sensors != null) {
+        if (deviceInfo != null) {
             onDeviceInfoListener.onReady(deviceInfo)
             return
         }
         val strings = getNames()
         for (m in strings) {
             deviceInfo = loadDeviceInfo(m)
-            if (deviceInfo?.sensors != null) {
+            if (deviceInfo != null) {
                 BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
                 setCachedDeviceInfo(deviceInfo)
                 onDeviceInfoListener.onReady(deviceInfo)
@@ -133,7 +133,7 @@ object DeviceInfoManager {
             }
         }
         if (strings.isNotEmpty()) {
-            setCachedDeviceInfo(DeviceInfo(strings.toList()[0], null))
+            setCachedDeviceInfo(DeviceInfo(strings.toList()[0], HashSet<String>()))
         }
         onDeviceInfoListener.onReady(null)
     }
@@ -144,7 +144,7 @@ object DeviceInfoManager {
                 val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
-                    val sensors = sharedPreferences.getStringSet("sensors", null)
+                    val sensors = sharedPreferences.getStringSet("sensors", null)?:HashSet<String>()
                     field = DeviceInfo(model, sensors)
                 }
             }
@@ -157,7 +157,7 @@ object DeviceInfoManager {
             val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 .edit()
             sharedPreferences
-                .putStringSet("sensors", deviceInfo.sensors)
+                .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
                 .putString("model", deviceInfo.model)
                 .putBoolean("checked", true)
                 .apply()
@@ -172,12 +172,12 @@ object DeviceInfoManager {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
             var html: String? = getHtml(url) ?: return null
             val detailsLink = getDetailsLink(url, html, model)
-                ?: return DeviceInfo(model, null)
+                ?: return DeviceInfo(model, HashSet<String>())
 
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
             html = getHtml(detailsLink)
-            if (html == null) return DeviceInfo(model, null)
+            if (html == null) return DeviceInfo(model, HashSet<String>())
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             DeviceInfo(model, l)

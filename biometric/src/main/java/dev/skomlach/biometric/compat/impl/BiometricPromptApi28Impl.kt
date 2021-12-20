@@ -239,15 +239,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
     }
 
-    override fun cancelAuthenticationBecauseOnPause(): Boolean {
-        d("BiometricPromptApi28Impl.cancelAuthenticationBecauseOnPause():")
-        return if (dialog != null) {
-            dialog?.cancelAuthenticationBecauseOnPause() == true
-        } else {
-            cancelAuthentication()
-            true
-        }
-    }
+
 
 
     override fun cancelAuthentication() {
@@ -329,6 +321,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         module: BiometricType?
                     ) {
 
+                    }
+
+                    override fun onCanceled(module: BiometricType?) {
+                        cancelAuth()
+                        cancelAuthentication()
                     }
                 }
             )
@@ -576,6 +573,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 AuthResult.AuthResultState.FATAL_ERROR,
                 failureReason
             )
+        }
+
+        override fun onCanceled(module: BiometricType?) {
+            cancelAuth()
+            cancelAuthentication()
         }
     }
 }

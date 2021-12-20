@@ -285,6 +285,10 @@ object BiometricAuthentication {
                 ) {
                     listener.onFailure(reason, hashMap[moduleTag])
                 }
+
+                override fun onCanceled(moduleTag: Int) {
+                    listener.onCanceled(hashMap[moduleTag])
+                }
             })
         }
     }
@@ -350,15 +354,15 @@ object BiometricAuthentication {
         }
 
         if (BiometricType.BIOMETRIC_FINGERPRINT == method) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-                enrollIntent.putExtra(
-                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_STRONG
-                )
-                if (startActivity(enrollIntent, context))
-                    return true
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+//                enrollIntent.putExtra(
+//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+//                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
+//                )
+//                if (startActivity(enrollIntent, context))
+//                    return true
+//            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val enrollIntent = Intent(Settings.ACTION_FINGERPRINT_ENROLL)
@@ -368,15 +372,15 @@ object BiometricAuthentication {
         }
 
         if (BiometricType.BIOMETRIC_FACE == method) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-                enrollIntent.putExtra(
-                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
-                )
-                if (startActivity(enrollIntent, context))
-                    return true
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+//                enrollIntent.putExtra(
+//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+//                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
+//                )
+//                if (startActivity(enrollIntent, context))
+//                    return true
+//            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
                 startActivity(Intent("android.settings.FACE_ENROLL"), context)
             ) {
@@ -386,15 +390,15 @@ object BiometricAuthentication {
 
 
         if (BiometricType.BIOMETRIC_IRIS == method) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-                enrollIntent.putExtra(
-                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
-                )
-                if (startActivity(enrollIntent, context))
-                    return true
-            }
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
+//                enrollIntent.putExtra(
+//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+//                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
+//                )
+//                if (startActivity(enrollIntent, context))
+//                    return true
+//            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
                 startActivity(Intent("android.settings.IRIS_ENROLL"), context)
             ) {

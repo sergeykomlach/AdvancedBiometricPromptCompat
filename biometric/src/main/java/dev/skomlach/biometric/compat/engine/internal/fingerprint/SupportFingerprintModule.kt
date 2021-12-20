@@ -166,12 +166,11 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED -> {
+                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
                     Core.cancelAuthentication(this@SupportFingerprintModule)
+                    listener?.onCanceled(tag())
                     return
                 }
-                BiometricCodes.BIOMETRIC_ERROR_CANCELED ->                     // Don't send a cancelled message.
-                    return
             }
             if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
