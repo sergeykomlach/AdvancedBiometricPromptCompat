@@ -246,6 +246,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         if (isActivityFinished(builder.getContext())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
+            callbackOuter.onCanceled()
             return
         }
         if (!API_ENABLED) {
