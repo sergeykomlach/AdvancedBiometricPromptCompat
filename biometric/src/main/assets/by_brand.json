@@ -5788,6 +5788,13 @@
    "model": "CMP749"
   }
  ],
+ "Aocwei": [
+  {
+   "device": "X500_US",
+   "name": "X500_US",
+   "model": "X500_US"
+  }
+ ],
  "Apex": [
   {
    "device": "MT-734G",
@@ -10037,6 +10044,11 @@
    "model": "AP5702"
   },
   {
+   "device": "AP5706",
+   "name": "Athesi AP5706",
+   "model": "Athesi_AP5706"
+  },
+  {
    "device": "AP5705S",
    "name": "Athesi professional AP5705S",
    "model": "AP5705S"
@@ -11471,6 +11483,11 @@
    "device": "PlatinumTAB10",
    "name": "PlatinumTAB10",
    "model": "PlatinumTAB10"
+  },
+  {
+   "device": "PlatinumTAB10V11",
+   "name": "PlatinumTAB10V11",
+   "model": "PlatinumTAB10V11"
   },
   {
    "device": "PlatinumTAB10_4G_V1",
@@ -26041,6 +26058,11 @@
    "model": "Dslide_1020"
   },
   {
+   "device": "Dslide_1021C",
+   "name": "Dslide_1021C",
+   "model": "Dslide_1021C"
+  },
+  {
    "device": "Dslide_1021",
    "name": "Dslide_1021_EEA",
    "model": "Dslide_1021"
@@ -28474,6 +28496,11 @@
    "device": "S35Pro",
    "name": "S35Pro",
    "model": "S35Pro"
+  },
+  {
+   "device": "S35T",
+   "name": "S35T",
+   "model": "S35T"
   },
   {
    "device": "S35",
@@ -31385,6 +31412,11 @@
    "model": "S550"
   },
   {
+   "device": "U505S",
+   "name": "U505S",
+   "model": "U505S"
+  },
+  {
    "device": "Ultimate_U710S",
    "name": "Ultimate U710S",
    "model": "Ultimate U710S"
@@ -33158,6 +33190,11 @@
    "device": "FFFTAB10",
    "name": "FFFTAB10",
    "model": "FFFTAB10"
+  },
+  {
+   "device": "FFFTAB10a0",
+   "name": "FFFTAB10a0",
+   "model": "FFFTAB10a0"
   },
   {
    "device": "FFFTAB10a1",
@@ -37322,6 +37359,11 @@
    "model": "GTVR10S"
   },
   {
+   "device": "GVP133",
+   "name": "GVP133",
+   "model": "GVP133"
+  },
+  {
    "device": "I1",
    "name": "I1",
    "model": "I1"
@@ -39846,6 +39888,18 @@
    "device": "HMR5012",
    "name": "HMR NETWORKS (PTY) LTD",
    "model": "HMR5012"
+  }
+ ],
+ "HOLO": [
+  {
+   "device": "VE1983",
+   "name": "USA",
+   "model": "VE1983"
+  },
+  {
+   "device": "VE0319",
+   "name": "VE0319",
+   "model": "VE0319"
   }
  ],
  "HOMII": [
@@ -61211,6 +61265,11 @@
    "model": "Infinix-X600-LTE"
   },
   {
+   "device": "Infinix-X6815",
+   "name": "ZERO 5G",
+   "model": "Infinix X6815"
+  },
+  {
    "device": "Infinix_X509",
    "name": "Zero 2",
    "model": "Infinix X509"
@@ -68720,6 +68779,11 @@
    "device": "pls8600",
    "name": "zio",
    "model": "Zio"
+  },
+  {
+   "device": "KY-51B",
+   "name": "あんしんスマホ",
+   "model": "KY-51B"
   },
   {
    "device": "KYV44_u2",
@@ -98946,6 +99010,11 @@
    "model": "S4001W"
   },
   {
+   "device": "T1001LA",
+   "name": "Tab 10",
+   "model": "T1001L"
+  },
+  {
    "device": "T0801LAV1",
    "name": "Tab 8",
    "model": "T0801L"
@@ -101825,6 +101894,11 @@
    "device": "OP5259",
    "name": "PFCM00",
    "model": "PFCM00"
+  },
+  {
+   "device": "OP5217",
+   "name": "PFDM00",
+   "model": "PFDM00"
   },
   {
    "device": "OP5231",
@@ -110926,6 +111000,16 @@
    "device": "L8_A01",
    "name": "L8_A01",
    "model": "L8"
+  },
+  {
+   "device": "L8_A02",
+   "name": "L8_A02",
+   "model": "L8_A02"
+  },
+  {
+   "device": "L8_A02_EEA",
+   "name": "L8_A02_EEA",
+   "model": "L8_A02_EEA"
   },
   {
    "device": "L8_EEA",
@@ -131561,6 +131645,11 @@
    "device": "d700s",
    "name": "CRUISE1",
    "model": "CRUISE1"
+  },
+  {
+   "device": "d740",
+   "name": "CRUISE2 5G",
+   "model": "CRUISE2 5G"
   }
  ],
  "Sharp": [
@@ -148425,6 +148514,11 @@
    "model": "MT-762QR"
   },
   {
+   "device": "MT-790QR_V1",
+   "name": "MT-790QR_V1",
+   "model": "MT-790QR_V1"
+  },
+  {
    "device": "MT-792OF_EEA",
    "name": "MT-792OF_EEA",
    "model": "MT-792OF"
@@ -150922,6 +151016,11 @@
    "model": "TECNO LE7n"
   },
   {
+   "device": "TECNO-LE8",
+   "name": "TECNO POVA 5G",
+   "model": "TECNO LE8"
+  },
+  {
    "device": "TECNO-R6",
    "name": "TECNO R6S",
    "model": "TECNO R6S"
@@ -151105,6 +151204,11 @@
    "device": "TECNO-KG5",
    "name": "TECNO SPARK Go 2022",
    "model": "TECNO KG5"
+  },
+  {
+   "device": "TECNO-KG5m",
+   "name": "TECNO SPARK Go 2022",
+   "model": "TECNO KG5m"
   },
   {
    "device": "TECNO-P704",
@@ -152938,6 +153042,13 @@
    "device": "USB6_IR80",
    "name": "Transvision",
    "model": "TRANSVISION-iTV"
+  }
+ ],
+ "TravelWifi": [
+  {
+   "device": "Sapphire_Tablet",
+   "name": "Sapphire Tablet",
+   "model": "S_TAB"
   }
  ],
  "Trekstor": [
@@ -156142,6 +156253,11 @@
    "device": "VEIDOO_T80",
    "name": "VEIDOO_T80",
    "model": "VEIDOO_T80"
+  },
+  {
+   "device": "VeidooT30_EEA",
+   "name": "VeidooT30_EEA",
+   "model": "VeidooT30_EEA"
   }
  ],
  "Venso": [
@@ -159186,6 +159302,11 @@
    "device": "PD2131",
    "name": "V2131A",
    "model": "V2131A"
+  },
+  {
+   "device": "2132",
+   "name": "V2132",
+   "model": "V2132"
   },
   {
    "device": "PD2134",
@@ -176359,6 +176480,11 @@
    "device": "JT10LTE-X1",
    "name": "JT10LTE-X1",
    "model": "JT10LTE-X1"
+  },
+  {
+   "device": "JT10LTE-X1S",
+   "name": "JT10LTE-X1S",
+   "model": "JT10LTE-X1S"
   },
   {
    "device": "JT07-X",

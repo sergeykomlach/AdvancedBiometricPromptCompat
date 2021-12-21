@@ -286,34 +286,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callbackOuter.onCanceled()
             return
         }
-        //Case for Pixel 4
-        val isFaceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FACE)
-        val isVoiceId = impl.builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_VOICE)
-
-        if (isFaceId) {
-            if (SensorPrivacyCheck.isCameraBlocked()) {
-                BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera blocked")
-                callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
-                return
-            } else
-                if (SensorPrivacyCheck.isCameraInUse()) {
-                    BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause camera in use")
-                    callbackOuter.onFailed(AuthenticationFailureReason.LOCKED_OUT)
-                    return
-                }
-        }
-        if (isVoiceId) {
-            if (SensorPrivacyCheck.isMicrophoneBlocked()) {
-                BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause mic blocked")
-                callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
-                return
-            } else if (SensorPrivacyCheck.isMicrophoneInUse()) {
-                BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause mic in use")
-                callbackOuter.onFailed(AuthenticationFailureReason.LOCKED_OUT)
-                return
-            }
-        }
-
         BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
         val activityViewWatcher = try {
             ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
