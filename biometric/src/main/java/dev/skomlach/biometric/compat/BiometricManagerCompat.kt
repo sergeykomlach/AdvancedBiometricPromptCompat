@@ -21,21 +21,107 @@ package dev.skomlach.biometric.compat
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
-import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
-import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.storage.SharedPreferenceProvider
+import java.util.*
 
 object BiometricManagerCompat {
 
-    private val preferences = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+    private val preferences =
+        SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+
+    private fun isCameraOrMicAccessBlocked(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        return isCameraNotAvailable(api) || isMicNotAvailable(api)
+    }
+
+    private fun isMicNotAvailable(
+        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        if (biometricAuthRequest.type == BiometricType.BIOMETRIC_VOICE) {
+            return SensorPrivacyCheck.isMicrophoneInUse() || SensorPrivacyCheck.isMicrophoneBlocked()
+        } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+            val types = HashSet<BiometricType>()
+
+            for (type in BiometricType.values()) {
+                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
+                    val request = BiometricAuthRequest(
+                        BiometricApi.BIOMETRIC_API,
+                        type
+                    )
+                    if (isHardwareDetected(request)) {
+                        types.add(type)
+                    }
+                }
+                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.LEGACY_API) {
+                    val request = BiometricAuthRequest(
+                        BiometricApi.LEGACY_API,
+                        type
+                    )
+                    if (isHardwareDetected(request)) {
+                        types.add(type)
+                    }
+                }
+            }
+
+            return (types.size == 1 && types.contains(BiometricType.BIOMETRIC_VOICE)) &&
+                    (SensorPrivacyCheck.isMicrophoneInUse() || SensorPrivacyCheck.isMicrophoneBlocked())
+        }
+        return false
+    }
+
+    private fun isCameraNotAvailable(
+        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE) {
+            return SensorPrivacyCheck.isMicrophoneInUse() || SensorPrivacyCheck.isMicrophoneBlocked()
+        } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+            val types = HashSet<BiometricType>()
+
+            for (type in BiometricType.values()) {
+                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
+                    val request = BiometricAuthRequest(
+                        BiometricApi.BIOMETRIC_API,
+                        type
+                    )
+                    if (isHardwareDetected(request)) {
+                        types.add(type)
+                    }
+                }
+                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.LEGACY_API) {
+                    val request = BiometricAuthRequest(
+                        BiometricApi.LEGACY_API,
+                        type
+                    )
+                    if (isHardwareDetected(request)) {
+                        types.add(type)
+                    }
+                }
+            }
+
+
+            return (types.size == 1 && types.contains(BiometricType.BIOMETRIC_FACE)) &&
+                    (SensorPrivacyCheck.isCameraBlocked() || SensorPrivacyCheck.isCameraInUse())
+        }
+        return false
+    }
+
     @JvmStatic
     fun isBiometricReady(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -178,7 +264,10 @@ object BiometricManagerCompat {
             return false
         if (!BiometricPromptCompat.isInit) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean("isLockOut-${api.api}-${api.type}", false)
+            return isCameraOrMicAccessBlocked(api) || preferences.getBoolean(
+                "isLockOut-${api.api}-${api.type}",
+                false
+            )
         }
         val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
@@ -196,7 +285,7 @@ object BiometricManagerCompat {
             ).isLockedOut
 
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
-        return result
+        return isCameraOrMicAccessBlocked(api) || result
     }
 
     @JvmStatic
@@ -208,26 +297,10 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        //Case for Pixel 4
-        val isFaceId = api.type == BiometricType.BIOMETRIC_FACE ||
-                (api.type == BiometricType.BIOMETRIC_ANY && DeviceInfoManager.hasFaceID(
-                    BiometricPromptCompat.deviceInfo
-                ))
 
-        val isVoiceId = api.type == BiometricType.BIOMETRIC_VOICE
-        if (isFaceId) {
-            if (SensorPrivacyCheck.isCameraBlocked()) {
-                BiometricLoggerImpl.e("Unable to start BiometricManagerCompat.openSettings() cause camera blocked")
-                return false
-            }
+        if (isCameraOrMicAccessBlocked(api))//Enroll cann't be started till access blocked
+            return false
 
-        }
-        if (isVoiceId) {
-            if (SensorPrivacyCheck.isMicrophoneBlocked()) {
-                BiometricLoggerImpl.e("Unable to start BiometricManagerCompat.openSettings() cause mic blocked")
-                return false
-            }
-        }
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(
                 activity,
                 api.type
