@@ -175,8 +175,11 @@ and custom UI
 
 `fun hasEnrolled(): Boolean` - returns `true` if specified biometric enrolled
 
-`fun isBiometricSensorPermanentlyLocked(): Boolean` - returns `true` if specified biometric
-permanently locked; Device lock-unlock or reboot required from the user
+`fun isBiometricSensorPermanentlyLocked(): Boolean` - returns `true` if:
+
+a) specified biometric permanently locked; Device lock-unlock or reboot required from the user
+
+b) hardware permanently [blocked by user](https://www.androidcentral.com/how-disable-microphone-and-camera-privacy-controls-android-12)
 
 `fun isHardwareDetected(): Boolean` - returns `true` if specified biometric hardware available
 
@@ -184,7 +187,7 @@ permanently locked; Device lock-unlock or reboot required from the user
 
 a) specified biometric temporarily locked (Usually need to wait for 30 seconds and the system will reset this lock) 
 
-b) hardware temporary [blocked by user](https://www.androidcentral.com/how-disable-microphone-and-camera-privacy-controls-android-12) or 3rd party app
+b) hardware temporary locked by 3rd party app
 
 `fun openSettings(Activity): Boolean` - returns `true` if open the "Enroll biometric" settings
 screen for specified biometric
