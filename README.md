@@ -180,8 +180,11 @@ permanently locked; Device lock-unlock or reboot required from the user
 
 `fun isHardwareDetected(): Boolean` - returns `true` if specified biometric hardware available
 
-`fun isLockOut(): Boolean` - returns `true` if specified biometric temporarily locked; Usually
-need to wait for 30 seconds and the system will reset this lock
+`fun isLockOut(): Boolean` - returns `true` if
+
+a) specified biometric temporarily locked (Usually need to wait for 30 seconds and the system will reset this lock) 
+
+b) hardware temporary [blocked by user](https://www.androidcentral.com/how-disable-microphone-and-camera-privacy-controls-android-12) or 3rd party app
 
 `fun openSettings(Activity): Boolean` - returns `true` if open the "Enroll biometric" settings
 screen for specified biometric
@@ -207,12 +210,6 @@ Simplest builder:
 auth workflow
 
 `fun cancelAuthentication()` - cancel active biometric auth workflow
-
-`fun cancelAuthenticationBecauseOnPause(): Boolean` - Useful if you need to allow biometric auth in
-Split-Screen mode; Recommended to call this method in `onPause()` and use returned value to avoid
-biometric auth restart.   
-Returns `false` and keep biometric auth on display if the app in Split-Screen mode, returns `true`
-and cancel active biometric auth otherwise
 
 `@ColorRes fun getDialogMainColor(): Int` - returns dialog background color
 
