@@ -32,6 +32,8 @@ object MiuiBuild {
             IS_INTERNATIONAL_BUILD =
                 clazz?.getField("IS_INTERNATIONAL_BUILD")?.getBoolean(null) ?: false
             DEVICE = clazz?.getField("DEVICE")?.get(null) as String?
+        } catch (ignored: ClassNotFoundException) {
+        } catch (ignored: NoSuchFieldException) {
         } catch (e: Throwable) {
             e(e)
         }

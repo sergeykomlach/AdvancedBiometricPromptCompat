@@ -98,6 +98,7 @@ object BiometricConnect {
             MSG_CB_BUNDLE_FACE_POINTS_ARRAY =
                 clazz?.getField("MSG_CB_BUNDLE_FACE_POINTS_ARRAY")?.get(null) as String?
         } catch (ignored: ClassNotFoundException) {
+        } catch (ignored: NoSuchFieldException) {
         } catch (e: Throwable) {
             e(e)
         }

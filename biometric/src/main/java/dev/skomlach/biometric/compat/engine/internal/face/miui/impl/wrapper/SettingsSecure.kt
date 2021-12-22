@@ -28,6 +28,7 @@ object SettingsSecure {
     init {
         try {
             clazz = Class.forName("android.provider.Settings\$Secure")
+        } catch (ignored: ClassNotFoundException) {
         } catch (e: Throwable) {
             e(e)
         }
