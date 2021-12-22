@@ -359,7 +359,6 @@ class BiometricClient(context: Context) {
             stringBuilder.append(":handle_startService - bindService Exception ERROR: ")
             stringBuilder.append(e)
             d(str2, stringBuilder.toString())
-           e(e)
         }
         accessLock_.unlock()
         if (BiometricConnect.DEBUG_LOG) {

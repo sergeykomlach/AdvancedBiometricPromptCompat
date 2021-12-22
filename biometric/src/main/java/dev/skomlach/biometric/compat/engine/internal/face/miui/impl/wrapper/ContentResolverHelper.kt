@@ -30,6 +30,7 @@ object ContentResolverHelper {
     init {
         try {
             clazz = Class.forName("android.content.ContentResolver")
+        } catch (ignored: ClassNotFoundException) {
         } catch (e: Throwable) {
             e(e)
         }

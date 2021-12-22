@@ -28,6 +28,7 @@ object SettingsSystem {
     init {
         try {
             clazz = Class.forName("android.provider.Settings\$System")
+        } catch (ignored: ClassNotFoundException) {
         } catch (e: Throwable) {
             e(e)
         }

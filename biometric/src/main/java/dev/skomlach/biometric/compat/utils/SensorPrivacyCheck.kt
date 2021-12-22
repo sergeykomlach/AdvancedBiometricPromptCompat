@@ -165,7 +165,6 @@ object SensorPrivacyCheck {
                             }
                         }
                     } catch (e: CameraAccessException) {
-                        BiometricLoggerImpl.e(e)
                     } catch (ex: Throwable) {
                         BiometricLoggerImpl.e(ex)
                     }
@@ -177,6 +176,10 @@ object SensorPrivacyCheck {
             }
 
             override fun onCameraAvailable(cameraId: String) {
+                if(isCameraBlocked()) {
+                    isCameraInUse = false
+                    return
+                }
                 try {
                     super.onCameraAvailable(cameraId)
                     cameraManager?.getCameraCharacteristics(cameraId)?.let {
@@ -185,18 +188,21 @@ object SensorPrivacyCheck {
                         }
                     }
                 } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
                     //Caused by android.hardware.camera2.CameraAccessException: CAMERA_DISCONNECTED (2): Camera service is currently unavailable
                     if (e is CameraAccessException &&
                         e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
                         cameraId == facingCamera
                     ) {
                         isCameraInUse = true
-                    }
+                    } else BiometricLoggerImpl.e(e)
                 }
             }
 
             override fun onCameraUnavailable(cameraId: String) {
+                if(isCameraBlocked()) {
+                    isCameraInUse = false
+                    return
+                }
                 try {
                     super.onCameraUnavailable(cameraId)
                     cameraManager?.getCameraCharacteristics(cameraId)?.let {
@@ -205,14 +211,14 @@ object SensorPrivacyCheck {
                         }
                     }
                 } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
                     //Caused by android.hardware.camera2.CameraAccessException: CAMERA_DISCONNECTED (2): Camera service is currently unavailable
                     if (e is CameraAccessException &&
                         e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
                         cameraId == facingCamera
                     ) {
                         isCameraInUse = true
-                    }
+                    } else
+                        BiometricLoggerImpl.e(e)
                 }
             }
         }
@@ -223,6 +229,10 @@ object SensorPrivacyCheck {
     private fun getMicCallback(): AudioManager.AudioRecordingCallback {
         micCallback = object : AudioManager.AudioRecordingCallback() {
             override fun onRecordingConfigChanged(configs: List<AudioRecordingConfiguration>) {
+                if(isMicrophoneBlocked()) {
+                    isMicInUse = false
+                    return
+                }
                 try {
                     super.onRecordingConfigChanged(configs)
                     isMicInUse = configs.isNotEmpty()

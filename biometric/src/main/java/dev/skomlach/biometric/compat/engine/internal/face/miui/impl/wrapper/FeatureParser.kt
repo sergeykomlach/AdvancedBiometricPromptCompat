@@ -27,6 +27,7 @@ object FeatureParser {
     init {
         try {
             clazz = Class.forName("miui.util.FeatureParser")
+        } catch (ignored: ClassNotFoundException) {
         } catch (e: Throwable) {
             e(e)
         }
