@@ -34,6 +34,7 @@ import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
@@ -109,32 +110,38 @@ object SensorPrivacyCheck {
     }
 
     private fun startListeners(context: Context) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                if (cameraManager == null) cameraManager =
-                    context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-                cameraManager?.registerAvailabilityCallback(getCameraCallback(), null)
+        //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
+        ExecutorHelper.handler.post {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if (cameraManager == null) cameraManager =
+                        context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                    cameraManager?.registerAvailabilityCallback(getCameraCallback(), null)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (audioManager == null) audioManager =
+                        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                    audioManager?.registerAudioRecordingCallback(getMicCallback(), null)
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                if (audioManager == null) audioManager =
-                    context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                audioManager?.registerAudioRecordingCallback(getMicCallback(), null)
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
         }
     }
 
     private fun stopListeners() {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                unRegisterCameraCallBack()
+        //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
+        ExecutorHelper.handler.post {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    unRegisterCameraCallBack()
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    unRegisterMicCallback()
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                unRegisterMicCallback()
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
         }
     }
 
