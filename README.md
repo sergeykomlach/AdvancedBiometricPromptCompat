@@ -354,17 +354,9 @@ access using any known technic.
 Anyway, research and testing are required for each case, so feel free to create issues or contact
 directly with me.
 
-## Types of Biometrics
+## Some docs
 
-https://www.biometricsinstitute.org/what-is-biometrics/types-of-biometrics/
-
-## HOWTO SETUP
-
-FaceUnlock: https://www.xda-developers.com/face-unlock/
-
-Fingerprint: https://www.wikihow.com/Set-Up-the-Fingerprint-Scanner-on-an-Android-Device
-
-IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scanning-and-how-to-use-it-on-my-samsung-galaxy-device/
+[DRAFT.md](https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/DRAFT.md)
 
 ## Code security checks
 
