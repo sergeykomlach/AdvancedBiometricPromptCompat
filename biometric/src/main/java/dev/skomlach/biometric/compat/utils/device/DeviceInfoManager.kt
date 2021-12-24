@@ -217,6 +217,7 @@ object DeviceInfoManager {
 
     private fun getDetailsLink(url: String, html: String?, model: String): String? {
         html?.let {
+            var firstFounded : String? = null
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
             val rElements = body?.getElementsByTag("a") ?: Elements()
@@ -229,7 +230,11 @@ object DeviceInfoManager {
                 if (name.equals(model, ignoreCase = true)) {
                     return NetworkApi.resolveUrl(url, element.attr("href"))
                 }
+                else if (firstFounded.isNullOrEmpty() && name.contains(model, ignoreCase = true)) {
+                    firstFounded = NetworkApi.resolveUrl(url, element.attr("href"))
+                }
             }
+            return firstFounded
         }
         return null
     }
