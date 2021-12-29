@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.storage.applyOrCommit
 
 
 object BiometricErrorLockoutPermanentFix {
@@ -30,11 +31,11 @@ object BiometricErrorLockoutPermanentFix {
         getPreferences("BiometricCompat_ErrorLockoutPermanentFix")
 
     fun setBiometricSensorPermanentlyLocked(type: BiometricType) {
-        sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).apply()
+        sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).applyOrCommit()
     }
 
     fun resetBiometricSensorPermanentlyLocked() {
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit().clear().applyOrCommit()
     }
 
     fun isBiometricSensorPermanentlyLocked(type: BiometricType): Boolean {

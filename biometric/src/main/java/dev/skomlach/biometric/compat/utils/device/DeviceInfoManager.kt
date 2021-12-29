@@ -25,6 +25,7 @@ import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.network.NetworkApi
+import dev.skomlach.common.storage.applyOrCommit
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import java.io.ByteArrayOutputStream
@@ -160,7 +161,7 @@ object DeviceInfoManager {
                 .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
                 .putString("model", deviceInfo.model)
                 .putBoolean("checked", true)
-                .apply()
+                .applyOrCommit()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

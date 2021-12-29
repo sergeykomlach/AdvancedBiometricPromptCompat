@@ -34,6 +34,7 @@ import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.storage.applyOrCommit
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException
@@ -259,7 +260,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         if (!isLockedOut) {
             preferences.edit()
                 .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, System.currentTimeMillis())
-                .apply()
+                .applyOrCommit()
         }
     }
 
@@ -274,7 +275,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     }
                     if (ts > 0) {
                         return if (System.currentTimeMillis() - ts > timeout) {
-                            preferences.edit().putLong(key, 0).apply()
+                            preferences.edit().putLong(key, 0).applyOrCommit()
                             false
                         } else {
                             true
@@ -339,7 +340,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     if (System.currentTimeMillis() - ts > timeout) {
                         preferences.edit()
                             .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
-                            .apply()
+                            .applyOrCommit()
                         false
                     } else {
                         true
