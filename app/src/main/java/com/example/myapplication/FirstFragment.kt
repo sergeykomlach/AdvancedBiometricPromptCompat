@@ -34,6 +34,7 @@ import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import dev.skomlach.common.storage.applyOrCommit
 import leakcanary.LeakCanary
 
 /**
@@ -78,7 +79,7 @@ class FirstFragment : Fragment() {
 
         binding?.checkboxFullscreen?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
-                .putBoolean("checkboxFullscreen", isChecked).apply()
+                .putBoolean("checkboxFullscreen", isChecked).applyOrCommit()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }
@@ -88,7 +89,7 @@ class FirstFragment : Fragment() {
 
         binding?.checkboxWindowSecure?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
-                .putBoolean("checkboxWindowSecure", isChecked).apply()
+                .putBoolean("checkboxWindowSecure", isChecked).applyOrCommit()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }

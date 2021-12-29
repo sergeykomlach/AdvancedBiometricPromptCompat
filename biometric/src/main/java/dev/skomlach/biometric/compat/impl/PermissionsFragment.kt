@@ -45,6 +45,7 @@ import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.storage.applyOrCommit
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -228,7 +229,7 @@ class PermissionsFragment : Fragment() {
                 )
             }) {
             SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
-                .putBoolean("denied", true).apply()
+                .putBoolean("denied", true).applyOrCommit()
             showPermissionDeniedDialog(permissions, 1001)
             return
         } else {

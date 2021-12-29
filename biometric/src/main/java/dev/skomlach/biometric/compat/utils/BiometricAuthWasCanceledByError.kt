@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.SharedPreferences
 import android.os.Build
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.storage.applyOrCommit
 
 
 object BiometricAuthWasCanceledByError {
@@ -29,12 +30,12 @@ object BiometricAuthWasCanceledByError {
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AuthWasCanceledByError")
     fun setCanceledByError() {
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) preferences.edit()
-            .putBoolean(TS_PREF, true).apply()
+            .putBoolean(TS_PREF, true).applyOrCommit()
     }
 
     fun resetCanceledByError() {
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) preferences.edit()
-            .putBoolean(TS_PREF, false).apply()
+            .putBoolean(TS_PREF, false).applyOrCommit()
     }
 
     val isCanceledByError: Boolean
