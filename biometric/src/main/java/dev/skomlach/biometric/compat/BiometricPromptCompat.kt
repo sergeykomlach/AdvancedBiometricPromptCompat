@@ -72,7 +72,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        HiddenApiBypass.setHiddenApiExemptions("L");
+                        HiddenApiBypass.addHiddenApiExemptions("");
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()

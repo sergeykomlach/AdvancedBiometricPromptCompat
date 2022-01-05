@@ -32,6 +32,9 @@ import android.media.AudioRecordingConfiguration
 import android.os.Build
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricManagerCompat
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
@@ -62,11 +65,15 @@ object SensorPrivacyCheck {
     }
 
     fun isMicrophoneBlocked(): Boolean {
-        return Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.MICROPHONE)
+        return BiometricManagerCompat.isHardwareDetected(
+            BiometricAuthRequest(type = BiometricType.BIOMETRIC_VOICE)
+        ) && Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.MICROPHONE)
     }
 
     fun isCameraBlocked(): Boolean {
-        return Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
+        return BiometricManagerCompat.isHardwareDetected(
+            BiometricAuthRequest(type = BiometricType.BIOMETRIC_FACE)
+        ) && Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
     }
 
     @TargetApi(Build.VERSION_CODES.S)
@@ -113,12 +120,18 @@ object SensorPrivacyCheck {
         //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
         ExecutorHelper.handler.post {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && BiometricManagerCompat.isHardwareDetected(
+                        BiometricAuthRequest(type = BiometricType.BIOMETRIC_FACE)
+                    )
+                ) {
                     if (cameraManager == null) cameraManager =
                         context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
                     cameraManager?.registerAvailabilityCallback(getCameraCallback(), null)
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && BiometricManagerCompat.isHardwareDetected(
+                        BiometricAuthRequest(type = BiometricType.BIOMETRIC_VOICE)
+                    )
+                ) {
                     if (audioManager == null) audioManager =
                         context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
                     audioManager?.registerAudioRecordingCallback(getMicCallback(), null)

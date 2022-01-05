@@ -23,11 +23,11 @@ buildscript {
     ext.minSDK = 16
     ext.compileSDK = 31
     ext.targetSDK = 31
-    ext.javaVersion = JavaVersion.VERSION_1_8
+    ext.javaVersion = JavaVersion.VERSION_11
 
 
     ext.libsMajorVersion = '2.0'
-    ext.libsMinorVersion = 58
+    ext.libsMinorVersion = 59
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
