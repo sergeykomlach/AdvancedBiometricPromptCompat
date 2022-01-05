@@ -5896,6 +5896,11 @@
    "model": "AQUA Android TV 2K"
   },
   {
+   "device": "broadway",
+   "name": "AQUA Android TV DVB2K",
+   "model": "AQUA Android TV DVB2K"
+  },
+  {
    "device": "daan",
    "name": "AQUA Android TV FF Pro",
    "model": "AQUA Android TV FF Pro"
@@ -13252,6 +13257,11 @@
    "device": "BQru-6022G",
    "name": "BQru-6022GA",
    "model": "BQ-6022G"
+  },
+  {
+   "device": "BQru-6061L",
+   "name": "BQru-6061L",
+   "model": "BQ-6061L"
   },
   {
    "device": "BQru-6631G",
@@ -44242,6 +44252,11 @@
    "model": "Andromax C46B2H"
   },
   {
+   "device": "broadway",
+   "name": "CANDY Android TV DVB2K",
+   "model": "CANDY Android TV DVB2K"
+  },
+  {
    "device": "CDP7TAB4C8",
    "name": "CDP7TAB4C8",
    "model": "CDP7TAB4C8"
@@ -44420,6 +44435,11 @@
    "device": "hanyang",
    "name": "HEC Android TV",
    "model": "HEC Android TV"
+  },
+  {
+   "device": "broadway",
+   "name": "HEC Android TV DVB2K",
+   "model": "HEC Android TV DVB2K"
   },
   {
    "device": "HG-9041",
@@ -45090,7 +45110,7 @@
   },
   {
    "device": "Nautiz_X9P",
-   "name": "Nautiz X9P",
+   "name": "Nautiz X9",
    "model": "Nautiz X9P"
   },
   {
@@ -60904,11 +60924,6 @@
    "model": "Infinix X680D"
   },
   {
-   "device": "Infinix-X657",
-   "name": "Infinix SMART 5",
-   "model": "Infinix X657"
-  },
-  {
    "device": "Infinix-X5010",
    "name": "Infinix X5010",
    "model": "Infinix X5010"
@@ -61127,6 +61142,11 @@
    "device": "Infinix-X660C",
    "name": "S5 Pro",
    "model": "Infinix X660C"
+  },
+  {
+   "device": "Infinix-X657",
+   "name": "SMART",
+   "model": "Infinix X657"
   },
   {
    "device": "Infinix-X657B",
@@ -66225,6 +66245,13 @@
    "device": "BLISS_8",
    "name": "BLISS_8",
    "model": "BLISS_8"
+  }
+ ],
+ "KTCtv": [
+  {
+   "device": "stanford",
+   "name": "AP",
+   "model": "40D"
   }
  ],
  "KTV": [
@@ -80187,6 +80214,11 @@
    "device": "LAVIETabE7SD1",
    "name": "LAVIE Tab E 7SD1",
    "model": "LAVIE Tab E 7SD1"
+  },
+  {
+   "device": "LAVIETabT1212QHD1",
+   "name": "LAVIETab T12 12QHD1",
+   "model": "LAVIE Tab T12 12QHD1"
   },
   {
    "device": "LIFETAB_E10310",
@@ -101182,11 +101214,6 @@
    "model": "A102OP"
   },
   {
-   "device": "OP52EBL1",
-   "name": "A55s 5G",
-   "model": "CPH2309"
-  },
-  {
    "device": "A57",
    "name": "A57",
    "model": "OPPO A57"
@@ -101760,6 +101787,11 @@
    "device": "OP52E1L1",
    "name": "CPH2293",
    "model": "CPH2293"
+  },
+  {
+   "device": "OP52EBL1",
+   "name": "CPH2309",
+   "model": "CPH2309"
   },
   {
    "device": "OP4883",
@@ -113804,6 +113836,13 @@
    "model": "NEP N1"
   }
  ],
+ "REVOX": [
+  {
+   "device": "REVOX-RM-RX1-EU",
+   "name": "REVOX-RM-RX1-EU",
+   "model": "C200-RM-RX1"
+  }
+ ],
  "RIO Mobile": [
   {
    "device": "R7MAX",
@@ -114232,11 +114271,6 @@
    "model": "RMX2186"
   },
   {
-   "device": "RMX3231",
-   "name": "realme C11 2021",
-   "model": "RMX3231"
-  },
-  {
    "device": "RMX2184",
    "name": "realme C12",
    "model": "RMX2184"
@@ -114375,11 +114409,6 @@
    "device": "RE546F",
    "name": "realme GT Explorer Master Edition",
    "model": "RMX3366"
-  },
-  {
-   "device": "RE507C",
-   "name": "realme GT Master Edition",
-   "model": "RMX3361"
   },
   {
    "device": "RE54ABL1",
@@ -114872,6 +114901,11 @@
    "device": "selene",
    "name": "Redmi 10 2022",
    "model": "21121119SG"
+  },
+  {
+   "device": "selene",
+   "name": "Redmi 10 2022",
+   "model": "21121119VL"
   },
   {
    "device": "apricot",
@@ -133055,6 +133089,11 @@
    "model": "SH-Z60"
   },
   {
+   "device": "Recoa",
+   "name": "AQUOS zero6",
+   "model": "ST0B0"
+  },
+  {
    "device": "XKH",
    "name": "AQUOS zero6",
    "model": "SHG04"
@@ -140311,9 +140350,19 @@
  ],
  "Sunmi": [
   {
+   "device": "SUNMI-L2KsNFC",
+   "name": "Sunmi L2Ks",
+   "model": "L2Ks_GL"
+  },
+  {
    "device": "V2s",
    "name": "Sunmi V2s",
    "model": "V2s_GL"
+  },
+  {
+   "device": "V2sPLUSNC",
+   "name": "V2sPLUSNC",
+   "model": "V2sPLUSNC_EEA"
   }
  ],
  "Sunny": [
@@ -176132,6 +176181,11 @@
  ],
  "Zuum": [
   {
+   "device": "AKUS_P1",
+   "name": "AKUS P1",
+   "model": "AKUS P1"
+  },
+  {
    "device": "AKUS_PRO",
    "name": "AKUS PRO",
    "model": "AKUS PRO"
@@ -178968,6 +179022,11 @@
    "device": "RMX2202L1",
    "name": "realme GT 5G",
    "model": "RMX2202"
+  },
+  {
+   "device": "RE507C",
+   "name": "realme GT Master Edition",
+   "model": "RMX3361"
   },
   {
    "device": "RE879AL1",
