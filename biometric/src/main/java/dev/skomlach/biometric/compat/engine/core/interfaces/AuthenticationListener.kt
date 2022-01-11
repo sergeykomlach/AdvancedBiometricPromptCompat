@@ -47,5 +47,6 @@ interface AuthenticationListener {
         failureReason: AuthenticationFailureReason?,
         moduleTag: Int
     )
+
     fun onCanceled(moduleTag: Int)
 }

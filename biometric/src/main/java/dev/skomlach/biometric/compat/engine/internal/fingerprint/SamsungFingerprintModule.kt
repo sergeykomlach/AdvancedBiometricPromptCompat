@@ -76,7 +76,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     }
                 }
             }
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             mSpassFingerprint?.let {
                 it.registeredFingerprintName?.let { array ->
                     for (i in 0 until array.size()) {

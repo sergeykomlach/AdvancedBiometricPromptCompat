@@ -39,7 +39,7 @@ object DeviceModel {
     private val device = (Build.DEVICE ?: "").replace("  ", " ")
 
     init {
-        if(brand == "Amazon") {
+        if (brand == "Amazon") {
             SystemPropertiesProxy.get(AndroidContext.appContext, "ro.build.characteristics").let {
                 if (it == "tablet")
                     brand = "$brand Kindle"
@@ -47,6 +47,7 @@ object DeviceModel {
         }
 
     }
+
     fun getNames(): List<String> {
         val strings = HashMap<String, String>()
         var s: String? = getSimpleDeviceName()
@@ -93,12 +94,12 @@ object DeviceModel {
 
     private fun getSimpleDeviceName(): String? {
         SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name").let {
-            if(it.isNotEmpty())
-            return getName(brand, it)
+            if (it.isNotEmpty())
+                return getName(brand, it)
         }
         SystemPropertiesProxy.get(AndroidContext.appContext, "ro.camera.model").let {
-            if(it.isNotEmpty())
-            return getName(brand, it)
+            if (it.isNotEmpty())
+                return getName(brand, it)
         }
         return null
     }

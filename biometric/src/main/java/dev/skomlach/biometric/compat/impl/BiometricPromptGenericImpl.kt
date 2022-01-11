@@ -19,11 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import dev.skomlach.biometric.compat.BiometricConfirmation
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication.authenticate
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener

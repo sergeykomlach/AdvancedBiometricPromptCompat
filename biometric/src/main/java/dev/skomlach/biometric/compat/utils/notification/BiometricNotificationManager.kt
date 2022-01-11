@@ -135,7 +135,7 @@ object BiometricNotificationManager {
 
     fun dismiss(type: BiometricType?) {
         try {
-            notificationCompat.cancel(type?.hashCode()?:return)
+            notificationCompat.cancel(type?.hashCode() ?: return)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

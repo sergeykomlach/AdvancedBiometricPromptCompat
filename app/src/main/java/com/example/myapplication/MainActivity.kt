@@ -130,8 +130,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun sendLogs(){
-        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
+    fun sendLogs() {
+        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(log: String) {
                 LogCat.setLog2ViewCallback(null)
                 MailTo.startMailClient(
@@ -144,6 +144,7 @@ class MainActivity : AppCompatActivity() {
         })
 
     }
+
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, binding.root).let { controller ->

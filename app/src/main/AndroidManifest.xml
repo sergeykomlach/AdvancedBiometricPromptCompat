@@ -51,10 +51,10 @@
             android:required="false" />
 
     <application
-            android:allowBackup="false"
-            android:fullBackupContent="false"
             android:name=".App"
+            android:allowBackup="false"
             android:banner="@mipmap/ic_launcher"
+            android:fullBackupContent="false"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"

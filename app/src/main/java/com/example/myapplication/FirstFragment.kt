@@ -34,7 +34,7 @@ import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import dev.skomlach.common.storage.applyOrCommit
+
 import leakcanary.LeakCanary
 
 /**
@@ -64,7 +64,8 @@ class FirstFragment : Fragment() {
                 override fun onFinished() {
                     try {
                         dialog.dismiss()
-                    } catch (e : Throwable){}
+                    } catch (e: Throwable) {
+                    }
                     fillList(inflater, binding?.buttonsList)
                     checkDeviceInfo()
 
@@ -75,21 +76,23 @@ class FirstFragment : Fragment() {
             fillList(inflater, binding?.buttonsList)
         }
         binding?.checkboxFullscreen?.isChecked =
-            SharedPreferenceProvider.getPreferences("app_settings").getBoolean("checkboxFullscreen", false)
+            SharedPreferenceProvider.getPreferences("app_settings")
+                .getBoolean("checkboxFullscreen", false)
 
         binding?.checkboxFullscreen?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
-                .putBoolean("checkboxFullscreen", isChecked).applyOrCommit()
+                .putBoolean("checkboxFullscreen", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }
 
         binding?.checkboxWindowSecure?.isChecked =
-            SharedPreferenceProvider.getPreferences("app_settings").getBoolean("checkboxWindowSecure", false)
+            SharedPreferenceProvider.getPreferences("app_settings")
+                .getBoolean("checkboxWindowSecure", false)
 
         binding?.checkboxWindowSecure?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
-                .putBoolean("checkboxWindowSecure", isChecked).applyOrCommit()
+                .putBoolean("checkboxWindowSecure", isChecked).apply()
             (activity as MainActivity).updateUI()
             Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
         }

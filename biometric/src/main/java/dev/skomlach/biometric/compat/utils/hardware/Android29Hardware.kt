@@ -36,13 +36,14 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
     private fun canAuthenticate(): Int {
         var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
         try {
-            var biometricManager : android.hardware.biometrics.BiometricManager? = appContext.getSystemService(
-                android.hardware.biometrics.BiometricManager::class.java
-            )
+            var biometricManager: android.hardware.biometrics.BiometricManager? =
+                appContext.getSystemService(
+                    android.hardware.biometrics.BiometricManager::class.java
+                )
 
-            if(biometricManager == null){
+            if (biometricManager == null) {
                 biometricManager = appContext.getSystemService(
-                   Context.BIOMETRIC_SERVICE
+                    Context.BIOMETRIC_SERVICE
                 ) as android.hardware.biometrics.BiometricManager?
             }
             if (biometricManager != null) {

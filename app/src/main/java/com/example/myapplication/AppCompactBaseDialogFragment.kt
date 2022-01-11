@@ -28,7 +28,7 @@ import androidx.fragment.app.DialogFragment
 import com.example.myapplication.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import dev.skomlach.common.storage.applyOrCommit
+
 
 class AppCompactBaseDialogFragment : DialogFragment() {
 
@@ -67,12 +67,13 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxWindowSecure", false)
 
-        view.findViewById<CheckBox>(R.id.checkboxWindowSecure).setOnCheckedChangeListener { buttonView, isChecked ->
-            SharedPreferenceProvider.getPreferences("app_settings").edit()
-                .putBoolean("checkboxWindowSecure", isChecked).applyOrCommit()
-            (activity as MainActivity).updateUI()
-            Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
-        }
+        view.findViewById<CheckBox>(R.id.checkboxWindowSecure)
+            .setOnCheckedChangeListener { buttonView, isChecked ->
+                SharedPreferenceProvider.getPreferences("app_settings").edit()
+                    .putBoolean("checkboxWindowSecure", isChecked).apply()
+                (activity as MainActivity).updateUI()
+                Toast.makeText(context, "Changes applied", Toast.LENGTH_LONG).show()
+            }
         return view
     }
 

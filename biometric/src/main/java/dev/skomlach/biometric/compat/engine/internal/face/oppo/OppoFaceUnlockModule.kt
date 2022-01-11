@@ -53,7 +53,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             }
         }
 
-        if(manager == null){
+        if (manager == null) {
             try {
                 manager = context.getSystemService("face") as OppoMirrorFaceManager?
             } catch (e: Throwable) {

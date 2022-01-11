@@ -39,6 +39,7 @@ interface BiometricAuthenticationListener {
         failureReason: AuthenticationFailureReason?,
         module: BiometricType?
     )
+
     @WorkerThread
     fun onCanceled(module: BiometricType?)
 }

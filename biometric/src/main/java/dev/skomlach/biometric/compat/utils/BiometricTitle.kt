@@ -44,8 +44,7 @@ object BiometricTitle {
             }
             return context
                 .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
-        }
-        else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
+        } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
             getSystemTitle(context, "voice")?.let {
                 return it
             }
@@ -81,9 +80,10 @@ object BiometricTitle {
             .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
     }
 
-    private fun getSystemTitle(context: Context, alias: String): String?{
-     return getFromSystemTitle(context, alias)?: getFromSystemSubtitle(context, alias)
+    private fun getSystemTitle(context: Context, alias: String): String? {
+        return getFromSystemTitle(context, alias) ?: getFromSystemSubtitle(context, alias)
     }
+
     private fun getFromSystemSubtitle(context: Context, alias: String): String? {
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
