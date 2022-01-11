@@ -150,7 +150,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        controller.hide(WindowInsetsCompat.Type.statusBars())
+        controller.hide(WindowInsetsCompat.Type.systemBars())
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
     }
