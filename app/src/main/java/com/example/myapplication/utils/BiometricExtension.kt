@@ -21,11 +21,7 @@ package com.example.myapplication.utils
 
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricManagerCompat
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {

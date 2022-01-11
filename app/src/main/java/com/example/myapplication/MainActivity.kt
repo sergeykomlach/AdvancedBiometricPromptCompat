@@ -47,6 +47,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
 
+    private val controller: WindowInsetsControllerCompat by lazy {
+        WindowInsetsControllerCompat(window, binding.root)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -130,8 +133,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun sendLogs(){
-        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback{
+    fun sendLogs() {
+        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(log: String) {
                 LogCat.setLog2ViewCallback(null)
                 MailTo.startMailClient(
@@ -144,21 +147,17 @@ class MainActivity : AppCompatActivity() {
         })
 
     }
+
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        WindowInsetsControllerCompat(window, binding.root).let { controller ->
-            controller.hide(WindowInsetsCompat.Type.systemBars())
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
     }
 
     private fun showSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, true)
-        WindowInsetsControllerCompat(
-            window,
-            binding.root
-        ).show(WindowInsetsCompat.Type.systemBars())
+        controller.show(WindowInsetsCompat.Type.systemBars())
     }
 
     fun showDialog() {

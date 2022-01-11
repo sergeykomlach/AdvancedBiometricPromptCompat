@@ -189,7 +189,7 @@ object SensorPrivacyCheck {
             }
 
             override fun onCameraAvailable(cameraId: String) {
-                if(isCameraBlocked()) {
+                if (isCameraBlocked()) {
                     isCameraInUse = false
                     return
                 }
@@ -212,7 +212,7 @@ object SensorPrivacyCheck {
             }
 
             override fun onCameraUnavailable(cameraId: String) {
-                if(isCameraBlocked()) {
+                if (isCameraBlocked()) {
                     isCameraInUse = false
                     return
                 }
@@ -242,7 +242,7 @@ object SensorPrivacyCheck {
     private fun getMicCallback(): AudioManager.AudioRecordingCallback {
         micCallback = object : AudioManager.AudioRecordingCallback() {
             override fun onRecordingConfigChanged(configs: List<AudioRecordingConfiguration>) {
-                if(isMicrophoneBlocked()) {
+                if (isMicrophoneBlocked()) {
                     isMicInUse = false
                     return
                 }

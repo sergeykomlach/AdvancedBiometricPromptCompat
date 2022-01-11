@@ -29,7 +29,7 @@ import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import dev.skomlach.common.storage.applyOrCommit
+
 import java.util.*
 
 object BiometricManagerCompat {
@@ -79,7 +79,7 @@ object BiometricManagerCompat {
             }
 
             return (types.size == 1 && types.contains(BiometricType.BIOMETRIC_VOICE)) &&
-                   SensorPrivacyCheck.isMicrophoneBlocked()
+                    SensorPrivacyCheck.isMicrophoneBlocked()
         }
         return false
     }
@@ -118,7 +118,7 @@ object BiometricManagerCompat {
 
 
             return (types.size == 1 && types.contains(BiometricType.BIOMETRIC_FACE)) &&
-                   SensorPrivacyCheck.isCameraBlocked()
+                    SensorPrivacyCheck.isCameraBlocked()
         }
         return false
     }
@@ -209,6 +209,7 @@ object BiometricManagerCompat {
         }
         return false
     }
+
     @JvmStatic
     fun isBiometricReady(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -219,6 +220,7 @@ object BiometricManagerCompat {
         return isHardwareDetected(api) && hasEnrolled(api) &&
                 !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
+
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -270,7 +272,7 @@ object BiometricManagerCompat {
                 )
             ).isHardwareAvailable
 
-        preferences.edit().putBoolean("isHardwareDetected-${api.api}-${api.type}", result).applyOrCommit()
+        preferences.edit().putBoolean("isHardwareDetected-${api.api}-${api.type}", result).apply()
         return result
     }
 
@@ -302,7 +304,7 @@ object BiometricManagerCompat {
                 )
             ).isBiometricEnrolled
 
-        preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).applyOrCommit()
+        preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).apply()
         return result
     }
 
@@ -336,7 +338,7 @@ object BiometricManagerCompat {
             ).isBiometricEnrollChanged
 
         preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
-            .applyOrCommit()
+            .apply()
         return result
     }
 
@@ -371,7 +373,7 @@ object BiometricManagerCompat {
                 )
             ).isLockedOut
 
-        preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).applyOrCommit()
+        preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
         return isCameraOrMicAccessInUse(api) || result
     }
 

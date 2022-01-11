@@ -38,7 +38,6 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
@@ -72,7 +71,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        HiddenApiBypass.addHiddenApiExemptions("");
+                        HiddenApiBypass.setHiddenApiExemptions("L");
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()
@@ -221,7 +220,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         var found = false
                         for (v in builder.getPrimaryAvailableTypes()) {
                             val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
-                            if (BiometricManagerCompat.isBiometricReady(request)){
+                            if (BiometricManagerCompat.isBiometricReady(request)) {
                                 found = true
                                 break
                             }
@@ -254,7 +253,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
-        if(WideGamutBug.unsupportedColorMode(builder.getContext())){
+        if (WideGamutBug.unsupportedColorMode(builder.getContext())) {
             callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
             return
         }
@@ -294,7 +293,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             })
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e( e)
+            BiometricLoggerImpl.e(e)
             null
         }
 
@@ -338,9 +337,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
-                try{
-                callbackOuter.onFailed(reason)
-                 } finally {
+                try {
+                    callbackOuter.onFailed(reason)
+                } finally {
                     onUIClosed()
                 }
             }
@@ -355,8 +354,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (impl is BiometricPromptApi28Impl) {
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.getContext().window,
-                            DialogMainColor.getColor( builder.getContext(), DarkLightThemes.isNightMode(builder.getContext())),
-                            DialogMainColor.getColor( builder.getContext(), !DarkLightThemes.isNightMode(builder.getContext())),
+                            DialogMainColor.getColor(
+                                builder.getContext(),
+                                DarkLightThemes.isNightMode(builder.getContext())
+                            ),
+                            DialogMainColor.getColor(
+                                builder.getContext(),
+                                !DarkLightThemes.isNightMode(builder.getContext())
+                            ),
                             builder.getStatusBarColor()
                         )
                     }
@@ -381,7 +386,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                     ExecutorHelper.post(closeAll)
                     val delay =
-                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                            .toLong()
                     ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
                 }
@@ -418,6 +424,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 authenticateInternal(callback)
         }
     }
+
     private val usedPermissions: List<String>
         get() {
 
@@ -487,29 +494,36 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
 
-
     @ColorInt
     fun getDialogMainColor(): Int {
         if (!API_ENABLED)
             return ContextCompat.getColor(builder.getContext(), R.color.material_grey_50)
-        return DialogMainColor.getColor(builder.getContext(), DarkLightThemes.isNightMode(builder.getContext()))
+        return DialogMainColor.getColor(
+            builder.getContext(),
+            DarkLightThemes.isNightMode(builder.getContext())
+        )
     }
 
     abstract class AuthenticationCallback {
         @MainThread
-        open fun onSucceeded(confirmed: Set<BiometricType>){}
+        open fun onSucceeded(confirmed: Set<BiometricType>) {
+        }
 
         @MainThread
-        open fun onCanceled(){}
+        open fun onCanceled() {
+        }
 
         @MainThread
-        open fun onFailed(reason: AuthenticationFailureReason?){}
+        open fun onFailed(reason: AuthenticationFailureReason?) {
+        }
 
         @MainThread
-        open fun onUIOpened(){}
+        open fun onUIOpened() {
+        }
 
         @MainThread
-        open fun onUIClosed(){}
+        open fun onUIClosed() {
+        }
     }
 
     class Builder(
@@ -541,7 +555,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             )
                         }"
                     )
-                    if (BiometricManagerCompat.isBiometricReady(request)){
+                    if (BiometricManagerCompat.isBiometricReady(request)) {
                         types.add(type)
                     }
                 }
@@ -731,10 +745,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             negativeButtonText = text
             return this
         }
-        fun setNegativeButtonText( @StringRes res: Int): Builder {
+
+        fun setNegativeButtonText(@StringRes res: Int): Builder {
             negativeButtonText = context.getString(res)
             return this
         }
+
         fun setNegativeButton(
             text: CharSequence,
             listener: DialogInterface.OnClickListener?

@@ -22,7 +22,10 @@ package dev.skomlach.biometric.compat.utils.activityView
 import android.annotation.SuppressLint
 import android.content.ContextWrapper
 import android.content.res.ColorStateList
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +34,7 @@ import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.core.view.ViewCompat
 import androidx.core.widget.ImageViewCompat
+import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
@@ -40,10 +44,6 @@ import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.Utils
 import java.util.*
-
-import androidx.palette.graphics.Palette
-
-
 
 
 class WindowForegroundBlurring(
@@ -91,7 +91,8 @@ class WindowForegroundBlurring(
                 Integer.toHexString(
                     defaultColor
                 )
-            }")
+            }"
+        )
 
         for (i in 0 until parentView.childCount) {
             val v = parentView.getChildAt(i)
@@ -255,11 +256,17 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.e(e)
         }
     }
+
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
-            val color  = Palette.from(bm).generate()
-                .getVibrantColor(DialogMainColor.getColor(context, !DarkLightThemes.isNightMode(compatBuilder.getContext())))
+            val color = Palette.from(bm).generate()
+                .getVibrantColor(
+                    DialogMainColor.getColor(
+                        context,
+                        !DarkLightThemes.isNightMode(compatBuilder.getContext())
+                    )
+                )
             val isDark = ColorUtil.isDark(color)
             defaultColor =
                 DialogMainColor.getColor(context, isDark)

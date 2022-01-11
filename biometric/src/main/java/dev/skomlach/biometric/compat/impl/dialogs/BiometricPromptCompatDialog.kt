@@ -209,6 +209,7 @@ internal class BiometricPromptCompatDialog(
         rootView?.startAnimation(animation)
         ScreenProtection().applyProtectionInWindow(window ?: return)
     }
+
     private fun updateMonetColorsInternal() {
         if (Utils.isAtLeastS) {
             val negativeButtonColor = ContextCompat.getColor(

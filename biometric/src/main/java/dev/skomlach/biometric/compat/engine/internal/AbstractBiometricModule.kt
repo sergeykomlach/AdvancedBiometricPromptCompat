@@ -21,8 +21,8 @@ package dev.skomlach.biometric.compat.engine.internal
 
 import android.content.Context
 import android.content.SharedPreferences
-import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -31,7 +31,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import dev.skomlach.common.storage.applyOrCommit
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
@@ -58,7 +57,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     fun lockout() {
         if (!isLockOut) {
             d(name + ": setLockout for " + tag())
-            preferences.edit().putLong(TS_PREF + tag(), System.currentTimeMillis()).applyOrCommit()
+            preferences.edit().putLong(TS_PREF + tag(), System.currentTimeMillis()).apply()
         }
     }
 
@@ -71,7 +70,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
             val ts = preferences.getLong(TS_PREF + tag(), 0)
             return if (ts > 0) {
                 if (System.currentTimeMillis() - ts >= timeout) {
-                    preferences.edit().putLong(TS_PREF + tag(), 0).applyOrCommit()
+                    preferences.edit().putLong(TS_PREF + tag(), 0).apply()
                     d(name + ": lockout is FALSE(1) for " + tag())
                     false
                 } else {
@@ -99,7 +98,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         }
 
     fun updateBiometricEnrollChanged() {
-        preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).applyOrCommit()
+        preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
     }
 
     open fun getIds(manager: Any): List<String> {
@@ -154,8 +153,8 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                     method?.isAccessible = false
             }
         } catch (e: Throwable) {
-            if(DEBUG_MANAGERS)
-            e("$name", e)
+            if (DEBUG_MANAGERS)
+                e("$name", e)
         }
         return ids.filterNotNull()
     }
@@ -230,8 +229,8 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
             if (s.isNotEmpty())
                 return s
         } catch (e: Throwable) {
-            if(DEBUG_MANAGERS)
-            e("$name", e)
+            if (DEBUG_MANAGERS)
+                e("$name", e)
         }
         return null
     }

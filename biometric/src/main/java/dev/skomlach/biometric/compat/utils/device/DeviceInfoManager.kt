@@ -23,9 +23,8 @@ import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.network.NetworkApi
-import dev.skomlach.common.storage.applyOrCommit
+import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import java.io.ByteArrayOutputStream
@@ -145,7 +144,8 @@ object DeviceInfoManager {
                 val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model = sharedPreferences.getString("model", null) ?: return null
-                    val sensors = sharedPreferences.getStringSet("sensors", null)?:HashSet<String>()
+                    val sensors =
+                        sharedPreferences.getStringSet("sensors", null) ?: HashSet<String>()
                     field = DeviceInfo(model, sensors)
                 }
             }
@@ -161,7 +161,7 @@ object DeviceInfoManager {
                 .putStringSet("sensors", deviceInfo.sensors ?: HashSet<String>())
                 .putString("model", deviceInfo.model)
                 .putBoolean("checked", true)
-                .applyOrCommit()
+                .apply()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
@@ -218,7 +218,7 @@ object DeviceInfoManager {
 
     private fun getDetailsLink(url: String, html: String?, model: String): String? {
         html?.let {
-            var firstFound : String? = null
+            var firstFound: String? = null
             val doc = Jsoup.parse(html)
             val body = doc.body().getElementById("content")
             val rElements = body?.getElementsByTag("a") ?: Elements()
@@ -230,8 +230,7 @@ object DeviceInfoManager {
                 }
                 if (name.equals(model, ignoreCase = true)) {
                     return NetworkApi.resolveUrl(url, element.attr("href"))
-                }
-                else if (firstFound.isNullOrEmpty() && name.contains(model, ignoreCase = true)) {
+                } else if (firstFound.isNullOrEmpty() && name.contains(model, ignoreCase = true)) {
                     firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
                 }
             }

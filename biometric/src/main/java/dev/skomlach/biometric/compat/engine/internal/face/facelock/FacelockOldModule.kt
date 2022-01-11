@@ -29,7 +29,6 @@ import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
-import dev.skomlach.biometric.compat.engine.core.Core.cancelAuthentication
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -143,7 +142,8 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
             if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
                 return false
             }
-            val dpm = context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
+            val dpm =
+                context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
             return if (dpm?.getCameraDisabled(null) == true) {
                 false
             } else hasEnrolled()

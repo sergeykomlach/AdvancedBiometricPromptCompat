@@ -39,13 +39,12 @@ import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.permissions.PermissionUtils
-import dev.skomlach.common.storage.applyOrCommit
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -104,9 +103,10 @@ class PermissionsFragment : Fragment() {
         } else {
             ExecutorHelper.postDelayed({
                 try {
-                    activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                    activity?.supportFragmentManager?.beginTransaction()
+                        ?.remove(this@PermissionsFragment)
                         ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable){
+                } catch (e: Throwable) {
                     e("PermissionsFragment", e.message, e)
                 }
             }, 250)
@@ -118,9 +118,10 @@ class PermissionsFragment : Fragment() {
         if (permissionsRequestState == PermissionRequestState.MANUAL_REQUEST) {
             ExecutorHelper.postDelayed({
                 try {
-                    activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                    activity?.supportFragmentManager?.beginTransaction()
+                        ?.remove(this@PermissionsFragment)
                         ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable){
+                } catch (e: Throwable) {
                     e("PermissionsFragment", e.message, e)
                 }
             }, 250)
@@ -229,7 +230,7 @@ class PermissionsFragment : Fragment() {
                 )
             }) {
             SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
-                .putBoolean("denied", true).applyOrCommit()
+                .putBoolean("denied", true).apply()
             showPermissionDeniedDialog(permissions, 1001)
             return
         } else {
@@ -264,9 +265,10 @@ class PermissionsFragment : Fragment() {
         if (text.isNullOrEmpty() || title.isNullOrEmpty()) {
             ExecutorHelper.postDelayed({
                 try {
-                    activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                    activity?.supportFragmentManager?.beginTransaction()
+                        ?.remove(this@PermissionsFragment)
                         ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable){
+                } catch (e: Throwable) {
                     e("PermissionsFragment", e.message, e)
                 }
             }, 250)
@@ -278,9 +280,10 @@ class PermissionsFragment : Fragment() {
             setOnCancelListener {
                 ExecutorHelper.postDelayed({
                     try {
-                        activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                        activity?.supportFragmentManager?.beginTransaction()
+                            ?.remove(this@PermissionsFragment)
                             ?.commitNowAllowingStateLoss()
-                    } catch (e: Throwable){
+                    } catch (e: Throwable) {
                         e("PermissionsFragment", e.message, e)
                     }
                 }, 250)
@@ -324,9 +327,10 @@ class PermissionsFragment : Fragment() {
             setOnCancelListener {
                 ExecutorHelper.postDelayed({
                     try {
-                        activity?.supportFragmentManager?.beginTransaction()?.remove(this@PermissionsFragment)
+                        activity?.supportFragmentManager?.beginTransaction()
+                            ?.remove(this@PermissionsFragment)
                             ?.commitNowAllowingStateLoss()
-                    } catch (e: Throwable){
+                    } catch (e: Throwable) {
                         e("PermissionsFragment", e.message, e)
                     }
                 }, 250)

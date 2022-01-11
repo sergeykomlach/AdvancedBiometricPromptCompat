@@ -25,7 +25,6 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.view.View
-import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.BiometricType

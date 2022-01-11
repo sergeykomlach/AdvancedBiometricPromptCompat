@@ -57,6 +57,7 @@ object Core {
             BiometricLoggerImpl.e(e)
         }
     }
+
     val isLockOut: Boolean
         @Synchronized
         get() {

@@ -57,9 +57,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             }
         }
 
-        if(manager == null){
+        if (manager == null) {
             try {
-               manager = context.getSystemService("fingerprint") as FingerprintManager?
+                manager = context.getSystemService("fingerprint") as FingerprintManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)

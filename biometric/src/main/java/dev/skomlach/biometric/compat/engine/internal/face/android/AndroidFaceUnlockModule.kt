@@ -47,16 +47,18 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                faceAuthenticationManager = context.getSystemService(FaceAuthenticationManager::class.java)
+                faceAuthenticationManager =
+                    context.getSystemService(FaceAuthenticationManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
             }
         }
 
-        if(faceAuthenticationManager == null){
+        if (faceAuthenticationManager == null) {
             try {
-                faceAuthenticationManager =  context.getSystemService("face") as FaceAuthenticationManager?
+                faceAuthenticationManager =
+                    context.getSystemService("face") as FaceAuthenticationManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -71,7 +73,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             }
         }
 
-        if(faceManager == null){
+        if (faceManager == null) {
             try {
                 faceManager = context.getSystemService("face") as FaceManager?
             } catch (e: Throwable) {

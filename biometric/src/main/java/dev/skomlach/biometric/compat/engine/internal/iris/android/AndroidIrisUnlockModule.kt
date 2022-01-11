@@ -52,7 +52,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             }
         }
 
-        if(manager == null){
+        if (manager == null) {
             try {
                 manager = context.getSystemService("iris") as IrisManager?
             } catch (e: Throwable) {
