@@ -93,17 +93,6 @@ object StatusBarIconsDarkMode {
     }
 
     fun setDarkIconMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
-        if (Utils.isAtLeastR) {
-            WindowCompat.getInsetsController(window, window.decorView)
-                ?.let { windowInsetsController ->
-                    if (type == BarType.STATUSBAR && windowInsetsController.isAppearanceLightStatusBars != lightBars)
-                        windowInsetsController.isAppearanceLightStatusBars = lightBars
-                    else if (type == BarType.NAVBAR && windowInsetsController.isAppearanceLightNavigationBars != lightBars)
-                        windowInsetsController.isAppearanceLightNavigationBars = lightBars
-                    return true
-                }
-        }
-
         //Android6+ should deal with DarkIcons without problems
         val bits =
             if (type == BarType.STATUSBAR) SYSTEM_UI_FLAG_LIGHT_STATUS_BAR else SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
