@@ -202,12 +202,13 @@ object SensorPrivacyCheck {
                     }
                 } catch (e: Throwable) {
                     //Caused by android.hardware.camera2.CameraAccessException: CAMERA_DISCONNECTED (2): Camera service is currently unavailable
-                    if (e is CameraAccessException &&
-                        e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
-                        cameraId == facingCamera
-                    ) {
-                        isCameraInUse = true
-                    } else BiometricLoggerImpl.e(e)
+//                    if (e is CameraAccessException &&
+//                        e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
+//                        cameraId == facingCamera
+//                    ) {
+//                        isCameraInUse = true
+//                    } else
+                        BiometricLoggerImpl.e(e)
                 }
             }
 
@@ -225,12 +226,12 @@ object SensorPrivacyCheck {
                     }
                 } catch (e: Throwable) {
                     //Caused by android.hardware.camera2.CameraAccessException: CAMERA_DISCONNECTED (2): Camera service is currently unavailable
-                    if (e is CameraAccessException &&
-                        e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
-                        cameraId == facingCamera
-                    ) {
-                        isCameraInUse = true
-                    } else
+//                    if (e is CameraAccessException &&
+//                        e.message?.contains("CAMERA_DISCONNECTED ($cameraId): Camera service is currently unavailable") == true &&
+//                        cameraId == facingCamera
+//                    ) {
+//                        isCameraInUse = true
+//                    } else
                         BiometricLoggerImpl.e(e)
                 }
             }

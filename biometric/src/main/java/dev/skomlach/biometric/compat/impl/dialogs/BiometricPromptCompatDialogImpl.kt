@@ -99,11 +99,11 @@ class BiometricPromptCompatDialogImpl(
                     it,
                     DialogMainColor.getColor(
                         compatBuilder.getContext(),
-                        DarkLightThemes.isNightMode(compatBuilder.getContext())
+                        DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
                     ),
                     DialogMainColor.getColor(
                         compatBuilder.getContext(),
-                        !DarkLightThemes.isNightMode(compatBuilder.getContext())
+                        !DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
                     ),
                     compatBuilder.getStatusBarColor()
                 )

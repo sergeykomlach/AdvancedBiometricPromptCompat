@@ -177,7 +177,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
         if (Utils.isAtLeastS) {
             val monetColors = SystemColorScheme(builder.getContext())
-            if (DarkLightThemes.isNightMode(builder.getContext()))
+            if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
                 monetColors.accent2[100]?.toArgb()?.let {
                     buttonTextColor = it
                 }

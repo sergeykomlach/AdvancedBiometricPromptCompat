@@ -356,11 +356,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             builder.getContext().window,
                             DialogMainColor.getColor(
                                 builder.getContext(),
-                                DarkLightThemes.isNightMode(builder.getContext())
+                                DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
                             ),
                             DialogMainColor.getColor(
                                 builder.getContext(),
-                                !DarkLightThemes.isNightMode(builder.getContext())
+                                !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
                             ),
                             builder.getStatusBarColor()
                         )
@@ -500,7 +500,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return ContextCompat.getColor(builder.getContext(), R.color.material_grey_50)
         return DialogMainColor.getColor(
             builder.getContext(),
-            DarkLightThemes.isNightMode(builder.getContext())
+            DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
         )
     }
 

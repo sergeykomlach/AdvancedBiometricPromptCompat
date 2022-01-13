@@ -33,16 +33,19 @@ import java.time.LocalTime
 
 
 object DarkLightThemes {
-
-    fun isNightMode(context: Context): Boolean {
-        return UiModeManager.MODE_NIGHT_YES == getNightMode(context)
+    fun isNightModeCompatWithInscreen(context: Context): Boolean {
+        return isNightMode(context, true)
+    }
+    fun isNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Boolean {
+        return UiModeManager.MODE_NIGHT_YES == getNightMode(context, shouldInscreenCaseAffected)
     }
 
-
-    fun getNightMode(context: Context): Int {
-        if (DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo))
+    fun getNightModeCompatWithInscreen(context: Context): Int {
+        return getNightMode(context, true)
+    }
+    fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int {
+        if (shouldInscreenCaseAffected && DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo))
             return UiModeManager.MODE_NIGHT_YES
-
         return when (getIsOsDarkTheme(context)) {
             DarkThemeCheckResult.DARK -> {
                 UiModeManager.MODE_NIGHT_YES
