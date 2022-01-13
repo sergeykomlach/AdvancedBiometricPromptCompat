@@ -74,7 +74,7 @@ dependencies {
     //ANR's
     implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
     //memory leaks
-    implementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+    implementation 'com.squareup.leakcanary:leakcanary-android:2.8'
 }
 
 afterEvaluate {
