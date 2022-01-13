@@ -56,7 +56,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightMode
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightModeCompatWithInscreen
 import dev.skomlach.common.misc.Utils
 
 internal class BiometricPromptCompatDialog(
@@ -97,7 +97,7 @@ internal class BiometricPromptCompatDialog(
 
     init {
         val NIGHT_MODE: Int
-        val currentMode = getNightMode(context)
+        val currentMode = getNightModeCompatWithInscreen(context)
         NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
             AppCompatDelegate.MODE_NIGHT_YES
         } else if (currentMode == UiModeManager.MODE_NIGHT_AUTO) {
@@ -221,7 +221,7 @@ internal class BiometricPromptCompatDialog(
 
             try {
                 val monetColors = SystemColorScheme(context)
-                if (DarkLightThemes.isNightMode(context)) {
+                if (DarkLightThemes.isNightModeCompatWithInscreen(context)) {
                     fingerprintIcon?.tintColor(monetColors.accent1[300]?.toArgb())
                     negativeButton?.setTextColor(
                         monetColors.accent2[100]?.toArgb() ?: negativeButtonColor
