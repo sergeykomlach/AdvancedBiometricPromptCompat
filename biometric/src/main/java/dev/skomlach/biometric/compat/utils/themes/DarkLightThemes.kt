@@ -40,9 +40,6 @@ object DarkLightThemes {
 
 
     fun getNightMode(context: Context): Int {
-        if (DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo))
-            return UiModeManager.MODE_NIGHT_YES
-
         return when (getIsOsDarkTheme(context)) {
             DarkThemeCheckResult.DARK -> {
                 UiModeManager.MODE_NIGHT_YES
