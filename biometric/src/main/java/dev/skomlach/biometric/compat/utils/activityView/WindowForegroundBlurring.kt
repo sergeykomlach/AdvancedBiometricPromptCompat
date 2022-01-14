@@ -260,23 +260,28 @@ class WindowForegroundBlurring(
     private fun updateDefaultColor(bm: Bitmap) {
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
-            val color = Palette.from(bm).generate()
-                .getVibrantColor(
-                    DialogMainColor.getColor(
+            Palette.from(bm).generate { palette ->
+                try {
+                    val defColor = DialogMainColor.getColor(
                         context,
                         !DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
                     )
-                )
-            val isDark = ColorUtil.isDark(color)
-            defaultColor =
-                DialogMainColor.getColor(context, isDark)
-            BiometricLoggerImpl.d(
-                "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
-                    Integer.toHexString(
-                        defaultColor
+                    val color = palette?.getDominantColor(defColor) ?: defColor
+                    val isDark = ColorUtil.isDark(color)
+                    defaultColor =
+                        DialogMainColor.getColor(context, isDark)
+                    BiometricLoggerImpl.d(
+                        "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
+                            Integer.toHexString(
+                                defaultColor
+                            )
+                        }"
                     )
-                }"
-            )
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
+                }
+            }
+
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
