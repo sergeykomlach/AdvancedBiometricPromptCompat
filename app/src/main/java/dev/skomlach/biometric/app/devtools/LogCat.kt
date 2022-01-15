@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication.devtools
+package dev.skomlach.biometric.app.devtools
 
 import android.os.AsyncTask
 import android.os.Handler
@@ -38,7 +38,7 @@ object LogCat {
     }
 
     fun setLog2ViewCallback(log2ViewCallback: Log2ViewCallback?) {
-        this.log2ViewCallback = log2ViewCallback
+        LogCat.log2ViewCallback = log2ViewCallback
         log2ViewCallback?.log(log)
     }
 

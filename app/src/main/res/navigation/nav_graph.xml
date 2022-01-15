@@ -25,7 +25,7 @@
 
     <fragment
             android:id="@+id/FirstFragment"
-            android:name="com.example.myapplication.FirstFragment"
+            android:name="dev.skomlach.biometric.app.FirstFragment"
             android:label="@string/first_fragment_label"
             tools:layout="@layout/fragment_first">
 
@@ -35,7 +35,7 @@
     </fragment>
     <fragment
             android:id="@+id/SecondFragment"
-            android:name="com.example.myapplication.SecondFragment"
+            android:name="dev.skomlach.biometric.app.SecondFragment"
             android:label="@string/second_fragment_label"
             tools:layout="@layout/fragment_second">
 
