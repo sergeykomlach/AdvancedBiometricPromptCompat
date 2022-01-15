@@ -69,11 +69,11 @@ object BiometricAuthentication {
         allMethods.add(BiometricMethod.FACELOCK)
 
         //Samsung Pass on Kitkat-Marshmallow (4.4/5.x/6.x), then deprecated
-        if (Build.VERSION.SDK_INT >= 19 && Build.VERSION.SDK_INT < 24) {
+        if (Build.VERSION.SDK_INT in 19..23) {
             allMethods.add(BiometricMethod.FINGERPRINT_SAMSUNG)
         }
         //Meizu - Lollipop (5.0-5.1),then deprecated
-        if (Build.VERSION.SDK_INT >= 21 && Build.VERSION.SDK_INT < 23) {
+        if (Build.VERSION.SDK_INT in 21..22) {
             allMethods.add(BiometricMethod.FINGERPRINT_FLYME)
         }
         //Fingerprint API - Marshmallow (6.0)
@@ -95,10 +95,11 @@ object BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_HUAWEI)
         }
         //Android biometric - Pie (9.0)
-        if (Build.VERSION.SDK_INT >= 28) {
-            allMethods.add(BiometricMethod.FACE_ANDROIDAPI)
-            allMethods.add(BiometricMethod.IRIS_ANDROIDAPI)
-        }
+        //TODO: Samsung enable this API, but implementation need to be finetuned
+//        if (Build.VERSION.SDK_INT >= 28) {
+//            allMethods.add(BiometricMethod.FACE_ANDROIDAPI)
+//            allMethods.add(BiometricMethod.IRIS_ANDROIDAPI)
+//        }
         moduleHashMap.clear()
         //launch in BG because for init needed about 2-3 seconds
         try {
