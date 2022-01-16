@@ -28,22 +28,13 @@ package android.hardware.face
 
 import android.os.CancellationSignal
 import android.os.Handler
-import java.security.Signature
-import javax.crypto.Cipher
-import javax.crypto.Mac
+
 
 class FaceManager {
-    class CryptoObject {
-        val signature: Signature?
-            get() = null
-        val cipher: Cipher?
-            get() = null
-        val mac: Mac?
-            get() = null
-    }
+
 
     fun authenticate(
-        crypto: CryptoObject?,
+        crypto: android.hardware.biometrics.CryptoObject?,
         cancel: CancellationSignal?,
         flags: Int,
         callback: AuthenticationCallback?,
@@ -52,7 +43,7 @@ class FaceManager {
     }
 
     fun authenticate(
-        crypto: CryptoObject?,
+        crypto: android.hardware.biometrics.CryptoObject?,
         cancel: CancellationSignal?,
         flags: Int,
         callback: AuthenticationCallback?,
@@ -80,7 +71,12 @@ class FaceManager {
     val isHardwareDetected: Boolean
         get() = false
 
-    class AuthenticationResult(val cryptoObject: CryptoObject, val face: Face, val userId: Int)
+    class AuthenticationResult(
+        val cryptoObject: android.hardware.biometrics.CryptoObject?,
+        val face: Face,
+        val userId: Int
+    )
+
     abstract class AuthenticationCallback {
         open fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {}
         open fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence?) {}
