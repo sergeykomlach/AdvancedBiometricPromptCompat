@@ -272,16 +272,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         d("BiometricPromptApi28Impl.startAuth():")
 
         val candidates = builder.getAllAvailableTypes().filter {
-            it != BiometricType.BIOMETRIC_FINGERPRINT && it != BiometricType.BIOMETRIC_ANY
+            it != BiometricType.BIOMETRIC_ANY
         }
         val isSamsungWorkaroundRequired =
-            DevicesWithKnownBugs.isSamsung && candidates.isNotEmpty()
+            DevicesWithKnownBugs.isSamsung && candidates.size > 1 //If only one - let the system to deal with this
 
         if (!isSamsungWorkaroundRequired) {
             if (!hasSecondaryFinished()) {
                 val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
                 if (secondary.isNotEmpty()) {
-                    d("BiometricPromptApi28Impl.startAuth(): - secondaryAvailableTypes - secondary $secondary; primary - ${builder.getPrimaryAvailableTypes()}")
                     BiometricAuthentication.authenticate(
                         null,
                         ArrayList<BiometricType>(secondary),
@@ -309,36 +308,65 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             successList.add(it)
                         }
                     }
-
-                    override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
-
-                    }
-
-                    override fun onFailure(
-                        failureReason: AuthenticationFailureReason?,
-                        module: BiometricType?
-                    ) {
-
-                    }
-
-                    override fun onCanceled(module: BiometricType?) {
-                        cancelAuth()
-                        cancelAuthentication()
-                    }
+                    override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {}
+                    override fun onFailure(failureReason: AuthenticationFailureReason?,module: BiometricType?) {}
+                    override fun onCanceled(module: BiometricType?) {}
                 }
             )
-            val flag = AtomicBoolean(false)
-            val runnable = Runnable {
-                flag.set(true)
+            val finalTaskExecuted = AtomicBoolean(false)
+            val finalTask = Runnable {
+                finalTaskExecuted.set(true)
                 //Flow for Samsung devices
                 BiometricAuthentication.cancelAuthentication()
 
                 if (successList.isNotEmpty()) {
-                    showSystemUi()
+                    val dialogClosed = AtomicBoolean(false)
+                    showSystemUi(BiometricPrompt(
+                        builder.getContext(),
+                        ExecutorHelper.executor,
+                        object : BiometricPrompt.AuthenticationCallback() {
+                            var onePlusWithBiometricBugFailure = false
+                            override fun onAuthenticationFailed() {
+                                if (isOnePlusWithBiometricBug) {
+                                    onePlusWithBiometricBugFailure = true
+                                    if(!dialogClosed.get()) {
+                                        dialogClosed.set(true)
+                                        stopAuth()
+                                        callback?.onSucceeded(successList)
+                                    }
+                                }
+                            }
+
+                            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                                if (onePlusWithBiometricBugFailure) {
+                                    onePlusWithBiometricBugFailure = false
+                                    return
+                                }
+                                if(!dialogClosed.get()) {
+                                    dialogClosed.set(true)
+                                    stopAuth()
+                                    callback?.onSucceeded(successList)
+                                }
+                            }
+
+                            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                if(!dialogClosed.get()) {
+                                    dialogClosed.set(true)
+                                    stopAuth()
+                                    callback?.onSucceeded(successList)
+                                }
+                            }
+
+                        }
+                    )
+                    )
                     ExecutorHelper.postDelayed({
-                        cancelAuthentication()
-                        callback?.onSucceeded(successList)
-                    }, shortDelayMillis)
+                        if(!dialogClosed.get()) {
+                            dialogClosed.set(true)
+                            stopAuth()
+                            callback?.onSucceeded(successList)
+                        }
+                    }, delayMillis)
                 } else
                 //general case
                 {
@@ -348,30 +376,24 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }
 
             }
-            val resultCheckRunnable = object : Runnable {
+            val resultCheckTask = object : Runnable {
                 override fun run() {
-                    if (!flag.get()) {
+                    if (!finalTaskExecuted.get()) {
                         if (successList.isNotEmpty()) {
-                            ExecutorHelper.removeCallbacks(runnable)
-                            runnable.run()
+                            ExecutorHelper.removeCallbacks(finalTask)
+                            finalTask.run()
                         } else {
                             ExecutorHelper.postDelayed(this, shortDelayMillis)
                         }
                     }
                 }
             }
-            ExecutorHelper.postDelayed(runnable, delayMillis)
-            ExecutorHelper.postDelayed(resultCheckRunnable, shortDelayMillis)
+            ExecutorHelper.postDelayed(finalTask, delayMillis)
+            ExecutorHelper.postDelayed(resultCheckTask, shortDelayMillis)
         }
     }
 
-    private fun showSystemUi(
-        biometricPrompt: BiometricPrompt = BiometricPrompt(
-            builder.getContext(),
-            ExecutorHelper.executor,
-            object : BiometricPrompt.AuthenticationCallback() {}
-        )
-    ) {
+    private fun showSystemUi(biometricPrompt: BiometricPrompt) {
 
         biometricPrompt.authenticate(biometricPromptInfo)
 

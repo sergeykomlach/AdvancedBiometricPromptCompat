@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication
+package dev.skomlach.biometric.app
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,7 +25,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.fragment.app.DialogFragment
-import com.example.myapplication.utils.startBiometric
+import dev.skomlach.biometric.app.R
+import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.storage.SharedPreferenceProvider
 

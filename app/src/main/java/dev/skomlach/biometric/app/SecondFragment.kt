@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication
+package dev.skomlach.biometric.app
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -30,9 +30,10 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
-import com.example.myapplication.databinding.FragmentSecondBinding
-import com.example.myapplication.devtools.LogCat
-import com.example.myapplication.utils.MailTo
+import dev.skomlach.biometric.app.R
+import dev.skomlach.biometric.app.databinding.FragmentSecondBinding
+import dev.skomlach.biometric.app.devtools.LogCat
+import dev.skomlach.biometric.app.utils.MailTo
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.

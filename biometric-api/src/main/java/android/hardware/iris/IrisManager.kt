@@ -17,31 +17,23 @@
  *   limitations under the License.
  */
 
-/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
- * Licensed under the Apache License, Version 2.0 (the "License");
- * http://www.apache.org/licenses/LICENSE-2.0
- * @author s.komlach
- * @date 2021/3/1
- */
+
 
 
 package android.hardware.iris
 
 import android.os.CancellationSignal
 import android.os.Handler
-import java.security.Signature
-import javax.crypto.Cipher
-import javax.crypto.Mac
 
 class IrisManager {
     fun authenticate(
-        crypto: CryptoObject?, cancel: CancellationSignal?,
+        crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?,
         flags: Int, callback: AuthenticationCallback, handler: Handler?
     ) {
     }
 
     fun authenticate(
-        crypto: CryptoObject?, cancel: CancellationSignal?,
+        crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?,
         flags: Int, callback: AuthenticationCallback, handler: Handler?, userId: Int
     ) {
     }
@@ -71,56 +63,56 @@ class IrisManager {
     val isHardwareDetected: Boolean
         get() = false
 
-    /**
-     * A wrapper class for the crypto objects supported by IrisManager. Currently the
-     * framework supports [Signature], [Cipher] and [Mac] objects.
-     */
-    class CryptoObject {
-        private val mCrypto: Any
-
-        constructor(signature: Signature) {
-            mCrypto = signature
-        }
-
-        constructor(cipher: Cipher) {
-            mCrypto = cipher
-        }
-
-        constructor(mac: Mac) {
-            mCrypto = mac
-        }
-
-        /**
-         * Get [Signature] object.
-         *
-         * @return [Signature] object or null if this doesn't contain one.
-         */
-        val signature: Signature?
-            get() = if (mCrypto is Signature) mCrypto else null
-
-        /**
-         * Get [Cipher] object.
-         *
-         * @return [Cipher] object or null if this doesn't contain one.
-         */
-        val cipher: Cipher?
-            get() = if (mCrypto is Cipher) mCrypto else null
-
-        /**
-         * Get [Mac] object.
-         *
-         * @return [Mac] object or null if this doesn't contain one.
-         */
-        val mac: Mac?
-            get() = if (mCrypto is Mac) mCrypto else null
-
-        /**
-         * @return the opId associated with this object or 0 if none
-         * @hide
-         */
-        val opId: Long
-            get() = 0
-    }
+//    /**
+//     * A wrapper class for the crypto objects supported by IrisManager. Currently the
+//     * framework supports [Signature], [Cipher] and [Mac] objects.
+//     */
+//    class CryptoObject {
+//        private val mCrypto: Any
+//
+//        constructor(signature: Signature) {
+//            mCrypto = signature
+//        }
+//
+//        constructor(cipher: Cipher) {
+//            mCrypto = cipher
+//        }
+//
+//        constructor(mac: Mac) {
+//            mCrypto = mac
+//        }
+//
+//        /**
+//         * Get [Signature] object.
+//         *
+//         * @return [Signature] object or null if this doesn't contain one.
+//         */
+//        val signature: Signature?
+//            get() = if (mCrypto is Signature) mCrypto else null
+//
+//        /**
+//         * Get [Cipher] object.
+//         *
+//         * @return [Cipher] object or null if this doesn't contain one.
+//         */
+//        val cipher: Cipher?
+//            get() = if (mCrypto is Cipher) mCrypto else null
+//
+//        /**
+//         * Get [Mac] object.
+//         *
+//         * @return [Mac] object or null if this doesn't contain one.
+//         */
+//        val mac: Mac?
+//            get() = if (mCrypto is Mac) mCrypto else null
+//
+//        /**
+//         * @return the opId associated with this object or 0 if none
+//         * @hide
+//         */
+//        val opId: Long
+//            get() = 0
+//    }
 
     /**
      * Container for callback data from [IrisManager.authenticate].
@@ -138,7 +130,7 @@ class IrisManager {
          *
          * @return crypto object provided to [IrisManager.authenticate].
          */
-        val cryptoObject: CryptoObject,
+        val cryptoObject: android.hardware.biometrics.CryptoObject?,
         /**
          * Obtain the Iris associated with this operation. Applications are strongly
          * discouraged from associating specific iris with specific applications or operations.

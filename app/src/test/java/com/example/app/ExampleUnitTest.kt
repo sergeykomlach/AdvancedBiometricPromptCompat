@@ -1,4 +1,4 @@
-package com.example.myapplication
+package dev.skomlach.biometric.app
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

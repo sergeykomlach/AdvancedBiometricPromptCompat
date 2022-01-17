@@ -169,6 +169,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        try {
         d("$name.authenticate - $biometricMethod")
         if (!isHardwarePresent) {
             listener?.onFailure(AuthenticationFailureReason.NO_HARDWARE, tag())
@@ -179,15 +180,10 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             return
         }
         // Why getCancellationSignalObject returns an Object is unexplained
-        val signalObject =
-            if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as CancellationSignal?
-        try {
-            requireNotNull(signalObject) { "CancellationSignal cann't be null" }
-        } catch (e: Throwable) {
-            e(e)
-            listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
-            return
-        }
+       val signalObject =
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
         if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) {
             huawei3DFaceManager?.let {
                 try {
@@ -224,6 +220,9 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     e(e, "$name: authenticate failed unexpectedly")
                 }
             }
+        }
+        } catch (e: Throwable) {
+            e(e, "$name: authenticate failed unexpectedly")
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
     }

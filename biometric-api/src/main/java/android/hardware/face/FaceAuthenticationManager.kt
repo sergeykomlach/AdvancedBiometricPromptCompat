@@ -17,20 +17,12 @@
  *   limitations under the License.
  */
 
-/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
- * Licensed under the Apache License, Version 2.0 (the "License");
- * http://www.apache.org/licenses/LICENSE-2.0
- * @author s.komlach
- * @date 2021/3/1
- */
+
 
 package android.hardware.face
 
 import android.os.CancellationSignal
 import android.os.Handler
-import java.security.Signature
-import javax.crypto.Cipher
-import javax.crypto.Mac
 
 
 /**
@@ -56,7 +48,7 @@ class FaceAuthenticationManager {
      * @throws IllegalStateException    if the crypto primitive is not initialized.
      */
     fun authenticate(
-        crypto: CryptoObject?, cancel: CancellationSignal?,
+        crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?,
         flags: Int, callback: AuthenticationCallback, handler: Handler?
     ) {
     }
@@ -67,7 +59,7 @@ class FaceAuthenticationManager {
      * @hide
      */
     fun authenticate(
-        crypto: CryptoObject?, cancel: CancellationSignal?,
+        crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?,
         flags: Int, callback: AuthenticationCallback, handler: Handler?, userId: Int
     ) {
     }
@@ -176,15 +168,6 @@ class FaceAuthenticationManager {
     val authenticatorId: Long
         get() = 0
 
-    class CryptoObject {
-        val signature: Signature?
-            get() = null
-        val cipher: Cipher?
-            get() = null
-        val mac: Mac?
-            get() = null
-    }
-
     /**
      * Container for callback data from [FaceAuthenticationManager.authenticate].
      */
@@ -196,13 +179,13 @@ class FaceAuthenticationManager {
      * @param face   the recognized face data, if allowed.
      * @hide
      */
-        (crypto: CryptoObject?, face: Face?, userId: Int) {
+        (crypto: android.hardware.biometrics.CryptoObject?, face: Face?, userId: Int) {
         /**
          * Obtain the crypto object associated with this transaction
          *
          * @return crypto object provided to [FaceAuthenticationManager.authenticate].
          */
-        val cryptoObject: CryptoObject?
+        val cryptoObject: android.hardware.biometrics.CryptoObject?
             get() = null
 
         /**

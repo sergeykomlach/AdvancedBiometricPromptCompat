@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication
+package dev.skomlach.biometric.app
 
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
@@ -34,10 +34,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.example.myapplication.databinding.ActivityMainBinding
-import com.example.myapplication.devtools.LogCat
-import com.example.myapplication.devtools.Scan4Apis
-import com.example.myapplication.utils.MailTo
+import dev.skomlach.biometric.app.R
+import dev.skomlach.biometric.app.databinding.ActivityMainBinding
+import dev.skomlach.biometric.app.devtools.LogCat
+import dev.skomlach.biometric.app.devtools.Scan4Apis
+import dev.skomlach.biometric.app.utils.MailTo
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.storage.SharedPreferenceProvider

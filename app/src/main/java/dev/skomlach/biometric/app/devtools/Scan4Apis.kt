@@ -16,11 +16,11 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.example.myapplication.devtools
+package dev.skomlach.biometric.app.devtools
 
 import android.content.Context
 import androidx.annotation.WorkerThread
-import com.example.myapplication.BuildConfig
+import dev.skomlach.biometric.app.BuildConfig
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.network.NetworkApi

@@ -17,12 +17,7 @@
  *   limitations under the License.
  */
 
-/**Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
- * Licensed under the Apache License, Version 2.0 (the "License");
- * http://www.apache.org/licenses/LICENSE-2.0
- * @author s.komlach
- * @date 2021/3/1
- */
+
 
 package com.samsung.android.camera.iris
 

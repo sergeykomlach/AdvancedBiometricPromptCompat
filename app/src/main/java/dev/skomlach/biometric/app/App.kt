@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,13 +17,13 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication
+package dev.skomlach.biometric.app
 
 import android.os.Handler
 import android.os.Looper
 import androidx.multidex.MultiDexApplication
-import com.example.myapplication.devtools.AppMonitoringDevTools
-import com.example.myapplication.devtools.LogCat
+import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
+import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import java.util.*

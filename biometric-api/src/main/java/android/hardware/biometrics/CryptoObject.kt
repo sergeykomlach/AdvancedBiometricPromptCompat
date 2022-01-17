@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,17 @@
  *   limitations under the License.
  */
 
+package android.hardware.biometrics
 
+import java.security.Signature
+import javax.crypto.Cipher
+import javax.crypto.Mac
 
-package com.samsung.android.camera.iris
-
-class Iris 
+class CryptoObject {
+    val signature: Signature?
+        get() = null
+    val cipher: Cipher?
+        get() = null
+    val mac: Mac?
+        get() = null
+}

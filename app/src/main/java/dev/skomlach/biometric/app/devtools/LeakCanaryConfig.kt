@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package com.example.myapplication.devtools
+package dev.skomlach.biometric.app.devtools
 
 import leakcanary.LeakCanary
 

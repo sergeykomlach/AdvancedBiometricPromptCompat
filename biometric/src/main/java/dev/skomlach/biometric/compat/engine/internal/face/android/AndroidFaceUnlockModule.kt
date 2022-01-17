@@ -164,17 +164,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        try{
         d("$name.authenticate - $biometricMethod")
         // Why getCancellationSignalObject returns an Object is unexplained
         val signalObject =
-            if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?
-        try {
-            requireNotNull(signalObject) { "CancellationSignal cann't be null" }
-            return
-        } catch (e: Throwable) {
-            e(e, "$name: authenticate failed unexpectedly")
-            listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
-        }
+            (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
         if (faceAuthenticationManager?.isHardwareDetected == true && faceAuthenticationManager?.hasEnrolledFace() == true) {
             faceAuthenticationManager?.let {
                 try {
@@ -208,6 +204,9 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     e(e, "$name: authenticate failed unexpectedly")
                 }
             }
+        }
+        } catch (e: Throwable) {
+            e(e, "$name: authenticate failed unexpectedly")
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
         return
