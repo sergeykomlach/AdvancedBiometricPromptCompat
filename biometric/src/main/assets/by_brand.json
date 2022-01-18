@@ -571,6 +571,11 @@
    "device": "ikebukuro",
    "name": "B725U",
    "model": "AI PONT"
+  },
+  {
+   "device": "redwood",
+   "name": "Smart TV",
+   "model": "AI PONT"
   }
  ],
  "ALMATEEN": [
@@ -16092,6 +16097,11 @@
    "model": "C5L"
   },
   {
+   "device": "C017U",
+   "name": "C5L",
+   "model": "C5L"
+  },
+  {
    "device": "C0070WW",
    "name": "C5L 2020",
    "model": "C5L 2020"
@@ -24384,6 +24394,11 @@
    "device": "L762",
    "name": "Core-X4",
    "model": "Core-X4"
+  },
+  {
+   "device": "L770",
+   "name": "Core-X4 Neo",
+   "model": "Core-X4 Neo"
   },
   {
    "device": "ODYSSEY3G",
@@ -36364,6 +36379,16 @@
  ],
  "G-Tab": [
   {
+   "device": "C10_1",
+   "name": "C10_1",
+   "model": "C10"
+  },
+  {
+   "device": "C20",
+   "name": "C20",
+   "model": "C20"
+  },
+  {
    "device": "C3",
    "name": "C3",
    "model": "C3"
@@ -36507,6 +36532,11 @@
    "device": "S8",
    "name": "S8",
    "model": "S8"
+  },
+  {
+   "device": "S8K_1",
+   "name": "S8K_1",
+   "model": "S8K"
   },
   {
    "device": "S8X",
@@ -39993,6 +40023,11 @@
   {
    "device": "samseong",
    "name": "GT9UHD",
+   "model": "AI PONT"
+  },
+  {
+   "device": "longshan",
+   "name": "Smart TV",
    "model": "AI PONT"
   }
  ],
@@ -47579,6 +47614,11 @@
    "model": "Hisense E20"
   },
   {
+   "device": "HLTE103E_40",
+   "name": "Hisense E20S",
+   "model": "Hisense E20s"
+  },
+  {
    "device": "HLTE103E_41",
    "name": "Hisense E20s",
    "model": "Hisense E20s"
@@ -47727,6 +47767,11 @@
    "device": "HLTE228E_20",
    "name": "Hisense E50 Lite 64G",
    "model": "Hisense E50 Lite 64GB"
+  },
+  {
+   "device": "HLTE235E",
+   "name": "Hisense E60 Lite",
+   "model": "Hisense E60 Lite"
   },
   {
    "device": "HS8937QC",
@@ -47919,6 +47964,16 @@
    "model": "Hisense Infinity H50 ZOOM"
   },
   {
+   "device": "HNR500E",
+   "name": "Hisense Infinity H50S 5G",
+   "model": "Hisense Infinity H50S 5G"
+  },
+  {
+   "device": "HNR510E",
+   "name": "Hisense Infinity H60 5G",
+   "model": "Hisense Infinity H60 5G"
+  },
+  {
    "device": "HS8909QC",
    "name": "Hisense M36",
    "model": "Hisense M36"
@@ -47962,6 +48017,16 @@
    "device": "HLTE100E_22",
    "name": "Hisense U3 2021",
    "model": "Hisense U3 2021"
+  },
+  {
+   "device": "HLTE106E_30",
+   "name": "Hisense U30",
+   "model": "Hisense U30"
+  },
+  {
+   "device": "HLTE106E_31",
+   "name": "Hisense U30",
+   "model": "Hisense U30"
   },
   {
    "device": "HLTE106E_40",
@@ -49315,6 +49380,11 @@
   },
   {
    "device": "MSD6A938",
+   "name": "VIDAA_TV",
+   "model": "VIDAA_TV"
+  },
+  {
+   "device": "MT9669",
    "name": "VIDAA_TV",
    "model": "VIDAA_TV"
   },
@@ -61573,6 +61643,11 @@
    "device": "Infinix-X657B",
    "name": "SMART 5(SMART 6)",
    "model": "Infinix X657B"
+  },
+  {
+   "device": "Infinix-X6511E",
+   "name": "SMART 6",
+   "model": "Infinix X6511E"
   },
   {
    "device": "Infinix-X612",
@@ -100853,6 +100928,11 @@
   {
    "device": "OnePlus8Pro",
    "name": "OnePlus 8 Pro",
+   "model": "IN2020"
+  },
+  {
+   "device": "OnePlus8Pro",
+   "name": "OnePlus 8 Pro",
    "model": "IN2023"
   },
   {
@@ -105106,6 +105186,16 @@
   }
  ],
  "PEAQ": [
+  {
+   "device": "PET-101-F464S",
+   "name": "PET-101-F464S",
+   "model": "PET-101-F464S"
+  },
+  {
+   "device": "PET-101-H332S-W",
+   "name": "PET-101-H332S-W",
+   "model": "PET 101-H332S-W"
+  },
   {
    "device": "PET-1081-H232S",
    "name": "PET-1081-H232S",
@@ -116583,6 +116673,11 @@
   {
    "device": "ikebukuro",
    "name": "R-32B6600",
+   "model": "AI PONT"
+  },
+  {
+   "device": "samseong",
+   "name": "Smart TV",
    "model": "AI PONT"
   }
  ],
@@ -151175,6 +151270,11 @@
    "model": "P30HD"
   },
   {
+   "device": "P30HD",
+   "name": "P30HD_RU",
+   "model": "P30HD"
+  },
+  {
    "device": "P80X",
    "name": "P80X",
    "model": "P80X"
@@ -155311,6 +155411,11 @@
   {
    "device": "M101",
    "name": "M101",
+   "model": "M101"
+  },
+  {
+   "device": "M101",
+   "name": "M101",
    "model": "UNIWA M101"
   }
  ],
@@ -155981,6 +156086,11 @@
    "device": "10A_LTE",
    "name": "10A_LTE_eea",
    "model": "10A_LTE_eea"
+  },
+  {
+   "device": "10C-LTE-A11",
+   "name": "10C-LTE-A11",
+   "model": "10C-LTE-A11"
   },
   {
    "device": "10C-PRO-LTE",
@@ -156891,6 +157001,11 @@
    "device": "SQ57",
    "name": "DT20",
    "model": "DT20"
+  },
+  {
+   "device": "SQ57S",
+   "name": "DT20 Pro",
+   "model": "DT20_Pro"
   },
   {
    "device": "SQ57",
@@ -160851,6 +160966,11 @@
    "model": "V2131"
   },
   {
+   "device": "2131",
+   "name": "V2131",
+   "model": "V2140"
+  },
+  {
    "device": "PD2131",
    "name": "V2131A",
    "model": "V2131A"
@@ -160921,6 +161041,11 @@
    "model": "V2141A"
   },
   {
+   "device": "2135",
+   "name": "V2143",
+   "model": "V2143"
+  },
+  {
    "device": "PD2143",
    "name": "V2143A",
    "model": "V2143A"
@@ -160929,6 +161054,11 @@
    "device": "PD2145",
    "name": "V2145A",
    "model": "V2145A"
+  },
+  {
+   "device": "2135",
+   "name": "V2146",
+   "model": "V2146"
   },
   {
    "device": "PD2148",
@@ -163925,6 +164055,11 @@
   }
  ],
  "Wibox": [
+  {
+   "device": "WiBox-tv",
+   "name": "WiBox.tv V3",
+   "model": "WiBox.tv V3"
+  },
   {
    "device": "dtiw384wb",
    "name": "WiboxTv",
@@ -180260,6 +180395,16 @@
    "device": "RE58B2L1",
    "name": "真我GT 2",
    "model": "RMX3312"
+  },
+  {
+   "device": "RE547F",
+   "name": "真我GT 2 Pro",
+   "model": "RMX3300"
+  },
+  {
+   "device": "RED8ACL1",
+   "name": "真我GT 2 Pro",
+   "model": "RMX3301"
   },
   {
    "device": "RMX3031CN",
