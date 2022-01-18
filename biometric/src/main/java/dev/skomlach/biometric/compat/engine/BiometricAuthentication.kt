@@ -95,10 +95,11 @@ object BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_HUAWEI)
         }
         //Android biometric - Pie (9.0)
-        if (Build.VERSION.SDK_INT >= 28) {
-            allMethods.add(BiometricMethod.FACE_ANDROIDAPI)
-            allMethods.add(BiometricMethod.IRIS_ANDROIDAPI)
-        }
+        //TODO: Samsung enable this API, but implementation need to be finetuned
+//        if (Build.VERSION.SDK_INT >= 28) {
+//            allMethods.add(BiometricMethod.FACE_ANDROIDAPI)
+//            allMethods.add(BiometricMethod.IRIS_ANDROIDAPI)
+//        }
         moduleHashMap.clear()
         //launch in BG because for init needed about 2-3 seconds
         try {
