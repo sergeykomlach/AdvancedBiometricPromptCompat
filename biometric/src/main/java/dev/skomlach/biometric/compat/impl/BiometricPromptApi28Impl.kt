@@ -274,6 +274,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val candidates = builder.getAllAvailableTypes().filter {
             it != BiometricType.BIOMETRIC_ANY
         }
+        val withoutFingerprint = candidates.filter {
+            it != BiometricType.BIOMETRIC_FINGERPRINT
+        }
         val isSamsungWorkaroundRequired =
             DevicesWithKnownBugs.isSamsung && candidates.size > 1 //If only one - let the system to deal with this
 
@@ -301,7 +304,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             val successList = mutableSetOf<BiometricType>()
             BiometricAuthentication.authenticate(
                 null,
-                ArrayList<BiometricType>(candidates),
+                ArrayList<BiometricType>(withoutFingerprint),
                 object : BiometricAuthenticationListener {
                     override fun onSuccess(module: BiometricType?) {
                         module?.let {
