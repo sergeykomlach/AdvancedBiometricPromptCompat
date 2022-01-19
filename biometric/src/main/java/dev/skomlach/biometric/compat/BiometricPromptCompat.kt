@@ -92,12 +92,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         @JvmStatic
-        fun logging(enabled: Boolean) {
+        fun logging(enabled: Boolean, externalLogger1: BiometricLoggerImpl.ExternalLogger? = null, externalLogger2: LogCat.ExternalLogger? = null) {
             if (!API_ENABLED)
                 return
 //            AbstractBiometricModule.DEBUG_MANAGERS = enabled
             LogCat.DEBUG = enabled
             BiometricLoggerImpl.DEBUG = enabled
+            LogCat.externalLogger = externalLogger2
+            BiometricLoggerImpl.externalLogger = externalLogger1
         }
 
         private val pendingTasks: MutableList<Runnable?> =

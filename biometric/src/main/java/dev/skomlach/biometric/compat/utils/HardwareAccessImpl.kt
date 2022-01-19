@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.utils.hardware.Android28Hardware
 import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
+import dev.skomlach.common.misc.ExecutorHelper
 
 
 class HardwareAccessImpl private constructor(val biometricAuthRequest: BiometricAuthRequest) {
@@ -49,7 +50,9 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         get() = hardwareInfo?.isBiometricEnrollChanged ?: false
 
     fun updateBiometricEnrollChanged() {
-        hardwareInfo?.updateBiometricEnrollChanged()
+        ExecutorHelper.startOnBackground {
+            hardwareInfo?.updateBiometricEnrollChanged()
+        }
     }
 
     init {
