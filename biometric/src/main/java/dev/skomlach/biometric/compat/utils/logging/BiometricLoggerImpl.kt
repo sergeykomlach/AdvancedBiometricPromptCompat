@@ -25,8 +25,21 @@ import dev.skomlach.biometric.compat.BuildConfig
 
 object BiometricLoggerImpl {
     var DEBUG = BuildConfig.DEBUG
+    var externalLogger: ExternalLogger? = null
+    private val method: String
+        get() {
+            val elements = Thread.currentThread().stackTrace
+            val el = elements[3]
+            return el.className + ":" + el.methodName + ", " + el.fileName + ":" + el.lineNumber
+        }
+
 
     fun e(vararg msgs: Any?) {
+        val m = mutableListOf(*msgs).also {
+            it.add(0, "BiometricLogging")
+            it.add(1, method)
+        }
+        externalLogger?.logError(*m.toTypedArray())
         if (DEBUG) Log.e("BiometricLogging", listOf(*msgs).toString())
     }
 
@@ -36,11 +49,27 @@ object BiometricLoggerImpl {
 
 
     fun e(e: Throwable?, vararg msgs: Any?) {
+        val m = mutableListOf(*msgs).also {
+            it.add(0, "BiometricLogging")
+            it.add(1, method)
+        }
+        externalLogger?.logException(e, *m.toTypedArray())
         if (DEBUG) Log.e("BiometricLogging", listOf(*msgs).toString(), e)
     }
 
 
     fun d(vararg msgs: Any?) {
+        val m = mutableListOf(*msgs).also {
+            it.add(0, "BiometricLogging")
+            it.add(1, method)
+        }
+        externalLogger?.log(*m.toTypedArray())
         if (DEBUG) Log.d("BiometricLogging", listOf(*msgs).toString())
+    }
+
+    interface ExternalLogger {
+        fun log(vararg msgs: Any?)
+        fun logError(vararg msgs: Any?)
+        fun logException(e: Throwable?, vararg msgs: Any?)
     }
 }

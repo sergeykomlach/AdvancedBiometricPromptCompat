@@ -28,18 +28,53 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 @TargetApi(Build.VERSION_CODES.Q)
 
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
-    @SuppressLint("WrongConstant")
-    private fun canAuthenticate(): Int {
-        var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
-        try {
-            var biometricManager: android.hardware.biometrics.BiometricManager? =
-                appContext.getSystemService(
-                    android.hardware.biometrics.BiometricManager::class.java
-                )
+    companion object {
+        @Volatile
+        private var cachedCanAuthenticateValue: Int? = null
+        private var job: Job? = null
+        private var checkStartedTs = 0L
+
+        @Synchronized
+        private fun canAuthenticate(): Int {
+            cachedCanAuthenticateValue?.let {
+                if (job?.isActive == true) {
+                    if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
+                        job?.cancel()
+                        job = null
+                    }
+                }
+
+                if (job?.isActive != true) {
+                    checkStartedTs = System.currentTimeMillis()
+                    job = GlobalScope.launch(Dispatchers.IO) {
+                        updateCodeSync()
+                    }
+                }
+            } ?: run {
+                updateCodeSync()
+            }
+
+            return cachedCanAuthenticateValue ?: BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+        }
+
+        @SuppressLint("WrongConstant")
+        @Synchronized
+        private fun updateCodeSync() {
+            var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+            try {
+                var biometricManager: android.hardware.biometrics.BiometricManager? =
+                    appContext.getSystemService(
+                        android.hardware.biometrics.BiometricManager::class.java
+                    )
 
                 if (biometricManager == null) {
                     biometricManager = appContext.getSystemService(
