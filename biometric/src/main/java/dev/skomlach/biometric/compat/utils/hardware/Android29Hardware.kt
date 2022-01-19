@@ -41,23 +41,24 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                     android.hardware.biometrics.BiometricManager::class.java
                 )
 
-            if (biometricManager == null) {
-                biometricManager = appContext.getSystemService(
-                    Context.BIOMETRIC_SERVICE
-                ) as android.hardware.biometrics.BiometricManager?
-            }
-            if (biometricManager != null) {
-                code = if (isAtLeastR) {
-                    biometricManager.canAuthenticate(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                } else {
-                    biometricManager.canAuthenticate()
+                if (biometricManager == null) {
+                    biometricManager = appContext.getSystemService(
+                        Context.BIOMETRIC_SERVICE
+                    ) as android.hardware.biometrics.BiometricManager?
                 }
+                if (biometricManager != null) {
+                    code = if (isAtLeastR) {
+                        biometricManager.canAuthenticate(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                    } else {
+                        biometricManager.canAuthenticate()
+                    }
+                }
+            } catch (e: Throwable) {
+                e(e)
+            } finally {
+                cachedCanAuthenticateValue = code
             }
-        } catch (e: Throwable) {
-            e(e)
         }
-        e("Android29Hardware.canAuthenticate - $code")
-        return code
     }
 
     override val isAnyHardwareAvailable: Boolean

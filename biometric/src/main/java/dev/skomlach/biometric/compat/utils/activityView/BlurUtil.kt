@@ -153,22 +153,25 @@ object BlurUtil {
             listener.onBlurredScreenshot(bkg, null)
             return
         }
+        ExecutorHelper.startOnBackground {
+            val scaleFactor = 1f
+            val radius = 8f
+            var overlay = Bitmap.createBitmap(
+                (view.measuredWidth / scaleFactor).toInt(),
+                (view.measuredHeight / scaleFactor).toInt(), Bitmap.Config.ARGB_8888
+            )
+            val canvas = Canvas(overlay)
+            canvas.translate(-view.left / scaleFactor, -view.top / scaleFactor)
+            canvas.scale(1 / scaleFactor, 1 / scaleFactor)
+            val paint = Paint()
+            paint.flags = Paint.FILTER_BITMAP_FLAG
+            canvas.drawBitmap(bkg, 0f, 0f, paint)
 
-        val scaleFactor = 1f
-        val radius = 8f
-        var overlay = Bitmap.createBitmap(
-            (view.measuredWidth / scaleFactor).toInt(),
-            (view.measuredHeight / scaleFactor).toInt(), Bitmap.Config.ARGB_8888
-        )
-        val canvas = Canvas(overlay)
-        canvas.translate(-view.left / scaleFactor, -view.top / scaleFactor)
-        canvas.scale(1 / scaleFactor, 1 / scaleFactor)
-        val paint = Paint()
-        paint.flags = Paint.FILTER_BITMAP_FLAG
-        canvas.drawBitmap(bkg, 0f, 0f, paint)
-
-        overlay = FastBlur.doBlur(overlay, radius.roundToInt(), true)
-        BiometricLoggerImpl.d("BlurUtil.Blurring time - ${System.currentTimeMillis() - startMs} ms")
-        listener.onBlurredScreenshot(bkg, overlay)
+            overlay = FastBlur.doBlur(overlay, radius.roundToInt(), true)
+            BiometricLoggerImpl.d("BlurUtil.Blurring time - ${System.currentTimeMillis() - startMs} ms")
+            ExecutorHelper.post {
+                listener.onBlurredScreenshot(bkg, overlay)
+            }
+        }
     }
 }
