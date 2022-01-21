@@ -54,9 +54,9 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
 | Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 | 
 | Face Unlock (aka TrustedFaces) | Android 4.1+ |Prestigio PAP3400|  
 | Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30| 
-| Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro (confirmation required)|  
+| Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro|  
 | Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
-| Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|  
+| Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| 
 | Windows Subsystem for Android & Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
