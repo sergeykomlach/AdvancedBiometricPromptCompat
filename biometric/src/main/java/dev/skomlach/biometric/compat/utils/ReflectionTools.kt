@@ -34,7 +34,7 @@ object ReflectionTools {
     private val cache = WeakHashMap<String, PathClassLoader>()
 
     @Throws(Exception::class)
-    private fun getPathClassLoaderForPkg(pkg: String): PathClassLoader {
+    fun getPathClassLoaderForPkg(pkg: String): PathClassLoader {
         var pathClassLoader = cache[pkg]
         if (pathClassLoader == null) {
             var apkName: String? = null

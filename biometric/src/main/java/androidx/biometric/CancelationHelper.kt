@@ -23,7 +23,7 @@ object CancelationHelper {
     fun forceCancel(biometricFragment: BiometricFragment?) {
         try {
             biometricFragment?.dismiss()
-            biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_INTERNAL)
+            biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT)
         } catch (ignore: Throwable) {
         }
     }

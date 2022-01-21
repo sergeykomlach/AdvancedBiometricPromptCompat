@@ -424,10 +424,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
-
         BiometricAuthentication.cancelAuthentication()
-        biometricPrompt.cancelAuthentication()
-
         CancelationHelper.forceCancel(biometricFragment)
         biometricFragment = null
     }
