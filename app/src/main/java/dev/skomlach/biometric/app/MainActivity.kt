@@ -34,12 +34,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.app.databinding.ActivityMainBinding
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.app.devtools.Scan4Apis
 import dev.skomlach.biometric.app.utils.MailTo
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -52,19 +51,18 @@ class MainActivity : AppCompatActivity() {
     private val controller: WindowInsetsControllerCompat by lazy {
         WindowInsetsControllerCompat(window, binding.root)
     }
-    @SuppressLint("MissingSuperCall")
     override fun onSaveInstanceState(outState: Bundle) {
         try {
             super.onSaveInstanceState(outState)
         } catch (e: IllegalStateException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
+            BiometricLoggerImpl.e(e)
         }
     }
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         try {
             super.onRestoreInstanceState(savedInstanceState)
         } catch (e: IllegalStateException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
+            BiometricLoggerImpl.e(e)
         }
 
     }
@@ -72,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         try{
         super.onCreate(savedInstanceState)
         } catch (e: IllegalStateException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
+            BiometricLoggerImpl.e(e)
         }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
