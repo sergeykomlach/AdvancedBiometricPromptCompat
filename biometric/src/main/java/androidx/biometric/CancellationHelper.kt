@@ -19,7 +19,7 @@
 
 package androidx.biometric
 
-object CancelationHelper {
+object CancellationHelper {
     fun forceCancel(biometricFragment: BiometricFragment?) {
         try {
             biometricFragment?.dismiss()

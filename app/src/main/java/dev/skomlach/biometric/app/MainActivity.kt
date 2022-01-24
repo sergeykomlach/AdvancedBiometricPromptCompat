@@ -34,6 +34,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.app.databinding.ActivityMainBinding
 import dev.skomlach.biometric.app.devtools.LogCat
@@ -51,9 +52,28 @@ class MainActivity : AppCompatActivity() {
     private val controller: WindowInsetsControllerCompat by lazy {
         WindowInsetsControllerCompat(window, binding.root)
     }
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    @SuppressLint("MissingSuperCall")
+    override fun onSaveInstanceState(outState: Bundle) {
+        try {
+            super.onSaveInstanceState(outState)
+        } catch (e: IllegalStateException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+        }
+    }
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        try {
+            super.onRestoreInstanceState(savedInstanceState)
+        } catch (e: IllegalStateException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+        }
 
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        try{
+        super.onCreate(savedInstanceState)
+        } catch (e: IllegalStateException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
