@@ -34,11 +34,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.app.databinding.ActivityMainBinding
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.app.devtools.Scan4Apis
 import dev.skomlach.biometric.app.utils.MailTo
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -51,9 +51,27 @@ class MainActivity : AppCompatActivity() {
     private val controller: WindowInsetsControllerCompat by lazy {
         WindowInsetsControllerCompat(window, binding.root)
     }
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onSaveInstanceState(outState: Bundle) {
+        try {
+            super.onSaveInstanceState(outState)
+        } catch (e: IllegalStateException) {
+            BiometricLoggerImpl.e(e)
+        }
+    }
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        try {
+            super.onRestoreInstanceState(savedInstanceState)
+        } catch (e: IllegalStateException) {
+            BiometricLoggerImpl.e(e)
+        }
 
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        try{
+        super.onCreate(savedInstanceState)
+        } catch (e: IllegalStateException) {
+            BiometricLoggerImpl.e(e)
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

@@ -29,7 +29,7 @@ import androidx.biometric.BiometricFragment
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
-import androidx.biometric.CancelationHelper
+import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.*
@@ -424,11 +424,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
-
         BiometricAuthentication.cancelAuthentication()
-        biometricPrompt.cancelAuthentication()
-
-        CancelationHelper.forceCancel(biometricFragment)
+        CancellationHelper.forceCancel(biometricFragment)
         biometricFragment = null
     }
 
