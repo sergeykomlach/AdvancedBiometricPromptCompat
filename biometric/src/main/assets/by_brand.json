@@ -65102,6 +65102,11 @@
    "model": "itel A16 Plus"
   },
   {
+   "device": "itel-A510W",
+   "name": "itel-A510W",
+   "model": "itel A510W"
+  },
+  {
    "device": "itel-L5007S",
    "name": "itel-L5007S",
    "model": "itel L5007S"
@@ -92436,6 +92441,16 @@
    "model": "Lenovo K12"
   },
   {
+   "device": "cebu",
+   "name": "Lenovo K12 Pro",
+   "model": "Lenovo K12 Note"
+  },
+  {
+   "device": "cebu",
+   "name": "Lenovo K12 Pro",
+   "model": "Lenovo K12 Pro"
+  },
+  {
    "device": "maltalsc",
    "name": "Lenovo K13",
    "model": "Lenovo K13"
@@ -92469,6 +92484,11 @@
    "device": "guam",
    "name": "Lenovo XT2081-4",
    "model": "Lenovo XT2081-4"
+  },
+  {
+   "device": "cebu",
+   "name": "Lenovo XT2091-7",
+   "model": "Lenovo XT2091-7"
   },
   {
    "device": "umts_primus",
@@ -95216,6 +95236,11 @@
    "device": "ML_SO26_M7S_Go",
    "name": "M7S Go",
    "model": "M7S_Go"
+  },
+  {
+   "device": "ML-JI08-M7S-PLUS",
+   "name": "M7S PLUS",
+   "model": "M7S_PLUS"
   },
   {
    "device": "ML_SO0F_M7S_Plus",
@@ -102439,6 +102464,11 @@
    "model": "CPH2021"
   },
   {
+   "device": "OP4C7D",
+   "name": "CPH2031",
+   "model": "CPH2031"
+  },
+  {
    "device": "OP4B9EL1",
    "name": "CPH2043",
    "model": "CPH2043"
@@ -102449,9 +102479,19 @@
    "model": "CPH2071"
   },
   {
+   "device": "OP4C7D",
+   "name": "CPH2073",
+   "model": "CPH2073"
+  },
+  {
    "device": "OP4BFB",
    "name": "CPH2077",
    "model": "CPH2077"
+  },
+  {
+   "device": "OP4C7D",
+   "name": "CPH2081",
+   "model": "CPH2081"
   },
   {
    "device": "OP4BFB",
@@ -125088,11 +125128,6 @@
    "model": "SM-N770F"
   },
   {
-   "device": "SC-01M",
-   "name": "Galaxy Note10+",
-   "model": "SC-01M"
-  },
-  {
    "device": "SCV45",
    "name": "Galaxy Note10+",
    "model": "SCV45"
@@ -125316,16 +125351,6 @@
    "device": "c2s",
    "name": "Galaxy Note20 Ultra",
    "model": "SM-N985F"
-  },
-  {
-   "device": "SC-53A",
-   "name": "Galaxy Note20 Ultra 5G",
-   "model": "SC-53A"
-  },
-  {
-   "device": "SCG06",
-   "name": "Galaxy Note20 Ultra 5G",
-   "model": "SCG06"
   },
   {
    "device": "c2q",
@@ -127121,11 +127146,6 @@
    "device": "SC-52A",
    "name": "Galaxy S20+ 5G",
    "model": "SC-52A"
-  },
-  {
-   "device": "SCG02",
-   "name": "Galaxy S20+ 5G",
-   "model": "SCG02"
   },
   {
    "device": "y2q",
@@ -177432,6 +177452,11 @@
    "model": "K710_EEA"
   },
   {
+   "device": "K711",
+   "name": "K711",
+   "model": "K711"
+  },
+  {
    "device": "K78",
    "name": "K78",
    "model": "K78"
@@ -180310,6 +180335,13 @@
    "device": "t596_dp_n_37m35",
    "name": "Bonvi Pro",
    "model": "Bonvi Pro"
+  }
+ ],
+ "okayseamedia": [
+  {
+   "device": "TK706",
+   "name": "TK706",
+   "model": "TK706"
   }
  ],
  "okulaku": [
