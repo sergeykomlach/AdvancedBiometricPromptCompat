@@ -19,95 +19,38 @@
 
 package dev.skomlach.common.misc
 
+import android.os.AsyncTask
 import android.os.Handler
 import android.os.Looper
-import kotlinx.coroutines.*
-import java.lang.ref.WeakReference
-import java.util.*
 import java.util.concurrent.Executor
 
 object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
-    private val tasksInMain = Collections.synchronizedMap(
-        mutableMapOf<JobHolder, Job>()
-    )
-
-    private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
-
-    fun startOnBackground(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(Dispatchers.IO) {
-            delay(delay)
-            task.run()
-        }
-        tasksInMain[JobHolder(task.hashCode(), WeakReference<Runnable>(task))] = job
-    }
 
     fun startOnBackground(task: Runnable) {
-        if (!isMain()) {
-            task.run()
-        } else {
-            val job = GlobalScope.launch(Dispatchers.IO) {
-                task.run()
-            }
-            tasksInMain[JobHolder(task.hashCode(), WeakReference<Runnable>(task))] = job
-        }
+        AsyncTask.execute(task)
     }
 
-    fun postDelayed(t: Runnable, delay: Long) {
-        val code = t.hashCode()
-        val job = GlobalScope.launch(Dispatchers.Main) {
-            delay(delay)
-            val holder = tasksInMain.keys.firstOrNull {
-                it.hasCode == code
-            }
-            holder?.let {
-                it.reference.get()?.run()
-                tasksInMain.remove(it)
-            }
-        }
-        tasksInMain[JobHolder(code, WeakReference<Runnable>(t))] = job
+    fun postDelayed(task: Runnable, delay: Long) {
+        handler.postDelayed(task, delay)
     }
 
-    fun post(t: Runnable) {
-        if (isMain()) {
-            t.run()
-        } else {
-            val code = t.hashCode()
-            val job = GlobalScope.launch(Dispatchers.Main) {
-                val holder = tasksInMain.keys.firstOrNull {
-                    it.hasCode == code
-                }
-                holder?.let {
-                    it.reference.get()?.run()
-                    tasksInMain.remove(it)
-                }
-
-            }
-            tasksInMain[JobHolder(code, WeakReference<Runnable>(t))] = job
-        }
+    fun post(task: Runnable) {
+        handler.post(task)
     }
 
     fun removeCallbacks(task: Runnable) {
-        val code = task.hashCode()
-        val holder = tasksInMain.keys.firstOrNull {
-            it.hasCode == code
-        }
-        holder?.let {
-            tasksInMain[it]?.cancel()
-            tasksInMain.remove(it)
-        }
+        handler.removeCallbacks(task)
     }
 
     /**
      * An [Executor] which posts to a [Handler].
      */
-    class HandlerExecutor : Executor {
+    class HandlerExecutor() : Executor {
         override fun execute(runnable: Runnable) {
             handler.post(runnable)
         }
     }
-
-    data class JobHolder(val hasCode: Int, val reference: WeakReference<Runnable>)
 }
