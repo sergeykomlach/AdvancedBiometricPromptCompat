@@ -6016,6 +6016,16 @@
  ],
  "Arcelik": [
   {
+   "device": "kunyang",
+   "name": "Arcelik Android TV",
+   "model": "Arcelik Android TV"
+  },
+  {
+   "device": "kunyang",
+   "name": "Arcelik UHD Android TV",
+   "model": "Arcelik Android UHD TV"
+  },
+  {
    "device": "arcelik_eu",
    "name": "B55L 9682 5AS",
    "model": "arcelik_uhd_powermax_at"
@@ -13900,6 +13910,11 @@
  ],
  "Beko": [
   {
+   "device": "kunyang",
+   "name": "Beko Android TV",
+   "model": "Beko Android TV"
+  },
+  {
    "device": "shinagawa",
    "name": "Beko Android TV",
    "model": "Beko Android TV"
@@ -13908,6 +13923,11 @@
    "device": "sinchon",
    "name": "Beko Android TV",
    "model": "Beko Android TV"
+  },
+  {
+   "device": "kunyang",
+   "name": "Beko UHD Android TV",
+   "model": "Beko Android UHD TV"
   }
  ],
  "Bell Canada": [
@@ -16420,6 +16440,11 @@
    "device": "G0450WW",
    "name": "G61",
    "model": "G61"
+  },
+  {
+   "device": "G0630WW",
+   "name": "G61S",
+   "model": "G61S"
   },
   {
    "device": "G0151WW",
@@ -28341,6 +28366,11 @@
    "model": "Plane_8549S_4G_PS8162PL"
   },
   {
+   "device": "RS1253PL",
+   "name": "RS1253PL",
+   "model": "PRO 1400E 4G RS1253PL"
+  },
+  {
    "device": "TS1221PL",
    "name": "TS1221PL",
    "model": "Optima 10 A501S 4G TS1221PL"
@@ -39512,6 +39542,11 @@
    "model": "sdk_gphone_x86"
   },
   {
+   "device": "vsoc_kiwi_x86_64",
+   "name": "Google Play Games on PC",
+   "model": "HPE device"
+  },
+  {
    "device": "rammus_cheets",
    "name": "Intel Amber Lake Y Chromebook",
    "model": "rammus"
@@ -39999,6 +40034,11 @@
    "model": "GTB 850"
   },
   {
+   "device": "kunyang",
+   "name": "Grundig Android TV",
+   "model": "Grundig Android TV"
+  },
+  {
    "device": "shinagawa",
    "name": "Grundig Android TV",
    "model": "Grundig Android TV"
@@ -40007,6 +40047,11 @@
    "device": "sinchon",
    "name": "Grundig Android TV",
    "model": "Grundig Android TV"
+  },
+  {
+   "device": "kunyang",
+   "name": "Grundig UHD Android TV",
+   "model": "Grundig Android UHD TV"
   },
   {
    "device": "GTB801",
@@ -50174,6 +50219,11 @@
    "device": "CN85-L1-C",
    "name": "CN85",
    "model": "CN85"
+  },
+  {
+   "device": "CT30P",
+   "name": "CT30XP",
+   "model": "CT30P"
   },
   {
    "device": "CT40-L0-C",
@@ -65052,6 +65102,11 @@
    "model": "itel A16 Plus"
   },
   {
+   "device": "itel-A510W",
+   "name": "itel-A510W",
+   "model": "itel A510W"
+  },
+  {
    "device": "itel-L5007S",
    "name": "itel-L5007S",
    "model": "itel L5007S"
@@ -68998,6 +69053,11 @@
    "device": "KYL21",
    "name": "DIGNO S",
    "model": "KYL21"
+  },
+  {
+   "device": "KY21L-ST100",
+   "name": "DIGNO SX2",
+   "model": "KC-S302"
   },
   {
    "device": "302KC",
@@ -85020,6 +85080,11 @@
   },
   {
    "device": "DIW3930-MEO",
+   "name": "MEO TV Box 4K (DIW3930)",
+   "model": "MEO TV Box 4K (DIW3930)"
+  },
+  {
+   "device": "DIW3930-MEO",
    "name": "MEOBox 4K",
    "model": "MEO TV Box 4K (DIW3930)"
   }
@@ -91437,6 +91502,11 @@
   {
    "device": "rubyfish",
    "name": "TicWatch Pro 3 GPS",
+   "model": "TicWatch Pro 3 Ultra GPS"
+  },
+  {
+   "device": "rubyfish",
+   "name": "TicWatch Pro 3 GPS",
    "model": "TicWatch Pro 3U"
   },
   {
@@ -92371,6 +92441,16 @@
    "model": "Lenovo K12"
   },
   {
+   "device": "cebu",
+   "name": "Lenovo K12 Pro",
+   "model": "Lenovo K12 Note"
+  },
+  {
+   "device": "cebu",
+   "name": "Lenovo K12 Pro",
+   "model": "Lenovo K12 Pro"
+  },
+  {
    "device": "maltalsc",
    "name": "Lenovo K13",
    "model": "Lenovo K13"
@@ -92404,6 +92484,11 @@
    "device": "guam",
    "name": "Lenovo XT2081-4",
    "model": "Lenovo XT2081-4"
+  },
+  {
+   "device": "cebu",
+   "name": "Lenovo XT2091-7",
+   "model": "Lenovo XT2091-7"
   },
   {
    "device": "umts_primus",
@@ -94963,6 +95048,11 @@
    "model": "M10_4G"
   },
   {
+   "device": "WI0C_M10_4G_MON_CLA",
+   "name": "M10 4G MON CLA",
+   "model": "M10_4G_MON_CLA"
+  },
+  {
    "device": "ML_JI0B_M10_4G_PRO",
    "name": "M10 4G PRO",
    "model": "M10_4G_PRO"
@@ -95033,6 +95123,11 @@
    "model": "M7-3G"
   },
   {
+   "device": "ML_JI0N_M7_3G",
+   "name": "M7 3G",
+   "model": "M7_3G"
+  },
+  {
    "device": "ML_JI1G_M7_3G",
    "name": "M7 3G",
    "model": "M7_3G"
@@ -95088,6 +95183,11 @@
    "model": "M7_WIFI"
   },
   {
+   "device": "ML_JI3D_M7_WIFI",
+   "name": "M7 WIFI",
+   "model": "M7_WIFI"
+  },
+  {
    "device": "ML_SO0E_M7_WIFI",
    "name": "M7 WIFI",
    "model": "M7_WIFI"
@@ -95136,6 +95236,11 @@
    "device": "ML_SO26_M7S_Go",
    "name": "M7S Go",
    "model": "M7S_Go"
+  },
+  {
+   "device": "ML-JI08-M7S-PLUS",
+   "name": "M7S PLUS",
+   "model": "M7S_PLUS"
   },
   {
    "device": "ML_SO0F_M7S_Plus",
@@ -95221,6 +95326,11 @@
    "device": "ML-SO06-M7sLite",
    "name": "M7sLite",
    "model": "M7sLite"
+  },
+  {
+   "device": "ML-WI0G-M8-4G",
+   "name": "M8 4G",
+   "model": "M8-4G"
   },
   {
    "device": "ML_SO0J_M8_4G",
@@ -99326,6 +99436,11 @@
    "model": "Nokia C1"
   },
   {
+   "device": "IRU",
+   "name": "Nokia C1 2nd Edition",
+   "model": "Nokia C1 2nd Edition"
+  },
+  {
    "device": "YDU",
    "name": "Nokia C1 Plus",
    "model": "Nokia C1 Plus"
@@ -99356,9 +99471,24 @@
    "model": "Nokia C20"
   },
   {
+   "device": "SUS",
+   "name": "Nokia C20 Plus",
+   "model": "Nokia C20 Plus"
+  },
+  {
    "device": "GMR",
    "name": "Nokia C3",
    "model": "Nokia C3"
+  },
+  {
+   "device": "MNI",
+   "name": "Nokia C30",
+   "model": "Nokia C30"
+  },
+  {
+   "device": "MNR",
+   "name": "Nokia C30",
+   "model": "Nokia C30"
   },
   {
    "device": "PMC_CUS",
@@ -99391,6 +99521,11 @@
    "model": "Nokia G20"
   },
   {
+   "device": "AKT",
+   "name": "Nokia G300",
+   "model": "N1374DL"
+  },
+  {
    "device": "PHR",
    "name": "Nokia G50",
    "model": "Nokia G50"
@@ -99419,6 +99554,11 @@
    "device": "SCW_sprout",
    "name": "Nokia X10",
    "model": "Nokia X10"
+  },
+  {
+   "device": "DM5",
+   "name": "Nokia X100",
+   "model": "Nokia X100"
   },
   {
    "device": "QKS",
@@ -102324,6 +102464,11 @@
    "model": "CPH2021"
   },
   {
+   "device": "OP4C7D",
+   "name": "CPH2031",
+   "model": "CPH2031"
+  },
+  {
    "device": "OP4B9EL1",
    "name": "CPH2043",
    "model": "CPH2043"
@@ -102334,9 +102479,19 @@
    "model": "CPH2071"
   },
   {
+   "device": "OP4C7D",
+   "name": "CPH2073",
+   "model": "CPH2073"
+  },
+  {
    "device": "OP4BFB",
    "name": "CPH2077",
    "model": "CPH2077"
+  },
+  {
+   "device": "OP4C7D",
+   "name": "CPH2081",
+   "model": "CPH2081"
   },
   {
    "device": "OP4BFB",
@@ -102872,6 +103027,11 @@
    "device": "OP4E21",
    "name": "PDYT20",
    "model": "PDYT20"
+  },
+  {
+   "device": "OP4E6B",
+   "name": "PEAT00",
+   "model": "PEAT00"
   },
   {
    "device": "OP4E8F",
@@ -115180,11 +115340,6 @@
    "model": "RMX3195"
   },
   {
-   "device": "RMX3197",
-   "name": "realme C25s",
-   "model": "RMX3197"
-  },
-  {
    "device": "RMX2020",
    "name": "realme C3",
    "model": "RMX2020"
@@ -115980,6 +116135,11 @@
    "device": "XIG02",
    "name": "Redmi Note 10 JE",
    "model": "XIG02"
+  },
+  {
+   "device": "chopin",
+   "name": "Redmi Note 10 Pro",
+   "model": "21061110AG"
   },
   {
    "device": "sweet",
@@ -124968,11 +125128,6 @@
    "model": "SM-N770F"
   },
   {
-   "device": "SC-01M",
-   "name": "Galaxy Note10+",
-   "model": "SC-01M"
-  },
-  {
    "device": "SCV45",
    "name": "Galaxy Note10+",
    "model": "SCV45"
@@ -125196,16 +125351,6 @@
    "device": "c2s",
    "name": "Galaxy Note20 Ultra",
    "model": "SM-N985F"
-  },
-  {
-   "device": "SC-53A",
-   "name": "Galaxy Note20 Ultra 5G",
-   "model": "SC-53A"
-  },
-  {
-   "device": "SCG06",
-   "name": "Galaxy Note20 Ultra 5G",
-   "model": "SCG06"
   },
   {
    "device": "c2q",
@@ -127001,11 +127146,6 @@
    "device": "SC-52A",
    "name": "Galaxy S20+ 5G",
    "model": "SC-52A"
-  },
-  {
-   "device": "SCG02",
-   "name": "Galaxy S20+ 5G",
-   "model": "SCG02"
   },
   {
    "device": "y2q",
@@ -133892,6 +134032,16 @@
   {
    "device": "SX1",
    "name": "AQUOS wish",
+   "model": "A104SH"
+  },
+  {
+   "device": "SX1",
+   "name": "AQUOS wish",
+   "model": "SH-M20"
+  },
+  {
+   "device": "SX1",
+   "name": "AQUOS wish",
    "model": "SH-WS10"
   },
   {
@@ -136564,6 +136714,13 @@
    "device": "yeongdeungpo",
    "name": "SmartTech",
    "model": "AiPlus4K"
+  }
+ ],
+ "SmartLabs": [
+  {
+   "device": "sml5442tw",
+   "name": "SML-5442TW",
+   "model": "SML-5442TW"
   }
  ],
  "SmartPad": [
@@ -141298,6 +141455,11 @@
   {
    "device": "SUNMI-L2KsNFC",
    "name": "Sunmi L2Ks",
+   "model": "L2Ks_EEA"
+  },
+  {
+   "device": "SUNMI-L2KsNFC",
+   "name": "Sunmi L2Ks",
    "model": "L2Ks_GL"
   },
   {
@@ -141326,6 +141488,11 @@
    "model": "V2sNC_RU"
   },
   {
+   "device": "V2sNC",
+   "name": "V2sNC",
+   "model": "V2sNC_TR"
+  },
+  {
    "device": "V2sPLUSNC",
    "name": "V2sPLUSNC",
    "model": "V2sPLUSNC_EEA"
@@ -141334,6 +141501,11 @@
    "device": "V2sPLUSNC",
    "name": "V2sPLUSNC",
    "model": "V2sPLUSNC_GL"
+  },
+  {
+   "device": "V2sPLUSNC",
+   "name": "V2sPLUSNC",
+   "model": "V2sPLUSNC_TR"
   }
  ],
  "Sunny": [
@@ -153551,6 +153723,11 @@
    "device": "HMB2213PW22TS",
    "name": "Pik TV Media Box",
    "model": "HMB2213PW22TS"
+  },
+  {
+   "device": "uiw4054tlu",
+   "name": "TELUSTV-21T",
+   "model": "TELUSTV-21T"
   }
  ],
  "Teracube": [
@@ -156388,6 +156565,16 @@
    "device": "BISON_X10",
    "name": "BISON X10 RU",
    "model": "RP01"
+  },
+  {
+   "device": "BISON_X10G",
+   "name": "BISON X10G EEA",
+   "model": "RP05"
+  },
+  {
+   "device": "BISON_X10S",
+   "name": "BISON X10S EEA",
+   "model": "RP05"
   },
   {
    "device": "BISON_X10S_NFC",
@@ -177265,6 +177452,11 @@
    "model": "K710_EEA"
   },
   {
+   "device": "K711",
+   "name": "K711",
+   "model": "K711"
+  },
+  {
    "device": "K78",
    "name": "K78",
    "model": "K78"
@@ -180145,6 +180337,13 @@
    "model": "Bonvi Pro"
   }
  ],
+ "okayseamedia": [
+  {
+   "device": "TK706",
+   "name": "TK706",
+   "model": "TK706"
+  }
+ ],
  "okulaku": [
   {
    "device": "ZIDS701",
@@ -180272,6 +180471,11 @@
    "model": "RMX3085"
   },
   {
+   "device": "RE513CL1",
+   "name": "realme 8 5G",
+   "model": "RMX3241"
+  },
+  {
    "device": "RMX3081L1",
    "name": "realme 8 Pro",
    "model": "RMX3081"
@@ -180322,6 +180526,11 @@
    "model": "RMX3195"
   },
   {
+   "device": "RMX3197",
+   "name": "realme C25s",
+   "model": "RMX3197"
+  },
+  {
    "device": "RMX2202L1",
    "name": "realme GT 5G",
    "model": "RMX2202"
@@ -180365,6 +180574,11 @@
    "device": "RMX2161L1",
    "name": "realme narzo 20 Pro",
    "model": "RMX2161"
+  },
+  {
+   "device": "RE513CL1",
+   "name": "realme narzo 30 5G",
+   "model": "RMX3242"
   },
   {
    "device": "RMX3171",

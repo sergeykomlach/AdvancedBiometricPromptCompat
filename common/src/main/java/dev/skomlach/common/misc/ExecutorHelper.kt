@@ -19,71 +19,36 @@
 
 package dev.skomlach.common.misc
 
+import android.os.AsyncTask
 import android.os.Handler
 import android.os.Looper
-import kotlinx.coroutines.*
-import java.util.*
 import java.util.concurrent.Executor
 
 object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
-    private val tasksInMain = Collections.synchronizedMap(
-        mutableMapOf<Runnable, Job>()
-    )
-
-    private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
-
-    fun startOnBackground(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(Dispatchers.IO) {
-            delay(delay)
-            task.run()
-        }
-        tasksInMain[task] = job
-    }
 
     fun startOnBackground(task: Runnable) {
-        if (!isMain()) {
-            task.run()
-        } else {
-            val job = GlobalScope.launch(Dispatchers.IO) {
-                task.run()
-            }
-            tasksInMain[task] = job
-        }
+        AsyncTask.execute(task)
     }
 
     fun postDelayed(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(Dispatchers.Main) {
-            delay(delay)
-            task.run()
-            tasksInMain.remove(task)
-        }
-        tasksInMain[task] = job
+        handler.postDelayed(task, delay)
     }
 
     fun post(task: Runnable) {
-        if (isMain()) {
-            task.run()
-        } else {
-            val job = GlobalScope.launch(Dispatchers.Main) {
-                task.run()
-                tasksInMain.remove(task)
-            }
-            tasksInMain[task] = job
-        }
+        handler.post(task)
     }
 
     fun removeCallbacks(task: Runnable) {
-        tasksInMain[task]?.cancel()
-        tasksInMain.remove(task)
+        handler.removeCallbacks(task)
     }
 
     /**
      * An [Executor] which posts to a [Handler].
      */
-    class HandlerExecutor : Executor {
+    class HandlerExecutor() : Executor {
         override fun execute(runnable: Runnable) {
             handler.post(runnable)
         }
