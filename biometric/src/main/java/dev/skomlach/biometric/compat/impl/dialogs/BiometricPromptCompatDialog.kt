@@ -34,6 +34,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
@@ -58,6 +59,7 @@ import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightModeCompatWithInscreen
 import dev.skomlach.common.misc.Utils
+import java.util.concurrent.atomic.AtomicBoolean
 
 internal class BiometricPromptCompatDialog(
     compatBuilder: BiometricPromptCompat.Builder,
@@ -67,7 +69,7 @@ internal class BiometricPromptCompatDialog(
     R.style.Theme_BiometricPromptDialog
 ) {
     private val crossfader: TransitionDrawable
-
+    private var dismissInProgress = AtomicBoolean(false)
     @LayoutRes
     private val res: Int =
         if (isInscreenLayout) R.layout.biometric_prompt_dialog_content_inscreen else R.layout.biometric_prompt_dialog_content
@@ -148,7 +150,8 @@ internal class BiometricPromptCompatDialog(
     }
 
     override fun dismiss() {
-        if (isShowing) {
+        if (isShowing && !dismissInProgress.get()) {
+            dismissInProgress.set(true)
             val animation = AnimationUtils.loadAnimation(context, R.anim.move_out)
             (rootView?.parent as View).background = crossfader
             crossfader.reverseTransition(animation.duration.toInt())
@@ -157,13 +160,15 @@ internal class BiometricPromptCompatDialog(
                 override fun onAnimationEnd(animation: Animation) {
                     if (isShowing) {
                         super@BiometricPromptCompatDialog.dismiss()
+                        dismissInProgress.set(false)
                     }
                 }
 
                 override fun onAnimationRepeat(animation: Animation) {}
             })
             rootView?.startAnimation(animation)
-        }
+        } else
+            BiometricLoggerImpl.e(RuntimeException("Already dismiss in progress"))
     }
 
     override fun onCreate(bundle: Bundle?) {
@@ -292,6 +297,7 @@ internal class BiometricPromptCompatDialog(
         fun applyProtectionInWindow(window: Window?) {
             try {
                 applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             } catch (e: Exception) {
                 //not sure is exception can happens, but better to track at least
                 BiometricLoggerImpl.e(e, "ActivityContextProvider")
