@@ -46,8 +46,8 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
 
 | Type | Details | Tested on  
 |--|--|--|  
-| BiometricPrompt API | Android 9+ |Xiaomi POCO F1|  
-| Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10 (confirmation required)|   
+| BiometricPrompt API | Android 9+ |Xiaomi POCO F1, OnePlus 8T|  
+| Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10|   
 | Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
 | In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| 
