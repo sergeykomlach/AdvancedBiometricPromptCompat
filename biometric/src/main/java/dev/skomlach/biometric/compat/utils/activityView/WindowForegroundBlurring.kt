@@ -62,7 +62,7 @@ class WindowForegroundBlurring(
 
 
     private val list: List<BiometricType> by lazy {
-        ArrayList<BiometricType>(compatBuilder.getAllAvailableTypes())
+        if(compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(compatBuilder.getAllAvailableTypes()) else emptyList()
     }
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
