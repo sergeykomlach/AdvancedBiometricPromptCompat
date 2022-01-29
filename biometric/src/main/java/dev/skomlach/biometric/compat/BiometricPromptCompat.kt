@@ -612,6 +612,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var notificationEnabled = true
 
+        private var backgroundBiometricIconsEnabled = true
+
+        private var experimentalFeaturesEnabled = BuildConfig.DEBUG
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
 
@@ -676,6 +679,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return dividerColor
         }
 
+        fun isExperimentalFeaturesEnabled(): Boolean {
+            return experimentalFeaturesEnabled
+        }
+        fun isBackgroundBiometricIconsEnabled(): Boolean {
+            return backgroundBiometricIconsEnabled
+        }
+
         fun isNotificationEnabled(): Boolean {
             return notificationEnabled
         }
@@ -706,6 +716,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         fun getMultiWindowSupport(): MultiWindowSupport {
             return multiWindowSupport
+        }
+
+        fun setExperimentalFeaturesEnabled(enabled: Boolean): Builder {
+            this.experimentalFeaturesEnabled = enabled
+            return this
+        }
+        fun setEnabledBackgroundBiometricIcons(enabled: Boolean): Builder {
+            this.backgroundBiometricIconsEnabled = enabled
+            return this
         }
 
         fun setEnabledNotification(enabled: Boolean): Builder {

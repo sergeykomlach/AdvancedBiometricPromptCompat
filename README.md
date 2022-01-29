@@ -70,26 +70,26 @@ You can check how the library works on your device using this [APK](https://gith
 **Xiaomi Pocophone F1**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/pocoF1.jpg" alt="Pocophone F1" width="500px" />  
-  </a>  
+
 </p>  
 
 
 **Samsung Galaxy S5**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/samsungS5.png" alt="Samsung Galaxy S5" width="500px"  />  
-  </a>  
+
 </p>  
 
 **Huawei Mate P40 Pro**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/huawei.jpg" alt="Huawei Mate P40 Pro" width="500px"  />  
-  </a>  
+
 </p>  
 
 **Prestigio PAP3400**
 <p align="center">  
   <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/screenshots/prestigio.png" alt="Prestigio PAP3400" width="500px"  />  
-  </a>  
+
 </p>  
 
 
@@ -295,6 +295,8 @@ private fun startBioAuth() {
        val prompt = BiometricPromptCompat.Builder(this).apply {
            this.setTitle(title)
            this.setNegativeButton("Cancel", null)
+           this.setEnabledNotification(false)//hide notification
+           this.setEnabledBackgroundBiometricIcons(false)//hide duplicate biometric icons above dialog
        }.build()
 
        prompt.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
@@ -382,6 +384,6 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 
 <p align="center">
   <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-  </a>
+  
 </p>
 
