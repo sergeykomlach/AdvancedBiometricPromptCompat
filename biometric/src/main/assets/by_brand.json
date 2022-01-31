@@ -19823,6 +19823,11 @@
    "model": "BETELGEUSE"
   },
   {
+   "device": "GACRUX",
+   "name": "GACRUX",
+   "model": "GACRUX"
+  },
+  {
    "device": "A81F",
    "name": "Ibirapita",
    "model": "A81F"
@@ -21259,6 +21264,11 @@
    "device": "HiPadPlus",
    "name": "HiPadPlus_TR",
    "model": "HiPadPlus"
+  },
+  {
+   "device": "HiPadPro",
+   "name": "HiPadPro",
+   "model": "HiPadPro"
   },
   {
    "device": "HiPadX",
@@ -25392,6 +25402,11 @@
    "device": "BS650",
    "name": "BS650",
    "model": "BS650"
+  },
+  {
+   "device": "C37",
+   "name": "C37",
+   "model": "C37"
   },
   {
    "device": "D11",
@@ -33920,6 +33935,11 @@
    "device": "T8A",
    "name": "T8A",
    "model": "T8A"
+  },
+  {
+   "device": "T8M",
+   "name": "T8M",
+   "model": "T8M"
   }
  ],
  "FPT Telecom": [
@@ -45687,6 +45707,11 @@
    "device": "algizRT7",
    "name": "Algiz RT7",
    "model": "Algiz RT7"
+  },
+  {
+   "device": "HTA11",
+   "name": "HTA11",
+   "model": "HTA11"
   },
   {
    "device": "NAUTIZ_X2",
@@ -81797,6 +81822,11 @@
    "model": "TB328FU"
   },
   {
+   "device": "TB328XU",
+   "name": "Lenovo Tab M10 (3rd Gen)",
+   "model": "TB328XU"
+  },
+  {
    "device": "X605F",
    "name": "Lenovo Tab M10 (FHD)",
    "model": "Lenovo TB-X605F"
@@ -95176,6 +95206,11 @@
  ],
  "Moxee Technologies": [
   {
+   "device": "MH-T6000",
+   "name": "MH-T6000",
+   "model": "MH-T6000"
+  },
+  {
    "device": "MT-T800",
    "name": "MT-T800",
    "model": "MT-T800"
@@ -98893,6 +98928,11 @@
    "device": "NBTB101",
    "name": "NBTB101",
    "model": "NBTB101"
+  },
+  {
+   "device": "NBTB102",
+   "name": "NBTB102",
+   "model": "NBTB102"
   }
  ],
  "Newings": [
@@ -101770,6 +101810,16 @@
    "model": "100044018P"
   },
   {
+   "device": "mid7019_mr_32",
+   "name": "100071481",
+   "model": "100071481"
+  },
+  {
+   "device": "100071483",
+   "name": "100071483",
+   "model": "100071483"
+  },
+  {
    "device": "100071485",
    "name": "100071485",
    "model": "100071485"
@@ -102575,6 +102625,11 @@
    "device": "OP4F43L1",
    "name": "A94",
    "model": "CPH2203"
+  },
+  {
+   "device": "OP5267",
+   "name": "A96 5G",
+   "model": "PFUM10"
   },
   {
    "device": "OP46F3",
@@ -104822,6 +104877,11 @@
    "device": "R678L5",
    "name": "R678L5",
    "model": "R678L5"
+  },
+  {
+   "device": "R8L5T",
+   "name": "R8L5T",
+   "model": "R8L5T"
   },
   {
    "device": "Orbic-RC506LT",
@@ -136181,6 +136241,11 @@
    "model": "ELITE T8"
   },
   {
+   "device": "ELITE_P55Max",
+   "name": "ELITE_P55Max",
+   "model": "Elite P55Max"
+  },
+  {
    "device": "ELITE_P55US",
    "name": "ELITE_P55US",
    "model": "Elite P55"
@@ -136524,6 +136589,11 @@
    "device": "Elite_T8Pluss",
    "name": "Elite_T8Pluss",
    "model": "Elite T8Plus"
+  },
+  {
+   "device": "Elite_V55",
+   "name": "Elite_V55",
+   "model": "Elite V55"
   },
   {
    "device": "Fuego_4_0T_EC",
@@ -150876,6 +150946,16 @@
    "model": "T211-EEA"
   },
   {
+   "device": "T22",
+   "name": "T22",
+   "model": "T22"
+  },
+  {
+   "device": "T22-EEA",
+   "name": "T22-EEA",
+   "model": "T22-EEA"
+  },
+  {
    "device": "T50",
    "name": "T50",
    "model": "T50"
@@ -154742,6 +154822,11 @@
  ],
  "Todos": [
   {
+   "device": "TABAI1",
+   "name": "TABAI1",
+   "model": "TABAI1"
+  },
+  {
    "device": "Tab64",
    "name": "Tab64",
    "model": "Tab64"
@@ -155985,6 +156070,11 @@
    "device": "K7_PRO",
    "name": "K7_PRO",
    "model": "K7pro"
+  },
+  {
+   "device": "UNIQ0122",
+   "name": "UNIQ0122",
+   "model": "UNIQ0122"
   },
   {
    "device": "UNIQCELL_A4",
@@ -167032,6 +167122,11 @@
    "model": "Proton_Tungsten_Max"
   },
   {
+   "device": "Q7",
+   "name": "Q7",
+   "model": "Q7"
+  },
+  {
    "device": "Tablet10_X_View",
    "name": "Tablet10_X-View",
    "model": "Tablet10_X-View"
@@ -168663,6 +168758,13 @@
    "device": "HND",
    "name": "SEI600EN",
    "model": "YOU-BOX"
+  }
+ ],
+ "YOUTAB": [
+  {
+   "device": "YOUTAB_S7",
+   "name": "YOUTAB_S7",
+   "model": "YOUTAB S7"
   }
  ],
  "YQSAVIOR": [
@@ -173495,6 +173597,11 @@
    "device": "NX669J-UN",
    "name": "NX669J",
    "model": "NX669J"
+  },
+  {
+   "device": "NX679J",
+   "name": "NX679J",
+   "model": "NX679J"
   },
   {
    "device": "NX907J",
