@@ -19,17 +19,20 @@
 
 package dev.skomlach.common.misc
 
-import android.os.AsyncTask
 import android.os.Handler
 import android.os.Looper
 import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
+
+    val backgroundExecutor: ExecutorService = Executors.newCachedThreadPool()
     private val tasksInMain = Collections.synchronizedMap(
         mutableMapOf<Runnable, Job>()
     )
@@ -37,7 +40,7 @@ object ExecutorHelper {
     private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
 
     fun startOnBackground(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(Dispatchers.IO) {
+        val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
             delay(delay)
             task.run()
         }
@@ -48,7 +51,7 @@ object ExecutorHelper {
         if (!isMain()) {
             task.run()
         } else {
-            val job = GlobalScope.launch(Dispatchers.IO) {
+            val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
                 task.run()
             }
             tasksInMain[task] = job
