@@ -41,6 +41,7 @@ import dev.skomlach.biometric.app.utils.MailTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 class MainActivity : AppCompatActivity() {
@@ -101,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                     dialog.dismiss()
                     if (result?.isNullOrEmpty() == true) {
                         Toast.makeText(
-                            this@MainActivity,
+                            AndroidContext.appContext,
                             "Unexpected error happens",
                             Toast.LENGTH_LONG
                         ).show()

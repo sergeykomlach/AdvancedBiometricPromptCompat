@@ -28,23 +28,23 @@ object MiuiFaceFactory {
     const val TYPE_3D = 2
     const val TYPE_DEFAULT = 0
     var sCurrentAuthType = 0
-    fun getFaceManager(context: Context, authType: Int): IMiuiFaceManager? {
+    fun getFaceManager(authType: Int): IMiuiFaceManager? {
         sCurrentAuthType = if (authType != TYPE_DEFAULT) {
             authType
         } else {
-            getCurrentAuthType(context)
+            getCurrentAuthType()
         }
         return if (sCurrentAuthType == TYPE_3D) {
-            Miui3DFaceManagerImpl.getInstance(context)
-        } else MiuiFaceManagerImpl.getInstance(context)
+            Miui3DFaceManagerImpl.getInstance()
+        } else MiuiFaceManagerImpl.getInstance()
     }
 
-    fun getCurrentAuthType(context: Context): Int {
+    fun getCurrentAuthType(): Int {
         sCurrentAuthType = when {
             "ursa" != Build.DEVICE -> {
                 TYPE_2D
             }
-            MiuiFaceManagerImpl.getInstance(context)?.hasEnrolledFaces() != 0 -> {
+            MiuiFaceManagerImpl.getInstance()?.hasEnrolledFaces() != 0 -> {
                 TYPE_2D
             }
             else -> {

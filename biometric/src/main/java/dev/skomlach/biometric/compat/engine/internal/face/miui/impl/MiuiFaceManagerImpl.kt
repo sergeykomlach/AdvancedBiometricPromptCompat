@@ -31,10 +31,11 @@ import android.view.Surface
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.*
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
+class MiuiFaceManagerImpl: IMiuiFaceManager {
     companion object {
         const val ERROR_BINDER_CALL = 2100
         const val ERROR_CANCELED = 2000
@@ -126,11 +127,11 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
         private var INSTANCE: IMiuiFaceManager? = null
         private var SERVICE_DESCRIPTOR: String
         private var SERVICE_NAME: String
-        fun getInstance(con: Context): IMiuiFaceManager? {
+        fun getInstance(): IMiuiFaceManager? {
             if (INSTANCE == null) {
                 synchronized(MiuiFaceManagerImpl::class.java) {
                     if (INSTANCE == null) {
-                        INSTANCE = MiuiFaceManagerImpl(con)
+                        INSTANCE = MiuiFaceManagerImpl()
                     }
                 }
             }
@@ -145,7 +146,10 @@ class MiuiFaceManagerImpl constructor(con: Context) : IMiuiFaceManager {
     }
 
     private val mBinderLock = Any()
-    private val mContext: Context = con.applicationContext
+    private val mContext: Context
+        get() {
+            return AndroidContext.appContext
+        }
     private val mToken: IBinder = Binder()
     private var mAuthenticationCallback: IMiuiFaceManager.AuthenticationCallback? = null
     private var mEnrollmentCallback: IMiuiFaceManager.EnrollmentCallback? = null

@@ -78365,9 +78365,19 @@
    "model": "T71_w"
   },
   {
+   "device": "LTN8RT",
+   "name": "T81",
+   "model": "LTN8RT"
+  },
+  {
    "device": "T81",
    "name": "T81",
    "model": "T81"
+  },
+  {
+   "device": "T81_PB",
+   "name": "T81",
+   "model": "T81_PB"
   },
   {
    "device": "T81N",
@@ -78570,9 +78580,19 @@
    "model": "LAVA LZG402_1"
   },
   {
+   "device": "LZG402_OMI",
+   "name": "Z1S",
+   "model": "LAVA LZG402 OMI"
+  },
+  {
    "device": "LMG01",
    "name": "Z2",
    "model": "LAVA LMG01"
+  },
+  {
+   "device": "LZG402_OM",
+   "name": "Z21",
+   "model": "LAVA LZG402 OM"
   },
   {
    "device": "Z25",
@@ -78588,6 +78608,11 @@
    "device": "LZG403",
    "name": "Z3",
    "model": "LAVA LZG403"
+  },
+  {
+   "device": "Z3_UP_2",
+   "name": "Z3",
+   "model": "LAVA Z3 UP 2"
   },
   {
    "device": "AH9910",
@@ -89742,6 +89767,11 @@
    "device": "E7746",
    "name": "IN_Note1",
    "model": "IN_Note1"
+  },
+  {
+   "device": "E7446",
+   "name": "IN_Note2",
+   "model": "E7446"
   },
   {
    "device": "E6746",
