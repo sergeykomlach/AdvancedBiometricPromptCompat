@@ -32,12 +32,13 @@ import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.BiometricCli
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.*
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
 
-class Miui3DFaceManagerImpl constructor(private val mContext: Context) : IMiuiFaceManager,
+class Miui3DFaceManagerImpl : IMiuiFaceManager,
     ServiceCallback {
 
     companion object {
@@ -132,21 +133,24 @@ class Miui3DFaceManagerImpl constructor(private val mContext: Context) : IMiuiFa
 
         @Volatile
         private var INSTANCE: IMiuiFaceManager? = null
-        fun getInstance(con: Context): IMiuiFaceManager? {
+        fun getInstance(): IMiuiFaceManager? {
             if (INSTANCE != null && INSTANCE?.isReleased == true) {
                 INSTANCE = null
             }
             if (INSTANCE == null) {
                 synchronized(MiuiFaceManagerImpl::class.java) {
                     if (INSTANCE == null) {
-                        INSTANCE = Miui3DFaceManagerImpl(con)
+                        INSTANCE = Miui3DFaceManagerImpl()
                     }
                 }
             }
             return INSTANCE
         }
     }
-
+    private val mContext: Context
+        get() {
+            return AndroidContext.appContext
+        }
     private val hasEnrollFace = 0
     private val mBinderLock = Any()
     private val mEnrollParam = EnrollParam()

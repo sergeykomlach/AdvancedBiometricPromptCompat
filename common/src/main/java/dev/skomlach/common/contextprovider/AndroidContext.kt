@@ -19,58 +19,66 @@
 
 package dev.skomlach.common.contextprovider
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.lang.ref.Reference
+import java.lang.ref.SoftReference
 import java.util.*
 
-@SuppressLint("StaticFieldLeak")
 object AndroidContext {
-    private var appRef: Application? = null
-        private set(value) {
-            field = value
-            ctxRef = field
-        }
-
-    private var ctxRef: Context? = null
-        set(value) {
-            field = try {
-                value?.getFixedContext()
-            } catch (e: Throwable) {
-                e.printStackTrace()
-                value
-            }
-        }
+    @Volatile
+    private var appRef: Reference<Application?>? = null
+    private fun getContextRef(): Context? = try {
+        appRef?.get()?.getFixedContext()
+    } catch (e: Throwable) {
+        appRef?.get()
+    }
 
     var configuration: Configuration? = null
         get() {
-            return appRef?.resources?.configuration
+            return appInstance?.resources?.configuration
         }
         private set
 
-    val appInstance: Application
-        get() {
-            return if (ctxRef is Application)
-                ctxRef as Application
-            else
-                ctxRef?.applicationContext as Application
-        }
+    val appInstance: Application? = appRef?.get()
 
     val appContext: Context
         get() {
-            ctxRef?.let {
-                fixDirAccess(it)
-                return it
+            synchronized(AndroidContext::class.java) {
+                getContextRef()?.let {
+                    fixDirAccess(it)
+                    return it
+                }
+                if (Looper.getMainLooper().thread !== Thread.currentThread()) {
+                    runBlocking {
+                        withContext(Dispatchers.Main) {
+                            updateApplicationReference()
+                        }
+                    }
+                } else {
+                    updateApplicationReference()
+                }
+                getContextRef()?.let {
+                    fixDirAccess(it)
+                    return it
+                }
+                throw RuntimeException("Application is NULL")
             }
-            if (Looper.getMainLooper().thread !== Thread.currentThread()) throw IllegalThreadStateException(
-                "Main thread required for correct init"
-            )
-            appRef = try {
+        }
+
+    private fun updateApplicationReference() {
+        if (Looper.getMainLooper().thread !== Thread.currentThread())
+            throw IllegalThreadStateException("Main thread required for correct init")
+        appRef = SoftReference<Application?>(
+            try {
                 Class.forName("android.app.ActivityThread")
                     .getMethod("currentApplication")
                     .invoke(null) as Application
@@ -80,15 +88,12 @@ object AndroidContext {
                         .getMethod("getInitialApplication")
                         .invoke(null) as Application
                 } catch (e: Throwable) {
-                    throw RuntimeException(e)
+                    null
                 }
             }
-            ctxRef?.let {
-                fixDirAccess(it)
-                return it
-            }
-            throw RuntimeException("Application is NULL")
-        }
+        )
+
+    }
 
     //Solution from
     //https://github.com/google/google-authenticator-android/

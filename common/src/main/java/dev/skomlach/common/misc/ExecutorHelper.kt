@@ -33,12 +33,11 @@ object ExecutorHelper {
     val executor: Executor = HandlerExecutor()
 
     val backgroundExecutor: ExecutorService = Executors.newCachedThreadPool()
-    private val tasksInMain = Collections.synchronizedMap(
-        mutableMapOf<Runnable, Job>()
-    )
+    private val tasksInMain = WeakHashMap<Runnable, Job>()
 
     private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
 
+    @Synchronized
     fun startOnBackground(task: Runnable, delay: Long) {
         val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
             delay(delay)
@@ -46,7 +45,7 @@ object ExecutorHelper {
         }
         tasksInMain[task] = job
     }
-
+    @Synchronized
     fun startOnBackground(task: Runnable) {
         if (!isMain()) {
             task.run()
@@ -57,7 +56,7 @@ object ExecutorHelper {
             tasksInMain[task] = job
         }
     }
-
+    @Synchronized
     fun postDelayed(task: Runnable, delay: Long) {
         val job = GlobalScope.launch(Dispatchers.Main) {
             delay(delay)
@@ -66,7 +65,7 @@ object ExecutorHelper {
         }
         tasksInMain[task] = job
     }
-
+    @Synchronized
     fun post(task: Runnable) {
         if (isMain()) {
             task.run()
@@ -78,7 +77,7 @@ object ExecutorHelper {
             tasksInMain[task] = job
         }
     }
-
+    @Synchronized
     fun removeCallbacks(task: Runnable) {
         tasksInMain[task]?.cancel()
         tasksInMain.remove(task)
