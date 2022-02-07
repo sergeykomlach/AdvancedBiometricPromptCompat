@@ -16,12 +16,8 @@
   ~   See the License for the specific language governing permissions and
   ~   limitations under the License.
   -->
-
-<set xmlns:android="http://schemas.android.com/apk/res/android"
-        android:duration="@android:integer/config_shortAnimTime">
-
-    <translate
-            android:fromYDelta="0%"
-            android:toYDelta="100%" />
-
-</set>
+<translate xmlns:android="http://schemas.android.com/apk/res/android"
+        android:duration="@android:integer/config_shortAnimTime"
+        android:fromYDelta="0"
+        android:interpolator="@android:anim/linear_interpolator"
+        android:toYDelta="100%p" />

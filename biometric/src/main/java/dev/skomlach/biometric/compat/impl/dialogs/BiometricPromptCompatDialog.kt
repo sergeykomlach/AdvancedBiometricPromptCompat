@@ -19,60 +19,49 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
+import android.app.Dialog
 import android.app.UiModeManager
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
+import android.content.*
 import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.TransitionDrawable
 import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.ViewGroup
-import android.view.Window
-import android.view.WindowManager
+import android.view.*
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDialog
-import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
-import dev.skomlach.biometric.compat.BiometricPromptCompat
+import androidx.fragment.app.DialogFragment
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes.getNightModeCompatWithInscreen
 import dev.skomlach.common.misc.Utils
-import java.util.concurrent.atomic.AtomicBoolean
 
-internal class BiometricPromptCompatDialog(
-    compatBuilder: BiometricPromptCompat.Builder,
-    isInscreenLayout: Boolean
-) : AppCompatDialog(
-    ContextThemeWrapper(compatBuilder.getContext(), R.style.Theme_BiometricPromptDialog),
-    R.style.Theme_BiometricPromptDialog
-) {
-    private val crossfader: TransitionDrawable
-    private var dismissInProgress = AtomicBoolean(false)
-    @LayoutRes
-    private val res: Int =
-        if (isInscreenLayout) R.layout.biometric_prompt_dialog_content_inscreen else R.layout.biometric_prompt_dialog_content
+
+class BiometricPromptCompatDialog : DialogFragment() {
+    companion object {
+        const val TAG = "dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl"
+        fun getFragment(isInscreenLayout: Boolean): BiometricPromptCompatDialog {
+            val fragment = BiometricPromptCompatDialog()
+            fragment.arguments = Bundle().apply {
+                this.putBoolean("isInscreenLayout", isInscreenLayout)
+            }
+            return fragment
+        }
+    }
+
+    private var containerView: View? = null
     var title: TextView? = null
         private set
     var subtitle: TextView? = null
@@ -90,100 +79,109 @@ internal class BiometricPromptCompatDialog(
     var rootView: View? = null
         private set
     private var focusListener: WindowFocusChangedListener? = null
+    val isShowing: Boolean
+        get() = dialog?.isShowing ?: false
+    private var dismissDialogInterface: DialogInterface.OnDismissListener? = null
+    private var cancelDialogInterface: DialogInterface.OnCancelListener? = null
+    private var onShowDialogInterface: DialogInterface.OnShowListener? = null
 
     private val wallpaperChangedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            updateMonetColorsInternal()
+            updateMonetColorsInternal(context ?: return)
         }
     }
-
-    init {
-        val NIGHT_MODE: Int
-        val currentMode = getNightModeCompatWithInscreen(context)
-        NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
-            AppCompatDelegate.MODE_NIGHT_YES
-        } else if (currentMode == UiModeManager.MODE_NIGHT_AUTO) {
-            if (BuildCompat.isAtLeastP()) {
-                //Android 9+ deal with dark mode natively
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            } else {
-                AppCompatDelegate.MODE_NIGHT_AUTO_TIME
-            }
-        } else {
-            if (BuildCompat.isAtLeastP()) {
-                //Android 9+ deal with dark mode natively
-                AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-            } else {
-                AppCompatDelegate.MODE_NIGHT_NO
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) delegate.localNightMode =
-            NIGHT_MODE
-        crossfader = TransitionDrawable(
-            arrayOf<Drawable>(
-                ColorDrawable(Color.TRANSPARENT),
-                ColorDrawable(ContextCompat.getColor(context, R.color.window_bg))
-            )
-        )
-        crossfader.isCrossFadeEnabled = true
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        e("WindowFocusChangedListenerDialog.hasFocus(1) - $hasFocus")
-        if (focusListener != null) {
-            val root = findViewById<View>(Window.ID_ANDROID_CONTENT)
-            if (root != null) {
-                if (ViewCompat.isAttachedToWindow(root)) {
-                    focusListener?.hasFocus(root.hasWindowFocus())
+    override fun dismiss() {
+        if (isAdded) {
+            val fragmentManager = parentFragmentManager
+            val dialogFragment = fragmentManager.findFragmentByTag(
+                TAG
+            ) as BiometricPromptCompatDialog?
+            if (dialogFragment != null) {
+                if (dialogFragment.isAdded) {
+                    dialogFragment.dismissAllowingStateLoss()
+                } else {
+                    fragmentManager.beginTransaction().remove(dialogFragment)
+                        .commitAllowingStateLoss()
                 }
             }
         }
-        updateMonetColorsInternal()
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.Theme_CustomDialog)
+    }
     fun makeVisible() {
-        (rootView?.parent as View?)?.alpha = 1f
+        containerView?.alpha = 1f
     }
 
     fun makeInvisible() {
-        (rootView?.parent as View?)?.alpha = 0.01f
+        containerView?.alpha = 0.01f
     }
 
-    override fun dismiss() {
-        if (isShowing && !dismissInProgress.get()) {
-            dismissInProgress.set(true)
-            val animation = AnimationUtils.loadAnimation(context, R.anim.move_out)
-            (rootView?.parent as View).background = crossfader
-            crossfader.reverseTransition(animation.duration.toInt())
-            animation.setAnimationListener(object : Animation.AnimationListener {
-                override fun onAnimationStart(animation: Animation) {}
-                override fun onAnimationEnd(animation: Animation) {
-                    if (isShowing) {
-                        super@BiometricPromptCompatDialog.dismiss()
-                        dismissInProgress.set(false)
+    fun setOnDismissListener(dialogInterface: DialogInterface.OnDismissListener) {
+        dialog?.setOnDismissListener(dialogInterface) ?: run {
+            this.dismissDialogInterface = dialogInterface
+        }
+    }
+
+    fun setOnCancelListener(dialogInterface: DialogInterface.OnCancelListener) {
+        dialog?.setOnCancelListener(dialogInterface) ?: run {
+            this.cancelDialogInterface = dialogInterface
+        }
+    }
+
+    fun setOnShowListener(dialogInterface: DialogInterface.OnShowListener) {
+        dialog?.setOnShowListener(dialogInterface) ?: run {
+            this.onShowDialogInterface = dialogInterface
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        @LayoutRes
+        val res: Int =
+            if (arguments?.getBoolean("isInscreenLayout") == true) R.layout.biometric_prompt_dialog_content_inscreen else
+                R.layout.biometric_prompt_dialog_content
+        containerView = inflater.inflate(
+            res,
+            container,
+            false
+        )
+        var lastKnownFocus : Boolean? = null
+        containerView?.viewTreeObserver?.addOnGlobalLayoutListener {
+            d("WindowFocusChangedListenerDialog.OnGlobalLayoutListener called")
+            val root = findViewById<View>(Window.ID_ANDROID_CONTENT)
+            val hasFocus = root?.hasWindowFocus()
+            if(hasFocus == lastKnownFocus)
+                return@addOnGlobalLayoutListener
+            lastKnownFocus = hasFocus
+            e("WindowFocusChangedListenerDialog.hasFocus(1) - $hasFocus")
+            if (focusListener != null) {
+                if (root != null) {
+                    if (ViewCompat.isAttachedToWindow(root)) {
+                        focusListener?.hasFocus(root.hasWindowFocus())
                     }
                 }
+            }
+            root?.context?.let {
+                updateMonetColorsInternal(it)
+            }
 
-                override fun onAnimationRepeat(animation: Animation) {}
-            })
-            rootView?.startAnimation(animation)
-        } else
-            BiometricLoggerImpl.e(RuntimeException("Already dismiss in progress"))
-    }
-
-    override fun onCreate(bundle: Bundle?) {
-        super.onCreate(bundle)
-        setContentView(res)
-        rootView = findViewById(R.id.dialogContent)
+        }
+        rootView = containerView?.findViewById(R.id.dialogContent)
         rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
                 try {
                     @Suppress("DEPRECATION")
-                    context.registerReceiver(
+                    v.context?.registerReceiver(
                         wallpaperChangedReceiver,
                         IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
                     )
-                    updateMonetColorsInternal()
+                    updateMonetColorsInternal(v.context ?: return)
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e, "setupMonet")
                 }
@@ -191,9 +189,9 @@ internal class BiometricPromptCompatDialog(
 
             override fun onViewDetachedFromWindow(v: View) {
                 if (isShowing)
-                    super@BiometricPromptCompatDialog.dismiss()
+                    dismiss()
                 try {
-                    context.unregisterReceiver(wallpaperChangedReceiver)
+                    v.context.unregisterReceiver(wallpaperChangedReceiver)
                 } catch (e: Throwable) {
                 }
             }
@@ -206,16 +204,62 @@ internal class BiometricPromptCompatDialog(
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
 
-        (rootView?.parent as View).setOnClickListener { cancel() }
         rootView?.setOnClickListener(null)
-        val animation = AnimationUtils.loadAnimation(context, R.anim.move_in)
-        (rootView?.parent as View).background = crossfader
-        crossfader.startTransition(animation.duration.toInt())
-        rootView?.startAnimation(animation)
-        ScreenProtection().applyProtectionInWindow(window ?: return)
+
+        return containerView
     }
 
-    private fun updateMonetColorsInternal() {
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return AppCompatDialog(ContextThemeWrapper(requireContext(), theme), theme).apply {
+            val currentMode = DarkLightThemes.getNightModeCompatWithInscreen(context)
+            val NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else if (currentMode == UiModeManager.MODE_NIGHT_AUTO) {
+                if (BuildCompat.isAtLeastP()) {
+                    //Android 9+ deal with dark mode natively
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                } else {
+                    AppCompatDelegate.MODE_NIGHT_AUTO_TIME
+                }
+            } else {
+                if (BuildCompat.isAtLeastP()) {
+                    //Android 9+ deal with dark mode natively
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                } else {
+                    AppCompatDelegate.MODE_NIGHT_NO
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) delegate.localNightMode =
+                NIGHT_MODE
+            this.setCanceledOnTouchOutside(true)
+            this.window?.let { w ->
+                val wlp = w.attributes
+                wlp.height = WindowManager.LayoutParams.WRAP_CONTENT
+                wlp.gravity = Gravity.BOTTOM
+                w.attributes = wlp
+                ScreenProtection().applyProtectionInWindow(w)
+            }
+            this.setOnShowListener(onShowDialogInterface)
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        dialog?.let {
+            it.setOnCancelListener(cancelDialogInterface)
+            it.setOnDismissListener(dismissDialogInterface)
+        }
+    }
+
+    fun cancel() {
+        dialog?.cancel()
+    }
+
+    fun <T : View?> findViewById(id: Int): T? {
+        return dialog?.findViewById<T>(id)
+    }
+
+    private fun updateMonetColorsInternal(context: Context) {
         if (Utils.isAtLeastS) {
             val negativeButtonColor = ContextCompat.getColor(
                 context,
@@ -297,7 +341,6 @@ internal class BiometricPromptCompatDialog(
         fun applyProtectionInWindow(window: Window?) {
             try {
                 applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
-                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             } catch (e: Exception) {
                 //not sure is exception can happens, but better to track at least
                 BiometricLoggerImpl.e(e, "ActivityContextProvider")
