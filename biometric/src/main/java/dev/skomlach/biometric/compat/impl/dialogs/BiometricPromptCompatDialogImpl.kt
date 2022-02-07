@@ -277,9 +277,7 @@ class BiometricPromptCompatDialogImpl(
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
         stopWatcher = homeWatcher.startWatch()
         dialog.show(
-            compatBuilder.getContext().supportFragmentManager.beginTransaction().apply {
-                this.setCustomAnimations(R.anim.fade_out, R.anim.fade_in);
-            },
+            compatBuilder.getContext().supportFragmentManager,
             BiometricPromptCompatDialog.TAG
         )
     }

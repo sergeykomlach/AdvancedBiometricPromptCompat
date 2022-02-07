@@ -23,7 +23,6 @@ import android.app.Dialog
 import android.app.UiModeManager
 import android.content.*
 import android.content.res.ColorStateList
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -109,7 +108,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NORMAL, android.R.style.Theme_Panel)
+        setStyle(STYLE_NORMAL, R.style.Theme_CustomDialog)
     }
     fun makeVisible() {
         containerView?.alpha = 1f
@@ -201,41 +200,37 @@ class BiometricPromptCompatDialog : DialogFragment() {
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
 
-        containerView?.let {
-            it.setOnClickListener { cancel() }
-        }
         rootView?.setOnClickListener(null)
 
         return containerView
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return super.onCreateDialog(savedInstanceState).apply {
-           if(this is AppCompatDialog) {
-               val currentMode = DarkLightThemes.getNightModeCompatWithInscreen(context)
-               val NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
-                   AppCompatDelegate.MODE_NIGHT_YES
-               } else if (currentMode == UiModeManager.MODE_NIGHT_AUTO) {
-                   if (BuildCompat.isAtLeastP()) {
-                       //Android 9+ deal with dark mode natively
-                       AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                   } else {
-                       AppCompatDelegate.MODE_NIGHT_AUTO_TIME
-                   }
-               } else {
-                   if (BuildCompat.isAtLeastP()) {
-                       //Android 9+ deal with dark mode natively
-                       AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-                   } else {
-                       AppCompatDelegate.MODE_NIGHT_NO
-                   }
-               }
-               if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) delegate.localNightMode =
-                   NIGHT_MODE
-           }
+        return AppCompatDialog(requireContext(), theme).apply {
+            val currentMode = DarkLightThemes.getNightModeCompatWithInscreen(context)
+            val NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else if (currentMode == UiModeManager.MODE_NIGHT_AUTO) {
+                if (BuildCompat.isAtLeastP()) {
+                    //Android 9+ deal with dark mode natively
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                } else {
+                    AppCompatDelegate.MODE_NIGHT_AUTO_TIME
+                }
+            } else {
+                if (BuildCompat.isAtLeastP()) {
+                    //Android 9+ deal with dark mode natively
+                    AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+                } else {
+                    AppCompatDelegate.MODE_NIGHT_NO
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) delegate.localNightMode =
+                NIGHT_MODE
+            this.setCanceledOnTouchOutside(true)
             this.window?.let { w ->
-                w.setWindowAnimations(R.style.DialogAnimation)
                 val wlp = w.attributes
+                wlp.height = WindowManager.LayoutParams.WRAP_CONTENT
                 wlp.gravity = Gravity.BOTTOM
                 w.attributes = wlp
                 ScreenProtection().applyProtectionInWindow(w)
@@ -342,7 +337,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
         fun applyProtectionInWindow(window: Window?) {
             try {
                 applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
-                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             } catch (e: Exception) {
                 //not sure is exception can happens, but better to track at least
                 BiometricLoggerImpl.e(e, "ActivityContextProvider")
