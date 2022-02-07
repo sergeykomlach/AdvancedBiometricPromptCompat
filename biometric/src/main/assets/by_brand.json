@@ -36720,6 +36720,11 @@
    "model": "P733"
   },
   {
+   "device": "S30",
+   "name": "PL1000B",
+   "model": "S30"
+  },
+  {
    "device": "Q2",
    "name": "Q2",
    "model": "Q2"
@@ -86778,6 +86783,11 @@
    "model": "Masstel Tab8"
   },
   {
+   "device": "Masstel_Hapi_20",
+   "name": "Masstel_Hapi_20",
+   "model": "Masstel Hapi 20"
+  },
+  {
    "device": "Masstel_Juno_Q3",
    "name": "Masstel_Juno_Q3",
    "model": "Masstel_Juno_Q3"
@@ -104870,6 +104880,11 @@
    "model": "Orange Sego"
   },
   {
+   "device": "zc4455v_orb",
+   "name": "TV Box",
+   "model": "Orange TV Box"
+  },
+  {
    "device": "zi4450v_ors",
    "name": "TV Box",
    "model": "Orange TV Box"
@@ -117551,6 +117566,11 @@
    "device": "M675M4",
    "name": "Cola Plus 4G",
    "model": "M675M4"
+  },
+  {
+   "device": "AIS-M31",
+   "name": "M31",
+   "model": "AIS-M31"
   },
   {
    "device": "S5506",
@@ -154283,6 +154303,11 @@
    "device": "uiw4054tlu",
    "name": "TELUSTV-21T",
    "model": "TELUSTV-21T"
+  },
+  {
+   "device": "uiw4020tlu",
+   "name": "UIW4020TLU",
+   "model": "UIW4020TLU"
   }
  ],
  "Teracube": [

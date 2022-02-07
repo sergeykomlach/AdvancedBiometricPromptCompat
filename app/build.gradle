@@ -28,8 +28,8 @@ android {
         applicationId "dev.skomlach.biometric.app"
         minSdkVersion minSDK
         targetSdkVersion targetSDK
-        versionCode 1
-        versionName "1.0"
+        versionCode libsMinorVersion
+        versionName libsMajorVersion
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
