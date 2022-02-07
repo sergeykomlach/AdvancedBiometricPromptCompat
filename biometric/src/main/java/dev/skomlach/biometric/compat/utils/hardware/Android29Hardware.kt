@@ -91,6 +91,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
             } catch (e: Throwable) {
                 e(e)
             } finally {
+                e("Android29Hardware - canAuthenticate=$code")
                 cachedCanAuthenticateValue = code
             }
         }
