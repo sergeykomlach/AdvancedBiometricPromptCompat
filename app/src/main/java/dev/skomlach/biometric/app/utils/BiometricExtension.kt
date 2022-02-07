@@ -26,15 +26,39 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
-    if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
-        val result = BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
-        Toast.makeText(
-            AndroidContext.appContext,
-            "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result",
-            Toast.LENGTH_SHORT
-        ).show()
+
+    if(!BiometricManagerCompat.isBiometricReady(biometricAuthRequest)){
+        if(!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
+            Toast.makeText(
+                AndroidContext.appContext,
+                "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                Toast.LENGTH_SHORT
+            ).show()
+        else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
+            val result = BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
+            Toast.makeText(
+                AndroidContext.appContext,
+                "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+         else if(BiometricManagerCompat.isLockOut(biometricAuthRequest))
+            Toast.makeText(
+                AndroidContext.appContext,
+                "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
+                Toast.LENGTH_SHORT
+            ).show()
+        else if(BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
+            Toast.makeText(
+                AndroidContext.appContext,
+                "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                Toast.LENGTH_SHORT
+            ).show()
+
+
         return
     }
+
     val start = System.currentTimeMillis()
     BiometricLoggerImpl.e("CheckBiometric.start() for $biometricAuthRequest")
     val biometricPromptCompat = BiometricPromptCompat.Builder(
