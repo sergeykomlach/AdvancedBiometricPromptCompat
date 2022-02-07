@@ -135,13 +135,13 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        var result = true
+        var result = false
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
         else {
             for (s in BiometricType.values()) {
-                if (!BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
-                    result = false
+                if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
+                    result = true
                     break
                 }
             }
