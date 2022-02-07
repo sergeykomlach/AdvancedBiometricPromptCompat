@@ -32583,6 +32583,11 @@
    "device": "MID1298",
    "name": "eSTAR GRAND HD Quad Core",
    "model": "eSTAR GRAND HD Quad core"
+  },
+  {
+   "device": "eSTAR_PAD_B8",
+   "name": "eSTAR_PAD_B8",
+   "model": "eSTAR_PAD_B8"
   }
  ],
  "Estla": [
@@ -33828,6 +33833,11 @@
   }
  ],
  "FFFSMARTLIFE": [
+  {
+   "device": "F3T10A3",
+   "name": "F3T10A3",
+   "model": "F3T10A3"
+  },
   {
    "device": "FFFTAB10",
    "name": "FFFTAB10",
@@ -45794,6 +45804,13 @@
    "device": "X6",
    "name": "X6",
    "model": "X6"
+  }
+ ],
+ "Handsfree": [
+  {
+   "device": "R5",
+   "name": "R5",
+   "model": "R5"
   }
  ],
  "HannSpree": [
@@ -168510,6 +168527,11 @@
    "device": "enuma",
    "name": "Xiaomi Pad 5 Pro 5G",
    "model": "M2105K81C"
+  },
+  {
+   "device": "soul",
+   "name": "Xiaomi TV stick 4K",
+   "model": "MiTV-AYFR0"
   },
   {
    "device": "baiji",
