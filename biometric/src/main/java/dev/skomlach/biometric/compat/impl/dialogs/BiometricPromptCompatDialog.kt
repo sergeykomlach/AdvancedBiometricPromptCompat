@@ -206,7 +206,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return AppCompatDialog(requireContext(), theme).apply {
+        return AppCompatDialog(ContextThemeWrapper(requireContext(), theme), theme).apply {
             val currentMode = DarkLightThemes.getNightModeCompatWithInscreen(context)
             val NIGHT_MODE = if (currentMode == UiModeManager.MODE_NIGHT_YES) {
                 AppCompatDelegate.MODE_NIGHT_YES
