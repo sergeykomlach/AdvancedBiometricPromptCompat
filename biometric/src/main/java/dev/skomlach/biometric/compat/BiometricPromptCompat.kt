@@ -256,6 +256,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
         if (WideGamutBug.unsupportedColorMode(builder.getContext())) {
+            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
             callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
             return
         }
@@ -409,6 +410,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest())) {
+            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
             callback.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
             return
         }
