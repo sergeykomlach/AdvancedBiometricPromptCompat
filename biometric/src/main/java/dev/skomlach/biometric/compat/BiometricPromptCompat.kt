@@ -353,7 +353,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                         BiometricNotificationManager.showNotification(builder)
                     }
-                    if (impl is BiometricPromptApi28Impl) {
+
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.getContext().window,
                             DialogMainColor.getColor(
@@ -366,7 +366,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             ),
                             builder.getStatusBarColor()
                         )
-                    }
+
                     activityViewWatcher?.setupListeners()
                 }
             }

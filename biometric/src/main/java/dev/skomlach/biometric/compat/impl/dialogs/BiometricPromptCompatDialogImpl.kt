@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
-import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Handler
@@ -33,11 +32,8 @@ import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
 import dev.skomlach.biometric.compat.utils.BiometricTitle
-import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -72,8 +68,9 @@ class BiometricPromptCompatDialogImpl(
             compatBuilder.getContext()
                 .getString(androidx.biometric.R.string.fingerprint_not_recognized)
         animateHandler = AnimateHandler(Looper.getMainLooper())
-        dialog = BiometricPromptCompatDialog(compatBuilder, isInScreen)
-        dialog.setOnDismissListener { dialogInterface: DialogInterface? ->
+        dialog = BiometricPromptCompatDialog.getFragment(isInScreen)
+        dialog.setOnDismissListener {
+            e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. dismissed.")
             detachWindowListeners()
             if (inProgress.get()) {
                 inProgress.set(false)
@@ -84,6 +81,8 @@ class BiometricPromptCompatDialogImpl(
             stopWatcher = null
         }
         dialog.setOnCancelListener {
+            e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. canceled.")
+
             authCallback?.cancelAuth()
             detachWindowListeners()
             if (inProgress.get()) {
@@ -91,24 +90,8 @@ class BiometricPromptCompatDialogImpl(
                 authCallback?.stopAuth()
             }
         }
-        dialog.setOnShowListener { d: DialogInterface? ->
-            e("BiometricPromptGenericImpl" + "AbstractBiometricPromptCompat. started.")
-            dialog.window?.let {
-
-                StatusBarTools.setNavBarAndStatusBarColors(
-                    it,
-                    DialogMainColor.getColor(
-                        compatBuilder.getContext(),
-                        DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
-                    ),
-                    DialogMainColor.getColor(
-                        compatBuilder.getContext(),
-                        !DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
-                    ),
-                    compatBuilder.getStatusBarColor()
-                )
-
-            }
+        dialog.setOnShowListener {
+            e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. started.")
 
             if (compatBuilder.getTitle() == null) {
                 dialog.title?.visibility = View.GONE
@@ -129,7 +112,7 @@ class BiometricPromptCompatDialogImpl(
                 dialog.negativeButton?.visibility = View.INVISIBLE
             } else {
                 dialog.negativeButton?.text = compatBuilder.getNegativeButtonText()
-                dialog.negativeButton?.setOnClickListener { v: View? ->
+                dialog.negativeButton?.setOnClickListener {
                     dismissDialog()
                     authCallback?.cancelAuth()
                 }
@@ -293,7 +276,12 @@ class BiometricPromptCompatDialogImpl(
     fun showDialog() {
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
         stopWatcher = homeWatcher.startWatch()
-        dialog.show()
+        dialog.show(
+            compatBuilder.getContext().supportFragmentManager.beginTransaction().apply {
+                this.setCustomAnimations(R.anim.fade_out, R.anim.fade_in);
+            },
+            BiometricPromptCompatDialog.TAG
+        )
     }
 
     val authPreview: View?

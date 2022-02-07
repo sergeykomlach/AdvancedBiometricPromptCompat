@@ -184,7 +184,6 @@ class FingerprintIconView @JvmOverloads constructor(
                     targetThemeRes = method.invoke(context) as Int
                 } catch (ex: Exception) {
                 }
-                if (targetThemeRes == 0) targetThemeRes = R.style.Theme_BiometricPromptDialog
                 dr = VectorDrawableCompat.create(
                     context.resources,
                     resId,
