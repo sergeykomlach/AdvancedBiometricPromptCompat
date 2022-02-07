@@ -26,9 +26,12 @@ import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 
 object ExecutorHelper {
 
+    val lock = ReentrantLock()
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
 
@@ -37,15 +40,38 @@ object ExecutorHelper {
 
     private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
 
-    @Synchronized
+    private fun addTaskSafely(task: Runnable, job: Job) {
+        if (lock.tryLock(1, TimeUnit.SECONDS)) {
+            try {
+                tasksInMain[task] = job
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            } finally {
+                lock.unlock()
+            }
+        }
+    }
+
+    private fun removeTaskSafely(task: Runnable) {
+        if (lock.tryLock(1, TimeUnit.SECONDS)) {
+            try {
+                tasksInMain.remove(task)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            } finally {
+                lock.unlock()
+            }
+        }
+    }
+
     fun startOnBackground(task: Runnable, delay: Long) {
         val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
             delay(delay)
             task.run()
         }
-        tasksInMain[task] = job
+        addTaskSafely(task, job)
     }
-    @Synchronized
+
     fun startOnBackground(task: Runnable) {
         if (!isMain()) {
             task.run()
@@ -53,34 +79,45 @@ object ExecutorHelper {
             val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
                 task.run()
             }
-            tasksInMain[task] = job
+            addTaskSafely(task, job)
         }
+
     }
-    @Synchronized
+
     fun postDelayed(task: Runnable, delay: Long) {
+
         val job = GlobalScope.launch(Dispatchers.Main) {
             delay(delay)
             task.run()
-            tasksInMain.remove(task)
+            removeTaskSafely(task)
         }
-        tasksInMain[task] = job
+        addTaskSafely(task, job)
     }
-    @Synchronized
+
     fun post(task: Runnable) {
         if (isMain()) {
             task.run()
         } else {
             val job = GlobalScope.launch(Dispatchers.Main) {
                 task.run()
-                tasksInMain.remove(task)
+                removeTaskSafely(task)
             }
-            tasksInMain[task] = job
+            addTaskSafely(task, job)
         }
+
     }
-    @Synchronized
+
     fun removeCallbacks(task: Runnable) {
-        tasksInMain[task]?.cancel()
-        tasksInMain.remove(task)
+        if (lock.tryLock(1, TimeUnit.SECONDS)) {
+            try {
+                tasksInMain[task]?.cancel()
+                tasksInMain.remove(task)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            } finally {
+                lock.unlock()
+            }
+        }
     }
 
     /**
