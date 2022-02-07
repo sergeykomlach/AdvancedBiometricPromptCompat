@@ -42,6 +42,9 @@ object SensorPrivacyCheck {
     private var isCameraInUse = AtomicBoolean(false)
 
     fun isCameraInUse(): Boolean {
+        val ts = System.currentTimeMillis()
+        val delay = AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+            .toLong()
         val isDone = AtomicBoolean(false)
         //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
         ExecutorHelper.startOnBackground {
@@ -58,7 +61,7 @@ object SensorPrivacyCheck {
                 BiometricLoggerImpl.e(e)
             }
         }
-        while (!isDone.get()) {
+        while (!isDone.get() && System.currentTimeMillis() -  ts <= delay) {
             try {
                 Thread.sleep(20)
             } catch (ignore: InterruptedException) {

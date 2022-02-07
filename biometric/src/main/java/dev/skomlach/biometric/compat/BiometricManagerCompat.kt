@@ -36,15 +36,6 @@ object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
-    private fun isCameraAccessBlocked(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        return isCameraNotAvailable(api)
-    }
-
     private fun isCameraNotAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
@@ -52,10 +43,9 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE) {
-            return SensorPrivacyCheck.isCameraInUse() || SensorPrivacyCheck.isCameraBlocked()
+            return SensorPrivacyCheck.isCameraBlocked()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
             val types = HashSet<BiometricType>()
-
             for (type in BiometricType.values()) {
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
                     val request = BiometricAuthRequest(
@@ -78,8 +68,10 @@ object BiometricManagerCompat {
             }
 
 
-            return (types.size == 1 && types.contains(BiometricType.BIOMETRIC_FACE)) &&
-                    SensorPrivacyCheck.isCameraBlocked()
+            if ((types.size == 1 && types.contains(BiometricType.BIOMETRIC_FACE)) &&
+                SensorPrivacyCheck.isCameraBlocked()
+            )
+                return true
         }
         return false
     }
@@ -91,7 +83,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE) {
-            return SensorPrivacyCheck.isCameraInUse() || SensorPrivacyCheck.isCameraBlocked()
+            return SensorPrivacyCheck.isCameraInUse()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
             val types = HashSet<BiometricType>()
 
@@ -154,7 +146,7 @@ object BiometricManagerCompat {
                 }
             }
         }
-        return isCameraAccessBlocked(api) || result
+        return result || isCameraNotAvailable(api)
     }
 
     @JvmStatic
@@ -287,7 +279,7 @@ object BiometricManagerCompat {
             ).isLockedOut
 
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
-        return isCameraInUse(api) || result
+        return result || isCameraInUse(api)
     }
 
     @JvmStatic
