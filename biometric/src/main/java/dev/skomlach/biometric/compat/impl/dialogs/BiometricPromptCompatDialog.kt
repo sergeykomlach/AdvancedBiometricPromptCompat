@@ -41,6 +41,7 @@ import androidx.fragment.app.DialogFragment
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
@@ -150,23 +151,26 @@ class BiometricPromptCompatDialog : DialogFragment() {
             container,
             false
         )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            containerView?.viewTreeObserver?.addOnWindowFocusChangeListener { hasFocus ->
-                e("WindowFocusChangedListenerDialog.hasFocus(1) - $hasFocus")
-                val root = findViewById<View>(Window.ID_ANDROID_CONTENT)
-                if (focusListener != null) {
-                    if (root != null) {
-                        if (ViewCompat.isAttachedToWindow(root)) {
-                            focusListener?.hasFocus(root.hasWindowFocus())
-                        }
+        var lastKnownFocus : Boolean? = null
+        containerView?.viewTreeObserver?.addOnGlobalLayoutListener {
+            d("WindowFocusChangedListenerDialog.OnGlobalLayoutListener called")
+            val root = findViewById<View>(Window.ID_ANDROID_CONTENT)
+            val hasFocus = root?.hasWindowFocus()
+            if(hasFocus == lastKnownFocus)
+                return@addOnGlobalLayoutListener
+            lastKnownFocus = hasFocus
+            e("WindowFocusChangedListenerDialog.hasFocus(1) - $hasFocus")
+            if (focusListener != null) {
+                if (root != null) {
+                    if (ViewCompat.isAttachedToWindow(root)) {
+                        focusListener?.hasFocus(root.hasWindowFocus())
                     }
                 }
-                root?.context?.let {
-                    updateMonetColorsInternal(it)
-                }
-
             }
+            root?.context?.let {
+                updateMonetColorsInternal(it)
+            }
+
         }
         rootView = containerView?.findViewById(R.id.dialogContent)
         rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
