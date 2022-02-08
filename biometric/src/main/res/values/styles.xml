@@ -18,10 +18,13 @@
   -->
 
 <resources>
-    <style name="Theme.CustomDialog" parent="@android:style/Theme.DeviceDefault">
+    <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault">
+        <item name="android:windowMinWidthMajor">75%</item>
+        <item name="android:windowMinWidthMinor">100%</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">@null</item>
+        <item name="android:background">@color/transparent</item>
+        <item name="android:windowBackground">@color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.7</item>
         <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
