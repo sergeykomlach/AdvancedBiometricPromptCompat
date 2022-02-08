@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ http://www.apache.org/licenses/LICENSE-2.0
+~ @author s.komlach
+~ @date 2021/3/1
+-->
+
+<resources>
+
+    <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowMinWidthMajor">75%</item>
+        <item name="android:windowMinWidthMinor">100%</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.7</item>
+        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
+        <item name="android:windowEnterAnimation">@anim/move_in</item>
+        <item name="android:windowExitAnimation">@anim/move_out</item>
+        <item name="android:windowTitleStyle">@style/DialogTitle</item>
+    </style>
+</resources>
