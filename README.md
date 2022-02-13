@@ -28,19 +28,20 @@ Unfortunately, this simplification hides a number of problems.
 
 BiometricPromptCompat is designed to be compatible with the largest number of Android devices.  
 Its interface is very close to the original `BiometricPrompt`.  
-Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
+Minimal supported Android OS version: **Android 4.1 Jelly Bean**
+Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 #### Key features
 
-- Unified UI for all devices - starts from Android 4.1 and to Android 12. Exception: some vendors (
-  like Huawei or Samsung) provide custom UI
+- Unified UI for all devices. Exception: some vendors (like Huawei or Samsung) provide custom UI
 - Contains fix for devices WITHOUT system BiometricPrompt UI (like LG G8 or OnePlus 6T)
 - Dark/Light themes supported; Also you able to get the background color of the current Biometric
   dialog
 - Auth in Split-Screen Mode supported
 - Wide range of supported biometrics
-- Android 12 microphone and camera toggles handling
+- Android 12+ microphone and camera toggles handling
 - DynamicColors (MaterialYou/Monet) theming supported
+
 
 #### Supported types of biometric authentication
 
@@ -59,7 +60,7 @@ Minimal supported SDK -  **Android 4.1 JellyBean (API 16)**
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| 
-| Windows Subsystem for Android & Windows Hello | 27/10/2021 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
+| Windows Subsystem for Android & Windows Hello | 13/02/2022 - host hardware not accessible | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
 ## Test app
 

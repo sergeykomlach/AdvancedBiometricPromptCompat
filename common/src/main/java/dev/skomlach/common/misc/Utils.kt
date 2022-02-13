@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.misc
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -26,6 +27,10 @@ import androidx.core.os.BuildCompat
 import dev.skomlach.common.logging.LogCat
 
 object Utils {
+    val isAtLeastT: Boolean
+        @SuppressLint("UnsafeOptInUsageError")
+        get() = (BuildCompat.isAtLeastT() //check only Preview
+                || Build.VERSION.SDK_INT >= 32) //check also release
 
     val isAtLeastR: Boolean
         get() = (BuildCompat.isAtLeastR() //check only Preview

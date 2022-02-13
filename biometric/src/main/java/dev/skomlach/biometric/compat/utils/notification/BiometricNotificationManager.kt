@@ -70,6 +70,7 @@ object BiometricNotificationManager {
     fun showNotification(
         builder: BiometricPromptCompat.Builder
     ) {
+        BiometricLoggerImpl.d("BiometricNotificationManager", "showNotification")
         dismissAll()
         val notify = Runnable {
             try {
@@ -94,9 +95,14 @@ object BiometricNotificationManager {
                         )
                         .setSmallIcon(type.iconId).build()
 
-                    if (PermissionUtils.isAllowedNotificationsChannelPermission(CHANNEL_ID) && PermissionUtils.isAllowedNotificationsPermission) {
+                    if (
+                        PermissionUtils.isAllowedNotificationsPermission &&
+                        PermissionUtils.isAllowedNotificationsChannelPermission(CHANNEL_ID)) {
                         notificationCompat.notify(type.hashCode(), notif)
+                        BiometricLoggerImpl.d("BiometricNotificationManager", "Notification posted")
                     }
+                    else
+                        BiometricLoggerImpl.d("BiometricNotificationManager", "Notifications not allowed")
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)

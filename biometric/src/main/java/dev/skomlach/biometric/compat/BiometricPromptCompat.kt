@@ -53,6 +53,7 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
@@ -434,6 +435,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             val permission: MutableSet<String> = HashSet()
 
+            if(Utils.isAtLeastT && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()){
+                permission.add("android.permission.POST_NOTIFICATIONS")
+            }
             if (Build.VERSION.SDK_INT >= 28) {
                 permission.add("android.permission.USE_BIOMETRIC")
             }

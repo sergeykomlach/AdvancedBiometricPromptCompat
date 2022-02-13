@@ -38,6 +38,7 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat.logError
 import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import java.util.*
 
 object PermissionUtils {
@@ -251,7 +252,10 @@ object PermissionUtils {
 
     //Notification permissions
     val isAllowedNotificationsPermission: Boolean
-        get() = NotificationManagerCompat.from(appContext).areNotificationsEnabled()
+        get() = if(Utils.isAtLeastT)
+            hasSelfPermissions("android.permission.POST_NOTIFICATIONS") && NotificationManagerCompat.from(appContext).areNotificationsEnabled()
+    else
+            NotificationManagerCompat.from(appContext).areNotificationsEnabled()
 
     //Notification channel permissions
     fun isAllowedNotificationsChannelPermission(channelId: String): Boolean {
