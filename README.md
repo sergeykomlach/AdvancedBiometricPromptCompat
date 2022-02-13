@@ -24,7 +24,7 @@ Unfortunately, this simplification hides a number of problems.
 - On Android 12 and devices with FaceUnlock (like Pixel 4), when user disable Camera via
   QuickSettings, Face setup and FaceUnlock stop working and no API to handle this case
 
-#### How to use BiometricPromptCompat in old devices?
+#### How to use BiometricPromptCompat?
 
 BiometricPromptCompat is designed to be compatible with the largest number of Android devices.  
 Its interface is very close to the original `BiometricPrompt`.  
