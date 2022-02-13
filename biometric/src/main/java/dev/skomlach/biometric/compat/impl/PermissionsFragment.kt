@@ -37,6 +37,7 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
@@ -67,7 +68,11 @@ class PermissionsFragment : Fragment() {
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
                         if (callback != null) ExecutorHelper.post(callback)
+                        try{
                         unregisterGlobalBroadcastIntent(appContext, this)
+                        } catch (e: Throwable) {
+                            BiometricLoggerImpl.e(e)
+                        }
                     }
                 }, IntentFilter(INTENT_KEY))
                 activity
