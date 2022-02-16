@@ -170,14 +170,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.hide(WindowInsetsCompat.Type.statusBars() /*or WindowInsetsCompat.Type.navigationBars()*/ or WindowInsetsCompat.Type.captionBar())
         controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
     }
 
     private fun showSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, true)
-        controller.show(WindowInsetsCompat.Type.systemBars())
+        controller.show(WindowInsetsCompat.Type.statusBars() /*or WindowInsetsCompat.Type.navigationBars()*/ or WindowInsetsCompat.Type.captionBar())
     }
 
     fun showDialog() {
