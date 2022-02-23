@@ -267,8 +267,18 @@ object PermissionUtils {
                 NotificationManager::class.java
             )
             val notificationChannel = notificationManager.getNotificationChannel(channelId)
-            logError("PermissionUtils.NotificationChannel " + channelId + ":" + notificationChannel.importance)
-            notificationChannel.importance != NotificationManager.IMPORTANCE_NONE
+
+            return if (VERSION.SDK_INT >= 28) {
+                logError(
+                    "PermissionUtils.NotificationGroup " + notificationChannel.group + ":" + notificationManager.getNotificationChannelGroup(notificationChannel.group)?.isBlocked + "; NotificationChannel " + channelId + ":" + notificationChannel.importance
+                )
+                notificationManager.getNotificationChannelGroup(notificationChannel.group)?.isBlocked == true || notificationChannel.importance != NotificationManager.IMPORTANCE_NONE
+            } else{
+                logError(
+                    "PermissionUtils.NotificationChannel " + channelId + ":" + notificationChannel.importance
+                )
+                notificationChannel.importance != NotificationManager.IMPORTANCE_NONE
+            }
         } catch (e: Throwable) {
             logException(e)
             false
