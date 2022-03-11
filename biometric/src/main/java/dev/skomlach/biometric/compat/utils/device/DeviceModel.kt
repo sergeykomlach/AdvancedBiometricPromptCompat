@@ -54,14 +54,23 @@ object DeviceModel {
         BiometricLoggerImpl.d("AndroidModel - $s")
         s?.let {
             strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it).filter {
+                it.isLetterOrDigit() || it.isWhitespace()
+            })
         }
         s = getNameFromAssets()
         s?.let {
             strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it).filter {
+                it.isLetterOrDigit() || it.isWhitespace()
+            })
         }
         s = getNameFromDatabase()
         s?.let {
             strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
+            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it).filter {
+                it.isLetterOrDigit() || it.isWhitespace()
+            })
         }
 
         val set = HashSet<String>(strings.values)
