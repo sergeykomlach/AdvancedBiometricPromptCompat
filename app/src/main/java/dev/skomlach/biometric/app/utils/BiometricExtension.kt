@@ -19,7 +19,9 @@
 
 package dev.skomlach.biometric.app.utils
 
+import android.content.Context
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -29,31 +31,28 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
     if(!BiometricManagerCompat.isBiometricReady(biometricAuthRequest)){
         if(!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
-            Toast.makeText(
-                AndroidContext.appContext,
+            showAlertDialog(
+                requireActivity(),
                 "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                Toast.LENGTH_SHORT
-            ).show()
+
+            )
         else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
             val result = BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
-            Toast.makeText(
-                AndroidContext.appContext,
+            showAlertDialog(
+                requireActivity(),
                 "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result",
-                Toast.LENGTH_SHORT
-            ).show()
+                )
         }
          else if(BiometricManagerCompat.isLockOut(biometricAuthRequest))
-            Toast.makeText(
-                AndroidContext.appContext,
+            showAlertDialog(
+                requireActivity(),
                 "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
-                Toast.LENGTH_SHORT
-            ).show()
+            )
         else if(BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-            Toast.makeText(
-                AndroidContext.appContext,
+            showAlertDialog(
+                requireActivity(),
                 "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                Toast.LENGTH_SHORT
-            ).show()
+                )
 
 
         return
@@ -96,7 +95,11 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
         override fun onFailed(reason: AuthenticationFailureReason?) {
             BiometricLoggerImpl.e("CheckBiometric.onFailed() - $reason")
-            Toast.makeText(AndroidContext.appContext, "Failure: $reason", Toast.LENGTH_SHORT).show()
+            try {
+                showAlertDialog(requireActivity(), "Failure: $reason")
+            } catch (ignore: Throwable){
+                Toast.makeText(AndroidContext.appContext, "Failure: $reason", Toast.LENGTH_SHORT).show()
+            }
         }
 
         override fun onUIOpened() {
@@ -114,4 +117,8 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
         Toast.LENGTH_SHORT
     ).show()
+}
+
+private fun showAlertDialog(context: Context, msg: String){
+    AlertDialog.Builder(context).setTitle("Biometric Error").setMessage(msg).setNegativeButton(android.R.string.cancel, null).show()
 }
