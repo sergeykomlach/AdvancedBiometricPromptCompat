@@ -30,10 +30,12 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import java.lang.reflect.Method
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.math.roundToInt
 
 @SuppressLint("PrivateApi")
 object BlurUtil {
+    private val lock = ReentrantLock()
     private var m: Method? = try {
         ViewDebug::class.java.getDeclaredMethod(
             "performViewCapture",
@@ -50,57 +52,62 @@ object BlurUtil {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
     }
 
-    @Synchronized
+
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
 
-        //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
-        val isBlackBerryBug = try {
-            val f =
-                view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-            val isAccessible = f?.isAccessible ?: true
-            var value: Any? = null
-            try {
-                f?.isAccessible = true
-                value = f?.get(view)
-            } finally {
-                if (!isAccessible)
-                    f?.isAccessible = false
+        try {
+            lock.lock()
+            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
+            val isBlackBerryBug = try {
+                val f =
+                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+                val isAccessible = f?.isAccessible ?: true
+                var value: Any? = null
+                try {
+                    f?.isAccessible = true
+                    value = f?.get(view)
+                } finally {
+                    if (!isAccessible)
+                        f?.isAccessible = false
+                }
+                value == null
+            } catch (ignore: Throwable) {
+                false
             }
-            value == null
-        } catch (ignore: Throwable) {
-            false
-        }
 
-        System.gc()
-        if (!isBlackBerryBug) {
-            m?.let { method ->
-                val startMs = System.currentTimeMillis()
-                ExecutorHelper.startOnBackground {
-                    try {
-                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            ExecutorHelper.post {
-                                try {
-                                    BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
-                                    blur(
-                                        view,
-                                        bm.copy(Bitmap.Config.ARGB_8888, false),
-                                        listener
-                                    )
-                                } catch (e: Throwable) {
-                                    BiometricLoggerImpl.e(e)
+            System.gc()
+            if (!isBlackBerryBug) {
+                m?.let { method ->
+                    val startMs = System.currentTimeMillis()
+                    ExecutorHelper.startOnBackground {
+                        try {
+                            (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                                ExecutorHelper.post {
+                                    try {
+                                        BiometricLoggerImpl.d("BlurUtil.takeScreenshot time - ${System.currentTimeMillis() - startMs} ms")
+                                        blur(
+                                            view,
+                                            bm.copy(Bitmap.Config.ARGB_8888, false),
+                                            listener
+                                        )
+                                    } catch (e: Throwable) {
+                                        BiometricLoggerImpl.e(e)
+                                    }
                                 }
                             }
-                        }
-                    } catch (ignore: Throwable) {
-                        ExecutorHelper.post {
-                            fallbackViewCapture(view, listener)
+                        } catch (ignore: Throwable) {
+                            ExecutorHelper.post {
+                                fallbackViewCapture(view, listener)
+                            }
                         }
                     }
+                    return
                 }
-                return
             }
+            fallbackViewCapture(view, listener)
+        } finally {
+            lock.unlock()
         }
-        fallbackViewCapture(view, listener)
     }
 
     private fun fallbackViewCapture(view: View, listener: OnPublishListener) {

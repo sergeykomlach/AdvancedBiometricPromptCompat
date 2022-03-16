@@ -32,14 +32,16 @@ import java.io.IOException
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.util.*
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
 
 object AndroidContext {
-    @Volatile
-    private var appRef: Reference<Application?>? = null
+    private val lock = ReentrantLock()
+    private var appRef = AtomicReference<Reference<Application?>?>(null)
     private fun getContextRef(): Context? = try {
-        appRef?.get()?.getFixedContext()
+        appRef.get()?.get()?.getFixedContext()
     } catch (e: Throwable) {
-        appRef?.get()
+        appRef.get()?.get()
     }
 
     var configuration: Configuration? = null
@@ -48,11 +50,12 @@ object AndroidContext {
         }
         private set
 
-    val appInstance: Application? = appRef?.get()
+    val appInstance: Application? = appRef.get()?.get()
 
     val appContext: Context
         get() {
-            synchronized(AndroidContext::class.java) {
+            try {
+                lock.lock()
                 getContextRef()?.let {
                     fixDirAccess(it)
                     return it
@@ -71,26 +74,30 @@ object AndroidContext {
                     return it
                 }
                 throw RuntimeException("Application is NULL")
+            } finally {
+                lock.unlock()
             }
         }
 
     private fun updateApplicationReference() {
         if (Looper.getMainLooper().thread !== Thread.currentThread())
             throw IllegalThreadStateException("Main thread required for correct init")
-        appRef = SoftReference<Application?>(
-            try {
-                Class.forName("android.app.ActivityThread")
-                    .getMethod("currentApplication")
-                    .invoke(null) as Application
-            } catch (ignored: Throwable) {
+        appRef.set(
+            SoftReference<Application?>(
                 try {
-                    Class.forName("android.app.AppGlobals")
-                        .getMethod("getInitialApplication")
+                    Class.forName("android.app.ActivityThread")
+                        .getMethod("currentApplication")
                         .invoke(null) as Application
-                } catch (e: Throwable) {
-                    null
+                } catch (ignored: Throwable) {
+                    try {
+                        Class.forName("android.app.AppGlobals")
+                            .getMethod("getInitialApplication")
+                            .invoke(null) as Application
+                    } catch (e: Throwable) {
+                        null
+                    }
                 }
-            }
+            )
         )
 
     }

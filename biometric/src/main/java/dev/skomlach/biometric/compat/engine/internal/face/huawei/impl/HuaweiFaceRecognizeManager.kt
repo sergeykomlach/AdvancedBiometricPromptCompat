@@ -25,6 +25,8 @@ import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.util.concurrent.locks.ReentrantLock
+
 
 class HuaweiFaceRecognizeManager(context: Context?) {
 
@@ -101,12 +103,15 @@ class HuaweiFaceRecognizeManager(context: Context?) {
             }
         }
 
-        @Synchronized
+        private val lock = ReentrantLock()
         fun createInstance(context: Context?) {
-            synchronized(HuaweiFaceRecognizeManager::class.java) {
+            try {
+                lock.lock()
                 if (instance == null) {
                     instance = HuaweiFaceRecognizeManager(context)
                 }
+            } finally {
+                lock.unlock()
             }
         }
     }

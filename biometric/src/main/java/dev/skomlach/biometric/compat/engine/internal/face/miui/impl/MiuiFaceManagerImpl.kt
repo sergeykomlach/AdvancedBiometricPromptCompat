@@ -33,7 +33,8 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
 
 class MiuiFaceManagerImpl: IMiuiFaceManager {
     companion object {
@@ -123,19 +124,26 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
         private const val RECEIVER_DESCRIPTOR = "receiver.FaceService"
         private const val TAG = "FaceManagerImpl"
 
-        @Volatile
-        private var INSTANCE: IMiuiFaceManager? = null
+
+        private val lock = ReentrantLock()
+        private var INSTANCE = AtomicReference<IMiuiFaceManager?>(null)
         private var SERVICE_DESCRIPTOR: String
         private var SERVICE_NAME: String
         fun getInstance(): IMiuiFaceManager? {
-            if (INSTANCE == null) {
-                synchronized(MiuiFaceManagerImpl::class.java) {
-                    if (INSTANCE == null) {
-                        INSTANCE = MiuiFaceManagerImpl()
+            if (INSTANCE.get() != null && INSTANCE.get()?.isReleased == true) {
+                INSTANCE.set(null)
+            }
+            if (INSTANCE.get() == null) {
+                try {
+                    lock.lock()
+                    if (INSTANCE.get() == null) {
+                        INSTANCE.set(MiuiFaceManagerImpl())
                     }
+                } finally {
+                    lock.unlock()
                 }
             }
-            return INSTANCE
+            return INSTANCE.get()
         }
 
         init {
@@ -268,9 +276,12 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
     private var mLockoutResetCallback: IMiuiFaceManager.LockoutResetCallback? = null
     private var mMiuiFaceService: IBinder? = null
     private val mBinderDied = DeathRecipient {
-        synchronized(mBinderLock) {
+        try {
+            lock.lock()
             e(TAG, "mMiuiFaceService Service Died.")
             mMiuiFaceService = null
+        } finally {
+            lock.unlock()
         }
     }
     private var mRemovalCallback: IMiuiFaceManager.RemovalCallback? = null
@@ -359,7 +370,8 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
 
     @Throws(RemoteException::class)
     private fun initService() {
-        synchronized(mBinderLock) {
+        try {
+            lock.lock()
             if (mMiuiFaceService == null) {
                 try {
                     mMiuiFaceService = Class.forName("android.os.ServiceManager")
@@ -370,6 +382,8 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
 
                 mMiuiFaceService?.linkToDeath(mBinderDied, 0)
             }
+        } finally {
+            lock.unlock()
         }
     }
 

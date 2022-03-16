@@ -38,7 +38,8 @@ object Connection {
 
     private val connectivityManager: ConnectivityManager? =
         AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-    private val netlistLis: MutableList<NetworkListener> = ArrayList()
+    private val netlistLis: MutableList<NetworkListener> =
+        Collections.synchronizedList(ArrayList<NetworkListener>())
     private val screenLockReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             connectionStateListener.updateConnectionCheckQuery(1)
@@ -132,12 +133,12 @@ object Connection {
             return false
         }
 
-    @Synchronized
+
     fun addNetworkListener(listener: NetworkListener) {
         netlistLis.add(listener)
     }
 
-    @Synchronized
+
     fun removeNetworkListener(listener: NetworkListener) {
         netlistLis.remove(listener)
     }

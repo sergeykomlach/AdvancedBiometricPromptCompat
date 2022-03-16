@@ -34,13 +34,18 @@ import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException
 import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
@@ -53,6 +58,205 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     companion object {
         private const val TS_PREF = "timestamp_"
         private val timeout = TimeUnit.SECONDS.toMillis(31)
+
+        private var cachedIsBiometricEnrollChangedValue = AtomicBoolean(false)
+        private var jobEnrollChanged: Job? = null
+        private var checkEnrollChangedStartedTs = 0L
+
+        private val lock = ReentrantLock()
+        private fun biometricEnrollChanged(): Boolean {
+            try {
+                lock.lock()
+                if (jobEnrollChanged?.isActive == true) {
+                    if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
+                            30
+                        )
+                    ) {
+                        jobEnrollChanged?.cancel()
+                        jobEnrollChanged = null
+                    }
+                }
+
+                if (jobEnrollChanged?.isActive != true) {
+                    checkEnrollChangedStartedTs = System.currentTimeMillis()
+                    jobEnrollChanged = GlobalScope.launch(Dispatchers.IO) {
+                        updateBiometricChanged()
+                    }
+                }
+
+
+                return cachedIsBiometricEnrollChangedValue.get()
+            } finally {
+                lock.unlock()
+            }
+        }
+
+        private fun updateBiometricChanged() {
+            try {
+                val name = "BiometricKey"
+                val keyStore = KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                val key = if (keyStore.containsAlias(name))
+                    keyStore.getKey(name, null)
+                else {
+                    val keyGenerator =
+                        KeyGenerator.getInstance(
+                            KeyProperties.KEY_ALGORITHM_AES,
+                            keyStore.provider
+                        )
+                    val builder = KeyGenParameterSpec.Builder(
+                        name,
+                        KeyProperties.PURPOSE_ENCRYPT or
+                                KeyProperties.PURPOSE_DECRYPT
+                    )
+                        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                        .setUserAuthenticationRequired(true)
+                        .setInvalidatedByBiometricEnrollment(true)
+                    keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
+                    keyGenerator.generateKey()
+                }
+                //Devices with a bug in Keystore
+                //https://issuetracker.google.com/issues/37127115
+                //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
+
+                val sym = Cipher.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES + "/"
+                            + KeyProperties.BLOCK_MODE_CBC + "/"
+                            + KeyProperties.ENCRYPTION_PADDING_PKCS7
+                )
+                sym.init(Cipher.ENCRYPT_MODE, key)
+                sym.doFinal(name.toByteArray(Charset.forName("UTF-8")))
+            } catch (throwable: Throwable) {
+                var e = throwable
+                if (e is IllegalBlockSizeException) {
+                    cachedIsBiometricEnrollChangedValue.set(true)
+                    return
+                }
+                var cause: Throwable? = e.cause
+                while (cause != null && cause != e) {
+                    if (cause is IllegalStateException || cause.javaClass.name == "android.security.KeyStoreException") {
+                        cachedIsBiometricEnrollChangedValue.set(true)
+                        return
+                    }
+                    e = cause
+                    cause = e.cause
+                }
+            }
+            cachedIsBiometricEnrollChangedValue.set(false)
+        }
+
+
+        private var cachedIsBiometricEnrolledValue = AtomicBoolean(false)
+        private var jobEnrolled: Job? = null
+        private var checkEnrolledStartedTs = 0L
+
+
+        private fun biometricEnrolled(): Boolean {
+            try {
+                lock.lock()
+                if (jobEnrolled?.isActive == true) {
+                    if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
+                            30
+                        )
+                    ) {
+                        jobEnrolled?.cancel()
+                        jobEnrolled = null
+                    }
+                }
+
+                if (jobEnrolled?.isActive != true) {
+                    checkEnrolledStartedTs = System.currentTimeMillis()
+                    jobEnrolled = GlobalScope.launch(Dispatchers.IO) {
+                        updateBiometricEnrolled()
+                    }
+                }
+
+                return cachedIsBiometricEnrolledValue.get()
+            } finally {
+                lock.unlock()
+            }
+        }
+
+        private fun updateBiometricEnrolled() {
+            val keyguardManager =
+                appContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
+            if (keyguardManager?.isDeviceSecure == true) {
+                if (BiometricAuthentication.hasEnrolled()
+                    || LockType.isBiometricWeakEnabled(appContext)
+                ) {
+                    cachedIsBiometricEnrolledValue.set(true)
+                    return
+                }
+
+                //Fallback for some devices where previews methods failed
+
+                //https://stackoverflow.com/a/53973970
+                var keyStore: KeyStore? = null
+                val name = UUID.randomUUID().toString()
+                try {
+                    keyStore = KeyStore.getInstance("AndroidKeyStore")
+                    keyStore.load(null)
+                    val keyGenerator =
+                        KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, keyStore.provider)
+                    val builder = KeyGenParameterSpec.Builder(
+                        name,
+                        KeyProperties.PURPOSE_ENCRYPT or
+                                KeyProperties.PURPOSE_DECRYPT
+                    )
+                        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                        .setUserAuthenticationRequired(true)
+                        .setInvalidatedByBiometricEnrollment(true)
+                    keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
+
+//                keyGenerator.generateKey();
+//
+//                //Devices with a bug in Keystore
+//                //https://issuetracker.google.com/issues/37127115
+//                //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
+//                try {
+//                    SecretKey symKey = (SecretKey) keyStore.getKey(name, null);
+//                    Cipher sym = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"
+//                            + KeyProperties.BLOCK_MODE_CBC + "/"
+//                            + KeyProperties.ENCRYPTION_PADDING_PKCS7);
+//                    sym.init(Cipher.ENCRYPT_MODE, symKey);
+//                    sym.doFinal(name.getBytes("UTF-8"));
+//                } catch (Throwable e) {
+//                    //at least one biometric enrolled
+//                    return BiometricAuthentication.hasEnrolled();
+//                }
+                } catch (throwable: Throwable) {
+                    var e = throwable
+                    if (e is InvalidAlgorithmParameterException) {
+                        cachedIsBiometricEnrolledValue.set(false)
+                        return
+                    }
+                    var cause: Throwable? = e.cause
+                    while (cause != null && cause != e) {
+                        if (cause is IllegalStateException) {
+                            cachedIsBiometricEnrolledValue.set(false)
+                            return
+                        }
+                        e = cause
+                        cause = e.cause
+                    }
+                } finally {
+                    try {
+                        keyStore?.deleteEntry(name)
+                    } catch (ignore: Throwable) {
+                    }
+                }
+                cachedIsBiometricEnrolledValue.set(true)
+                return
+            }
+            cachedIsBiometricEnrolledValue.set(false)
+        }
+
+        init {
+            biometricEnrollChanged()
+            biometricEnrolled()
+        }
     }
 
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_sdk28Hardware")
@@ -64,57 +268,10 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType
     override val isBiometricEnrollChanged: Boolean
         get() {
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY)
-                try {
-                    val name = "BiometricKey"
-                    val keyStore = KeyStore.getInstance("AndroidKeyStore")
-                    keyStore.load(null)
-                    val key = if (keyStore.containsAlias(name))
-                        keyStore.getKey(name, null)
-                    else {
-                        val keyGenerator =
-                            KeyGenerator.getInstance(
-                                KeyProperties.KEY_ALGORITHM_AES,
-                                keyStore.provider
-                            )
-                        val builder = KeyGenParameterSpec.Builder(
-                            name,
-                            KeyProperties.PURPOSE_ENCRYPT or
-                                    KeyProperties.PURPOSE_DECRYPT
-                        )
-                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                            .setUserAuthenticationRequired(true)
-                            .setInvalidatedByBiometricEnrollment(true)
-                        keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
-                        keyGenerator.generateKey();
-                    }
-                    //Devices with a bug in Keystore
-                    //https://issuetracker.google.com/issues/37127115
-                    //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
-
-                    val sym = Cipher.getInstance(
-                        KeyProperties.KEY_ALGORITHM_AES + "/"
-                                + KeyProperties.BLOCK_MODE_CBC + "/"
-                                + KeyProperties.ENCRYPTION_PADDING_PKCS7
-                    );
-                    sym.init(Cipher.ENCRYPT_MODE, key);
-                    sym.doFinal(name.toByteArray(Charset.forName("UTF-8")));
-                } catch (throwable: Throwable) {
-                    var e = throwable
-                    if (e is IllegalBlockSizeException) {
-                        return true
-                    }
-                    var cause: Throwable? = e.cause
-                    while (cause != null && cause != e) {
-                        if (cause is IllegalStateException || cause.javaClass.name == "android.security.KeyStoreException") {
-                            return true
-                        }
-                        e = cause
-                        cause = e.cause
-                    }
-                }
-            return false
+            return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                biometricEnrollChanged()
+            } else
+                false
         }
 
     override
@@ -186,74 +343,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     open val isAnyBiometricEnrolled: Boolean
         get() {
-            val keyguardManager =
-                appContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
-            if (keyguardManager?.isDeviceSecure == true) {
-                if (BiometricAuthentication.hasEnrolled()
-                    || LockType.isBiometricWeakEnabled(appContext)
-                ) {
-                    return true
-                }
-
-                //Fallback for some devices where previews methods failed
-
-                //https://stackoverflow.com/a/53973970
-                var keyStore: KeyStore? = null
-                val name = UUID.randomUUID().toString()
-                try {
-                    keyStore = KeyStore.getInstance("AndroidKeyStore")
-                    keyStore.load(null)
-                    val keyGenerator =
-                        KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, keyStore.provider)
-                    val builder = KeyGenParameterSpec.Builder(
-                        name,
-                        KeyProperties.PURPOSE_ENCRYPT or
-                                KeyProperties.PURPOSE_DECRYPT
-                    )
-                        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                        .setUserAuthenticationRequired(true)
-                        .setInvalidatedByBiometricEnrollment(true)
-                    keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
-
-//                keyGenerator.generateKey();
-//
-//                //Devices with a bug in Keystore
-//                //https://issuetracker.google.com/issues/37127115
-//                //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
-//                try {
-//                    SecretKey symKey = (SecretKey) keyStore.getKey(name, null);
-//                    Cipher sym = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"
-//                            + KeyProperties.BLOCK_MODE_CBC + "/"
-//                            + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-//                    sym.init(Cipher.ENCRYPT_MODE, symKey);
-//                    sym.doFinal(name.getBytes("UTF-8"));
-//                } catch (Throwable e) {
-//                    //at least one biometric enrolled
-//                    return BiometricAuthentication.hasEnrolled();
-//                }
-                } catch (throwable: Throwable) {
-                    var e = throwable
-                    if (e is InvalidAlgorithmParameterException) {
-                        return false
-                    }
-                    var cause: Throwable? = e.cause
-                    while (cause != null && cause != e) {
-                        if (cause is IllegalStateException) {
-                            return false
-                        }
-                        e = cause
-                        cause = e.cause
-                    }
-                } finally {
-                    try {
-                        keyStore?.deleteEntry(name)
-                    } catch (ignore: Throwable) {
-                    }
-                }
-                return true
-            }
-            return false
+            return biometricEnrolled()
         }
 
     fun lockout() {
