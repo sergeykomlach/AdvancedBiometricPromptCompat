@@ -30,6 +30,7 @@ import android.view.View
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import java.lang.reflect.InvocationTargetException
+import java.util.concurrent.locks.ReentrantLock
 
 
 class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
@@ -42,6 +43,7 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
     private var mCallback: IFaceLockCallback? = null
     private var mServiceConnection: ServiceConnection? = null
     private val hasHardware: Boolean
+    private val lock = ReentrantLock()
 
     companion object {
         const val FACELOCK_UNABLE_TO_BIND = 1
@@ -82,171 +84,193 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
         return hasHardware
     }
 
-    @Synchronized
+
     fun destroy() {
-        targetView = null
-        mCallback = null
-        mServiceConnection = null
+        try {
+            lock.lock()
+            targetView = null
+            mCallback = null
+            mServiceConnection = null
+        } finally {
+            lock.unlock()
+        }
     }
 
-    @Synchronized
+
     fun initFacelock() {
-        d(TAG + ".initFacelock")
         try {
-            mCallback = object : IFaceLockCallback {
-                private var mStarted = false
+            lock.lock()
+            d(TAG + ".initFacelock")
+            try {
+                mCallback = object : IFaceLockCallback {
+                    private var mStarted = false
 
-                @Throws(RemoteException::class)
-                override fun unlock() {
-                    d(TAG + ".IFaceIdCallback.unlock")
-                    stopFaceLock()
-                    d(TAG + ".IFaceIdCallback.exec onAuthorized")
-                    faceLockInterface.onAuthorized()
-                    mStarted = false
-                }
+                    @Throws(RemoteException::class)
+                    override fun unlock() {
+                        d(TAG + ".IFaceIdCallback.unlock")
+                        stopFaceLock()
+                        d(TAG + ".IFaceIdCallback.exec onAuthorized")
+                        faceLockInterface.onAuthorized()
+                        mStarted = false
+                    }
 
-                @Throws(RemoteException::class)
-                override fun cancel() {
-                    d(TAG + ".IFaceIdCallback.cancel")
-                    if (mBoundToFaceLockService) {
-                        mStarted = if (mStarted) {
-                            d(TAG + ".timeout")
-                            faceLockInterface.onError(
-                                FACELOCK_TIMEOUT,
-                                getMessage(FACELOCK_TIMEOUT)
-                            )
-                            stopFaceLock()
-                            false
-                        } else {
-                            d(TAG + ".canceled")
-                            faceLockInterface.onError(
-                                FACELOCK_CANCELED,
-                                getMessage(FACELOCK_CANCELED)
-                            )
-                            stopFaceLock()
-                            false
+                    @Throws(RemoteException::class)
+                    override fun cancel() {
+                        d(TAG + ".IFaceIdCallback.cancel")
+                        if (mBoundToFaceLockService) {
+                            mStarted = if (mStarted) {
+                                d(TAG + ".timeout")
+                                faceLockInterface.onError(
+                                    FACELOCK_TIMEOUT,
+                                    getMessage(FACELOCK_TIMEOUT)
+                                )
+                                stopFaceLock()
+                                false
+                            } else {
+                                d(TAG + ".canceled")
+                                faceLockInterface.onError(
+                                    FACELOCK_CANCELED,
+                                    getMessage(FACELOCK_CANCELED)
+                                )
+                                stopFaceLock()
+                                false
+                            }
                         }
                     }
-                }
 
-                @Throws(RemoteException::class)
-                override fun reportFailedAttempt() {
-                    d(TAG + ".IFaceIdCallback.reportFailedAttempt")
-                    faceLockInterface.onError(
-                        FACELOCK_FAILED_ATTEMPT, getMessage(
-                            FACELOCK_FAILED_ATTEMPT
+                    @Throws(RemoteException::class)
+                    override fun reportFailedAttempt() {
+                        d(TAG + ".IFaceIdCallback.reportFailedAttempt")
+                        faceLockInterface.onError(
+                            FACELOCK_FAILED_ATTEMPT, getMessage(
+                                FACELOCK_FAILED_ATTEMPT
+                            )
                         )
-                    )
-                }
+                    }
 
-                @Throws(RemoteException::class)
-                override fun exposeFallback() {
-                    d(TAG + ".IFaceIdCallback.exposeFallback")
-                    mStarted = true
-                }
+                    @Throws(RemoteException::class)
+                    override fun exposeFallback() {
+                        d(TAG + ".IFaceIdCallback.exposeFallback")
+                        mStarted = true
+                    }
 
-                @Throws(RemoteException::class)
-                override fun pokeWakelock() {
-                    d(TAG + ".IFaceIdCallback.pokeWakelock")
-                    mStarted = true
-                    try {
-                        val pm = context?.getSystemService(Context.POWER_SERVICE) as PowerManager?
-                        val screenLock = pm
-                            ?.newWakeLock(
-                                PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,
-                                javaClass.name
-                            )
-                        screenLock?.acquire(25000L)
-                        if (screenLock?.isHeld == true) {
-                            screenLock?.release()
+                    @Throws(RemoteException::class)
+                    override fun pokeWakelock() {
+                        d(TAG + ".IFaceIdCallback.pokeWakelock")
+                        mStarted = true
+                        try {
+                            val pm =
+                                context?.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                            val screenLock = pm
+                                ?.newWakeLock(
+                                    PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,
+                                    javaClass.name
+                                )
+                            screenLock?.acquire(25000L)
+                            if (screenLock?.isHeld == true) {
+                                screenLock.release()
+                            }
+                        } catch (e: Throwable) {
+                            e(e, TAG)
                         }
-                    } catch (e: Throwable) {
-                        e(e, TAG)
                     }
                 }
-            }
-            mServiceConnection = object : ServiceConnection {
-                override fun onServiceDisconnected(name: ComponentName) {
-                    d(TAG + ".ServiceConnection.onServiceDisconnected")
-                    try {
-                        mCallback?.let {
-                            mFaceLock?.unregisterCallback(it)
+                mServiceConnection = object : ServiceConnection {
+                    override fun onServiceDisconnected(name: ComponentName) {
+                        d(TAG + ".ServiceConnection.onServiceDisconnected")
+                        try {
+                            mCallback?.let {
+                                mFaceLock?.unregisterCallback(it)
+                            }
+                        } catch (e: Exception) {
+                            if (e is InvocationTargetException) {
+                                e(
+                                    e, TAG + ("Caught invocation exception registering callback: "
+                                            + e
+                                        .targetException)
+                                )
+                            } else {
+                                e(e, TAG + "Caught exception registering callback: $e")
+                            }
                         }
-                    } catch (e: Exception) {
-                        if (e is InvocationTargetException) {
-                            e(
-                                e, TAG + ("Caught invocation exception registering callback: "
-                                        + e
-                                    .targetException)
-                            )
-                        } else {
-                            e(e, TAG + "Caught exception registering callback: $e")
-                        }
-                    }
-                    mFaceLockServiceRunning = false
-                    mBoundToFaceLockService = false
-                    faceLockInterface.onDisconnected()
-                }
-
-                override fun onServiceConnected(name: ComponentName, service: IBinder) {
-                    d(TAG + ".ServiceConnection.onServiceConnected")
-                    mBoundToFaceLockService = true
-                    try {
-                        mCallback?.let {
-                            mFaceLock?.registerCallback(it)
-                        }
-                    } catch (e: Exception) {
-                        if (e is InvocationTargetException) {
-                            e(
-                                e, TAG + ("Caught invocation exception registering callback: "
-                                        + e
-                                    .targetException)
-                            )
-                        } else {
-                            e(e, TAG + "Caught exception registering callback: $e")
-                        }
+                        mFaceLockServiceRunning = false
                         mBoundToFaceLockService = false
+                        faceLockInterface.onDisconnected()
                     }
-                    faceLockInterface.onConnected()
-                }
-            }
-            if (!mBoundToFaceLockService) {
-                mServiceConnection?.let {
-                    if (mFaceLock?.bind(it) == false) {
-                        faceLockInterface
-                            .onError(FACELOCK_UNABLE_TO_BIND, getMessage(FACELOCK_UNABLE_TO_BIND))
-                    } else {
-                        d(TAG + ".Binded, waiting for connection")
-                        return
+
+                    override fun onServiceConnected(name: ComponentName, service: IBinder) {
+                        d(TAG + ".ServiceConnection.onServiceConnected")
+                        mBoundToFaceLockService = true
+                        try {
+                            mCallback?.let {
+                                mFaceLock?.registerCallback(it)
+                            }
+                        } catch (e: Exception) {
+                            if (e is InvocationTargetException) {
+                                e(
+                                    e, TAG + ("Caught invocation exception registering callback: "
+                                            + e
+                                        .targetException)
+                                )
+                            } else {
+                                e(e, TAG + "Caught exception registering callback: $e")
+                            }
+                            mBoundToFaceLockService = false
+                        }
+                        faceLockInterface.onConnected()
                     }
                 }
-            } else {
-                d(TAG + ".Already mBoundToFaceLockService")
+                if (!mBoundToFaceLockService) {
+                    mServiceConnection?.let {
+                        if (mFaceLock?.bind(it) == false) {
+                            faceLockInterface
+                                .onError(
+                                    FACELOCK_UNABLE_TO_BIND,
+                                    getMessage(FACELOCK_UNABLE_TO_BIND)
+                                )
+                        } else {
+                            d(TAG + ".Binded, waiting for connection")
+                            return
+                        }
+                    }
+                } else {
+                    d(TAG + ".Already mBoundToFaceLockService")
+                }
+            } catch (e: Exception) {
+                e(e, TAG + "Caught exception creating FaceId: $e")
+                faceLockInterface.onError(
+                    FACELOCK_API_NOT_FOUND,
+                    getMessage(FACELOCK_API_NOT_FOUND)
+                )
             }
-        } catch (e: Exception) {
-            e(e, TAG + "Caught exception creating FaceId: $e")
-            faceLockInterface.onError(FACELOCK_API_NOT_FOUND, getMessage(FACELOCK_API_NOT_FOUND))
+            d(TAG + ".init failed")
+        } finally {
+            lock.unlock()
         }
-        d(TAG + ".init failed")
     }
 
     // Tells the FaceId service to stop displaying its UI and stop recognition
-    @Synchronized
+
     fun stopFaceLock() {
-        d(TAG + ".stopFaceLock")
-        if (mFaceLockServiceRunning) {
-            try {
-                d(TAG + ".Stopping FaceId")
-                mFaceLock?.stopUi()
-            } catch (e: Exception) {
-                e(e, TAG + "Caught exception stopping FaceId: $e")
+        try {
+            lock.lock()
+            d(TAG + ".stopFaceLock")
+            if (mFaceLockServiceRunning) {
+                try {
+                    d(TAG + ".Stopping FaceId")
+                    mFaceLock?.stopUi()
+                } catch (e: Exception) {
+                    e(e, TAG + "Caught exception stopping FaceId: $e")
+                }
+                mFaceLockServiceRunning = false
             }
-            mFaceLockServiceRunning = false
-        }
-        if (mBoundToFaceLockService) {
-            mFaceLock?.unbind()
-            d(TAG + ".FaceId.unbind()")
-            mBoundToFaceLockService = false
+            if (mBoundToFaceLockService) {
+                mFaceLock?.unbind()
+                d(TAG + ".FaceId.unbind()")
+                mBoundToFaceLockService = false
+            }
+        } finally {
+            lock.unlock()
         }
     }
 
@@ -275,12 +299,17 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
         }
     }
 
-    @Synchronized
+
     fun startFaceLockWithUi(view: View?) {
-        d(TAG + ".startFaceLockWithUi")
-        targetView = view
-        targetView?.let {
-            startFaceAuth(it)
+        try {
+            lock.lock()
+            d(TAG + ".startFaceLockWithUi")
+            targetView = view
+            targetView?.let {
+                startFaceAuth(it)
+            }
+        } finally {
+            lock.unlock()
         }
     }
 }

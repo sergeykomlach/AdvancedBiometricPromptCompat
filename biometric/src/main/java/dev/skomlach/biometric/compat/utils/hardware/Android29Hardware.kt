@@ -33,41 +33,44 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
+
 
 @TargetApi(Build.VERSION_CODES.Q)
 
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
     companion object {
-        @Volatile
-        private var cachedCanAuthenticateValue: Int? = null
+
+        private val lock = ReentrantLock()
+        private var cachedCanAuthenticateValue =
+            AtomicInteger(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE)
         private var job: Job? = null
         private var checkStartedTs = 0L
 
-        @Synchronized
+
         private fun canAuthenticate(): Int {
-            cachedCanAuthenticateValue?.let {
+            try {
+                lock.lock()
                 if (job?.isActive == true) {
                     if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
                         job?.cancel()
                         job = null
                     }
                 }
-
                 if (job?.isActive != true) {
                     checkStartedTs = System.currentTimeMillis()
                     job = GlobalScope.launch(Dispatchers.IO) {
                         updateCodeSync()
                     }
                 }
-            } ?: run {
-                updateCodeSync()
+                return cachedCanAuthenticateValue.get()
+            } finally {
+                lock.unlock()
             }
-
-            return cachedCanAuthenticateValue ?: BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
         }
 
         @SuppressLint("WrongConstant")
-        @Synchronized
         private fun updateCodeSync() {
             var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
             try {
@@ -92,8 +95,12 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 e(e)
             } finally {
                 e("Android29Hardware - canAuthenticate=$code")
-                cachedCanAuthenticateValue = code
+                cachedCanAuthenticateValue.set(code)
             }
+        }
+
+        init {
+            canAuthenticate()
         }
     }
 

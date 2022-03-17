@@ -47,7 +47,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.atomic.AtomicInteger
 
 
 class PermissionsFragment : Fragment() {
@@ -91,8 +91,7 @@ class PermissionsFragment : Fragment() {
         NONE
     }
 
-    @Volatile
-    private var permissionsRequestState = PermissionRequestState.NONE
+    private var permissionsRequestState = AtomicInteger(PermissionRequestState.NONE.ordinal)
     override fun onDetach() {
         super.onDetach()
         sendGlobalBroadcastIntent(appContext, Intent(INTENT_KEY))
@@ -120,7 +119,7 @@ class PermissionsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (permissionsRequestState == PermissionRequestState.MANUAL_REQUEST) {
+        if (permissionsRequestState.get() == PermissionRequestState.MANUAL_REQUEST.ordinal) {
             ExecutorHelper.postDelayed({
                 try {
                     activity?.supportFragmentManager?.beginTransaction()
@@ -140,7 +139,7 @@ class PermissionsFragment : Fragment() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (permissionsRequestState != PermissionRequestState.NONE) {
+        if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
             ExecutorHelper.postDelayed({
                 try {
                     activity?.supportFragmentManager?.beginTransaction()
@@ -155,7 +154,7 @@ class PermissionsFragment : Fragment() {
 
 
     private fun unusedAppRestrictionsDisabled() {
-        permissionsRequestState = PermissionRequestState.MANUAL_REQUEST
+        permissionsRequestState.set(PermissionRequestState.MANUAL_REQUEST.ordinal)
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
         if (!permissions.any {
                 ActivityCompat.shouldShowRequestPermissionRationale(
@@ -182,7 +181,7 @@ class PermissionsFragment : Fragment() {
     }
 
     private fun onResult(appRestrictionsStatus: Int) {
-        permissionsRequestState = PermissionRequestState.MANUAL_REQUEST
+        permissionsRequestState.set(PermissionRequestState.MANUAL_REQUEST.ordinal)
         when (appRestrictionsStatus) {
             // If the user doesn't start your app for months, its permissions
             // will be revoked and/or it will be hibernated.
@@ -250,7 +249,7 @@ class PermissionsFragment : Fragment() {
                 showMandatoryPermissionsNeedDialog(permissions)
                 return
             } else {
-                permissionsRequestState = PermissionRequestState.NORMAL_REQUEST
+                permissionsRequestState.set(PermissionRequestState.NORMAL_REQUEST.ordinal)
                 //ask permission
                 requestPermissions(
                     permissions.toTypedArray(),
@@ -295,7 +294,7 @@ class PermissionsFragment : Fragment() {
             }
             setPositiveButton(android.R.string.ok) { dialog, _ ->
                 dialog.dismiss()
-                permissionsRequestState = PermissionRequestState.RATIONAL_REQUEST
+                permissionsRequestState.set(PermissionRequestState.RATIONAL_REQUEST.ordinal)
                 requestPermissions(
                     permissions.toTypedArray(),
                     permissionRequestCode

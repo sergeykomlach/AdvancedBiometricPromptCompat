@@ -34,13 +34,18 @@ import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException
 import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
@@ -53,146 +58,135 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     companion object {
         private const val TS_PREF = "timestamp_"
         private val timeout = TimeUnit.SECONDS.toMillis(31)
-    }
 
-    private val preferences: SharedPreferences = getPreferences("BiometricCompat_sdk28Hardware")
-    override val isHardwareAvailable: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType
-    override val isBiometricEnrolled: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType
-    override val isLockedOut: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType
-    override val isBiometricEnrollChanged: Boolean
-        get() {
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY)
-                try {
-                    val name = "BiometricKey"
-                    val keyStore = KeyStore.getInstance("AndroidKeyStore")
-                    keyStore.load(null)
-                    val key = if (keyStore.containsAlias(name))
-                        keyStore.getKey(name, null)
-                    else {
-                        val keyGenerator =
-                            KeyGenerator.getInstance(
-                                KeyProperties.KEY_ALGORITHM_AES,
-                                keyStore.provider
-                            )
-                        val builder = KeyGenParameterSpec.Builder(
-                            name,
-                            KeyProperties.PURPOSE_ENCRYPT or
-                                    KeyProperties.PURPOSE_DECRYPT
+        private var cachedIsBiometricEnrollChangedValue = AtomicBoolean(false)
+        private var jobEnrollChanged: Job? = null
+        private var checkEnrollChangedStartedTs = 0L
+
+        private val lock = ReentrantLock()
+        private fun biometricEnrollChanged(): Boolean {
+            try {
+                lock.lock()
+                if (jobEnrollChanged?.isActive == true) {
+                    if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
+                            30
                         )
-                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                            .setUserAuthenticationRequired(true)
-                            .setInvalidatedByBiometricEnrollment(true)
-                        keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
-                        keyGenerator.generateKey();
-                    }
-                    //Devices with a bug in Keystore
-                    //https://issuetracker.google.com/issues/37127115
-                    //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
-
-                    val sym = Cipher.getInstance(
-                        KeyProperties.KEY_ALGORITHM_AES + "/"
-                                + KeyProperties.BLOCK_MODE_CBC + "/"
-                                + KeyProperties.ENCRYPTION_PADDING_PKCS7
-                    );
-                    sym.init(Cipher.ENCRYPT_MODE, key);
-                    sym.doFinal(name.toByteArray(Charset.forName("UTF-8")));
-                } catch (throwable: Throwable) {
-                    var e = throwable
-                    if (e is IllegalBlockSizeException) {
-                        return true
-                    }
-                    var cause: Throwable? = e.cause
-                    while (cause != null && cause != e) {
-                        if (cause is IllegalStateException || cause.javaClass.name == "android.security.KeyStoreException") {
-                            return true
-                        }
-                        e = cause
-                        cause = e.cause
+                    ) {
+                        jobEnrollChanged?.cancel()
+                        jobEnrollChanged = null
                     }
                 }
-            return false
+
+                if (jobEnrollChanged?.isActive != true) {
+                    checkEnrollChangedStartedTs = System.currentTimeMillis()
+                    jobEnrollChanged = GlobalScope.launch(Dispatchers.IO) {
+                        updateBiometricChanged()
+                    }
+                }
+
+
+                return cachedIsBiometricEnrollChangedValue.get()
+            } finally {
+                lock.unlock()
+            }
         }
 
-    override
-    fun updateBiometricEnrollChanged() {
-        if (isBiometricEnrollChanged) {
+        private fun updateBiometricChanged() {
             try {
                 val name = "BiometricKey"
                 val keyStore = KeyStore.getInstance("AndroidKeyStore")
                 keyStore.load(null)
-                if (keyStore.containsAlias(name))
-                    keyStore.deleteEntry(name)
+                val key = if (keyStore.containsAlias(name))
+                    keyStore.getKey(name, null)
+                else {
+                    val keyGenerator =
+                        KeyGenerator.getInstance(
+                            KeyProperties.KEY_ALGORITHM_AES,
+                            keyStore.provider
+                        )
+                    val builder = KeyGenParameterSpec.Builder(
+                        name,
+                        KeyProperties.PURPOSE_ENCRYPT or
+                                KeyProperties.PURPOSE_DECRYPT
+                    )
+                        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                        .setUserAuthenticationRequired(true)
+                        .setInvalidatedByBiometricEnrollment(true)
+                    keyGenerator.init(builder.build()) //exception should be thrown here on "normal" devices if no enrolled biometric
+                    keyGenerator.generateKey()
+                }
+                //Devices with a bug in Keystore
+                //https://issuetracker.google.com/issues/37127115
+                //https://stackoverflow.com/questions/42359337/android-key-invalidation-when-fingerprints-removed
+
+                val sym = Cipher.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES + "/"
+                            + KeyProperties.BLOCK_MODE_CBC + "/"
+                            + KeyProperties.ENCRYPTION_PADDING_PKCS7
+                )
+                sym.init(Cipher.ENCRYPT_MODE, key)
+                sym.doFinal(name.toByteArray(Charset.forName("UTF-8")))
             } catch (throwable: Throwable) {
+                var e = throwable
+                if (e is IllegalBlockSizeException) {
+                    cachedIsBiometricEnrollChangedValue.set(true)
+                    return
+                }
+                var cause: Throwable? = e.cause
+                while (cause != null && cause != e) {
+                    if (cause is IllegalStateException || cause.javaClass.name == "android.security.KeyStoreException") {
+                        cachedIsBiometricEnrollChangedValue.set(true)
+                        return
+                    }
+                    e = cause
+                    cause = e.cause
+                }
             }
+            cachedIsBiometricEnrollChangedValue.set(false)
         }
-    }
 
-    private fun biometricFeatures(): ArrayList<String> {
-        val list = ArrayList<String>()
-        try {
-            val fields = PackageManager::class.java.fields
-            for (f in fields) {
-                if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
-                    (f[null] as String?)?.let { name ->
 
-                        val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
-                        val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
-                        if ((isAOSP || isOEM) && (
-                                    name.endsWith(".fingerprint")
-                                            || name.endsWith(".face")
-                                            || name.endsWith(".iris")
-                                            || name.endsWith(".biometric")
-                                            || name.endsWith(".palm")
-                                            || name.endsWith(".voice")
-                                            || name.endsWith(".heartrate")
+        private var cachedIsBiometricEnrolledValue = AtomicBoolean(false)
+        private var jobEnrolled: Job? = null
+        private var checkEnrolledStartedTs = 0L
 
-                                            || name.contains(".fingerprint.")
-                                            || name.contains(".face.")
-                                            || name.contains(".iris.")
-                                            || name.contains(".biometric.")
-                                            || name.contains(".palm.")
-                                            || name.contains(".voice.")
-                                            || name.contains(".heartrate.")
-                                    )
-                        ) {
-                            list.add(name)
-                        }
+
+        private fun biometricEnrolled(): Boolean {
+            try {
+                lock.lock()
+                if (jobEnrolled?.isActive == true) {
+                    if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
+                            30
+                        )
+                    ) {
+                        jobEnrolled?.cancel()
+                        jobEnrolled = null
                     }
                 }
-            }
-        } catch (e: Throwable) {
-            e(e)
-        }
-        list.sort()
-        return list
-    }
 
-    open val isAnyHardwareAvailable: Boolean
-        get() {
-            if (BiometricAuthentication.isHardwareDetected) return true
-            val list = biometricFeatures()
-            val packageManager = appContext.packageManager
-            for (f in list) {
-                if (packageManager != null && packageManager.hasSystemFeature(f)) {
-                    return true
+                if (jobEnrolled?.isActive != true) {
+                    checkEnrolledStartedTs = System.currentTimeMillis()
+                    jobEnrolled = GlobalScope.launch(Dispatchers.IO) {
+                        updateBiometricEnrolled()
+                    }
                 }
+
+                return cachedIsBiometricEnrolledValue.get()
+            } finally {
+                lock.unlock()
             }
-            return false
         }
 
-    open val isAnyBiometricEnrolled: Boolean
-        get() {
+        private fun updateBiometricEnrolled() {
             val keyguardManager =
                 appContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
             if (keyguardManager?.isDeviceSecure == true) {
                 if (BiometricAuthentication.hasEnrolled()
                     || LockType.isBiometricWeakEnabled(appContext)
                 ) {
-                    return true
+                    cachedIsBiometricEnrolledValue.set(true)
+                    return
                 }
 
                 //Fallback for some devices where previews methods failed
@@ -235,12 +229,14 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 } catch (throwable: Throwable) {
                     var e = throwable
                     if (e is InvalidAlgorithmParameterException) {
-                        return false
+                        cachedIsBiometricEnrolledValue.set(false)
+                        return
                     }
                     var cause: Throwable? = e.cause
                     while (cause != null && cause != e) {
                         if (cause is IllegalStateException) {
-                            return false
+                            cachedIsBiometricEnrolledValue.set(false)
+                            return
                         }
                         e = cause
                         cause = e.cause
@@ -251,22 +247,126 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     } catch (ignore: Throwable) {
                     }
                 }
+                cachedIsBiometricEnrolledValue.set(true)
+                return
+            }
+            cachedIsBiometricEnrolledValue.set(false)
+        }
+
+        init {
+            biometricEnrollChanged()
+            biometricEnrolled()
+        }
+    }
+
+    private val preferences: SharedPreferences = getPreferences("BiometricCompat_sdk28Hardware")
+    override val isHardwareAvailable: Boolean
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType
+    override val isBiometricEnrolled: Boolean
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType
+    override val isLockedOut: Boolean
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType
+    override val isBiometricEnrollChanged: Boolean
+        get() {
+            return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                biometricEnrollChanged()
+            } else
+                false
+        }
+
+    override
+    fun updateBiometricEnrollChanged() {
+        if (isBiometricEnrollChanged) {
+            try {
+                val name = "BiometricKey"
+                val keyStore = KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                if (keyStore.containsAlias(name))
+                    keyStore.deleteEntry(name)
+            } catch (throwable: Throwable) {
+            }
+        }
+    }
+
+    private val biometricFeatures: ArrayList<String>
+        get() {
+        val list = ArrayList<String>()
+        try {
+            val fields = PackageManager::class.java.fields
+            for (f in fields) {
+                if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
+                    (f[null] as String?)?.let { name ->
+
+                        val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
+                        val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
+                        if ((isAOSP || isOEM) && (
+                                    name.endsWith(".fingerprint")
+                                            || name.endsWith(".face")
+                                            || name.endsWith(".iris")
+                                            || name.endsWith(".biometric")
+                                            || name.endsWith(".palm")
+                                            || name.endsWith(".voice")
+                                            || name.endsWith(".heartrate")
+
+                                            || name.contains(".fingerprint.")
+                                            || name.contains(".face.")
+                                            || name.contains(".iris.")
+                                            || name.contains(".biometric.")
+                                            || name.contains(".palm.")
+                                            || name.contains(".voice.")
+                                            || name.contains(".heartrate.")
+                                    )
+                        ) {
+                            list.add(name)
+                        }
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            e(e)
+        }
+        list.sort()
+        return list
+    }
+
+    private val hasAnyHardware : Boolean
+    get() {
+        if (BiometricAuthentication.isHardwareDetected) return true
+        val packageManager = appContext.packageManager
+        for (f in biometricFeatures) {
+            if (packageManager != null && packageManager.hasSystemFeature(f)) {
                 return true
             }
-            return false
+        }
+        return false
+    }
+    open val isAnyHardwareAvailable: Boolean
+        get() = hasAnyHardware
+    open val isAnyBiometricEnrolled: Boolean
+        get() {
+            return biometricEnrolled()
         }
 
     fun lockout() {
         if (!isLockedOut) {
-            preferences.edit()
-                .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, System.currentTimeMillis())
-                .apply()
+            try {
+                preferences.edit()
+                    .putLong(
+                        TS_PREF + "-" + biometricAuthRequest.type.name,
+                        System.currentTimeMillis()
+                    )
+                    .apply()
+            } finally {
+                lock.unlock()
+            }
         }
+
     }
 
     private val isAnyLockedOut: Boolean
         get() {
             try {
+                lock.lock()
                 for (key in preferences.all.keys) {
                     val ts = try {
                         preferences.getLong(key, 0)//may produce ClassCastException
@@ -283,6 +383,8 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     }
                 }
             } catch (ignore: Throwable) {
+            } finally {
+                lock.unlock()
             }
             return false
         }//legacy
@@ -297,9 +399,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                         BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
                     if (biometricModule != null && biometricModule.isHardwarePresent) return true
                 }
-                val list = biometricFeatures()
+
                 val packageManager = appContext.packageManager
-                for (f in list) {
+                for (f in biometricFeatures) {
                     if (packageManager.hasSystemFeature(f)) {
                         if ((f.endsWith(".face") || f.contains(".face.")) &&
                             biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE
@@ -335,18 +437,22 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                         BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
                     if (biometricModule != null && biometricModule.isLockOut) return true
                 }
-                val ts = preferences.getLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
-                return if (ts > 0) {
-                    if (System.currentTimeMillis() - ts > timeout) {
-                        preferences.edit()
-                            .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
-                            .apply()
-                        false
+                try {
+                    val ts = preferences.getLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
+                    return if (ts > 0) {
+                        if (System.currentTimeMillis() - ts > timeout) {
+                            preferences.edit()
+                                .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
+                                .apply()
+                            false
+                        } else {
+                            true
+                        }
                     } else {
-                        true
+                        false
                     }
-                } else {
-                    false
+                } finally {
+                    lock.unlock()
                 }
             }
             return false

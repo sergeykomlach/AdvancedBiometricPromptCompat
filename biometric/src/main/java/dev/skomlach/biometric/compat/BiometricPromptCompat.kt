@@ -113,13 +113,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var deviceInfo: DeviceInfo? = null
             private set
             get() {
-                if (field == null && !isDeviceInfoCheckInProgress) {
+                if (field == null && !isDeviceInfoCheckInProgress.get()) {
                     ExecutorHelper.startOnBackground {
-                        isDeviceInfoCheckInProgress = true
+                        isDeviceInfoCheckInProgress.set(true)
                         DeviceInfoManager.getDeviceInfo(object :
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
-                                isDeviceInfoCheckInProgress = false
+                                isDeviceInfoCheckInProgress.set(false)
                                 field = info
                             }
                         })
@@ -128,8 +128,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 return field
             }
 
-        @Volatile
-        private var isDeviceInfoCheckInProgress = false
+
+        private var isDeviceInfoCheckInProgress = AtomicBoolean(false)
 
         @MainThread
         @JvmStatic
@@ -154,11 +154,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AndroidContext.appContext
                     startBiometricInit()
                     ExecutorHelper.startOnBackground {
-                        isDeviceInfoCheckInProgress = true
+                        isDeviceInfoCheckInProgress.set(true)
                         DeviceInfoManager.getDeviceInfo(object :
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
-                                isDeviceInfoCheckInProgress = false
+                                isDeviceInfoCheckInProgress.set(false)
                                 deviceInfo = info
                             }
                         })
@@ -264,7 +264,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val startTime = System.currentTimeMillis()
         var timeout = false
         ExecutorHelper.startOnBackground {
-            while (!builder.isTruncateChecked() || isDeviceInfoCheckInProgress || !isInit) {
+            while (!builder.isTruncateChecked() || isDeviceInfoCheckInProgress.get() || !isInit) {
                 timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
                 if (timeout) {
                     break
@@ -488,7 +488,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         ExecutorHelper.startOnBackground {
-            while (isDeviceInfoCheckInProgress || !isInit) {
+            while (isDeviceInfoCheckInProgress.get() || !isInit) {
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {

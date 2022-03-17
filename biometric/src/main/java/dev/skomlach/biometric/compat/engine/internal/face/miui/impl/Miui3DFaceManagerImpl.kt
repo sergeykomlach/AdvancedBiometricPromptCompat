@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.database.ContentObserver
 import android.database.sqlite.SQLiteDatabase
@@ -36,7 +37,9 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import java.util.*
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+
 
 class Miui3DFaceManagerImpl : IMiuiFaceManager,
     ServiceCallback {
@@ -131,20 +134,24 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         private const val DEBUG = true
         private const val LOG_TAG = "3DFaceManagerImpl"
 
-        @Volatile
-        private var INSTANCE: IMiuiFaceManager? = null
+
+        private val lock = ReentrantLock()
+        private var INSTANCE = AtomicReference<IMiuiFaceManager?>(null)
         fun getInstance(): IMiuiFaceManager? {
-            if (INSTANCE != null && INSTANCE?.isReleased == true) {
-                INSTANCE = null
+            if (INSTANCE.get() != null && INSTANCE.get()?.isReleased == true) {
+                INSTANCE.set(null)
             }
-            if (INSTANCE == null) {
-                synchronized(MiuiFaceManagerImpl::class.java) {
-                    if (INSTANCE == null) {
-                        INSTANCE = Miui3DFaceManagerImpl()
+            if (INSTANCE.get() == null) {
+                try {
+                    lock.lock()
+                    if (INSTANCE.get() == null) {
+                        INSTANCE.set(Miui3DFaceManagerImpl())
                     }
+                } finally {
+                    lock.unlock()
                 }
             }
-            return INSTANCE
+            return INSTANCE.get()
         }
     }
     private val mContext: Context
@@ -389,10 +396,13 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                     val enrollmentCallback3 = mEnrollmentCallback
                                     if (enrollmentCallback3 != null) {
                                         enrollmentCallback3.onEnrollmentProgress(0, arg1)
-                                        //                                            Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 1, -2);
-                                        synchronized(mBinderLock) {
+                                        //Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 1, -2);
+                                        try {
+                                            lock.lock()
                                             mDatabaseStatus = 0
                                             prepareDatabase()
+                                        } finally {
+                                            lock.unlock()
                                         }
                                     }
                                 }
@@ -792,6 +802,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     }
 
     val templatepath: Int
+        @SuppressLint("Range")
         get() {
             val dbFile = File(TEMPLATE_PATH, "biometric.db")
             if (dbFile.exists()) {
