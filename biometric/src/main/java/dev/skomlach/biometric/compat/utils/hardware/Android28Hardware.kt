@@ -288,7 +288,8 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         }
     }
 
-    private fun biometricFeatures(): ArrayList<String> {
+    private val biometricFeatures: ArrayList<String>
+        get() {
         val list = ArrayList<String>()
         try {
             val fields = PackageManager::class.java.fields
@@ -328,19 +329,19 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         return list
     }
 
-    open val isAnyHardwareAvailable: Boolean
-        get() {
-            if (BiometricAuthentication.isHardwareDetected) return true
-            val list = biometricFeatures()
-            val packageManager = appContext.packageManager
-            for (f in list) {
-                if (packageManager != null && packageManager.hasSystemFeature(f)) {
-                    return true
-                }
+    private val hasAnyHardware : Boolean
+    get() {
+        if (BiometricAuthentication.isHardwareDetected) return true
+        val packageManager = appContext.packageManager
+        for (f in biometricFeatures) {
+            if (packageManager != null && packageManager.hasSystemFeature(f)) {
+                return true
             }
-            return false
         }
-
+        return false
+    }
+    open val isAnyHardwareAvailable: Boolean
+        get() = hasAnyHardware
     open val isAnyBiometricEnrolled: Boolean
         get() {
             return biometricEnrolled()
@@ -387,9 +388,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                         BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
                     if (biometricModule != null && biometricModule.isHardwarePresent) return true
                 }
-                val list = biometricFeatures()
+
                 val packageManager = appContext.packageManager
-                for (f in list) {
+                for (f in biometricFeatures) {
                     if (packageManager.hasSystemFeature(f)) {
                         if ((f.endsWith(".face") || f.contains(".face.")) &&
                             biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE
