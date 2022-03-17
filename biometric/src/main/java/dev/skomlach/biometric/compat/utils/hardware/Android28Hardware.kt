@@ -349,15 +349,24 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     fun lockout() {
         if (!isLockedOut) {
-            preferences.edit()
-                .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, System.currentTimeMillis())
-                .apply()
+            try {
+                preferences.edit()
+                    .putLong(
+                        TS_PREF + "-" + biometricAuthRequest.type.name,
+                        System.currentTimeMillis()
+                    )
+                    .apply()
+            } finally {
+                lock.unlock()
+            }
         }
+
     }
 
     private val isAnyLockedOut: Boolean
         get() {
             try {
+                lock.lock()
                 for (key in preferences.all.keys) {
                     val ts = try {
                         preferences.getLong(key, 0)//may produce ClassCastException
@@ -374,6 +383,8 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     }
                 }
             } catch (ignore: Throwable) {
+            } finally {
+                lock.unlock()
             }
             return false
         }//legacy
@@ -426,18 +437,22 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                         BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
                     if (biometricModule != null && biometricModule.isLockOut) return true
                 }
-                val ts = preferences.getLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
-                return if (ts > 0) {
-                    if (System.currentTimeMillis() - ts > timeout) {
-                        preferences.edit()
-                            .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
-                            .apply()
-                        false
+                try {
+                    val ts = preferences.getLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
+                    return if (ts > 0) {
+                        if (System.currentTimeMillis() - ts > timeout) {
+                            preferences.edit()
+                                .putLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
+                                .apply()
+                            false
+                        } else {
+                            true
+                        }
                     } else {
-                        true
+                        false
                     }
-                } else {
-                    false
+                } finally {
+                    lock.unlock()
                 }
             }
             return false
