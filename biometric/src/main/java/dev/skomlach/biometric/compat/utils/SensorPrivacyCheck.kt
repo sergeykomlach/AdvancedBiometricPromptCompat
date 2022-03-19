@@ -39,6 +39,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
+// TODO: Just a references to system resources
+//   [`sensor_privacy_start_use_camera_notification_content_title`->`Unblock device camera`]
+//   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
+//   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
+//   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
+
     private var isCameraInUse = AtomicBoolean(false)
 
     fun isCameraInUse(): Boolean {
