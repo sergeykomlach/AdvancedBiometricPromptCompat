@@ -135,12 +135,14 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
             }
             if (INSTANCE.get() == null) {
                 try {
-                    lock.lock()
+                    lock.runCatching { this.lock() }
                     if (INSTANCE.get() == null) {
                         INSTANCE.set(MiuiFaceManagerImpl())
                     }
                 } finally {
-                    lock.unlock()
+                    lock.runCatching {
+                        this.unlock()
+                    }
                 }
             }
             return INSTANCE.get()
@@ -277,11 +279,13 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
     private var mMiuiFaceService: IBinder? = null
     private val mBinderDied = DeathRecipient {
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             e(TAG, "mMiuiFaceService Service Died.")
             mMiuiFaceService = null
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
     private var mRemovalCallback: IMiuiFaceManager.RemovalCallback? = null
@@ -371,7 +375,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
     @Throws(RemoteException::class)
     private fun initService() {
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             if (mMiuiFaceService == null) {
                 try {
                     mMiuiFaceService = Class.forName("android.os.ServiceManager")
@@ -383,7 +387,9 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
                 mMiuiFaceService?.linkToDeath(mBinderDied, 0)
             }
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
 

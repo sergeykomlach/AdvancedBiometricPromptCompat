@@ -87,19 +87,21 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
 
     fun destroy() {
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             targetView = null
             mCallback = null
             mServiceConnection = null
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
 
 
     fun initFacelock() {
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             d(TAG + ".initFacelock")
             try {
                 mCallback = object : IFaceLockCallback {
@@ -245,7 +247,9 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
             }
             d(TAG + ".init failed")
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
 
@@ -253,7 +257,7 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
 
     fun stopFaceLock() {
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             d(TAG + ".stopFaceLock")
             if (mFaceLockServiceRunning) {
                 try {
@@ -270,7 +274,9 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
                 mBoundToFaceLockService = false
             }
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
 
@@ -302,14 +308,16 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
 
     fun startFaceLockWithUi(view: View?) {
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             d(TAG + ".startFaceLockWithUi")
             targetView = view
             targetView?.let {
                 startFaceAuth(it)
             }
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
 }

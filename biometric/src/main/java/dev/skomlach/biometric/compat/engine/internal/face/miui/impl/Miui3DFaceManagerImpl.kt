@@ -143,12 +143,14 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             }
             if (INSTANCE.get() == null) {
                 try {
-                    lock.lock()
+                    lock.runCatching { this.lock() }
                     if (INSTANCE.get() == null) {
                         INSTANCE.set(Miui3DFaceManagerImpl())
                     }
                 } finally {
-                    lock.unlock()
+                    lock.runCatching {
+                        this.unlock()
+                    }
                 }
             }
             return INSTANCE.get()
@@ -398,11 +400,13 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                         enrollmentCallback3.onEnrollmentProgress(0, arg1)
                                         //Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 1, -2);
                                         try {
-                                            lock.lock()
+                                            lock.runCatching { this.lock() }
                                             mDatabaseStatus = 0
                                             prepareDatabase()
                                         } finally {
-                                            lock.unlock()
+                                            lock.runCatching {
+                                                this.unlock()
+                                            }
                                         }
                                     }
                                 }

@@ -51,7 +51,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
 
         private fun canAuthenticate(): Int {
             try {
-                lock.lock()
+                lock.runCatching { this.lock() }
                 if (job?.isActive == true) {
                     if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
                         job?.cancel()
@@ -66,7 +66,9 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 }
                 return cachedCanAuthenticateValue.get()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
 
