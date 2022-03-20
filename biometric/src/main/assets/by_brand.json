@@ -11211,6 +11211,16 @@
    "model": "V54"
   },
   {
+   "device": "AZUMI_V65_AC04",
+   "name": "Azumi V65",
+   "model": "Azumi_V65"
+  },
+  {
+   "device": "AZUMI_V65_PLUS_AC04",
+   "name": "Azumi V65+",
+   "model": "Azumi_V65_PLUS"
+  },
+  {
    "device": "Azumi_V5_AC05",
    "name": "Azumi_ V5_ AC05",
    "model": "V5"
@@ -12626,6 +12636,11 @@
    "device": "Bmobile_BL51_MV12",
    "name": "BL51",
    "model": "BL51_MV12"
+  },
+  {
+   "device": "Bmobile_BL52_TG06",
+   "name": "BL52_TG06",
+   "model": "BL52"
   },
   {
    "device": "Bmobile_BL54Pro",
@@ -20538,6 +20553,11 @@
    "device": "PADUA",
    "name": "PADUA",
    "model": "PADUA"
+  },
+  {
+   "device": "PADUA_1",
+   "name": "PADUA_1",
+   "model": "PADUA_1"
   }
  ],
  "Centric": [
@@ -24912,6 +24932,23 @@
    "device": "HSSDM660QC",
    "name": "Trekker- X4",
    "model": "Trekker-X4"
+  }
+ ],
+ "CryptoDATA": [
+  {
+   "device": "Hidr_S1_PRO",
+   "name": "Hidr S1 PRO",
+   "model": "Hidr_S1_PRO"
+  },
+  {
+   "device": "Hidr_S1_PRO",
+   "name": "Hidr S1 PRO ROW",
+   "model": "Hidr_S1_PRO"
+  },
+  {
+   "device": "Hidr_S1_PRO",
+   "name": "Hidr S1 PRO RU",
+   "model": "Hidr_S1_PRO"
   }
  ],
  "Cspire": [
@@ -30472,6 +30509,11 @@
    "device": "nippori",
    "name": "Central America",
    "model": "Durabrand 2K Android TV"
+  },
+  {
+   "device": "broadway",
+   "name": "DB Android TV 2K",
+   "model": "DB Android TV 2K"
   },
   {
    "device": "dupont",
@@ -67852,6 +67894,11 @@
    "model": "43F"
   },
   {
+   "device": "zhongshan",
+   "name": "NA",
+   "model": "43FNA"
+  },
+  {
    "device": "stanford",
    "name": "Rosso",
    "model": "40D"
@@ -95747,6 +95794,11 @@
    "model": "motorola edge plus"
   },
   {
+   "device": "hiphi",
+   "name": "motorola edge plus 5G UW (2022)",
+   "model": "motorola edge plus 5G UW (2022)"
+  },
+  {
    "device": "nio",
    "name": "motorola edge s",
    "model": "XT2125-4"
@@ -117107,11 +117159,6 @@
    "model": "RMX3262"
   },
   {
-   "device": "RMX3191",
-   "name": "realme C25",
-   "model": "RMX3191"
-  },
-  {
    "device": "RE54D1",
    "name": "realme C25Y",
    "model": "RMX3265"
@@ -117746,6 +117793,11 @@
   {
    "device": "dandelion",
    "name": "Redmi 9A",
+   "model": "220233L2G"
+  },
+  {
+   "device": "dandelion",
+   "name": "Redmi 9A",
    "model": "M2006C3LC"
   },
   {
@@ -117877,6 +117929,21 @@
    "device": "haydn",
    "name": "Redmi K40 Pro +",
    "model": "M2012K11C"
+  },
+  {
+   "device": "munch",
+   "name": "Redmi K40S",
+   "model": "22021211RC"
+  },
+  {
+   "device": "rubens",
+   "name": "Redmi K50",
+   "model": "22041211AC"
+  },
+  {
+   "device": "matisse",
+   "name": "Redmi K50 Pro",
+   "model": "22011211C"
   },
   {
    "device": "ingres",
@@ -126402,6 +126469,11 @@
    "device": "m23xq",
    "name": "Galaxy M23 5G",
    "model": "SM-M236B"
+  },
+  {
+   "device": "m23xq",
+   "name": "Galaxy M23 5G",
+   "model": "SM-M236Q"
   },
   {
    "device": "m30lte",
@@ -158866,6 +158938,11 @@
    "model": "Ulefone Tab A7"
   },
   {
+   "device": "Tab_R8_5G",
+   "name": "Tab R8 5G",
+   "model": "Tab R8 5G"
+  },
+  {
    "device": "Ulefone_Tab_A7",
    "name": "Ulefone Tab A7",
    "model": "Ulefone Tab A7"
@@ -160167,6 +160244,13 @@
    "device": "VZ-30",
    "name": "VZ-30",
    "model": "VZ-30"
+  }
+ ],
+ "VIMOQ": [
+  {
+   "device": "VIMOQ-A507LE",
+   "name": "VIMOQ V51 LTE",
+   "model": "VIMOQ A507LE"
   }
  ],
  "VIPER": [
@@ -170732,6 +170816,16 @@
    "device": "vili",
    "name": "Xiaomi 11T Pro",
    "model": "2107113SR"
+  },
+  {
+   "device": "cupid",
+   "name": "Xiaomi 12",
+   "model": "2201123G"
+  },
+  {
+   "device": "zeus",
+   "name": "Xiaomi 12 Pro",
+   "model": "2201122G"
   },
   {
    "device": "psyche",

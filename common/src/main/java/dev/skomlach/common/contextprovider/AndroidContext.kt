@@ -55,7 +55,7 @@ object AndroidContext {
     val appContext: Context
         get() {
             try {
-                lock.lock()
+                lock.runCatching { this.lock() }
                 getContextRef()?.let {
                     fixDirAccess(it)
                     return it
@@ -75,7 +75,9 @@ object AndroidContext {
                 }
                 throw RuntimeException("Application is NULL")
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
 

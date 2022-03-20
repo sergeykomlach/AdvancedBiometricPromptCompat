@@ -217,14 +217,16 @@ class BiometricClient(context: Context) {
         val stringBuilder2 = stringBuilder.toString()
         val str2 = LOG_TAG
         d(str2, stringBuilder2)
-        accessLock_.lock()
+        accessLock_.runCatching { this.lock() }
         if (mTagInfo == null) {
             stringBuilder = StringBuilder()
             stringBuilder.append(str)
             stringBuilder.append(mTagInfo)
             stringBuilder.append(":onServiceBind mTagInfo is null")
             d(str2, stringBuilder.toString())
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
             return
         }
         mServiceConnectStatus = 2
@@ -234,7 +236,9 @@ class BiometricClient(context: Context) {
             d(str2, "mServiceCallback yes")
             mServiceCallback?.onBiometricServiceConnected()
         }
-        accessLock_.unlock()
+        accessLock_.runCatching {
+            this.unlock()
+        }
         stringBuilder = StringBuilder()
         stringBuilder.append(str)
         stringBuilder.append(mTagInfo)
@@ -244,7 +248,7 @@ class BiometricClient(context: Context) {
 
     private fun onServiceUnbind(lock: Boolean) {
         if (lock) {
-            accessLock_.lock()
+            accessLock_.runCatching { this.lock() }
         }
         val i = mServiceConnectStatus
         val str = ":"
@@ -258,7 +262,9 @@ class BiometricClient(context: Context) {
             stringBuilder.append(mServiceConnectStatus)
             d(str2, stringBuilder.toString())
             if (lock) {
-                accessLock_.unlock()
+                accessLock_.runCatching {
+                    this.unlock()
+                }
             }
             return
         }
@@ -272,7 +278,9 @@ class BiometricClient(context: Context) {
         val serviceCallback = mServiceCallback
         serviceCallback?.onBiometricServiceDisconnected()
         if (lock) {
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
         }
     }
 
@@ -342,7 +350,7 @@ class BiometricClient(context: Context) {
             stringBuilder3.append(":handle_startService")
             d(str2, stringBuilder3.toString())
         }
-        accessLock_.lock()
+        accessLock_.runCatching { this.lock() }
         mServiceConnectStatus = 1
         serviceReadyLatch_ = CountDownLatch(1)
         val intent = Intent("com.xiaomi.biometric.BiometricService")
@@ -360,7 +368,9 @@ class BiometricClient(context: Context) {
             stringBuilder.append(e)
             d(str2, stringBuilder.toString())
         }
-        accessLock_.unlock()
+        accessLock_.runCatching {
+            this.unlock()
+        }
         if (BiometricConnect.DEBUG_LOG) {
             stringBuilder2 = StringBuilder()
             stringBuilder2.append(str)
@@ -375,9 +385,11 @@ class BiometricClient(context: Context) {
                 stringBuilder2.append(mTagInfo)
                 stringBuilder2.append(":handle_startService - ERROR: tmeout!")
                 d(str2, stringBuilder2.toString())
-                accessLock_.lock()
+                accessLock_.runCatching { this.lock() }
                 mServiceConnectStatus = 11
-                accessLock_.unlock()
+                accessLock_.runCatching {
+                    this.unlock()
+                }
             }
         } catch (e2: Exception) {
             stringBuilder = StringBuilder()
@@ -387,9 +399,11 @@ class BiometricClient(context: Context) {
             stringBuilder.append(e2)
             d(str2, stringBuilder.toString())
             e(e2)
-            accessLock_.lock()
+            accessLock_.runCatching { this.lock() }
             mServiceConnectStatus = 12
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
         }
         if (BiometricConnect.DEBUG_LOG) {
             stringBuilder2 = StringBuilder()
@@ -402,7 +416,7 @@ class BiometricClient(context: Context) {
 
     private fun handle_releaseService() {
         val stringBuilder: StringBuilder
-        accessLock_.lock()
+        accessLock_.runCatching { this.lock() }
         val str = mTagInfo
         val str2 = ":"
         val str3 = LOG_TAG
@@ -413,7 +427,9 @@ class BiometricClient(context: Context) {
             stringBuilder2.append(mTagInfo)
             stringBuilder2.append(":handle_releaseService mClientInfoList is null")
             e(str3, stringBuilder2.toString())
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
             return
         }
         stringBuilder2 = StringBuilder()
@@ -455,7 +471,9 @@ class BiometricClient(context: Context) {
         mServiceConnectStatus = 5
         mServiceConnection = null
         release()
-        accessLock_.unlock()
+        accessLock_.runCatching {
+            this.unlock()
+        }
         if (BiometricConnect.DEBUG_LOG) {
             stringBuilder2 = StringBuilder()
             stringBuilder2.append(str2)
@@ -466,7 +484,7 @@ class BiometricClient(context: Context) {
     }
 
     private fun handle_getServiceVersion(module_id: Int) {
-        accessLock_.lock()
+        accessLock_.runCatching { this.lock() }
         val i = mServiceConnectStatus
         val str = ":"
         val str2 = LOG_TAG
@@ -477,7 +495,9 @@ class BiometricClient(context: Context) {
             stringBuilder.append(mTagInfo)
             stringBuilder.append(":handle_getServiceVersion error: service not Connected")
             d(str2, stringBuilder.toString())
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
             return
         }
         var stringBuilder2: StringBuilder
@@ -493,7 +513,9 @@ class BiometricClient(context: Context) {
             msg.replyTo = mReplyMessager
             replayReadyLatch_ = CountDownLatch(1)
             mSendMessager?.send(msg)
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
             try {
                 if (replayReadyLatch_?.await(2, TimeUnit.SECONDS) == false) {
                     stringBuilder2 = StringBuilder()
@@ -540,7 +562,7 @@ class BiometricClient(context: Context) {
     private fun handle_sendService(msg: Message) {
         var stringBuilder: StringBuilder
         val str = ":handle_sendService - ERROR: "
-        accessLock_.lock()
+        accessLock_.runCatching { this.lock() }
         val i = mServiceConnectStatus
         val str2 = ":"
         val str3 = LOG_TAG
@@ -551,7 +573,9 @@ class BiometricClient(context: Context) {
             stringBuilder2.append(mTagInfo)
             stringBuilder2.append(":handle_sendService error: service not Connected")
             d(str3, stringBuilder2.toString())
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
             return
         }
         var stringBuilder3: StringBuilder
@@ -566,7 +590,9 @@ class BiometricClient(context: Context) {
             msg.replyTo = mReplyMessager
             replayReadyLatch_ = CountDownLatch(1)
             mSendMessager?.send(msg)
-            accessLock_.unlock()
+            accessLock_.runCatching {
+                this.unlock()
+            }
             try {
                 if (replayReadyLatch_?.await(2, TimeUnit.SECONDS) == false) {
                     stringBuilder3 = StringBuilder()
@@ -649,7 +675,7 @@ class BiometricClient(context: Context) {
                 }
                 return
             }
-            accessLock_.lock()
+            accessLock_.runCatching { this.lock() }
             if (mServiceCallback == null) {
                 stringBuilder = StringBuilder()
                 stringBuilder.append(str2)
@@ -659,7 +685,9 @@ class BiometricClient(context: Context) {
                 stringBuilder.append(str)
                 stringBuilder.append(msg.arg1)
                 e(str3, stringBuilder.toString())
-                accessLock_.unlock()
+                accessLock_.runCatching {
+                    this.unlock()
+                }
                 return
             }
             val in_bundle = msg.data
@@ -690,7 +718,9 @@ class BiometricClient(context: Context) {
                         (moduleVerMaj_ * 100 + moduleVerMin_).toFloat() / 100.0f
                     )
                 }
-                accessLock_.unlock()
+                accessLock_.runCatching {
+                    this.unlock()
+                }
             } else if (i != 1001) {
                 val str4 = BiometricConnect.MSG_REPLY_MODULE_ID
                 val stringBuilder3: StringBuilder
@@ -712,9 +742,13 @@ class BiometricClient(context: Context) {
                             in_bundle.getInt(BiometricConnect.MSG_REPLY_ARG2)
                         )
                     }
-                    accessLock_.unlock()
+                    accessLock_.runCatching {
+                        this.unlock()
+                    }
                 } else if (i != 1005) {
-                    accessLock_.unlock()
+                    accessLock_.runCatching {
+                        this.unlock()
+                    }
                 } else {
                     if (!result || mServiceCallback == null) {
                         stringBuilder3 = StringBuilder()
@@ -732,7 +766,9 @@ class BiometricClient(context: Context) {
                             in_bundle
                         )
                     }
-                    accessLock_.unlock()
+                    accessLock_.runCatching {
+                        this.unlock()
+                    }
                 }
             } else {
                 val stringBuilder4: StringBuilder
@@ -752,7 +788,9 @@ class BiometricClient(context: Context) {
                     stringBuilder4.append(":handleMessage cb - MSG_COMMAND_INIT_CALLBACK")
                     d(str3, stringBuilder4.toString())
                 }
-                accessLock_.unlock()
+                accessLock_.runCatching {
+                    this.unlock()
+                }
             }
             if (!in_bundle.getBoolean(BiometricConnect.MSG_REPLY_NO_SEND_WAIT)) {
                 replayReadyLatch_?.countDown()

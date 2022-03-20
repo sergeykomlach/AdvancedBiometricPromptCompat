@@ -106,12 +106,14 @@ class HuaweiFaceRecognizeManager(context: Context?) {
         private val lock = ReentrantLock()
         fun createInstance(context: Context?) {
             try {
-                lock.lock()
+                lock.runCatching { this.lock() }
                 if (instance == null) {
                     instance = HuaweiFaceRecognizeManager(context)
                 }
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
     }

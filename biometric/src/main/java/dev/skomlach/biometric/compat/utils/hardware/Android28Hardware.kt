@@ -66,7 +66,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         private val lock = ReentrantLock()
         private fun biometricEnrollChanged(): Boolean {
             try {
-                lock.lock()
+                lock.runCatching { this.lock() }
                 if (jobEnrollChanged?.isActive == true) {
                     if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
                             30
@@ -87,7 +87,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
                 return cachedIsBiometricEnrollChangedValue.get()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
 
@@ -154,7 +156,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
         private fun biometricEnrolled(): Boolean {
             try {
-                lock.lock()
+                lock.runCatching { this.lock() }
                 if (jobEnrolled?.isActive == true) {
                     if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
                             30
@@ -174,7 +176,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
                 return cachedIsBiometricEnrolledValue.get()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
 
@@ -357,7 +361,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     )
                     .apply()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
 
@@ -366,7 +372,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     private val isAnyLockedOut: Boolean
         get() {
             try {
-                lock.lock()
+                lock.runCatching { this.lock() }
                 for (key in preferences.all.keys) {
                     val ts = try {
                         preferences.getLong(key, 0)//may produce ClassCastException
@@ -384,7 +390,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 }
             } catch (ignore: Throwable) {
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
             return false
         }//legacy
@@ -452,7 +460,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                         false
                     }
                 } finally {
-                    lock.unlock()
+                    lock.runCatching {
+                        this.unlock()
+                    }
                 }
             }
             return false

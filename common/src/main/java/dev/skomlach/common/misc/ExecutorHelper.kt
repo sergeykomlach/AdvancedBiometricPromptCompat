@@ -47,7 +47,9 @@ object ExecutorHelper {
             } catch (e: Throwable) {
                 e.printStackTrace()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
     }
@@ -59,7 +61,9 @@ object ExecutorHelper {
             } catch (e: Throwable) {
                 e.printStackTrace()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
     }
@@ -115,7 +119,9 @@ object ExecutorHelper {
             } catch (e: Throwable) {
                 e.printStackTrace()
             } finally {
-                lock.unlock()
+                lock.runCatching {
+                    this.unlock()
+                }
             }
         }
     }

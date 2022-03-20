@@ -56,7 +56,7 @@ object BlurUtil {
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
 
         try {
-            lock.lock()
+            lock.runCatching { this.lock() }
             //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
             val isBlackBerryBug = try {
                 val f =
@@ -106,7 +106,9 @@ object BlurUtil {
             }
             fallbackViewCapture(view, listener)
         } finally {
-            lock.unlock()
+            lock.runCatching {
+                this.unlock()
+            }
         }
     }
 
