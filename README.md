@@ -1,3 +1,8 @@
+**The development of the project was suspended due to an act of Russian aggression against my home country Ukraine.**
+
+
+
+
 Advanced BiometricPromptCompat
 ====  
 
