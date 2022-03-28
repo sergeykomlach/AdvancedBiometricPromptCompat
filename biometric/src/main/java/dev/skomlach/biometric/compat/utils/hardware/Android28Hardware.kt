@@ -354,6 +354,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     fun lockout() {
         if (!isLockedOut) {
             try {
+                lock.runCatching { this.lock() }
                 preferences.edit()
                     .putLong(
                         TS_PREF + "-" + biometricAuthRequest.type.name,
@@ -446,6 +447,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     if (biometricModule != null && biometricModule.isLockOut) return true
                 }
                 try {
+                    lock.runCatching { this.lock() }
                     val ts = preferences.getLong(TS_PREF + "-" + biometricAuthRequest.type.name, 0)
                     return if (ts > 0) {
                         if (System.currentTimeMillis() - ts > timeout) {
