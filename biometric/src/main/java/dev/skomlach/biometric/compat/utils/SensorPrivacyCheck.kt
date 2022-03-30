@@ -29,6 +29,7 @@ import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
+import dev.skomlach.biometric.compat.impl.SensorBlockedFallbackFragment
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
@@ -39,12 +40,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
-// TODO: Just a references to system resources
-//   [`sensor_privacy_start_use_camera_notification_content_title`->`Unblock device camera`]
-//   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
-//   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
-//   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
-
     private var isCameraInUse = AtomicBoolean(false)
 
     fun isCameraInUse(): Boolean {
@@ -211,7 +206,14 @@ object SensorPrivacyCheck {
                                 AndroidContext.appContext.packageName
                             ) else AppOpsManagerCompat.MODE_IGNORED
                     }
-                    return noteOp != AppOpsManagerCompat.MODE_ALLOWED
+                    return (noteOp != AppOpsManagerCompat.MODE_ALLOWED).also {
+                        if (it) {
+                            if (sensor == SensorPrivacyManager.Sensors.CAMERA)
+                                SensorBlockedFallbackFragment.askForCameraUnblock()
+                            else
+                                SensorBlockedFallbackFragment.askForMicUnblock()
+                        }
+                    }
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                 }

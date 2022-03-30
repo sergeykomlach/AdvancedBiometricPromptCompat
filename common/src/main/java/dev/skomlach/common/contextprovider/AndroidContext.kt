@@ -19,12 +19,16 @@
 
 package dev.skomlach.common.contextprovider
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Bundle
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.isActivityFinished
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -35,7 +39,16 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 
+@SuppressLint("StaticFieldLeak")
 object AndroidContext {
+    private val activityResumedRelay = AtomicReference<Reference<Activity?>?>(null)
+    val activity: Activity?
+        get() = try {
+            val activity = activityResumedRelay.get()?.get()
+            if(!isActivityFinished(activity)) activity else null
+        } catch (e: Throwable) {
+            null
+        }
     private val lock = ReentrantLock()
     private var appRef = AtomicReference<Reference<Application?>?>(null)
     private fun getContextRef(): Context? = try {
@@ -86,7 +99,7 @@ object AndroidContext {
             throw IllegalThreadStateException("Main thread required for correct init")
         appRef.set(
             SoftReference<Application?>(
-                try {
+                (try {
                     Class.forName("android.app.ActivityThread")
                         .getMethod("currentApplication")
                         .invoke(null) as Application
@@ -98,10 +111,34 @@ object AndroidContext {
                     } catch (e: Throwable) {
                         null
                     }
+                })?.also {
+                    it.registerActivityLifecycleCallbacks(object :
+                        Application.ActivityLifecycleCallbacks {
+                        override fun onActivityCreated(
+                            activity: Activity,
+                            savedInstanceState: Bundle?
+                        ) {
+
+                        }
+
+                        override fun onActivityStarted(activity: Activity) {}
+                        override fun onActivityResumed(activity: Activity) {
+                            activityResumedRelay.set(SoftReference(activity))
+                        }
+
+                        override fun onActivityPaused(activity: Activity) {}
+                        override fun onActivityStopped(activity: Activity) {}
+                        override fun onActivitySaveInstanceState(
+                            activity: Activity,
+                            outState: Bundle
+                        ) {
+                        }
+
+                        override fun onActivityDestroyed(activity: Activity) {}
+                    })
                 }
             )
         )
-
     }
 
     //Solution from
