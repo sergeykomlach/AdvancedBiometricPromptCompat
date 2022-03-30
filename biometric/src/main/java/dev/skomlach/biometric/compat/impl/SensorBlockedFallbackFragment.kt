@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.impl
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -40,11 +41,29 @@ class SensorBlockedFallbackFragment : Fragment() {
 //   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
 //   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
 
-        private val isCameraUnblockCanBeShown: Boolean =
-            !getString(AndroidContext.appContext, "face_sensor_privacy_enabled").isNullOrEmpty()
-
+        private const val TITLE = "title"
+        private const val MESSAGE = "message"
         fun askForCameraUnblock() {
-            if (!isCameraUnblockCanBeShown)
+            showFragment(
+                getString(
+                    AndroidContext.appContext,
+                    "sensor_privacy_start_use_camera_notification_content_title"
+                ),
+                getString(AndroidContext.appContext, "face_sensor_privacy_enabled")
+            )
+        }
+
+        fun askForMicUnblock() {
+            showFragment(
+                getString(
+                    AndroidContext.appContext,
+                    "sensor_privacy_start_use_mic_notification_content_title"
+                ), null
+            )
+        }
+
+        private fun showFragment(title: String?, msg: String?) {
+            if (title.isNullOrEmpty())
                 return
             ExecutorHelper.postDelayed(
                 {
@@ -60,7 +79,12 @@ class SensorBlockedFallbackFragment : Fragment() {
                         if (windowDoNotLoseFocus) {
                             activity
                                 .supportFragmentManager.beginTransaction()
-                                .add(SensorBlockedFallbackFragment(), SensorBlockedFallbackFragment.javaClass.name)
+                                .add(SensorBlockedFallbackFragment().apply {
+                                    this.arguments = Bundle().apply {
+                                        putString(TITLE, title)
+                                        putString(MESSAGE, msg)
+                                    }
+                                }, SensorBlockedFallbackFragment.javaClass.name)
                                 .commitAllowingStateLoss()
                         }
                     }
@@ -68,7 +92,6 @@ class SensorBlockedFallbackFragment : Fragment() {
                 AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                     .toLong() * 2
             )
-
 
         }
 
@@ -109,13 +132,11 @@ class SensorBlockedFallbackFragment : Fragment() {
                 else
                     android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
             )
-                .setTitle(
-                    getString(
-                        AndroidContext.appContext,
-                        "sensor_privacy_start_use_camera_notification_content_title"
-                    )
-                )
-                .setMessage(getString(AndroidContext.appContext, "face_sensor_privacy_enabled"))
+                .setTitle(this.arguments?.getString(TITLE)).also { dialog ->
+                    this.arguments?.getString(MESSAGE)?.let {
+                        dialog.setMessage(it)
+                    }
+                }
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(
                     getString(

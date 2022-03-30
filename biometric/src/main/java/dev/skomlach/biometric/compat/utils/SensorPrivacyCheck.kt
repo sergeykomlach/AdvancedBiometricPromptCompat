@@ -208,7 +208,10 @@ object SensorPrivacyCheck {
                     }
                     return (noteOp != AppOpsManagerCompat.MODE_ALLOWED).also {
                         if (it) {
-                            SensorBlockedFallbackFragment.askForCameraUnblock()
+                            if (sensor == SensorPrivacyManager.Sensors.CAMERA)
+                                SensorBlockedFallbackFragment.askForCameraUnblock()
+                            else
+                                SensorBlockedFallbackFragment.askForMicUnblock()
                         }
                     }
                 } catch (e: Throwable) {
