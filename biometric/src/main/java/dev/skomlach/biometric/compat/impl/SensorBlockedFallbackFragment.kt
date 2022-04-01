@@ -31,6 +31,7 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class SensorBlockedFallbackFragment : Fragment() {
@@ -40,9 +41,29 @@ class SensorBlockedFallbackFragment : Fragment() {
 //   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
 //   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
 //   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
-
+        private val isFallbackFragmentShown = AtomicBoolean(false)
         private const val TITLE = "title"
         private const val MESSAGE = "message"
+        fun isUnblockDialogShown(): Boolean {
+            if (isFallbackFragmentShown.get())//fallback shown
+                return true
+            else {
+                val activity = AndroidContext.activity
+                if (activity is FragmentActivity) {
+                    val windowDoNotLoseFocus = try {
+                        ActiveWindow.getActiveWindow(
+                            ActiveWindow.getActiveWindows(activity).toMutableList()
+                        ).hasWindowFocus()
+                    } catch (e: Throwable) {
+                        false
+                    }
+                    return !windowDoNotLoseFocus
+                }
+            }
+
+            return false
+        }
+
         fun askForCameraUnblock() {
             showFragment(
                 getString(
@@ -95,8 +116,6 @@ class SensorBlockedFallbackFragment : Fragment() {
 
         }
 
-        //grant_permissions_header_text
-        //turn_on_magnification_settings_action
         private fun getString(context: Context, name: String): String? {
             try {
                 val fields = Class.forName("com.android.internal.R\$string").declaredFields
@@ -157,9 +176,12 @@ class SensorBlockedFallbackFragment : Fragment() {
                             ?.commitNowAllowingStateLoss()
                     } catch (e: Throwable) {
                         e("SensorBlockedFragment", e.message, e)
+                    } finally {
+                        isFallbackFragmentShown.set(false)
                     }
                 }
             alert.show()
+            isFallbackFragmentShown.set(true)
         } catch (ignore: Throwable) {
             try {
                 activity?.supportFragmentManager?.beginTransaction()
@@ -167,6 +189,8 @@ class SensorBlockedFallbackFragment : Fragment() {
                     ?.commitNowAllowingStateLoss()
             } catch (e: Throwable) {
                 e("SensorBlockedFragment", e.message, e)
+            } finally {
+                isFallbackFragmentShown.set(false)
             }
         }
     }

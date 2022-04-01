@@ -37,15 +37,21 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
     private var isCameraInUse = AtomicBoolean(false)
 
+    //Workaround that allow do not spam the user
+    private var isUiRequested = AtomicBoolean(false)
+    private var lastCheckedTime = AtomicLong(0)
+    private var lastKnownState = AtomicBoolean(false)
     fun isCameraInUse(): Boolean {
         val ts = System.currentTimeMillis()
-        val delay = AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
-            .toLong()
+        val delay =
+            AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                .toLong()
         val isDone = AtomicBoolean(false)
         //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
         ExecutorHelper.startOnBackground {
@@ -62,7 +68,7 @@ object SensorPrivacyCheck {
                 BiometricLoggerImpl.e(e)
             }
         }
-        while (!isDone.get() && System.currentTimeMillis() -  ts <= delay) {
+        while (!isDone.get() && System.currentTimeMillis() - ts <= delay) {
             try {
                 Thread.sleep(20)
             } catch (ignore: InterruptedException) {
@@ -181,6 +187,20 @@ object SensorPrivacyCheck {
     @TargetApi(Build.VERSION_CODES.S)
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
+            val delay = AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                .toLong() * 2
+            if (System.currentTimeMillis() - lastCheckedTime.get() <= delay) {
+                return lastKnownState.get()
+            }
+            else if (isUiRequested.get() &&
+                SensorBlockedFallbackFragment.isUnblockDialogShown()
+            ) {
+                lastKnownState.set(true)
+                lastCheckedTime.set(System.currentTimeMillis())
+                return lastKnownState.get()
+            }
+
+            isUiRequested.set(false)
             val sensorPrivacyManager: SensorPrivacyManager? =
                 AndroidContext.appContext.getSystemService(SensorPrivacyManager::class.java)
             if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
@@ -207,7 +227,10 @@ object SensorPrivacyCheck {
                             ) else AppOpsManagerCompat.MODE_IGNORED
                     }
                     return (noteOp != AppOpsManagerCompat.MODE_ALLOWED).also {
+                        lastKnownState.set(it)
+                        lastCheckedTime.set(System.currentTimeMillis())
                         if (it) {
+                            isUiRequested.set(true)
                             if (sensor == SensorPrivacyManager.Sensors.CAMERA)
                                 SensorBlockedFallbackFragment.askForCameraUnblock()
                             else
