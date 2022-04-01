@@ -187,12 +187,14 @@ object SensorPrivacyCheck {
     @TargetApi(Build.VERSION_CODES.S)
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
-            val delay = AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                .toLong() * 2
+            val context = AndroidContext.activity ?: AndroidContext.appContext
+            val delay =
+                context.resources.getInteger(android.R.integer.config_longAnimTime)
+                    .toLong() * 2
             if (System.currentTimeMillis() - lastCheckedTime.get() <= delay) {
+
                 return lastKnownState.get()
-            }
-            else if (isUiRequested.get() &&
+            } else if (isUiRequested.get() &&
                 SensorBlockedFallbackFragment.isUnblockDialogShown()
             ) {
                 lastKnownState.set(true)
@@ -202,7 +204,7 @@ object SensorPrivacyCheck {
 
             isUiRequested.set(false)
             val sensorPrivacyManager: SensorPrivacyManager? =
-                AndroidContext.appContext.getSystemService(SensorPrivacyManager::class.java)
+                context.getSystemService(SensorPrivacyManager::class.java)
             if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
                 try {
                     val permissionToOp: String =
@@ -213,17 +215,17 @@ object SensorPrivacyCheck {
 
                     val noteOp: Int = try {
                         AppOpsManagerCompat.noteOpNoThrow(
-                            AndroidContext.appContext,
+                            context,
                             permissionToOp,
                             Process.myUid(),
-                            AndroidContext.appContext.packageName
+                            context.packageName
                         )
                     } catch (ignored: Throwable) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                             PermissionUtils.appOpPermissionsCheckMiui(
                                 permissionToOp,
                                 Process.myUid(),
-                                AndroidContext.appContext.packageName
+                                context.packageName
                             ) else AppOpsManagerCompat.MODE_IGNORED
                     }
                     return (noteOp != AppOpsManagerCompat.MODE_ALLOWED).also {
