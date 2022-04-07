@@ -232,10 +232,16 @@ class PermissionsFragment : Fragment() {
                     requireActivity(),
                     it
                 )
-            }) {
+            } && !SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment")
+                .getBoolean("denied", false)) {
             SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
                 .putBoolean("denied", true).apply()
-            showPermissionDeniedDialog(permissions, 1001)
+//            showPermissionDeniedDialog(permissions, 1001)
+            permissionsRequestState.set(PermissionRequestState.RATIONAL_REQUEST.ordinal)
+            requestPermissions(
+                permissions.toTypedArray(),
+                1001
+            )
             return
         } else {
             if (!permissions.any {
@@ -364,10 +370,14 @@ class PermissionsFragment : Fragment() {
             for ((_, str) in permissionsList.keys.withIndex()) {
                 val permName = permissionsList[str]
                 if (!permName.isNullOrEmpty()) {
-                    if (isLeftToRight)
-                        sb.append("- $permName\n")
-                    else
-                        sb.append("\n$permName -")
+                    if (keys.size > 1) {
+                        if (isLeftToRight)
+                            sb.append("- $permName\n")
+                        else
+                            sb.append("\n$permName -")
+                    } else {
+                        sb.append("$permName")
+                    }
                 }
             }
             // Ask for all permissions
