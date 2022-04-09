@@ -19,7 +19,7 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.6.10'
+    ext.kotlin_version = '1.6.20'
     ext.minSDK = 16
     ext.compileSDK = 32
     ext.targetSDK = 32
@@ -27,7 +27,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.0'
-    ext.libsMinorVersion = 88
+    ext.libsMinorVersion = 90
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'

@@ -39,6 +39,7 @@ import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
@@ -232,16 +233,10 @@ class PermissionsFragment : Fragment() {
                     requireActivity(),
                     it
                 )
-            } && !SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment")
-                .getBoolean("denied", false)) {
+            }) {
             SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
                 .putBoolean("denied", true).apply()
-//            showPermissionDeniedDialog(permissions, 1001)
-            permissionsRequestState.set(PermissionRequestState.RATIONAL_REQUEST.ordinal)
-            requestPermissions(
-                permissions.toTypedArray(),
-                1001
-            )
+            showPermissionDeniedDialog(permissions, 1001)
             return
         } else {
             if (!permissions.any {
@@ -267,11 +262,36 @@ class PermissionsFragment : Fragment() {
     }
 
     /**
-     * We show this custom dialog to alert user denied camera permission
+     * We show this custom dialog to alert user denied permission
      */
     private fun showPermissionDeniedDialog(permissions: List<String>, permissionRequestCode: Int) {
-        val text = extractDescriptionsForPermissions(permissions)
-        val title = getString("grant_permissions_header_text")
+        val isLeftToRight =
+            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+        val text = try {
+            if (isLeftToRight)
+                (getString("grant_permissions_header_text")
+                    ?: throw IllegalArgumentException()) + ": " + (extractDescriptionsForPermissions(
+                    permissions
+                ) ?: throw IllegalArgumentException())
+            else
+                (extractDescriptionsForPermissions(
+                    permissions
+                )
+                    ?: throw IllegalArgumentException()) + " :" + (getString("grant_permissions_header_text")
+                    ?: throw IllegalArgumentException())
+        } catch (e: Throwable) {
+            null
+        }
+        val title = try {
+            requireActivity().getString(
+                requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    0
+                ).labelRes
+            )
+        } catch (e: Throwable) {
+            null
+        }
         if (text.isNullOrEmpty() || title.isNullOrEmpty()) {
             ExecutorHelper.postDelayed({
                 try {
@@ -283,7 +303,8 @@ class PermissionsFragment : Fragment() {
                 }
             }, 250)
         }
-        AlertDialog.Builder(requireActivity()).apply {
+        AlertDialog.Builder(
+            requireActivity()).apply {
             setTitle(title)
             setCancelable(true)
             setMessage(text)
@@ -310,13 +331,14 @@ class PermissionsFragment : Fragment() {
     }
 
     /**
-     * We show this custom dialog to alert user that please go to settings to enable camera permission
+     * We show this custom dialog to alert user that please go to settings to enable permission
      */
     private fun showMandatoryPermissionsNeedDialog(permissions: List<String>) {
         val text = extractDescriptionsForPermissions(permissions)
         val button = getString("turn_on_magnification_settings_action")
             ?: getString("global_action_settings")
-        val title = getString("grant_permissions_header_text")
+        val title = getString("error_message_change_not_allowed")
+
         if (text.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
             try {
                 val future: ListenableFuture<Int> =
@@ -331,7 +353,9 @@ class PermissionsFragment : Fragment() {
         }
 
         AlertDialog.Builder(requireActivity()).apply {
-            setTitle(title)
+            val isLeftToRight =
+                TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+            setTitle(if (isLeftToRight) "$title:" else ":$title")
             setCancelable(true)
             setMessage(text)
             setOnCancelListener {
