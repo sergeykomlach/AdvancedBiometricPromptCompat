@@ -145,12 +145,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         super.onAttach(context)
 
         try {
-            val alert = AlertDialog.Builder(
-                requireActivity(), if (DarkLightThemes.isNightMode(requireContext()))
-                    android.R.style.Theme_DeviceDefault_Dialog_NoActionBar
-                else
-                    android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
-            )
+            val alert = AlertDialog.Builder(requireActivity())
                 .setTitle(this.arguments?.getString(TITLE)).also { dialog ->
                     this.arguments?.getString(MESSAGE)?.let {
                         dialog.setMessage(it)

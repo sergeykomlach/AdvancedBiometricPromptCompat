@@ -304,11 +304,7 @@ class PermissionsFragment : Fragment() {
             }, 250)
         }
         AlertDialog.Builder(
-            requireActivity(), if (DarkLightThemes.isNightMode(requireContext()))
-                android.R.style.Theme_DeviceDefault_Dialog_NoActionBar
-            else
-                android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
-        ).apply {
+            requireActivity()).apply {
             setTitle(title)
             setCancelable(true)
             setMessage(text)
@@ -356,12 +352,7 @@ class PermissionsFragment : Fragment() {
             }
         }
 
-        AlertDialog.Builder(
-            requireActivity(), if (DarkLightThemes.isNightMode(requireContext()))
-                android.R.style.Theme_DeviceDefault_Dialog_NoActionBar
-            else
-                android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar
-        ).apply {
+        AlertDialog.Builder(requireActivity()).apply {
             val isLeftToRight =
                 TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
             setTitle(if (isLeftToRight) "$title:" else ":$title")
