@@ -59,7 +59,7 @@ object AndroidContext {
 
     var configuration: Configuration? = null
         get() {
-            return appInstance?.resources?.configuration
+            return activity?.resources?.configuration?:appInstance?.resources?.configuration
         }
         private set
 
