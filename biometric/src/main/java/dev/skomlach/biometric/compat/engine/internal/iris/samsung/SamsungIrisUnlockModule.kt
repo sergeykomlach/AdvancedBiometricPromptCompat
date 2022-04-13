@@ -152,7 +152,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@SamsungIrisUnlockModule)
                     listener?.onCanceled(tag())
                     return

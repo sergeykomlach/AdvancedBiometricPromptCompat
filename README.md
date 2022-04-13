@@ -33,6 +33,9 @@ Minimal supported Android OS version: **Android 4.1 Jelly Bean**
 
 Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
+**NOTE: TargetSDK=32**
+
+
 #### Key features
 
 - Unified UI for all devices. Exception: some vendors (like Huawei or Samsung) provide custom UI

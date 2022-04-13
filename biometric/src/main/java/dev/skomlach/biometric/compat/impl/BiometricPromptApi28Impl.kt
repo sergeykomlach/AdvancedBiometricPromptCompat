@@ -131,7 +131,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 .lockout()
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
                         }
-                        BiometricPrompt.ERROR_USER_CANCELED, BiometricPrompt.ERROR_NEGATIVE_BUTTON, BiometricPrompt.ERROR_CANCELED -> {
+                        else -> {
                             callback?.onCanceled()
                             cancelAuthentication()
                             return@Runnable

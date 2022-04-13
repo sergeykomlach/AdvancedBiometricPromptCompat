@@ -167,7 +167,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@API23FingerprintModule)
                     listener?.onCanceled(tag())
                     return

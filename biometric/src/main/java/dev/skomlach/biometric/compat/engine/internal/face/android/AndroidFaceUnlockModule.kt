@@ -243,7 +243,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@AndroidFaceUnlockModule)
                     listener?.onCanceled(tag())
                     return
@@ -313,7 +313,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@AndroidFaceUnlockModule)
                     listener?.onCanceled(tag())
                     return
