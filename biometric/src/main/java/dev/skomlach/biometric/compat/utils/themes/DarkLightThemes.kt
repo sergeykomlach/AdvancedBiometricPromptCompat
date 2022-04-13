@@ -54,24 +54,18 @@ object DarkLightThemes {
                 UiModeManager.MODE_NIGHT_NO
             }
             else -> {
-                val mUiModeManager =
-                    context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
-                val configs = arrayOf(
-                    context.resources.configuration,
-                    Resources.getSystem().configuration,
-                    AndroidContext.configuration
-                )
-                for (config in configs) {
-                    if (config != null) {
-                        if (config.uiMode and
-                            Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES ||
-                            (Utils.isAtLeastR && config.isNightModeActive)
-                        )
-                            return UiModeManager.MODE_NIGHT_YES
-                    }
+                val config = AndroidContext.configuration
+                if (config != null) {
+                    if (config.uiMode and
+                        Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES ||
+                        (Utils.isAtLeastR && config.isNightModeActive)
+                    )
+                        return UiModeManager.MODE_NIGHT_YES
                 }
 
 
+                val mUiModeManager =
+                    context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
                 val modeFromSettings =
                     SettingsHelper.getInt(context, "ui_night_mode", UiModeManager.MODE_NIGHT_NO)
                 if (modeFromSettings != UiModeManager.MODE_NIGHT_NO) {

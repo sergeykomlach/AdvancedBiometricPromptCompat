@@ -22,6 +22,7 @@ package dev.skomlach.common.contextprovider
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
+import android.content.ComponentCallbacks
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -41,6 +42,7 @@ import java.util.concurrent.locks.ReentrantLock
 
 @SuppressLint("StaticFieldLeak")
 object AndroidContext {
+    private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
     private val activityResumedRelay = AtomicReference<Reference<Activity?>?>(null)
     val activity: Activity?
         get() = try {
@@ -59,7 +61,7 @@ object AndroidContext {
 
     var configuration: Configuration? = null
         get() {
-            return activity?.resources?.configuration?:appInstance?.resources?.configuration
+            return configurationRelay.get()?.get()
         }
         private set
 
@@ -112,6 +114,15 @@ object AndroidContext {
                         null
                     }
                 })?.also {
+                    configurationRelay.set(SoftReference(it.resources.configuration))
+                    it.registerComponentCallbacks(object : ComponentCallbacks {
+                        override fun onConfigurationChanged(newConfig: Configuration) {
+                            LogCat.logError("AndroidContext", "onConfigurationChanged $newConfig")
+                            configurationRelay.set(SoftReference(newConfig))
+                        }
+
+                        override fun onLowMemory() {}
+                    })
                     it.registerActivityLifecycleCallbacks(object :
                         Application.ActivityLifecycleCallbacks {
                         override fun onActivityCreated(
