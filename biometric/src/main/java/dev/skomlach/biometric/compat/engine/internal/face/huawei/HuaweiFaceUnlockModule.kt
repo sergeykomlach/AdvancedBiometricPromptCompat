@@ -258,7 +258,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
                     listener?.onCanceled(tag())
                     return
@@ -328,7 +328,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
                     listener?.onCanceled(tag())
                     return

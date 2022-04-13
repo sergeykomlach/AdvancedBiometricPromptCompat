@@ -174,7 +174,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@OppoFaceUnlockModule)
                     listener?.onCanceled(tag())
                     return

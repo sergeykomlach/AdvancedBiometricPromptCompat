@@ -148,7 +148,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
-                BiometricCodes.BIOMETRIC_ERROR_USER_CANCELED, BiometricCodes.BIOMETRIC_ERROR_CANCELED -> {
+                else -> {
                     Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                     listener?.onCanceled(tag())
                     return
