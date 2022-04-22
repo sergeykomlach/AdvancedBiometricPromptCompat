@@ -88,8 +88,11 @@ class SensorBlockedFallbackFragment : Fragment() {
                 return
             ExecutorHelper.postDelayed(
                 {
+                    val tag = "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
                     val activity = AndroidContext.activity
                     if (activity is FragmentActivity) {
+                        if(activity.supportFragmentManager.findFragmentByTag(tag) != null)
+                            return@postDelayed
                         val windowDoNotLoseFocus = try {
                             ActiveWindow.getActiveWindow(
                                 ActiveWindow.getActiveWindows(activity).toMutableList()
@@ -105,7 +108,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                                         putString(TITLE, title)
                                         putString(MESSAGE, msg)
                                     }
-                                }, SensorBlockedFallbackFragment.javaClass.name)
+                                }, tag)
                                 .commitAllowingStateLoss()
                         }
                     }
@@ -156,7 +159,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                     getString(
                         AndroidContext.appContext,
                         "sensor_privacy_start_use_dialog_turn_on_button"
-                    )
+                    )?:getString(android.R.string.ok)
                 ) { p0, _ ->
                     Utils.startActivity(
                         Intent(android.provider.Settings.ACTION_PRIVACY_SETTINGS),

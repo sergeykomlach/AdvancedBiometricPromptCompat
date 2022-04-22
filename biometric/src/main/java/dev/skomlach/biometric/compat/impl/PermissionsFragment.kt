@@ -62,6 +62,9 @@ class PermissionsFragment : Fragment() {
         ) {
             e("PermissionsFragment.askForPermissions()")
             if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
+                val tag = "${PermissionsFragment.javaClass.name}-${permissions.joinToString(",").hashCode()}"
+                if(activity.supportFragmentManager.findFragmentByTag(tag) != null)
+                    return
                 val fragment = PermissionsFragment()
                 val bundle = Bundle()
                 bundle.putStringArrayList(LIST_KEY, ArrayList(permissions))
@@ -72,13 +75,13 @@ class PermissionsFragment : Fragment() {
                         try{
                         unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {
-                            BiometricLoggerImpl.e(e)
+                            e(e)
                         }
                     }
                 }, IntentFilter(INTENT_KEY))
                 activity
                     .supportFragmentManager.beginTransaction()
-                    .add(fragment, fragment.javaClass.name).commitAllowingStateLoss()
+                    .add(fragment, tag).commitAllowingStateLoss()
             } else {
                 if (callback != null) ExecutorHelper.post(callback)
             }

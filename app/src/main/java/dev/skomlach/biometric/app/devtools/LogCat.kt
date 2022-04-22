@@ -54,7 +54,7 @@ object LogCat {
                 val stream = BufferedReader(InputStreamReader(pq.inputStream))
                 var log = ""
                 while (started.get()) {
-                    if (stream.readLine().also { log = it } != null) {
+                    if (stream.readLine()?.also { log = it } != null) {
                         val temp = truncate(log)
                         cache.add(temp)
                         if (log2ViewCallback != null && (FILTER.isEmpty() || temp.contains(
