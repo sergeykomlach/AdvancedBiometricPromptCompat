@@ -129,7 +129,8 @@ object AndroidContext {
                             activity: Activity,
                             savedInstanceState: Bundle?
                         ) {
-
+                            LogCat.logError("AndroidContext", "onConfigurationChanged ${activity.resources.configuration}")
+                            configurationRelay.set(SoftReference(activity.resources.configuration))
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
