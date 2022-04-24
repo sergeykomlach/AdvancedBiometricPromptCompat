@@ -537,7 +537,30 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             if (dialog == null) {
                 dialog =
                     BiometricPromptCompatDialogImpl(
-                        builder, this@BiometricPromptApi28Impl,
+                        builder, object : AuthCallback{
+                            private val ignoreFirstOpen = AtomicBoolean(true)
+                            override fun startAuth() {
+                                if(ignoreFirstOpen.getAndSet(false))
+                                    return
+                                this@BiometricPromptApi28Impl.startAuth()
+                            }
+
+                            override fun stopAuth() {
+                                this@BiometricPromptApi28Impl.stopAuth()
+                            }
+
+                            override fun cancelAuth() {
+                                this@BiometricPromptApi28Impl.cancelAuth()
+                            }
+
+                            override fun onUiOpened() {
+                                this@BiometricPromptApi28Impl.onUiOpened()
+                            }
+
+                            override fun onUiClosed() {
+                                this@BiometricPromptApi28Impl.onUiClosed()
+                            }
+                        },
                         builder.getSecondaryAvailableTypes()
                             .contains(BiometricType.BIOMETRIC_FINGERPRINT)
                                 && DevicesWithKnownBugs.hasUnderDisplayFingerprint
