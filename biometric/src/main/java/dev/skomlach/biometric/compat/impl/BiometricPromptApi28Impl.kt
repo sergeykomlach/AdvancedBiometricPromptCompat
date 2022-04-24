@@ -115,9 +115,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         BiometricPrompt.ERROR_HW_UNAVAILABLE -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
-                            BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                                builder.getBiometricAuthRequest().type
-                            )
+                            for(t in builder.getPrimaryAvailableTypes()) {
+                                BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(t)
+                            }
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         }
                         BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> failureReason =
@@ -523,7 +523,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     callback?.onSucceeded(onlySuccess.keys.toList().filterNotNull().toSet())
                 } else if (error != null) {
-                    BiometricAuthWasCanceledByError.setCanceledByError()
                     if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
                         ExecutorHelper.postDelayed({
                             callback?.onFailed(error.failureReason)
