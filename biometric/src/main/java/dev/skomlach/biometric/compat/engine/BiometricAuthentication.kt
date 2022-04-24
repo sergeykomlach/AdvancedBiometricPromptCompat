@@ -47,6 +47,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.startActivity
+import java.lang.ref.SoftReference
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -267,24 +268,25 @@ object BiometricAuthentication {
             )
             return
         } else {
+            val ref = SoftReference(listener)
             Core.authenticate(object : AuthenticationListener {
                 override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
-                    listener.onHelp(helpReason, msg)
+                    ref.get()?.onHelp(helpReason, msg)
                 }
 
                 override fun onSuccess(moduleTag: Int) {
-                    listener.onSuccess(hashMap[moduleTag])
+                    ref.get()?.onSuccess(hashMap[moduleTag])
                 }
 
                 override fun onFailure(
                     reason: AuthenticationFailureReason?,
                     moduleTag: Int
                 ) {
-                    listener.onFailure(reason, hashMap[moduleTag])
+                    ref.get()?.onFailure(reason, hashMap[moduleTag])
                 }
 
                 override fun onCanceled(moduleTag: Int) {
-                    listener.onCanceled(hashMap[moduleTag])
+                    ref.get()?.onCanceled(hashMap[moduleTag])
                 }
             })
         }
