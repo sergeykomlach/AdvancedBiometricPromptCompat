@@ -21,19 +21,18 @@ package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.BiometricConnect
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import java.lang.ref.WeakReference
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
-class BiometricClient(context: Context) {
+class BiometricClient {
     companion object {
         private const val LOG_TAG = "BiometricClient"
         private const val MSG_GET_VERSION = 5002
@@ -55,7 +54,6 @@ class BiometricClient(context: Context) {
 
     private val accessLock_ = ReentrantLock()
     private var mCallbackThread: HandlerThread? = null
-    private var mClientContext: WeakReference<Context?>? = null
     private var mClientLister: ClientLister? = null
     private var mConnectHandler: ConnectHandler? = null
     private var mHandler: Handler? = null
@@ -79,8 +77,8 @@ class BiometricClient(context: Context) {
             mHandler = MyHandler(it.looper)
         }
 
-        mTagInfo = context.toString()
-        mClientContext = WeakReference<Context?>(context)
+        mTagInfo = AndroidContext.appContext.toString()
+
         stringBuilder = StringBuilder()
         stringBuilder.append("BiometricClientCBThread_")
         stringBuilder.append(mTagInfo)
@@ -358,7 +356,7 @@ class BiometricClient(context: Context) {
         mServiceConnection = MyServiceConnection()
         try {
             mServiceConnection?.let {
-                mClientContext?.get()?.bindService(intent, it, 65)
+                AndroidContext.appContext.bindService(intent, it, 65)
             }
         } catch (e: Exception) {
             stringBuilder = StringBuilder()
@@ -444,7 +442,7 @@ class BiometricClient(context: Context) {
         }
         try {
             mServiceConnection?.let {
-                mClientContext?.get()?.unbindService(it)
+                AndroidContext.appContext.unbindService(it)
             }
         } catch (e: IllegalArgumentException) {
             stringBuilder = StringBuilder()

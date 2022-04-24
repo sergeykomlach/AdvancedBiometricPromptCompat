@@ -19,7 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
-import android.content.*
+import android.app.Activity
 import androidx.core.os.CancellationSignal
 import com.samsung.android.sdk.pass.Spass
 import com.samsung.android.sdk.pass.SpassFingerprint
@@ -197,7 +197,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         }
     }
 
-    fun openSettings(context: Context?): Boolean {
+    fun openSettings(context: Activity): Boolean {
         return try {
             mSpassFingerprint?.registerFinger(context) { }
             true

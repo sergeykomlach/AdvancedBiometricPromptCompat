@@ -26,8 +26,8 @@ import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.HexUtils
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
@@ -39,10 +39,7 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule,
     BiometricCodes {
     companion object {
-        //LockOut behavior emulated, because for example Meizu API allow to enroll fingerprint unlimited times
-        private const val TS_PREF = "timestamp_"
         private const val ENROLLED_PREF = "enrolled_"
-        private val timeout = TimeUnit.SECONDS.toMillis(31)
         var DEBUG_MANAGERS = BuildConfig.DEBUG
     }
 
@@ -51,13 +48,13 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
     val name: String
         get() = javaClass.simpleName
-    val context: Context
+    var context: Context = appContext
         get() = appContext
+        set
 
     fun lockout() {
         if (!isLockOut) {
-            d(name + ": setLockout for " + tag())
-            preferences.edit().putLong(TS_PREF + tag(), System.currentTimeMillis()).apply()
+            BiometricLockoutFix.lockout(biometricMethod.biometricType)
         }
     }
 
@@ -67,20 +64,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     override val isLockOut: Boolean
         get() {
-            val ts = preferences.getLong(TS_PREF + tag(), 0)
-            return if (ts > 0) {
-                if (System.currentTimeMillis() - ts >= timeout) {
-                    preferences.edit().putLong(TS_PREF + tag(), 0).apply()
-                    d(name + ": lockout is FALSE(1) for " + tag())
-                    false
-                } else {
-                    d(name + ": lockout is TRUE for " + tag())
-                    true
-                }
-            } else {
-                d(name + ": lockout is FALSE(2) for " + tag())
-                false
-            }
+            return BiometricLockoutFix.isLockOut(biometricMethod.biometricType)
         }
 
     abstract fun getManagers(): Set<Any>

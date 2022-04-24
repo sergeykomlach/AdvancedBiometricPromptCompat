@@ -19,16 +19,16 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
-import android.content.Context
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.util.concurrent.locks.ReentrantLock
 
 
-class HuaweiFaceRecognizeManager(context: Context?) {
+class HuaweiFaceRecognizeManager {
 
     companion object {
         const val DEFAULT_FLAG = 1
@@ -104,11 +104,11 @@ class HuaweiFaceRecognizeManager(context: Context?) {
         }
 
         private val lock = ReentrantLock()
-        fun createInstance(context: Context?) {
+        fun createInstance() {
             try {
                 lock.runCatching { this.lock() }
                 if (instance == null) {
-                    instance = HuaweiFaceRecognizeManager(context)
+                    instance = HuaweiFaceRecognizeManager()
                 }
             } finally {
                 lock.runCatching {
@@ -198,7 +198,7 @@ class HuaweiFaceRecognizeManager(context: Context?) {
 
     init {
         if (fRManager == null) {
-            fRManager = FaceRecognizeManager(context, mFRCallback)
+            fRManager = FaceRecognizeManager(AndroidContext.appContext, mFRCallback)
         }
     }
 

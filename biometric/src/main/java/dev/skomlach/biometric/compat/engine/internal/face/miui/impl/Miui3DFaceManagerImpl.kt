@@ -156,10 +156,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             return INSTANCE.get()
         }
     }
-    private val mContext: Context
-        get() {
-            return AndroidContext.appContext
-        }
+
     private val hasEnrollFace = 0
     private val mBinderLock = Any()
     private val mEnrollParam = EnrollParam()
@@ -200,13 +197,13 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         mEnrollmentCallback = null
 
         mHandler = ClientHandler(
-            mContext
+            AndroidContext.appContext
         )
         mSuperPowerOpenObserver = object : ContentObserver(mHandler) {
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
                 mIsSuperPower = SettingsSystem.getIntForUser(
-                    mContext.contentResolver,
+                    AndroidContext.appContext.contentResolver,
                     POWERMODE_SUPERSAVE_OPEN,
                     0,
                     0
@@ -217,28 +214,34 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
                 mHasFaceData = SettingsSecure.getIntForUser(
-                    mContext.contentResolver,
+                    AndroidContext.appContext.contentResolver,
                     FACE_UNLOCK_HAS_FEATURE, 0, 0
                 ) != 0
             }
         }
         try {
 
-//        Secure.putIntForUser(this.mContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
+//        Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
             ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver, Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE),
-                false, mHasFaceDataObserver, 0
+                AndroidContext.appContext.contentResolver,
+                Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE),
+                false,
+                mHasFaceDataObserver,
+                0
             )
             mHasFaceDataObserver.onChange(false)
             ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver, Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN),
-                false, mSuperPowerOpenObserver, 0
+                AndroidContext.appContext.contentResolver,
+                Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN),
+                false,
+                mSuperPowerOpenObserver,
+                0
             )
             mSuperPowerOpenObserver.onChange(false)
         } catch (e: Throwable) {
             e(e)
         }
-        mBiometricClient = BiometricClient(mContext)
+        mBiometricClient = BiometricClient()
         mBiometricClient?.let {
             it.startService(this)
         }
@@ -307,7 +310,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         str = LOG_TAG
         stringBuilder = StringBuilder()
         stringBuilder.append("release ctx:")
-        stringBuilder.append(mContext)
+        stringBuilder.append(AndroidContext.appContext)
         stringBuilder.append(", this:")
         stringBuilder.append(this)
         d(str, stringBuilder.toString())
@@ -398,7 +401,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                     val enrollmentCallback3 = mEnrollmentCallback
                                     if (enrollmentCallback3 != null) {
                                         enrollmentCallback3.onEnrollmentProgress(0, arg1)
-                                        //Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 1, -2);
+                                        //Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 1, -2);
                                         try {
                                             lock.runCatching { this.lock() }
                                             mDatabaseStatus = 0
@@ -786,7 +789,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             }
             d(LOG_TAG, "removeTemplate")
             mTemplateItemList?.remove(templateItem)
-            //            Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2);
+            //            Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2);
             mDatabaseChanged = true
             mRemovalCallback = callback
             mRemovalMiuiface = face
@@ -907,7 +910,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             str = LOG_TAG
             stringBuilder = StringBuilder()
             stringBuilder.append("stopVerify ctx:")
-            stringBuilder.append(mContext)
+            stringBuilder.append(AndroidContext.appContext)
             stringBuilder.append(" ignore!")
             e(str, stringBuilder.toString())
             return
@@ -928,7 +931,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         str = LOG_TAG
         stringBuilder = StringBuilder()
         stringBuilder.append("cancelAuthentication ctx:")
-        stringBuilder.append(mContext)
+        stringBuilder.append(AndroidContext.appContext)
         d(str, stringBuilder.toString())
         mAuthenticationCallback = null
         mBiometricClient?.sendCommand(6)
@@ -950,14 +953,14 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             str3 = LOG_TAG
             stringBuilder = StringBuilder()
             stringBuilder.append(str2)
-            stringBuilder.append(mContext)
+            stringBuilder.append(AndroidContext.appContext)
             stringBuilder.append(str)
             e(str3, stringBuilder.toString())
         } else if (hasEnrolledFaces() == 0) {
             str3 = LOG_TAG
             val stringBuilder2 = StringBuilder()
             stringBuilder2.append("has no enrolled face ctx:")
-            stringBuilder2.append(mContext)
+            stringBuilder2.append(AndroidContext.appContext)
             stringBuilder2.append(str)
             e(str3, stringBuilder2.toString())
         } else if (callback != null) {
@@ -985,7 +988,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             str = LOG_TAG
             stringBuilder = StringBuilder()
             stringBuilder.append(str2)
-            stringBuilder.append(mContext)
+            stringBuilder.append(AndroidContext.appContext)
             d(str, stringBuilder.toString())
             useHandler(handler)
             mAuthenticationCallback = callback
@@ -1247,9 +1250,9 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
     private fun useHandler(handler: Handler?) {
         if (handler != null) {
             mHandler = ClientHandler(handler.looper)
-        } else if (mHandler.looper != mContext.mainLooper) {
+        } else if (mHandler.looper != AndroidContext.appContext.mainLooper) {
             mHandler = ClientHandler(
-                mContext.mainLooper
+                AndroidContext.appContext.mainLooper
             )
         }
     }

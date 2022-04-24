@@ -19,12 +19,14 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
-import android.content.*
-import android.os.*
+import android.content.Context
+import android.os.CancellationSignal
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.*
+import dev.skomlach.biometric.compat.engine.BiometricCodes
+import dev.skomlach.biometric.compat.engine.BiometricInitListener
+import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -58,7 +60,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 huawei3DFaceManager = null
             }
             try {
-                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager(context)
+                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager()
                 d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)

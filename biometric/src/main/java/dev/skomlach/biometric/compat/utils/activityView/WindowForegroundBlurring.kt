@@ -43,7 +43,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.Utils
-import java.util.*
 
 
 class WindowForegroundBlurring(

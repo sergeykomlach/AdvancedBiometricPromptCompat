@@ -23,6 +23,7 @@ import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.app.BuildConfig
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
@@ -32,10 +33,11 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
-class Scan4Apis(private val context: Context) {
+class Scan4Apis() {
     @WorkerThread
     fun getList(): String? {
         try {
+            val context = AndroidContext.appContext
             val file = File(context.cacheDir, "deviceapi.log")
             if (file.exists())
                 file.delete()

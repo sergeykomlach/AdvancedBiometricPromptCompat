@@ -23,10 +23,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 
-class HomeWatcher(private val mContext: Context, private val mListener: OnHomePressedListener) {
+class HomeWatcher(private val mListener: OnHomePressedListener) {
     private val mFilter: IntentFilter = IntentFilter()
     private val mReceiver = InnerReceiver()
 
@@ -38,7 +39,7 @@ class HomeWatcher(private val mContext: Context, private val mListener: OnHomePr
 
     fun startWatch(): Runnable {
         return try {
-            registerGlobalBroadcastIntent(mContext, mReceiver, mFilter)
+            registerGlobalBroadcastIntent(AndroidContext.appContext, mReceiver, mFilter)
             Runnable {
                 stopWatch()
             }
@@ -50,7 +51,7 @@ class HomeWatcher(private val mContext: Context, private val mListener: OnHomePr
 
     private fun stopWatch() {
         try {
-            unregisterGlobalBroadcastIntent(mContext, mReceiver)
+            unregisterGlobalBroadcastIntent(AndroidContext.appContext, mReceiver)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

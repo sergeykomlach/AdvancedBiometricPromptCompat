@@ -269,7 +269,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
             val textColor = ContextCompat.getColor(context, R.color.textColor)
 
             try {
-                val monetColors = SystemColorScheme(context)
+                val monetColors = SystemColorScheme()
                 if (DarkLightThemes.isNightModeCompatWithInscreen(context)) {
                     fingerprintIcon?.tintColor(monetColors.accent1[300]?.toArgb())
                     negativeButton?.setTextColor(
