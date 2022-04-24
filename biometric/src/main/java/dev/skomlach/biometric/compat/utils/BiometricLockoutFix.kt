@@ -34,20 +34,19 @@ object BiometricLockoutFix {
         SharedPreferenceProvider.getPreferences("BiometricCompat_Storage")
     private val lock = ReentrantLock()
     fun lockout(biometricType: BiometricType) {
-        if (!isLockOut(biometricType)) {
-            try {
-                lock.runCatching { this.lock() }
-                BiometricLoggerImpl.d("setLockout for " + biometricType.name)
-                preferences.edit().putLong(
-                    TS_PREF + "-" + biometricType.name,
-                    System.currentTimeMillis()
-                ).apply()
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
+        try {
+            lock.runCatching { this.lock() }
+            BiometricLoggerImpl.d("BiometricLockoutFix.setLockout for " + biometricType.name)
+            preferences.edit().putLong(
+                TS_PREF + "-" + biometricType.name,
+                System.currentTimeMillis()
+            ).apply()
+        } finally {
+            lock.runCatching {
+                this.unlock()
             }
-        }
+            }
+
     }
 
 
@@ -59,14 +58,14 @@ object BiometricLockoutFix {
                 if (System.currentTimeMillis() - ts >= timeout) {
                     preferences.edit()
                         .putLong(TS_PREF + "-" + biometricType.name, 0).apply()
-                    BiometricLoggerImpl.d("lockout is FALSE(1) for " + biometricType.name)
+                    BiometricLoggerImpl.d("BiometricLockoutFix.lockout is FALSE(1) for " + biometricType.name)
                     false
                 } else {
-                    BiometricLoggerImpl.d("lockout is TRUE for " + biometricType.name)
+                    BiometricLoggerImpl.d("BiometricLockoutFix.lockout is TRUE for " + biometricType.name)
                     true
                 }
             } else {
-                BiometricLoggerImpl.d("lockout is FALSE(2) for " + biometricType.name)
+                BiometricLoggerImpl.d("BiometricLockoutFix.lockout is FALSE(2) for " + biometricType.name)
                 false
             }
         } finally {
