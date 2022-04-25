@@ -46,8 +46,7 @@ object AndroidContext {
     private val activityResumedRelay = AtomicReference<Reference<Activity?>?>(null)
     val activity: Activity?
         get() = try {
-            val activity = activityResumedRelay.get()?.get()
-            if(!isActivityFinished(activity)) activity else null
+            activityResumedRelay.get()?.get()
         } catch (e: Throwable) {
             null
         }
@@ -129,7 +128,8 @@ object AndroidContext {
                             activity: Activity,
                             savedInstanceState: Bundle?
                         ) {
-
+                            LogCat.logError("AndroidContext", "onConfigurationChanged ${activity.resources.configuration}")
+                            configurationRelay.set(SoftReference(activity.resources.configuration))
                         }
 
                         override fun onActivityStarted(activity: Activity) {}

@@ -156,10 +156,6 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
     }
 
     private val mBinderLock = Any()
-    private val mContext: Context
-        get() {
-            return AndroidContext.appContext
-        }
     private val mToken: IBinder = Binder()
     private var mAuthenticationCallback: IMiuiFaceManager.AuthenticationCallback? = null
     private var mEnrollmentCallback: IMiuiFaceManager.EnrollmentCallback? = null
@@ -297,21 +293,21 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
             try {
                 if (POWERMODE_SUPERSAVE_OPEN == uri?.lastPathSegment) {
                     mIsSuperPower = SettingsSystem.getIntForUser(
-                        mContext.contentResolver,
+                        AndroidContext.appContext.contentResolver,
                         POWERMODE_SUPERSAVE_OPEN,
                         0,
                         0
                     ) != 0
                 } else if (FACE_UNLOCK_VALID_FEATURE == uri?.lastPathSegment) {
                     mIsValid = SettingsSecure.getIntForUser(
-                        mContext.contentResolver,
+                        AndroidContext.appContext.contentResolver,
                         FACE_UNLOCK_VALID_FEATURE,
                         1,
                         0
                     ) != 0
                 } else if (FACE_UNLOCK_HAS_FEATURE == uri?.lastPathSegment) {
                     mHasFaceData = SettingsSecure.getIntForUser(
-                        mContext.contentResolver,
+                        AndroidContext.appContext.contentResolver,
                         FACE_UNLOCK_HAS_FEATURE,
                         0,
                         0
@@ -325,26 +321,26 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
 
     init {
         mHandler = ClientHandler(
-            mContext
+            AndroidContext.appContext
         )
         try {
 //        if ("ursa".equals(Build.DEVICE)) {
-//            ContentResolver contentResolver = this.mContext.getContentResolver();
+//            ContentResolver contentResolver = this.AndroidContext.appContext.getContentResolver();
 //            this.mFaceUnlockModel = SettingsSecure.getIntForUser(contentResolver, FACE_UNLOCK_MODEL, 1, -2);
 //            if (this.mFaceUnlockModel != 2) {
-//                Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_MODEL, 2, -2);
+//                Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_MODEL, 2, -2);
 //                if (this.mFaceUnlockModel == 0) {
-//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_3D_HAS_FEATURE,
-//                            SettingsSecure.getIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2), -2);
-//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2);
-//                    Secure.putIntForUser(this.mContext.getContentResolver(), FACE_UNLOCK_VALID_FEATURE, 1, -2);
+//                    Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_3D_HAS_FEATURE,
+//                            SettingsSecure.getIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2), -2);
+//                    Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_HAS_FEATURE, 0, -2);
+//                    Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACE_UNLOCK_VALID_FEATURE, 1, -2);
 //                }
 //            }
 //        }
-//        Secure.putIntForUser(this.mContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
+//        Secure.putIntForUser(this.AndroidContext.appContext.getContentResolver(), FACEUNLOCK_SUPPORT_SUPERPOWER, 1, -2);
             val faceObserver = FaceObserver(mHandler)
             ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver,
+                AndroidContext.appContext.contentResolver,
                 Settings.Secure.getUriFor(FACE_UNLOCK_HAS_FEATURE),
                 false,
                 faceObserver,
@@ -352,7 +348,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
             )
             faceObserver.onChange(false, Uri.parse(FACE_UNLOCK_HAS_FEATURE_URI))
             ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver,
+                AndroidContext.appContext.contentResolver,
                 Settings.Secure.getUriFor(FACE_UNLOCK_VALID_FEATURE),
                 false,
                 faceObserver,
@@ -360,7 +356,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
             )
             faceObserver.onChange(false, Uri.parse(FACE_UNLOCK_VALID_FEATURE_URI))
             ContentResolverHelper.registerContentObserver(
-                mContext.contentResolver,
+                AndroidContext.appContext.contentResolver,
                 Settings.System.getUriFor(POWERMODE_SUPERSAVE_OPEN),
                 false,
                 faceObserver,
@@ -442,7 +438,11 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
         try {
             initService()
             if (mMiuiFaceService != null) {
-                binderCallCancelAuthention(mMiuiFaceService, mToken, mContext.packageName)
+                binderCallCancelAuthention(
+                    mMiuiFaceService,
+                    mToken,
+                    AndroidContext.appContext.packageName
+                )
             }
         } catch (e: RemoteException) {
             e(e)
@@ -471,7 +471,10 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
             try {
                 initService()
                 if (mMiuiFaceService != null) {
-                    res = binderCallGetVendorInfo(mMiuiFaceService, mContext.packageName)
+                    res = binderCallGetVendorInfo(
+                        mMiuiFaceService,
+                        AndroidContext.appContext.packageName
+                    )
                 }
             } catch (e: RemoteException) {
                 val stringBuilder = StringBuilder()
@@ -525,7 +528,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
                         -1,
                         mServiceReceiver,
                         flags,
-                        mContext.packageName,
+                        AndroidContext.appContext.packageName,
                         timeout
                     )
                 } else {
@@ -605,7 +608,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
                             0,
                             mServiceReceiver,
                             flags,
-                            mContext.packageName,
+                            AndroidContext.appContext.packageName,
                             surface,
                             enrollArea,
                             timeout
@@ -647,7 +650,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
                     mServiceReceiver,
                     cmd,
                     param,
-                    mContext.packageName
+                    AndroidContext.appContext.packageName
                 )
             }
         } catch (e: RemoteException) {
@@ -772,7 +775,11 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
             try {
                 initService()
                 if (mMiuiFaceService != null) {
-                    res = binderCallGetEnrolledFaces(mMiuiFaceService, 0, mContext.packageName)
+                    res = binderCallGetEnrolledFaces(
+                        mMiuiFaceService,
+                        0,
+                        AndroidContext.appContext.packageName
+                    )
                 }
             } catch (e: RemoteException) {
                 stringBuilder = StringBuilder()
@@ -823,7 +830,7 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
                 binderCallPpreInitAuthen(
                     mMiuiFaceService,
                     mToken,
-                    mContext.packageName,
+                    AndroidContext.appContext.packageName,
                     mServiceReceiver
                 )
             }
@@ -1145,9 +1152,9 @@ class MiuiFaceManagerImpl: IMiuiFaceManager {
     private fun useHandler(handler: Handler?) {
         if (handler != null) {
             mHandler = ClientHandler(handler.looper)
-        } else if (mHandler.looper != mContext.mainLooper) {
+        } else if (mHandler.looper != AndroidContext.appContext.mainLooper) {
             mHandler = ClientHandler(
-                mContext.mainLooper
+                AndroidContext.appContext.mainLooper
             )
         }
     }

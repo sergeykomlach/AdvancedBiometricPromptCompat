@@ -95,12 +95,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun doInBackground(vararg params: Void?): String? {
-                    return Scan4Apis(this@MainActivity).getList()
+                    return Scan4Apis().getList()
                 }
 
                 override fun onPostExecute(result: String?) {
                     dialog.dismiss()
-                    if (result?.isNullOrEmpty() == true) {
+                    if (result.isNullOrEmpty()) {
                         Toast.makeText(
                             AndroidContext.appContext,
                             "Unexpected error happens",

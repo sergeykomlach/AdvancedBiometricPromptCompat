@@ -36,13 +36,13 @@ import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakLivelinessEna
 import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.reflect.InvocationTargetException
-import java.util.*
 
 @SuppressLint("PrivateApi")
 
-class FaceLock(private val mContext: Context) {
+class FaceLock {
     protected var mFaceLockService: Any? = null
     private var mServiceConnection: ServiceConnectionWrapper? = null
     protected var mMap = HashMap<IFaceLockCallback, Any>()
@@ -88,14 +88,14 @@ class FaceLock(private val mContext: Context) {
         mServiceConnection = ServiceConnectionWrapper(connection)
         val intent = Intent(flInterface?.name)
         intent.setPackage(pkg)
-        return mContext
+        return AndroidContext.appContext
             .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
     }
 
     fun unbind() {
         d(TAG + " unbind from service")
         mServiceConnection?.let {
-            mContext.unbindService(it)
+            AndroidContext.appContext.unbindService(it)
         }
         mServiceConnection = null
     }
@@ -133,7 +133,7 @@ class FaceLock(private val mContext: Context) {
                 y,
                 width,
                 height,
-                isBiometricWeakLivelinessEnabled(mContext)
+                isBiometricWeakLivelinessEnabled(AndroidContext.appContext)
             )
             return
         } catch (ignore: Throwable) {

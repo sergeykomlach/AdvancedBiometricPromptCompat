@@ -31,7 +31,7 @@ object DialogMainColor {
     @ColorInt
     fun getColor(context: Context, isNightMode: Boolean): Int {
         if (Utils.isAtLeastS) {
-            val monetColors = SystemColorScheme(context)
+            val monetColors = SystemColorScheme()
             if (isNightMode) monetColors.neutral1[900]?.toArgb()?.let {
                 return it
             }

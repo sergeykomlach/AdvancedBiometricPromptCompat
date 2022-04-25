@@ -112,7 +112,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 }
             }
         }
-        faceLockHelper = FaceLockHelper(context, faceLockInterface)
+        faceLockHelper = FaceLockHelper(faceLockInterface)
         if (!isHardwarePresent) {
             if (listener != null) {
                 listener?.initFinished(biometricMethod, this@FacelockOldModule)

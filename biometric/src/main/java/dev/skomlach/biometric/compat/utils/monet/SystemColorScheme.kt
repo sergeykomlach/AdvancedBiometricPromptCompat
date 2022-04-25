@@ -1,11 +1,11 @@
 package dev.skomlach.biometric.compat.utils.monet
 
-import android.content.Context
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.monet.colors.Srgb
+import dev.skomlach.common.contextprovider.AndroidContext
 
 @RequiresApi(31)
-class SystemColorScheme(private val context: Context) {
+class SystemColorScheme() {
     val accent1 = getSwatch(ACCENT1_RES)
     val accent2 = getSwatch(ACCENT2_RES)
     val accent3 = getSwatch(ACCENT3_RES)
@@ -14,7 +14,7 @@ class SystemColorScheme(private val context: Context) {
     val neutral2 = getSwatch(NEUTRAL2_RES)
 
     private fun getSwatch(ids: Map<Int, Int>) = ids.map {
-        it.key to Srgb(context.getColor(it.value))
+        it.key to Srgb(AndroidContext.appContext.getColor(it.value))
     }.toMap()
 
     companion object {

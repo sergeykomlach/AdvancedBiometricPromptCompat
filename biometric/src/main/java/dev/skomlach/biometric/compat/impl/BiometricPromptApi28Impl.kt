@@ -115,9 +115,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         BiometricPrompt.ERROR_HW_UNAVAILABLE -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
-                            BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                                builder.getBiometricAuthRequest().type
-                            )
+                            for(t in builder.getPrimaryAvailableTypes()) {
+                                BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(t)
+                            }
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         }
                         BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> failureReason =
@@ -185,7 +185,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             )
 
         if (Utils.isAtLeastS) {
-            val monetColors = SystemColorScheme(builder.getContext())
+            val monetColors = SystemColorScheme()
             if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
                 monetColors.accent2[100]?.toArgb()?.let {
                     buttonTextColor = it
@@ -523,7 +523,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     callback?.onSucceeded(onlySuccess.keys.toList().filterNotNull().toSet())
                 } else if (error != null) {
-                    BiometricAuthWasCanceledByError.setCanceledByError()
                     if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
                         ExecutorHelper.postDelayed({
                             callback?.onFailed(error.failureReason)
@@ -537,7 +536,30 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             if (dialog == null) {
                 dialog =
                     BiometricPromptCompatDialogImpl(
-                        builder, this@BiometricPromptApi28Impl,
+                        builder, object : AuthCallback{
+                            private val ignoreFirstOpen = AtomicBoolean(true)
+                            override fun startAuth() {
+                                if(ignoreFirstOpen.getAndSet(false))
+                                    return
+                                this@BiometricPromptApi28Impl.startAuth()
+                            }
+
+                            override fun stopAuth() {
+                                this@BiometricPromptApi28Impl.stopAuth()
+                            }
+
+                            override fun cancelAuth() {
+                                this@BiometricPromptApi28Impl.cancelAuth()
+                            }
+
+                            override fun onUiOpened() {
+                                this@BiometricPromptApi28Impl.onUiOpened()
+                            }
+
+                            override fun onUiClosed() {
+                                this@BiometricPromptApi28Impl.onUiClosed()
+                            }
+                        },
                         builder.getSecondaryAvailableTypes()
                             .contains(BiometricType.BIOMETRIC_FINGERPRINT)
                                 && DevicesWithKnownBugs.hasUnderDisplayFingerprint

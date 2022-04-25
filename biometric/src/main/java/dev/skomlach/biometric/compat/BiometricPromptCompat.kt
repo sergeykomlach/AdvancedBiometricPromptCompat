@@ -536,7 +536,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     class Builder(
         private val biometricAuthRequest: BiometricAuthRequest,
-        private val context: FragmentActivity
+        dummy_reference: FragmentActivity
     ) {
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
@@ -633,25 +633,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var isTruncateChecked = false
 
         init {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                this.colorNavBar = context.window.navigationBarColor
-                this.colorStatusBar = context.window.statusBarColor
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                dividerColor = context.window.navigationBarDividerColor
+            AndroidContext.activity?.let { context ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    this.colorNavBar = context.window.navigationBarColor
+                    this.colorStatusBar = context.window.statusBarColor
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    dividerColor = context.window.navigationBarDividerColor
+                }
             }
             if (API_ENABLED) {
-                multiWindowSupport = MultiWindowSupport(context)
+                multiWindowSupport = MultiWindowSupport()
             }
         }
 
-        constructor(context: FragmentActivity) : this(
+        constructor(dummy_reference: FragmentActivity) : this(
             BiometricAuthRequest(
                 BiometricApi.AUTO,
                 BiometricType.BIOMETRIC_ANY
-            ), context
-        ) {
-        }
+            ), dummy_reference
+        )
 
         fun getTitle(): CharSequence? {
             return title
@@ -713,7 +714,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getContext(): FragmentActivity {
-            return context
+            return (AndroidContext.activity as? FragmentActivity?)
+                ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
         fun getBiometricAuthRequest(): BiometricAuthRequest {
@@ -744,7 +746,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setTitle(@StringRes titleRes: Int): Builder {
-            title = context.getString(titleRes)
+            title = AndroidContext.appContext.getString(titleRes)
             return this
         }
 
@@ -754,7 +756,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setSubtitle(@StringRes subtitleRes: Int): Builder {
-            subtitle = context.getString(subtitleRes)
+            subtitle = AndroidContext.appContext.getString(subtitleRes)
             return this
         }
 
@@ -764,7 +766,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setDescription(@StringRes descriptionRes: Int): Builder {
-            description = context.getString(descriptionRes)
+            description = AndroidContext.appContext.getString(descriptionRes)
             return this
         }
 
@@ -774,7 +776,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setNegativeButtonText(@StringRes res: Int): Builder {
-            negativeButtonText = context.getString(res)
+            negativeButtonText = AndroidContext.appContext.getString(res)
             return this
         }
 
@@ -791,16 +793,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             @StringRes textResId: Int,
             listener: DialogInterface.OnClickListener?
         ): Builder {
-            negativeButtonText = context.getString(textResId)
+            negativeButtonText = AndroidContext.appContext.getString(textResId)
             negativeButtonListener = listener
             return this
         }
 
         fun build(): BiometricPromptCompat {
             if (title == null)
-                title = BiometricTitle.getRelevantTitle(context, getAllAvailableTypes())
+                title = BiometricTitle.getRelevantTitle(
+                    AndroidContext.appContext,
+                    getAllAvailableTypes()
+                )
             if (negativeButtonText == null)
-                negativeButtonText = context.getString(android.R.string.cancel)
+                negativeButtonText = AndroidContext.appContext.getString(android.R.string.cancel)
             TruncatedTextFix.recalculateTexts(this, object : TruncatedTextFix.OnTruncateChecked {
                 override fun onDone() {
                     isTruncateChecked = true

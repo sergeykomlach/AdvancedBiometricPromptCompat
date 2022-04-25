@@ -29,13 +29,12 @@ import android.os.RemoteException
 import android.view.View
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.InvocationTargetException
 import java.util.concurrent.locks.ReentrantLock
 
 
-class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
-    private val faceLockInterface: FaceLockInterface
-    private val context: Context? = null
+class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     private var targetView: View? = null
     private var mFaceLock: FaceLock? = null
     private var mFaceLockServiceRunning = false
@@ -71,9 +70,8 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
     }
 
     init {
-        this.faceLockInterface = faceLockInterface
         mFaceLock = try {
-            FaceLock(context)
+            FaceLock()
         } catch (e: Throwable) {
             null
         }
@@ -162,7 +160,7 @@ class FaceLockHelper(context: Context, faceLockInterface: FaceLockInterface) {
                         mStarted = true
                         try {
                             val pm =
-                                context?.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                                AndroidContext.appContext?.getSystemService(Context.POWER_SERVICE) as PowerManager?
                             val screenLock = pm
                                 ?.newWakeLock(
                                     PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,

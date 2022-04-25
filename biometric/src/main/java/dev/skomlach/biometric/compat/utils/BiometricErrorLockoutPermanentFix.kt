@@ -22,22 +22,45 @@ package dev.skomlach.biometric.compat.utils
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
+import java.util.concurrent.locks.ReentrantLock
 
 
 object BiometricErrorLockoutPermanentFix {
     private const val TS_PREF = "user_unlock_device"
     private val sharedPreferences: SharedPreferences =
         getPreferences("BiometricCompat_ErrorLockoutPermanentFix")
-
+    private val lock = ReentrantLock()
     fun setBiometricSensorPermanentlyLocked(type: BiometricType) {
-        sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).apply()
+        try {
+            lock.runCatching { this.lock() }
+            sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).apply()
+        } finally {
+            lock.runCatching {
+                this.unlock()
+            }
+        }
     }
 
     fun resetBiometricSensorPermanentlyLocked() {
-        sharedPreferences.edit().clear().apply()
+        try {
+            lock.runCatching { this.lock() }
+            sharedPreferences.edit().clear().apply()
+        } finally {
+            lock.runCatching {
+                this.unlock()
+            }
+        }
     }
 
     fun isBiometricSensorPermanentlyLocked(type: BiometricType): Boolean {
-        return !sharedPreferences.getBoolean(TS_PREF + "-" + type.name, true)
+        try {
+            lock.runCatching { this.lock() }
+
+            return !sharedPreferences.getBoolean(TS_PREF + "-" + type.name, true)
+        } finally {
+            lock.runCatching {
+                this.unlock()
+            }
+        }
     }
 }

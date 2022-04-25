@@ -33,7 +33,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.isActivityFinished
 
-class MultiWindowSupport(private val activity: Activity) {
+class MultiWindowSupport {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
         fun isTablet(): Boolean {
@@ -50,6 +50,11 @@ class MultiWindowSupport(private val activity: Activity) {
             return res.getBoolean(R.bool.biometric_compat_is_tablet)
         }
     }
+
+    private var activity: Activity =
+        AndroidContext.activity ?: throw IllegalStateException("No activity on screen")
+        get() = AndroidContext.activity ?: throw IllegalStateException("No activity on screen")
+        set
 
     //Unlike Android N method, this one support also non-Nougat+ multiwindow modes (like Samsung/LG/Huawei/etc solutions)
     private fun checkIsInMultiWindow(): Boolean {

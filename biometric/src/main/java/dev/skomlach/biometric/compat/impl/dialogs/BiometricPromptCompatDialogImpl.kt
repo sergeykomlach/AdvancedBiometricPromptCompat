@@ -133,7 +133,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     private val homeWatcher =
-        HomeWatcher(compatBuilder.getContext(), object : HomeWatcher.OnHomePressedListener {
+        HomeWatcher(object : HomeWatcher.OnHomePressedListener {
             override fun onHomePressed() {
                 dialog.cancel()
             }
