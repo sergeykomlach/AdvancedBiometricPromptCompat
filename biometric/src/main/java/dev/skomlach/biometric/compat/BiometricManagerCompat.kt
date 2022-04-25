@@ -139,12 +139,21 @@ object BiometricManagerCompat {
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
         else {
+            var total = 0
+            var counted = 0
             for (s in BiometricType.values()) {
-                if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
-                    result = true
-                    break
+                val v = BiometricAuthRequest(
+                    BiometricApi.AUTO,
+                    s
+                )
+                if (isHardwareDetected(v) && isBiometricEnrollChanged(v)) {
+                    total++
+                    if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
+                        counted++
+                    }
                 }
             }
+            result = (total == counted)
         }
         return result || isCameraNotAvailable(api)
     }
