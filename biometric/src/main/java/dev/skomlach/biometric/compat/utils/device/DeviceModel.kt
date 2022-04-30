@@ -28,9 +28,6 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 
 object DeviceModel {
 
@@ -48,32 +45,33 @@ object DeviceModel {
 
     }
 
-    fun getNames(): List<String> {
+    fun getNames(): List<Pair<String, String>> {
         val strings = HashMap<String, String>()
-        var s: String? = getSimpleDeviceName()
-        BiometricLoggerImpl.d("AndroidModel - $s")
-        s?.let {
-            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
-            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it).filter {
-                it.isLetterOrDigit() || it.isWhitespace()
+
+        getSimpleDeviceName()?.let {
+            val str = fixVendorName(it)
+            strings.put(str, str.filter { c ->
+                c.isLetterOrDigit() || c.isWhitespace()
             })
         }
-        s = getNameFromAssets()
-        s?.let {
-            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
-            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it).filter {
-                it.isLetterOrDigit() || it.isWhitespace()
-            })
+        getNameFromAssets()?.let {
+            for (s in it) {
+                val str = fixVendorName(s)
+                strings.put(str, str.filter { c ->
+                    c.isLetterOrDigit() || c.isWhitespace()
+                })
+            }
         }
-        s = getNameFromDatabase()
-        s?.let {
-            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it))
-            strings.put(it.lowercase(Locale.ROOT), fixVendorName(it).filter {
-                it.isLetterOrDigit() || it.isWhitespace()
-            })
+        getNameFromDatabase()?.let {
+            for (s in it) {
+                val str = fixVendorName(s)
+                strings.put(str, str.filter { c ->
+                    c.isLetterOrDigit() || c.isWhitespace()
+                })
+            }
         }
 
-        val set = HashSet<String>(strings.values)
+        val set = HashSet<String>(strings.keys)
         val toRemove = HashSet<String>()
         for (name1 in set) {
             for (name2 in set) {
@@ -84,8 +82,12 @@ object DeviceModel {
             }
         }
         set.removeAll(toRemove)
-        val list = set.toMutableList().also {
-            it.sort()
+        val l = set.toMutableList().also {
+            it.sortWith { p0, p1 -> p1.length.compareTo(p0.length) }
+        }
+        val list = ArrayList<Pair<String, String>>()
+        for (s in l) {
+            list.add(Pair(s, strings[s] ?: continue))
         }
         BiometricLoggerImpl.d("AndroidModel.names $list")
         return list
@@ -114,7 +116,7 @@ object DeviceModel {
     }
 
     @WorkerThread
-    private fun getNameFromAssets(): String? {
+    private fun getNameFromAssets(): List<String>? {
 
         BiometricLoggerImpl.d("AndroidModel.getNameFromAssets started")
 
@@ -131,13 +133,18 @@ object DeviceModel {
                         if (name.isNullOrEmpty()) {
                             continue
                         } else if (!m.isNullOrEmpty() && model.equals(m, ignoreCase = true)) {
-                            BiometricLoggerImpl.d("AndroidModel - $jsonObject")
-                            val fullName = getFullName(name)
-                            return getName(brand, fullName)
+                            BiometricLoggerImpl.d("AndroidModel.getNameFromAssets1 - $jsonObject")
+
+                            return mutableListOf<String>().apply {
+                                this.add(getName(brand, getFullName(name)))
+                                this.add(getName(brand, getFullName(model)))
+                            }
                         } else if (!d.isNullOrEmpty() && device.equals(d, ignoreCase = true)) {
-                            BiometricLoggerImpl.d("AndroidModel - $jsonObject")
-                            val fullName = getFullName(name)
-                            return getName(brand, fullName)
+                            BiometricLoggerImpl.d("AndroidModel.getNameFromAssets2 - $jsonObject")
+                            return mutableListOf<String>().apply {
+                                this.add(getName(brand, getFullName(name)))
+                                this.add(getName(brand, getFullName(model)))
+                            }
                         }
                     }
                 }
@@ -167,16 +174,31 @@ object DeviceModel {
     }
 
     @WorkerThread
-    private fun getNameFromDatabase(): String? {
+    private fun getNameFromDatabase(): List<String>? {
         val info = DeviceName
             .getDeviceInfo(AndroidContext.appContext)
-        BiometricLoggerImpl.d("AndroidModel - {${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
+        BiometricLoggerImpl.d("AndroidModel.getNameFromDatabase -{ ${info.manufacturer}; ${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
-            val fullName = getFullName(info.name)
-            getName(
-                if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
-                fullName
-            )
+            val list = mutableListOf<String>()
+            if (info.manufacturer.isNullOrEmpty()) {
+                list.add(info.model)
+                return list
+            } else {
+                list.add(
+                    getName(
+                        if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
+                        getFullName(info.name)
+                    )
+                )
+                list.add(
+                    getName(
+                        if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
+                        getFullName(info.model)
+                    )
+                )
+            }
+            BiometricLoggerImpl.d("AndroidModel.getNameFromDatabase2 -{ $list }")
+            list
         } else {
             null
         }
