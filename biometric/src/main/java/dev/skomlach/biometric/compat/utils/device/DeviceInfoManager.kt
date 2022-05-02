@@ -124,18 +124,21 @@ object DeviceInfoManager {
             onDeviceInfoListener.onReady(deviceInfo)
             return
         }
-        val strings = getNames()
-        for (m in strings) {
-            deviceInfo = loadDeviceInfo(m)
-            if (deviceInfo != null) {
-                BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
-                setCachedDeviceInfo(deviceInfo)
+        val names = getNames()
+        for (m in names) {
+            deviceInfo = loadDeviceInfo(m.first, m.second)
+            if (!deviceInfo?.sensors.isNullOrEmpty()) {
+                BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
+                setCachedDeviceInfo(deviceInfo?:continue)
                 onDeviceInfoListener.onReady(deviceInfo)
                 return
             }
         }
-        if (strings.isNotEmpty()) {
-            setCachedDeviceInfo(DeviceInfo(strings.toList()[0], HashSet<String>()))
+        if (names.isNotEmpty()) {
+            setCachedDeviceInfo(DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
+                onDeviceInfoListener.onReady(it)
+            })
+            return
         }
         onDeviceInfoListener.onReady(null)
     }
@@ -209,21 +212,21 @@ object DeviceInfoManager {
         }
     }
 
-    private fun loadDeviceInfo(model: String): DeviceInfo? {
-        BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $model")
+    private fun loadDeviceInfo(modelReadableName: String, model: String): DeviceInfo? {
+        BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $modelReadableName/$model")
         return if (model.isEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
             var html: String? = getHtml(url) ?: return null
             val detailsLink = getDetailsLink(url, html, model)
-                ?: return DeviceInfo(model, HashSet<String>())
+                ?: return DeviceInfo(modelReadableName, HashSet<String>())
 
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
             html = getHtml(detailsLink)
-            if (html == null) return DeviceInfo(model, HashSet<String>())
+            if (html == null) return DeviceInfo(modelReadableName, HashSet<String>())
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
-            DeviceInfo(model, l)
+            DeviceInfo(modelReadableName, l)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             null
