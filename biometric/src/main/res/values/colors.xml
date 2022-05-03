@@ -33,4 +33,6 @@
     <color name="material_deep_teal_500">#ff009688</color>
 
     <color name="textColor">@color/black</color>
+
+    <color name="api33_finger_bg">#454545</color>
 </resources>

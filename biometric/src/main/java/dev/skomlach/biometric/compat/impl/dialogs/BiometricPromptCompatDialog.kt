@@ -23,6 +23,7 @@ import android.app.Dialog
 import android.app.UiModeManager
 import android.content.*
 import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -32,6 +33,7 @@ import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.Button
 import android.widget.TextView
 import androidx.annotation.LayoutRes
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDialog
 import androidx.core.content.ContextCompat
@@ -45,6 +47,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
 import dev.skomlach.biometric.compat.utils.monet.toArgb
+import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.Utils
 
@@ -260,7 +263,76 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     private fun updateMonetColorsInternal(context: Context) {
-        if (Utils.isAtLeastS) {
+        if (Utils.isAtLeastT) {
+//            E: [MonetColor api33_finger_bg = neutral1[700]; distance=0.02147931470032775]
+//            E: [MonetColor api33_finger_lines = accent1[100]; distance=0.03441162299750387]
+
+//            E: [MonetColor status_night = neutral1[200]; distance=0.016637805624463507]
+//            E: [MonetColor button_night = accent1[100]; distance=0.005545935208154502]
+
+//            E: [MonetColor status_day = neutral1[500]; distance=0.01616904070533888]
+//            E: [MonetColor button_day = accent1[600]; distance=0.005545935208154502]
+            val negativeButtonColor = ContextCompat.getColor(
+                context,
+                if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+            )
+
+            val textColor = ContextCompat.getColor(context, R.color.textColor)
+
+            try {
+                val monetColors = SystemColorScheme()
+                if (DarkLightThemes.isNightModeCompatWithInscreen(context)) {
+                    fingerprintIcon?.tintColor(monetColors.accent1[100]?.toArgb())
+                    status?.setTextColor(
+                        monetColors.neutral1[200]?.toArgb() ?: textColor
+                    )
+                    negativeButton?.setTextColor(
+                        monetColors.accent1[100]?.toArgb() ?: negativeButtonColor
+                    )
+                    rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                        setTextToTextViews(it, monetColors.neutral1[50]?.toArgb() ?: textColor)
+                        monetColors.neutral1[900]?.toArgb()?.let { color ->
+                            ViewCompat.setBackgroundTintList(
+                                it,
+                                ColorStateList.valueOf(color)
+                            )
+                        } ?: run {
+                            ViewCompat.setBackgroundTintList(
+                                it, null
+                            )
+                        }
+
+                    }
+                } else {
+                    fingerprintIcon?.tintColor(monetColors.accent1[100]?.toArgb())
+                    negativeButton?.setTextColor(
+                        monetColors.accent1[600]?.toArgb() ?: negativeButtonColor
+                    )
+                    status?.setTextColor(
+                        monetColors.neutral1[500]?.toArgb() ?: textColor
+                    )
+                    rootView?.findViewById<ViewGroup>(R.id.dialogLayout)?.let {
+                        setTextToTextViews(it, monetColors.neutral1[900]?.toArgb() ?: textColor)
+                        monetColors.neutral1[50]?.toArgb()?.let { color ->
+                            ViewCompat.setBackgroundTintList(
+                                it,
+                                ColorStateList.valueOf(color)
+                            )
+                        } ?: run {
+                            ViewCompat.setBackgroundTintList(
+                                it, null
+                            )
+                        }
+                    }
+
+                }
+
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e, "Monet colors")
+            }
+
+        }
+        else if (Utils.isAtLeastS) {
             val negativeButtonColor = ContextCompat.getColor(
                 context,
                 if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
@@ -316,6 +388,60 @@ class BiometricPromptCompatDialog : DialogFragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun findNearestColor(name: String, color: Int){
+        var k: Int? = null
+        var swatch : String? = null
+        var distance: Double = Double.MAX_VALUE
+        val monetColors = SystemColorScheme()
+        for(key in monetColors.accent1.keys){
+            val value = monetColors.accent1[key]?:continue
+            val d = ColorUtil.colorDistance(value.toArgb(), color)
+            if(d <= distance){
+                distance = d
+                k = key
+                swatch = "accent1"
+            }
+        }
+        for(key in monetColors.accent2.keys){
+            val value = monetColors.accent2[key]?:continue
+            val d = ColorUtil.colorDistance(value.toArgb(), color)
+            if(d <= distance){
+                distance = d
+                k = key
+                swatch = "accent2"
+            }
+        }
+        for(key in monetColors.accent3.keys){
+            val value = monetColors.accent3[key]?:continue
+            val d = ColorUtil.colorDistance(value.toArgb(), color)
+            if(d <= distance){
+                distance = d
+                k = key
+                swatch = "accent3"
+            }
+        }
+
+        for(key in monetColors.neutral1.keys){
+            val value = monetColors.neutral1[key]?:continue
+            val d = ColorUtil.colorDistance(value.toArgb(), color)
+            if(d <= distance){
+                distance = d
+                k = key
+                swatch = "neutral1"
+            }
+        }
+        for(key in monetColors.neutral2.keys){
+            val value = monetColors.neutral2[key]?:continue
+            val d = ColorUtil.colorDistance(value.toArgb(), color)
+            if(d <= distance){
+                distance = d
+                k = key
+                swatch = "neutral2"
+            }
+        }
+        BiometricLoggerImpl.e("MonetColor $name = $swatch[$k]; distance=$distance")
+    }
     private fun setTextToTextViews(view: View?, color: Int) {
         if (view is TextView && view !is Button) {
             view.setTextColor(color)
