@@ -2,10 +2,12 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkPreview compileSDK
+    //compileSdkPreview compileSDK
+    compileSdkVersion compileSDK
     defaultConfig {
         minSdkVersion minSDK
-        targetSdkPreview targetSDK
+        //targetSdkPreview targetSDK
+        targetSdkVersion targetSDK
         consumerProguardFiles "proguard-project-common.pro"
     }
     compileOptions {
