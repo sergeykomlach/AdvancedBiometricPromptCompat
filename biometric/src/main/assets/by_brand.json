@@ -124305,6 +124305,11 @@
   {
    "device": "a13x",
    "name": "Galaxy A13 5G",
+   "model": "SM-A136B"
+  },
+  {
+   "device": "a13x",
+   "name": "Galaxy A13 5G",
    "model": "SM-A136U"
   },
   {
@@ -187147,6 +187152,11 @@
    "device": "RMX3085L1",
    "name": "realme  8",
    "model": "RMX3085"
+  },
+  {
+   "device": "RED8C1L1",
+   "name": "realme  9i",
+   "model": "RMX3491"
   },
   {
    "device": "RMX3031L1",
