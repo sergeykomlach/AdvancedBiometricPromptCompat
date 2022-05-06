@@ -22,12 +22,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 android {
-    compileSdkPreview compileSDK
+    //compileSdkPreview compileSDK
+    compileSdkVersion compileSDK
 
     defaultConfig {
         applicationId "dev.skomlach.biometric.app"
         minSdkVersion minSDK
-        targetSdkPreview targetSDK
+        //targetSdkPreview targetSDK
+        targetSdkVersion targetSDK
         versionCode libsMinorVersion
         versionName libsMajorVersion
         multiDexEnabled true
