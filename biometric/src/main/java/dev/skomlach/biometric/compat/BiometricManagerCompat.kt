@@ -146,16 +146,18 @@ object BiometricManagerCompat {
                     BiometricApi.AUTO,
                     s
                 )
-                if (isHardwareDetected(v) && isBiometricEnrollChanged(v)) {
+                if (isHardwareDetected(v) && hasEnrolled(v)) {
                     total++
                     if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
                         counted++
                     }
                 }
             }
-            result = (total == counted)
+            result = total > 0 && (total == counted)
         }
-        return result || isCameraNotAvailable(api)
+        val isCameraBlocked = isCameraNotAvailable(api)
+        BiometricLoggerImpl.d("BiometricPromptManager. isBiometricSensorPermanentlyLocked - result=$result; isCameraBlocked=$isCameraBlocked")
+        return result || isCameraBlocked
     }
 
     @JvmStatic
