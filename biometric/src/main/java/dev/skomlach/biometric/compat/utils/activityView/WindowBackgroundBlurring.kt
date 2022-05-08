@@ -117,7 +117,11 @@ class WindowBackgroundBlurring(
                         }
                         if (Utils.isAtLeastS) {
                             renderEffect =
-                                RenderEffect.createBlurEffect(8f, 8f, Shader.TileMode.DECAL)
+                                RenderEffect.createBlurEffect(
+                                    DEFAULT_RADIUS.toFloat(),
+                                    DEFAULT_RADIUS.toFloat(),
+                                    Shader.TileMode.DECAL
+                                )
                             contentView?.setRenderEffect(renderEffect)
                         } else
                             ViewCompat.setBackground(this, BitmapDrawable(this.resources, bm))

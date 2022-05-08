@@ -19,13 +19,83 @@
 
 package dev.skomlach.biometric.compat.utils.activityView
 
-import android.graphics.Bitmap
+import android.content.Context
+import android.graphics.*
+import android.os.Build
+import android.renderscript.*
+import android.renderscript.RenderScript.RSMessageHandler
+import androidx.annotation.RequiresApi
 
-/**
- * Created by paveld on 3/6/14.
- */
-object FastBlur {
-    fun doBlur(sentBitmap: Bitmap, radius: Int, canReuseInBitmap: Boolean): Bitmap? {
+internal object FastBlur {
+    fun of(context: Context, source: Bitmap, factor: FastBlurConfig): Bitmap? {
+        val width = factor.width / factor.sampling
+        val height = factor.height / factor.sampling
+        if (hasZero(width, height)) {
+            return null
+        }
+        var bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.scale(1 / factor.sampling.toFloat(), 1 / factor.sampling.toFloat())
+        val paint = Paint()
+        paint.flags = Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG
+        val filter = PorterDuffColorFilter(factor.color, PorterDuff.Mode.SRC_ATOP)
+        paint.colorFilter = filter
+        canvas.drawBitmap(source, 0f, 0f, paint)
+        bitmap = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                rs(context, bitmap, factor.radius)
+            } else stack(bitmap, factor.radius, true)
+        } catch (e: RSRuntimeException) {
+            stack(bitmap, factor.radius, true)
+        }
+        return if (factor.sampling == DEFAULT_SAMPLING) {
+            bitmap
+        } else {
+            val scaled = Bitmap.createScaledBitmap(bitmap, factor.width, factor.height, true)
+            bitmap.recycle()
+            scaled
+        }
+    }
+
+    private fun hasZero(vararg args: Int): Boolean {
+        for (num in args) {
+            if (num == 0) {
+                return true
+            }
+        }
+        return false
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    @Throws(RSRuntimeException::class)
+    private fun rs(context: Context, bitmap: Bitmap, radius: Int): Bitmap? {
+        var rs: RenderScript? = null
+        var input: Allocation? = null
+        var output: Allocation? = null
+        var blur: ScriptIntrinsicBlur? = null
+        try {
+            rs = RenderScript.create(context)
+            rs.messageHandler = RSMessageHandler()
+            input = Allocation.createFromBitmap(
+                rs, bitmap, Allocation.MipmapControl.MIPMAP_NONE,
+                Allocation.USAGE_SCRIPT
+            )
+            output = Allocation.createTyped(rs, input.type)
+            blur = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs))
+            blur.setInput(input)
+            blur.setRadius(radius.toFloat())
+            blur.forEach(output)
+            output.copyTo(bitmap)
+        } finally {
+            rs?.destroy()
+            input?.destroy()
+            output?.destroy()
+            blur?.destroy()
+        }
+        return bitmap
+    }
+
+    private fun stack(sentBitmap: Bitmap, radius: Int, canReuseInBitmap: Boolean): Bitmap? {
 
         // Stack Blur v1.0 from
         // http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
