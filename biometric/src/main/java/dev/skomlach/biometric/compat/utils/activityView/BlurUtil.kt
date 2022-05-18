@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils.activityView
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Paint
 import android.os.Build
 import android.view.View
 import android.view.ViewDebug
@@ -31,7 +30,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import java.lang.reflect.Method
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.math.roundToInt
 
 @SuppressLint("PrivateApi")
 object BlurUtil {
@@ -163,20 +161,13 @@ object BlurUtil {
             return
         }
 
-        val scaleFactor = 1f
-        val radius = 8f
-        var overlay = Bitmap.createBitmap(
-            (view.measuredWidth / scaleFactor).toInt(),
-            (view.measuredHeight / scaleFactor).toInt(), Bitmap.Config.ARGB_8888
+        val overlay = FastBlur.of(
+            view.context, bkg, FastBlurConfig(
+                width = bkg.width,
+                height = bkg.height
+            )
         )
-        val canvas = Canvas(overlay)
-        canvas.translate(-view.left / scaleFactor, -view.top / scaleFactor)
-        canvas.scale(1 / scaleFactor, 1 / scaleFactor)
-        val paint = Paint()
-        paint.flags = Paint.FILTER_BITMAP_FLAG
-        canvas.drawBitmap(bkg, 0f, 0f, paint)
 
-        overlay = FastBlur.doBlur(overlay, radius.roundToInt(), true)
         BiometricLoggerImpl.d("BlurUtil.Blurring time - ${System.currentTimeMillis() - startMs} ms")
         listener.onBlurredScreenshot(bkg, overlay)
     }
