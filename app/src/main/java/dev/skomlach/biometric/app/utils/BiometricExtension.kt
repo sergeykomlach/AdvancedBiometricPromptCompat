@@ -24,11 +24,28 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.impl.PermissionsFragment
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.permissions.PermissionUtils
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
+    if ((biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE ||
+        (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY && BiometricPromptCompat.getAvailableAuthRequests()
+            .any { it.type == BiometricType.BIOMETRIC_FACE }))
+        &&
+        !PermissionUtils.hasSelfPermissions(android.Manifest.permission.CAMERA)
+    ) {
+        PermissionsFragment.askForPermissions(
+            activity ?: return,
+            listOf(android.Manifest.permission.CAMERA)
+        ) {
+            if(PermissionUtils.hasSelfPermissions(android.Manifest.permission.CAMERA))
+            this.startBiometric(biometricAuthRequest)
+        }
+        return
+    }
     if(!BiometricManagerCompat.isBiometricReady(biometricAuthRequest)){
         if(!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
             showAlertDialog(
