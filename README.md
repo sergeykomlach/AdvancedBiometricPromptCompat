@@ -33,7 +33,7 @@ Minimal supported Android OS version: **Android 4.1 Jelly Bean**
 
 Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
-**NOTE: TargetSDK=32**
+**NOTE: TargetSDK=33**
 
 
 #### Key features
