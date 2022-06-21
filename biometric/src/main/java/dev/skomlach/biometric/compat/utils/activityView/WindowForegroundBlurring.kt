@@ -59,13 +59,18 @@ class WindowForegroundBlurring(
 
 
     private val list: List<BiometricType>
-    get() {
-        return (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
-            compatBuilder.getAllAvailableTypes()
-        ) else emptyList()).filter {
-            BiometricManagerCompat.isBiometricReady(BiometricAuthRequest(compatBuilder.getBiometricAuthRequest().api, type = it))
+        get() {
+            return (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
+                compatBuilder.getAllAvailableTypes()
+            ) else emptyList()).filter {
+                BiometricManagerCompat.isBiometricReady(
+                    BiometricAuthRequest(
+                        compatBuilder.getBiometricAuthRequest().api,
+                        type = it
+                    )
+                )
+            }
         }
-    }
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View) {
@@ -87,7 +92,7 @@ class WindowForegroundBlurring(
     init {
         val isDark = !DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
         defaultColor =
-            DialogMainColor.getColor(context, isDark)
+            DialogMainColor.getColor(context, !isDark)
         BiometricLoggerImpl.d(
             "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
                 Integer.toHexString(
@@ -214,44 +219,44 @@ class WindowForegroundBlurring(
                 biometrics_layout.findViewById<View>(R.id.face)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_FACE)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.iris)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_IRIS)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.fingerprint)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_FINGERPRINT)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.heartrate)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_HEARTRATE)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.voice)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_VOICE)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.palm)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_PALMPRINT)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.typing)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_BEHAVIOR)) View.VISIBLE else View.GONE
-                    if(tag == null)
-                    tag = IconStates.WAITING
+                    if (tag == null)
+                        tag = IconStates.WAITING
                 }
 
                 updateIcons()
@@ -278,7 +283,7 @@ class WindowForegroundBlurring(
                     val color = palette?.getDominantColor(defColor) ?: defColor
                     val isDark = ColorUtil.isDark(color)
                     defaultColor =
-                        DialogMainColor.getColor(context, isDark)
+                        DialogMainColor.getColor(context, !isDark)
                     BiometricLoggerImpl.d(
                         "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
                             Integer.toHexString(
@@ -286,6 +291,7 @@ class WindowForegroundBlurring(
                             )
                         }"
                     )
+                    updateIcons()
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                 }
