@@ -90,9 +90,9 @@ class WindowForegroundBlurring(
     }
 
     init {
-        val isDark = !DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
+        val isDark = DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
         defaultColor =
-            DialogMainColor.getColor(context, !isDark)
+            DialogMainColor.getColor(context, isDark)
         BiometricLoggerImpl.d(
             "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
                 Integer.toHexString(
@@ -278,12 +278,12 @@ class WindowForegroundBlurring(
                 try {
                     val defColor = DialogMainColor.getColor(
                         context,
-                        !DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
+                        DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
                     )
-                    val color = palette?.getDominantColor(defColor) ?: defColor
+                    val color = palette?.getVibrantColor(defColor) ?: defColor
                     val isDark = ColorUtil.isDark(color)
                     defaultColor =
-                        DialogMainColor.getColor(context, !isDark)
+                        DialogMainColor.getColor(context, isDark)
                     BiometricLoggerImpl.d(
                         "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
                             Integer.toHexString(
