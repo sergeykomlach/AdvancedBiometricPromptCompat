@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
-import android.content.Context
 import android.os.Build
 
 object MiuiFaceFactory {

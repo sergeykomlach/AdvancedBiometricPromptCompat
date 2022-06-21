@@ -39,7 +39,7 @@ class MultiWindowSupport {
         fun isTablet(): Boolean {
             val ctx = AndroidContext.appContext
             val resources = ctx.resources
-            val configuration = resources.configuration
+            val configuration = AndroidContext.configuration ?: resources.configuration
             val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 ctx.createConfigurationContext(configuration).resources
             } else {
@@ -51,10 +51,10 @@ class MultiWindowSupport {
         }
     }
 
-    private var activity: Activity =
-        AndroidContext.activity ?: throw IllegalStateException("No activity on screen")
-        get() = AndroidContext.activity ?: throw IllegalStateException("No activity on screen")
-        set
+    private val activity: Activity
+        get() {
+            return AndroidContext.activity ?: throw IllegalStateException("No activity on screen")
+        }
 
     //Unlike Android N method, this one support also non-Nougat+ multiwindow modes (like Samsung/LG/Huawei/etc solutions)
     private fun checkIsInMultiWindow(): Boolean {

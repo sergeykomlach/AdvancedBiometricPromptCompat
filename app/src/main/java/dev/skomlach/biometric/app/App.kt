@@ -28,7 +28,6 @@ import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import java.util.*
 
 class App : MultiDexApplication() {
     companion object {

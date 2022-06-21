@@ -260,11 +260,17 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     }
 
     override val isHardwareAvailable: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(biometricAuthRequest.type)
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
+            biometricAuthRequest.type
+        )
     override val isBiometricEnrolled: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(biometricAuthRequest.type)
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(
+            biometricAuthRequest.type
+        )
     override val isLockedOut: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(biometricAuthRequest.type)
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(
+            biometricAuthRequest.type
+        )
     override val isBiometricEnrollChanged: Boolean
         get() {
             return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
@@ -289,56 +295,56 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     private val biometricFeatures: ArrayList<String>
         get() {
-        val list = ArrayList<String>()
-        try {
-            val fields = PackageManager::class.java.fields
-            for (f in fields) {
-                if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
-                    (f[null] as String?)?.let { name ->
+            val list = ArrayList<String>()
+            try {
+                val fields = PackageManager::class.java.fields
+                for (f in fields) {
+                    if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
+                        (f[null] as String?)?.let { name ->
 
-                        val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
-                        val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
-                        if ((isAOSP || isOEM) && (
-                                    name.endsWith(".fingerprint")
-                                            || name.endsWith(".face")
-                                            || name.endsWith(".iris")
-                                            || name.endsWith(".biometric")
-                                            || name.endsWith(".palm")
-                                            || name.endsWith(".voice")
-                                            || name.endsWith(".heartrate")
+                            val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
+                            val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
+                            if ((isAOSP || isOEM) && (
+                                        name.endsWith(".fingerprint")
+                                                || name.endsWith(".face")
+                                                || name.endsWith(".iris")
+                                                || name.endsWith(".biometric")
+                                                || name.endsWith(".palm")
+                                                || name.endsWith(".voice")
+                                                || name.endsWith(".heartrate")
 
-                                            || name.contains(".fingerprint.")
-                                            || name.contains(".face.")
-                                            || name.contains(".iris.")
-                                            || name.contains(".biometric.")
-                                            || name.contains(".palm.")
-                                            || name.contains(".voice.")
-                                            || name.contains(".heartrate.")
-                                    )
-                        ) {
-                            list.add(name)
+                                                || name.contains(".fingerprint.")
+                                                || name.contains(".face.")
+                                                || name.contains(".iris.")
+                                                || name.contains(".biometric.")
+                                                || name.contains(".palm.")
+                                                || name.contains(".voice.")
+                                                || name.contains(".heartrate.")
+                                        )
+                            ) {
+                                list.add(name)
+                            }
                         }
                     }
                 }
+            } catch (e: Throwable) {
+                e(e)
             }
-        } catch (e: Throwable) {
-            e(e)
+            list.sort()
+            return list
         }
-        list.sort()
-        return list
-    }
 
-    private val hasAnyHardware : Boolean
-    get() {
-        if (BiometricAuthentication.isHardwareDetected) return true
-        val packageManager = appContext.packageManager
-        for (f in biometricFeatures) {
-            if (packageManager != null && packageManager.hasSystemFeature(f)) {
-                return true
+    private val hasAnyHardware: Boolean
+        get() {
+            if (BiometricAuthentication.isHardwareDetected) return true
+            val packageManager = appContext.packageManager
+            for (f in biometricFeatures) {
+                if (packageManager != null && packageManager.hasSystemFeature(f)) {
+                    return true
+                }
             }
+            return false
         }
-        return false
-    }
     open val isAnyHardwareAvailable: Boolean
         get() = hasAnyHardware
     open val isAnyBiometricEnrolled: Boolean
@@ -373,43 +379,42 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         }//legacy
 
     //OK to check in this way
-    private fun isHardwareAvailableForType(type: BiometricType): Boolean
-         {
-            if (isAnyHardwareAvailable) {
-                //legacy
-                if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
-                    val biometricModule =
-                        BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
-                    if (biometricModule != null && biometricModule.isHardwarePresent) return true
-                }
+    private fun isHardwareAvailableForType(type: BiometricType): Boolean {
+        if (isAnyHardwareAvailable) {
+            //legacy
+            if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
+                val biometricModule =
+                    BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
+                if (biometricModule != null && biometricModule.isHardwarePresent) return true
+            }
 
-                val packageManager = appContext.packageManager
-                for (f in biometricFeatures) {
-                    if (packageManager.hasSystemFeature(f)) {
-                        if ((f.endsWith(".face") || f.contains(".face.")) &&
-                            type == BiometricType.BIOMETRIC_FACE
-                        ) return true
-                        if ((f.endsWith(".iris") || f.contains(".iris.")) &&
-                            type == BiometricType.BIOMETRIC_IRIS
-                        ) return true
-                        if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                            type == BiometricType.BIOMETRIC_FINGERPRINT
-                        ) return true
+            val packageManager = appContext.packageManager
+            for (f in biometricFeatures) {
+                if (packageManager.hasSystemFeature(f)) {
+                    if ((f.endsWith(".face") || f.contains(".face.")) &&
+                        type == BiometricType.BIOMETRIC_FACE
+                    ) return true
+                    if ((f.endsWith(".iris") || f.contains(".iris.")) &&
+                        type == BiometricType.BIOMETRIC_IRIS
+                    ) return true
+                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
+                        type == BiometricType.BIOMETRIC_FINGERPRINT
+                    ) return true
 
-                        if ((f.endsWith(".palm") || f.contains(".palm.")) &&
-                            type == BiometricType.BIOMETRIC_PALMPRINT
-                        ) return true
-                        if ((f.endsWith(".voice") || f.contains(".voice.")) &&
-                            type == BiometricType.BIOMETRIC_VOICE
-                        ) return true
-                        if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
-                            type == BiometricType.BIOMETRIC_HEARTRATE
-                        ) return true
-                    }
+                    if ((f.endsWith(".palm") || f.contains(".palm.")) &&
+                        type == BiometricType.BIOMETRIC_PALMPRINT
+                    ) return true
+                    if ((f.endsWith(".voice") || f.contains(".voice.")) &&
+                        type == BiometricType.BIOMETRIC_VOICE
+                    ) return true
+                    if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
+                        type == BiometricType.BIOMETRIC_HEARTRATE
+                    ) return true
                 }
             }
-            return false
         }
+        return false
+    }
 
     //More or less ok this one
     private fun isLockedOutForType(type: BiometricType): Boolean =
@@ -417,34 +422,33 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     //This code can produce false-positive results in some conditions
     //https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/issues/105#issuecomment-834438785
-    private fun isBiometricEnrolledForType(type: BiometricType): Boolean
-         {
-            if (isAnyBiometricEnrolled) {
-                val biometricModule =
-                    BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
-                val fingersEnrolled = biometricModule != null && biometricModule.hasEnrolled()
-                return if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
-                    fingersEnrolled
-                } else {
-                    if (type == BiometricType.BIOMETRIC_FACE &&
-                        LockType.isBiometricEnabledInSettings(appContext, "face")
-                    ) return true
-                    if (type == BiometricType.BIOMETRIC_IRIS &&
-                        LockType.isBiometricEnabledInSettings(appContext, "iris")
-                    ) return true
-                    if (type == BiometricType.BIOMETRIC_PALMPRINT &&
-                        LockType.isBiometricEnabledInSettings(appContext, "palm")
-                    ) return true
-                    if (type == BiometricType.BIOMETRIC_VOICE &&
-                        LockType.isBiometricEnabledInSettings(appContext, "voice")
-                    ) return true
-                    if (type == BiometricType.BIOMETRIC_HEARTRATE &&
-                        LockType.isBiometricEnabledInSettings(appContext, "heartrate")
-                    ) return true
+    private fun isBiometricEnrolledForType(type: BiometricType): Boolean {
+        if (isAnyBiometricEnrolled) {
+            val biometricModule =
+                BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
+            val fingersEnrolled = biometricModule != null && biometricModule.hasEnrolled()
+            return if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
+                fingersEnrolled
+            } else {
+                if (type == BiometricType.BIOMETRIC_FACE &&
+                    LockType.isBiometricEnabledInSettings(appContext, "face")
+                ) return true
+                if (type == BiometricType.BIOMETRIC_IRIS &&
+                    LockType.isBiometricEnabledInSettings(appContext, "iris")
+                ) return true
+                if (type == BiometricType.BIOMETRIC_PALMPRINT &&
+                    LockType.isBiometricEnabledInSettings(appContext, "palm")
+                ) return true
+                if (type == BiometricType.BIOMETRIC_VOICE &&
+                    LockType.isBiometricEnabledInSettings(appContext, "voice")
+                ) return true
+                if (type == BiometricType.BIOMETRIC_HEARTRATE &&
+                    LockType.isBiometricEnabledInSettings(appContext, "heartrate")
+                ) return true
 
-                    return !fingersEnrolled && isHardwareAvailableForType(type)
-                }
+                return !fingersEnrolled && isHardwareAvailableForType(type)
             }
-            return false
         }
+        return false
+    }
 }

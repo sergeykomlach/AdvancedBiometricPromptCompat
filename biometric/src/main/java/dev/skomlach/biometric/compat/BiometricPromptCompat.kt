@@ -93,7 +93,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         @JvmStatic
-        fun logging(enabled: Boolean, externalLogger1: BiometricLoggerImpl.ExternalLogger? = null, externalLogger2: LogCat.ExternalLogger? = null) {
+        fun logging(
+            enabled: Boolean,
+            externalLogger1: BiometricLoggerImpl.ExternalLogger? = null,
+            externalLogger2: LogCat.ExternalLogger? = null
+        ) {
             if (!API_ENABLED)
                 return
 //            AbstractBiometricModule.DEBUG_MANAGERS = enabled
@@ -131,6 +135,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var isDeviceInfoCheckInProgress = AtomicBoolean(false)
         private var authFlowInProgress = AtomicBoolean(false)
+
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -245,7 +250,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun authenticate(callbackOuter: AuthenticationCallback) {
-        if(authFlowInProgress.get()) {
+        if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
             return
         }
@@ -365,18 +370,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         BiometricNotificationManager.showNotification(builder)
                     }
 
-                        StatusBarTools.setNavBarAndStatusBarColors(
-                            builder.getContext().window,
-                            DialogMainColor.getColor(
-                                builder.getContext(),
-                                DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                            ),
-                            DialogMainColor.getColor(
-                                builder.getContext(),
-                                !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                            ),
-                            builder.getStatusBarColor()
-                        )
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        builder.getContext().window,
+                        DialogMainColor.getColor(
+                            builder.getContext(),
+                            DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                        ),
+                        DialogMainColor.getColor(
+                            builder.getContext(),
+                            !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                        ),
+                        builder.getStatusBarColor()
+                    )
 
                     activityViewWatcher?.setupListeners()
                 }
@@ -450,7 +455,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             val permission: MutableSet<String> = HashSet()
 
-            if(Utils.isAtLeastT && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()){
+            if (Utils.isAtLeastT && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                 permission.add("android.permission.POST_NOTIFICATIONS")
             }
             if (Build.VERSION.SDK_INT >= 28) {
@@ -478,6 +483,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     )
                     BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
                     BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
+                    else -> {
+                        //no-op
+                    }
                 }
             }
             return ArrayList(permission)
@@ -638,6 +646,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var backgroundBiometricIconsEnabled = true
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
+
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
 
@@ -706,6 +715,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun isExperimentalFeaturesEnabled(): Boolean {
             return experimentalFeaturesEnabled
         }
+
         fun isBackgroundBiometricIconsEnabled(): Boolean {
             return backgroundBiometricIconsEnabled
         }
@@ -747,6 +757,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             this.experimentalFeaturesEnabled = enabled
             return this
         }
+
         fun setEnabledBackgroundBiometricIcons(enabled: Boolean): Builder {
             this.backgroundBiometricIconsEnabled = enabled
             return this

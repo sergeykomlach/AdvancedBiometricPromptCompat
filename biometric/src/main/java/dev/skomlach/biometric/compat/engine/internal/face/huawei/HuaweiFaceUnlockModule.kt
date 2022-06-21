@@ -172,57 +172,57 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         restartPredicate: RestartPredicate?
     ) {
         try {
-        d("$name.authenticate - $biometricMethod")
-        if (!isHardwarePresent) {
-            listener?.onFailure(AuthenticationFailureReason.NO_HARDWARE, tag())
-            return
-        }
-        if (!hasEnrolled()) {
-            listener?.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, tag())
-            return
-        }
-        // Why getCancellationSignalObject returns an Object is unexplained
-       val signalObject =
+            d("$name.authenticate - $biometricMethod")
+            if (!isHardwarePresent) {
+                listener?.onFailure(AuthenticationFailureReason.NO_HARDWARE, tag())
+                return
+            }
+            if (!hasEnrolled()) {
+                listener?.onFailure(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, tag())
+                return
+            }
+            // Why getCancellationSignalObject returns an Object is unexplained
+            val signalObject =
                 (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                     ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
-        if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) {
-            huawei3DFaceManager?.let {
-                try {
-                    // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                    it.authenticate(
-                        null,
-                        signalObject,
-                        0,
-                        AuthCallback3DFace(restartPredicate, cancellationSignal, listener),
-                        ExecutorHelper.handler
-                    )
-                    return
-                } catch (e: Throwable) {
-                    e(e, "$name: authenticate failed unexpectedly")
-                }
-            }
-        }
-        if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) {
-            huaweiFaceManagerLegacy?.let {
-                try {
-                    signalObject.setOnCancelListener(CancellationSignal.OnCancelListener {
-                        it.cancel(
-                            0
+            if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) {
+                huawei3DFaceManager?.let {
+                    try {
+                        // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                        it.authenticate(
+                            null,
+                            signalObject,
+                            0,
+                            AuthCallback3DFace(restartPredicate, cancellationSignal, listener),
+                            ExecutorHelper.handler
                         )
-                    })
-                    // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                    it.authenticate(
-                        0,
-                        0,
-                        AuthCallbackLegacy(restartPredicate, cancellationSignal, listener)
-                    )
-                    return
-                } catch (e: Throwable) {
-                    e(e, "$name: authenticate failed unexpectedly")
+                        return
+                    } catch (e: Throwable) {
+                        e(e, "$name: authenticate failed unexpectedly")
+                    }
                 }
             }
-        }
+            if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) {
+                huaweiFaceManagerLegacy?.let {
+                    try {
+                        signalObject.setOnCancelListener(CancellationSignal.OnCancelListener {
+                            it.cancel(
+                                0
+                            )
+                        })
+                        // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                        it.authenticate(
+                            0,
+                            0,
+                            AuthCallbackLegacy(restartPredicate, cancellationSignal, listener)
+                        )
+                        return
+                    } catch (e: Throwable) {
+                        e(e, "$name: authenticate failed unexpectedly")
+                    }
+                }
+            }
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
@@ -273,11 +273,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
-                    when (failureReason) {
-                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                            lockout()
-                            failureReason = AuthenticationFailureReason.LOCKED_OUT
-                        }
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
                 }
@@ -346,11 +348,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                         authenticate(cancellationSignal, listener, restartPredicate)
                     }, 250)
                 } else {
-                    when (failureReason) {
-                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                            lockout()
-                            failureReason = AuthenticationFailureReason.LOCKED_OUT
-                        }
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
                 }

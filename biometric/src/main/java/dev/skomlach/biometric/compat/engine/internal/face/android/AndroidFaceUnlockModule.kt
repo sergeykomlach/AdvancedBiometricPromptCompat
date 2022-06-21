@@ -26,7 +26,9 @@ import android.os.Build
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.*
+import dev.skomlach.biometric.compat.engine.BiometricCodes
+import dev.skomlach.biometric.compat.engine.BiometricInitListener
+import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -164,47 +166,47 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        try{
-        d("$name.authenticate - $biometricMethod")
-        // Why getCancellationSignalObject returns an Object is unexplained
-        val signalObject =
-            (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+        try {
+            d("$name.authenticate - $biometricMethod")
+            // Why getCancellationSignalObject returns an Object is unexplained
+            val signalObject =
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
-        if (faceAuthenticationManager?.isHardwareDetected == true && faceAuthenticationManager?.hasEnrolledFace() == true) {
-            faceAuthenticationManager?.let {
-                try {
-                    // Occasionally, an NPE will bubble up out of FaceAuthenticationManager.authenticate
-                    it.authenticate(
-                        null, signalObject, 0,
-                        FaceAuthenticationManagerAuthCallback(
-                            restartPredicate,
-                            cancellationSignal,
-                            listener
-                        ), ExecutorHelper.handler
-                    )
-                    return
-                } catch (e: Throwable) {
-                    e(e, "$name: authenticate failed unexpectedly")
+            if (faceAuthenticationManager?.isHardwareDetected == true && faceAuthenticationManager?.hasEnrolledFace() == true) {
+                faceAuthenticationManager?.let {
+                    try {
+                        // Occasionally, an NPE will bubble up out of FaceAuthenticationManager.authenticate
+                        it.authenticate(
+                            null, signalObject, 0,
+                            FaceAuthenticationManagerAuthCallback(
+                                restartPredicate,
+                                cancellationSignal,
+                                listener
+                            ), ExecutorHelper.handler
+                        )
+                        return
+                    } catch (e: Throwable) {
+                        e(e, "$name: authenticate failed unexpectedly")
+                    }
+                }
+            } else if (faceManager?.isHardwareDetected == true && faceManager?.hasEnrolledTemplates() == true) {
+                faceManager?.let {
+                    try {
+                        // Occasionally, an NPE will bubble up out of FaceAuthenticationManager.authenticate
+                        it.authenticate(
+                            null,
+                            signalObject,
+                            0,
+                            FaceManagerAuthCallback(restartPredicate, cancellationSignal, listener),
+                            ExecutorHelper.handler
+                        )
+                        return
+                    } catch (e: Throwable) {
+                        e(e, "$name: authenticate failed unexpectedly")
+                    }
                 }
             }
-        } else if (faceManager?.isHardwareDetected == true && faceManager?.hasEnrolledTemplates() == true) {
-            faceManager?.let {
-                try {
-                    // Occasionally, an NPE will bubble up out of FaceAuthenticationManager.authenticate
-                    it.authenticate(
-                        null,
-                        signalObject,
-                        0,
-                        FaceManagerAuthCallback(restartPredicate, cancellationSignal, listener),
-                        ExecutorHelper.handler
-                    )
-                    return
-                } catch (e: Throwable) {
-                    e(e, "$name: authenticate failed unexpectedly")
-                }
-            }
-        }
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
@@ -256,11 +258,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
-                    when (failureReason) {
-                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                            lockout()
-                            failureReason = AuthenticationFailureReason.LOCKED_OUT
-                        }
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
                 }
@@ -326,11 +330,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
-                    when (failureReason) {
-                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                            lockout()
-                            failureReason = AuthenticationFailureReason.LOCKED_OUT
-                        }
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
                 }

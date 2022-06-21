@@ -31,7 +31,6 @@ import android.view.WindowManager
 import androidx.core.util.ObjectsCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import java.util.*
 
 
 object ActiveWindow {

@@ -61,15 +61,17 @@ class WindowForegroundBlurring(
 
 
     private val list: List<BiometricType> by lazy {
-        if(compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(compatBuilder.getAllAvailableTypes()) else emptyList()
+        if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
+            compatBuilder.getAllAvailableTypes()
+        ) else emptyList()
     }
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View?) {
+        override fun onViewAttachedToWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
         }
 
-        override fun onViewDetachedFromWindow(v: View?) {
+        override fun onViewDetachedFromWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
             resetListeners()
             forceToCloseCallback.onCloseBiometric()
@@ -321,6 +323,9 @@ class WindowForegroundBlurring(
                             type,
                             biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates
                         )
+                        else -> {
+                            //no-op
+                        }
                     }
                 }
             }
@@ -402,6 +407,9 @@ class WindowForegroundBlurring(
                             biometrics_layout.findViewById<ImageView>(R.id.fingerprint),
                             ColorStateList.valueOf(color)
                         )
+                    }
+                    else -> {
+                        //no-op
                     }
                 }
             }

@@ -18,7 +18,6 @@
  */
 package dev.skomlach.biometric.app.devtools
 
-import android.content.Context
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.app.BuildConfig
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl

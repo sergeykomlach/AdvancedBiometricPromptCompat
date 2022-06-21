@@ -29,7 +29,6 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.isActivityFinished
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -128,13 +127,17 @@ object AndroidContext {
                             activity: Activity,
                             savedInstanceState: Bundle?
                         ) {
-                            LogCat.logError("AndroidContext", "onConfigurationChanged ${activity.resources.configuration}")
+                            LogCat.logError(
+                                "AndroidContext",
+                                "onConfigurationChanged ${activity.resources.configuration}"
+                            )
+                            activityResumedRelay.set(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
-                            activityResumedRelay.set(SoftReference(activity))
+
                         }
 
                         override fun onActivityPaused(activity: Activity) {}

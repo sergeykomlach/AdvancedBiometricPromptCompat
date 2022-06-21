@@ -23,7 +23,6 @@ import android.content.Context
 import android.os.Build
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.io.IOException
-import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 

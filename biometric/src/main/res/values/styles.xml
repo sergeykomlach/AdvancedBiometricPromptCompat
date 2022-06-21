@@ -18,6 +18,7 @@
   -->
 
 <resources>
+
     <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault">
         <item name="android:windowMinWidthMajor">75%</item>
         <item name="android:windowMinWidthMinor">100%</item>
@@ -40,6 +41,7 @@
     <style name="DialogContent">
         <item name="android:layout_width">wrap_content</item>
     </style>
+
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">@anim/move_in</item>
         <item name="android:windowExitAnimation">@anim/move_out</item>

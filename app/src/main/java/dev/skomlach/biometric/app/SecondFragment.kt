@@ -30,7 +30,6 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment
-import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.app.databinding.FragmentSecondBinding
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.app.utils.MailTo

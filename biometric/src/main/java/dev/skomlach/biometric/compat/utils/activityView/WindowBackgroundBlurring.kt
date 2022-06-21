@@ -45,11 +45,11 @@ class WindowBackgroundBlurring(
     private var biometricsLayout: View? = null
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View?) {
+        override fun onViewAttachedToWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
         }
 
-        override fun onViewDetachedFromWindow(v: View?) {
+        override fun onViewDetachedFromWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
             resetListeners()
         }

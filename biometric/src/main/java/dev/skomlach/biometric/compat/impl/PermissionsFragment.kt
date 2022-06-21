@@ -37,9 +37,7 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
@@ -62,8 +60,10 @@ class PermissionsFragment : Fragment() {
         ) {
             e("PermissionsFragment.askForPermissions()")
             if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
-                val tag = "${PermissionsFragment.javaClass.name}-${permissions.joinToString(",").hashCode()}"
-                if(activity.supportFragmentManager.findFragmentByTag(tag) != null)
+                val tag = "${PermissionsFragment.javaClass.name}-${
+                    permissions.joinToString(",").hashCode()
+                }"
+                if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                     return
                 val fragment = PermissionsFragment()
                 val bundle = Bundle()
@@ -72,8 +72,8 @@ class PermissionsFragment : Fragment() {
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
                         if (callback != null) ExecutorHelper.post(callback)
-                        try{
-                        unregisterGlobalBroadcastIntent(appContext, this)
+                        try {
+                            unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {
                             e(e)
                         }
@@ -307,7 +307,8 @@ class PermissionsFragment : Fragment() {
             }, 250)
         }
         AlertDialog.Builder(
-            requireActivity()).apply {
+            requireActivity()
+        ).apply {
             setTitle(title)
             setCancelable(true)
             setMessage(text)

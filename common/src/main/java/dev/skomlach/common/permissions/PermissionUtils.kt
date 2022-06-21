@@ -39,7 +39,6 @@ import dev.skomlach.common.logging.LogCat.logError
 import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
-import java.util.*
 
 object PermissionUtils {
 
@@ -252,9 +251,11 @@ object PermissionUtils {
 
     //Notification permissions
     val isAllowedNotificationsPermission: Boolean
-        get() = if(Utils.isAtLeastT)
-            hasSelfPermissions("android.permission.POST_NOTIFICATIONS") && NotificationManagerCompat.from(appContext).areNotificationsEnabled()
-    else
+        get() = if (Utils.isAtLeastT)
+            hasSelfPermissions("android.permission.POST_NOTIFICATIONS") && NotificationManagerCompat.from(
+                appContext
+            ).areNotificationsEnabled()
+        else
             NotificationManagerCompat.from(appContext).areNotificationsEnabled()
 
     //Notification channel permissions
@@ -270,10 +271,12 @@ object PermissionUtils {
 
             return if (VERSION.SDK_INT >= 28) {
                 logError(
-                    "PermissionUtils.NotificationGroup " + notificationChannel.group + ":" + notificationManager.getNotificationChannelGroup(notificationChannel.group)?.isBlocked + "; NotificationChannel " + channelId + ":" + notificationChannel.importance
+                    "PermissionUtils.NotificationGroup " + notificationChannel.group + ":" + notificationManager.getNotificationChannelGroup(
+                        notificationChannel.group
+                    )?.isBlocked + "; NotificationChannel " + channelId + ":" + notificationChannel.importance
                 )
                 notificationManager.getNotificationChannelGroup(notificationChannel.group)?.isBlocked == true || notificationChannel.importance != NotificationManager.IMPORTANCE_NONE
-            } else{
+            } else {
                 logError(
                     "PermissionUtils.NotificationChannel " + channelId + ":" + notificationChannel.importance
                 )

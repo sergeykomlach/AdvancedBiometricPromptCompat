@@ -27,7 +27,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.utils.activityView.ActiveWindow
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
@@ -88,10 +87,11 @@ class SensorBlockedFallbackFragment : Fragment() {
                 return
             ExecutorHelper.postDelayed(
                 {
-                    val tag = "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
+                    val tag =
+                        "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
                     val activity = AndroidContext.activity
                     if (activity is FragmentActivity) {
-                        if(activity.supportFragmentManager.findFragmentByTag(tag) != null)
+                        if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                             return@postDelayed
                         val windowDoNotLoseFocus = try {
                             ActiveWindow.getActiveWindow(
@@ -159,7 +159,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                     getString(
                         AndroidContext.appContext,
                         "sensor_privacy_start_use_dialog_turn_on_button"
-                    )?:getString(android.R.string.ok)
+                    ) ?: getString(android.R.string.ok)
                 ) { p0, _ ->
                     Utils.startActivity(
                         Intent(android.provider.Settings.ACTION_PRIVACY_SETTINGS),
