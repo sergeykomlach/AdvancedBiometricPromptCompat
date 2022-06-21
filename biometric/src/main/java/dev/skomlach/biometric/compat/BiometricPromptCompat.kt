@@ -466,6 +466,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onUIClosed()
                     stopWatcher?.run()
                     stopWatcher = null
+                    try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
                     authFlowInProgress.set(false)
                 }
             }
@@ -559,11 +560,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
+            try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
             impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
             impl.authenticate(callback)
             stopWatcher = homeWatcher.startWatch()
         } catch (ignore: IllegalStateException) {
-            impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
+            try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
             authFlowInProgress.set(false)
         }
@@ -582,7 +584,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             ExecutorHelper.post {
                 impl.cancelAuthentication()
-                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
             }
         }
 
