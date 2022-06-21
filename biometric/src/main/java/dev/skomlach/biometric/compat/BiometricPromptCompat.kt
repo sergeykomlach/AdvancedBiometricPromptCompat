@@ -44,6 +44,7 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
+import dev.skomlach.biometric.compat.impl.dialogs.HomeWatcher
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
@@ -251,6 +252,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         iBiometricPromptImpl
     }
+    private var stopWatcher: Runnable? = null
+    private val homeWatcher = HomeWatcher(object : HomeWatcher.OnHomePressedListener {
+        override fun onHomePressed() {
+            cancelAuthentication()
+        }
+
+        override fun onRecentAppPressed() {
+            cancelAuthentication()
+        }
+
+        override fun onPowerPressed() {
+            cancelAuthentication()
+        }
+    })
     private val fragmentLifecycleCallbacks = object :
         FragmentManager.FragmentLifecycleCallbacks() {
         private val atomicBoolean = AtomicInteger(0)
@@ -449,6 +464,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             .toLong()
                     ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
+                    stopWatcher?.run()
+                    stopWatcher = null
                     authFlowInProgress.set(false)
                 }
             }
@@ -544,6 +561,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
             impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
             impl.authenticate(callback)
+            stopWatcher = homeWatcher.startWatch()
         } catch (ignore: IllegalStateException) {
             impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)

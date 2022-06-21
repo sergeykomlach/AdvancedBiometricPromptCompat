@@ -32,6 +32,7 @@ class HomeWatcher(private val mListener: OnHomePressedListener) {
     private val mReceiver = InnerReceiver()
 
     init {
+        //Deprecated starts from API 31
         mFilter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
         mFilter.addAction(Intent.ACTION_SCREEN_ON)
         mFilter.addAction(Intent.ACTION_SCREEN_OFF)
@@ -39,11 +40,13 @@ class HomeWatcher(private val mListener: OnHomePressedListener) {
 
     fun startWatch(): Runnable {
         return try {
+            stopWatch()
             registerGlobalBroadcastIntent(AndroidContext.appContext, mReceiver, mFilter)
             Runnable {
                 stopWatch()
             }
         } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
             Runnable { }
         }
 
@@ -52,8 +55,8 @@ class HomeWatcher(private val mListener: OnHomePressedListener) {
     private fun stopWatch() {
         try {
             unregisterGlobalBroadcastIntent(AndroidContext.appContext, mReceiver)
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+        } catch (ignore: Throwable) {
+
         }
     }
 
