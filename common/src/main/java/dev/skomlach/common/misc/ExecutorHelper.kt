@@ -21,6 +21,7 @@ package dev.skomlach.common.misc
 
 import android.os.Handler
 import android.os.Looper
+import dev.skomlach.common.logging.LogCat
 import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.Executor
@@ -45,7 +46,7 @@ object ExecutorHelper {
             try {
                 tasksInMain[task] = job
             } catch (e: Throwable) {
-                e.printStackTrace()
+                LogCat.logException(e, "addTaskSafely")
             } finally {
                 lock.runCatching {
                     this.unlock()
@@ -59,7 +60,7 @@ object ExecutorHelper {
             try {
                 tasksInMain.remove(task)
             } catch (e: Throwable) {
-                e.printStackTrace()
+                LogCat.logException(e, "removeTaskSafely")
             } finally {
                 lock.runCatching {
                     this.unlock()
@@ -117,7 +118,7 @@ object ExecutorHelper {
                 tasksInMain[task]?.cancel()
                 tasksInMain.remove(task)
             } catch (e: Throwable) {
-                e.printStackTrace()
+                LogCat.logException(e, "removeCallbacks")
             } finally {
                 lock.runCatching {
                     this.unlock()

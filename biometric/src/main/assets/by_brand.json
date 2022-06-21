@@ -209,6 +209,18 @@
    "model": "Ai-ES1059"
   }
  ],
+ "ABCTECH": [
+  {
+   "device": "X20",
+   "name": "X20",
+   "model": "X20"
+  },
+  {
+   "device": "X5",
+   "name": "X5",
+   "model": "X5"
+  }
+ ],
  "ACE (Global)": [
   {
    "device": "BUZZ_3",
@@ -1565,11 +1577,6 @@
    "device": "TANK_P55",
    "name": "TANK_P55",
    "model": "TANK_P55"
-  },
-  {
-   "device": "X20",
-   "name": "X20",
-   "model": "X20"
   }
  ],
  "Access": [
@@ -26074,6 +26081,11 @@
    "device": "KINGKONG_MINI2",
    "name": "KINGKONG MINI2",
    "model": "KINGKONG MINI2"
+  },
+  {
+   "device": "KINGKONG_MINI2_Pro",
+   "name": "KINGKONG MINI2 Pro",
+   "model": "KINGKONG MINI2 Pro"
   },
   {
    "device": "KINGKONG_MINI2_Pro",
@@ -52393,6 +52405,11 @@
    "device": "yebisuDA",
    "name": "A-DA",
    "model": "MY21ADA"
+  },
+  {
+   "device": "yebisuFA",
+   "name": "A-DA",
+   "model": "MY22ADA"
   },
   {
    "device": "yebisuGA",
@@ -121039,6 +121056,11 @@
    "model": "M2004J19C"
   },
   {
+   "device": "lancelot",
+   "name": "Redmi 9 Prime",
+   "model": "M2004J19I"
+  },
+  {
    "device": "dandelion",
    "name": "Redmi 9A",
    "model": "220233L2G"
@@ -127457,6 +127479,11 @@
    "model": "SM-A226L"
   },
   {
+   "device": "m23xq",
+   "name": "Galaxy Buddy2",
+   "model": "SM-M236L"
+  },
+  {
    "device": "c5ltechn",
    "name": "Galaxy C5",
    "model": "SM-C5000"
@@ -130110,11 +130137,6 @@
    "device": "m23xq",
    "name": "Galaxy M23 5G",
    "model": "SM-M236B"
-  },
-  {
-   "device": "m23xq",
-   "name": "Galaxy M23 5G",
-   "model": "SM-M236L"
   },
   {
    "device": "m23xq",
@@ -133034,6 +133056,11 @@
   {
    "device": "r9q",
    "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990B2"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
    "model": "SM-G990U"
   },
   {
@@ -133044,7 +133071,22 @@
   {
    "device": "r9q",
    "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990U2"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990U3"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
    "model": "SM-G990W"
+  },
+  {
+   "device": "r9q",
+   "name": "Galaxy S21 FE 5G",
+   "model": "SM-G990W2"
   },
   {
    "device": "r9s",
@@ -137677,6 +137719,11 @@
    "model": "SM-G736U"
   },
   {
+   "device": "xcoverpro2",
+   "name": "Galaxy XCover6 Pro",
+   "model": "SM-G736W"
+  },
+  {
    "device": "GT-S5690",
    "name": "Galaxy Xcover",
    "model": "GT-S5690"
@@ -140109,6 +140156,16 @@
    "device": "YLI",
    "name": "AQUOS wish",
    "model": "SHG06"
+  },
+  {
+   "device": "SH-51C",
+   "name": "AQUOS wish2",
+   "model": "SH-51C"
+  },
+  {
+   "device": "SXI",
+   "name": "AQUOS wish2",
+   "model": "A204SH"
   },
   {
    "device": "SG801SH",
