@@ -138,11 +138,13 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                     listener?.onFailure(failureReason, tag())
                                     authenticate(cancellationSignal, listener, restartPredicate)
                                 } else {
-                                    when (failureReason) {
-                                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                                            lockout()
-                                            failureReason = AuthenticationFailureReason.LOCKED_OUT
-                                        }
+                                    if (mutableListOf(
+                                            AuthenticationFailureReason.SENSOR_FAILED,
+                                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                                        ).contains(failureReason)
+                                    ) {
+                                        lockout()
+                                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                                     }
                                     listener?.onFailure(failureReason, tag())
                                     cancelFingerprintServiceFingerprintRequest()

@@ -31,7 +31,6 @@ import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper
-import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -83,7 +82,11 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         val types: List<BiometricType?> = ArrayList(
             builder.getAllAvailableTypes()
         )
-        BiometricAuthentication.authenticate(if (dialog != null) dialog?.authPreview else null, types, fmAuthCallback)
+        BiometricAuthentication.authenticate(
+            if (dialog != null) dialog?.authPreview else null,
+            types,
+            fmAuthCallback
+        )
     }
 
     override fun stopAuth() {
@@ -118,8 +121,12 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
         }
         //non fatal
-        when (failureReason) {
-            AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> return
+        if (mutableListOf(
+                AuthenticationFailureReason.SENSOR_FAILED,
+                AuthenticationFailureReason.AUTHENTICATION_FAILED
+            ).contains(failureReason)
+        ) {
+            return
         }
         authFinished[module] = AuthResult(authResult, failureReason)
         dialog?.authFinishedCopy = authFinished

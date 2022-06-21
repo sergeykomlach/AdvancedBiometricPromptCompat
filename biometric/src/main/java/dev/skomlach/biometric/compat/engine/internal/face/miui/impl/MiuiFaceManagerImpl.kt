@@ -36,7 +36,7 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 
-class MiuiFaceManagerImpl: IMiuiFaceManager {
+class MiuiFaceManagerImpl : IMiuiFaceManager {
     companion object {
         const val ERROR_BINDER_CALL = 2100
         const val ERROR_CANCELED = 2000

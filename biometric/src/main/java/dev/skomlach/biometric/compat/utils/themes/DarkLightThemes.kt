@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils.themes
 import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.SettingsHelper
@@ -36,6 +35,7 @@ object DarkLightThemes {
     fun isNightModeCompatWithInscreen(context: Context): Boolean {
         return isNightMode(context, true)
     }
+
     fun isNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Boolean {
         return UiModeManager.MODE_NIGHT_YES == getNightMode(context, shouldInscreenCaseAffected)
     }
@@ -43,8 +43,12 @@ object DarkLightThemes {
     fun getNightModeCompatWithInscreen(context: Context): Int {
         return getNightMode(context, true)
     }
+
     fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int {
-        if (shouldInscreenCaseAffected && DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo))
+        if (shouldInscreenCaseAffected && DeviceInfoManager.hasUnderDisplayFingerprint(
+                BiometricPromptCompat.deviceInfo
+            )
+        )
             return UiModeManager.MODE_NIGHT_YES
         return when (getIsOsDarkTheme(context)) {
             DarkThemeCheckResult.DARK -> {

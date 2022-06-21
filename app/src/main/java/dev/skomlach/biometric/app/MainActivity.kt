@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
     private val controller: WindowInsetsControllerCompat by lazy {
         WindowInsetsControllerCompat(window, binding.root)
     }
+
     override fun onSaveInstanceState(outState: Bundle) {
         try {
             super.onSaveInstanceState(outState)
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
             BiometricLoggerImpl.e(e)
         }
     }
+
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         try {
             super.onRestoreInstanceState(savedInstanceState)
@@ -67,9 +69,10 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        try{
-        super.onCreate(savedInstanceState)
+        try {
+            super.onCreate(savedInstanceState)
         } catch (e: IllegalStateException) {
             BiometricLoggerImpl.e(e)
         }
@@ -90,14 +93,17 @@ class MainActivity : AppCompatActivity() {
 
             val scanTask = @SuppressLint("StaticFieldLeak")
             object : AsyncTask<Void, Void, String>() {
+                @Deprecated("Deprecated in Java")
                 override fun onPreExecute() {
                     dialog.show()
                 }
 
+                @Deprecated("Deprecated in Java")
                 override fun doInBackground(vararg params: Void?): String? {
                     return Scan4Apis().getList()
                 }
 
+                @Deprecated("Deprecated in Java")
                 override fun onPostExecute(result: String?) {
                     dialog.dismiss()
                     if (result.isNullOrEmpty()) {
@@ -171,7 +177,8 @@ class MainActivity : AppCompatActivity() {
     private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         controller.hide(WindowInsetsCompat.Type.statusBars() /*or WindowInsetsCompat.Type.navigationBars()*/ or WindowInsetsCompat.Type.captionBar())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
     }
 

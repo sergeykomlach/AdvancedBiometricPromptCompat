@@ -129,7 +129,7 @@ object DeviceInfoManager {
             deviceInfo = loadDeviceInfo(m.first, m.second)
             if (!deviceInfo?.sensors.isNullOrEmpty()) {
                 BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                setCachedDeviceInfo(deviceInfo?:continue)
+                setCachedDeviceInfo(deviceInfo ?: continue)
                 onDeviceInfoListener.onReady(deviceInfo)
                 return
             }
@@ -171,7 +171,7 @@ object DeviceInfoManager {
             }
             var lst: Long = 0
             for (s in apks) {
-                if(File(s).exists()) {
+                if (File(s).exists()) {
                     val t = File(s).lastModified()
                     if (t > lst) {
                         lst = t
@@ -185,11 +185,13 @@ object DeviceInfoManager {
             if (field == null) {
                 val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 if (sharedPreferences.getBoolean("checked-$lastUpdated", false)) {
-                    val model = sharedPreferences.getString("model-$lastUpdated", null) ?: return null
+                    val model =
+                        sharedPreferences.getString("model-$lastUpdated", null) ?: return null
                     val sensors =
-                        sharedPreferences.getStringSet("sensors-$lastUpdated", null) ?: HashSet<String>()
+                        sharedPreferences.getStringSet("sensors-$lastUpdated", null)
+                            ?: HashSet<String>()
                     field = DeviceInfo(model, sensors)
-                } else{
+                } else {
                     sharedPreferences.edit().clear().commit()
                 }
             }

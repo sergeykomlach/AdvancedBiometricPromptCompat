@@ -23,7 +23,6 @@ import android.app.Dialog
 import android.app.UiModeManager
 import android.content.*
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -93,6 +92,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
             updateMonetColorsInternal(context ?: return)
         }
     }
+
     override fun dismiss() {
         if (isAdded) {
             val fragmentManager = parentFragmentManager
@@ -154,12 +154,12 @@ class BiometricPromptCompatDialog : DialogFragment() {
             container,
             false
         )
-        var lastKnownFocus : Boolean? = null
+        var lastKnownFocus: Boolean? = null
         containerView?.viewTreeObserver?.addOnGlobalLayoutListener {
             d("WindowFocusChangedListenerDialog.OnGlobalLayoutListener called")
             val root = findViewById<View>(Window.ID_ANDROID_CONTENT)
             val hasFocus = root?.hasWindowFocus()
-            if(hasFocus == lastKnownFocus)
+            if (hasFocus == lastKnownFocus)
                 return@addOnGlobalLayoutListener
             lastKnownFocus = hasFocus
             e("WindowFocusChangedListenerDialog.hasFocus(1) - $hasFocus")
@@ -331,8 +331,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 BiometricLoggerImpl.e(e, "Monet colors")
             }
 
-        }
-        else if (Utils.isAtLeastS) {
+        } else if (Utils.isAtLeastS) {
             val negativeButtonColor = ContextCompat.getColor(
                 context,
                 if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
@@ -389,52 +388,52 @@ class BiometricPromptCompatDialog : DialogFragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun findNearestColor(name: String, color: Int){
+    private fun findNearestColor(name: String, color: Int) {
         var k: Int? = null
-        var swatch : String? = null
+        var swatch: String? = null
         var distance: Double = Double.MAX_VALUE
         val monetColors = SystemColorScheme()
-        for(key in monetColors.accent1.keys){
-            val value = monetColors.accent1[key]?:continue
+        for (key in monetColors.accent1.keys) {
+            val value = monetColors.accent1[key] ?: continue
             val d = ColorUtil.colorDistance(value.toArgb(), color)
-            if(d <= distance){
+            if (d <= distance) {
                 distance = d
                 k = key
                 swatch = "accent1"
             }
         }
-        for(key in monetColors.accent2.keys){
-            val value = monetColors.accent2[key]?:continue
+        for (key in monetColors.accent2.keys) {
+            val value = monetColors.accent2[key] ?: continue
             val d = ColorUtil.colorDistance(value.toArgb(), color)
-            if(d <= distance){
+            if (d <= distance) {
                 distance = d
                 k = key
                 swatch = "accent2"
             }
         }
-        for(key in monetColors.accent3.keys){
-            val value = monetColors.accent3[key]?:continue
+        for (key in monetColors.accent3.keys) {
+            val value = monetColors.accent3[key] ?: continue
             val d = ColorUtil.colorDistance(value.toArgb(), color)
-            if(d <= distance){
+            if (d <= distance) {
                 distance = d
                 k = key
                 swatch = "accent3"
             }
         }
 
-        for(key in monetColors.neutral1.keys){
-            val value = monetColors.neutral1[key]?:continue
+        for (key in monetColors.neutral1.keys) {
+            val value = monetColors.neutral1[key] ?: continue
             val d = ColorUtil.colorDistance(value.toArgb(), color)
-            if(d <= distance){
+            if (d <= distance) {
                 distance = d
                 k = key
                 swatch = "neutral1"
             }
         }
-        for(key in monetColors.neutral2.keys){
-            val value = monetColors.neutral2[key]?:continue
+        for (key in monetColors.neutral2.keys) {
+            val value = monetColors.neutral2[key] ?: continue
             val d = ColorUtil.colorDistance(value.toArgb(), color)
-            if(d <= distance){
+            if (d <= distance) {
                 distance = d
                 k = key
                 swatch = "neutral2"
@@ -442,6 +441,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
         }
         BiometricLoggerImpl.e("MonetColor $name = $swatch[$k]; distance=$distance")
     }
+
     private fun setTextToTextViews(view: View?, color: Int) {
         if (view is TextView && view !is Button) {
             view.setTextColor(color)
@@ -499,32 +499,32 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
                     override fun sendAccessibilityEventUnchecked(
                         host: View,
-                        event: AccessibilityEvent?
+                        event: AccessibilityEvent
                     ) {
                     }
 
                     override fun dispatchPopulateAccessibilityEvent(
                         host: View,
-                        event: AccessibilityEvent?
+                        event: AccessibilityEvent
                     ): Boolean {
                         return false
                     }
 
                     override fun onPopulateAccessibilityEvent(
                         host: View,
-                        event: AccessibilityEvent?
+                        event: AccessibilityEvent
                     ) {
                     }
 
                     override fun onInitializeAccessibilityEvent(
                         host: View,
-                        event: AccessibilityEvent?
+                        event: AccessibilityEvent
                     ) {
                     }
 
                     override fun onInitializeAccessibilityNodeInfo(
                         host: View,
-                        info: AccessibilityNodeInfo?
+                        info: AccessibilityNodeInfo
                     ) {
                     }
 
@@ -536,13 +536,13 @@ class BiometricPromptCompatDialog : DialogFragment() {
                     }
 
                     override fun onRequestSendAccessibilityEvent(
-                        host: ViewGroup, child: View?,
-                        event: AccessibilityEvent?
+                        host: ViewGroup, child: View,
+                        event: AccessibilityEvent
                     ): Boolean {
                         return false
                     }
 
-                    override fun getAccessibilityNodeProvider(host: View?): AccessibilityNodeProvider? {
+                    override fun getAccessibilityNodeProvider(host: View): AccessibilityNodeProvider? {
                         return null
                     }
                 }

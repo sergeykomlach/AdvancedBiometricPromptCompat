@@ -31,7 +31,6 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import java.util.*
 
 
 class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -139,11 +138,13 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
-                    when (failureReason) {
-                        AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> {
-                            lockout()
-                            failureReason = AuthenticationFailureReason.LOCKED_OUT
-                        }
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        lockout()
+                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
                 }

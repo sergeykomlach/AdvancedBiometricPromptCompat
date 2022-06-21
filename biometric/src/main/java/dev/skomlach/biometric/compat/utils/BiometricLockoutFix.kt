@@ -45,7 +45,7 @@ object BiometricLockoutFix {
             lock.runCatching {
                 this.unlock()
             }
-            }
+        }
 
     }
 

@@ -97,12 +97,15 @@ object BiometricNotificationManager {
 
                     if (
                         PermissionUtils.isAllowedNotificationsPermission &&
-                        PermissionUtils.isAllowedNotificationsChannelPermission(CHANNEL_ID)) {
+                        PermissionUtils.isAllowedNotificationsChannelPermission(CHANNEL_ID)
+                    ) {
                         notificationCompat.notify(type.hashCode(), notif)
                         BiometricLoggerImpl.d("BiometricNotificationManager", "Notification posted")
-                    }
-                    else
-                        BiometricLoggerImpl.d("BiometricNotificationManager", "Notifications not allowed")
+                    } else
+                        BiometricLoggerImpl.d(
+                            "BiometricNotificationManager",
+                            "Notifications not allowed"
+                        )
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)

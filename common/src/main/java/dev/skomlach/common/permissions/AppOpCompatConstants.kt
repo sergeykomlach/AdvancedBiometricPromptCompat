@@ -22,7 +22,6 @@ package dev.skomlach.common.permissions
 import android.Manifest
 import android.os.Build.VERSION
 import androidx.core.app.AppOpsManagerCompat
-import java.util.*
 
 object AppOpCompatConstants {
     /**

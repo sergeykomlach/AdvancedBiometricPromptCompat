@@ -44,11 +44,11 @@
 
         <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/title"
-                android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="12dp"
+                android:gravity="center"
                 android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
                 android:textColor="@color/textColor"
                 android:textSize="24sp"
@@ -57,11 +57,11 @@
 
         <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/subtitle"
-                android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="8dp"
+                android:gravity="center"
 
                 android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
                 android:textColor="@color/textColor"
@@ -71,11 +71,11 @@
 
         <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/description"
-                android:layout_gravity="center"
-                android:gravity="center"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="8dp"
+                android:gravity="center"
                 android:textAppearance="@android:style/TextAppearance.Material.Widget.ActionBar.Subtitle"
                 android:textColor="@color/textColor"
                 android:textSize="14sp"
@@ -98,17 +98,20 @@
                     >
 
                 <FrameLayout
-                        android:padding="20dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/round"
-                        android:gravity="center">
+                        android:gravity="center"
+                        android:padding="20dp"
+                        >
+
                     <dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
                             android:id="@+id/fingerprint_icon"
                             android:layout_width="@dimen/fingerprint_icon_size"
                             android:layout_height="@dimen/fingerprint_icon_size"
                             />
                 </FrameLayout>
+
                 <androidx.appcompat.widget.AppCompatTextView
                         android:id="@+id/status"
                         android:layout_width="wrap_content"

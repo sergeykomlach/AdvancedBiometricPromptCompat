@@ -35,9 +35,7 @@ import android.widget.ImageView
 import androidx.core.view.ViewCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.palette.graphics.Palette
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
@@ -60,16 +58,21 @@ class WindowForegroundBlurring(
     private var defaultColor = Color.TRANSPARENT
 
 
-    private val list: List<BiometricType> by lazy {
-        if(compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(compatBuilder.getAllAvailableTypes()) else emptyList()
+    private val list: List<BiometricType>
+    get() {
+        return (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
+            compatBuilder.getAllAvailableTypes()
+        ) else emptyList()).filter {
+            BiometricManagerCompat.isBiometricReady(BiometricAuthRequest(compatBuilder.getBiometricAuthRequest().api, type = it))
+        }
     }
 
     private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View?) {
+        override fun onViewAttachedToWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
         }
 
-        override fun onViewDetachedFromWindow(v: View?) {
+        override fun onViewDetachedFromWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
             resetListeners()
             forceToCloseCallback.onCloseBiometric()
@@ -162,7 +165,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        updateIcons()
+        updateBiometricIconsLayout()
         v?.post {
             drawingInProgress = false
         }
@@ -192,7 +195,7 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.e(e)
         }
         try {
-            updateIcons()
+            updateBiometricIconsLayout()
             if (Utils.isAtLeastS) {
                 contentView?.setRenderEffect(null)
             }
@@ -211,36 +214,43 @@ class WindowForegroundBlurring(
                 biometrics_layout.findViewById<View>(R.id.face)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_FACE)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.iris)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_IRIS)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.fingerprint)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_FINGERPRINT)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.heartrate)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_HEARTRATE)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.voice)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_VOICE)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.palm)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_PALMPRINT)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
                 biometrics_layout.findViewById<View>(R.id.typing)?.apply {
                     visibility =
                         if (list.contains(BiometricType.BIOMETRIC_BEHAVIOR)) View.VISIBLE else View.GONE
+                    if(tag == null)
                     tag = IconStates.WAITING
                 }
 
@@ -321,6 +331,9 @@ class WindowForegroundBlurring(
                             type,
                             biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates
                         )
+                        else -> {
+                            //no-op
+                        }
                     }
                 }
             }
@@ -330,14 +343,17 @@ class WindowForegroundBlurring(
     }
 
     override fun onError(type: BiometricType?) {
+        updateBiometricIconsLayout()
         setIconState(type, IconStates.ERROR)
     }
 
     override fun onSuccess(type: BiometricType?) {
+        updateBiometricIconsLayout()
         setIconState(type, IconStates.SUCCESS)
     }
 
     override fun reset(type: BiometricType?) {
+        updateBiometricIconsLayout()
         setIconState(type, IconStates.WAITING)
     }
 
@@ -402,6 +418,9 @@ class WindowForegroundBlurring(
                             biometrics_layout.findViewById<ImageView>(R.id.fingerprint),
                             ColorStateList.valueOf(color)
                         )
+                    }
+                    else -> {
+                        //no-op
                     }
                 }
             }

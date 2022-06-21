@@ -54,7 +54,6 @@ class BiometricPromptCompatDialogImpl(
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
 
-    private var stopWatcher: Runnable? = null
 
     init {
         promptText = BiometricTitle.getRelevantTitle(
@@ -77,8 +76,6 @@ class BiometricPromptCompatDialogImpl(
                 authCallback?.stopAuth()
             }
             authCallback?.onUiClosed()
-            stopWatcher?.run()
-            stopWatcher = null
         }
         dialog.setOnCancelListener {
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. canceled.")
@@ -132,20 +129,6 @@ class BiometricPromptCompatDialogImpl(
         }
     }
 
-    private val homeWatcher =
-        HomeWatcher(object : HomeWatcher.OnHomePressedListener {
-            override fun onHomePressed() {
-                dialog.cancel()
-            }
-
-            override fun onRecentAppPressed() {
-                dialog.cancel()
-            }
-
-            override fun onPowerPressed() {
-                dialog.cancel()
-            }
-        })
     private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
         private set
         get() {
@@ -275,7 +258,7 @@ class BiometricPromptCompatDialogImpl(
 
     fun showDialog() {
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
-        stopWatcher = homeWatcher.startWatch()
+
         dialog.show(
             compatBuilder.getContext().supportFragmentManager,
             BiometricPromptCompatDialog.TAG

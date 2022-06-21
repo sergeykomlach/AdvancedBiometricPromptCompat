@@ -34,8 +34,12 @@ object RestartPredicatesImpl {
         return object : RestartPredicate {
             private var timeoutRestarts = 0
             override fun invoke(reason: AuthenticationFailureReason?): Boolean {
-                when (reason) {
-                    AuthenticationFailureReason.SENSOR_FAILED, AuthenticationFailureReason.AUTHENTICATION_FAILED -> return timeoutRestarts++ < timeoutRestartCount
+                if (mutableListOf(
+                        AuthenticationFailureReason.SENSOR_FAILED,
+                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+                    ).contains(reason)
+                ) {
+                    return timeoutRestarts++ < timeoutRestartCount
                 }
                 return false
             }

@@ -28,7 +28,9 @@ import androidx.annotation.MainThread
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollChanged
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
@@ -42,6 +44,7 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.PermissionsFragment
+import dev.skomlach.biometric.compat.impl.dialogs.HomeWatcher
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
@@ -61,6 +64,7 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -93,7 +97,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         @JvmStatic
-        fun logging(enabled: Boolean, externalLogger1: BiometricLoggerImpl.ExternalLogger? = null, externalLogger2: LogCat.ExternalLogger? = null) {
+        fun logging(
+            enabled: Boolean,
+            externalLogger1: BiometricLoggerImpl.ExternalLogger? = null,
+            externalLogger2: LogCat.ExternalLogger? = null
+        ) {
             if (!API_ENABLED)
                 return
 //            AbstractBiometricModule.DEBUG_MANAGERS = enabled
@@ -131,6 +139,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var isDeviceInfoCheckInProgress = AtomicBoolean(false)
         private var authFlowInProgress = AtomicBoolean(false)
+
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -243,9 +252,61 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         iBiometricPromptImpl
     }
+    private var stopWatcher: Runnable? = null
+    private val homeWatcher = HomeWatcher(object : HomeWatcher.OnHomePressedListener {
+        override fun onHomePressed() {
+            cancelAuthentication()
+        }
 
+        override fun onRecentAppPressed() {
+            cancelAuthentication()
+        }
+
+        override fun onPowerPressed() {
+            cancelAuthentication()
+        }
+    })
+    private val fragmentLifecycleCallbacks = object :
+        FragmentManager.FragmentLifecycleCallbacks() {
+        private val atomicBoolean = AtomicInteger(0)
+        private val dismissTask = Runnable {
+            if (atomicBoolean.get() <= 0) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.dismissTask")
+                cancelAuthentication()
+            }
+        }
+
+        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+            if (f is androidx.biometric.BiometricFragment ||
+                f is androidx.biometric.FingerprintDialogFragment ||
+                f is dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
+            ) {
+                BiometricLoggerImpl.d(
+                    "BiometricPromptCompat.FragmentLifecycleCallbacks.onFragmentResumed - " +
+                            "$f"
+                )
+                atomicBoolean.incrementAndGet()
+            }
+        }
+
+        override fun onFragmentPaused(fm: FragmentManager, f: Fragment) {
+            if (f is androidx.biometric.BiometricFragment ||
+                f is androidx.biometric.FingerprintDialogFragment ||
+                f is dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
+            ) {
+                BiometricLoggerImpl.d(
+                    "BiometricPromptCompat.FragmentLifecycleCallbacks.onFragmentPaused - " +
+                            "$f"
+                )
+                atomicBoolean.decrementAndGet()
+                ExecutorHelper.removeCallbacks(dismissTask)
+                ExecutorHelper.postDelayed(dismissTask, 250)//delay for case when system fragment closed and fallback shown
+
+            }
+        }
+    }
     fun authenticate(callbackOuter: AuthenticationCallback) {
-        if(authFlowInProgress.get()) {
+        if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
             return
         }
@@ -365,18 +426,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         BiometricNotificationManager.showNotification(builder)
                     }
 
-                        StatusBarTools.setNavBarAndStatusBarColors(
-                            builder.getContext().window,
-                            DialogMainColor.getColor(
-                                builder.getContext(),
-                                DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                            ),
-                            DialogMainColor.getColor(
-                                builder.getContext(),
-                                !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                            ),
-                            builder.getStatusBarColor()
-                        )
+                    StatusBarTools.setNavBarAndStatusBarColors(
+                        builder.getContext().window,
+                        DialogMainColor.getColor(
+                            builder.getContext(),
+                            DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                        ),
+                        DialogMainColor.getColor(
+                            builder.getContext(),
+                            !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                        ),
+                        builder.getStatusBarColor()
+                    )
 
                     activityViewWatcher?.setupListeners()
                 }
@@ -403,6 +464,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             .toLong()
                     ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
+                    stopWatcher?.run()
+                    stopWatcher = null
+                    try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
                     authFlowInProgress.set(false)
                 }
             }
@@ -450,7 +514,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             val permission: MutableSet<String> = HashSet()
 
-            if(Utils.isAtLeastT && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()){
+            if (Utils.isAtLeastT && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                 permission.add("android.permission.POST_NOTIFICATIONS")
             }
             if (Build.VERSION.SDK_INT >= 28) {
@@ -478,6 +542,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     )
                     BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
                     BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
+                    else -> {
+                        //no-op
+                    }
                 }
             }
             return ArrayList(permission)
@@ -493,8 +560,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
+            try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
+            impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
             impl.authenticate(callback)
+            stopWatcher = homeWatcher.startWatch()
         } catch (ignore: IllegalStateException) {
+            try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
             authFlowInProgress.set(false)
         }
@@ -638,6 +709,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var backgroundBiometricIconsEnabled = true
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
+
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
 
@@ -706,6 +778,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun isExperimentalFeaturesEnabled(): Boolean {
             return experimentalFeaturesEnabled
         }
+
         fun isBackgroundBiometricIconsEnabled(): Boolean {
             return backgroundBiometricIconsEnabled
         }
@@ -747,6 +820,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             this.experimentalFeaturesEnabled = enabled
             return this
         }
+
         fun setEnabledBackgroundBiometricIcons(enabled: Boolean): Builder {
             this.backgroundBiometricIconsEnabled = enabled
             return this
