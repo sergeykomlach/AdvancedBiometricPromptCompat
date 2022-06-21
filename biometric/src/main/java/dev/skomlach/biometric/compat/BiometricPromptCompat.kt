@@ -28,7 +28,9 @@ import androidx.annotation.MainThread
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollChanged
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
@@ -61,6 +63,7 @@ import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -248,7 +251,45 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         iBiometricPromptImpl
     }
+    private val fragmentLifecycleCallbacks = object :
+        FragmentManager.FragmentLifecycleCallbacks() {
+        private val atomicBoolean = AtomicInteger(0)
+        private val dismissTask = Runnable {
+            if (atomicBoolean.get() <= 0) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.dismissTask")
+                cancelAuthentication()
+            }
+        }
 
+        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+            if (f is androidx.biometric.BiometricFragment ||
+                f is androidx.biometric.FingerprintDialogFragment ||
+                f is dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
+            ) {
+                BiometricLoggerImpl.d(
+                    "BiometricPromptCompat.FragmentLifecycleCallbacks.onFragmentResumed - " +
+                            "$f"
+                )
+                atomicBoolean.incrementAndGet()
+            }
+        }
+
+        override fun onFragmentPaused(fm: FragmentManager, f: Fragment) {
+            if (f is androidx.biometric.BiometricFragment ||
+                f is androidx.biometric.FingerprintDialogFragment ||
+                f is dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
+            ) {
+                BiometricLoggerImpl.d(
+                    "BiometricPromptCompat.FragmentLifecycleCallbacks.onFragmentPaused - " +
+                            "$f"
+                )
+                atomicBoolean.decrementAndGet()
+                ExecutorHelper.removeCallbacks(dismissTask)
+                ExecutorHelper.postDelayed(dismissTask, 250)//delay for case when system fragment closed and fallback shown
+
+            }
+        }
+    }
     fun authenticate(callbackOuter: AuthenticationCallback) {
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
@@ -501,8 +542,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
+            impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
             impl.authenticate(callback)
         } catch (ignore: IllegalStateException) {
+            impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
             authFlowInProgress.set(false)
         }
@@ -521,6 +564,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             ExecutorHelper.post {
                 impl.cancelAuthentication()
+                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
             }
         }
 
