@@ -89,7 +89,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     cancelAuthentication()
                 } else {
                     //...normal failed processing...//
-                    for (module in builder.getPrimaryAvailableTypes()) {
+                    for (module in (if(isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
                         IconStateHelper.errorType(module)
                     }
                     dialog?.onFailure(false)
@@ -143,7 +143,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
-                            for (module in builder.getPrimaryAvailableTypes()) {
+                            for (module in (if(isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
                                 IconStateHelper.errorType(module)
                             }
                             dialog?.onFailure(
@@ -291,14 +291,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
 
-        val candidates = builder.getAllAvailableTypes().filter {
+        val withoutFingerprint = builder.getAllAvailableTypes().filter {
             it != BiometricType.BIOMETRIC_ANY
-        }
-        val withoutFingerprint = candidates.filter {
+        }.filter {
             it != BiometricType.BIOMETRIC_FINGERPRINT
         }
-        val isSamsungWorkaroundRequired =
-            DevicesWithKnownBugs.isSamsung && candidates.size > 1 //If only one - let the system to deal with this
 
         if (!isSamsungWorkaroundRequired) {
             if (!hasSecondaryFinished()) {
@@ -494,6 +491,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         dropKeystore()
     }
 
+    private val isSamsungWorkaroundRequired : Boolean
+    get() {
+        val candidates = builder.getAllAvailableTypes().filter {
+            it != BiometricType.BIOMETRIC_ANY
+        }
+        return DevicesWithKnownBugs.isSamsung && candidates.size > 1 //If only one - let the system to deal with this
+    }
     private fun checkAuthResultForPrimary(
         authResult: AuthResult.AuthResultState,
         reason: AuthenticationFailureReason? = null
@@ -508,7 +512,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 failureReason = AuthenticationFailureReason.LOCKED_OUT
             }
         var added = false
-        for (module in builder.getPrimaryAvailableTypes()) {
+        for (module in (if(isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
             authFinished[module] = AuthResult(authResult, failureReason)
             dialog?.authFinishedCopy = authFinished
             if (AuthResult.AuthResultState.SUCCESS == authResult) {
