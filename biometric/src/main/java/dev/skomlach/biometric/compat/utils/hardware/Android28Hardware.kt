@@ -44,7 +44,7 @@ import java.security.KeyStore
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
+
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
@@ -59,10 +59,9 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         private var jobEnrollChanged: Job? = null
         private var checkEnrollChangedStartedTs = 0L
 
-        private val lock = ReentrantLock()
+
         private fun biometricEnrollChanged(): Boolean {
-            try {
-                lock.runCatching { this.lock() }
+
                 if (jobEnrollChanged?.isActive == true) {
                     if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
                             30
@@ -82,11 +81,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
 
                 return cachedIsBiometricEnrollChangedValue.get()
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
-            }
+
         }
 
         private fun updateBiometricChanged() {
@@ -151,8 +146,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
 
         private fun biometricEnrolled(): Boolean {
-            try {
-                lock.runCatching { this.lock() }
+
                 if (jobEnrolled?.isActive == true) {
                     if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
                             30
@@ -171,11 +165,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 }
 
                 return cachedIsBiometricEnrolledValue.get()
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
-            }
+
         }
 
         private fun updateBiometricEnrolled() {
