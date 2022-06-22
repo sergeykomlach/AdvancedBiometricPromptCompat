@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.android
 
 import android.annotation.SuppressLint
-import android.hardware.face.FaceAuthenticationManager
 import android.hardware.face.FaceManager
 import android.os.Build
 import androidx.core.os.CancellationSignal
@@ -43,41 +42,23 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_ANDROIDAPI) {
-    private var faceAuthenticationManager: FaceAuthenticationManager? = null
-    private var faceManager: FaceManager? = null
+
+    private var manager: FaceManager? = null
 
     init {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
-                faceAuthenticationManager =
-                    context.getSystemService(FaceAuthenticationManager::class.java)
+                manager = context.getSystemService(FaceManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
             }
         }
 
-        if (faceAuthenticationManager == null) {
+        if (manager == null) {
             try {
-                faceAuthenticationManager =
-                    context.getSystemService("face") as FaceAuthenticationManager?
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                faceManager = context.getSystemService(FaceManager::class.java)
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-            }
-        }
-
-        if (faceManager == null) {
-            try {
-                faceManager = context.getSystemService("face") as FaceManager?
+                manager = context.getSystemService("face") as FaceManager?
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -88,77 +69,37 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
-        faceManager?.let {
-            managers.add(it)
-        }
-        faceAuthenticationManager?.let {
+        manager?.let {
             managers.add(it)
         }
         return managers
     }
 
     override val isManagerAccessible: Boolean
-        get() = faceAuthenticationManager != null || faceManager != null
+        get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
-            var faceAuthenticationManagerIsHardwareDetected = false
-            var faceManagerIsHardwareDetected = false
 
             try {
-                faceAuthenticationManagerIsHardwareDetected =
-                    faceAuthenticationManager?.isHardwareDetected == true
-            } catch (ignore: Throwable) {
-
+                return manager?.isHardwareDetected == true
+            } catch (e: Throwable) {
+                e(e, name)
             }
 
-
-            try {
-                faceManagerIsHardwareDetected = faceManager?.isHardwareDetected == true
-            } catch (ignore: Throwable) {
-
-            }
-
-            return faceManagerIsHardwareDetected || faceAuthenticationManagerIsHardwareDetected
+            return false
         }
 
     override fun hasEnrolled(): Boolean {
 
         try {
-            faceAuthenticationManager?.javaClass?.methods?.firstOrNull { method ->
-                method.name.startsWith(
-                    "hasEnrolled"
-                )
-            }?.invoke(faceAuthenticationManager)?.let {
-                if (it is Boolean)
-                    return it
-                else
-                    throw RuntimeException("Unexpected type - $it")
-            }
-        } catch (ignore: Throwable) {
-
+            return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates() == true
+        } catch (e: Throwable) {
+            e(e, name)
         }
 
-
-        try {
-            faceManager?.javaClass?.methods?.firstOrNull { method ->
-                method.name.startsWith(
-                    "hasEnrolled"
-                )
-            }?.invoke(faceManager)?.let {
-                if (it is Boolean)
-                    return it
-                else
-                    throw RuntimeException("Unexpected type - $it")
-            }
-        } catch (ignore: Throwable) {
-
-
-        }
-
-
-        e(RuntimeException("Unable to find 'hasEnrolled' method"))
         return false
     }
+
 
     @Throws(SecurityException::class)
     override fun authenticate(
@@ -166,49 +107,28 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        try {
-            d("$name.authenticate - $biometricMethod")
-            // Why getCancellationSignalObject returns an Object is unexplained
-            val signalObject =
-                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+        d("$name.authenticate - $biometricMethod")
+        manager?.let {
+            try {
+                val callback =
+                    FaceManagerAuthCallback(restartPredicate, cancellationSignal, listener)
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
-            if (faceAuthenticationManager?.isHardwareDetected == true && faceAuthenticationManager?.hasEnrolledFace() == true) {
-                faceAuthenticationManager?.let {
-                    try {
-                        // Occasionally, an NPE will bubble up out of FaceAuthenticationManager.authenticate
-                        it.authenticate(
-                            null, signalObject, 0,
-                            FaceAuthenticationManagerAuthCallback(
-                                restartPredicate,
-                                cancellationSignal,
-                                listener
-                            ), ExecutorHelper.handler
-                        )
-                        return
-                    } catch (e: Throwable) {
-                        e(e, "$name: authenticate failed unexpectedly")
-                    }
-                }
-            } else if (faceManager?.isHardwareDetected == true && faceManager?.hasEnrolledTemplates() == true) {
-                faceManager?.let {
-                    try {
-                        // Occasionally, an NPE will bubble up out of FaceAuthenticationManager.authenticate
-                        it.authenticate(
-                            null,
-                            signalObject,
-                            0,
-                            FaceManagerAuthCallback(restartPredicate, cancellationSignal, listener),
-                            ExecutorHelper.handler
-                        )
-                        return
-                    } catch (e: Throwable) {
-                        e(e, "$name: authenticate failed unexpectedly")
-                    }
-                }
+                // Occasionally, an NPE will bubble up out of SemBioSomeManager.authenticate
+                it.authenticate(
+                    null,
+                    signalObject,
+                    0,
+                    callback,
+                    ExecutorHelper.handler
+                )
+                return
+            } catch (e: Throwable) {
+                e(e, "$name: authenticate failed unexpectedly")
             }
-        } catch (e: Throwable) {
-            e(e, "$name: authenticate failed unexpectedly")
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
         return
@@ -276,78 +196,6 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult?) {
-            d("$name.onAuthenticationSucceeded: $result")
-            listener?.onSuccess(tag())
-        }
-
-        override fun onAuthenticationFailed() {
-            d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
-        }
-    }
-
-    internal inner class FaceAuthenticationManagerAuthCallback(
-        private val restartPredicate: RestartPredicate?,
-        private val cancellationSignal: CancellationSignal?,
-        private val listener: AuthenticationListener?
-    ) : FaceAuthenticationManager.AuthenticationCallback() {
-        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
-            var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
-                    AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
-                    lockout()
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                }
-                else -> {
-                    Core.cancelAuthentication(this@AndroidFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
-                }
-            }
-            if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
-            } else
-                if (restartPredicate?.invoke(failureReason) == true) {
-                    listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
-                } else {
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
-                    }
-                    listener?.onFailure(failureReason, tag())
-                }
-        }
-
-        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
-        }
-
-        override fun onAuthenticationSucceeded(result: FaceAuthenticationManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result")
             listener?.onSuccess(tag())
         }

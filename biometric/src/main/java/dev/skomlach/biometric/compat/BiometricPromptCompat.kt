@@ -300,11 +300,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
                 atomicBoolean.decrementAndGet()
                 ExecutorHelper.removeCallbacks(dismissTask)
-                ExecutorHelper.postDelayed(dismissTask, 250)//delay for case when system fragment closed and fallback shown
+                ExecutorHelper.postDelayed(
+                    dismissTask,
+                    250
+                )//delay for case when system fragment closed and fallback shown
 
             }
         }
     }
+
     fun authenticate(callbackOuter: AuthenticationCallback) {
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
@@ -466,7 +470,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onUIClosed()
                     stopWatcher?.run()
                     stopWatcher = null
-                    try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
+                    try {
+                        impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+                            fragmentLifecycleCallbacks
+                        )
+                    } catch (ignore: Throwable) {
+                    }
                     authFlowInProgress.set(false)
                 }
             }
@@ -560,12 +569,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
-            try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
-            impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, false)
+            try {
+                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+                    fragmentLifecycleCallbacks
+                )
+            } catch (ignore: Throwable) {
+            }
+            impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(
+                fragmentLifecycleCallbacks,
+                false
+            )
             impl.authenticate(callback)
             stopWatcher = homeWatcher.startWatch()
         } catch (ignore: IllegalStateException) {
-            try{ impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks) } catch (ignore : Throwable){}
+            try {
+                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+                    fragmentLifecycleCallbacks
+                )
+            } catch (ignore: Throwable) {
+            }
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR)
             authFlowInProgress.set(false)
         }

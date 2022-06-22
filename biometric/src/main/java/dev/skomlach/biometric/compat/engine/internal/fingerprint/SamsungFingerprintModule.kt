@@ -164,9 +164,9 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                         AuthenticationFailureReason.AUTHENTICATION_FAILED
                                     ).contains(failureReason)
                                 ) {
-                                        lockout()
-                                        failureReason = AuthenticationFailureReason.LOCKED_OUT
-                                    }
+                                    lockout()
+                                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                                }
                                 listener?.onFailure(failureReason, tag())
                             }
                     }
