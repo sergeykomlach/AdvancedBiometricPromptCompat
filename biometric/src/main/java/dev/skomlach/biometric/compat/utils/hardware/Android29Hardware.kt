@@ -34,7 +34,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.locks.ReentrantLock
+
 
 
 @TargetApi(Build.VERSION_CODES.Q)
@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
     companion object {
 
-        private val lock = ReentrantLock()
+
         private var cachedCanAuthenticateValue =
             AtomicInteger(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE)
         private var job: Job? = null
@@ -50,8 +50,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
 
 
         private fun canAuthenticate(): Int {
-            try {
-                lock.runCatching { this.lock() }
+
                 if (job?.isActive == true) {
                     if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
                         job?.cancel()
@@ -65,11 +64,6 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                     }
                 }
                 return cachedCanAuthenticateValue.get()
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
-            }
         }
 
         @SuppressLint("WrongConstant")

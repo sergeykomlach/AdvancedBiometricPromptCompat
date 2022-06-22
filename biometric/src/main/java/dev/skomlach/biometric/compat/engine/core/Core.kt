@@ -27,32 +27,26 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.util.*
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.set
 
 
 object Core {
-    private val lock = ReentrantLock()
+
     private val cancellationSignals =
         Collections.synchronizedMap(HashMap<BiometricModule, CancellationSignal>())
     private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
     fun cleanModules() {
         try {
-            lock.runCatching { this.lock() }
+
             reprintModuleHashMap.clear()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
     }
 
 
     fun registerModule(module: BiometricModule?) {
         try {
-            lock.runCatching { this.lock() }
             if (module == null || reprintModuleHashMap.containsKey(module.tag())) {
                 return
             }
@@ -61,17 +55,13 @@ object Core {
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
     }
 
     val isLockOut: Boolean
         get() {
             try {
-                lock.runCatching { this.lock() }
+
                 for (module in reprintModuleHashMap.values) {
                     if (module.isLockOut) {
                         return true
@@ -79,26 +69,18 @@ object Core {
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
             }
             return false
         }
     val isHardwareDetected: Boolean
         get() {
             try {
-                lock.runCatching { this.lock() }
+
                 for (module in reprintModuleHashMap.values) {
                     if (module.isHardwarePresent) return true
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
             }
             return false
         }
@@ -106,16 +88,12 @@ object Core {
 
     fun hasEnrolled(): Boolean {
         try {
-            lock.runCatching { this.lock() }
+
             for (module in reprintModuleHashMap.values) {
                 if (module.hasEnrolled()) return true
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
         return false
     }
@@ -142,7 +120,7 @@ object Core {
     ) {
         var m: BiometricModule? = null
         try {
-            lock.runCatching { this.lock() }
+
             for (module in reprintModuleHashMap.values) {
                 m = module
                 authenticate(module, listener, restartPredicate)
@@ -153,10 +131,6 @@ object Core {
                 AuthenticationFailureReason.INTERNAL_ERROR,
                 m?.tag() ?: DummyBiometricModule(null).tag()
             )
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
     }
 
@@ -167,7 +141,7 @@ object Core {
         restartPredicate: RestartPredicate?
     ) {
         try {
-            lock.runCatching { this.lock() }
+
             if (!module.isHardwarePresent || !module.hasEnrolled() || module.isLockOut) throw RuntimeException(
                 "Module " + module.javaClass.simpleName + " not ready"
             )
@@ -178,10 +152,6 @@ object Core {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             listener?.onFailure(AuthenticationFailureReason.INTERNAL_ERROR, module.tag())
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
     }
 
@@ -195,7 +165,6 @@ object Core {
 
     fun cancelAuthentication(module: BiometricModule) {
         try {
-            lock.runCatching { this.lock() }
             val signal = cancellationSignals[module]
             if (signal != null && !signal.isCanceled) {
                 signal.cancel()
@@ -203,10 +172,6 @@ object Core {
             cancellationSignals.remove(module)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
         }
     }
 

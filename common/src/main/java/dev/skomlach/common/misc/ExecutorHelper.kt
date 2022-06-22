@@ -27,46 +27,36 @@ import java.util.*
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
 
 object ExecutorHelper {
 
-    val lock = ReentrantLock()
+
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
 
     val backgroundExecutor: ExecutorService = Executors.newCachedThreadPool()
-    private val tasksInMain = WeakHashMap<Runnable, Job>()
+    private val tasksInMain = Collections.synchronizedMap(WeakHashMap<Runnable, Job>())
 
     private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
 
     private fun addTaskSafely(task: Runnable, job: Job) {
-        if (lock.tryLock(1, TimeUnit.SECONDS)) {
-            try {
-                tasksInMain[task] = job
-            } catch (e: Throwable) {
-                LogCat.logException(e, "addTaskSafely")
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
-            }
+
+        try {
+            tasksInMain[task] = job
+        } catch (e: Throwable) {
+            LogCat.logException(e, "addTaskSafely")
         }
+
     }
 
     private fun removeTaskSafely(task: Runnable) {
-        if (lock.tryLock(1, TimeUnit.SECONDS)) {
-            try {
+
+        try {
                 tasksInMain.remove(task)
             } catch (e: Throwable) {
                 LogCat.logException(e, "removeTaskSafely")
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
             }
-        }
+
     }
 
     fun startOnBackground(task: Runnable, delay: Long) {
@@ -113,17 +103,12 @@ object ExecutorHelper {
     }
 
     fun removeCallbacks(task: Runnable) {
-        if (lock.tryLock(1, TimeUnit.SECONDS)) {
-            try {
+
+        try {
                 tasksInMain[task]?.cancel()
                 tasksInMain.remove(task)
             } catch (e: Throwable) {
                 LogCat.logException(e, "removeCallbacks")
-            } finally {
-                lock.runCatching {
-                    this.unlock()
-                }
-            }
         }
     }
 

@@ -137,7 +137,8 @@ object AndroidContext {
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
-
+                            activityResumedRelay.set(SoftReference(activity))
+                            configurationRelay.set(SoftReference(activity.resources.configuration))
                         }
 
                         override fun onActivityPaused(activity: Activity) {}
@@ -148,7 +149,11 @@ object AndroidContext {
                         ) {
                         }
 
-                        override fun onActivityDestroyed(activity: Activity) {}
+                        override fun onActivityDestroyed(activity: Activity) {
+                            if(activity == AndroidContext.activity) {
+                                activityResumedRelay.set(null)
+                            }
+                        }
                     })
                 }
             )

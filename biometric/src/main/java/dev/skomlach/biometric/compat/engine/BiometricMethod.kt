@@ -34,7 +34,7 @@ enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
     FINGERPRINT_FLYME(103, BiometricType.BIOMETRIC_FINGERPRINT), FINGERPRINT_SOTERAPI(
         104,
         BiometricType.BIOMETRIC_FINGERPRINT
-    ),  //https://android-review.googlesource.com/c/platform/frameworks/base/+/640360/2/core/java/android/hardware/face/FaceAuthenticationManager.java#498
+    ),
     FACE_ANDROIDAPI(
         201,
         BiometricType.BIOMETRIC_FACE

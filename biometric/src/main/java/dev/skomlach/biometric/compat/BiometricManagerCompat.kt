@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -315,28 +314,12 @@ object BiometricManagerCompat {
         }
 
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && Utils.startActivity(
-                    Intent(
-                        Settings.ACTION_BIOMETRIC_ENROLL
-                    ), activity
+            if (Utils.startActivity(
+                    Intent(Settings.ACTION_SECURITY_SETTINGS),
+                    activity
                 )
             ) {
                 return true
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && Utils.startActivity(
-                        Intent(
-                            Settings.ACTION_FINGERPRINT_ENROLL
-                        ), activity
-                    )
-                ) {
-                    return true
-                } else if (Utils.startActivity(
-                        Intent(Settings.ACTION_SECURITY_SETTINGS),
-                        activity
-                    )
-                ) {
-                    return true
-                }
             }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity

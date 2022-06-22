@@ -105057,6 +105057,11 @@
    "device": "X700",
    "name": "X700",
    "model": "OMIX X700"
+  },
+  {
+   "device": "X700",
+   "name": "X700",
+   "model": "X700"
   }
  ],
  "ONDA TLC": [
@@ -105118,6 +105123,11 @@
   }
  ],
  "ORION": [
+  {
+   "device": "longshan",
+   "name": "Smart TV",
+   "model": "AI PONT"
+  },
   {
    "device": "redwood",
    "name": "Smart TV",
@@ -115437,6 +115447,11 @@
    "model": "MAXI 20"
   },
   {
+   "device": "longshan",
+   "name": "Smart TV",
+   "model": "AI PONT"
+  },
+  {
    "device": "TAB-7001-16G",
    "name": "TAB-7001-16G",
    "model": "TAB-7001-16G"
@@ -122582,6 +122597,11 @@
    "device": "redwood",
    "name": "A11",
    "model": "AI PONT"
+  },
+  {
+   "device": "longshan",
+   "name": "Smart TV",
+   "model": "AI PONT IT"
   },
   {
    "device": "redwood",
@@ -167635,6 +167655,11 @@
    "device": "Point_X503",
    "name": "Point_X503",
    "model": "Point_X503"
+  },
+  {
+   "device": "longshan",
+   "name": "Smart TV",
+   "model": "AI PONT"
   },
   {
    "device": "TPC-102_4G",

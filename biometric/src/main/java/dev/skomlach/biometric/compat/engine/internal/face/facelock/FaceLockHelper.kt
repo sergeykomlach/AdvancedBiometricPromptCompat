@@ -31,7 +31,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.InvocationTargetException
-import java.util.concurrent.locks.ReentrantLock
 
 
 class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
@@ -42,7 +41,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     private var mCallback: IFaceLockCallback? = null
     private var mServiceConnection: ServiceConnection? = null
     private val hasHardware: Boolean
-    private val lock = ReentrantLock()
+
 
     companion object {
         const val FACELOCK_UNABLE_TO_BIND = 1
@@ -84,23 +83,17 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
 
 
     fun destroy() {
-        try {
-            lock.runCatching { this.lock() }
-            targetView = null
+
+        targetView = null
             mCallback = null
             mServiceConnection = null
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
-        }
+
     }
 
 
     fun initFacelock() {
-        try {
-            lock.runCatching { this.lock() }
-            d(TAG + ".initFacelock")
+
+        d(TAG + ".initFacelock")
             try {
                 mCallback = object : IFaceLockCallback {
                     private var mStarted = false
@@ -244,19 +237,14 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 )
             }
             d(TAG + ".init failed")
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
-        }
+
     }
 
     // Tells the FaceId service to stop displaying its UI and stop recognition
 
     fun stopFaceLock() {
-        try {
-            lock.runCatching { this.lock() }
-            d(TAG + ".stopFaceLock")
+
+        d(TAG + ".stopFaceLock")
             if (mFaceLockServiceRunning) {
                 try {
                     d(TAG + ".Stopping FaceId")
@@ -271,11 +259,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 d(TAG + ".FaceId.unbind()")
                 mBoundToFaceLockService = false
             }
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
-        }
+
     }
 
     // Tells the FaceId service to start displaying its UI and perform recognition
@@ -305,17 +289,12 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
 
 
     fun startFaceLockWithUi(view: View?) {
-        try {
-            lock.runCatching { this.lock() }
-            d(TAG + ".startFaceLockWithUi")
+
+        d(TAG + ".startFaceLockWithUi")
             targetView = view
             targetView?.let {
                 startFaceAuth(it)
             }
-        } finally {
-            lock.runCatching {
-                this.unlock()
-            }
-        }
+
     }
 }
