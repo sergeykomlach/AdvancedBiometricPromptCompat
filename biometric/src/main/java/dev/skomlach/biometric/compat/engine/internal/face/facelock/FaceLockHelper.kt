@@ -42,7 +42,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     private var mServiceConnection: ServiceConnection? = null
     private val hasHardware: Boolean
     private val context = AndroidContext.appContext
-
+    private var time = System.currentTimeMillis()
     companion object {
         const val FACELOCK_UNABLE_TO_BIND = 1
         const val FACELOCK_API_NOT_FOUND = 2
@@ -96,44 +96,47 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
         d(TAG + ".initFacelock")
         try {
             mCallback = object : IFaceLockCallback {
-                private var mStarted = false
 
+                var screenLock: PowerManager.WakeLock? = null
                 @Throws(RemoteException::class)
                 override fun unlock() {
                     d(TAG + ".IFaceIdCallback.unlock")
                     stopFaceLock()
                     d(TAG + ".IFaceIdCallback.exec onAuthorized")
                     faceLockInterface.onAuthorized()
-                    mStarted = false
                 }
 
                 @Throws(RemoteException::class)
                 override fun cancel() {
-                    d(TAG + ".IFaceIdCallback.cancel")
+                    val diff = System.currentTimeMillis() - time
+                    d(TAG + ".IFaceIdCallback.cancel t=$diff ms")
                     if (mBoundToFaceLockService) {
-                        mStarted = if (mStarted) {
+                        if (diff >= 4500L) {
                             d(TAG + ".timeout")
                             faceLockInterface.onError(
                                 FACELOCK_TIMEOUT,
                                 getMessage(FACELOCK_TIMEOUT)
                             )
-                            stopFaceLock()
-                            false
+
                         } else {
                             d(TAG + ".canceled")
                             faceLockInterface.onError(
                                 FACELOCK_CANCELED,
                                 getMessage(FACELOCK_CANCELED)
                             )
-                            stopFaceLock()
-                            false
+
                         }
+                        if (screenLock?.isHeld == true) {
+                            screenLock?.release()
+                        }
+                        stopFaceLock()
                     }
                 }
 
                 @Throws(RemoteException::class)
                 override fun reportFailedAttempt() {
                     d(TAG + ".IFaceIdCallback.reportFailedAttempt")
+                    time = System.currentTimeMillis()
                     faceLockInterface.onError(
                         FACELOCK_FAILED_ATTEMPT, getMessage(
                             FACELOCK_FAILED_ATTEMPT
@@ -144,25 +147,44 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 @Throws(RemoteException::class)
                 override fun exposeFallback() {
                     d(TAG + ".IFaceIdCallback.exposeFallback")
-                    mStarted = true
                 }
 
-                @Throws(RemoteException::class)
-                override fun pokeWakelock() {
-                    d(TAG + ".IFaceIdCallback.pokeWakelock")
-                    mStarted = true
+                override fun pokeWakelock(millis: Int) {
+                    d(TAG + ".IFaceIdCallback.pokeWakelock1")
                     try {
                         val pm =
                             context.getSystemService(Context.POWER_SERVICE) as PowerManager?
-                        val screenLock = pm
+                        screenLock = pm
                             ?.newWakeLock(
                                 PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,
                                 javaClass.name
                             )
-                        screenLock?.acquire(25000L)
                         if (screenLock?.isHeld == true) {
-                            screenLock.release()
+                            screenLock?.release()
                         }
+                        screenLock?.acquire(millis.toLong())
+
+                    } catch (e: Throwable) {
+                        e(e, TAG)
+                    }
+                }
+
+                @Throws(RemoteException::class)
+                override fun pokeWakelock() {
+                    d(TAG + ".IFaceIdCallback.pokeWakelock2")
+                    try {
+                        val pm =
+                            context.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                        screenLock = pm
+                            ?.newWakeLock(
+                                PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,
+                                javaClass.name
+                            )
+                        if (screenLock?.isHeld == true) {
+                            screenLock?.release()
+                        }
+                        screenLock?.acquire(25000L)
+
                     } catch (e: Throwable) {
                         e(e, TAG)
                     }
@@ -276,6 +298,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                     rect.left, rect.top,
                     rect.width(), rect.height()
                 )
+                time = System.currentTimeMillis()
             } catch (e: Exception) {
                 e(e, TAG + ("Caught exception starting FaceId: " + e.message))
                 faceLockInterface.onError(FACELOCK_CANNT_START, getMessage(FACELOCK_CANNT_START))
