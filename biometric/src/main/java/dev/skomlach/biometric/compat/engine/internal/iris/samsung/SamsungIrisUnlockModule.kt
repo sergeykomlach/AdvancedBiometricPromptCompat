@@ -23,17 +23,12 @@ import android.annotation.SuppressLint
 import androidx.core.os.CancellationSignal
 import com.samsung.android.camera.iris.SemIrisManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -41,6 +36,92 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.IRIS_SAMSUNG) {
+    companion object {
+        const val IRIS_ACQUIRED_CAPTURE_COMPLETED = 10003
+        const val IRIS_ACQUIRED_CAPTURE_FAILED = 10006
+        const val IRIS_ACQUIRED_CAPTURE_IRIS_LEAVE = 10004
+        const val IRIS_ACQUIRED_CAPTURE_IRIS_LEAVE_TIMEOUT = 10007
+        const val IRIS_ACQUIRED_CAPTURE_READY = 10001
+        const val IRIS_ACQUIRED_CAPTURE_STARTED = 10002
+        const val IRIS_ACQUIRED_CAPTURE_SUCCESS = 10005
+        const val IRIS_ACQUIRED_CHANGE_YOUR_POSITION = 12
+        const val IRIS_ACQUIRED_DUPLICATED_SCANNED_IMAGE = 1002
+        const val IRIS_ACQUIRED_EYE_NOT_PRESENT = 10
+        const val IRIS_ACQUIRED_FACTORY_TEST_SNSR_TEST_SCRIPT_END = 10009
+        const val IRIS_ACQUIRED_FACTORY_TEST_SNSR_TEST_SCRIPT_START = 10008
+        const val IRIS_ACQUIRED_GOOD = 0
+        const val IRIS_ACQUIRED_INSUFFICIENT = 2
+        const val IRIS_ACQUIRED_MOVE_CLOSER = 3
+        const val IRIS_ACQUIRED_MOVE_DOWN = 8
+        const val IRIS_ACQUIRED_MOVE_FARTHER = 4
+        const val IRIS_ACQUIRED_MOVE_LEFT = 5
+        const val IRIS_ACQUIRED_MOVE_RIGHT = 6
+        const val IRIS_ACQUIRED_MOVE_SOMEWHERE_DARKER = 11
+        const val IRIS_ACQUIRED_MOVE_UP = 7
+        const val IRIS_ACQUIRED_OPEN_EYES_WIDER = 9
+        const val IRIS_ACQUIRED_PARTIAL = 1
+        const val IRIS_ACQUIRED_VENDOR_BASE = 1000
+        const val IRIS_ACQUIRED_VENDOR_EVENT_BASE = 10000
+        const val IRIS_AUTH_TYPE_NONE = 0
+        const val IRIS_AUTH_TYPE_PREVIEW_CALLBACK = 1
+        const val IRIS_AUTH_TYPE_UI_NO_PREVIEW = 3
+        const val IRIS_AUTH_TYPE_UI_WITH_PREVIEW = 2
+        const val IRIS_DISABLE_PREVIEW_CALLBACK = 7
+        const val IRIS_ENABLE_PREVIEW_CALLBACK = 6
+        const val IRIS_ERROR_AUTH_VIEW_SIZE = 10
+        const val IRIS_ERROR_AUTH_WINDOW_TOKEN = 11
+        const val IRIS_ERROR_CANCELED = 4
+        const val IRIS_ERROR_DEVICE_NEED_RECAL = 1001
+        const val IRIS_ERROR_EVICTED = 13
+        const val IRIS_ERROR_EVICTED_DUE_TO_VIDEO_CALL = 14
+        const val IRIS_ERROR_EYE_SAFETY_TIMEOUT = 9
+        const val IRIS_ERROR_HW_UNAVAILABLE = 0
+        const val IRIS_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE = 1004
+        const val IRIS_ERROR_IDENTIFY_FAILURE_SENSOR_CHANGED = 1005
+        const val IRIS_ERROR_IDENTIFY_FAILURE_SERVICE_FAILURE = 1003
+        const val IRIS_ERROR_IDENTIFY_FAILURE_SYSTEM_FAILURE = 1002
+        const val IRIS_ERROR_LOCKOUT = 6
+        const val IRIS_ERROR_NEED_TO_RETRY = 5000
+        const val IRIS_ERROR_NO_EYE_DETECTED = 15
+        const val IRIS_ERROR_NO_SPACE = 3
+        const val IRIS_ERROR_OPEN_IR_CAMERA_FAIL = 8
+        const val IRIS_ERROR_PROXIMITY_TIMEOUT = 12
+        const val IRIS_ERROR_START_IR_CAMERA_PREVIEW_FAIL = 7
+        const val IRIS_ERROR_TIMEOUT = 2
+        const val IRIS_ERROR_UNABLE_TO_PROCESS = 1
+        const val IRIS_ERROR_UNABLE_TO_REMOVE = 5
+        const val IRIS_ERROR_VENDOR_BASE = 1000
+        const val IRIS_INVISIBLE_PREVIEW = 4
+        const val IRIS_ONE_EYE = 40000
+        const val IRIS_REQUEST_DVFS_FREQUENCY = 1004
+        const val IRIS_REQUEST_ENROLL_SESSION = 1002
+        const val IRIS_REQUEST_ENUMERATE = 11
+        const val IRIS_REQUEST_FACTORY_TEST_ALWAYS_LED_ON = 2001
+        const val IRIS_REQUEST_FACTORY_TEST_CAMERA_VERSION = 2004
+        const val IRIS_REQUEST_FACTORY_TEST_CAPTURE = 2002
+        const val IRIS_REQUEST_FACTORY_TEST_FULL_PREVIEW = 2000
+        const val IRIS_REQUEST_FACTORY_TEST_PREVIEW_MODE = 2003
+        const val IRIS_REQUEST_GET_IR_IDS = 1003
+        const val IRIS_REQUEST_GET_SENSOR_INFO = 5
+        const val IRIS_REQUEST_GET_SENSOR_STATUS = 6
+        const val IRIS_REQUEST_GET_UNIQUE_ID = 7
+        const val IRIS_REQUEST_GET_USERIDS = 12
+        const val IRIS_REQUEST_GET_VERSION = 4
+        const val IRIS_REQUEST_IR_PREVIEW_ENABLE = 2005
+        const val IRIS_REQUEST_LOCKOUT = 1001
+        const val IRIS_REQUEST_PAUSE = 0
+        const val IRIS_REQUEST_PROCESS_FIDO = 9
+        const val IRIS_REQUEST_REMOVE_IRIS = 1000
+        const val IRIS_REQUEST_RESUME = 1
+        const val IRIS_REQUEST_SENSOR_TEST_NORMALSCAN = 3
+        const val IRIS_REQUEST_SESSION_OPEN = 2
+        const val IRIS_REQUEST_SET_ACTIVE_GROUP = 8
+        const val IRIS_REQUEST_TZ_STATUS = 13
+        const val IRIS_REQUEST_UPDATE_SID = 10
+        const val IRIS_TWO_EYES = 40001
+        const val IRIS_VISIBLE_PREVIEW = 5
+    }
+
     private var manager: SemIrisManager? = null
 
     init {
@@ -129,28 +210,21 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val listener: AuthenticationListener?
     ) : SemIrisManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+//                IRIS_ERROR_NO_EYE_DETECTED -> failureReason =
+//                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED // AUTHENTICATION_FAILED
+                IRIS_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+
+                IRIS_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                IRIS_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                IRIS_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                IRIS_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -180,8 +254,8 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(result: SemIrisManager.AuthenticationResult?) {

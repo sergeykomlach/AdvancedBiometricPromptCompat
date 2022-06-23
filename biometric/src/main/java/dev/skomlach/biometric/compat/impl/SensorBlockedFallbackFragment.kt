@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class SensorBlockedFallbackFragment : Fragment() {
     companion object {
-        // TODO: Just a references to system resources
+//Just a references to system resources
 //   [`sensor_privacy_start_use_camera_notification_content_title`->`Unblock device camera`]
 //   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
 //   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]

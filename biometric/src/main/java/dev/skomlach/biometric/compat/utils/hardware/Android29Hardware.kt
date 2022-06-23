@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 
-
 @TargetApi(Build.VERSION_CODES.Q)
 
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
@@ -51,19 +50,19 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
 
         private fun canAuthenticate(): Int {
 
-                if (job?.isActive == true) {
-                    if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
-                        job?.cancel()
-                        job = null
-                    }
+            if (job?.isActive == true) {
+                if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
+                    job?.cancel()
+                    job = null
                 }
-                if (job?.isActive != true) {
-                    checkStartedTs = System.currentTimeMillis()
-                    job = GlobalScope.launch(Dispatchers.IO) {
-                        updateCodeSync()
-                    }
+            }
+            if (job?.isActive != true) {
+                checkStartedTs = System.currentTimeMillis()
+                job = GlobalScope.launch(Dispatchers.IO) {
+                    updateCodeSync()
                 }
-                return cachedCanAuthenticateValue.get()
+            }
+            return cachedCanAuthenticateValue.get()
         }
 
         @SuppressLint("WrongConstant")

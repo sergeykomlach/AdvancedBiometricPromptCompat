@@ -23,7 +23,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BuildConfig
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
@@ -36,8 +35,7 @@ import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
 
-abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule,
-    BiometricCodes {
+abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
         var DEBUG_MANAGERS = BuildConfig.DEBUG

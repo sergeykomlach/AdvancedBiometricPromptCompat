@@ -62,25 +62,25 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
         private fun biometricEnrollChanged(): Boolean {
 
-                if (jobEnrollChanged?.isActive == true) {
-                    if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
-                            30
-                        )
-                    ) {
-                        jobEnrollChanged?.cancel()
-                        jobEnrollChanged = null
-                    }
+            if (jobEnrollChanged?.isActive == true) {
+                if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
+                        30
+                    )
+                ) {
+                    jobEnrollChanged?.cancel()
+                    jobEnrollChanged = null
                 }
+            }
 
-                if (jobEnrollChanged?.isActive != true) {
-                    checkEnrollChangedStartedTs = System.currentTimeMillis()
-                    jobEnrollChanged = GlobalScope.launch(Dispatchers.IO) {
-                        updateBiometricChanged()
-                    }
+            if (jobEnrollChanged?.isActive != true) {
+                checkEnrollChangedStartedTs = System.currentTimeMillis()
+                jobEnrollChanged = GlobalScope.launch(Dispatchers.IO) {
+                    updateBiometricChanged()
                 }
+            }
 
 
-                return cachedIsBiometricEnrollChangedValue.get()
+            return cachedIsBiometricEnrollChangedValue.get()
 
         }
 
@@ -147,24 +147,24 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
         private fun biometricEnrolled(): Boolean {
 
-                if (jobEnrolled?.isActive == true) {
-                    if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
-                            30
-                        )
-                    ) {
-                        jobEnrolled?.cancel()
-                        jobEnrolled = null
-                    }
+            if (jobEnrolled?.isActive == true) {
+                if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
+                        30
+                    )
+                ) {
+                    jobEnrolled?.cancel()
+                    jobEnrolled = null
                 }
+            }
 
-                if (jobEnrolled?.isActive != true) {
-                    checkEnrolledStartedTs = System.currentTimeMillis()
-                    jobEnrolled = GlobalScope.launch(Dispatchers.IO) {
-                        updateBiometricEnrolled()
-                    }
+            if (jobEnrolled?.isActive != true) {
+                checkEnrolledStartedTs = System.currentTimeMillis()
+                jobEnrolled = GlobalScope.launch(Dispatchers.IO) {
+                    updateBiometricEnrolled()
                 }
+            }
 
-                return cachedIsBiometricEnrolledValue.get()
+            return cachedIsBiometricEnrolledValue.get()
 
         }
 

@@ -24,8 +24,6 @@ import androidx.core.os.CancellationSignal
 import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -33,8 +31,6 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListen
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -42,6 +38,26 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(private val listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_SOTERAPI) {
+    companion object {
+        const val FINGERPRINT_ACQUIRED_GOOD = 0
+        const val FINGERPRINT_ACQUIRED_IMAGER_DIRTY = 3
+        const val FINGERPRINT_ACQUIRED_INSUFFICIENT = 2
+        const val FINGERPRINT_ACQUIRED_PARTIAL = 1
+        const val FINGERPRINT_ACQUIRED_TOO_FAST = 5
+        const val FINGERPRINT_ACQUIRED_TOO_SLOW = 4
+        const val FINGERPRINT_ERROR_CANCELED = 5
+        const val FINGERPRINT_ERROR_HW_NOT_PRESENT = 12
+        const val FINGERPRINT_ERROR_HW_UNAVAILABLE = 1
+        const val FINGERPRINT_ERROR_LOCKOUT = 7
+        const val FINGERPRINT_ERROR_LOCKOUT_PERMANENT = 9
+        const val FINGERPRINT_ERROR_NO_FINGERPRINTS = 11
+        const val FINGERPRINT_ERROR_NO_SPACE = 4
+        const val FINGERPRINT_ERROR_TIMEOUT = 3
+        const val FINGERPRINT_ERROR_UNABLE_TO_PROCESS = 2
+        const val FINGERPRINT_ERROR_USER_CANCELED = 10
+        const val FINGERPRINT_ERROR_VENDOR = 8
+    }
+
     private var manager: BiometricManagerCompat? = null
 
     init {
@@ -125,28 +141,28 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         private val listener: AuthenticationListener?
     ) : BiometricManagerCompat.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                FINGERPRINT_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                FINGERPRINT_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                FINGERPRINT_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                FINGERPRINT_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -176,8 +192,8 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {

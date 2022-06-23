@@ -24,8 +24,6 @@ import android.hardware.iris.IrisManager
 import android.os.Build
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -33,8 +31,6 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListen
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -42,6 +38,166 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.IRIS_ANDROIDAPI) {
+    companion object {
+        /**
+         * The hardware is unavailable. Try again later.
+         */
+        const val IRIS_ERROR_HW_UNAVAILABLE = 1
+
+        /**
+         * Error state returned when the sensor was unable to process the current image.
+         */
+        const val IRIS_ERROR_UNABLE_TO_PROCESS = 2
+
+        /**
+         * Error state returned when the current request has been running too long. This is intended to
+         * prevent programs from waiting for the iris sensor indefinitely. The timeout is
+         * platform and sensor-specific, but is generally on the order of 30 seconds.
+         */
+        const val IRIS_ERROR_TIMEOUT = 3
+
+        /**
+         * Error state returned for operations like enrollment; the operation cannot be completed
+         * because there's not enough storage remaining to complete the operation.
+         */
+        const val IRIS_ERROR_NO_SPACE = 4
+
+        /**
+         * The operation was canceled because the iris sensor is unavailable. For example,
+         * this may happen when the user is switched, the device is locked or another pending operation
+         * prevents or disables it.
+         */
+        const val IRIS_ERROR_CANCELED = 5
+
+        /**
+         * The [IrisManager.remove] call failed. Typically this will happen when the
+         * provided iris id was incorrect.
+         *
+         * @hide
+         */
+        const val IRIS_ERROR_UNABLE_TO_REMOVE = 6
+
+        /**
+         * The operation was canceled because the API is locked out due to too many attempts.
+         * This occurs after 5 failed attempts, and lasts for 30 seconds.
+         */
+        const val IRIS_ERROR_LOCKOUT = 7
+
+        /**
+         * Hardware vendors may extend this list if there are conditions that do not fall under one of
+         * the above categories. Vendors are responsible for providing error strings for these errors.
+         * These messages are typically reserved for internal operations such as enrollment, but may be
+         * used to express vendor errors not covered by the ones in iris.h. Applications are
+         * expected to show the error message string if they happen, but are advised not to rely on the
+         * message id since they will be device and vendor-specific
+         */
+        const val IRIS_ERROR_VENDOR = 8
+
+        /**
+         * The operation was canceled because IRIS_ERROR_LOCKOUT occurred too many times.
+         * Iris authentication is disabled until the user unlocks with strong authentication
+         * (PIN/Pattern/Password)
+         */
+        const val IRIS_ERROR_LOCKOUT_PERMANENT = 9
+
+        /**
+         * The user canceled the operation. Upon receiving this, applications should use alternate
+         * authentication (e.g. a password). The application should also provide the means to return
+         * to iris authentication, such as a "use iris" button.
+         */
+        const val IRIS_ERROR_USER_CANCELED = 10
+
+        /**
+         * @hide
+         */
+        const val IRIS_ERROR_VENDOR_BASE = 1000
+        //
+        // Image acquisition messages. Must agree with those in iris.h
+        //
+        //
+        // Image acquisition messages. Must agree with those in iris.h
+        //
+        /**
+         * The image acquired was good.
+         */
+        const val IRIS_ACQUIRED_GOOD = 0
+
+        /**
+         * The iris image was not good enough to process due to a detected condition (i.e. no iris) or
+         * a possibly (See [or @link #IRIS_ACQUIRED_TOO_DARK][.IRIS_ACQUIRED_TOO_BRIGHT]).
+         */
+        const val IRIS_ACQUIRED_INSUFFICIENT = 1
+
+        /**
+         * The iris image was too bright due to too much ambient light.
+         * For example, it's reasonable return this after multiple
+         * [.IRIS_ACQUIRED_INSUFFICIENT]
+         * The user is expected to take action to re try in better lighting conditions
+         * when this is returned.
+         */
+        const val IRIS_ACQUIRED_TOO_BRIGHT = 2
+
+        /**
+         * The iris image was too dark due to illumination light obscured.
+         * For example, it's reasonable return this after multiple
+         * [.IRIS_ACQUIRED_INSUFFICIENT]
+         * The user is expected to take action to uncover illumination light source
+         * when this is returned.
+         */
+        const val IRIS_ACQUIRED_TOO_DARK = 3
+
+        /**
+         * The iris was not in field of view. User might be close to the camera and should be
+         * informed on what needs to happen to resolve this problem, e.g. "move further."
+         */
+        const val IRIS_ACQUIRED_TOO_CLOSE = 4
+
+        /**
+         * The iris image was not enough. User might be far from the camera and should be
+         * informed on what needs to happen to resolve this problem, e.g. "move closer."
+         */
+        const val IRIS_ACQUIRED_TOO_FAR = 5
+
+        /**
+         * The iris image was not available. User might have been closing the eyes and should be
+         * informed on what needs to happen to resolve this problem, e.g. "open eyes."
+         */
+        const val IRIS_ACQUIRED_EYES_CLOSED = 6
+
+        /**
+         * The iris image was not enough. User might have been closing the eyes and should be
+         * informed on what needs to happen to resolve this problem, e.g. "open eyes wider."
+         */
+        const val IRIS_ACQUIRED_EYES_PARTIALLY_OBSCURED = 7
+
+        /**
+         * The image acquired was having one iris.
+         */
+        const val IRIS_ACQUIRED_DETECTED_ONE_EYE = 8
+
+        /**
+         * The image acquired was having two iris.
+         */
+        const val IRIS_ACQUIRED_DETECTED_TWO_EYE = 9
+
+        /**
+         * The image acquired was having too many irises(i.e. someone else in the view, reflections, etc.).
+         */
+        const val IRIS_ACQUIRED_DETECTED_TOO_MANY_EYES = 10
+
+        /**
+         * Hardware vendors may extend this list if there are conditions that do not fall under one of
+         * the above categories. Vendors are responsible for providing error strings for these errors.
+         * @hide
+         */
+        const val IRIS_ACQUIRED_VENDOR = 11
+
+        /**
+         * @hide
+         */
+        const val IRIS_ACQUIRED_VENDOR_BASE = 1000
+    }
+
     private var manager: IrisManager? = null
 
     init {
@@ -147,28 +303,24 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val listener: AuthenticationListener?
     ) : IrisManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                IRIS_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                IRIS_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                IRIS_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                IRIS_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                IRIS_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                IRIS_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -198,8 +350,8 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(result: IrisManager.AuthenticationResult?) {

@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -39,11 +38,13 @@ class HuaweiFaceRecognizeManager {
         const val CODE_CALLBACK_RESULT = 1
         const val HUAWEI_FACE_AUTHENTICATOR_FAIL = 103
         const val HUAWEI_FACE_AUTHENTICATOR_SUCCESS = 100
+        const val HUAWEI_FACE_AUTH_ERROR_CANCEL = 102
+        const val HUAWEI_FACE_AUTH_ERROR_LOCKED = 129
+        const val HUAWEI_FACE_AUTH_ERROR_TIMEOUT = 113
 
-        //
-        //    public static final int HUAWEI_FACE_AUTH_ERROR_CANCEL = 102;
-        //    public static final int HUAWEI_FACE_AUTH_ERROR_LOCKED = 129;
-        //    public static final int HUAWEI_FACE_AUTH_ERROR_TIMEOUT = 113;
+        const val HUAWEI_FACE_AUTH_ERROR_VENDOR = -100
+        const val HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE = -101
+
         const val HUAWEI_FACE_AUTH_STATUS_BRIGHT = 406
         const val HUAWEI_FACE_AUTH_STATUS_DARK = 405
         const val HUAWEI_FACE_AUTH_STATUS_EYE_CLOSED = 403
@@ -94,10 +95,10 @@ class HuaweiFaceRecognizeManager {
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
-                FaceRecognizeManager.FaceErrorCode.CANCELED -> BiometricCodes.BIOMETRIC_ERROR_CANCELED
-                FaceRecognizeManager.FaceErrorCode.TIMEOUT -> BiometricCodes.BIOMETRIC_ERROR_TIMEOUT
-                FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE -> BiometricCodes.BIOMETRIC_ERROR_LOCKOUT
-                FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE, FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS, FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT, FaceRecognizeManager.FaceErrorCode.FAILED -> BiometricCodes.BIOMETRIC_ERROR_VENDOR
+                FaceRecognizeManager.FaceErrorCode.CANCELED -> HUAWEI_FACE_AUTH_ERROR_CANCEL
+                FaceRecognizeManager.FaceErrorCode.TIMEOUT -> HUAWEI_FACE_AUTH_ERROR_TIMEOUT
+                FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE -> HUAWEI_FACE_AUTH_ERROR_LOCKED
+                FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE, FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS, FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT, FaceRecognizeManager.FaceErrorCode.FAILED -> HUAWEI_FACE_AUTH_ERROR_VENDOR
                 FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL, FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA, FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES -> HUAWEI_FACE_AUTHENTICATOR_FAIL
                 else -> HUAWEI_FACE_AUTHENTICATOR_FAIL
             }

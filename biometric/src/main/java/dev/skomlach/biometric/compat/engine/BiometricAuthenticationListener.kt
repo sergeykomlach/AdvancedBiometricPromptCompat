@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.engine
 
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
 import dev.skomlach.biometric.compat.BiometricType
 
 
@@ -31,7 +30,7 @@ interface BiometricAuthenticationListener {
     fun onSuccess(module: BiometricType?)
 
     @WorkerThread
-    fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?)
+    fun onHelp(msg: CharSequence?)
 
     //failure happens in module
     @WorkerThread

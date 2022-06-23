@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -59,7 +58,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
                 stringBuilder2.append("init failed returning ")
                 stringBuilder2.append(ret)
                 e(str2, stringBuilder2.toString())
-                callback.onAuthenticationError(BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE)
+                callback.onAuthenticationError(HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE)
                 return
             }
             d(TAG, "authenicating... ")
@@ -83,7 +82,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
         get() = 1
     override val isHardwareDetected: Boolean
         get() = try {
-            HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: 0 and 1 != 0
+            (HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: (0 and 1)) != 0
         } catch (ignore: Throwable) {
             false
         }

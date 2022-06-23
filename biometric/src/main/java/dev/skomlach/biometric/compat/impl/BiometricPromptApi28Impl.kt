@@ -39,11 +39,9 @@ import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
@@ -67,7 +65,7 @@ import javax.crypto.SecretKey
 @TargetApi(Build.VERSION_CODES.P)
 
 class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Builder) :
-    IBiometricPromptImpl, BiometricCodes, AuthCallback {
+    IBiometricPromptImpl, AuthCallback {
     private val biometricPromptInfo: PromptInfo
     private val biometricPrompt: BiometricPrompt
     private val restartPredicate = defaultPredicate()
@@ -97,7 +95,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                d("BiometricPromptApi28Impl.onAuthenticationError: " + getErrorCode(errorCode) + " " + errString)
+                d("BiometricPromptApi28Impl.onAuthenticationError: $errorCode $errString")
                 // Authentication failed on OnePlus device with broken BiometricPrompt implementation
                 // Present the same screen with additional buttons to allow retry/fail
                 if (onePlusWithBiometricBugFailure) {
@@ -337,10 +335,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
                     }
 
-                    override fun onHelp(
-                        helpReason: AuthenticationHelpReason?,
-                        msg: CharSequence?
-                    ) {
+                    override fun onHelp(msg: CharSequence?) {
                     }
 
                     override fun onFailure(
@@ -672,8 +667,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             checkAuthResultForSecondary(module, AuthResult.AuthResultState.SUCCESS)
         }
 
-        override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
-            if (helpReason !== AuthenticationHelpReason.BIOMETRIC_ACQUIRED_GOOD && !msg.isNullOrEmpty()) {
+        override fun onHelp(msg: CharSequence?) {
+            if (!msg.isNullOrEmpty()) {
                 if (dialog != null) dialog?.onHelp(msg)
             }
         }

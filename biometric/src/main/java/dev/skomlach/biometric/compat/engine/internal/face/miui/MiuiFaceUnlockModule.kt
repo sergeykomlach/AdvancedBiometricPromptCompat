@@ -22,8 +22,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.miui
 import android.annotation.SuppressLint
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -34,8 +32,6 @@ import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.IMiuiFaceMan
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceFactory
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -151,28 +147,30 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private val listener: AuthenticationListener?
     ) : IMiuiFaceManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
+
+            //See IMiuiFaceManagerImpl.getMessageInfo()
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                11 -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                12 -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                1 -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                9 -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                2 -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                4 -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                3 -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                7 -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -203,8 +201,8 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(miuiface: Miuiface?) {
