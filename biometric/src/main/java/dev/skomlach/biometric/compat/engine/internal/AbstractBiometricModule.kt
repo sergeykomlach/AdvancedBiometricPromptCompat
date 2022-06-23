@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal
 
-import android.content.Context
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BuildConfig
@@ -28,7 +27,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.HexUtils
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
 import java.security.MessageDigest
@@ -46,9 +45,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
     val name: String
         get() = javaClass.simpleName
-    var context: Context = appContext
-        get() = appContext
-        set
+    val context = AndroidContext.appContext
 
     fun lockout() {
         if (!isLockOut) {

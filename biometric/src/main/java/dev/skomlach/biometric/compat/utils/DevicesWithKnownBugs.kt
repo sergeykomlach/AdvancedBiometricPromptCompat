@@ -23,9 +23,11 @@ import android.os.Build
 import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 
 object DevicesWithKnownBugs {
+    private val appContext = AndroidContext.appContext
+
     //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
     private val onePlusModelsWithoutBiometricBug = arrayOf(
         "A0001",  // OnePlus One

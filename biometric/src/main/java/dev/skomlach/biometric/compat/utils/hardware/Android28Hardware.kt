@@ -32,7 +32,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -55,6 +55,7 @@ import javax.crypto.KeyGenerator
 open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
 
     companion object {
+        private val appContext = AndroidContext.appContext
         private var cachedIsBiometricEnrollChangedValue = AtomicBoolean(false)
         private var jobEnrollChanged: Job? = null
         private var checkEnrollChangedStartedTs = 0L

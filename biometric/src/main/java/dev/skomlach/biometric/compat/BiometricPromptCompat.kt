@@ -222,6 +222,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
+    private val appContext = AndroidContext.appContext
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
@@ -464,7 +465,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                     ExecutorHelper.post(closeAll)
                     val delay =
-                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                        appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
                             .toLong()
                     ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
@@ -742,6 +743,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var colorStatusBar: Int = Color.TRANSPARENT
 
         private var isTruncateChecked = false
+        private val appContext = AndroidContext.appContext
 
         init {
             AndroidContext.activity?.let { context ->
@@ -859,7 +861,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setTitle(@StringRes titleRes: Int): Builder {
-            title = AndroidContext.appContext.getString(titleRes)
+            title = appContext.getString(titleRes)
             return this
         }
 
@@ -869,7 +871,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setSubtitle(@StringRes subtitleRes: Int): Builder {
-            subtitle = AndroidContext.appContext.getString(subtitleRes)
+            subtitle = appContext.getString(subtitleRes)
             return this
         }
 
@@ -879,7 +881,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setDescription(@StringRes descriptionRes: Int): Builder {
-            description = AndroidContext.appContext.getString(descriptionRes)
+            description = appContext.getString(descriptionRes)
             return this
         }
 
@@ -889,7 +891,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setNegativeButtonText(@StringRes res: Int): Builder {
-            negativeButtonText = AndroidContext.appContext.getString(res)
+            negativeButtonText = appContext.getString(res)
             return this
         }
 
@@ -906,7 +908,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             @StringRes textResId: Int,
             listener: DialogInterface.OnClickListener?
         ): Builder {
-            negativeButtonText = AndroidContext.appContext.getString(textResId)
+            negativeButtonText = appContext.getString(textResId)
             negativeButtonListener = listener
             return this
         }
@@ -914,11 +916,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun build(): BiometricPromptCompat {
             if (title == null)
                 title = BiometricTitle.getRelevantTitle(
-                    AndroidContext.appContext,
+                    appContext,
                     getAllAvailableTypes()
                 )
             if (negativeButtonText == null)
-                negativeButtonText = AndroidContext.appContext.getString(android.R.string.cancel)
+                negativeButtonText = appContext.getString(android.R.string.cancel)
             TruncatedTextFix.recalculateTexts(this, object : TruncatedTextFix.OnTruncateChecked {
                 override fun onDone() {
                     isTruncateChecked = true

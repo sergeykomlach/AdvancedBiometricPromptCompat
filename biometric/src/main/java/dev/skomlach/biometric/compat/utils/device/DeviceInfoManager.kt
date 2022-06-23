@@ -42,6 +42,7 @@ import java.util.regex.Pattern
 import javax.net.ssl.SSLHandshakeException
 
 object DeviceInfoManager {
+    private val appContext = AndroidContext.appContext
     val agents = arrayOf(
         "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -148,7 +149,7 @@ object DeviceInfoManager {
             val apks: MutableSet<String> = HashSet()
             try {
                 val applicationInfo = AndroidContext.appContext.packageManager.getApplicationInfo(
-                    AndroidContext.appContext.packageName,
+                    appContext.packageName,
                     0
                 )
                 applicationInfo.sourceDir?.let {

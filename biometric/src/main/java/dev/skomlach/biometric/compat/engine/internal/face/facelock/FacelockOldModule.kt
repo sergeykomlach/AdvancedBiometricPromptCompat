@@ -140,6 +140,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        d("$name.authenticate - $biometricMethod")
         try {
             d("$name: Facelock call authorize")
             authorize(ProxyListener(restartPredicate, cancellationSignal, listener))
@@ -171,6 +172,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) {
         fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void? {
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
@@ -211,20 +213,23 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         }
 
         fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?): Void? {
+            d("$name.onAuthenticationError: $helpMsgId-$helpString")
             return null
         }
 
         fun onAuthenticationSucceeded(result: Any?): Void? {
+            d("$name.onAuthenticationSucceeded $result")
             listener?.onSuccess(tag())
             return null
         }
 
         fun onAuthenticationAcquired(acquireInfo: Int): Void? {
-            d("$name.FaceIdInterface.ProxyListener $acquireInfo")
+            d("$name.onAuthenticationAcquired $acquireInfo")
             return null
         }
 
         fun onAuthenticationFailed(): Void? {
+            d("$name.onAuthenticationFailed")
             listener?.onFailure(
                 AuthenticationFailureReason.AUTHENTICATION_FAILED,
                 tag()

@@ -41,7 +41,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     private var mCallback: IFaceLockCallback? = null
     private var mServiceConnection: ServiceConnection? = null
     private val hasHardware: Boolean
-
+    private val context = AndroidContext.appContext
 
     companion object {
         const val FACELOCK_UNABLE_TO_BIND = 1
@@ -153,7 +153,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                     mStarted = true
                     try {
                         val pm =
-                            AndroidContext.appContext.getSystemService(Context.POWER_SERVICE) as PowerManager?
+                            context.getSystemService(Context.POWER_SERVICE) as PowerManager?
                         val screenLock = pm
                             ?.newWakeLock(
                                 PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.SCREEN_DIM_WAKE_LOCK,

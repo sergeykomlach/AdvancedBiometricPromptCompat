@@ -30,7 +30,7 @@ import androidx.core.app.NotificationManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 
 object BiometricNotificationManager {
+    private val appContext = AndroidContext.appContext
     const val CHANNEL_ID = "biometric"
     private val notificationReference = AtomicReference<Runnable>(null)
 

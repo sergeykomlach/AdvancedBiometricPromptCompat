@@ -27,13 +27,14 @@ import android.os.Vibrator
 import dev.skomlach.common.contextprovider.AndroidContext
 
 object Vibro {
+    private val appContext = AndroidContext.appContext
     private var v: Vibrator? = null
     private var audioManager: AudioManager? = null
 
     init {
-        v = AndroidContext.appContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+        v = appContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
         audioManager =
-            AndroidContext.appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager?
+            appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager?
     }
 
     private fun canVibrate(): Boolean {

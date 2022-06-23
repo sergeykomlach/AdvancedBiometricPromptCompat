@@ -26,7 +26,7 @@ import android.os.Build
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
     companion object {
-
+        private val appContext = AndroidContext.appContext
 
         private var cachedCanAuthenticateValue =
             AtomicInteger(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE)

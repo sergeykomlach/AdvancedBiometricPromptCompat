@@ -196,10 +196,11 @@ class HuaweiFaceRecognizeManager {
                 }
         }
     }
+    private val context = AndroidContext.appContext
 
     init {
         if (fRManager == null) {
-            fRManager = FaceRecognizeManager(AndroidContext.appContext, mFRCallback)
+            fRManager = FaceRecognizeManager(context, mFRCallback)
         }
     }
 

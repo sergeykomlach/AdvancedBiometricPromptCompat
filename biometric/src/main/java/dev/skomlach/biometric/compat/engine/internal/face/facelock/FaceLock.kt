@@ -52,6 +52,8 @@ class FaceLock {
     private var flCallbackInterfaceStub: Class<*>? = null
     private val pkg = "com.android.facelock"
 
+    private val context = AndroidContext.appContext
+
     companion object {
         private val TAG = FaceLock::class.java.simpleName
     }
@@ -88,14 +90,14 @@ class FaceLock {
         mServiceConnection = ServiceConnectionWrapper(connection)
         val intent = Intent(flInterface?.name)
         intent.setPackage(pkg)
-        return AndroidContext.appContext
+        return context
             .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
     }
 
     fun unbind() {
         d(TAG + " unbind from service")
         mServiceConnection?.let {
-            AndroidContext.appContext.unbindService(it)
+            context.unbindService(it)
         }
         mServiceConnection = null
     }
@@ -133,7 +135,7 @@ class FaceLock {
                 y,
                 width,
                 height,
-                isBiometricWeakLivelinessEnabled(AndroidContext.appContext)
+                isBiometricWeakLivelinessEnabled(context)
             )
             return
         } catch (ignore: Throwable) {

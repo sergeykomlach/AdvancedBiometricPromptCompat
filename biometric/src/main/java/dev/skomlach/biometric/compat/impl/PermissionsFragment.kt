@@ -38,7 +38,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class PermissionsFragment : Fragment() {
     companion object {
+        private val appContext = AndroidContext.appContext
         private const val LIST_KEY = "permissions_list"
         private const val INTENT_KEY = "intent_key"
         fun askForPermissions(

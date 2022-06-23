@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
+    private val appContext = AndroidContext.appContext
     private var isCameraInUse = AtomicBoolean(false)
 
     //Workaround that allow do not spam the user
@@ -48,30 +49,32 @@ object SensorPrivacyCheck {
     private var lastCheckedTime = AtomicLong(0)
     private var lastKnownState = AtomicBoolean(false)
     fun isCameraInUse(): Boolean {
-        val ts = System.currentTimeMillis()
-        val delay =
-            AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
-                .toLong()
-        val isDone = AtomicBoolean(false)
-        //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
-        ExecutorHelper.startOnBackground {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val ts = System.currentTimeMillis()
+            val delay =
+                appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                    .toLong()
+            val isDone = AtomicBoolean(false)
+            //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
+            ExecutorHelper.startOnBackground {
+                try {
+
                     val cameraManager =
-                        AndroidContext.appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                        appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
                     cameraManager.registerAvailabilityCallback(
                         ExecutorHelper.backgroundExecutor,
                         getCameraCallback(cameraManager, isDone)
                     )
+
+                } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
                 }
-            } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e)
             }
-        }
-        while (!isDone.get() && System.currentTimeMillis() - ts <= delay) {
-            try {
-                Thread.sleep(20)
-            } catch (ignore: InterruptedException) {
+            while (!isDone.get() && System.currentTimeMillis() - ts <= delay) {
+                try {
+                    Thread.sleep(20)
+                } catch (ignore: InterruptedException) {
+                }
             }
         }
         return isCameraInUse.get()
@@ -95,7 +98,7 @@ object SensorPrivacyCheck {
                             isDone.set(true)
                         }
                     },
-                    AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                    appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
                         .toLong()
                 )
             }
@@ -187,9 +190,9 @@ object SensorPrivacyCheck {
     @TargetApi(Build.VERSION_CODES.S)
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
-            val context = AndroidContext.activity ?: AndroidContext.appContext
+
             val delay =
-                context.resources.getInteger(android.R.integer.config_longAnimTime)
+                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                     .toLong() * 2
             if (System.currentTimeMillis() - lastCheckedTime.get() <= delay) {
 
@@ -204,7 +207,7 @@ object SensorPrivacyCheck {
 
             isUiRequested.set(false)
             val sensorPrivacyManager: SensorPrivacyManager? =
-                context.getSystemService(SensorPrivacyManager::class.java)
+                appContext.getSystemService(SensorPrivacyManager::class.java)
             if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
                 try {
                     val permissionToOp: String =
@@ -215,17 +218,17 @@ object SensorPrivacyCheck {
 
                     val noteOp: Int = try {
                         AppOpsManagerCompat.noteOpNoThrow(
-                            context,
+                            appContext,
                             permissionToOp,
                             Process.myUid(),
-                            context.packageName
+                            appContext.packageName
                         )
                     } catch (ignored: Throwable) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                             PermissionUtils.appOpPermissionsCheckMiui(
                                 permissionToOp,
                                 Process.myUid(),
-                                context.packageName
+                                appContext.packageName
                             ) else AppOpsManagerCompat.MODE_IGNORED
                     }
                     return (noteOp != AppOpsManagerCompat.MODE_ALLOWED).also {
