@@ -52,10 +52,10 @@ object ExecutorHelper {
     private fun removeTaskSafely(task: Runnable) {
 
         try {
-                tasksInMain.remove(task)
-            } catch (e: Throwable) {
-                LogCat.logException(e, "removeTaskSafely")
-            }
+            tasksInMain.remove(task)
+        } catch (e: Throwable) {
+            LogCat.logException(e, "removeTaskSafely")
+        }
 
     }
 
@@ -105,10 +105,10 @@ object ExecutorHelper {
     fun removeCallbacks(task: Runnable) {
 
         try {
-                tasksInMain[task]?.cancel()
-                tasksInMain.remove(task)
-            } catch (e: Throwable) {
-                LogCat.logException(e, "removeCallbacks")
+            tasksInMain[task]?.cancel()
+            tasksInMain.remove(task)
+        } catch (e: Throwable) {
+            LogCat.logException(e, "removeCallbacks")
         }
     }
 

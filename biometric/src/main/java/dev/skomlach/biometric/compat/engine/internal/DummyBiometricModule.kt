@@ -28,7 +28,6 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.common.misc.ExecutorHelper
 
-
 class DummyBiometricModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.DUMMY_BIOMETRIC) {
 
@@ -64,5 +63,4 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
             )
         }, 2500)
     }
-
 }

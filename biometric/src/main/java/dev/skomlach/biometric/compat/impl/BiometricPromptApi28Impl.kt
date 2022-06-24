@@ -265,7 +265,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
     }
 
-
     override fun cancelAuthentication() {
         d("BiometricPromptApi28Impl.cancelAuthentication():")
         if (dialog != null) dialog?.dismissDialog() else {
@@ -318,7 +317,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             if (!hasPrimaryFinished()) {
                 showSystemUi(biometricPrompt)
             }
-
         } else {
             val delayMillis = 1500L
             val shortDelayMillis =
@@ -393,7 +391,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     callback?.onSucceeded(successList)
                                 }
                             }
-
                         }
                     )
                     )

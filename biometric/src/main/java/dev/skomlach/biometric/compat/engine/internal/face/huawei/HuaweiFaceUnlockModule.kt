@@ -255,7 +255,10 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
             } else
-                if (restartPredicate?.invoke(failureReason) == true) {
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                        failureReason
+                    ) == true
+                ) {
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
@@ -283,7 +286,21 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
+            if (restartPredicate?.invoke(failureReason) == true) {
+                listener?.onFailure(failureReason, tag())
+                authenticate(cancellationSignal, listener, restartPredicate)
+            } else {
+                if (mutableListOf(
+                        AuthenticationFailureReason.SENSOR_FAILED,
+                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+                    ).contains(failureReason)
+                ) {
+                    lockout()
+                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+                listener?.onFailure(failureReason, tag())
+            }
         }
     }
 
@@ -317,12 +334,12 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
             } else
-                if (restartPredicate?.invoke(failureReason) == true) {
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                        failureReason
+                    ) == true
+                ) {
                     listener?.onFailure(failureReason, tag())
-                    huaweiFaceManagerLegacy?.cancel(0)
-                    ExecutorHelper.postDelayed({
-                        authenticate(cancellationSignal, listener, restartPredicate)
-                    }, 250)
+                    authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -348,7 +365,21 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            onAuthenticationError(HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL)
+            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
+            if (restartPredicate?.invoke(failureReason) == true) {
+                listener?.onFailure(failureReason, tag())
+                authenticate(cancellationSignal, listener, restartPredicate)
+            } else {
+                if (mutableListOf(
+                        AuthenticationFailureReason.SENSOR_FAILED,
+                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+                    ).contains(failureReason)
+                ) {
+                    lockout()
+                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+                listener?.onFailure(failureReason, tag())
+            }
         }
     }
 }

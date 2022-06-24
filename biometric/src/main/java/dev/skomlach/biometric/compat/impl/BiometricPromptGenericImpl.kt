@@ -36,7 +36,6 @@ import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationMan
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
     private var dialog: BiometricPromptCompatDialogImpl? = null
@@ -77,7 +76,6 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
         onUiClosed()
     }
-
 
     override fun startAuth() {
 

@@ -48,7 +48,6 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-
 class PermissionsFragment : Fragment() {
     companion object {
         private val appContext = AndroidContext.appContext
@@ -134,7 +133,6 @@ class PermissionsFragment : Fragment() {
                     e("PermissionsFragment", e.message, e)
                 }
             }, 250)
-
         }
     }
 
@@ -156,7 +154,6 @@ class PermissionsFragment : Fragment() {
             }, 250)
         }
     }
-
 
     private fun unusedAppRestrictionsDisabled() {
         permissionsRequestState.set(PermissionRequestState.MANUAL_REQUEST.ordinal)
@@ -262,7 +259,6 @@ class PermissionsFragment : Fragment() {
                 )
             }
         }
-
     }
 
     /**

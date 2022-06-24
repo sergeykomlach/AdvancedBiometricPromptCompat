@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.impl
 
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 
-
 interface IBiometricPromptImpl {
     fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?)
     fun cancelAuthentication()

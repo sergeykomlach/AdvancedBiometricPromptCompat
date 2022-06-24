@@ -333,7 +333,10 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
             } else
-                if (restartPredicate?.invoke(failureReason) == true) {
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                        failureReason
+                    ) == true
+                ) {
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
@@ -361,7 +364,21 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
+            if (restartPredicate?.invoke(failureReason) == true) {
+                listener?.onFailure(failureReason, tag())
+                authenticate(cancellationSignal, listener, restartPredicate)
+            } else {
+                if (mutableListOf(
+                        AuthenticationFailureReason.SENSOR_FAILED,
+                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+                    ).contains(failureReason)
+                ) {
+                    lockout()
+                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+                listener?.onFailure(failureReason, tag())
+            }
         }
     }
 

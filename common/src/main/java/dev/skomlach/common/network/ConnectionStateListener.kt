@@ -40,6 +40,7 @@ class ConnectionStateListener {
     private var networkCallback: NetworkCallback? = null
     private var receiverTypeConnection: BroadcastReceiver? = null
     private val appContext = AndroidContext.appContext
+
     init {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?

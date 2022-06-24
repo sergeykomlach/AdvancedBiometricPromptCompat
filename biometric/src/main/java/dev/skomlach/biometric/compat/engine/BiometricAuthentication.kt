@@ -50,7 +50,6 @@ import java.lang.ref.SoftReference
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-
 object BiometricAuthentication {
     private val moduleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
@@ -237,7 +236,6 @@ object BiometricAuthentication {
         authenticate(targetView, listOf(method), listener)
     }
 
-
     fun authenticate(
         targetView: View?, requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener
@@ -290,7 +288,6 @@ object BiometricAuthentication {
         }
     }
 
-
     fun cancelAuthentication() {
         d("BiometricAuthentication.cancelAuthentication")
         for (method in availableBiometrics) {
@@ -298,7 +295,6 @@ object BiometricAuthentication {
             if (biometricModule is FacelockOldModule) {
                 biometricModule.stopAuth()
             }
-
         }
         Core.cancelAuthentication()
     }

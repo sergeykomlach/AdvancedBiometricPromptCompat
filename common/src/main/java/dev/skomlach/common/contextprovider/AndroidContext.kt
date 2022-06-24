@@ -150,7 +150,7 @@ object AndroidContext {
                         }
 
                         override fun onActivityDestroyed(activity: Activity) {
-                            if(activity == AndroidContext.activity) {
+                            if (activity == AndroidContext.activity) {
                                 activityResumedRelay.set(null)
                             }
                         }

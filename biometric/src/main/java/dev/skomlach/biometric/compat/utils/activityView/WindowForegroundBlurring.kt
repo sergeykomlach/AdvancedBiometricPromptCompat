@@ -89,7 +89,7 @@ class WindowForegroundBlurring(
         private val delay = context.resources.getInteger(android.R.integer.config_shortAnimTime)
         override fun onPreDraw(): Boolean {
             val current = System.currentTimeMillis()
-            if(current - time >= delay) {
+            if (current - time >= delay) {
                 time = current
                 updateBackground()
             }

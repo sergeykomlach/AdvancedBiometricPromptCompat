@@ -43,6 +43,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     private val hasHardware: Boolean
     private val context = AndroidContext.appContext
     private var time = System.currentTimeMillis()
+
     companion object {
         const val FACELOCK_UNABLE_TO_BIND = 1
         const val FACELOCK_API_NOT_FOUND = 2
@@ -98,6 +99,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
             mCallback = object : IFaceLockCallback {
 
                 var screenLock: PowerManager.WakeLock? = null
+
                 @Throws(RemoteException::class)
                 override fun unlock() {
                     d(TAG + ".IFaceIdCallback.unlock")
