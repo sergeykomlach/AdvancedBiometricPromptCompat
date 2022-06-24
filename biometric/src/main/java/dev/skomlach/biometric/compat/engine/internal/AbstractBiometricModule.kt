@@ -20,6 +20,8 @@
 package dev.skomlach.biometric.compat.engine.internal
 
 import android.content.SharedPreferences
+import android.os.Build
+import android.os.UserHandle
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -46,6 +48,18 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     val name: String
         get() = javaClass.simpleName
     val context = AndroidContext.appContext
+
+    fun getUserId(): Int {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                UserHandle::class.java.methods.filter { it.name == "myUserId" }[0].invoke(null) as Int
+            } else {
+                0
+            }
+        } catch (ignore: Throwable) {
+            0
+        }
+    }
 
     fun lockout() {
         if (!isLockOut) {
