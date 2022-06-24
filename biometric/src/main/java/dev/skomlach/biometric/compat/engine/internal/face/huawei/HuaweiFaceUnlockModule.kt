@@ -23,8 +23,6 @@ import android.content.Context
 import android.os.CancellationSignal
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -33,9 +31,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
+import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceRecognizeManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -235,28 +231,18 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : FaceManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL -> failureReason =
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -286,8 +272,8 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
@@ -307,28 +293,18 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : HuaweiFaceManager.AuthenticatorCallback() {
         override fun onAuthenticationError(errMsgId: Int) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId))
+            d("$name.onAuthenticationError: $errMsgId")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL -> failureReason =
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -361,8 +337,8 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         }
 
         override fun onAuthenticationStatus(helpMsgId: Int) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId))
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), null)
+            d("$name.onAuthenticationHelp: $helpMsgId")
+            listener?.onHelp(null)
         }
 
         override fun onAuthenticationSucceeded() {
@@ -372,7 +348,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            onAuthenticationError(BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS)
+            onAuthenticationError(HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL)
         }
     }
 }

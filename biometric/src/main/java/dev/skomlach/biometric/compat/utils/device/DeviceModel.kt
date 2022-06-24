@@ -34,10 +34,11 @@ object DeviceModel {
     private var brand = (Build.BRAND ?: "").replace("  ", " ")
     private val model = (Build.MODEL ?: "").replace("  ", " ")
     private val device = (Build.DEVICE ?: "").replace("  ", " ")
+    private val appContext = AndroidContext.appContext
 
     init {
         if (brand == "Amazon") {
-            SystemPropertiesProxy.get(AndroidContext.appContext, "ro.build.characteristics").let {
+            SystemPropertiesProxy.get(appContext, "ro.build.characteristics").let {
                 if (it == "tablet")
                     brand = "$brand Kindle"
             }
@@ -104,11 +105,11 @@ object DeviceModel {
     }
 
     private fun getSimpleDeviceName(): String? {
-        SystemPropertiesProxy.get(AndroidContext.appContext, "ro.config.marketing_name").let {
+        SystemPropertiesProxy.get(appContext, "ro.config.marketing_name").let {
             if (it.isNotEmpty())
                 return getName(brand, it)
         }
-        SystemPropertiesProxy.get(AndroidContext.appContext, "ro.camera.model").let {
+        SystemPropertiesProxy.get(appContext, "ro.camera.model").let {
             if (it.isNotEmpty())
                 return getName(brand, it)
         }
@@ -160,7 +161,7 @@ object DeviceModel {
         try {
             //https://github.com/androidtrackers/certified-android-devices/
             val inputStream =
-                AndroidContext.appContext.assets.open("by_brand.json")
+                appContext.assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()
             NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
             inputStream.close()
@@ -176,7 +177,7 @@ object DeviceModel {
     @WorkerThread
     private fun getNameFromDatabase(): List<String>? {
         val info = DeviceName
-            .getDeviceInfo(AndroidContext.appContext)
+            .getDeviceInfo(appContext)
         BiometricLoggerImpl.d("AndroidModel.getNameFromDatabase -{ ${info.manufacturer}; ${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
             val list = mutableListOf<String>()

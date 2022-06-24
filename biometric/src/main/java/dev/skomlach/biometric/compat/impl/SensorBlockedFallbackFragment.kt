@@ -35,7 +35,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class SensorBlockedFallbackFragment : Fragment() {
     companion object {
-        // TODO: Just a references to system resources
+        private val appContext = AndroidContext.appContext
+
+        //Just a references to system resources
 //   [`sensor_privacy_start_use_camera_notification_content_title`->`Unblock device camera`]
 //   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
 //   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
@@ -66,17 +68,17 @@ class SensorBlockedFallbackFragment : Fragment() {
         fun askForCameraUnblock() {
             showFragment(
                 getString(
-                    AndroidContext.appContext,
+                    appContext,
                     "sensor_privacy_start_use_camera_notification_content_title"
                 ),
-                getString(AndroidContext.appContext, "face_sensor_privacy_enabled")
+                getString(appContext, "face_sensor_privacy_enabled")
             )
         }
 
         fun askForMicUnblock() {
             showFragment(
                 getString(
-                    AndroidContext.appContext,
+                    appContext,
                     "sensor_privacy_start_use_mic_notification_content_title"
                 ), null
             )
@@ -113,7 +115,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                         }
                     }
                 },
-                AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                     .toLong() * 2
             )
 
@@ -157,7 +159,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(
                     getString(
-                        AndroidContext.appContext,
+                        appContext,
                         "sensor_privacy_start_use_dialog_turn_on_button"
                     ) ?: getString(android.R.string.ok)
                 ) { p0, _ ->

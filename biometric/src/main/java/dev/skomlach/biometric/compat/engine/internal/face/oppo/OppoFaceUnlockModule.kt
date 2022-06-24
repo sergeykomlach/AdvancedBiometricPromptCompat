@@ -24,8 +24,6 @@ import android.hardware.face.OppoMirrorFaceManager
 import android.os.Build
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -33,8 +31,6 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListen
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -42,6 +38,74 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_OPPO) {
+    companion object {
+        const val BIOMETRIC_ERROR_NO_DEVICE_CREDENTIAL = 14
+        const val FACE_ACQUIRED_CAMERA_PREVIEW = 1001
+        const val FACE_ACQUIRED_DEPTH_TOO_NEARLY = 303
+        const val FACE_ACQUIRED_DOE_CHECK = 307
+        const val FACE_ACQUIRED_DOE_PRECHECK = 306
+        const val FACE_ACQUIRED_FACEDOE_IMAGE_READY = 308
+        const val FACE_ACQUIRED_FACE_OBSCURED = 19
+        const val FACE_ACQUIRED_GOOD = 0
+        const val FACE_ACQUIRED_HACKER = 104
+        const val FACE_ACQUIRED_INSUFFICIENT = 1
+        const val FACE_ACQUIRED_IR_HACKER = 305
+        const val FACE_ACQUIRED_IR_PATTERN = 304
+        const val FACE_ACQUIRED_MOUTH_OCCLUSION = 113
+        const val FACE_ACQUIRED_MULTI_FACE = 116
+        const val FACE_ACQUIRED_NOSE_OCCLUSION = 115
+        const val FACE_ACQUIRED_NOT_DETECTED = 11
+        const val FACE_ACQUIRED_NOT_FRONTAL_FACE = 114
+        const val FACE_ACQUIRED_NO_FACE = 101
+        const val FACE_ACQUIRED_NO_FOCUS = 112
+        const val FACE_ACQUIRED_PAN_TOO_EXTREME = 16
+        const val FACE_ACQUIRED_POOR_GAZE = 10
+        const val FACE_ACQUIRED_RECALIBRATE = 13
+        const val FACE_ACQUIRED_ROLL_TOO_EXTREME = 18
+        const val FACE_ACQUIRED_SENSOR_DIRTY = 21
+        const val FACE_ACQUIRED_START = 20
+        const val FACE_ACQUIRED_SWITCH_DEPTH = 302
+        const val FACE_ACQUIRED_SWITCH_IR = 301
+        const val FACE_ACQUIRED_TILT_TOO_EXTREME = 17
+        const val FACE_ACQUIRED_TOO_BRIGHT = 2
+        const val FACE_ACQUIRED_TOO_CLOSE = 4
+        const val FACE_ACQUIRED_TOO_DARK = 3
+        const val FACE_ACQUIRED_TOO_DIFFERENT = 14
+        const val FACE_ACQUIRED_TOO_FAR = 5
+        const val FACE_ACQUIRED_TOO_HIGH = 6
+        const val FACE_ACQUIRED_TOO_LEFT = 9
+        const val FACE_ACQUIRED_TOO_LOW = 7
+        const val FACE_ACQUIRED_TOO_MUCH_MOTION = 12
+        const val FACE_ACQUIRED_TOO_RIGHT = 8
+        const val FACE_ACQUIRED_TOO_SIMILAR = 15
+        const val FACE_ACQUIRED_VENDOR = 22
+        const val FACE_ACQUIRED_VENDOR_BASE = 1000
+        const val FACE_AUTHENTICATE_AUTO = 0
+        const val FACE_AUTHENTICATE_BY_FINGERPRINT = 3
+        const val FACE_AUTHENTICATE_BY_USER = 1
+        const val FACE_AUTHENTICATE_BY_USER_WITH_ANIM = 2
+        const val FACE_AUTHENTICATE_PAY = 4
+        const val FACE_ERROR_CAMERA_UNAVAILABLE = 0
+        const val FACE_ERROR_CANCELED = 5
+        const val FACE_ERROR_HW_NOT_PRESENT = 12
+        const val FACE_ERROR_HW_UNAVAILABLE = 1
+        const val FACE_ERROR_LOCKOUT = 7
+        const val FACE_ERROR_LOCKOUT_PERMANENT = 9
+        const val FACE_ERROR_NEGATIVE_BUTTON = 13
+        const val FACE_ERROR_NOT_ENROLLED = 11
+        const val FACE_ERROR_NO_SPACE = 4
+        const val FACE_ERROR_TIMEOUT = 3
+        const val FACE_ERROR_UNABLE_TO_PROCESS = 2
+        const val FACE_ERROR_UNABLE_TO_REMOVE = 6
+        const val FACE_ERROR_USER_CANCELED = 10
+        const val FACE_ERROR_VENDOR = 8
+        const val FACE_ERROR_VENDOR_BASE = 1000
+        const val FACE_KEYGUARD_CANCELED_BY_SCREEN_OFF = "cancelRecognitionByScreenOff"
+        const val FACE_WITH_EYES_CLOSED = 111
+        const val FEATURE_REQUIRE_ATTENTION = 1
+        const val FEATURE_REQUIRE_REQUIRE_DIVERSITY = 2
+    }
+
     private var manager: OppoMirrorFaceManager? = null
 
     init {
@@ -153,26 +217,26 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private val listener: AuthenticationListener?
     ) : OppoMirrorFaceManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
+                FACE_ERROR_NOT_ENROLLED -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
+                FACE_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                FACE_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
+                FACE_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS, BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                FACE_ERROR_UNABLE_TO_PROCESS, FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -202,8 +266,8 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(result: OppoMirrorFaceManager.AuthenticationResult?) {

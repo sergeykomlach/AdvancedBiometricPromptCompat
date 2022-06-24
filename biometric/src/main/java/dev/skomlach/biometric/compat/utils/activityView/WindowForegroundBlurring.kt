@@ -84,9 +84,18 @@ class WindowForegroundBlurring(
         }
     }
 
-    private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
-        updateBackground()
-        true
+    private val onDrawListener = object : ViewTreeObserver.OnPreDrawListener {
+        private var time = System.currentTimeMillis()
+        private val delay = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        override fun onPreDraw(): Boolean {
+            val current = System.currentTimeMillis()
+            if(current - time >= delay) {
+                time = current
+                updateBackground()
+            }
+            return true
+        }
+
     }
 
     init {

@@ -29,9 +29,7 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.IOException
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
@@ -83,7 +81,9 @@ object AndroidContext {
                     updateApplicationReference()
                 }
                 getContextRef()?.let {
-                    fixDirAccess(it)
+                    GlobalScope.launch(Dispatchers.IO) {
+                        fixDirAccess(it)
+                    }
                     return it
                 }
                 throw RuntimeException("Application is NULL")

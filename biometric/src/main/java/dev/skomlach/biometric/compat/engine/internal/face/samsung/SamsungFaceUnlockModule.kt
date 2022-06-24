@@ -23,17 +23,12 @@ import android.annotation.SuppressLint
 import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.CodeToString.getErrorCode
-import dev.skomlach.biometric.compat.utils.CodeToString.getHelpCode
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -41,6 +36,28 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_SAMSUNG) {
+    companion object {
+        const val FACE_ACQUIRED_FAKE = 4
+        const val FACE_ACQUIRED_GOOD = 0
+        const val FACE_ACQUIRED_INVALID = 2
+        const val FACE_ACQUIRED_LOW_QUALITY = 3
+        const val FACE_ACQUIRED_MISALIGNED = 7
+        const val FACE_ACQUIRED_PROCESS_FAIL = 1
+        const val FACE_ACQUIRED_TOO_BIG = 5
+        const val FACE_ACQUIRED_TOO_SMALL = 6
+        const val FACE_ERROR_CAMERA_FAILURE = 10003
+        const val FACE_ERROR_CAMERA_UNAVAILABLE = 10005
+        const val FACE_ERROR_CANCELED = 5
+        const val FACE_ERROR_HW_UNAVAILABLE = 1
+        const val FACE_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE = 1004
+        const val FACE_ERROR_LOCKOUT = 10001
+        const val FACE_ERROR_NO_SPACE = 4
+        const val FACE_ERROR_TEMPLATE_CORRUPTED = 1004
+        const val FACE_ERROR_TIMEOUT = 3
+        const val FACE_ERROR_UNABLE_TO_PROCESS = 2
+        const val FACE_OK = 0
+    }
+
     private var manager: SemBioFaceManager? = null
 
     init {
@@ -129,28 +146,19 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val listener: AuthenticationListener?
     ) : SemBioFaceManager.AuthenticationCallback() {
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
-            d(name + ".onAuthenticationError: " + getErrorCode(errMsgId) + "-" + errString)
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
+                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
+
+                FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
+                FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
+                FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
@@ -163,7 +171,10 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
             } else
-                if (restartPredicate?.invoke(failureReason) == true) {
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                        failureReason
+                    ) == true
+                ) {
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
@@ -180,8 +191,8 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
-            d(name + ".onAuthenticationHelp: " + getHelpCode(helpMsgId) + "-" + helpString)
-            listener?.onHelp(AuthenticationHelpReason.getByCode(helpMsgId), helpString)
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            listener?.onHelp(helpString)
         }
 
         override fun onAuthenticationSucceeded(result: SemBioFaceManager.AuthenticationResult?) {
@@ -191,7 +202,21 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
+            if (restartPredicate?.invoke(failureReason) == true) {
+                listener?.onFailure(failureReason, tag())
+                authenticate(cancellationSignal, listener, restartPredicate)
+            } else {
+                if (mutableListOf(
+                        AuthenticationFailureReason.SENSOR_FAILED,
+                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+                    ).contains(failureReason)
+                ) {
+                    lockout()
+                    failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+                listener?.onFailure(failureReason, tag())
+            }
         }
     }
 

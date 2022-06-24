@@ -6,6 +6,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 
 @RequiresApi(31)
 class SystemColorScheme() {
+    private val appContext = AndroidContext.appContext
     val accent1 = getSwatch(ACCENT1_RES)
     val accent2 = getSwatch(ACCENT2_RES)
     val accent3 = getSwatch(ACCENT3_RES)
@@ -14,7 +15,7 @@ class SystemColorScheme() {
     val neutral2 = getSwatch(NEUTRAL2_RES)
 
     private fun getSwatch(ids: Map<Int, Int>) = ids.map {
-        it.key to Srgb(AndroidContext.appContext.getColor(it.value))
+        it.key to Srgb(appContext.getColor(it.value))
     }.toMap()
 
     companion object {

@@ -39,10 +39,10 @@ class ConnectionStateListener {
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
     private var receiverTypeConnection: BroadcastReceiver? = null
-
+    private val appContext = AndroidContext.appContext
     init {
         connectivityManager =
-            AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+            appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         isConnectionOk.set(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
                 connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
@@ -93,7 +93,7 @@ class ConnectionStateListener {
                 intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION)
                 intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)
                 intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
-                AndroidContext.appContext.registerReceiver(receiverTypeConnection, intentFilter)
+                appContext.registerReceiver(receiverTypeConnection, intentFilter)
             }
         } catch (ignore: Throwable) {
         }
@@ -107,7 +107,7 @@ class ConnectionStateListener {
                     connectivityManager?.unregisterNetworkCallback(it)
                 }
             } else {
-                AndroidContext.appContext.unregisterReceiver(receiverTypeConnection)
+                appContext.unregisterReceiver(receiverTypeConnection)
             }
         } catch (ignore: Throwable) {
         }

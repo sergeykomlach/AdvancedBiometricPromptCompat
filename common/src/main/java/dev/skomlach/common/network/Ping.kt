@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 internal class Ping(private val connectionStateListener: ConnectionStateListener) {
+    private val appContext = AndroidContext.appContext
     private val hosts = arrayOf("1.1.1.1", "google.com", "aliexpress.com")
     private val patternMeta =
         Pattern.compile("<meta(.*?)>") //compile RegEx to extract all <meta/> tags
@@ -88,7 +89,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     @WorkerThread
     private fun startPing() {
         val connectivityManager =
-            AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+            appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         val hasConnection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
             connectivityManager?.isDefaultNetworkActive == true
         else

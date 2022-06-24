@@ -34,10 +34,11 @@ import java.util.concurrent.atomic.AtomicReference
 
 object Connection {
 
+    private val appContext = AndroidContext.appContext
     val connectionStateListener = ConnectionStateListener()
 
     private val connectivityManager: ConnectivityManager? =
-        AndroidContext.appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+        appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
     private val netlistLis: MutableList<NetworkListener> =
         Collections.synchronizedList(ArrayList<NetworkListener>())
     private val screenLockReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -71,7 +72,7 @@ object Connection {
     }
 
     fun checkConnectionChanged() {
-        LocalBroadcastManager.getInstance(AndroidContext.appContext)
+        LocalBroadcastManager.getInstance(appContext)
             .sendBroadcast(Intent(ACTION))
     }
 
@@ -97,16 +98,16 @@ object Connection {
         val intentFilter = IntentFilter()
         intentFilter.addAction(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        AndroidContext.appContext.registerReceiver(screenLockReceiver, intentFilter)
+        appContext.registerReceiver(screenLockReceiver, intentFilter)
         connectionStateListener.startListeners()
-        LocalBroadcastManager.getInstance(AndroidContext.appContext)
+        LocalBroadcastManager.getInstance(appContext)
             .registerReceiver(checkConnection, IntentFilter(ACTION))
     }
 
     fun close() {
-        AndroidContext.appContext.unregisterReceiver(screenLockReceiver)
+        appContext.unregisterReceiver(screenLockReceiver)
         connectionStateListener.stopListeners()
-        LocalBroadcastManager.getInstance(AndroidContext.appContext)
+        LocalBroadcastManager.getInstance(appContext)
             .unregisterReceiver(checkConnection)
     }
 

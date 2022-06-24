@@ -19,14 +19,18 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
+import android.annotation.SuppressLint
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.Field
 
+@SuppressLint("StaticFieldLeak")
 object MiuiCodeToString {
     private var stringFields: Array<Field>? = null
     private var stringArrayFields: Array<Field>? = null
+
+    private val context = AndroidContext.appContext
 
     init {
         try {
@@ -45,7 +49,7 @@ object MiuiCodeToString {
                         val isAccessible = field.isAccessible
                         return try {
                             if (!isAccessible) field.isAccessible = true
-                            appContext.resources.getString(field[null] as Int)
+                            context.resources.getString(field[null] as Int)
                         } finally {
                             if (!isAccessible) field.isAccessible = false
                         }
@@ -66,7 +70,7 @@ object MiuiCodeToString {
                         val isAccessible = field.isAccessible
                         return try {
                             if (!isAccessible) field.isAccessible = true
-                            appContext.resources.getStringArray(field[null] as Int)
+                            context.resources.getStringArray(field[null] as Int)
                         } finally {
                             if (!isAccessible) field.isAccessible = false
                         }

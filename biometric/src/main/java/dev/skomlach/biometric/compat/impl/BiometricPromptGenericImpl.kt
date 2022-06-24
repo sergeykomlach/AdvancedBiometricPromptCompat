@@ -19,7 +19,10 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricConfirmation
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
@@ -173,8 +176,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             checkAuthResult(module, AuthResult.AuthResultState.SUCCESS)
         }
 
-        override fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?) {
-            if (helpReason !== AuthenticationHelpReason.BIOMETRIC_ACQUIRED_GOOD && !msg.isNullOrEmpty()) {
+        override fun onHelp(msg: CharSequence?) {
+            if (!msg.isNullOrEmpty()) {
                 if (dialog != null) dialog?.onHelp(msg)
             }
         }

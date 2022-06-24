@@ -20,14 +20,13 @@
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationHelpReason
 
 /**
  * A listener that is notified of the results of fingerprint authentication.
  */
 
 interface AuthenticationListener {
-    fun onHelp(helpReason: AuthenticationHelpReason?, msg: CharSequence?)
+    fun onHelp(msg: CharSequence?)
 
     /**
      * Called after a fingerprint is successfully authenticated.

@@ -25,14 +25,12 @@ import android.content.pm.PackageManager
 import android.view.View
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakEnabled
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -46,31 +44,13 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
     private var viewWeakReference = WeakReference<View?>(null)
     override var isManagerAccessible = false
 
-    companion object {
-        const val BIOMETRIC_AUTHENTICATION_FAILED = 1001
-    }
 
     init {
         val faceLockInterface: FaceLockInterface = object : FaceLockInterface {
             override fun onError(code: Int, msg: String) {
                 d("$name:FaceIdInterface.onError $code $msg")
                 if (facelockProxyListener != null) {
-                    var failureReason = BiometricCodes.BIOMETRIC_ERROR_CANCELED
-                    when (code) {
-                        FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
-                            BIOMETRIC_AUTHENTICATION_FAILED
-                        FaceLockHelper.FACELOCK_TIMEOUT -> failureReason =
-                            BiometricCodes.BIOMETRIC_ERROR_TIMEOUT
-                        FaceLockHelper.FACELOCK_NO_FACE_FOUND -> failureReason =
-                            BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS
-                        FaceLockHelper.FACELOCK_NOT_SETUP -> failureReason =
-                            BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS
-                        FaceLockHelper.FACELOCK_CANCELED -> failureReason =
-                            BiometricCodes.BIOMETRIC_ERROR_CANCELED
-                        FaceLockHelper.FACELOCK_CANNT_START, FaceLockHelper.FACELOCK_UNABLE_TO_BIND, FaceLockHelper.FACELOCK_API_NOT_FOUND -> failureReason =
-                            BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE
-                    }
-                    facelockProxyListener?.onAuthenticationError(failureReason, msg)
+                    facelockProxyListener?.onAuthenticationError(code, msg)
                 }
             }
 
@@ -101,8 +81,8 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 d("$name.FaceIdInterface.onDisconnected")
                 if (facelockProxyListener != null) {
                     facelockProxyListener?.onAuthenticationError(
-                        BiometricCodes.BIOMETRIC_ERROR_CANCELED,
-                        FaceLockHelper.getMessage(BiometricCodes.BIOMETRIC_ERROR_CANCELED)
+                        FaceLockHelper.FACELOCK_CANCELED,
+                        FaceLockHelper.getMessage(FaceLockHelper.FACELOCK_CANCELED)
                     )
                 }
                 if (listener != null) {
@@ -160,6 +140,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        d("$name.authenticate - $biometricMethod")
         try {
             d("$name: Facelock call authorize")
             authorize(ProxyListener(restartPredicate, cancellationSignal, listener))
@@ -191,32 +172,20 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) {
         fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void? {
+            d("$name.onAuthenticationError: $errMsgId-$errString")
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                BiometricCodes.BIOMETRIC_ERROR_NO_BIOMETRICS -> failureReason =
-                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                BIOMETRIC_AUTHENTICATION_FAILED -> failureReason =
+                FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
-                    AuthenticationFailureReason.NO_HARDWARE
-                BiometricCodes.BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
-                    BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
-                        biometricMethod.biometricType
-                    )
-                    failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                }
-                BiometricCodes.BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-                BiometricCodes.BIOMETRIC_ERROR_NO_SPACE -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
-                BiometricCodes.BIOMETRIC_ERROR_TIMEOUT -> failureReason =
+                FaceLockHelper.FACELOCK_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
-                BiometricCodes.BIOMETRIC_ERROR_LOCKOUT -> {
-                    lockout()
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                }
+                FaceLockHelper.FACELOCK_NO_FACE_FOUND -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                FaceLockHelper.FACELOCK_NOT_SETUP -> failureReason =
+                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                FaceLockHelper.FACELOCK_CANNT_START, FaceLockHelper.FACELOCK_UNABLE_TO_BIND, FaceLockHelper.FACELOCK_API_NOT_FOUND -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 else -> {
                     Core.cancelAuthentication(this@FacelockOldModule)
                     listener?.onCanceled(tag())
@@ -244,20 +213,23 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         }
 
         fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?): Void? {
+            d("$name.onAuthenticationError: $helpMsgId-$helpString")
             return null
         }
 
         fun onAuthenticationSucceeded(result: Any?): Void? {
+            d("$name.onAuthenticationSucceeded $result")
             listener?.onSuccess(tag())
             return null
         }
 
         fun onAuthenticationAcquired(acquireInfo: Int): Void? {
-            d("$name.FaceIdInterface.ProxyListener $acquireInfo")
+            d("$name.onAuthenticationAcquired $acquireInfo")
             return null
         }
 
         fun onAuthenticationFailed(): Void? {
+            d("$name.onAuthenticationFailed")
             listener?.onFailure(
                 AuthenticationFailureReason.AUTHENTICATION_FAILED,
                 tag()

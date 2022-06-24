@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.misc.multiwindow
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
@@ -36,8 +37,9 @@ import dev.skomlach.common.misc.isActivityFinished
 class MultiWindowSupport {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
+        @SuppressLint("StaticFieldLeak")
+        val ctx = AndroidContext.appContext
         fun isTablet(): Boolean {
-            val ctx = AndroidContext.appContext
             val resources = ctx.resources
             val configuration = AndroidContext.configuration ?: resources.configuration
             val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

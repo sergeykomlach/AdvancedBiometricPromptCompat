@@ -19,25 +19,24 @@
 
 package dev.skomlach.biometric.compat.engine.internal
 
-import android.content.Context
 import android.content.SharedPreferences
+import android.os.Build
+import android.os.UserHandle
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BuildConfig
-import dev.skomlach.biometric.compat.engine.BiometricCodes
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.HexUtils
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
 
-abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule,
-    BiometricCodes {
+abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
         var DEBUG_MANAGERS = BuildConfig.DEBUG
@@ -48,9 +47,19 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
     val name: String
         get() = javaClass.simpleName
-    var context: Context = appContext
-        get() = appContext
-        set
+    val context = AndroidContext.appContext
+
+    fun getUserId(): Int {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                UserHandle::class.java.methods.filter { it.name == "myUserId" }[0].invoke(null) as Int
+            } else {
+                0
+            }
+        } catch (ignore: Throwable) {
+            0
+        }
+    }
 
     fun lockout() {
         if (!isLockOut) {

@@ -36,5 +36,8 @@ interface IFaceLockCallback {
     fun exposeFallback()
 
     @Throws(RemoteException::class)
+    fun pokeWakelock(millis: Int)
+
+    @Throws(RemoteException::class)
     fun pokeWakelock()
 }

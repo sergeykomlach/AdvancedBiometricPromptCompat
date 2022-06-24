@@ -30,6 +30,7 @@ import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 class HomeWatcher(private val mListener: OnHomePressedListener) {
     private val mFilter: IntentFilter = IntentFilter()
     private val mReceiver = InnerReceiver()
+    private val appContext = AndroidContext.appContext
 
     init {
         //Deprecated starts from API 31
@@ -41,7 +42,7 @@ class HomeWatcher(private val mListener: OnHomePressedListener) {
     fun startWatch(): Runnable {
         return try {
             stopWatch()
-            registerGlobalBroadcastIntent(AndroidContext.appContext, mReceiver, mFilter)
+            registerGlobalBroadcastIntent(appContext, mReceiver, mFilter)
             Runnable {
                 stopWatch()
             }
@@ -54,7 +55,7 @@ class HomeWatcher(private val mListener: OnHomePressedListener) {
 
     private fun stopWatch() {
         try {
-            unregisterGlobalBroadcastIntent(AndroidContext.appContext, mReceiver)
+            unregisterGlobalBroadcastIntent(appContext, mReceiver)
         } catch (ignore: Throwable) {
 
         }

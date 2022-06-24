@@ -26,13 +26,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.Process
 import android.os.UserHandle
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.Method
 import java.util.*
 
 @SuppressLint("PrivateApi")
 
 object LockType {
+    private val appContext = AndroidContext.appContext
+
     /**
      * The bit in LOCK_BIOMETRIC_WEAK_FLAGS to be used to indicate whether liveliness should be used
      */

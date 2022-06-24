@@ -26,7 +26,7 @@ import android.os.Build
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -36,12 +36,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 
-
 @TargetApi(Build.VERSION_CODES.Q)
 
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
     companion object {
-
+        private val appContext = AndroidContext.appContext
 
         private var cachedCanAuthenticateValue =
             AtomicInteger(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE)
@@ -51,19 +50,19 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
 
         private fun canAuthenticate(): Int {
 
-                if (job?.isActive == true) {
-                    if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
-                        job?.cancel()
-                        job = null
-                    }
+            if (job?.isActive == true) {
+                if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
+                    job?.cancel()
+                    job = null
                 }
-                if (job?.isActive != true) {
-                    checkStartedTs = System.currentTimeMillis()
-                    job = GlobalScope.launch(Dispatchers.IO) {
-                        updateCodeSync()
-                    }
+            }
+            if (job?.isActive != true) {
+                checkStartedTs = System.currentTimeMillis()
+                job = GlobalScope.launch(Dispatchers.IO) {
+                    updateCodeSync()
                 }
-                return cachedCanAuthenticateValue.get()
+            }
+            return cachedCanAuthenticateValue.get()
         }
 
         @SuppressLint("WrongConstant")

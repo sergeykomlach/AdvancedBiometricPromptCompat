@@ -66,6 +66,7 @@ class BiometricClient {
     private var mTagInfo: String? = null
     private var replayReadyLatch_: CountDownLatch? = null
     private var serviceReadyLatch_: CountDownLatch? = null
+    private val context = AndroidContext.appContext
 
     init {
         var stringBuilder = StringBuilder()
@@ -77,7 +78,7 @@ class BiometricClient {
             mHandler = MyHandler(it.looper)
         }
 
-        mTagInfo = AndroidContext.appContext.toString()
+        mTagInfo = context.toString()
 
         stringBuilder = StringBuilder()
         stringBuilder.append("BiometricClientCBThread_")
@@ -356,7 +357,7 @@ class BiometricClient {
         mServiceConnection = MyServiceConnection()
         try {
             mServiceConnection?.let {
-                AndroidContext.appContext.bindService(intent, it, 65)
+                context.bindService(intent, it, 65)
             }
         } catch (e: Exception) {
             stringBuilder = StringBuilder()
@@ -442,7 +443,7 @@ class BiometricClient {
         }
         try {
             mServiceConnection?.let {
-                AndroidContext.appContext.unbindService(it)
+                context.unbindService(it)
             }
         } catch (e: IllegalArgumentException) {
             stringBuilder = StringBuilder()
