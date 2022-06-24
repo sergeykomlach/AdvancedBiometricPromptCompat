@@ -37,6 +37,7 @@ import dev.skomlach.common.misc.isActivityFinished
 class MultiWindowSupport {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
+
         @SuppressLint("StaticFieldLeak")
         val ctx = AndroidContext.appContext
         fun isTablet(): Boolean {

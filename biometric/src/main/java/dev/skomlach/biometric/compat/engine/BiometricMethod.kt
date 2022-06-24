@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.engine
 
 import dev.skomlach.biometric.compat.BiometricType
 
-
 enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
     FINGERPRINT_API23(100, BiometricType.BIOMETRIC_FINGERPRINT), FINGERPRINT_SUPPORT(
         101,

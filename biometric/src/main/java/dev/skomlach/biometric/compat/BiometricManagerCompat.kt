@@ -327,6 +327,4 @@ object BiometricManagerCompat {
         }
         return false
     }
-
-
 }

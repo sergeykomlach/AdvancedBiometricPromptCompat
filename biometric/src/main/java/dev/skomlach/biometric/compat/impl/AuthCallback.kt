@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.impl
 
-
 interface AuthCallback {
     fun startAuth()
     fun stopAuth()

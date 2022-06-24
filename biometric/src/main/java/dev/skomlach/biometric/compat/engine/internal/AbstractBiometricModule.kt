@@ -35,7 +35,6 @@ import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
-
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
@@ -121,14 +120,12 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                                 e("$name: Int ids $i")
                                 ids.add(getUniqueId(i))
                             }
-
                         }
                         is LongArray -> {
                             for (i in result) {
                                 e("$name: Long ids $i")
                                 ids.add(getUniqueId(i))
                             }
-
                         }
                         is Array<*> -> {
                             for (i in result)

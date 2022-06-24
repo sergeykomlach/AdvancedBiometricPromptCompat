@@ -33,7 +33,7 @@ class FaceManager {
         callback: AuthenticationCallback?,
         handler: Handler?,
         userId: Int,
-        isKeyguardBypassEnabled : Boolean
+        isKeyguardBypassEnabled: Boolean
     ) {
         throw IllegalArgumentException("Must supply an authentication callback")
     }

@@ -23,7 +23,6 @@ import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricType
 
-
 interface BiometricAuthenticationListener {
     //user identity confirmed in module
     @WorkerThread

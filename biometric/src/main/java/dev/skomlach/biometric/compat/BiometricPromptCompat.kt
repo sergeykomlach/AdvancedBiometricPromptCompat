@@ -136,7 +136,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 return field
             }
 
-
         private var isDeviceInfoCheckInProgress = AtomicBoolean(false)
         private var authFlowInProgress = AtomicBoolean(false)
 
@@ -218,7 +217,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     pendingTasks.clear()
                 }
             })
-
         }
     }
 
@@ -305,7 +303,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     dismissTask,
                     250
                 )//delay for case when system fragment closed and fallback shown
-
             }
         }
     }
@@ -609,9 +606,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 impl.cancelAuthentication()
             }
         }
-
     }
-
 
     @ColorInt
     fun getDialogMainColor(): Int {

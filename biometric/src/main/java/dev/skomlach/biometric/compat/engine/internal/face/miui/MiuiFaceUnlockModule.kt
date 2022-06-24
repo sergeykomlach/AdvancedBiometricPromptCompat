@@ -183,7 +183,10 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             if (restartCauseTimeout(failureReason)) {
                 authenticate(cancellationSignal, listener, restartPredicate)
             } else
-                if (restartPredicate?.invoke(failureReason) == true) {
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                        failureReason
+                    ) == true
+                ) {
                     listener?.onFailure(failureReason, tag())
                     authenticate(cancellationSignal, listener, restartPredicate)
                 } else {
@@ -215,6 +218,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             d("$name.onAuthenticationFailed: ")
             //NOTE: unlike other API's, MIUI call this one only for TIMEOUT
             listener?.onFailure(AuthenticationFailureReason.TIMEOUT, tag())
+            authenticate(cancellationSignal, listener, restartPredicate)
         }
     }
 
