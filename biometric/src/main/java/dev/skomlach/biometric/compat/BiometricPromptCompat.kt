@@ -65,6 +65,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import javax.crypto.Cipher
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -307,7 +308,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    fun authenticate(callbackOuter: AuthenticationCallback) {
+    fun authenticate(cipher: Cipher? = null, callbackOuter: AuthenticationCallback) {
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
             return
@@ -349,12 +350,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR)
                     authFlowInProgress.set(false)
                 } else
-                    startAuth(callbackOuter)
+                    startAuth(cipher, callbackOuter)
             }
         }
     }
 
-    private fun startAuth(callbackOuter: AuthenticationCallback) {
+    private fun startAuth(cipher: Cipher?, callbackOuter: AuthenticationCallback) {
         if (isActivityFinished(builder.getContext())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
             callbackOuter.onCanceled()
@@ -376,7 +377,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val callback = object : AuthenticationCallback() {
 
             private var isOpened = AtomicBoolean(false)
-            override fun onSucceeded(confirmed: Set<BiometricType>) {
+            override fun onSucceeded(confirmed: Set<BiometricType>, cipher: Cipher?) {
                 try {
                     if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -398,7 +399,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             .updateBiometricEnrollChanged()
                     }
 
-                    callbackOuter.onSucceeded(confirmed)
+                    callbackOuter.onSucceeded(confirmed, cipher)
                 } finally {
                     onUIClosed()
                 }
@@ -620,9 +621,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     abstract class AuthenticationCallback {
         @MainThread
-        open fun onSucceeded(confirmed: Set<BiometricType>) {
+        open fun onSucceeded(confirmed: Set<BiometricType>, cipher: Cipher?) {
         }
-
         @MainThread
         open fun onCanceled() {
         }
