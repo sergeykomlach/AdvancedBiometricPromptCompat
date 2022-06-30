@@ -24,8 +24,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.crypto.CryptographyManagerProvider
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import java.nio.charset.Charset
+
+private val testString = "Test data"
+private var cryptoTest = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
@@ -60,9 +65,21 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
     val start = System.currentTimeMillis()
     BiometricLoggerImpl.e("CheckBiometric.start() for $biometricAuthRequest")
+    val cryptoObject = if (cryptoTest.vector == null) {
+        BiometricCryptoObject(
+            cipher = CryptographyManagerProvider.CryptographyManager()
+                ?.getInitializedCipherForEncryption("test")
+        )
+    } else {
+        BiometricCryptoObject(
+            cipher = CryptographyManagerProvider.CryptographyManager()
+                ?.getInitializedCipherForDecryption("test", cryptoTest.vector)
+        )
+    }
     val biometricPromptCompat = BiometricPromptCompat.Builder(
         biometricAuthRequest,
-        requireActivity()
+        requireActivity(),
+        cryptoObject
     )
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
@@ -84,8 +101,33 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
-            BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed")
-            Toast.makeText(AndroidContext.appContext, "Succeeded - $confirmed", Toast.LENGTH_SHORT)
+            var cryptoText = "Crypto doesn't work or disabled"
+            confirmed.firstOrNull {
+                it.cryptoObject != null
+            }?.cryptoObject?.cipher?.let {
+                if (cryptoTest.vector == null) {
+                    CryptographyManagerProvider.CryptographyManager()
+                        ?.encryptData(cryptoTest.byteArray, it)?.let {
+                            cryptoText = "Crypto encryption work"
+                            cryptoTest = CryptoTest(it.ciphertext, it.initializationVector)
+                        }
+                   
+                } else {
+                    CryptographyManagerProvider.CryptographyManager()
+                        ?.decryptData(cryptoTest.byteArray, it)?.let {
+                            cryptoText = if (String(
+                                    it,
+                                    Charset.forName("UTF-8")
+                                ) == testString
+                            ) "Crypto decryption work" else "Crypto decryption doesn't work"
+                            cryptoTest = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+                        }
+
+                }
+            }
+
+            BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed; $cryptoText")
+            Toast.makeText(AndroidContext.appContext, "Succeeded - $confirmed; $cryptoText", Toast.LENGTH_SHORT)
                 .show()
         }
 
@@ -125,3 +167,7 @@ private fun showAlertDialog(context: Context, msg: String) {
     AlertDialog.Builder(context).setTitle("Biometric Error").setMessage(msg)
         .setNegativeButton(android.R.string.cancel, null).show()
 }
+data class CryptoTest(
+    val byteArray: ByteArray,
+    val vector: ByteArray? = null
+)
