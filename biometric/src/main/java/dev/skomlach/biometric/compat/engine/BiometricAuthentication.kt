@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -232,7 +233,7 @@ object BiometricAuthentication {
     }
 
     fun authenticate(
-        cryptographyPurpose: BiometricCryptographyConfig?,
+        cryptographyPurpose: CryptographyPurpose?,
         targetView: View?,
         method: BiometricType,
         listener: BiometricAuthenticationListener
@@ -241,7 +242,7 @@ object BiometricAuthentication {
     }
 
     fun authenticate(
-        cryptographyPurpose: BiometricCryptographyConfig?,
+        cryptographyPurpose: CryptographyPurpose?,
         targetView: View?,
         requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener

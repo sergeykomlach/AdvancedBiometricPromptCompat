@@ -70,8 +70,7 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
-        isUserAuthRequired: Boolean,
-        initializationVector: ByteArray?
+        isUserAuthRequired: Boolean
     ): Cipher {
         try {
             val cipher = getCipher()
@@ -91,8 +90,7 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
             BiometricLoggerImpl.e(e)
             return super.getInitializedCipherForDecryption(
                 keyName,
-                isUserAuthRequired,
-                initializationVector
+                isUserAuthRequired
             )
         }
     }

@@ -45,8 +45,7 @@ interface CryptographyManagerInterface {
      */
     fun getInitializedCipherForDecryption(
         keyName: String,
-        isUserAuthRequired: Boolean,
-        initializationVector: ByteArray?
+        isUserAuthRequired: Boolean
     ): Cipher
 
 

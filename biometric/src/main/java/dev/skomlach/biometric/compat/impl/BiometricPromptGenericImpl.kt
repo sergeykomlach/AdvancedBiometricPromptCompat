@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.impl
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
-import dev.skomlach.biometric.compat.engine.BiometricCryptographyConfig
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInstantly
@@ -82,7 +81,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             builder.getAllAvailableTypes()
         )
         BiometricAuthentication.authenticate(
-            BiometricCryptographyConfig(builder.getCryptographyPurpose(), builder.getInitVector()),
+            builder.getCryptographyPurpose(),
             if (dialog != null) dialog?.authPreview else null,
             types,
             fmAuthCallback

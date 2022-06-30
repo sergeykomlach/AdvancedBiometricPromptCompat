@@ -37,17 +37,15 @@ object CryptographyManager {
     fun getBiometricCryptoObject(
         type: BiometricType,
         purpose: CryptographyPurpose?,
-        isUserAuthRequired: Boolean = true,
-        initVector: ByteArray? = null
+        isUserAuthRequired: Boolean = true
     ): BiometricCryptoObject? {
-        return getBiometricCryptoObject(type.name, purpose, isUserAuthRequired, initVector)
+        return getBiometricCryptoObject(type.name, purpose, isUserAuthRequired)
     }
 
     fun getBiometricCryptoObject(
         name: String?,
         purpose: CryptographyPurpose?,
-        isUserAuthRequired: Boolean = true,
-        initVector: ByteArray? = null
+        isUserAuthRequired: Boolean = true
     ): BiometricCryptoObject? {
         if (purpose == null || name.isNullOrEmpty())
             return null
@@ -59,14 +57,13 @@ object CryptographyManager {
                 )
             else getCryptographyManager().getInitializedCipherForDecryption(
                 name,
-                isUserAuthRequired,
-                initVector
+                isUserAuthRequired
             )
         return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
     }
 
-    fun encryptData(plaintext: ByteArray, cipher: Cipher): EncryptedData {
-        return EncryptedData(cipher.doFinal(plaintext), cipher.iv)
+    fun encryptData(plaintext: ByteArray, cipher: Cipher): ByteArray {
+        return cipher.doFinal(plaintext)
     }
 
     fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {

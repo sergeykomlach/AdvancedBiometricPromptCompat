@@ -731,7 +731,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var cryptographyPurpose: CryptographyPurpose? = null
 
-        private var initVector: ByteArray? = null
 
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
@@ -832,10 +831,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
-        fun getInitVector(): ByteArray? {
-            return initVector
-        }
-
         fun getCryptographyPurpose(): CryptographyPurpose? {
             return cryptographyPurpose
         }
@@ -848,12 +843,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return multiWindowSupport
         }
 
-        fun setCryptography(
-            cryptographyPurpose: CryptographyPurpose,
-            initVector: ByteArray? = null
+        fun setCryptographyPurpose(
+            cryptographyPurpose: CryptographyPurpose
         ): Builder {
             this.cryptographyPurpose = cryptographyPurpose
-            this.initVector = initVector
             return this
         }
 

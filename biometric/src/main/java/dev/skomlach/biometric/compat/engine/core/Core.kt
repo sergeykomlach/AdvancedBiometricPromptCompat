@@ -23,7 +23,7 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
-import dev.skomlach.biometric.compat.engine.BiometricCryptographyConfig
+import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -118,7 +118,7 @@ object Core {
 
     @JvmOverloads
     fun authenticate(
-        purpose: BiometricCryptographyConfig?,
+        purpose: CryptographyPurpose?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate()
     ) {
@@ -129,9 +129,8 @@ object Core {
                 m = module
                 val biometricCryptoObject = CryptographyManager.getBiometricCryptoObject(
                     "BiometricModule${module.tag()}",
-                    purpose?.purpose,
-                    m.isUserAuthCanByUsedWithCrypto,
-                    purpose?.initVector
+                    purpose,
+                    m.isUserAuthCanByUsedWithCrypto
                 )
                 authenticate(biometricCryptoObject, module, listener, restartPredicate)
             }
@@ -202,7 +201,7 @@ object Core {
      */
 
     fun authenticateWithoutRestart(
-        biometricCryptoObject: BiometricCryptographyConfig?,
+        biometricCryptoObject: CryptographyPurpose?,
         listener: AuthenticationListener?
     ) {
         authenticate(biometricCryptoObject, listener, RestartPredicatesImpl.neverRestart())

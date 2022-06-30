@@ -20,22 +20,17 @@ package dev.skomlach.biometric.compat.crypto
 
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProperties.*
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
-
 
 @RequiresApi(Build.VERSION_CODES.M)
 class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterfaceKitkatImpl() {
     private val KEY_SIZE: Int = 256
-    private val ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM
-    private val ENCRYPTION_PADDING = KeyProperties.ENCRYPTION_PADDING_NONE
-    private val ENCRYPTION_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
 
     override fun getInitializedCipherForEncryption(
         keyName: String,
@@ -55,44 +50,42 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
-        isUserAuthRequired: Boolean,
-        initializationVector: ByteArray?
+        isUserAuthRequired: Boolean
     ): Cipher {
         return try {
             val cipher = getCipher()
             val secretKey = getOrCreateSecretKey(keyName, isUserAuthRequired)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, initializationVector))
+            cipher.init(Cipher.DECRYPT_MODE, secretKey)
             cipher
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             super.getInitializedCipherForDecryption(
                 keyName,
-                isUserAuthRequired,
-                initializationVector
+                isUserAuthRequired
             )
         }
     }
 
     private fun getCipher(): Cipher {
-        val transformation = "$ENCRYPTION_ALGORITHM/$ENCRYPTION_BLOCK_MODE/$ENCRYPTION_PADDING"
+        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_CBC/$ENCRYPTION_PADDING_PKCS7"
         return Cipher.getInstance(transformation)
     }
 
     private fun getOrCreateSecretKey(keyName: String, isUserAuthRequired: Boolean): SecretKey {
-        // If Secretkey was previously created for that keyName, then grab and return it.
+
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
+        // If Secretkey was previously created for that keyName, then grab and return it.
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.getKey(keyName, null)?.let { return it as SecretKey }
-
         // if you reach here, then a new SecretKey must be generated for that keyName
         val paramsBuilder = KeyGenParameterSpec.Builder(
             keyName,
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            PURPOSE_ENCRYPT or PURPOSE_DECRYPT
         )
         paramsBuilder.apply {
-            setBlockModes(ENCRYPTION_BLOCK_MODE)
-            setEncryptionPaddings(ENCRYPTION_PADDING)
-            setKeySize(KEY_SIZE)
+            setBlockModes(BLOCK_MODE_CBC)
+            setEncryptionPaddings(ENCRYPTION_PADDING_PKCS7)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 setIsStrongBoxBacked(true)
             }
@@ -101,7 +94,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
         val keyGenParams = paramsBuilder.build()
         val keyGenerator = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
+            KEY_ALGORITHM_AES,
             ANDROID_KEYSTORE_PROVIDER_TYPE
         )
         keyGenerator.init(keyGenParams)

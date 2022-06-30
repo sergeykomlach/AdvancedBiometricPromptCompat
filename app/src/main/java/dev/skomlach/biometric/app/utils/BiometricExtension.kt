@@ -77,9 +77,8 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             "Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more",
             null
         )
-        .setCryptography(
-            if (cryptoTest.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT,
-            cryptoTest.vector
+        .setCryptographyPurpose(
+            if (cryptoTest.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT
         )
         .build()
 
@@ -102,11 +101,11 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
                     CryptographyManager.encryptData(cryptoTest.byteArray, it).let {
                         cryptoText = "Crypto encryption result=${
                             String(
-                                it.ciphertext,
+                                it,
                                 Charset.forName("UTF-8")
                             )
                         }"
-                        cryptoTest = CryptoTest(it.ciphertext, it.initializationVector)
+                        cryptoTest = CryptoTest(it, it)
                     }
 
                 } else {

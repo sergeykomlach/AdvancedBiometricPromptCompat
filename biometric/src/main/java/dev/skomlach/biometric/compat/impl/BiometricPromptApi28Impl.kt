@@ -40,7 +40,6 @@ import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
-import dev.skomlach.biometric.compat.engine.BiometricCryptographyConfig
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -310,10 +309,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
                 if (secondary.isNotEmpty()) {
                     BiometricAuthentication.authenticate(
-                        BiometricCryptographyConfig(
-                            builder.getCryptographyPurpose(),
-                            builder.getInitVector()
-                        ),
+                        builder.getCryptographyPurpose(),
                         null,
                         ArrayList<BiometricType>(secondary),
                         fmAuthCallback
@@ -331,10 +327,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     .toLong()
             val successList = mutableSetOf<AuthenticationResult>()
             BiometricAuthentication.authenticate(
-                BiometricCryptographyConfig(
-                    builder.getCryptographyPurpose(),
-                    builder.getInitVector()
-                ),
+                builder.getCryptographyPurpose(),
                 null,
                 ArrayList<BiometricType>(withoutFingerprint),
                 object : BiometricAuthenticationListener {
@@ -450,8 +443,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val biometricCryptoObject = CryptographyManager.getBiometricCryptoObject(
             "BiometricPromptCompat",
             builder.getCryptographyPurpose(),
-            true,
-            builder.getInitVector()
+            true
         )
         val crpObject = if (biometricCryptoObject == null) dummyCrypto else {
             if (biometricCryptoObject.cipher != null)
