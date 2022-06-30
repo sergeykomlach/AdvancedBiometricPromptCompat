@@ -232,16 +232,16 @@ object BiometricAuthentication {
     }
 
     fun authenticate(
-        biometricCryptoObject: BiometricCryptoObject?,
+        cryptographyPurpose: BiometricCryptographyConfig?,
         targetView: View?,
         method: BiometricType,
         listener: BiometricAuthenticationListener
     ) {
-        authenticate(biometricCryptoObject, targetView, listOf(method), listener)
+        authenticate(cryptographyPurpose, targetView, listOf(method), listener)
     }
 
     fun authenticate(
-        biometricCryptoObject: BiometricCryptoObject?,
+        cryptographyPurpose: BiometricCryptographyConfig?,
         targetView: View?,
         requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener
@@ -271,7 +271,7 @@ object BiometricAuthentication {
             return
         } else {
             val ref = SoftReference(listener)
-            Core.authenticate(biometricCryptoObject, object : AuthenticationListener {
+            Core.authenticate(cryptographyPurpose, object : AuthenticationListener {
                 override fun onHelp(msg: CharSequence?) {
                     ref.get()?.onHelp(msg)
                 }

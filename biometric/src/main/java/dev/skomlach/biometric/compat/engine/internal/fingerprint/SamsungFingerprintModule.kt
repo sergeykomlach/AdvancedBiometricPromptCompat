@@ -56,6 +56,9 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@SamsungFingerprintModule)
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         mSpassFingerprint?.let {
@@ -126,7 +129,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         mSpassFingerprint?.let {
             try {
                 cancelFingerprintRequest()

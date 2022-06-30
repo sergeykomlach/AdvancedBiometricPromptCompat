@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.crypto
 
 import android.util.Base64
-import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -32,21 +31,17 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import javax.crypto.Cipher
 
-@RequiresApi(16)
-class CryptographyManagerLegacyImpl : CryptographyManager {
-    companion object {
-        private const val KEYSTORE_FALLBACK_NAME = "biometric_keystore_fallback"
-        private const val PRIVATE_KEY_NAME = "privateKey"
-        private const val PUBLIC_KEY_NAME = "publicKey"
-        private const val TYPE_RSA = "RSA"
-    }
+open class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
 
-    private val context = AndroidContext.appContext
+    val context = AndroidContext.appContext
 
-    override fun getInitializedCipherForEncryption(keyName: String): Cipher {
+    override fun getInitializedCipherForEncryption(
+        keyName: String,
+        isUserAuthRequired: Boolean
+    ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey()
-        val keys = getPublicKeys()
+        getOrCreateSecretKey(keyName)
+        val keys = getPublicKeys(keyName)
         for (key in keys) {
             try {
                 key?.let {
@@ -64,11 +59,12 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
+        isUserAuthRequired: Boolean,
         initializationVector: ByteArray?
     ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey()
-        val keys = getPrivateKeys()
+        getOrCreateSecretKey(keyName)
+        val keys = getPrivateKeys(keyName)
         for (key in keys) {
             try {
                 key?.let {
@@ -81,21 +77,14 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
         return cipher
     }
 
-    override fun encryptData(plaintext: ByteArray, cipher: Cipher): EncryptedData {
-        return EncryptedData(cipher.doFinal(plaintext), cipher.iv)
-    }
-
-    override fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {
-        return cipher.doFinal(ciphertext)
-    }
 
     private fun getCipher(): Cipher {
         return Cipher.getInstance("RSA/ECB/PKCS1Padding")
     }
 
     @Throws(Exception::class)
-    private fun getOrCreateSecretKey() {
-        if (!keyExist()) {
+    private fun getOrCreateSecretKey(name: String) {
+        if (!keyExist(name)) {
             val localeBeforeFakingEnglishLocale = Locale.getDefault()
             try {
 
@@ -110,7 +99,7 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
                 //NOTE: do not use getAlgorithmParameterSpec() - Keys cann't be stored in this case
                 val keyPair = KeyPairGenerator.getInstance(TYPE_RSA)
                 keyPair.initialize(2048)
-                storeKeyPairInFallback(keyPair.generateKeyPair())
+                storeKeyPairInFallback(name, keyPair.generateKeyPair())
             } catch (e: Exception) {
                 throw e
             } finally {
@@ -137,32 +126,32 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
     }
 
     @Throws(Exception::class)
-    private fun keyExist(): Boolean {
-        return keyPairInFallback()
+    private fun keyExist(name: String): Boolean {
+        return keyPairInFallback(name)
     }
 
-    private fun getPrivateKeys(): List<PrivateKey?> {
+    private fun getPrivateKeys(name: String): List<PrivateKey?> {
         val list = ArrayList<PrivateKey?>()
-        getKeyPairFromFallback()?.let {
+        getKeyPairFromFallback(name)?.let {
             list.add(it.private)
         }
 
         return list
     }
 
-    private fun getPublicKeys(): List<PublicKey?> {
+    private fun getPublicKeys(name: String): List<PublicKey?> {
         val list = ArrayList<PublicKey?>()
-        getKeyPairFromFallback()?.let {
+        getKeyPairFromFallback(name)?.let {
             list.add(it.public)
         }
         return list
     }
 
-    private fun keyPairInFallback(): Boolean {
+    private fun keyPairInFallback(name: String): Boolean {
         return try {
             val sharedPreferences =
                 SharedPreferenceProvider.getPreferences(
-                    KEYSTORE_FALLBACK_NAME
+                    "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
                 PUBLIC_KEY_NAME
@@ -173,11 +162,11 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
 
     }
 
-    private fun getKeyPairFromFallback(): KeyPair? {
+    private fun getKeyPairFromFallback(name: String): KeyPair? {
         try {
             val sharedPreferences =
                 SharedPreferenceProvider.getPreferences(
-                    KEYSTORE_FALLBACK_NAME
+                    "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             if (sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
                     PUBLIC_KEY_NAME
@@ -203,13 +192,13 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
         return null
     }
 
-    private fun storeKeyPairInFallback(keyPair: KeyPair) {
+    private fun storeKeyPairInFallback(name: String, keyPair: KeyPair) {
         try {
             val rsaPrivateKey = RsaPrivateKey.fromRsaKey(keyPair.private as RSAPrivateCrtKey)
             val rsaPublicKey = RsaPublicKey.fromRsaKey(keyPair.public as RSAPublicKey)
             val sharedPreferences =
                 SharedPreferenceProvider.getPreferences(
-                    KEYSTORE_FALLBACK_NAME
+                    "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             sharedPreferences.edit()
                 .putString(

@@ -108,7 +108,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: FingerprintManager.AuthenticationCallback =
@@ -224,7 +224,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
 
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result")
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

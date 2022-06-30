@@ -36,6 +36,7 @@ interface BiometricModule {
     val isHardwarePresent: Boolean
     val isLockOut: Boolean
     val isBiometricEnrollChanged: Boolean
+    val isUserAuthCanByUsedWithCrypto: Boolean
     fun hasEnrolled(): Boolean
 
     /**

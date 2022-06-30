@@ -430,7 +430,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback =
@@ -544,7 +544,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult?) {
-            d("$name.onAuthenticationSucceeded: $result")
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

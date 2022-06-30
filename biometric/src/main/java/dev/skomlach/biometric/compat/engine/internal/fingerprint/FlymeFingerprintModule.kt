@@ -76,6 +76,8 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         return ids
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
     override var isManagerAccessible = false
     override val isHardwarePresent: Boolean
         get() {
@@ -115,7 +117,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         if (isManagerAccessible) {
             try {
                 cancelFingerprintServiceFingerprintRequest()

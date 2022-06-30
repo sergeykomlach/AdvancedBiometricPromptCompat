@@ -24,7 +24,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.*
-import dev.skomlach.biometric.compat.crypto.CryptographyManagerProvider
+import dev.skomlach.biometric.compat.crypto.CryptographyManager
+import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import java.nio.charset.Charset
@@ -65,21 +66,9 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
     val start = System.currentTimeMillis()
     BiometricLoggerImpl.e("CheckBiometric.start() for $biometricAuthRequest")
-    val cryptoObject = if (cryptoTest.vector == null) {
-        BiometricCryptoObject(
-            cipher = CryptographyManagerProvider.CryptographyManager()
-                ?.getInitializedCipherForEncryption("test")
-        )
-    } else {
-        BiometricCryptoObject(
-            cipher = CryptographyManagerProvider.CryptographyManager()
-                ?.getInitializedCipherForDecryption("test", cryptoTest.vector)
-        )
-    }
     val biometricPromptCompat = BiometricPromptCompat.Builder(
         biometricAuthRequest,
-        requireActivity(),
-        cryptoObject
+        requireActivity()
     )
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
@@ -87,6 +76,10 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .setNegativeButton(
             "Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more",
             null
+        )
+        .setCryptography(
+            if (cryptoTest.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT,
+            cryptoTest.vector
         )
         .build()
 
@@ -103,25 +96,29 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             var cryptoText = "Crypto doesn't work or disabled"
             confirmed.firstOrNull {
-                it.cryptoObject != null
+                it.cryptoObject?.cipher != null
             }?.cryptoObject?.cipher?.let {
                 if (cryptoTest.vector == null) {
-                    CryptographyManagerProvider.CryptographyManager()
-                        ?.encryptData(cryptoTest.byteArray, it)?.let {
-                            cryptoText = "Crypto encryption work"
-                            cryptoTest = CryptoTest(it.ciphertext, it.initializationVector)
-                        }
-                   
+                    CryptographyManager.encryptData(cryptoTest.byteArray, it).let {
+                        cryptoText = "Crypto encryption result=${
+                            String(
+                                it.ciphertext,
+                                Charset.forName("UTF-8")
+                            )
+                        }"
+                        cryptoTest = CryptoTest(it.ciphertext, it.initializationVector)
+                    }
+
                 } else {
-                    CryptographyManagerProvider.CryptographyManager()
-                        ?.decryptData(cryptoTest.byteArray, it)?.let {
-                            cryptoText = if (String(
-                                    it,
-                                    Charset.forName("UTF-8")
-                                ) == testString
-                            ) "Crypto decryption work" else "Crypto decryption doesn't work"
-                            cryptoTest = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
-                        }
+                    CryptographyManager.decryptData(cryptoTest.byteArray, it).let {
+                        cryptoText = "Crypto decryption result=${
+                            String(
+                                it,
+                                Charset.forName("UTF-8")
+                            )
+                        }"
+                        cryptoTest = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+                    }
 
                 }
             }

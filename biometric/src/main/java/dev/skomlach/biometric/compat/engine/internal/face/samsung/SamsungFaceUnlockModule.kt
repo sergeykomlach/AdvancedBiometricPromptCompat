@@ -113,7 +113,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: SemBioFaceManager.AuthenticationCallback =
@@ -221,7 +221,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         }
 
         override fun onAuthenticationSucceeded(result: SemBioFaceManager.AuthenticationResult?) {
-            d("$name.onAuthenticationSucceeded: $result")
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

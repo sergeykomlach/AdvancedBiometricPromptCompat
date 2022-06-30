@@ -16,36 +16,61 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-
 package dev.skomlach.biometric.compat.crypto
 
+import android.os.Build
+import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BiometricType
 import javax.crypto.Cipher
 
-interface CryptographyManager {
+object CryptographyManager {
 
-    /**
-     * This method first gets or generates an instance of SecretKey and then initializes the Cipher
-     * with the key. The secret key uses [ENCRYPT_MODE][Cipher.ENCRYPT_MODE] is used.
-     */
-    fun getInitializedCipherForEncryption(keyName: String): Cipher
+    private fun getCryptographyManager(): CryptographyManagerInterface =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            CryptographyManagerInterfaceMarshmallowImpl()
+        else
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                CryptographyManagerInterfaceKitkatImpl()
+            else
+                CryptographyManagerInterfaceLegacyImpl()
 
-    /**
-     * This method first gets or generates an instance of SecretKey and then initializes the Cipher
-     * with the key. The secret key uses [DECRYPT_MODE][Cipher.DECRYPT_MODE] is used.
-     */
-    fun getInitializedCipherForDecryption(
-        keyName: String,
-        initializationVector: ByteArray? = null
-    ): Cipher
+    fun getBiometricCryptoObject(
+        type: BiometricType,
+        purpose: CryptographyPurpose?,
+        isUserAuthRequired: Boolean = true,
+        initVector: ByteArray? = null
+    ): BiometricCryptoObject? {
+        return getBiometricCryptoObject(type.name, purpose, isUserAuthRequired, initVector)
+    }
 
-    /**
-     * The Cipher created with [getInitializedCipherForEncryption] is used here
-     */
-    fun encryptData(plaintext: ByteArray, cipher: Cipher): EncryptedData
+    fun getBiometricCryptoObject(
+        name: String?,
+        purpose: CryptographyPurpose?,
+        isUserAuthRequired: Boolean = true,
+        initVector: ByteArray? = null
+    ): BiometricCryptoObject? {
+        if (purpose == null || name.isNullOrEmpty())
+            return null
+        val cipher =
+            if (purpose == CryptographyPurpose.ENCRYPT)
+                getCryptographyManager().getInitializedCipherForEncryption(
+                    name,
+                    isUserAuthRequired
+                )
+            else getCryptographyManager().getInitializedCipherForDecryption(
+                name,
+                isUserAuthRequired,
+                initVector
+            )
+        return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
+    }
 
-    /**
-     * The Cipher created with [getInitializedCipherForDecryption] is used here
-     */
-    fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray
+    fun encryptData(plaintext: ByteArray, cipher: Cipher): EncryptedData {
+        return EncryptedData(cipher.doFinal(plaintext), cipher.iv)
+    }
+
+    fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {
+        return cipher.doFinal(ciphertext)
+    }
 
 }

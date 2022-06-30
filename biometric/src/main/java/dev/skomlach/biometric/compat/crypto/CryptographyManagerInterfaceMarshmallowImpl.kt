@@ -22,6 +22,7 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import androidx.annotation.RequiresApi
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -30,37 +31,46 @@ import javax.crypto.spec.GCMParameterSpec
 
 
 @RequiresApi(Build.VERSION_CODES.M)
-class CryptographyManagerMarshmallowImpl : CryptographyManager {
+class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterfaceKitkatImpl() {
     private val KEY_SIZE: Int = 256
-    private val ANDROID_KEYSTORE = "AndroidKeyStore"
     private val ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM
     private val ENCRYPTION_PADDING = KeyProperties.ENCRYPTION_PADDING_NONE
     private val ENCRYPTION_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES
 
-    override fun getInitializedCipherForEncryption(keyName: String): Cipher {
-        val cipher = getCipher()
-        val secretKey = getOrCreateSecretKey(keyName)
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        return cipher
+    override fun getInitializedCipherForEncryption(
+        keyName: String,
+        isUserAuthRequired: Boolean
+    ): Cipher {
+        return try {
+            val cipher = getCipher()
+            val secretKey = getOrCreateSecretKey(keyName, isUserAuthRequired)
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            cipher
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+            super.getInitializedCipherForEncryption(keyName, isUserAuthRequired)
+        }
     }
 
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
+        isUserAuthRequired: Boolean,
         initializationVector: ByteArray?
     ): Cipher {
-        val cipher = getCipher()
-        val secretKey = getOrCreateSecretKey(keyName)
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, initializationVector))
-        return cipher
-    }
-
-    override fun encryptData(plaintext: ByteArray, cipher: Cipher): EncryptedData {
-        return EncryptedData(cipher.doFinal(plaintext), cipher.iv)
-    }
-
-    override fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {
-        return cipher.doFinal(ciphertext)
+        return try {
+            val cipher = getCipher()
+            val secretKey = getOrCreateSecretKey(keyName, isUserAuthRequired)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, initializationVector))
+            cipher
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+            super.getInitializedCipherForDecryption(
+                keyName,
+                isUserAuthRequired,
+                initializationVector
+            )
+        }
     }
 
     private fun getCipher(): Cipher {
@@ -68,9 +78,9 @@ class CryptographyManagerMarshmallowImpl : CryptographyManager {
         return Cipher.getInstance(transformation)
     }
 
-    private fun getOrCreateSecretKey(keyName: String): SecretKey {
+    private fun getOrCreateSecretKey(keyName: String, isUserAuthRequired: Boolean): SecretKey {
         // If Secretkey was previously created for that keyName, then grab and return it.
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.getKey(keyName, null)?.let { return it as SecretKey }
 
@@ -83,13 +93,16 @@ class CryptographyManagerMarshmallowImpl : CryptographyManager {
             setBlockModes(ENCRYPTION_BLOCK_MODE)
             setEncryptionPaddings(ENCRYPTION_PADDING)
             setKeySize(KEY_SIZE)
-            setUserAuthenticationRequired(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                setIsStrongBoxBacked(true)
+            }
+            setUserAuthenticationRequired(isUserAuthRequired)
         }
 
         val keyGenParams = paramsBuilder.build()
         val keyGenerator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
-            ANDROID_KEYSTORE
+            ANDROID_KEYSTORE_PROVIDER_TYPE
         )
         keyGenerator.init(keyGenParams)
         return keyGenerator.generateKey()

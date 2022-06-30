@@ -104,6 +104,9 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         }
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
+
     fun stopAuth() {
         faceLockHelper?.stopFaceLock()
         faceLockHelper?.destroy()
@@ -142,7 +145,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         try {
             d("$name: Facelock call authorize")
             authorize(

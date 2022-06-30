@@ -109,7 +109,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: BiometricManagerCompat.AuthenticationCallback =
@@ -223,7 +223,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         }
 
         override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result")
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

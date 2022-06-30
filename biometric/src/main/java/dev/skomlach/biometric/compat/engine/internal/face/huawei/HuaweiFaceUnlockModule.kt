@@ -69,6 +69,9 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         }
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = huawei3DFaceManager != null
+
     private val faceManager: FaceManager?
         get() {
             try {
@@ -170,7 +173,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         restartPredicate: RestartPredicate?
     ) {
         try {
-            d("$name.authenticate - $biometricMethod")
+            d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
             if (!isHardwarePresent) {
                 listener?.onFailure(AuthenticationFailureReason.NO_HARDWARE, tag())
                 return
@@ -308,7 +311,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         }
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result")
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

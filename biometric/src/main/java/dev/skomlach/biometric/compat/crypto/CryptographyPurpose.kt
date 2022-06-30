@@ -19,18 +19,7 @@
 
 package dev.skomlach.biometric.compat.crypto
 
-import android.os.Build
-
-object CryptographyManagerProvider {
-
-    fun CryptographyManager(): CryptographyManager? =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            CryptographyManagerMarshmallowImpl()
-        else
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                CryptographyManagerKitkatImpl()
-            else
-                CryptographyManagerLegacyImpl()
-
-
+enum class CryptographyPurpose {
+    ENCRYPT,
+    DECRYPT
 }

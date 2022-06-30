@@ -186,7 +186,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: OppoMirrorFaceManager.AuthenticationCallback =
@@ -295,7 +295,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         }
 
         override fun onAuthenticationSucceeded(result: OppoMirrorFaceManager.AuthenticationResult?) {
-            d("$name.onAuthenticationSucceeded: $result")
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

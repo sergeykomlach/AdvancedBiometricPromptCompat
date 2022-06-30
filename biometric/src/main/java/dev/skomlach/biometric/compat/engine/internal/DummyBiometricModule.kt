@@ -57,7 +57,7 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         ExecutorHelper.postDelayed({
             listener?.onFailure(
                 AuthenticationFailureReason.AUTHENTICATION_FAILED,

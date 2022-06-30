@@ -36,6 +36,7 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollCha
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
+import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -642,8 +643,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     class Builder(
         private val biometricAuthRequest: BiometricAuthRequest,
-        dummy_reference: FragmentActivity,
-        private val biometricCryptoObject: BiometricCryptoObject? = null,
+        dummy_reference: FragmentActivity
     ) {
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
@@ -728,6 +728,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var backgroundBiometricIconsEnabled = true
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
+
+        private var cryptographyPurpose: CryptographyPurpose? = null
+
+        private var initVector: ByteArray? = null
 
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
@@ -828,8 +832,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
-        fun getBiometricCryptoObject(): BiometricCryptoObject? {
-            return biometricCryptoObject
+        fun getInitVector(): ByteArray? {
+            return initVector
+        }
+
+        fun getCryptographyPurpose(): CryptographyPurpose? {
+            return cryptographyPurpose
         }
 
         fun getBiometricAuthRequest(): BiometricAuthRequest {
@@ -838,6 +846,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         fun getMultiWindowSupport(): MultiWindowSupport {
             return multiWindowSupport
+        }
+
+        fun setCryptography(
+            cryptographyPurpose: CryptographyPurpose,
+            initVector: ByteArray? = null
+        ): Builder {
+            this.cryptographyPurpose = cryptographyPurpose
+            this.initVector = initVector
+            return this
         }
 
         fun setExperimentalFeaturesEnabled(enabled: Boolean): Builder {

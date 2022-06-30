@@ -73,6 +73,9 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {
@@ -113,7 +116,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: IMiuiFaceManager.AuthenticationCallback =

@@ -37,8 +37,10 @@ import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
+import dev.skomlach.biometric.compat.engine.BiometricCryptographyConfig
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -160,7 +162,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                d("BiometricPromptApi28Impl.onAuthenticationSucceeded:")
+                d("BiometricPromptApi28Impl.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
                 onePlusWithBiometricBugFailure = false
                 checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
             }
@@ -308,7 +310,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
                 if (secondary.isNotEmpty()) {
                     BiometricAuthentication.authenticate(
-                        builder.getBiometricCryptoObject(),
+                        BiometricCryptographyConfig(
+                            builder.getCryptographyPurpose(),
+                            builder.getInitVector()
+                        ),
                         null,
                         ArrayList<BiometricType>(secondary),
                         fmAuthCallback
@@ -326,7 +331,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     .toLong()
             val successList = mutableSetOf<AuthenticationResult>()
             BiometricAuthentication.authenticate(
-                builder.getBiometricCryptoObject(),
+                BiometricCryptographyConfig(
+                    builder.getCryptographyPurpose(),
+                    builder.getInitVector()
+                ),
                 null,
                 ArrayList<BiometricType>(withoutFingerprint),
                 object : BiometricAuthenticationListener {
@@ -439,7 +447,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             null
         }
 
-        val biometricCryptoObject = builder.getBiometricCryptoObject()
+        val biometricCryptoObject = CryptographyManager.getBiometricCryptoObject(
+            "BiometricPromptCompat",
+            builder.getCryptographyPurpose(),
+            true,
+            builder.getInitVector()
+        )
         val crpObject = if (biometricCryptoObject == null) dummyCrypto else {
             if (biometricCryptoObject.cipher != null)
                 BiometricPrompt.CryptoObject(biometricCryptoObject.cipher)
@@ -451,6 +464,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 dummyCrypto
         }
 
+        d("$BiometricPromptCompat.authenticate - $BiometricPromptCompat; Crypto=$crpObject")
         if (crpObject != null) {
             try {
                 biometricPrompt.authenticate(biometricPromptInfo, crpObject)

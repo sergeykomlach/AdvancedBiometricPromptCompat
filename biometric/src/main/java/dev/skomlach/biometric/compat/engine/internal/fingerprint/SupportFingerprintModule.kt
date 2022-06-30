@@ -128,7 +128,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         managerCompat?.let {
             try {
                 val callback: FingerprintManagerCompat.AuthenticationCallback =
@@ -243,7 +243,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         }
 
         override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: %s", result)
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
