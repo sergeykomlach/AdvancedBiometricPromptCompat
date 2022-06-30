@@ -24,6 +24,7 @@ import androidx.core.os.CancellationSignal
 import com.samsung.android.sdk.pass.Spass
 import com.samsung.android.sdk.pass.SpassFingerprint
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -120,6 +121,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
@@ -132,7 +134,14 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     override fun onFinished(status: Int) {
                         when (status) {
                             SpassFingerprint.STATUS_AUTHENTIFICATION_SUCCESS, SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS -> {
-                                listener?.onSuccess(tag())
+                                listener?.onSuccess(
+                                    tag(),
+                                    BiometricCryptoObject(
+                                        biometricCryptoObject?.signature,
+                                        biometricCryptoObject?.cipher,
+                                        biometricCryptoObject?.mac
+                                    )
+                                )
                                 return
                             }
                             SpassFingerprint.STATUS_QUALITY_FAILED, SpassFingerprint.STATUS_SENSOR_FAILED -> fail(
@@ -153,11 +162,21 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     private fun fail(reason: AuthenticationFailureReason) {
                         var failureReason: AuthenticationFailureReason? = reason
                         if (restartCauseTimeout(failureReason)) {
-                            authenticate(cancellationSignal, listener, restartPredicate)
+                            authenticate(
+                                biometricCryptoObject,
+                                cancellationSignal,
+                                listener,
+                                restartPredicate
+                            )
                         } else
                             if (restartPredicate?.invoke(failureReason) == true) {
                                 listener?.onFailure(failureReason, tag())
-                                authenticate(cancellationSignal, listener, restartPredicate)
+                                authenticate(
+                                    biometricCryptoObject,
+                                    cancellationSignal,
+                                    listener,
+                                    restartPredicate
+                                )
                             } else {
                                 if (mutableListOf(
                                         AuthenticationFailureReason.SENSOR_FAILED,

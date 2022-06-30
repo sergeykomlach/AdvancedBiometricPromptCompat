@@ -152,6 +152,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     } else {
                         checkAuthResultForPrimary(
                             AuthResult.AuthResultState.FATAL_ERROR,
+                            null,
                             failureReason
                         )
                     }
@@ -161,7 +162,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 d("BiometricPromptApi28Impl.onAuthenticationSucceeded:")
                 onePlusWithBiometricBugFailure = false
-                checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS)
+                checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
             }
         }
     private val isFingerprint = AtomicBoolean(false)
@@ -307,6 +308,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
                 if (secondary.isNotEmpty()) {
                     BiometricAuthentication.authenticate(
+                        builder.getBiometricCryptoObject(),
                         null,
                         ArrayList<BiometricType>(secondary),
                         fmAuthCallback
@@ -322,12 +324,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             val shortDelayMillis =
                 builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
                     .toLong()
-            val successList = mutableSetOf<BiometricType>()
+            val successList = mutableSetOf<AuthenticationResult>()
             BiometricAuthentication.authenticate(
+                builder.getBiometricCryptoObject(),
                 null,
                 ArrayList<BiometricType>(withoutFingerprint),
                 object : BiometricAuthenticationListener {
-                    override fun onSuccess(module: BiometricType?) {
+                    override fun onSuccess(module: AuthenticationResult?) {
                         module?.let {
                             successList.add(it)
                         }
@@ -430,11 +433,24 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
 
         //Should force to Fingerprint-only
-        val crpObject: BiometricPrompt.CryptoObject? = try {
+        val dummyCrypto: BiometricPrompt.CryptoObject? = try {
             if (forceToFingerprint && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) cryptoObject else null
         } catch (e: Throwable) {
             null
         }
+
+        val biometricCryptoObject = builder.getBiometricCryptoObject()
+        val crpObject = if (biometricCryptoObject == null) dummyCrypto else {
+            if (biometricCryptoObject.cipher != null)
+                BiometricPrompt.CryptoObject(biometricCryptoObject.cipher)
+            else if (biometricCryptoObject.mac != null)
+                BiometricPrompt.CryptoObject(biometricCryptoObject.mac)
+            if (biometricCryptoObject.signature != null)
+                BiometricPrompt.CryptoObject(biometricCryptoObject.signature)
+            else
+                dummyCrypto
+        }
+
         if (crpObject != null) {
             try {
                 biometricPrompt.authenticate(biometricPromptInfo, crpObject)
@@ -501,6 +517,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     private fun checkAuthResultForPrimary(
         authResult: AuthResult.AuthResultState,
+        cryptoObject: BiometricPrompt.CryptoObject?,
         reason: AuthenticationFailureReason? = null
     ) {
         var failureReason = reason
@@ -513,8 +530,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             failureReason = AuthenticationFailureReason.LOCKED_OUT
         }
         var added = false
+        val crypto = if (cryptoObject == null) null else {
+            BiometricCryptoObject(cryptoObject.signature, cryptoObject.cipher, cryptoObject.mac)
+        }
         for (module in (if (isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
-            authFinished[module] = AuthResult(authResult, failureReason)
+            authFinished[module] =
+                AuthResult(authResult, AuthenticationResult(module, crypto), failureReason)
             dialog?.authFinishedCopy = authFinished
             if (AuthResult.AuthResultState.SUCCESS == authResult) {
                 IconStateHelper.successType(module)
@@ -547,7 +568,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
-                    callback?.onSucceeded(onlySuccess.keys.toList().filterNotNull().toSet())
+                    callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
+                        onlySuccess[it]?.successData
+                    }.toSet())
                 } else if (error != null) {
                     if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
                         ExecutorHelper.postDelayed({
@@ -597,17 +620,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     private fun checkAuthResultForSecondary(
-        module: BiometricType?,
+        module: AuthenticationResult?,
         authResult: AuthResult.AuthResultState,
         failureReason: AuthenticationFailureReason? = null
     ) {
         if (authResult == AuthResult.AuthResultState.SUCCESS) {
-            IconStateHelper.successType(module)
+            IconStateHelper.successType(module?.confirmed)
             if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
                 Vibro.start()
             }
         } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
-            IconStateHelper.errorType(module)
+            IconStateHelper.errorType(module?.confirmed)
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
         }
         //non fatal
@@ -618,9 +641,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         ) {
             return
         }
-        authFinished[module] = AuthResult(authResult, failureReason)
+        authFinished[module?.confirmed] = AuthResult(authResult, module, failureReason)
         dialog?.authFinishedCopy = authFinished
-        BiometricNotificationManager.dismiss(module)
+        BiometricNotificationManager.dismiss(module?.confirmed)
 
         val authFinishedList: List<BiometricType?> = java.util.ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = java.util.ArrayList(
@@ -643,7 +666,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
-                    callback?.onSucceeded(onlySuccess.keys.toList().filterNotNull().toSet())
+                    callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
+                        onlySuccess[it]?.successData
+                    }.toSet())
                 } else if (error != null) {
                     if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
                         callback?.onFailed(error.failureReason)
@@ -660,7 +685,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
 
-        override fun onSuccess(module: BiometricType?) {
+        override fun onSuccess(module: AuthenticationResult?) {
             checkAuthResultForSecondary(module, AuthResult.AuthResultState.SUCCESS)
         }
 
@@ -675,7 +700,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             module: BiometricType?
         ) {
             checkAuthResultForSecondary(
-                module,
+                AuthenticationResult(confirmed = module),
                 AuthResult.AuthResultState.FATAL_ERROR,
                 failureReason
             )

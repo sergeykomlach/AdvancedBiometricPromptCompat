@@ -107,38 +107,44 @@ object SemIrisManager {
     class AuthenticationResult(val cryptoObject: CryptoObject, val iris: Iris)
     class CryptoObject {
         private val mCrypto: Any
-        val fidoRequestData: ByteArray
+        val fidoRequestData: ByteArray?
         var fidoResultData: ByteArray? = null
             private set
 
-        constructor(signature: Signature, bArr: ByteArray) {
+        constructor(signature: Signature, bArr: ByteArray?) {
             mCrypto = signature
             fidoRequestData = bArr
         }
 
-        constructor(cipher: Cipher, bArr: ByteArray) {
+        constructor(cipher: Cipher, bArr: ByteArray?) {
             mCrypto = cipher
             fidoRequestData = bArr
         }
 
-        constructor(mac: Mac, bArr: ByteArray) {
+        constructor(mac: Mac, bArr: ByteArray?) {
             mCrypto = mac
             fidoRequestData = bArr
         }
 
-        val cipher: Cipher?
-            get() = if (mCrypto is Cipher) mCrypto else null
+
+        fun getCipher(): Cipher? {
+            return if (mCrypto is Cipher) mCrypto else null
+        }
 
         private fun setFidoResultData(bArr: ByteArray) {
             fidoResultData = bArr
         }
 
-        val mac: Mac?
-            get() = if (mCrypto is Mac) mCrypto else null
+        fun getMac(): Mac? {
+            return if (mCrypto is Mac) mCrypto else null
+        }
+
         val opId: Long
             get() = 0
-        val signature: Signature?
-            get() = if (mCrypto is Signature) mCrypto else null
+
+        fun getSignature(): Signature? {
+            return if (mCrypto is Signature) mCrypto else null
+        }
     }
 
 

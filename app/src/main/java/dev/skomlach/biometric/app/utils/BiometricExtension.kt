@@ -83,7 +83,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
-        override fun onSucceeded(confirmed: Set<BiometricType>) {
+        override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed")
             Toast.makeText(AndroidContext.appContext, "Succeeded - $confirmed", Toast.LENGTH_SHORT)
                 .show()

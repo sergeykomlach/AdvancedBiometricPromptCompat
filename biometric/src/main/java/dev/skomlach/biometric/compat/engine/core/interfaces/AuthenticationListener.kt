@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 
 /**
  * A listener that is notified of the results of fingerprint authentication.
@@ -33,7 +34,7 @@ interface AuthenticationListener {
      *
      * @param moduleTag The [BiometricModule.tag] of the module that was used for authentication.
      */
-    fun onSuccess(moduleTag: Int)
+    fun onSuccess(moduleTag: Int, biometricCryptoObject: BiometricCryptoObject?)
 
     /**
      * Called after an error or authentication failure.

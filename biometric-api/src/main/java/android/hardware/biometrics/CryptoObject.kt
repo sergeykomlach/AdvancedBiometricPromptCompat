@@ -24,10 +24,53 @@ import javax.crypto.Cipher
 import javax.crypto.Mac
 
 class CryptoObject {
-    val signature: Signature?
-        get() = null
-    val cipher: Cipher?
-        get() = null
-    val mac: Mac?
-        get() = null
+
+    private var mSignature: Signature? = null
+    private var mCipher: Cipher? = null
+    private var mMac: Mac? = null
+
+    constructor(signature: Signature?) {
+        mSignature = signature
+        mCipher = null
+        mMac = null
+    }
+
+    constructor(cipher: Cipher?) {
+        mCipher = cipher
+        mSignature = null
+        mMac = null
+    }
+
+    constructor(mac: Mac?) {
+        mMac = mac
+        mCipher = null
+        mSignature = null
+    }
+
+    /**
+     * Get [Signature] object.
+     *
+     * @return [Signature] object or null if this doesn't contain one.
+     */
+    fun getSignature(): Signature? {
+        return mSignature
+    }
+
+    /**
+     * Get [Cipher] object.
+     *
+     * @return [Cipher] object or null if this doesn't contain one.
+     */
+    fun getCipher(): Cipher? {
+        return mCipher
+    }
+
+    /**
+     * Get [Mac] object.
+     *
+     * @return [Mac] object or null if this doesn't contain one.
+     */
+    fun getMac(): Mac? {
+        return mMac
+    }
 }

@@ -30,7 +30,7 @@ import javax.crypto.spec.GCMParameterSpec
 
 
 @RequiresApi(Build.VERSION_CODES.M)
-class CryptographyManagerImpl : CryptographyManager {
+class CryptographyManagerMarshmallowImpl : CryptographyManager {
     private val KEY_SIZE: Int = 256
     private val ANDROID_KEYSTORE = "AndroidKeyStore"
     private val ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM

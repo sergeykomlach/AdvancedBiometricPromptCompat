@@ -19,34 +19,41 @@
 
 package dev.skomlach.biometric.compat.crypto
 
+import android.annotation.SuppressLint
+import android.os.Build
+import android.security.KeyPairGeneratorSpec
 import android.util.Base64
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import java.math.BigInteger
 import java.security.*
 import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
+import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import javax.crypto.Cipher
+import javax.security.auth.x500.X500Principal
 
-@RequiresApi(16)
-class CryptographyManagerLegacyImpl : CryptographyManager {
+@RequiresApi(Build.VERSION_CODES.KITKAT)
+class CryptographyManagerKitkatImpl : CryptographyManager {
     companion object {
         private const val KEYSTORE_FALLBACK_NAME = "biometric_keystore_fallback"
         private const val PRIVATE_KEY_NAME = "privateKey"
         private const val PUBLIC_KEY_NAME = "publicKey"
         private const val TYPE_RSA = "RSA"
+        private const val ANDROID_KEYSTORE_PROVIDER_TYPE = "AndroidKeyStore"
     }
 
     private val context = AndroidContext.appContext
 
     override fun getInitializedCipherForEncryption(keyName: String): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey()
-        val keys = getPublicKeys()
+        getOrCreateSecretKey(keyName)
+        val keys = getPublicKeys(keyName)
         for (key in keys) {
             try {
                 key?.let {
@@ -67,8 +74,8 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
         initializationVector: ByteArray?
     ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey()
-        val keys = getPrivateKeys()
+        getOrCreateSecretKey(keyName)
+        val keys = getPrivateKeys(keyName)
         for (key in keys) {
             try {
                 key?.let {
@@ -94,8 +101,8 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
     }
 
     @Throws(Exception::class)
-    private fun getOrCreateSecretKey() {
-        if (!keyExist()) {
+    private fun getOrCreateSecretKey(name: String) {
+        if (!keyExist(name)) {
             val localeBeforeFakingEnglishLocale = Locale.getDefault()
             try {
 
@@ -106,6 +113,19 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
              * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
              */
                 setFakeEnglishLocale()
+
+                val keyPairGenerator = KeyPairGenerator
+                    .getInstance(
+                        TYPE_RSA,
+                        ANDROID_KEYSTORE_PROVIDER_TYPE
+                    )
+                val spec = getAlgorithmParameterSpec(name)
+
+                keyPairGenerator.initialize(spec)
+
+                val keyPair =
+                    keyPairGenerator.generateKeyPair()//SK: Exception on some devices here; It seems like device-specific KeyStore issue
+            } catch (e: IllegalStateException) {
                 //SK: As a fallback - generate simple RSA keypair and store keys in EncryptedSharedPreferences
                 //NOTE: do not use getAlgorithmParameterSpec() - Keys cann't be stored in this case
                 val keyPair = KeyPairGenerator.getInstance(TYPE_RSA)
@@ -119,6 +139,28 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
         }
     }
 
+
+    @SuppressLint("WrongConstant")
+    private fun getAlgorithmParameterSpec(KEY_ALIAS: String): AlgorithmParameterSpec {
+        val keySize = 2048
+        val subject = X500Principal("CN=${KEY_ALIAS}")
+        val serialNumber = BigInteger.valueOf(1337)
+        val validityStartCalendar = Calendar.getInstance()
+        val validityEndCalendar = Calendar.getInstance()
+        validityEndCalendar.add(Calendar.YEAR, Int.MAX_VALUE)
+        val validityStartDate = validityStartCalendar.time
+        val validityEndDate = validityEndCalendar.time
+        //SK: See https://doridori.github.io/android-security-the-forgetful-keystore/
+        return KeyPairGeneratorSpec.Builder(context)
+            .setAlias(KEY_ALIAS)
+            .setKeySize(keySize)
+            .setSubject(subject)
+            .setSerialNumber(serialNumber)
+            .setStartDate(validityStartDate)
+            .setEndDate(validityEndDate)
+            .build()
+
+    }
 
     /**
      * Workaround for known date parsing issue in KeyPairGenerator class
@@ -137,12 +179,31 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
     }
 
     @Throws(Exception::class)
-    private fun keyExist(): Boolean {
-        return keyPairInFallback()
+    private fun keyExist(KEY_ALIAS: String): Boolean {
+        var entry = keyPairInFallback()
+        try {
+
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
+            keyStore.load(null)
+
+            entry = entry || keyStore.containsAlias(KEY_ALIAS)
+        } catch (e: Throwable) {
+
+        }
+        return entry
     }
 
-    private fun getPrivateKeys(): List<PrivateKey?> {
+    private fun getPrivateKeys(KEY_ALIAS: String): List<PrivateKey?> {
         val list = ArrayList<PrivateKey?>()
+
+        try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+            keyStore.load(null)
+            list.add(keyStore.getKey(KEY_ALIAS, null) as PrivateKey?)
+        } catch (e: Throwable) {
+
+        }
         getKeyPairFromFallback()?.let {
             list.add(it.private)
         }
@@ -150,8 +211,15 @@ class CryptographyManagerLegacyImpl : CryptographyManager {
         return list
     }
 
-    private fun getPublicKeys(): List<PublicKey?> {
+    private fun getPublicKeys(KEY_ALIAS: String): List<PublicKey?> {
         val list = ArrayList<PublicKey?>()
+        try {
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+            keyStore.load(null)
+            list.add(keyStore.getCertificate(KEY_ALIAS)?.publicKey)
+        } catch (e: Throwable) {
+
+        }
         getKeyPairFromFallback()?.let {
             list.add(it.public)
         }

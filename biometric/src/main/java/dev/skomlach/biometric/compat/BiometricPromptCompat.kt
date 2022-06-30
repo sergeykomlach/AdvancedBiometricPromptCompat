@@ -65,7 +65,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import javax.crypto.Cipher
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -308,7 +307,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    fun authenticate(cipher: Cipher? = null, callbackOuter: AuthenticationCallback) {
+    fun authenticate(callbackOuter: AuthenticationCallback) {
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
             return
@@ -350,12 +349,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR)
                     authFlowInProgress.set(false)
                 } else
-                    startAuth(cipher, callbackOuter)
+                    startAuth(callbackOuter)
             }
         }
     }
 
-    private fun startAuth(cipher: Cipher?, callbackOuter: AuthenticationCallback) {
+    private fun startAuth(callbackOuter: AuthenticationCallback) {
         if (isActivityFinished(builder.getContext())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
             callbackOuter.onCanceled()
@@ -377,7 +376,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val callback = object : AuthenticationCallback() {
 
             private var isOpened = AtomicBoolean(false)
-            override fun onSucceeded(confirmed: Set<BiometricType>, cipher: Cipher?) {
+            override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
                 try {
                     if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -399,7 +398,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             .updateBiometricEnrollChanged()
                     }
 
-                    callbackOuter.onSucceeded(confirmed, cipher)
+                    callbackOuter.onSucceeded(confirmed)
                 } finally {
                     onUIClosed()
                 }
@@ -621,8 +620,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     abstract class AuthenticationCallback {
         @MainThread
-        open fun onSucceeded(confirmed: Set<BiometricType>, cipher: Cipher?) {
+        open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
         }
+
         @MainThread
         open fun onCanceled() {
         }
@@ -642,7 +642,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     class Builder(
         private val biometricAuthRequest: BiometricAuthRequest,
-        dummy_reference: FragmentActivity
+        dummy_reference: FragmentActivity,
+        private val biometricCryptoObject: BiometricCryptoObject? = null,
     ) {
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
@@ -825,6 +826,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun getContext(): FragmentActivity {
             return (AndroidContext.activity as? FragmentActivity?)
                 ?: throw java.lang.IllegalStateException("No activity on screen")
+        }
+
+        fun getBiometricCryptoObject(): BiometricCryptoObject? {
+            return biometricCryptoObject
         }
 
         fun getBiometricAuthRequest(): BiometricAuthRequest {

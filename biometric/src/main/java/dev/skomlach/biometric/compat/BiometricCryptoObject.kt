@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +17,14 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.impl
+package dev.skomlach.biometric.compat
 
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationResult
+import java.security.Signature
+import javax.crypto.Cipher
+import javax.crypto.Mac
 
-data class AuthResult(
-    val authResultState: AuthResultState,
-    val successData: AuthenticationResult? = null,
-    val failureReason: AuthenticationFailureReason? = null
-) {
-    enum class AuthResultState {
-        SUCCESS,
-        FATAL_ERROR
-    }
-}
+data class BiometricCryptoObject(
+    val signature: Signature? = null,
+    val cipher: Cipher? = null,
+    val mac: Mac? = null
+)

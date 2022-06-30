@@ -23,6 +23,7 @@ import android.content.Context
 import android.os.CancellationSignal
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -163,6 +164,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: androidx.core.os.CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
@@ -185,12 +187,27 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) {
                 huawei3DFaceManager?.let {
                     try {
+                        val crypto = if (biometricCryptoObject == null) null else {
+                            if (biometricCryptoObject.cipher != null)
+                                FaceManager.CryptoObject(biometricCryptoObject.cipher)
+                            else if (biometricCryptoObject.mac != null)
+                                FaceManager.CryptoObject(biometricCryptoObject.mac)
+                            if (biometricCryptoObject.signature != null)
+                                FaceManager.CryptoObject(biometricCryptoObject.signature)
+                            else
+                                null
+                        }
                         // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                         it.authenticate(
-                            null,
+                            crypto,
                             signalObject,
                             0,
-                            AuthCallback3DFace(restartPredicate, cancellationSignal, listener),
+                            AuthCallback3DFace(
+                                biometricCryptoObject,
+                                restartPredicate,
+                                cancellationSignal,
+                                listener
+                            ),
                             ExecutorHelper.handler
                         )
                         return
@@ -211,7 +228,12 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                         it.authenticate(
                             0,
                             0,
-                            AuthCallbackLegacy(restartPredicate, cancellationSignal, listener)
+                            AuthCallbackLegacy(
+                                biometricCryptoObject,
+                                restartPredicate,
+                                cancellationSignal,
+                                listener
+                            )
                         )
                         return
                     } catch (e: Throwable) {
@@ -226,6 +248,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     }
 
     private inner class AuthCallback3DFace(
+        private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: androidx.core.os.CancellationSignal?,
         private val listener: AuthenticationListener?
@@ -253,14 +276,19 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -281,7 +309,14 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result")
-            listener?.onSuccess(tag())
+            listener?.onSuccess(
+                tag(),
+                BiometricCryptoObject(
+                    result?.cryptoObject?.getSignature(),
+                    result?.cryptoObject?.getCipher(),
+                    result?.cryptoObject?.getMac()
+                )
+            )
         }
 
         override fun onAuthenticationFailed() {
@@ -289,7 +324,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,
@@ -305,6 +340,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     }
 
     private inner class AuthCallbackLegacy(
+        private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: androidx.core.os.CancellationSignal?,
         private val listener: AuthenticationListener?
@@ -332,14 +368,19 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -360,7 +401,14 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationSucceeded() {
             d("$name.onAuthenticationSucceeded: ")
-            listener?.onSuccess(tag())
+            listener?.onSuccess(
+                tag(),
+                BiometricCryptoObject(
+                    biometricCryptoObject?.signature,
+                    biometricCryptoObject?.cipher,
+                    biometricCryptoObject?.mac
+                )
+            )
         }
 
         override fun onAuthenticationFailed() {
@@ -368,7 +416,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

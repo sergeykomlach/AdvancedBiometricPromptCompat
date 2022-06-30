@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import androidx.core.os.CancellationSignal
 import com.samsung.android.camera.iris.SemIrisManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -171,6 +172,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
@@ -179,7 +181,12 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         manager?.let {
             try {
                 val callback: SemIrisManager.AuthenticationCallback =
-                    AuthCallback(restartPredicate, cancellationSignal, listener)
+                    AuthCallback(
+                        biometricCryptoObject,
+                        restartPredicate,
+                        cancellationSignal,
+                        listener
+                    )
 
                 // Why getCancellationSignalObject returns an Object is unexplained
                 val signalObject =
@@ -187,8 +194,19 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of SemIrisManager.authenticate
+                val crypto = if (biometricCryptoObject == null) null else {
+
+                    if (biometricCryptoObject.cipher != null)
+                        SemIrisManager.CryptoObject(biometricCryptoObject.cipher, null)
+                    else if (biometricCryptoObject.mac != null)
+                        SemIrisManager.CryptoObject(biometricCryptoObject.mac, null)
+                    if (biometricCryptoObject.signature != null)
+                        SemIrisManager.CryptoObject(biometricCryptoObject.signature, null)
+                    else
+                        null
+                }
                 it.authenticate(
-                    null,
+                    crypto,
                     signalObject,
                     0,
                     callback,
@@ -205,6 +223,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     }
 
     internal inner class AuthCallback(
+        private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
@@ -235,14 +254,19 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -263,7 +287,14 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationSucceeded(result: SemIrisManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result")
-            listener?.onSuccess(tag())
+            listener?.onSuccess(
+                tag(),
+                BiometricCryptoObject(
+                    result?.cryptoObject?.getSignature(),
+                    result?.cryptoObject?.getCipher(),
+                    result?.cryptoObject?.getMac()
+                )
+            )
         }
 
         override fun onAuthenticationFailed() {
@@ -271,7 +302,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

@@ -25,12 +25,12 @@ object CryptographyManagerProvider {
 
     fun CryptographyManager(): CryptographyManager? =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            CryptographyManagerImpl()
+            CryptographyManagerMarshmallowImpl()
         else
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                CryptographyManagerLegacyImpl()
+                CryptographyManagerKitkatImpl()
             else
-                null
+                CryptographyManagerLegacyImpl()
 
 
 }

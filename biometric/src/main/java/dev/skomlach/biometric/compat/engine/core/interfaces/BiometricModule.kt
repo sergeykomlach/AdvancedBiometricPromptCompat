@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.core.interfaces
 
 import androidx.core.os.CancellationSignal
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.core.Core
 
 /**
@@ -52,6 +53,7 @@ interface BiometricModule {
      * is not running before calling [AuthenticationListener.onFailure].
      */
     fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?

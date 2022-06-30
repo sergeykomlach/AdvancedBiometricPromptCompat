@@ -26,6 +26,8 @@ import android.os.Build
 import android.provider.Settings
 import android.view.View
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -230,14 +232,18 @@ object BiometricAuthentication {
     }
 
     fun authenticate(
-        targetView: View?, method: BiometricType,
+        biometricCryptoObject: BiometricCryptoObject?,
+        targetView: View?,
+        method: BiometricType,
         listener: BiometricAuthenticationListener
     ) {
-        authenticate(targetView, listOf(method), listener)
+        authenticate(biometricCryptoObject, targetView, listOf(method), listener)
     }
 
     fun authenticate(
-        targetView: View?, requestedMethods: List<BiometricType?>,
+        biometricCryptoObject: BiometricCryptoObject?,
+        targetView: View?,
+        requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener
     ) {
         if (requestedMethods.isEmpty()) return
@@ -265,13 +271,17 @@ object BiometricAuthentication {
             return
         } else {
             val ref = SoftReference(listener)
-            Core.authenticate(object : AuthenticationListener {
+            Core.authenticate(biometricCryptoObject, object : AuthenticationListener {
                 override fun onHelp(msg: CharSequence?) {
                     ref.get()?.onHelp(msg)
                 }
 
-                override fun onSuccess(moduleTag: Int) {
-                    ref.get()?.onSuccess(hashMap[moduleTag])
+                override fun onSuccess(
+                    moduleTag: Int,
+                    biometricCryptoObject: BiometricCryptoObject?
+                ) {
+                    ref.get()
+                        ?.onSuccess(AuthenticationResult(hashMap[moduleTag], biometricCryptoObject))
                 }
 
                 override fun onFailure(
