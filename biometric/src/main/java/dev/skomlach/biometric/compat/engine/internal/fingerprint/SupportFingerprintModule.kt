@@ -23,6 +23,7 @@ import android.content.Context
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -122,23 +123,39 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         managerCompat?.let {
             try {
                 val callback: FingerprintManagerCompat.AuthenticationCallback =
-                    AuthCallbackCompat(restartPredicate, cancellationSignal, listener)
+                    AuthCallbackCompat(
+                        biometricCryptoObject,
+                        restartPredicate,
+                        cancellationSignal,
+                        listener
+                    )
                 val signalObject =
                     (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                         ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
-
+                val crypto = if (biometricCryptoObject == null) null else {
+                    if (biometricCryptoObject.cipher != null)
+                        FingerprintManagerCompat.CryptoObject(biometricCryptoObject.cipher)
+                    else if (biometricCryptoObject.mac != null)
+                        FingerprintManagerCompat.CryptoObject(biometricCryptoObject.mac)
+                    else if (biometricCryptoObject.signature != null)
+                        FingerprintManagerCompat.CryptoObject(biometricCryptoObject.signature)
+                    else
+                        null
+                }
+                d("$name.authenticate:  Crypto=$crypto")
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 it.authenticate(
-                    null,
+                    crypto,
                     0,
                     cancellationSignal,
                     callback,
@@ -157,6 +174,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
     }
 
     internal inner class AuthCallbackCompat(
+        private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
@@ -194,14 +212,19 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -221,8 +244,15 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         }
 
         override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: %s", result)
-            listener?.onSuccess(tag())
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            listener?.onSuccess(
+                tag(),
+                BiometricCryptoObject(
+                    result?.cryptoObject?.getSignature(),
+                    result?.cryptoObject?.getCipher(),
+                    result?.cryptoObject?.getMac()
+                )
+            )
         }
 
         override fun onAuthenticationFailed() {
@@ -230,7 +260,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

@@ -21,6 +21,9 @@ package dev.skomlach.biometric.compat.engine.core
 
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -115,6 +118,7 @@ object Core {
 
     @JvmOverloads
     fun authenticate(
+        purpose: BiometricCryptographyPurpose?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate()
     ) {
@@ -123,7 +127,12 @@ object Core {
 
             for (module in reprintModuleHashMap.values) {
                 m = module
-                authenticate(module, listener, restartPredicate)
+                val biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                    "BiometricModule${module.tag()}",
+                    purpose,
+                    m.isUserAuthCanByUsedWithCrypto
+                )
+                authenticate(biometricCryptoObject, module, listener, restartPredicate)
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
@@ -136,6 +145,7 @@ object Core {
 
 
     fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         module: BiometricModule,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
@@ -148,7 +158,12 @@ object Core {
             cancelAuthentication(module)
             val cancellationSignal = CancellationSignal()
             cancellationSignals[module] = cancellationSignal
-            module.authenticate(cancellationSignal, listener, restartPredicate)
+            module.authenticate(
+                biometricCryptoObject,
+                cancellationSignal,
+                listener,
+                restartPredicate
+            )
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             listener?.onFailure(AuthenticationFailureReason.INTERNAL_ERROR, module.tag())
@@ -185,7 +200,10 @@ object Core {
      * @param listener The listener that will be notified of authentication events.
      */
 
-    fun authenticateWithoutRestart(listener: AuthenticationListener?) {
-        authenticate(listener, RestartPredicatesImpl.neverRestart())
+    fun authenticateWithoutRestart(
+        biometricCryptoObject: BiometricCryptographyPurpose?,
+        listener: AuthenticationListener?
+    ) {
+        authenticate(biometricCryptoObject, listener, RestartPredicatesImpl.neverRestart())
     }
 }

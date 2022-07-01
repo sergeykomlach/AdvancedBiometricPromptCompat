@@ -28,8 +28,8 @@ buildscript {
     ext.javaVersion = JavaVersion.VERSION_11
 
 
-    ext.libsMajorVersion = '2.0'
-    ext.libsMinorVersion = 102
+    ext.libsMajorVersion = '2.1'
+    ext.libsMinorVersion = 1
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -55,8 +55,8 @@ buildscript {
         classpath 'org.owasp:dependency-check-gradle:6.5.3'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.0'
-        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.1'
+        classpath 'com.google.gms:google-services:4.3.13'
     }
 }
 

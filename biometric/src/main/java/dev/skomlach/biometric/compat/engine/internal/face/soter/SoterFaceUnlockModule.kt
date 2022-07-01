@@ -24,6 +24,7 @@ import androidx.core.os.CancellationSignal
 import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -82,15 +83,21 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: BiometricManagerCompat.AuthenticationCallback =
-                    AuthCallback(restartPredicate, cancellationSignal, listener)
+                    AuthCallback(
+                        biometricCryptoObject,
+                        restartPredicate,
+                        cancellationSignal,
+                        listener
+                    )
 
                 // Why getCancellationSignalObject returns an Object is unexplained
                 val signalObject =
@@ -98,8 +105,19 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                val crypto = if (biometricCryptoObject == null) null else {
+                    if (biometricCryptoObject.cipher != null)
+                        BiometricManagerCompat.CryptoObject(biometricCryptoObject.cipher)
+                    else if (biometricCryptoObject.mac != null)
+                        BiometricManagerCompat.CryptoObject(biometricCryptoObject.mac)
+                    else if (biometricCryptoObject.signature != null)
+                        BiometricManagerCompat.CryptoObject(biometricCryptoObject.signature)
+                    else
+                        null
+                }
+                d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
-                    null,
+                    crypto,
                     0,
                     signalObject,
                     callback,
@@ -115,6 +133,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
     }
 
     internal inner class AuthCallback(
+        private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
@@ -142,14 +161,19 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -169,8 +193,15 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         }
 
         override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result")
-            listener?.onSuccess(tag())
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            listener?.onSuccess(
+                tag(),
+                BiometricCryptoObject(
+                    result?.cryptoObject?.getSignature(),
+                    result?.cryptoObject?.getCipher(),
+                    result?.cryptoObject?.getMac()
+                )
+            )
         }
 
         override fun onAuthenticationFailed() {
@@ -178,7 +209,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

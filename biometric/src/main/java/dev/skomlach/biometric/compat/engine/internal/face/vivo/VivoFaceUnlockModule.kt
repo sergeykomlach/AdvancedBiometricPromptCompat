@@ -24,6 +24,7 @@ import androidx.core.os.CancellationSignal
 import com.vivo.framework.facedetect.FaceDetectManager
 import com.vivo.framework.facedetect.FaceDetectManager.FaceAuthenticationCallback
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -49,6 +50,9 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
         listener?.initFinished(biometricMethod, this@VivoFaceUnlockModule)
     }
+
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
@@ -85,15 +89,21 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
                 val callback: FaceAuthenticationCallback =
-                    AuthCallback(restartPredicate, cancellationSignal, listener)
+                    AuthCallback(
+                        biometricCryptoObject,
+                        restartPredicate,
+                        cancellationSignal,
+                        listener
+                    )
 
                 // Why getCancellationSignalObject returns an Object is unexplained
                 val signalObject =
@@ -112,6 +122,7 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     }
 
     internal inner class AuthCallback(
+        private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
@@ -119,7 +130,14 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onFaceAuthenticationResult(errorCode: Int, retry_times: Int) {
             d("$name.onFaceAuthenticationResult: $errorCode-$retry_times")
             if (errorCode == FaceDetectManager.FACE_DETECT_SUCEESS) {
-                listener?.onSuccess(tag())
+                listener?.onSuccess(
+                    tag(),
+                    BiometricCryptoObject(
+                        biometricCryptoObject?.signature,
+                        biometricCryptoObject?.cipher,
+                        biometricCryptoObject?.mac
+                    )
+                )
                 return
             }
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -132,11 +150,16 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(cancellationSignal, listener, restartPredicate)
+                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else
                 if (restartPredicate?.invoke(failureReason) == true) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(cancellationSignal, listener, restartPredicate)
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,

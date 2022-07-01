@@ -47,6 +47,8 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     val name: String
         get() = javaClass.simpleName
     val context = AndroidContext.appContext
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = true
 
     fun getUserId(): Int {
         return try {

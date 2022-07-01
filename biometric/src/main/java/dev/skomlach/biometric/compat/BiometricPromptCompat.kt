@@ -376,7 +376,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val callback = object : AuthenticationCallback() {
 
             private var isOpened = AtomicBoolean(false)
-            override fun onSucceeded(confirmed: Set<BiometricType>) {
+            override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
                 try {
                     if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -620,7 +620,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     abstract class AuthenticationCallback {
         @MainThread
-        open fun onSucceeded(confirmed: Set<BiometricType>) {
+        open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
         }
 
         @MainThread
@@ -728,6 +728,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
 
+        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? = null
+
+
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
 
@@ -827,12 +830,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
+        fun getCryptographyPurpose(): BiometricCryptographyPurpose? {
+            return biometricCryptographyPurpose
+        }
+
         fun getBiometricAuthRequest(): BiometricAuthRequest {
             return biometricAuthRequest
         }
 
         fun getMultiWindowSupport(): MultiWindowSupport {
             return multiWindowSupport
+        }
+
+        fun setCryptographyPurpose(
+            biometricCryptographyPurpose: BiometricCryptographyPurpose
+        ): Builder {
+            this.biometricCryptographyPurpose = biometricCryptographyPurpose
+            return this
         }
 
         fun setExperimentalFeaturesEnabled(enabled: Boolean): Builder {

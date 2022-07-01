@@ -303,11 +303,17 @@ private fun startBioAuth() {
            this.setNegativeButton("Cancel", null)
            this.setEnabledNotification(false)//hide notification
            this.setEnabledBackgroundBiometricIcons(false)//hide duplicate biometric icons above dialog
+           this.setCryptographyPurpose(BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT))//request Cipher for encryption
        }.build()
 
        prompt.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
            override fun onSucceeded(confirmed: Set<BiometricType>) {
-               showToast("User authorized :)")
+               val encryptedData = CryptographyManager.encryptData(
+                 "Hello, my friends".toByteArray(Charset.forName("UTF-8")),
+                 confirmed
+               )
+             
+               showToast("User authorized :)\n Biometric used for Encryption=${encryptedData.biometricType}\n EncryptedData=${encryptedData.data}; InitializationVector=${encryptedData.initializationVector};")
            }
 
            override fun onCanceled() {

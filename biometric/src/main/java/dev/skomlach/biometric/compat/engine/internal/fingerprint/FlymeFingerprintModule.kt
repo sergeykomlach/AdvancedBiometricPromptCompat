@@ -24,6 +24,7 @@ import androidx.core.os.CancellationSignal
 import com.fingerprints.service.FingerprintManager
 import com.fingerprints.service.FingerprintManager.IdentifyCallback
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -75,6 +76,8 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         return ids
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
     override var isManagerAccessible = false
     override val isHardwarePresent: Boolean
         get() {
@@ -109,11 +112,12 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
 
     @Throws(SecurityException::class)
     override fun authenticate(
+        biometricCryptoObject: BiometricCryptoObject?,
         cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod")
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         if (isManagerAccessible) {
             try {
                 cancelFingerprintServiceFingerprintRequest()
@@ -121,7 +125,14 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 mFingerprintServiceFingerprintManager
                     ?.startIdentify(object : IdentifyCallback {
                         override fun onIdentified(i: Int, b: Boolean) {
-                            listener?.onSuccess(tag())
+                            listener?.onSuccess(
+                                tag(),
+                                BiometricCryptoObject(
+                                    biometricCryptoObject?.signature,
+                                    biometricCryptoObject?.cipher,
+                                    biometricCryptoObject?.mac
+                                )
+                            )
                             cancelFingerprintServiceFingerprintRequest()
                         }
 
@@ -132,11 +143,21 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                         private fun fail(reason: AuthenticationFailureReason) {
                             var failureReason: AuthenticationFailureReason? = reason
                             if (restartCauseTimeout(failureReason)) {
-                                authenticate(cancellationSignal, listener, restartPredicate)
+                                authenticate(
+                                    biometricCryptoObject,
+                                    cancellationSignal,
+                                    listener,
+                                    restartPredicate
+                                )
                             } else
                                 if (restartPredicate?.invoke(failureReason) == true) {
                                     listener?.onFailure(failureReason, tag())
-                                    authenticate(cancellationSignal, listener, restartPredicate)
+                                    authenticate(
+                                        biometricCryptoObject,
+                                        cancellationSignal,
+                                        listener,
+                                        restartPredicate
+                                    )
                                 } else {
                                     if (mutableListOf(
                                             AuthenticationFailureReason.SENSOR_FAILED,
