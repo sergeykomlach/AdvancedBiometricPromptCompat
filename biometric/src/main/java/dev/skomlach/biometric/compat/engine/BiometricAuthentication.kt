@@ -25,11 +25,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.view.View
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.AuthenticationResult
-import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
+import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -233,16 +229,16 @@ object BiometricAuthentication {
     }
 
     fun authenticate(
-        cryptographyPurpose: CryptographyPurpose?,
+        biometricCryptographyPurpose: BiometricCryptographyPurpose?,
         targetView: View?,
         method: BiometricType,
         listener: BiometricAuthenticationListener
     ) {
-        authenticate(cryptographyPurpose, targetView, listOf(method), listener)
+        authenticate(biometricCryptographyPurpose, targetView, listOf(method), listener)
     }
 
     fun authenticate(
-        cryptographyPurpose: CryptographyPurpose?,
+        biometricCryptographyPurpose: BiometricCryptographyPurpose?,
         targetView: View?,
         requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener
@@ -272,7 +268,7 @@ object BiometricAuthentication {
             return
         } else {
             val ref = SoftReference(listener)
-            Core.authenticate(cryptographyPurpose, object : AuthenticationListener {
+            Core.authenticate(biometricCryptographyPurpose, object : AuthenticationListener {
                 override fun onHelp(msg: CharSequence?) {
                     ref.get()?.onHelp(msg)
                 }

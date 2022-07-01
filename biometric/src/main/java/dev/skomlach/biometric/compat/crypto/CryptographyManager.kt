@@ -18,84 +18,36 @@
  */
 package dev.skomlach.biometric.compat.crypto
 
-import android.os.Build
 import dev.skomlach.biometric.compat.AuthenticationResult
-import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.BiometricCryptographyResult
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import java.util.*
-import javax.crypto.Cipher
 
 object CryptographyManager {
-
-    private val cache = WeakHashMap<Cipher, String>()
-    private val managerInterface: CryptographyManagerInterface =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            CryptographyManagerInterfaceMarshmallowImpl()
-        else
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                CryptographyManagerInterfaceKitkatImpl()
-            else
-                CryptographyManagerInterfaceLegacyImpl()
-
-    fun getBiometricCryptoObject(
-        type: BiometricType,
-        purpose: CryptographyPurpose?,
-        isUserAuthRequired: Boolean = true
-    ): BiometricCryptoObject? {
-        return getBiometricCryptoObject(type.name, purpose, isUserAuthRequired)
-    }
-
-    fun getBiometricCryptoObject(
-        name: String?,
-        purpose: CryptographyPurpose?,
-        isUserAuthRequired: Boolean = true
-    ): BiometricCryptoObject? {
-        if (purpose == null || name.isNullOrEmpty())
-            return null
-        val cipher =
-            when (purpose.purpose) {
-                CryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
-                    name,
-                    isUserAuthRequired
-                )
-                CryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
-                    name,
-                    isUserAuthRequired,
-                    purpose.initVector
-                )
-                else -> throw IllegalArgumentException("Cryptography purpose should be CryptographyPurpose.ENCRYPT or CryptographyPurpose.DECRYPT")
-            }
-        cache[cipher] = name
-        return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
-    }
-
     fun encryptData(
         plaintext: ByteArray,
         confirmed: Set<AuthenticationResult>
-    ): CryptographyResult? {
+    ): BiometricCryptographyResult? {
         for (result in confirmed) {
             try {
                 val type = result.confirmed ?: continue
                 val cipher = result.cryptoObject?.cipher ?: continue
                 val bytes = cipher.doFinal(plaintext)
-                return CryptographyResult(type, bytes, cipher.iv)
+                return BiometricCryptographyResult(type, bytes, cipher.iv)
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
         }
         return null
     }
-
     fun decryptData(
         ciphertext: ByteArray,
         confirmed: Set<AuthenticationResult>
-    ): CryptographyResult? {
+    ): BiometricCryptographyResult? {
         for (result in confirmed) {
             try {
                 val type = result.confirmed ?: continue
                 val cipher = result.cryptoObject?.cipher ?: continue
-                return CryptographyResult(type, cipher.doFinal(ciphertext))
+                return BiometricCryptographyResult(type, cipher.doFinal(ciphertext))
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }

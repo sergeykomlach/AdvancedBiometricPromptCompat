@@ -37,7 +37,7 @@ import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.*
-import dev.skomlach.biometric.compat.crypto.CryptographyManager
+import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
@@ -440,7 +440,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             null
         }
 
-        val biometricCryptoObject = CryptographyManager.getBiometricCryptoObject(
+        val biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
             "BiometricPromptCompat",
             builder.getCryptographyPurpose(),
             true

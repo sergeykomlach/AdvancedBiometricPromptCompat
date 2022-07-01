@@ -36,7 +36,6 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollCha
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
-import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -729,7 +728,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
 
-        private var cryptographyPurpose: CryptographyPurpose? = null
+        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? = null
 
 
         @ColorInt
@@ -831,8 +830,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
-        fun getCryptographyPurpose(): CryptographyPurpose? {
-            return cryptographyPurpose
+        fun getCryptographyPurpose(): BiometricCryptographyPurpose? {
+            return biometricCryptographyPurpose
         }
 
         fun getBiometricAuthRequest(): BiometricAuthRequest {
@@ -844,9 +843,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setCryptographyPurpose(
-            cryptographyPurpose: CryptographyPurpose
+            biometricCryptographyPurpose: BiometricCryptographyPurpose
         ): Builder {
-            this.cryptographyPurpose = cryptographyPurpose
+            this.biometricCryptographyPurpose = biometricCryptographyPurpose
             return this
         }
 

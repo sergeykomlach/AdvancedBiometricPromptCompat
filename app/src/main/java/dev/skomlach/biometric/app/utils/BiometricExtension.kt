@@ -25,7 +25,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
-import dev.skomlach.biometric.compat.crypto.CryptographyPurpose
+import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import java.nio.charset.Charset
@@ -82,8 +82,8 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             null
         )
         .setCryptographyPurpose(
-            CryptographyPurpose(
-                if (cryptoTests[biometricAuthRequest]?.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT,
+            BiometricCryptographyPurpose(
+                if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,
                 cryptoTests[biometricAuthRequest]?.vector
             )
         )

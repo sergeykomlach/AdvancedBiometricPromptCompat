@@ -23,16 +23,8 @@ import javax.crypto.Cipher
 
 interface CryptographyManagerInterface {
 
-    /**
-     * This method first gets or generates an instance of SecretKey and then initializes the Cipher
-     * with the key. The secret key uses [ENCRYPT_MODE][Cipher.ENCRYPT_MODE] is used.
-     */
     fun getInitializedCipherForEncryption(keyName: String, isUserAuthRequired: Boolean): Cipher
 
-    /**
-     * This method first gets or generates an instance of SecretKey and then initializes the Cipher
-     * with the key. The secret key uses [DECRYPT_MODE][Cipher.DECRYPT_MODE] is used.
-     */
     fun getInitializedCipherForDecryption(
         keyName: String,
         isUserAuthRequired: Boolean,
