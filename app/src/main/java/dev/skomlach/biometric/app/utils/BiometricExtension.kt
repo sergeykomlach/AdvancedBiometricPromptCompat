@@ -31,7 +31,11 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import java.nio.charset.Charset
 
 private val testString = "Test data"
-private var cryptoTest = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+private var cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>().apply {
+    for(r in BiometricPromptCompat.getAvailableAuthRequests()){
+        this[r] = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+    }
+}
 
 fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
@@ -78,7 +82,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             null
         )
         .setCryptographyPurpose(
-            if (cryptoTest.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT
+            if (cryptoTests[biometricAuthRequest]?.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT
         )
         .build()
 
@@ -97,26 +101,26 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             confirmed.firstOrNull {
                 it.cryptoObject?.cipher != null
             }?.cryptoObject?.cipher?.let {
-                if (cryptoTest.vector == null) {
-                    CryptographyManager.encryptData(cryptoTest.byteArray, it).let {
+                if (cryptoTests[biometricAuthRequest]?.vector == null) {
+                    CryptographyManager.encryptData(cryptoTests[biometricAuthRequest]?.byteArray!!, it).let {
                         cryptoText = "Crypto encryption result=${
                             String(
                                 it,
                                 Charset.forName("UTF-8")
                             )
                         }"
-                        cryptoTest = CryptoTest(it, it)
+                        cryptoTests[biometricAuthRequest]  = CryptoTest(it, it)
                     }
 
                 } else {
-                    CryptographyManager.decryptData(cryptoTest.byteArray, it).let {
+                    CryptographyManager.decryptData(cryptoTests[biometricAuthRequest]?.byteArray!!, it).let {
                         cryptoText = "Crypto decryption result=${
                             String(
                                 it,
                                 Charset.forName("UTF-8")
                             )
                         }"
-                        cryptoTest = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+                        cryptoTests[biometricAuthRequest] = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
                     }
 
                 }
