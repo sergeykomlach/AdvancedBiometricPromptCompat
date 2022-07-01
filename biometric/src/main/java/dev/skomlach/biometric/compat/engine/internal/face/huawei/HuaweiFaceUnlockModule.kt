@@ -195,12 +195,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                                 FaceManager.CryptoObject(biometricCryptoObject.cipher)
                             else if (biometricCryptoObject.mac != null)
                                 FaceManager.CryptoObject(biometricCryptoObject.mac)
-                            if (biometricCryptoObject.signature != null)
+                            else if (biometricCryptoObject.signature != null)
                                 FaceManager.CryptoObject(biometricCryptoObject.signature)
                             else
                                 null
                         }
                         // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                        d("$name.authenticate:  Crypto=$crypto")
                         it.authenticate(
                             crypto,
                             signalObject,

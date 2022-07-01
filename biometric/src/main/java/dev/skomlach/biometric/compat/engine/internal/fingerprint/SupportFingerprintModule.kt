@@ -147,11 +147,12 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         FingerprintManagerCompat.CryptoObject(biometricCryptoObject.cipher)
                     else if (biometricCryptoObject.mac != null)
                         FingerprintManagerCompat.CryptoObject(biometricCryptoObject.mac)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         FingerprintManagerCompat.CryptoObject(biometricCryptoObject.signature)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 it.authenticate(
                     crypto,

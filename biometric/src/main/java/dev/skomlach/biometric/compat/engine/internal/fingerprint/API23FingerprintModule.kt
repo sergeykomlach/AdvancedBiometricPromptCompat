@@ -128,11 +128,12 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                         FingerprintManager.CryptoObject(biometricCryptoObject.cipher)
                     else if (biometricCryptoObject.mac != null)
                         FingerprintManager.CryptoObject(biometricCryptoObject.mac)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         FingerprintManager.CryptoObject(biometricCryptoObject.signature)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 it.authenticate(
                     crypto,

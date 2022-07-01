@@ -110,11 +110,12 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         BiometricManagerCompat.CryptoObject(biometricCryptoObject.cipher)
                     else if (biometricCryptoObject.mac != null)
                         BiometricManagerCompat.CryptoObject(biometricCryptoObject.mac)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         BiometricManagerCompat.CryptoObject(biometricCryptoObject.signature)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
                     crypto,
                     0,

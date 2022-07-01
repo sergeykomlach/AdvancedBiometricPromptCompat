@@ -450,13 +450,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 BiometricPrompt.CryptoObject(biometricCryptoObject.cipher)
             else if (biometricCryptoObject.mac != null)
                 BiometricPrompt.CryptoObject(biometricCryptoObject.mac)
-            if (biometricCryptoObject.signature != null)
+            else if (biometricCryptoObject.signature != null)
                 BiometricPrompt.CryptoObject(biometricCryptoObject.signature)
             else
                 dummyCrypto
         }
 
-        d("$BiometricPromptCompat.authenticate - $BiometricPromptCompat; Crypto=$crpObject")
+        d("BiometricPromptCompat.authenticate:  Crypto=$crpObject")
         if (crpObject != null) {
             try {
                 biometricPrompt.authenticate(biometricPromptInfo, crpObject)

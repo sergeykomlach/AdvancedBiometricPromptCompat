@@ -131,11 +131,12 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                         BiometricManagerCompat.CryptoObject(biometricCryptoObject.cipher)
                     else if (biometricCryptoObject.mac != null)
                         BiometricManagerCompat.CryptoObject(biometricCryptoObject.mac)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         BiometricManagerCompat.CryptoObject(biometricCryptoObject.signature)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
                     crypto,
                     0,

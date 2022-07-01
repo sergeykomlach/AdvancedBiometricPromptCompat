@@ -200,11 +200,12 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         SemIrisManager.CryptoObject(biometricCryptoObject.cipher, null)
                     else if (biometricCryptoObject.mac != null)
                         SemIrisManager.CryptoObject(biometricCryptoObject.mac, null)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         SemIrisManager.CryptoObject(biometricCryptoObject.signature, null)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
                     crypto,
                     signalObject,

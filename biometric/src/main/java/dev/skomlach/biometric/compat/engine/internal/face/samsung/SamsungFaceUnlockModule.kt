@@ -137,11 +137,12 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         SemBioFaceManager.CryptoObject(biometricCryptoObject.cipher, null)
                     else if (biometricCryptoObject.mac != null)
                         SemBioFaceManager.CryptoObject(biometricCryptoObject.mac, null)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         SemBioFaceManager.CryptoObject(biometricCryptoObject.signature, null)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
                     crypto,
                     signalObject,

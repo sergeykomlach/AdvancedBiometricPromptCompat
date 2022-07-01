@@ -294,11 +294,12 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         CryptoObject(biometricCryptoObject.cipher)
                     else if (biometricCryptoObject.mac != null)
                         CryptoObject(biometricCryptoObject.mac)
-                    if (biometricCryptoObject.signature != null)
+                    else if (biometricCryptoObject.signature != null)
                         CryptoObject(biometricCryptoObject.signature)
                     else
                         null
                 }
+                d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
                     crypto,
                     signalObject,
