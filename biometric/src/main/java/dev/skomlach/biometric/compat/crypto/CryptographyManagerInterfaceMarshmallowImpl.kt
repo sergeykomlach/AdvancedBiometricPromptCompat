@@ -30,8 +30,6 @@ import javax.crypto.SecretKey
 
 @RequiresApi(Build.VERSION_CODES.M)
 class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterfaceKitkatImpl() {
-    private val KEY_SIZE: Int = 256
-
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean
@@ -77,7 +75,9 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
         // If Secretkey was previously created for that keyName, then grab and return it.
         keyStore.load(null) // Keystore must be loaded before it can be accessed
-        keyStore.getKey(keyName, null)?.let { return it as SecretKey }
+        val key = keyStore.getKey(keyName, null)
+        if(key is SecretKey)
+            return key
         // if you reach here, then a new SecretKey must be generated for that keyName
         val paramsBuilder = KeyGenParameterSpec.Builder(
             keyName,
@@ -86,10 +86,16 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         paramsBuilder.apply {
             setBlockModes(BLOCK_MODE_CBC)
             setEncryptionPaddings(ENCRYPTION_PADDING_PKCS7)
+            setUserAuthenticationRequired(true)
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 setIsStrongBoxBacked(true)
             }
-            setUserAuthenticationRequired(isUserAuthRequired)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                setInvalidatedByBiometricEnrollment(isUserAuthRequired)
+            }
+
+
         }
 
         val keyGenParams = paramsBuilder.build()
