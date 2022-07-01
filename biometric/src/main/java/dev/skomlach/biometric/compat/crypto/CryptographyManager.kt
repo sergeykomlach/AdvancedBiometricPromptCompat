@@ -19,8 +19,10 @@
 package dev.skomlach.biometric.compat.crypto
 
 import android.os.Build
+import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.util.*
 import javax.crypto.Cipher
 
@@ -52,32 +54,50 @@ object CryptographyManager {
         if (purpose == null || name.isNullOrEmpty())
             return null
         val cipher =
-            if (purpose == CryptographyPurpose.ENCRYPT)
-                managerInterface.getInitializedCipherForEncryption(
+            when (purpose.purpose) {
+                CryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
                     name,
                     isUserAuthRequired
                 )
-            else managerInterface.getInitializedCipherForDecryption(
-                name,
-                isUserAuthRequired
-            )
+                CryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
+                    name,
+                    isUserAuthRequired,
+                    purpose.initVector
+                )
+                else -> throw IllegalArgumentException("Cryptography purpose should be CryptographyPurpose.ENCRYPT or CryptographyPurpose.DECRYPT")
+            }
         cache[cipher] = name
         return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
     }
 
-    fun encryptData(plaintext: ByteArray, cipher: Cipher): ByteArray {
-        val bytes = cipher.doFinal(plaintext)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && managerInterface is CryptographyManagerInterfaceMarshmallowImpl) {
-            cache[cipher]?.let {
-                managerInterface.storeKeyPairInFallback(it, cipher.iv)
+    fun encryptData(
+        plaintext: ByteArray,
+        confirmed: Set<AuthenticationResult>
+    ): CryptographyResult? {
+        for (result in confirmed) {
+            try {
+                val cipher = result.cryptoObject?.cipher ?: continue
+                val bytes = cipher.doFinal(plaintext)
+                return CryptographyResult(bytes, cipher.iv)
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
-
         }
-        return bytes
+        return null
     }
 
-    fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {
-        return cipher.doFinal(ciphertext)
+    fun decryptData(
+        ciphertext: ByteArray,
+        confirmed: Set<AuthenticationResult>
+    ): CryptographyResult? {
+        for (result in confirmed) {
+            try {
+                val cipher = result.cryptoObject?.cipher ?: continue
+                return CryptographyResult(cipher.doFinal(ciphertext))
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
+        }
+        return null
     }
-
 }

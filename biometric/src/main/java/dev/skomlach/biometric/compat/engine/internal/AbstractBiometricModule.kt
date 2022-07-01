@@ -49,6 +49,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     val context = AndroidContext.appContext
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = true
+
     fun getUserId(): Int {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {

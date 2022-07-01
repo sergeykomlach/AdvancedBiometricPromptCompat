@@ -85,7 +85,8 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
-        isUserAuthRequired: Boolean
+        isUserAuthRequired: Boolean,
+        initializationVector: ByteArray?
     ): Cipher {
         try {
             val cipher = getCipher()

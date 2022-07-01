@@ -32,7 +32,7 @@ import java.nio.charset.Charset
 
 private val testString = "Test data"
 private var cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>().apply {
-    for(r in BiometricPromptCompat.getAvailableAuthRequests()){
+    for (r in BiometricPromptCompat.getAvailableAuthRequests()) {
         this[r] = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
     }
 }
@@ -82,7 +82,10 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             null
         )
         .setCryptographyPurpose(
-            if (cryptoTests[biometricAuthRequest]?.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT
+            CryptographyPurpose(
+                if (cryptoTests[biometricAuthRequest]?.vector == null) CryptographyPurpose.ENCRYPT else CryptographyPurpose.DECRYPT,
+                cryptoTests[biometricAuthRequest]?.vector
+            )
         )
         .build()
 
@@ -98,36 +101,43 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             var cryptoText = "Crypto doesn't work or disabled"
-            confirmed.firstOrNull {
-                it.cryptoObject?.cipher != null
-            }?.cryptoObject?.cipher?.let {
-                if (cryptoTests[biometricAuthRequest]?.vector == null) {
-                    CryptographyManager.encryptData(cryptoTests[biometricAuthRequest]?.byteArray!!, it).let {
-                        cryptoText = "Crypto encryption result=${
-                            String(
-                                it,
-                                Charset.forName("UTF-8")
-                            )
-                        }"
-                        cryptoTests[biometricAuthRequest]  = CryptoTest(it, it)
-                    }
-
-                } else {
-                    CryptographyManager.decryptData(cryptoTests[biometricAuthRequest]?.byteArray!!, it).let {
-                        cryptoText = "Crypto decryption result=${
-                            String(
-                                it,
-                                Charset.forName("UTF-8")
-                            )
-                        }"
-                        cryptoTests[biometricAuthRequest] = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
-                    }
-
+            if (cryptoTests[biometricAuthRequest]?.vector == null) {
+                CryptographyManager.encryptData(
+                    cryptoTests[biometricAuthRequest]?.byteArray!!,
+                    confirmed
+                )?.let {
+                    cryptoText = "Crypto encryption result=${
+                        String(
+                            it.data,
+                            Charset.forName("UTF-8")
+                        )
+                    }"
+                    cryptoTests[biometricAuthRequest] = CryptoTest(it.data, it.initializationVector)
                 }
+
+            } else {
+                CryptographyManager.decryptData(
+                    cryptoTests[biometricAuthRequest]?.byteArray!!,
+                    confirmed
+                )?.let {
+                    cryptoText = "Crypto decryption result=${
+                        String(
+                            it.data,
+                            Charset.forName("UTF-8")
+                        )
+                    }"
+                    cryptoTests[biometricAuthRequest] =
+                        CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+                }
+
             }
 
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed; $cryptoText")
-            Toast.makeText(AndroidContext.appContext, "Succeeded - $confirmed; $cryptoText", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                AndroidContext.appContext,
+                "Succeeded - $confirmed; $cryptoText",
+                Toast.LENGTH_SHORT
+            )
                 .show()
         }
 
@@ -167,7 +177,29 @@ private fun showAlertDialog(context: Context, msg: String) {
     AlertDialog.Builder(context).setTitle("Biometric Error").setMessage(msg)
         .setNegativeButton(android.R.string.cancel, null).show()
 }
+
 data class CryptoTest(
     val byteArray: ByteArray,
     val vector: ByteArray? = null
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CryptoTest
+
+        if (!byteArray.contentEquals(other.byteArray)) return false
+        if (vector != null) {
+            if (other.vector == null) return false
+            if (!vector.contentEquals(other.vector)) return false
+        } else if (other.vector != null) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = byteArray.contentHashCode()
+        result = 31 * result + (vector?.contentHashCode() ?: 0)
+        return result
+    }
+}

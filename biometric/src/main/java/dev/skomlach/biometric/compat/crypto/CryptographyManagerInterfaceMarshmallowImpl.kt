@@ -22,11 +22,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties.*
-import android.util.Base64
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -35,17 +33,13 @@ import javax.crypto.spec.GCMParameterSpec
 
 @RequiresApi(Build.VERSION_CODES.M)
 class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface {
-    private val KEYSTORE_FALLBACK_NAME: String
-        get() = "biometric_keystore_fallback"
-    private val VECTOR_NAME: String
-        get() = "vectorName"
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
     private val KEY_SIZE: Int = 256
     private val context = AndroidContext.appContext
     override fun getInitializedCipherForEncryption(
         keyName: String,
-        isUserAuthRequired: Boolean
+        isUserAuthRequired: Boolean,
     ): Cipher {
         return try {
             val cipher = getCipher()
@@ -67,11 +61,11 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
-        isUserAuthRequired: Boolean
+        isUserAuthRequired: Boolean,
+        initializationVector: ByteArray?
     ): Cipher {
         return try {
-            val initializationVector = getKeyPairFromFallback(keyName)
-                ?: throw IllegalStateException("Initial vector is null")
+
             val cipher = getCipher()
             val secretKey = getOrCreateSecretKey(
                 "CryptographyManagerInterfaceMarshmallowImpl.$keyName",
@@ -124,48 +118,6 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         )
         keyGenerator.init(keyGenParams)
         return keyGenerator.generateKey()
-    }
-
-    private fun getKeyPairFromFallback(name: String): ByteArray? {
-        try {
-            val sharedPreferences =
-                SharedPreferenceProvider.getPreferences(
-                    "$KEYSTORE_FALLBACK_NAME-CryptographyManagerInterfaceMarshmallowImpl.$name"
-                )
-
-            return Base64.decode(
-                sharedPreferences.getString(VECTOR_NAME, null),
-                Base64.DEFAULT
-            )
-
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(
-                e,
-                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$name"
-            )
-        }
-        return null
-    }
-
-    fun storeKeyPairInFallback(name: String, vector: ByteArray) {
-
-        try {
-            val sharedPreferences =
-                SharedPreferenceProvider.getPreferences(
-                    "$KEYSTORE_FALLBACK_NAME-CryptographyManagerInterfaceMarshmallowImpl.$name"
-                )
-            sharedPreferences.edit()
-                .putString(
-                    VECTOR_NAME,
-                    Base64.encodeToString(vector, Base64.DEFAULT)
-                )
-                .apply()
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(
-                e,
-                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$name"
-            )
-        }
     }
 
     private fun hasStrongBox(): Boolean {

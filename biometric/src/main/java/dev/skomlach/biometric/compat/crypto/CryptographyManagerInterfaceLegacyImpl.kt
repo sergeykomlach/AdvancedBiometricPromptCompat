@@ -67,7 +67,8 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
 
     override fun getInitializedCipherForDecryption(
         keyName: String,
-        isUserAuthRequired: Boolean
+        isUserAuthRequired: Boolean,
+        initializationVector: ByteArray?
     ): Cipher {
         val cipher = getCipher()
         getOrCreateSecretKey("CryptographyManagerInterfaceLegacyImpl.$keyName")

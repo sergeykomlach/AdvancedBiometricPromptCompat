@@ -19,31 +19,26 @@
 
 package dev.skomlach.biometric.compat.crypto
 
-data class CryptographyPurpose(val purpose: Int, val initVector: ByteArray?) {
-    companion object {
-        const val ENCRYPT = 1000
-        const val DECRYPT = 1001
-    }
-
+data class CryptographyResult(val data: ByteArray, val initializationVector: ByteArray? = null) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as CryptographyPurpose
+        other as CryptographyResult
 
-        if (purpose != other.purpose) return false
-
-        if (initVector != null) {
-            if (other.initVector == null) return false
-            if (!initVector.contentEquals(other.initVector)) return false
-        } else if (other.initVector != null) return false
+        if (!data.contentEquals(other.data)) return false
+        if (initializationVector != null) {
+            if (other.initializationVector == null) return false
+            if (!initializationVector.contentEquals(other.initializationVector)) return false
+        } else if (other.initializationVector != null) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = purpose
-        result = 31 * result + (initVector?.contentHashCode() ?: 0)
+        var result = data.contentHashCode()
+        result = 31 * result + (initializationVector?.contentHashCode() ?: 0)
         return result
     }
+
 }
