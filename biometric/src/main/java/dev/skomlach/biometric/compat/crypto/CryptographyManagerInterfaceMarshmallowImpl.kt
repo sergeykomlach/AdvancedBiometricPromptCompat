@@ -18,12 +18,14 @@
  */
 package dev.skomlach.biometric.compat.crypto
 
+import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties.*
 import android.util.Base64
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -40,7 +42,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
     private val KEY_SIZE: Int = 256
-
+    private val context = AndroidContext.appContext
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean
@@ -107,6 +109,12 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
             setKeySize(KEY_SIZE)
             setUserAuthenticationRequired(isUserAuthRequired)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                setInvalidatedByBiometricEnrollment(isUserAuthRequired)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                setIsStrongBoxBacked(hasStrongBox())
+            }
         }
 
         val keyGenParams = paramsBuilder.build()
@@ -157,6 +165,15 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 e,
                 "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$name"
             )
+        }
+    }
+
+    private fun hasStrongBox(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            context.packageManager
+                .hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+        } else {
+            false
         }
     }
 }
