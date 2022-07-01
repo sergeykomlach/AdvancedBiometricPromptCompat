@@ -19,13 +19,20 @@
 
 package dev.skomlach.biometric.compat.crypto
 
-data class CryptographyResult(val data: ByteArray, val initializationVector: ByteArray? = null) {
+import dev.skomlach.biometric.compat.BiometricType
+
+data class CryptographyResult(
+    val biometricType: BiometricType,
+    val data: ByteArray,
+    val initializationVector: ByteArray? = null
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
         other as CryptographyResult
 
+        if (biometricType != other.biometricType) return false
         if (!data.contentEquals(other.data)) return false
         if (initializationVector != null) {
             if (other.initializationVector == null) return false
@@ -36,9 +43,9 @@ data class CryptographyResult(val data: ByteArray, val initializationVector: Byt
     }
 
     override fun hashCode(): Int {
-        var result = data.contentHashCode()
+        var result = biometricType.hashCode()
+        result = 31 * result + data.contentHashCode()
         result = 31 * result + (initializationVector?.contentHashCode() ?: 0)
         return result
     }
-
 }

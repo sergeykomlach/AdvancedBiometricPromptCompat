@@ -76,9 +76,10 @@ object CryptographyManager {
     ): CryptographyResult? {
         for (result in confirmed) {
             try {
+                val type = result.confirmed ?: continue
                 val cipher = result.cryptoObject?.cipher ?: continue
                 val bytes = cipher.doFinal(plaintext)
-                return CryptographyResult(bytes, cipher.iv)
+                return CryptographyResult(type, bytes, cipher.iv)
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
@@ -92,8 +93,9 @@ object CryptographyManager {
     ): CryptographyResult? {
         for (result in confirmed) {
             try {
+                val type = result.confirmed ?: continue
                 val cipher = result.cryptoObject?.cipher ?: continue
-                return CryptographyResult(cipher.doFinal(ciphertext))
+                return CryptographyResult(type, cipher.doFinal(ciphertext))
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
