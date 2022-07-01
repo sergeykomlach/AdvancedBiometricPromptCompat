@@ -31,17 +31,25 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.*
 import javax.crypto.Cipher
 
-open class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
+class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
+    private val KEYSTORE_FALLBACK_NAME: String
+        get() = "biometric_keystore_fallback"
+    private val PRIVATE_KEY_NAME: String
+        get() = "privateKey"
+    private val PUBLIC_KEY_NAME: String
+        get() = "publicKey"
+    private val TYPE_RSA: String
+        get() = "RSA"
 
-    val context = AndroidContext.appContext
+    private val context = AndroidContext.appContext
 
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean
     ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey(keyName)
-        val keys = getPublicKeys(keyName)
+        getOrCreateSecretKey("CryptographyManagerInterfaceLegacyImpl.$keyName")
+        val keys = getPublicKeys("CryptographyManagerInterfaceLegacyImpl.$keyName")
         for (key in keys) {
             try {
                 key?.let {
@@ -62,8 +70,8 @@ open class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface
         isUserAuthRequired: Boolean
     ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey(keyName)
-        val keys = getPrivateKeys(keyName)
+        getOrCreateSecretKey("CryptographyManagerInterfaceLegacyImpl.$keyName")
+        val keys = getPrivateKeys("CryptographyManagerInterfaceLegacyImpl.$keyName")
         for (key in keys) {
             try {
                 key?.let {

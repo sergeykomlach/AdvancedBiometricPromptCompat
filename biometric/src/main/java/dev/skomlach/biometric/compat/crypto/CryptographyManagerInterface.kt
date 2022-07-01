@@ -22,16 +22,6 @@ package dev.skomlach.biometric.compat.crypto
 import javax.crypto.Cipher
 
 interface CryptographyManagerInterface {
-    val KEYSTORE_FALLBACK_NAME: String
-        get() = "biometric_keystore_fallback"
-    val PRIVATE_KEY_NAME: String
-        get() = "privateKey"
-    val PUBLIC_KEY_NAME: String
-        get() = "publicKey"
-    val TYPE_RSA: String
-        get() = "RSA"
-    val ANDROID_KEYSTORE_PROVIDER_TYPE: String
-        get() = "AndroidKeyStore"
 
     /**
      * This method first gets or generates an instance of SecretKey and then initializes the Cipher

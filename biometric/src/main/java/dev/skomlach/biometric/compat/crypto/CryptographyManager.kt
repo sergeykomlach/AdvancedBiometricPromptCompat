@@ -21,11 +21,13 @@ package dev.skomlach.biometric.compat.crypto
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricType
+import java.util.*
 import javax.crypto.Cipher
 
 object CryptographyManager {
 
-    private fun getCryptographyManager(): CryptographyManagerInterface =
+    private val cache = WeakHashMap<Cipher, String>()
+    private val managerInterface: CryptographyManagerInterface =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             CryptographyManagerInterfaceMarshmallowImpl()
         else
@@ -51,19 +53,27 @@ object CryptographyManager {
             return null
         val cipher =
             if (purpose == CryptographyPurpose.ENCRYPT)
-                getCryptographyManager().getInitializedCipherForEncryption(
+                managerInterface.getInitializedCipherForEncryption(
                     name,
                     isUserAuthRequired
                 )
-            else getCryptographyManager().getInitializedCipherForDecryption(
+            else managerInterface.getInitializedCipherForDecryption(
                 name,
                 isUserAuthRequired
             )
+        cache[cipher] = name
         return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
     }
 
     fun encryptData(plaintext: ByteArray, cipher: Cipher): ByteArray {
-        return cipher.doFinal(plaintext)
+        val bytes = cipher.doFinal(plaintext)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && managerInterface is CryptographyManagerInterfaceMarshmallowImpl) {
+            cache[cipher]?.let {
+                managerInterface.storeKeyPairInFallback(it, cipher.iv)
+            }
+
+        }
+        return bytes
     }
 
     fun decryptData(ciphertext: ByteArray, cipher: Cipher): ByteArray {

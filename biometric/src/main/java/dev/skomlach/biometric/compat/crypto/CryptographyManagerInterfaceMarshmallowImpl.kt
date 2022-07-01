@@ -21,27 +21,44 @@ package dev.skomlach.biometric.compat.crypto
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties.*
+import android.util.Base64
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 
 @RequiresApi(Build.VERSION_CODES.M)
-class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterfaceKitkatImpl() {
+class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface {
+    private val KEYSTORE_FALLBACK_NAME: String
+        get() = "biometric_keystore_fallback"
+    private val VECTOR_NAME: String
+        get() = "vectorName"
+    private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
+        get() = "AndroidKeyStore"
+    private val KEY_SIZE: Int = 256
+
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean
     ): Cipher {
         return try {
             val cipher = getCipher()
-            val secretKey = getOrCreateSecretKey(keyName, isUserAuthRequired)
+            val secretKey = getOrCreateSecretKey(
+                "CryptographyManagerInterfaceMarshmallowImpl.$keyName",
+                isUserAuthRequired
+            )
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
             cipher
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            super.getInitializedCipherForEncryption(keyName, isUserAuthRequired)
+            BiometricLoggerImpl.e(
+                e,
+                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+            )
+            throw e
         }
     }
 
@@ -51,51 +68,45 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         isUserAuthRequired: Boolean
     ): Cipher {
         return try {
+            val initializationVector = getKeyPairFromFallback(keyName)
+                ?: throw IllegalStateException("Initial vector is null")
             val cipher = getCipher()
-            val secretKey = getOrCreateSecretKey(keyName, isUserAuthRequired)
-            cipher.init(Cipher.DECRYPT_MODE, secretKey)
-            cipher
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            super.getInitializedCipherForDecryption(
-                keyName,
+            val secretKey = getOrCreateSecretKey(
+                "CryptographyManagerInterfaceMarshmallowImpl.$keyName",
                 isUserAuthRequired
             )
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, initializationVector))
+            cipher
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(
+                e,
+                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+            )
+            throw e
         }
     }
 
     private fun getCipher(): Cipher {
-        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_CBC/$ENCRYPTION_PADDING_PKCS7"
+        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_GCM/$ENCRYPTION_PADDING_NONE"
         return Cipher.getInstance(transformation)
     }
 
     private fun getOrCreateSecretKey(keyName: String, isUserAuthRequired: Boolean): SecretKey {
-
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
-
         // If Secretkey was previously created for that keyName, then grab and return it.
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
         keyStore.load(null) // Keystore must be loaded before it can be accessed
-        val key = keyStore.getKey(keyName, null)
-        if(key is SecretKey)
-            return key
+        keyStore.getKey(keyName, null)?.let { return it as SecretKey }
+
         // if you reach here, then a new SecretKey must be generated for that keyName
         val paramsBuilder = KeyGenParameterSpec.Builder(
             keyName,
             PURPOSE_ENCRYPT or PURPOSE_DECRYPT
         )
         paramsBuilder.apply {
-            setBlockModes(BLOCK_MODE_CBC)
-            setEncryptionPaddings(ENCRYPTION_PADDING_PKCS7)
-            setUserAuthenticationRequired(true)
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                setIsStrongBoxBacked(true)
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                setInvalidatedByBiometricEnrollment(isUserAuthRequired)
-            }
-
-
+            setBlockModes(BLOCK_MODE_GCM)
+            setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
+            setKeySize(KEY_SIZE)
+            setUserAuthenticationRequired(isUserAuthRequired)
         }
 
         val keyGenParams = paramsBuilder.build()
@@ -107,4 +118,45 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         return keyGenerator.generateKey()
     }
 
+    private fun getKeyPairFromFallback(name: String): ByteArray? {
+        try {
+            val sharedPreferences =
+                SharedPreferenceProvider.getPreferences(
+                    "$KEYSTORE_FALLBACK_NAME-CryptographyManagerInterfaceMarshmallowImpl.$name"
+                )
+
+            return Base64.decode(
+                sharedPreferences.getString(VECTOR_NAME, null),
+                Base64.DEFAULT
+            )
+
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(
+                e,
+                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$name"
+            )
+        }
+        return null
+    }
+
+    fun storeKeyPairInFallback(name: String, vector: ByteArray) {
+
+        try {
+            val sharedPreferences =
+                SharedPreferenceProvider.getPreferences(
+                    "$KEYSTORE_FALLBACK_NAME-CryptographyManagerInterfaceMarshmallowImpl.$name"
+                )
+            sharedPreferences.edit()
+                .putString(
+                    VECTOR_NAME,
+                    Base64.encodeToString(vector, Base64.DEFAULT)
+                )
+                .apply()
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(
+                e,
+                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$name"
+            )
+        }
+    }
 }

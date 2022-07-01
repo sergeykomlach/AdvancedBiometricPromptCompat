@@ -27,6 +27,7 @@ import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.math.BigInteger
 import java.security.*
@@ -39,7 +40,18 @@ import javax.crypto.Cipher
 import javax.security.auth.x500.X500Principal
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
-open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterfaceLegacyImpl() {
+class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
+    private val KEYSTORE_FALLBACK_NAME: String
+        get() = "biometric_keystore_fallback"
+    private val PRIVATE_KEY_NAME: String
+        get() = "privateKey"
+    private val PUBLIC_KEY_NAME: String
+        get() = "publicKey"
+    private val TYPE_RSA: String
+        get() = "RSA"
+    private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
+        get() = "AndroidKeyStore"
+    private val context = AndroidContext.appContext
 
     override fun getInitializedCipherForEncryption(
         keyName: String,
@@ -47,8 +59,8 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
     ): Cipher {
         try {
             val cipher = getCipher()
-            getOrCreateSecretKey(keyName)
-            val keys = getPublicKeys(keyName)
+            getOrCreateSecretKey("CryptographyManagerInterfaceKitkatImpl.$keyName")
+            val keys = getPublicKeys("CryptographyManagerInterfaceKitkatImpl.$keyName")
             for (key in keys) {
                 try {
                     key?.let {
@@ -62,8 +74,11 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
             }
             throw IllegalStateException("Cipher initialization error")
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            return super.getInitializedCipherForEncryption(keyName, isUserAuthRequired)
+            BiometricLoggerImpl.e(
+                e,
+                "KeyName=CryptographyManagerInterfaceKitkatImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+            )
+            throw e
         }
     }
 
@@ -74,8 +89,8 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
     ): Cipher {
         try {
             val cipher = getCipher()
-            getOrCreateSecretKey(keyName)
-            val keys = getPrivateKeys(keyName)
+            getOrCreateSecretKey("CryptographyManagerInterfaceKitkatImpl.$keyName")
+            val keys = getPrivateKeys("CryptographyManagerInterfaceKitkatImpl.$keyName")
             for (key in keys) {
                 try {
                     key?.let {
@@ -87,11 +102,11 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
             }
             return cipher
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            return super.getInitializedCipherForDecryption(
-                keyName,
-                isUserAuthRequired
+            BiometricLoggerImpl.e(
+                e,
+                "KeyName=CryptographyManagerInterfaceKitkatImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
             )
+            throw e
         }
     }
 
@@ -151,7 +166,7 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
         val serialNumber = BigInteger.valueOf(1337)
         val validityStartCalendar = Calendar.getInstance()
         val validityEndCalendar = Calendar.getInstance()
-        validityEndCalendar.add(Calendar.YEAR, Int.MAX_VALUE)
+        validityEndCalendar.add(Calendar.YEAR, 1000)
         val validityStartDate = validityStartCalendar.time
         val validityEndDate = validityEndCalendar.time
         //SK: See https://doridori.github.io/android-security-the-forgetful-keystore/
@@ -201,12 +216,23 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
     private fun getPrivateKeys(name: String): List<PrivateKey?> {
         val list = ArrayList<PrivateKey?>()
 
+        val localeBeforeFakingEnglishLocale = Locale.getDefault()
         try {
+
+            /*
+         * Workaround for known date parsing issue in KeyPairGenerator class
+         * https://issuetracker.google.com/issues/37095309
+         * in Fabric: java.lang.IllegalArgumentException:
+         * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
+         */
+            setFakeEnglishLocale()
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
             keyStore.load(null)
             list.add(keyStore.getKey(name, null) as PrivateKey?)
         } catch (e: Throwable) {
 
+        } finally {
+            setLocale(localeBeforeFakingEnglishLocale)
         }
         getKeyPairFromFallback(name)?.let {
             list.add(it.private)
@@ -217,12 +243,23 @@ open class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface
 
     private fun getPublicKeys(name: String): List<PublicKey?> {
         val list = ArrayList<PublicKey?>()
+        val localeBeforeFakingEnglishLocale = Locale.getDefault()
         try {
+
+            /*
+         * Workaround for known date parsing issue in KeyPairGenerator class
+         * https://issuetracker.google.com/issues/37095309
+         * in Fabric: java.lang.IllegalArgumentException:
+         * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
+         */
+            setFakeEnglishLocale()
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
             keyStore.load(null)
             list.add(keyStore.getCertificate(name)?.publicKey)
         } catch (e: Throwable) {
 
+        } finally {
+            setLocale(localeBeforeFakingEnglishLocale)
         }
         getKeyPairFromFallback(name)?.let {
             list.add(it.public)
