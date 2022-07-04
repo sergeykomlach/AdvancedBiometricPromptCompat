@@ -139,9 +139,6 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                             SpassFingerprint.STATUS_AUTHENTIFICATION_SUCCESS, SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS -> {
                                 listener?.onSuccess(
                                     tag(),
-                                    if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
-                                        null
-                                    else
                                     BiometricCryptoObject(
                                         biometricCryptoObject?.signature,
                                         biometricCryptoObject?.cipher,

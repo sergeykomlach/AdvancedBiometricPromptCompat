@@ -127,9 +127,6 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                         override fun onIdentified(i: Int, b: Boolean) {
                             listener?.onSuccess(
                                 tag(),
-                                if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
-                                    null
-                                else
                                 BiometricCryptoObject(
                                     biometricCryptoObject?.signature,
                                     biometricCryptoObject?.cipher,
