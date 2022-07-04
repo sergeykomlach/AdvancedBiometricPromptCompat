@@ -61,6 +61,7 @@ import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
 import org.lsposed.hiddenapibypass.HiddenApiBypass
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -377,6 +378,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             private var isOpened = AtomicBoolean(false)
             override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
+                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded = $confirmed")
                 try {
                     if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                         HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -405,6 +407,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onCanceled() {
+                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
                 try {
                     callbackOuter.onCanceled()
                 } finally {
@@ -413,6 +416,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onFailed(reason: AuthenticationFailureReason?) {
+                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
                 try {
                     callbackOuter.onFailed(reason)
                 } finally {
@@ -421,6 +425,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onUIOpened() {
+                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
                 if (!isOpened.get()) {
                     isOpened.set(true)
                     callbackOuter.onUIOpened()
@@ -446,6 +451,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
 
             override fun onUIClosed() {
+                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                 if (isOpened.get()) {
                     isOpened.set(false)
                     val closeAll = Runnable {
@@ -644,6 +650,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private val biometricAuthRequest: BiometricAuthRequest,
         dummy_reference: FragmentActivity
     ) {
+        private val reference = WeakReference<FragmentActivity>(dummy_reference)
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
             types.addAll(primaryAvailableTypes)
@@ -744,7 +751,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private val appContext = AndroidContext.appContext
 
         init {
-            AndroidContext.activity?.let { context ->
+            getContext().let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     this.colorNavBar = context.window.navigationBarColor
                     this.colorStatusBar = context.window.statusBarColor
@@ -826,8 +833,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getContext(): FragmentActivity {
-            return (AndroidContext.activity as? FragmentActivity?)
-                ?: throw java.lang.IllegalStateException("No activity on screen")
+            return reference.get() ?: (AndroidContext.activity as? FragmentActivity?)
+            ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
         fun getCryptographyPurpose(): BiometricCryptographyPurpose? {

@@ -83,5 +83,7 @@ enum class AuthenticationFailureReason {
     /**
      * Biometric can't be starte due to missing permissions
      */
-    MISSING_PERMISSIONS_ERROR
+    MISSING_PERMISSIONS_ERROR,
+
+    CRYPTO_ERROR
 }

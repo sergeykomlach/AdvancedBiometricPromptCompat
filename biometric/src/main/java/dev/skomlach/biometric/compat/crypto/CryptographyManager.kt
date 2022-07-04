@@ -39,6 +39,7 @@ object CryptographyManager {
         }
         return null
     }
+
     fun decryptData(
         ciphertext: ByteArray,
         confirmed: Set<AuthenticationResult>

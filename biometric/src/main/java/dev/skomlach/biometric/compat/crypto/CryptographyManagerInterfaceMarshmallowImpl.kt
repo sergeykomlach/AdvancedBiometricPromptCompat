@@ -82,6 +82,13 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         }
     }
 
+    override fun deleteKey(keyName: String) {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+        keyStore.load(null) // Keystore must be loaded before it can be accessed
+        keyStore.deleteEntry("CryptographyManagerInterfaceMarshmallowImpl.$keyName")
+
+    }
+
     private fun getCipher(): Cipher {
         val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_GCM/$ENCRYPTION_PADDING_NONE"
         return Cipher.getInstance(transformation)

@@ -42,6 +42,14 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
         get() = "RSA"
 
     private val context = AndroidContext.appContext
+    override fun deleteKey(keyName: String) {
+        val sharedPreferences =
+            SharedPreferenceProvider.getPreferences(
+                "$KEYSTORE_FALLBACK_NAME-$keyName"
+            )
+
+        sharedPreferences.edit().clear().apply()
+    }
 
     override fun getInitializedCipherForEncryption(
         keyName: String,

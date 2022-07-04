@@ -23,6 +23,7 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -127,13 +128,52 @@ object Core {
 
             for (module in reprintModuleHashMap.values) {
                 m = module
-                val biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                    "BiometricModule${module.tag()}",
-                    purpose,
-                    m.isUserAuthCanByUsedWithCrypto
-                )
+
+                var biometricCryptoObject: BiometricCryptoObject? = null
+                purpose?.let {
+                    if (!m.isUserAuthCanByUsedWithCrypto && m.isBiometricEnrollChanged) {
+
+                        if (purpose.purpose == BiometricCryptographyPurpose.ENCRYPT)
+                            BiometricCryptoObjectHelper.deleteCrypto("BiometricModule${module.tag()}")
+
+                        biometricCryptoObject =
+                            BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                                "BiometricModule${module.tag()}",
+                                purpose,
+                                m.isUserAuthCanByUsedWithCrypto
+                            )
+
+                    } else {
+
+                        try {
+                            biometricCryptoObject =
+                                BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                                    "BiometricModule${module.tag()}",
+                                    purpose,
+                                    m.isUserAuthCanByUsedWithCrypto
+                                )
+                        } catch (e: BiometricCryptoException) {
+                            if (purpose.purpose == BiometricCryptographyPurpose.ENCRYPT) {
+                                BiometricCryptoObjectHelper.deleteCrypto("BiometricModule${module.tag()}")
+                                biometricCryptoObject =
+                                    BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                                        "BiometricModule${module.tag()}",
+                                        purpose,
+                                        m.isUserAuthCanByUsedWithCrypto
+                                    )
+                            } else throw e
+                        }
+                    }
+                }
+
                 authenticate(biometricCryptoObject, module, listener, restartPredicate)
             }
+        } catch (e: BiometricCryptoException) {
+            BiometricLoggerImpl.e(e)
+            listener?.onFailure(
+                AuthenticationFailureReason.CRYPTO_ERROR,
+                m?.tag() ?: DummyBiometricModule(null).tag()
+            )
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             listener?.onFailure(
