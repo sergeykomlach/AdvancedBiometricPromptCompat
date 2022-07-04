@@ -132,6 +132,9 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             if (errorCode == FaceDetectManager.FACE_DETECT_SUCEESS) {
                 listener?.onSuccess(
                     tag(),
+                    if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
+                        null
+                    else
                     BiometricCryptoObject(
                         biometricCryptoObject?.signature,
                         biometricCryptoObject?.cipher,

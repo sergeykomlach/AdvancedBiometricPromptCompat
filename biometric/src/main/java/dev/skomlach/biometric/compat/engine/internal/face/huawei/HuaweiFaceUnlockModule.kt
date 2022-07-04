@@ -315,6 +315,9 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             listener?.onSuccess(
                 tag(),
+                if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
+                    null
+                else
                 BiometricCryptoObject(
                     result?.cryptoObject?.getSignature(),
                     result?.cryptoObject?.getCipher(),
@@ -407,6 +410,9 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             d("$name.onAuthenticationSucceeded: ")
             listener?.onSuccess(
                 tag(),
+                if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
+                    null
+                else
                 BiometricCryptoObject(
                     biometricCryptoObject?.signature,
                     biometricCryptoObject?.cipher,

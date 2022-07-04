@@ -242,6 +242,9 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
             d("$name.onAuthenticationSucceeded $result")
             listener?.onSuccess(
                 tag(),
+                if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
+                   null
+                else
                 BiometricCryptoObject(
                     biometricCryptoObject?.signature,
                     biometricCryptoObject?.cipher,

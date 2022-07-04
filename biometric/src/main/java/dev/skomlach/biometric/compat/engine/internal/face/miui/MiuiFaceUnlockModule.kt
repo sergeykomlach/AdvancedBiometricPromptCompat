@@ -228,6 +228,9 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             d("$name.onAuthenticationSucceeded: $miuiface")
             listener?.onSuccess(
                 tag(),
+                if(!isUserAuthCanByUsedWithCrypto && isBiometricEnrollChanged)
+                    null
+                else
                 BiometricCryptoObject(
                     biometricCryptoObject?.signature,
                     biometricCryptoObject?.cipher,
