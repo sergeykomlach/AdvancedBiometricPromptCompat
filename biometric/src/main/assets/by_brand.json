@@ -2785,6 +2785,11 @@
    "model": "ACONATIC 4K Android TV"
   },
   {
+   "device": "stanford",
+   "name": "ACONATIC",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "takao",
    "name": "ACONATIC FHD TV",
    "model": "ACONATIC FHD TV"
@@ -3916,6 +3921,11 @@
    "device": "TA-07-232",
    "name": "TA-07-232",
    "model": "TA-07-232"
+  },
+  {
+   "device": "TA-10-232",
+   "name": "TA-10-232",
+   "model": "TA-10-232"
   },
   {
    "device": "TA07-2GB",
@@ -11882,6 +11892,13 @@
    "model": "V60"
   }
  ],
+ "BAKEN": [
+  {
+   "device": "M10_A03",
+   "name": "M10",
+   "model": "M10"
+  }
+ ],
  "BALMUDA": [
   {
    "device": "A101BM",
@@ -16319,6 +16336,11 @@
    "model": "Tab 6s"
   },
   {
+   "device": "Tab6s_NEU",
+   "name": "Tab6s_NEU",
+   "model": "Tab 6s"
+  },
+  {
    "device": "Tab8",
    "name": "Tab8",
    "model": "Tab8"
@@ -17871,6 +17893,11 @@
    "device": "S0690WW",
    "name": "S91",
    "model": "S91"
+  },
+  {
+   "device": "S0730WW",
+   "name": "S91 Pro",
+   "model": "S91 Pro"
   },
   {
    "device": "S950P",
@@ -24951,6 +24978,11 @@
    "model": "Coolpad CM001"
   },
   {
+   "device": "CP07",
+   "name": "COOL 20S 5G",
+   "model": "CP07"
+  },
+  {
    "device": "COOLPAD_C202",
    "name": "COOLPAD_C202",
    "model": "COOLPAD C202"
@@ -30659,6 +30691,11 @@
    "model": "S60Lite"
   },
   {
+   "device": "S61",
+   "name": "S61",
+   "model": "S61"
+  },
+  {
    "device": "S68Pro",
    "name": "S68Pro",
    "model": "S68Pro"
@@ -34843,6 +34880,11 @@
    "device": "M20_S",
    "name": "M20_S",
    "model": "M20 S"
+  },
+  {
+   "device": "M20_Ultra",
+   "name": "M20_Ultra",
+   "model": "M20_Ultra"
   },
   {
    "device": "P17",
@@ -40369,6 +40411,11 @@
    "model": "E940-2796-00"
   },
   {
+   "device": "GS5_LITE",
+   "name": "GS5 LITE",
+   "model": "E940-2878-03"
+  },
+  {
    "device": "GS5_PRO",
    "name": "GS5 PRO",
    "model": "E940-2796-05"
@@ -42649,6 +42696,11 @@
    "device": "TK718",
    "name": "HDC",
    "model": "TK718"
+  },
+  {
+   "device": "T10_232",
+   "name": "T10_232",
+   "model": "T10_232"
   },
   {
    "device": "T700B",
@@ -53429,6 +53481,11 @@
    "device": "Symbol_X",
    "name": "Symbol X",
    "model": "Symbol X"
+  },
+  {
+   "device": "T5_Pro",
+   "name": "T5 Pro",
+   "model": "T5 Pro"
   },
   {
    "device": "Venus",
@@ -68699,6 +68756,11 @@
   },
   {
    "device": "JESY_K1",
+   "name": "JESY K1",
+   "model": "JESY K1"
+  },
+  {
+   "device": "JESY_K1",
    "name": "JESY_K1",
    "model": "JESY_K1"
   }
@@ -81275,6 +81337,11 @@
    "device": "MID_789IPSA100",
    "name": "MID_789IPSA100",
    "model": "MID_789IPSA100"
+  },
+  {
+   "device": "MID_799IPS",
+   "name": "MID_799IPS",
+   "model": "MID_799IPS"
   }
  ],
  "Lava": [
@@ -90680,11 +90747,6 @@
    "device": "Astro_6M",
    "name": "Astro 6M",
    "model": "Astro 6M"
-  },
-  {
-   "device": "Astro_6R",
-   "name": "Astro 6R",
-   "model": "Astro 6R"
   },
   {
    "device": "Astro_6S",
@@ -107895,6 +107957,11 @@
    "model": "PELM00"
   },
   {
+   "device": "OP532FL1",
+   "name": "OPPO F21 Pro 5G",
+   "model": "CPH2341"
+  },
+  {
    "device": "OP52D1L1",
    "name": "OPPO Find X5 Pro",
    "model": "CPH2305"
@@ -110010,6 +110077,11 @@
    "device": "WP2",
    "name": "WP2",
    "model": "WP2"
+  },
+  {
+   "device": "WP20",
+   "name": "WP20_EEA",
+   "model": "WP20"
   },
   {
    "device": "WP5",
@@ -118911,6 +118983,13 @@
    "model": "Vibe"
   }
  ],
+ "QUICK": [
+  {
+   "device": "U55",
+   "name": "U55",
+   "model": "U55"
+  }
+ ],
  "Qilive": [
   {
    "device": "tamachi",
@@ -125711,11 +125790,6 @@
    "device": "a13x",
    "name": "Galaxy A13 5G",
    "model": "SM-A136M"
-  },
-  {
-   "device": "a13x",
-   "name": "Galaxy A13 5G",
-   "model": "SM-A136S"
   },
   {
    "device": "a13x",
@@ -137873,6 +137947,11 @@
    "model": "SM-E426S"
   },
   {
+   "device": "a13x",
+   "name": "Galaxy Wide6",
+   "model": "SM-A136S"
+  },
+  {
    "device": "delos3gcmcc",
    "name": "Galaxy Win",
    "model": "GT-I8558"
@@ -143323,6 +143402,11 @@
    "model": "AiPlus4K"
   },
   {
+   "device": "stanford",
+   "name": "SMART TECHNOLOGY",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "yeongdeungpo",
    "name": "SmartTech",
    "model": "AiPlus4K"
@@ -143402,6 +143486,11 @@
    "device": "ST8200",
    "name": "ST8200",
    "model": "ST8200"
+  },
+  {
+   "device": "ST8888",
+   "name": "ST8888",
+   "model": "ST8888"
   },
   {
    "device": "STJR700",
@@ -147838,6 +147927,11 @@
    "device": "Luna",
    "name": "Luna",
    "model": "Luna"
+  },
+  {
+   "device": "MOSCOW",
+   "name": "MOSCOW",
+   "model": "MOSCOW"
   },
   {
    "device": "Onyx",
@@ -161027,6 +161121,11 @@
    "model": "Telma_F1_Max_4G"
   },
   {
+   "device": "Telma_S_Prime",
+   "name": "Telma_S_Prime",
+   "model": "Telma_S_Prime"
+  },
+  {
    "device": "telma_i401",
    "name": "telma_i401",
    "model": "telma i401"
@@ -163861,6 +163960,11 @@
    "model": "8C_LTE"
   },
   {
+   "device": "8L_PLUS_EEA",
+   "name": "8L_PLUS_EEA",
+   "model": "8L_PLUS_EEA"
+  },
+  {
    "device": "8Qa_3G",
    "name": "MediaTek",
    "model": "8Qa_3G"
@@ -164577,6 +164681,11 @@
    "model": "Jelly2_JP"
   },
   {
+   "device": "UNIA62",
+   "name": "TickTock-E",
+   "model": "UNIA62_S01"
+  },
+  {
    "device": "Ticktock",
    "name": "Ticktock",
    "model": "Ticktock"
@@ -165262,6 +165371,11 @@
    "device": "vnptt_smb_v2x",
    "name": "VNPT SmartBox 2x",
    "model": "VNPT SmartBox 2x"
+  },
+  {
+   "device": "VNTTab2",
+   "name": "VNPTTechnology",
+   "model": "VNTTab2"
   },
   {
    "device": "VNT_Tab8",
@@ -168054,6 +168168,11 @@
    "device": "TPC_8074G",
    "name": "TPC_8074G",
    "model": "TPC_8074G"
+  },
+  {
+   "device": "stanford",
+   "name": "VIVAX",
+   "model": "2K SMART TV"
   },
   {
    "device": "VIVAX_Fly6",
@@ -172295,6 +172414,13 @@
    "model": "A15"
   }
  ],
+ "WeTap": [
+  {
+   "device": "WeTap_Y10",
+   "name": "WeTap_Y10",
+   "model": "WeTap_Y10"
+  }
+ ],
  "WeTek": [
   {
    "device": "Play",
@@ -173370,6 +173496,11 @@
    "model": "WC300SN"
   },
   {
+   "device": "VHEM",
+   "name": "WIKO 10",
+   "model": "VHEM"
+  },
+  {
    "device": "T9051AC",
    "name": "WIM",
    "model": "WIM"
@@ -173648,6 +173779,11 @@
    "device": "W-K630",
    "name": "Y82",
    "model": "W-K630-TRU"
+  },
+  {
+   "device": "W-K630",
+   "name": "Y82",
+   "model": "W-K630-TVM"
   },
   {
    "device": "W-K360",

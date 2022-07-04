@@ -37,6 +37,7 @@ import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
@@ -48,6 +49,7 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBio
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
@@ -252,6 +254,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun authenticate(cbk: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptApi28Impl.authenticate():")
         callback = cbk
+        onUiOpened()
         if (DevicesWithKnownBugs.isMissedBiometricUI) {
             //1) LG G8 do not have BiometricPrompt UI
             //2) One Plus 6T with InScreen fingerprint sensor
@@ -264,7 +267,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         } else {
             startAuth()
         }
-        onUiOpened()
+
     }
 
     override fun cancelAuthentication() {
@@ -432,60 +435,86 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
-
-        //Should force to Fingerprint-only
-        val dummyCrypto: BiometricPrompt.CryptoObject? = try {
-            if (forceToFingerprint && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) cryptoObject else null
-        } catch (e: Throwable) {
-            null
-        }
-
-        val biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
-            "BiometricPromptCompat",
-            builder.getCryptographyPurpose(),
-            true
-        )
-        val crpObject = if (biometricCryptoObject == null) dummyCrypto else {
-            if (biometricCryptoObject.cipher != null)
-                BiometricPrompt.CryptoObject(biometricCryptoObject.cipher)
-            else if (biometricCryptoObject.mac != null)
-                BiometricPrompt.CryptoObject(biometricCryptoObject.mac)
-            else if (biometricCryptoObject.signature != null)
-                BiometricPrompt.CryptoObject(biometricCryptoObject.signature)
-            else
-                dummyCrypto
-        }
-
-        d("BiometricPromptCompat.authenticate:  Crypto=$crpObject")
-        if (crpObject != null) {
-            try {
-                biometricPrompt.authenticate(biometricPromptInfo, crpObject)
+        try {
+            //Should force to Fingerprint-only
+            val dummyCrypto: BiometricPrompt.CryptoObject? = try {
+                if (forceToFingerprint && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) cryptoObject else null
             } catch (e: Throwable) {
+                null
+            }
+
+
+            var biometricCryptoObject: BiometricCryptoObject? = null
+            builder.getCryptographyPurpose()?.let {
+                try {
+                    biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                        "BiometricPromptCompat",
+                        builder.getCryptographyPurpose(),
+                        true
+                    )
+                } catch (e: BiometricCryptoException) {
+                    if (builder.getCryptographyPurpose()?.purpose == BiometricCryptographyPurpose.ENCRYPT) {
+                        BiometricCryptoObjectHelper.deleteCrypto("BiometricPromptCompat")
+                        biometricCryptoObject =
+                            BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                                "BiometricPromptCompat",
+                                builder.getCryptographyPurpose(),
+                                true
+                            )
+                    } else throw e
+                }
+            }
+
+
+            val crpObject = if (biometricCryptoObject == null) dummyCrypto else {
+                if (biometricCryptoObject?.cipher != null)
+                    biometricCryptoObject?.cipher?.let { BiometricPrompt.CryptoObject(it) }
+                else if (biometricCryptoObject?.mac != null)
+                    biometricCryptoObject?.mac?.let { BiometricPrompt.CryptoObject(it) }
+                else if (biometricCryptoObject?.signature != null)
+                    biometricCryptoObject?.signature?.let { BiometricPrompt.CryptoObject(it) }
+                else
+                    dummyCrypto
+            }
+
+            d("BiometricPromptCompat.authenticate:  Crypto=$crpObject")
+            if (crpObject != null) {
+                try {
+                    biometricPrompt.authenticate(biometricPromptInfo, crpObject)
+                } catch (e: Throwable) {
+                    biometricPrompt.authenticate(biometricPromptInfo)
+                }
+            } else {
                 biometricPrompt.authenticate(biometricPromptInfo)
             }
-        } else {
-            biometricPrompt.authenticate(biometricPromptInfo)
-        }
 
-        //fallback - sometimes we not able to cancel BiometricPrompt properly
-        try {
-            val m = BiometricPrompt::class.java.declaredMethods.first {
-                it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
-            }
-            val isAccessible = m.isAccessible
+            //fallback - sometimes we not able to cancel BiometricPrompt properly
             try {
-                if (!isAccessible)
-                    m.isAccessible = true
-                biometricFragment = m.invoke(
-                    null,
-                    builder.getContext().supportFragmentManager
-                ) as BiometricFragment?
-            } finally {
-                if (!isAccessible)
-                    m.isAccessible = false
+                val m = BiometricPrompt::class.java.declaredMethods.first {
+                    it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
+                }
+                val isAccessible = m.isAccessible
+                try {
+                    if (!isAccessible)
+                        m.isAccessible = true
+                    biometricFragment = m.invoke(
+                        null,
+                        builder.getContext().supportFragmentManager
+                    ) as BiometricFragment?
+                } finally {
+                    if (!isAccessible)
+                        m.isAccessible = false
+                }
+            } catch (e: Throwable) {
+                e(e)
             }
-        } catch (e: Throwable) {
-            e(e)
+        } catch (e: BiometricCryptoException) {
+            BiometricLoggerImpl.e(e)
+            checkAuthResultForPrimary(
+                AuthResult.AuthResultState.FATAL_ERROR,
+                null,
+                AuthenticationFailureReason.CRYPTO_ERROR
+            )
         }
     }
 

@@ -33,6 +33,10 @@ object BiometricCryptoObjectHelper {
             else
                 CryptographyManagerInterfaceLegacyImpl()
 
+    fun deleteCrypto(name: String?) {
+        managerInterface.deleteKey(name ?: return)
+    }
+
     fun getBiometricCryptoObject(
         name: String?,
         purpose: BiometricCryptographyPurpose?,
@@ -40,20 +44,27 @@ object BiometricCryptoObjectHelper {
     ): BiometricCryptoObject? {
         if (purpose == null || name.isNullOrEmpty())
             return null
-        val cipher =
-            when (purpose.purpose) {
-                BiometricCryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
-                    name,
-                    isUserAuthRequired
-                )
-                BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
-                    name,
-                    isUserAuthRequired,
-                    purpose.initVector
-                )
-                else -> throw IllegalArgumentException("Cryptography purpose should be BiometricCryptographyPurpose.ENCRYPT or BiometricCryptographyPurpose.DECRYPT")
-            }
-        return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
+        try {
+            val cipher =
+                when (purpose.purpose) {
+                    BiometricCryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
+                        name,
+                        isUserAuthRequired
+                    )
+                    BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
+                        name,
+                        isUserAuthRequired,
+                        purpose.initVector
+                    )
+                    else -> throw IllegalArgumentException("Cryptography purpose should be BiometricCryptographyPurpose.ENCRYPT or BiometricCryptographyPurpose.DECRYPT")
+                }
+            return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
+        } catch (ex: IllegalArgumentException) {
+            throw ex
+        } catch (e: Throwable) {
+            throw BiometricCryptoException(e)
+        }
+
     }
 
 }

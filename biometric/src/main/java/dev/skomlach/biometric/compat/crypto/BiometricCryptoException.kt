@@ -19,18 +19,13 @@
 
 package dev.skomlach.biometric.compat.crypto
 
-import javax.crypto.Cipher
+class BiometricCryptoException : Exception {
+    constructor() : super()
 
-interface CryptographyManagerInterface {
+    constructor(message: String?) : super(message)
 
-    fun getInitializedCipherForEncryption(keyName: String, isUserAuthRequired: Boolean): Cipher
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
 
-    fun getInitializedCipherForDecryption(
-        keyName: String,
-        isUserAuthRequired: Boolean,
-        initializationVector: ByteArray?
-    ): Cipher
-
-    fun deleteKey(keyName: String)
+    constructor(cause: Throwable?) : super(cause)
 
 }

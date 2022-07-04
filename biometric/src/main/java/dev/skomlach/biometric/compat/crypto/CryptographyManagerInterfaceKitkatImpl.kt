@@ -53,6 +53,18 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         get() = "AndroidKeyStore"
     private val context = AndroidContext.appContext
 
+    override fun deleteKey(keyName: String) {
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+        keyStore.load(null) // Keystore must be loaded before it can be accessed
+        keyStore.deleteEntry("CryptographyManagerInterfaceKitkatImpl.$keyName")
+        val sharedPreferences =
+            SharedPreferenceProvider.getPreferences(
+                "$KEYSTORE_FALLBACK_NAME-$keyName"
+            )
+
+        sharedPreferences.edit().clear().apply()
+    }
+
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean
