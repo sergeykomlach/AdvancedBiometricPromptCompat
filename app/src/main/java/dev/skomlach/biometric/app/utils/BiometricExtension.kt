@@ -81,12 +81,12 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             "Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more",
             null
         )
-        .setCryptographyPurpose(
-            BiometricCryptographyPurpose(
-                if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,
-                cryptoTests[biometricAuthRequest]?.vector
-            )
-        )
+//        .setCryptographyPurpose(
+//            BiometricCryptographyPurpose(
+//                if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,
+//                cryptoTests[biometricAuthRequest]?.vector
+//            )
+//        )
         .build()
 
     BiometricLoggerImpl.e(
@@ -103,7 +103,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             var cryptoText = "Crypto doesn't work or disabled"
             if (cryptoTests[biometricAuthRequest]?.vector == null) {
                 CryptographyManager.encryptData(
-                    cryptoTests[biometricAuthRequest]?.byteArray!!,
+                    cryptoTests[biometricAuthRequest]?.byteArray,
                     confirmed
                 )?.let {
                     cryptoText = "Crypto encryption result=${
@@ -117,7 +117,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
 
             } else {
                 CryptographyManager.decryptData(
-                    cryptoTests[biometricAuthRequest]?.byteArray!!,
+                    cryptoTests[biometricAuthRequest]?.byteArray,
                     confirmed
                 )?.let {
                     cryptoText = "Crypto decryption result=${
