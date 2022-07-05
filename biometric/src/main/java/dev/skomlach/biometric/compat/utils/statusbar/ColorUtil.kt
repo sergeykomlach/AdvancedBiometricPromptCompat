@@ -38,7 +38,7 @@ object ColorUtil {
      * color1, 0.0 will return color2 and so on.
      * @return Blended color.
      */
-    fun blend(color1: Int, color2: Int, ratio: Double): Int {
+    fun blend(color1: Int, color2: Int, ratio: Double = 0.5): Int {
         val r = ratio.toFloat()
         val ir = 1.0.toFloat() - r
         return Color.argb(

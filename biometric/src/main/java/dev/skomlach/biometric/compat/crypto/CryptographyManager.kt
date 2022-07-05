@@ -24,9 +24,11 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 object CryptographyManager {
     fun encryptData(
-        plaintext: ByteArray,
+        plaintext: ByteArray?,
         confirmed: Set<AuthenticationResult>
     ): BiometricCryptographyResult? {
+        if(plaintext == null)
+            return null
         for (result in confirmed) {
             try {
                 val type = result.confirmed ?: continue
@@ -41,9 +43,11 @@ object CryptographyManager {
     }
 
     fun decryptData(
-        ciphertext: ByteArray,
+        ciphertext: ByteArray?,
         confirmed: Set<AuthenticationResult>
     ): BiometricCryptographyResult? {
+        if(ciphertext == null)
+            return null
         for (result in confirmed) {
             try {
                 val type = result.confirmed ?: continue

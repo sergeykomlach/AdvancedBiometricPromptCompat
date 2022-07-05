@@ -229,7 +229,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         } else {
             promptInfoBuilder.setDeviceCredentialAllowed(false)
         }
-        promptInfoBuilder.setConfirmationRequired(true)
+        promptInfoBuilder.setConfirmationRequired(false)
         biometricPromptInfo = promptInfoBuilder.build()
         biometricPrompt = BiometricPrompt(
             builder.getContext(),
@@ -603,8 +603,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
+                    val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
                     callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        onlySuccess[it]?.successData
+                        var result : AuthenticationResult? = null
+                        onlySuccess[it]?.successData?.let { r->
+                            result = AuthenticationResult(r.confirmed, if(fixCryptoObjects) null else r.cryptoObject)
+                        }
+                        result
                     }.toSet())
                 } else if (error != null) {
                     if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
@@ -701,8 +706,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
+                    val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
                     callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        onlySuccess[it]?.successData
+                        var result : AuthenticationResult? = null
+                        onlySuccess[it]?.successData?.let { r->
+                            result = AuthenticationResult(r.confirmed, if(fixCryptoObjects) null else r.cryptoObject)
+                        }
+                        result
                     }.toSet())
                 } else if (error != null) {
                     if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
