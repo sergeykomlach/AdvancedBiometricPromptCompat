@@ -229,7 +229,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         } else {
             promptInfoBuilder.setDeviceCredentialAllowed(false)
         }
-        promptInfoBuilder.setConfirmationRequired(true)
+        promptInfoBuilder.setConfirmationRequired(false)
         biometricPromptInfo = promptInfoBuilder.build()
         biometricPrompt = BiometricPrompt(
             builder.getContext(),
