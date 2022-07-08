@@ -102,6 +102,14 @@ You can check how the library works on your device using this [APK](https://gith
 **Video from Xiaomi Pocophone F1**  
 [![Watch the video](https://img.youtube.com/vi/ttHroYJlgI0/maxresdefault.jpg)](https://youtu.be/ttHroYJlgI0)
 
+## NOTE! Recent changes:
+
+**(July 08, 2022) Feature: Cryptography** - allow to get the Cipher, initialized by biometric, for ENCRYPT/DECRYPT purpose, see ``BiometricPromptCompat.Builder.setCryptographyPurpose()``
+
+**(July 08, 2022) Bugfix: Samsung Intelligent Scan** - fixed bug in case of Intelligent Scan started, face out of camera angle, and rescan do not started automatically
+
+**(July 08, 2022) Bugfix: Blur** - fixed bug when biometric dismissed, but blur remains on the screen
+
 ## Setup
 
 VERSION
@@ -124,7 +132,7 @@ Add dependency to Gradle
 At first, better in `Application.onCreate()`, call
 
 ```kotlin  
-BiometricPromptCompat.Companion.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
+BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
 ```   
 
 `fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device

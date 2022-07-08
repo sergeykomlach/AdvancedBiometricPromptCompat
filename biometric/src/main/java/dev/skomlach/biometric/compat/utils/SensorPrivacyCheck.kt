@@ -52,7 +52,7 @@ object SensorPrivacyCheck {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             val ts = System.currentTimeMillis()
             val delay =
-                appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                     .toLong()
             val isDone = AtomicBoolean(false)
             //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
@@ -98,7 +98,7 @@ object SensorPrivacyCheck {
                             isDone.set(true)
                         }
                     },
-                    appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                         .toLong()
                 )
             }
