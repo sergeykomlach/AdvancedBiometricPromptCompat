@@ -269,7 +269,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private val fragmentLifecycleCallbacks = object :
         FragmentManager.FragmentLifecycleCallbacks() {
         private val atomicBoolean = AtomicInteger(0)
-        private val dismissTask = Runnable {
+        val dismissTask = Runnable {
             if (atomicBoolean.get() <= 0) {
                 BiometricLoggerImpl.e("BiometricPromptCompat.dismissTask")
                 cancelAuthentication()
@@ -468,10 +468,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                     ExecutorHelper.post(closeAll)
                     val delay =
-                        appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                        appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                             .toLong()
                     ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
+                    ExecutorHelper.removeCallbacks(fragmentLifecycleCallbacks.dismissTask)
                     stopWatcher?.run()
                     stopWatcher = null
                     try {
@@ -583,8 +584,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 fragmentLifecycleCallbacks,
                 false
             )
-            impl.authenticate(callback)
             stopWatcher = homeWatcher.startWatch()
+            val delay =
+                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                    .toLong()
+            ExecutorHelper.postDelayed(fragmentLifecycleCallbacks.dismissTask, delay)
+            impl.authenticate(callback)
         } catch (ignore: IllegalStateException) {
             try {
                 impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(

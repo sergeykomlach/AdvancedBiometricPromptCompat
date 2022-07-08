@@ -326,7 +326,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         } else {
             val delayMillis = 1500L
             val shortDelayMillis =
-                builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
+                builder.getContext().resources.getInteger(android.R.integer.config_longAnimTime)
                     .toLong()
             val successList = mutableSetOf<AuthenticationResult>()
             BiometricAuthentication.authenticate(
@@ -359,15 +359,40 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 BiometricAuthentication.cancelAuthentication()
 
                 if (successList.isNotEmpty()) {
-                    val dialogClosed = AtomicBoolean(false)
-                    showSystemUi(BiometricPrompt(
-                        builder.getContext(),
-                        ExecutorHelper.executor,
-                        object : BiometricPrompt.AuthenticationCallback() {
-                            var onePlusWithBiometricBugFailure = false
-                            override fun onAuthenticationFailed() {
-                                if (isOnePlusWithBiometricBug) {
-                                    onePlusWithBiometricBugFailure = true
+                    ExecutorHelper.postDelayed({
+                        val dialogClosed = AtomicBoolean(false)
+                        showSystemUi(BiometricPrompt(
+                            builder.getContext(),
+                            ExecutorHelper.executor,
+                            object : BiometricPrompt.AuthenticationCallback() {
+                                var onePlusWithBiometricBugFailure = false
+                                override fun onAuthenticationFailed() {
+                                    if (isOnePlusWithBiometricBug) {
+                                        onePlusWithBiometricBugFailure = true
+                                        if (!dialogClosed.get()) {
+                                            dialogClosed.set(true)
+                                            stopAuth()
+                                            callback?.onSucceeded(successList)
+                                        }
+                                    }
+                                }
+
+                                override fun onAuthenticationError(
+                                    errorCode: Int,
+                                    errString: CharSequence
+                                ) {
+                                    if (onePlusWithBiometricBugFailure) {
+                                        onePlusWithBiometricBugFailure = false
+                                        return
+                                    }
+                                    if (!dialogClosed.get()) {
+                                        dialogClosed.set(true)
+                                        stopAuth()
+                                        callback?.onSucceeded(successList)
+                                    }
+                                }
+
+                                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                                     if (!dialogClosed.get()) {
                                         dialogClosed.set(true)
                                         stopAuth()
@@ -375,39 +400,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     }
                                 }
                             }
-
-                            override fun onAuthenticationError(
-                                errorCode: Int,
-                                errString: CharSequence
-                            ) {
-                                if (onePlusWithBiometricBugFailure) {
-                                    onePlusWithBiometricBugFailure = false
-                                    return
-                                }
-                                if (!dialogClosed.get()) {
-                                    dialogClosed.set(true)
-                                    stopAuth()
-                                    callback?.onSucceeded(successList)
-                                }
+                        )
+                        )
+                        ExecutorHelper.postDelayed({
+                            if (!dialogClosed.get()) {
+                                dialogClosed.set(true)
+                                stopAuth()
+                                callback?.onSucceeded(successList)
                             }
-
-                            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                                if (!dialogClosed.get()) {
-                                    dialogClosed.set(true)
-                                    stopAuth()
-                                    callback?.onSucceeded(successList)
-                                }
-                            }
-                        }
-                    )
-                    )
-                    ExecutorHelper.postDelayed({
-                        if (!dialogClosed.get()) {
-                            dialogClosed.set(true)
-                            stopAuth()
-                            callback?.onSucceeded(successList)
-                        }
-                    }, delayMillis)
+                        }, delayMillis)
+                    }, shortDelayMillis)
                 } else
                 //general case
                 {

@@ -119,7 +119,7 @@ object BiometricNotificationManager {
         if (builder.getMultiWindowSupport().isInMultiWindow) {
             notificationReference.set(notify)
             val delay =
-                appContext.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                appContext.resources.getInteger(android.R.integer.config_longAnimTime).toLong()
             ExecutorHelper.postDelayed(notify, delay)
         }
     }
