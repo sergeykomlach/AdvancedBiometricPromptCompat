@@ -67,6 +67,20 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 | Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| 
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
+
+## Recent changes
+
+
+July 08, 2022
+
+
+**Feature: Cryptography** - allow to get the Cipher, initialized by biometric, for ENCRYPT/DECRYPT purpose, see ``BiometricPromptCompat.Builder.setCryptographyPurpose()``
+
+**Bugfix: Samsung Intelligent Scan** - fixed bug in case of Intelligent Scan started, face out of camera angle, and rescan do not started automatically
+
+**Bugfix: Blur** - fixed bug when biometric dismissed, but blur remains on the screen
+
+
 ## Test app
 
 You can check how the library works on your device using this [APK](https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/app/app-debug.apk)
@@ -101,18 +115,6 @@ You can check how the library works on your device using this [APK](https://gith
 
 **Video from Xiaomi Pocophone F1**  
 [![Watch the video](https://img.youtube.com/vi/ttHroYJlgI0/maxresdefault.jpg)](https://youtu.be/ttHroYJlgI0)
-
-## Recent changes
-
-
-July 08, 2022
-
-
-**Feature: Cryptography** - allow to get the Cipher, initialized by biometric, for ENCRYPT/DECRYPT purpose, see ``BiometricPromptCompat.Builder.setCryptographyPurpose()``
-
-**Bugfix: Samsung Intelligent Scan** - fixed bug in case of Intelligent Scan started, face out of camera angle, and rescan do not started automatically
-
-**Bugfix: Blur** - fixed bug when biometric dismissed, but blur remains on the screen
 
 ## Setup
 
