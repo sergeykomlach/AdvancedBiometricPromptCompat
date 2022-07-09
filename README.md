@@ -102,7 +102,7 @@ You can check how the library works on your device using this [APK](https://gith
 **Video from Xiaomi Pocophone F1**  
 [![Watch the video](https://img.youtube.com/vi/ttHroYJlgI0/maxresdefault.jpg)](https://youtu.be/ttHroYJlgI0)
 
-## NOTE! Recent changes
+## Recent changes
 
 
 July 08, 2022
