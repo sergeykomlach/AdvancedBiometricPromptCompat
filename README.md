@@ -104,6 +104,8 @@ You can check how the library works on your device using this [APK](https://gith
 
 ## NOTE! Recent changes:
 
+**(July 15, 2022) Bugfix: OnePlus** - fixed UI behavior - Fingerprint API calls lead to the system Biometric Prompt UI appearing, so fallback dialog not needed anymore
+
 **(July 08, 2022) Feature: Cryptography** - allow to get the Cipher, initialized by biometric, for ENCRYPT/DECRYPT purpose, see ``BiometricPromptCompat.Builder.setCryptographyPurpose()``
 
 **(July 08, 2022) Bugfix: Samsung Intelligent Scan** - fixed bug in case of Intelligent Scan started, face out of camera angle, and rescan do not started automatically

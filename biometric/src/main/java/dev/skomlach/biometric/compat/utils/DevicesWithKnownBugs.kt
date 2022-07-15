@@ -24,6 +24,7 @@ import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.Utils
 
 object DevicesWithKnownBugs {
     private val appContext = AndroidContext.appContext
@@ -69,14 +70,17 @@ object DevicesWithKnownBugs {
                     return true
                 }
             }
-            return isSamsung && hasUnderDisplayFingerprint
+            return (isSamsung || (isOnePlus && Utils.isAtLeastS)) && hasUnderDisplayFingerprint
         }
 
     val isSamsung: Boolean
         get() {
             return Build.BRAND.equals("Samsung", ignoreCase = true)
         }
-
+    val isOnePlus: Boolean
+        get() {
+            return Build.BRAND.equals("OnePlus", ignoreCase = true)
+        }
     val isMissedBiometricUI: Boolean
         get() = (Build.BRAND.equals("LG", ignoreCase = true) &&
                 listOf(*lgWithMissedBiometricUI).any { knownModel ->
