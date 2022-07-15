@@ -70,6 +70,11 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 ## Recent changes
 
+July 15, 2022
+
+
+**Bugfix: OnePlus** - fixed UI behavior - Fingerprint API calls lead to the system Biometric Prompt UI appearing, so fallback dialog not needed anymore
+
 
 July 08, 2022
 
