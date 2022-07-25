@@ -61,6 +61,7 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import java.security.KeyStore
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -76,7 +77,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
-    private var biometricFragment: BiometricFragment? = null
+    private var biometricFragment: AtomicReference<BiometricFragment?> = AtomicReference<BiometricFragment?>(null)
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
     val authCallback: BiometricPrompt.AuthenticationCallback =
@@ -489,26 +490,27 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             } else {
                 biometricPrompt.authenticate(biometricPromptInfo)
             }
-
-            //fallback - sometimes we not able to cancel BiometricPrompt properly
-            try {
-                val m = BiometricPrompt::class.java.declaredMethods.first {
-                    it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
-                }
-                val isAccessible = m.isAccessible
+            ExecutorHelper.startOnBackground {
+                //fallback - sometimes we not able to cancel BiometricPrompt properly
                 try {
-                    if (!isAccessible)
-                        m.isAccessible = true
-                    biometricFragment = m.invoke(
-                        null,
-                        builder.getContext().supportFragmentManager
-                    ) as BiometricFragment?
-                } finally {
-                    if (!isAccessible)
-                        m.isAccessible = false
+                    val m = BiometricPrompt::class.java.declaredMethods.first {
+                        it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
+                    }
+                    val isAccessible = m.isAccessible
+                    try {
+                        if (!isAccessible)
+                            m.isAccessible = true
+                        biometricFragment.set(m.invoke(
+                            null,
+                            builder.getContext().supportFragmentManager
+                        ) as BiometricFragment?)
+                    } finally {
+                        if (!isAccessible)
+                            m.isAccessible = false
+                    }
+                } catch (e: Throwable) {
+                    e(e)
                 }
-            } catch (e: Throwable) {
-                e(e)
             }
         } catch (e: BiometricCryptoException) {
             BiometricLoggerImpl.e(e)
@@ -523,12 +525,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
         BiometricAuthentication.cancelAuthentication()
-        biometricFragment?.let {
-            CancellationHelper.forceCancel(biometricFragment)
+        biometricFragment.get()?.let {
+            CancellationHelper.forceCancel(it)
         } ?: run {
             biometricPrompt.cancelAuthentication()
         }
-        biometricFragment = null
+        biometricFragment.set(null)
     }
 
     override fun cancelAuth() {
@@ -607,9 +609,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
                     callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result : AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r->
-                            result = AuthenticationResult(r.confirmed, if(fixCryptoObjects) null else r.cryptoObject)
+                        var result: AuthenticationResult? = null
+                        onlySuccess[it]?.successData?.let { r ->
+                            result = AuthenticationResult(
+                                r.confirmed,
+                                if (fixCryptoObjects) null else r.cryptoObject
+                            )
                         }
                         result
                     }.toSet())
@@ -710,9 +715,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
                     callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result : AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r->
-                            result = AuthenticationResult(r.confirmed, if(fixCryptoObjects) null else r.cryptoObject)
+                        var result: AuthenticationResult? = null
+                        onlySuccess[it]?.successData?.let { r ->
+                            result = AuthenticationResult(
+                                r.confirmed,
+                                if (fixCryptoObjects) null else r.cryptoObject
+                            )
                         }
                         result
                     }.toSet())

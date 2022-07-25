@@ -300,9 +300,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
                 atomicBoolean.decrementAndGet()
                 ExecutorHelper.removeCallbacks(dismissTask)
+                val delay =
+                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                        .toLong()
                 ExecutorHelper.postDelayed(
                     dismissTask,
-                    250
+                    delay
                 )//delay for case when system fragment closed and fallback shown
             }
         }
@@ -363,16 +366,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
-        val activityViewWatcher = try {
-            ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
-                override fun onCloseBiometric() {
-                    cancelAuthentication()
-                }
-            })
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-            null
-        }
+//        val activityViewWatcher = try {
+//            ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
+//                override fun onCloseBiometric() {
+//                    cancelAuthentication()
+//                }
+//            })
+//        } catch (e: Throwable) {
+//            BiometricLoggerImpl.e(e)
+//            null
+//        }
 
         val callback = object : AuthenticationCallback() {
 
@@ -446,7 +449,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         builder.getStatusBarColor()
                     )
 
-                    activityViewWatcher?.setupListeners()
+//                    activityViewWatcher?.setupListeners()
                 }
             }
 
@@ -458,7 +461,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
                             BiometricNotificationManager.dismissAll()
                         }
-                        activityViewWatcher?.resetListeners()
+//                        activityViewWatcher?.resetListeners()
                         StatusBarTools.setNavBarAndStatusBarColors(
                             builder.getContext().window,
                             builder.getNavBarColor(),
