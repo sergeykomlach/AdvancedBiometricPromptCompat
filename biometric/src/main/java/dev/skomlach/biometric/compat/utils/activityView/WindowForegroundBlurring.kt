@@ -27,6 +27,7 @@ import android.graphics.Color
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,6 +42,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.Utils
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 class WindowForegroundBlurring(
@@ -52,8 +54,9 @@ class WindowForegroundBlurring(
     private var contentView: ViewGroup? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
+    @Volatile
     private var isAttached = false
-    private var drawingInProgress = false
+    private var drawingInProgress = AtomicBoolean(false)
     private var biometricsLayout: View? = null
     private var defaultColor = Color.TRANSPARENT
 
@@ -84,26 +87,17 @@ class WindowForegroundBlurring(
         }
     }
 
-    private val onDrawListener = object : ViewTreeObserver.OnPreDrawListener {
-        private var time = System.currentTimeMillis()
-        private val delay = context.resources.getInteger(android.R.integer.config_shortAnimTime)
-        override fun onPreDraw(): Boolean {
-            val current = System.currentTimeMillis()
-            if (current - time >= delay) {
-                time = current
-                updateBackground()
-            }
-            return true
-        }
-
+    private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
+        updateBackground()
+        true
     }
 
     init {
-        val isDark = DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
+        val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
         defaultColor =
-            DialogMainColor.getColor(context, isDark)
-        BiometricLoggerImpl.d(
-            "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
+            DialogMainColor.getColor(context, !isDark)
+        BiometricLoggerImpl.e(
+            "${this.javaClass.name}.updateDefaultColor isDark -  ${ColorUtil.isDark(defaultColor)}; color - ${
                 Integer.toHexString(
                     defaultColor
                 )
@@ -116,81 +110,90 @@ class WindowForegroundBlurring(
                 contentView = v
             }
         }
-    }
-
-    private fun updateBackground() {
-        if (!isAttached || drawingInProgress)
-            return
-        BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
-        try {
-            contentView?.let {
-                BlurUtil.takeScreenshotAndBlur(
-                    it,
-                    object : BlurUtil.OnPublishListener {
-                        override fun onBlurredScreenshot(
-                            originalBitmap: Bitmap,
-                            blurredBitmap: Bitmap?
-                        ) {
-                            updateDefaultColor(originalBitmap)
-                            setDrawable(blurredBitmap)
-                        }
-                    })
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+        contentView?.post {
+            @SuppressLint("ClickableViewAccessibility")
+            v = LayoutInflater.from(ContextWrapper(context))
+                .inflate(R.layout.blurred_screen, null, false).apply {
+                    tag = tag
+                    alpha = 1f
+                    biometricsLayout = findViewById(R.id.biometrics_layout)
+                    isFocusable = true
+                    isClickable = true
+                    isLongClickable = true
+                    setOnTouchListener { _, _ ->
+                        true
+                    }
+                    if (Utils.isAtLeastS) {
+                        renderEffect =
+                            RenderEffect.createBlurEffect(12f, 12f, Shader.TileMode.DECAL)
+                        contentView?.setRenderEffect(renderEffect)
+                    } else
+                        ViewCompat.setBackground(this, ColorDrawable(Color.TRANSPARENT))
+                }
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private fun setDrawable(bm: Bitmap?) {
-        if (!isAttached || drawingInProgress)
+    private fun updateBackground() {
+        if (!isAttached)
             return
+        if (!drawingInProgress.get()) {
+            drawingInProgress.set(true)
+
+            BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
+            try {
+                contentView?.let {
+                    BlurUtil.takeScreenshotAndBlur(
+                        it,
+                        object : BlurUtil.OnPublishListener {
+                            override fun onBlurredScreenshot(
+                                originalBitmap: Bitmap,
+                                blurredBitmap: Bitmap?
+                            ) {
+                                if (!isAttached)
+                                    return
+                                setDrawable(blurredBitmap)
+                                updateDefaultColor(originalBitmap)
+                            }
+                        })
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
+        }
+    }
+
+
+    private fun setDrawable(bm: Bitmap?) {
         BiometricLoggerImpl.d("${this.javaClass.name}.setDrawable")
-        drawingInProgress = true
         try {
             v?.let {
                 if (Utils.isAtLeastS) {
                     contentView?.setRenderEffect(renderEffect)
                 } else
                     ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
-            } ?: run {
-                v = LayoutInflater.from(ContextWrapper(context))
-                    .inflate(R.layout.blurred_screen, null, false).apply {
-                        tag = tag
-                        alpha = 1f
-                        biometricsLayout = findViewById(R.id.biometrics_layout)
-                        isFocusable = true
-                        isClickable = true
-                        isLongClickable = true
-                        setOnTouchListener { _, _ ->
-                            true
-                        }
-                        if (Utils.isAtLeastS) {
-                            renderEffect =
-                                RenderEffect.createBlurEffect(8f, 8f, Shader.TileMode.DECAL)
-                            contentView?.setRenderEffect(renderEffect)
-                        } else
-                            ViewCompat.setBackground(this, BitmapDrawable(this.resources, bm))
-                        updateBiometricIconsLayout()
-                        parentView.addView(this)
-
-                    }
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        updateBiometricIconsLayout()
         v?.post {
-            drawingInProgress = false
+            updateBiometricIconsLayout()
+            drawingInProgress.set(false)
         }
     }
 
     fun setupListeners() {
         BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
         isAttached = true
-        IconStateHelper.registerListener(this)
+
         try {
+            contentView?.post {
+                v?.apply {
+                    parentView.addView(this)
+                }
+                updateBiometricIconsLayout()
+            }
             updateBackground()
+            IconStateHelper.registerListener(this)
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
@@ -201,15 +204,13 @@ class WindowForegroundBlurring(
     fun resetListeners() {
         BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
         isAttached = false
-        IconStateHelper.unregisterListener(this)
         try {
-            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
+            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
         try {
-            updateBiometricIconsLayout()
             if (Utils.isAtLeastS) {
                 contentView?.setRenderEffect(null)
             }
@@ -219,6 +220,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+        IconStateHelper.unregisterListener(this)
     }
 
     private fun updateBiometricIconsLayout() {
@@ -285,16 +287,31 @@ class WindowForegroundBlurring(
         try {
             Palette.from(bm).generate { palette ->
                 try {
-                    val defColor = DialogMainColor.getColor(
-                        context,
-                        DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
-                    )
-                    val color = palette?.getVibrantColor(defColor) ?: defColor
-                    val isDark = ColorUtil.isDark(color)
-                    defaultColor =
-                        DialogMainColor.getColor(context, isDark)
+                    var isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
+                    val defColor =
+                        DialogMainColor.getColor(context, !isDark)
                     BiometricLoggerImpl.d(
-                        "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
+                        "${this.javaClass.name}.updateDefaultColor#0 isDark -  ${ColorUtil.isDark(defColor)}; color - ${
+                            Integer.toHexString(
+                                defColor
+                            )
+                        }"
+                    )
+                    val color = palette?.getDominantColor(defColor) ?: defColor
+
+                    isDark = ColorUtil.isDark(color)
+
+                    defaultColor = if(Utils.isAtLeastS) {
+                        DialogMainColor.getColor(context, isDark)//Cause used system blur, the color will be a bit different
+                    } else{
+                        DialogMainColor.getColor(context, !isDark)
+                    }
+                    BiometricLoggerImpl.d(
+                        "${this.javaClass.name}.updateDefaultColor#2 isDark - ${
+                            ColorUtil.isDark(
+                                defaultColor
+                            )
+                        }; color - ${
                             Integer.toHexString(
                                 defaultColor
                             )

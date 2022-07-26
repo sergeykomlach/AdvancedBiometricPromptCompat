@@ -41,7 +41,9 @@ import java.util.concurrent.atomic.AtomicLong
 
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
+    const val CHECK_TIMEOUT = 5_000L
     private val appContext = AndroidContext.appContext
+    private var isCameraInUseTime = AtomicLong(0)
     private var isCameraInUse = AtomicBoolean(false)
 
     //Workaround that allow do not spam the user
@@ -50,6 +52,9 @@ object SensorPrivacyCheck {
     private var lastKnownState = AtomicBoolean(false)
     fun isCameraInUse(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (System.currentTimeMillis() - isCameraInUseTime.get() <= CHECK_TIMEOUT) {
+                return isCameraInUse.get()
+            }
             val ts = System.currentTimeMillis()
             val delay =
                 appContext.resources.getInteger(android.R.integer.config_longAnimTime)
@@ -77,6 +82,7 @@ object SensorPrivacyCheck {
                 }
             }
         }
+        isCameraInUseTime.set(System.currentTimeMillis())
         return isCameraInUse.get()
     }
 
@@ -190,12 +196,7 @@ object SensorPrivacyCheck {
     @TargetApi(Build.VERSION_CODES.S)
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
-
-            val delay =
-                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                    .toLong() * 2
-            if (System.currentTimeMillis() - lastCheckedTime.get() <= delay) {
-
+            if (System.currentTimeMillis() - lastCheckedTime.get() <= CHECK_TIMEOUT) {
                 return lastKnownState.get()
             } else if (isUiRequested.get() &&
                 SensorBlockedFallbackFragment.isUnblockDialogShown()

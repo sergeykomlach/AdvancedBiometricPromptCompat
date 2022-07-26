@@ -269,7 +269,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private val fragmentLifecycleCallbacks = object :
         FragmentManager.FragmentLifecycleCallbacks() {
         private val atomicBoolean = AtomicInteger(0)
-        val dismissTask = Runnable {
+        private val dismissTask = Runnable {
             if (atomicBoolean.get() <= 0) {
                 BiometricLoggerImpl.e("BiometricPromptCompat.dismissTask")
                 cancelAuthentication()
@@ -300,9 +300,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
                 atomicBoolean.decrementAndGet()
                 ExecutorHelper.removeCallbacks(dismissTask)
+                val delay =
+                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                        .toLong()
                 ExecutorHelper.postDelayed(
                     dismissTask,
-                    250
+                    delay
                 )//delay for case when system fragment closed and fallback shown
             }
         }
@@ -472,7 +475,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             .toLong()
                     ExecutorHelper.postDelayed(closeAll, delay)
                     callbackOuter.onUIClosed()
-                    ExecutorHelper.removeCallbacks(fragmentLifecycleCallbacks.dismissTask)
+//                    ExecutorHelper.removeCallbacks(fragmentLifecycleCallbacks.dismissTask)
                     stopWatcher?.run()
                     stopWatcher = null
                     try {
@@ -585,10 +588,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 false
             )
             stopWatcher = homeWatcher.startWatch()
-            val delay =
-                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                    .toLong()
-            ExecutorHelper.postDelayed(fragmentLifecycleCallbacks.dismissTask, delay)
+//            val delay =
+//                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+//                    .toLong()
+//            ExecutorHelper.postDelayed(fragmentLifecycleCallbacks.dismissTask, delay)
             impl.authenticate(callback)
         } catch (ignore: IllegalStateException) {
             try {
