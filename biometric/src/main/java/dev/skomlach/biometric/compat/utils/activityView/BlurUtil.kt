@@ -158,6 +158,8 @@ object BlurUtil {
 
         val overlay = FastBlur.of(
             view.context, bkg, FastBlurConfig(
+                radius = 4,
+                sampling = 4,
                 width = bkg.width,
                 height = bkg.height
             )
