@@ -25,6 +25,7 @@ import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.RenderEffect
+import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
@@ -86,18 +87,16 @@ class WindowForegroundBlurring(
     }
 
     private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
-
         updateBackground()
-
         true
     }
 
     init {
-        val isDark = DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
+        val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
         defaultColor =
             DialogMainColor.getColor(context, !isDark)
-        BiometricLoggerImpl.d(
-            "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
+        BiometricLoggerImpl.e(
+            "${this.javaClass.name}.updateDefaultColor isDark -  ${ColorUtil.isDark(defaultColor)}; color - ${
                 Integer.toHexString(
                     defaultColor
                 )
@@ -124,6 +123,8 @@ class WindowForegroundBlurring(
                         true
                     }
                     if (Utils.isAtLeastS) {
+                        renderEffect =
+                            RenderEffect.createBlurEffect(12f, 12f, Shader.TileMode.DECAL)
                         contentView?.setRenderEffect(renderEffect)
                     } else
                         ViewCompat.setBackground(this, ColorDrawable(Color.TRANSPARENT))
@@ -285,16 +286,31 @@ class WindowForegroundBlurring(
         try {
             Palette.from(bm).generate { palette ->
                 try {
-                    val defColor = DialogMainColor.getColor(
-                        context,
-                        DarkLightThemes.isNightModeCompatWithInscreen(compatBuilder.getContext())
-                    )
-                    val color = palette?.getVibrantColor(defColor) ?: defColor
-                    val isDark = ColorUtil.isDark(color)
-                    defaultColor =
-                        DialogMainColor.getColor(context, isDark)
+                    var isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
+                    val defColor =
+                        DialogMainColor.getColor(context, !isDark)
                     BiometricLoggerImpl.d(
-                        "${this.javaClass.name}.updateDefaultColor isDark - $isDark; color - ${
+                        "${this.javaClass.name}.updateDefaultColor#0 isDark -  ${ColorUtil.isDark(defColor)}; color - ${
+                            Integer.toHexString(
+                                defColor
+                            )
+                        }"
+                    )
+                    val color = palette?.getDominantColor(defColor) ?: defColor
+
+                    isDark = ColorUtil.isDark(color)
+
+                    defaultColor = if(Utils.isAtLeastS) {
+                        DialogMainColor.getColor(context, isDark)//Cause used system blur, the color will be a bit different
+                    } else{
+                        DialogMainColor.getColor(context, !isDark)
+                    }
+                    BiometricLoggerImpl.d(
+                        "${this.javaClass.name}.updateDefaultColor#2 isDark - ${
+                            ColorUtil.isDark(
+                                defaultColor
+                            )
+                        }; color - ${
                             Integer.toHexString(
                                 defaultColor
                             )
