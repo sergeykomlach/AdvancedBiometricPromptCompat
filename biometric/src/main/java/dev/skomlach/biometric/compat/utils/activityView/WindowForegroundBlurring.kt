@@ -54,6 +54,7 @@ class WindowForegroundBlurring(
     private var contentView: ViewGroup? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
+    @Volatile
     private var isAttached = false
     private var drawingInProgress = AtomicBoolean(false)
     private var biometricsLayout: View? = null
@@ -133,10 +134,11 @@ class WindowForegroundBlurring(
     }
 
     private fun updateBackground() {
+        if (!isAttached)
+            return
         if (!drawingInProgress.get()) {
             drawingInProgress.set(true)
-            if (!isAttached)
-                return
+
             BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
             try {
                 contentView?.let {
@@ -147,6 +149,8 @@ class WindowForegroundBlurring(
                                 originalBitmap: Bitmap,
                                 blurredBitmap: Bitmap?
                             ) {
+                                if (!isAttached)
+                                    return
                                 setDrawable(blurredBitmap)
                                 updateDefaultColor(originalBitmap)
                             }
@@ -160,8 +164,6 @@ class WindowForegroundBlurring(
 
 
     private fun setDrawable(bm: Bitmap?) {
-        if (!isAttached)
-            return
         BiometricLoggerImpl.d("${this.javaClass.name}.setDrawable")
         try {
             v?.let {
@@ -202,15 +204,13 @@ class WindowForegroundBlurring(
     fun resetListeners() {
         BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
         isAttached = false
-        IconStateHelper.unregisterListener(this)
         try {
-            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
+            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
         try {
-            updateBiometricIconsLayout()
             if (Utils.isAtLeastS) {
                 contentView?.setRenderEffect(null)
             }
@@ -220,6 +220,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+        IconStateHelper.unregisterListener(this)
     }
 
     private fun updateBiometricIconsLayout() {
