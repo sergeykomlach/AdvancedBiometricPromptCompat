@@ -216,6 +216,11 @@
    "model": "X20"
   },
   {
+   "device": "X20_Pro",
+   "name": "X20_Pro",
+   "model": "X20_Pro"
+  },
+  {
    "device": "X5",
    "name": "X5",
    "model": "X5"
@@ -8149,6 +8154,11 @@
    "model": "Archos T101 HD PLUS"
   },
   {
+   "device": "act101hdwf",
+   "name": "act101hdwf",
+   "model": "Archos T101 HD WIFI"
+  },
+  {
    "device": "ac101cplv2",
    "name": "alba 10",
    "model": "ALBA 10 TABLET"
@@ -14436,6 +14446,11 @@
    "device": "BYYBUO_SmartPad_T10",
    "name": "BYYBUO_SmartPad_T10",
    "model": "BYYBUO_SmartPad_T10"
+  },
+  {
+   "device": "SmartPad_K7",
+   "name": "SmartPad_K7",
+   "model": "SmartPad_K7"
   }
  ],
  "Bang & Olufsen": [
@@ -20109,6 +20124,11 @@
    "device": "Corn_Star8",
    "name": "Star8",
    "model": "CORN Star8"
+  },
+  {
+   "device": "Star8",
+   "name": "Star8",
+   "model": "Star8"
   },
   {
    "device": "Star8_3G",
@@ -35615,6 +35635,11 @@
  ],
  "F150": [
   {
+   "device": "Air1",
+   "name": "Air1",
+   "model": "Air1"
+  },
+  {
    "device": "Air1_Pro",
    "name": "Air1 Pro",
    "model": "Air1 Pro"
@@ -35919,6 +35944,11 @@
    "device": "FFFTAB10a4",
    "name": "FFFTAB10a4",
    "model": "FFFTAB10a4"
+  },
+  {
+   "device": "FFFTAB10b0",
+   "name": "FFFTAB10b0",
+   "model": "FFFTAB10b0"
   },
   {
    "device": "FFFTAB7",
@@ -39647,6 +39677,11 @@
    "model": "GWAT10_1"
   },
   {
+   "device": "GAKM10822",
+   "name": "GAKM10822",
+   "model": "GAKM10822"
+  },
+  {
    "device": "GATA30812",
    "name": "GATA30812",
    "model": "GATA30812"
@@ -39655,6 +39690,11 @@
    "device": "GATA31012",
    "name": "GATA31012",
    "model": "GATA31012"
+  },
+  {
+   "device": "GATM11022",
+   "name": "GATM11022",
+   "model": "GATM11022"
   },
   {
    "device": "GWAT8_1",
@@ -42901,6 +42941,13 @@
    "device": "T2000",
    "name": "T2000",
    "model": "T2000"
+  }
+ ],
+ "HBESTORE": [
+  {
+   "device": "HL_1068_A133",
+   "name": "HL_1068_A133",
+   "model": "HL_1068_A133"
   }
  ],
  "HDC S.A.": [
@@ -69387,6 +69434,11 @@
    "model": "EZpad M10S"
   },
   {
+   "device": "EZpad_M10S_ROW",
+   "name": "EZpad_M10S_ROW",
+   "model": "EZpad M10S"
+  },
+  {
    "device": "EZpad_M10",
    "name": "EZpad_M10_EEA",
    "model": "EZpad M10"
@@ -70433,6 +70485,11 @@
    "model": "4K SMART TV"
   },
   {
+   "device": "zhongshan",
+   "name": "CHIMEI",
+   "model": "4K SMART TV"
+  },
+  {
    "device": "stanford",
    "name": "COL",
    "model": "40DCOL"
@@ -70561,6 +70618,11 @@
    "device": "zhongshan",
    "name": "Telsa",
    "model": "Tesla 4K Android TV"
+  },
+  {
+   "device": "zhongshan",
+   "name": "VISTA",
+   "model": "4K SMART TV"
   },
   {
    "device": "stanford",
@@ -71607,6 +71669,11 @@
    "device": "KST103SD",
    "name": "KST103SD",
    "model": "KST103SD"
+  },
+  {
+   "device": "KST103SD-L",
+   "name": "KST103SD-L",
+   "model": "KST103SD-L"
   },
   {
    "device": "Kinstone_SA070",
@@ -80996,6 +81063,13 @@
    "model": "MID704DC"
   }
  ],
+ "LVILLE": [
+  {
+   "device": "TP1005",
+   "name": "TP1005",
+   "model": "TP1005"
+  }
+ ],
  "LW": [
   {
    "device": "LW688",
@@ -84886,11 +84960,6 @@
    "model": "Lenovo L38082"
   },
   {
-   "device": "LAVIETab102K1",
-   "name": "LAVIE Tab 102K1",
-   "model": "LAVIE Tab 102K1"
-  },
-  {
    "device": "LIFETAB_E10310",
    "name": "LIFETAB E10310",
    "model": "LIFETAB_E10310"
@@ -87341,6 +87410,11 @@
    "model": "LBOX500"
   },
   {
+   "device": "TL70",
+   "name": "TL70",
+   "model": "TL70"
+  },
+  {
    "device": "MFS100",
    "name": "Tablet Phone",
    "model": "MFS100"
@@ -88553,6 +88627,11 @@
    "device": "S952",
    "name": "S952",
    "model": "S952"
+  },
+  {
+   "device": "SOLAR",
+   "name": "SOLAR",
+   "model": "SOLAR"
   },
   {
    "device": "CT730",
@@ -96306,6 +96385,13 @@
    "model": "SUMMIT LITE"
   }
  ],
+ "Moolah Mobile": [
+  {
+   "device": "T10",
+   "name": "T10",
+   "model": "T10"
+  }
+ ],
  "Morep": [
   {
    "device": "Mavic_30",
@@ -101749,6 +101835,11 @@
    "model": "LAVIE T8 8HD1"
   },
   {
+   "device": "LAVIETab102K1",
+   "name": "LAVIE Tab 102K1",
+   "model": "LAVIE Tab 102K1"
+  },
+  {
    "device": "PC-TE410JAW",
    "name": "LAVIE Tab E",
    "model": "PC-TE410JAW"
@@ -103788,6 +103879,11 @@
    "device": "YYT",
    "name": "4K TV Stick",
    "model": "4K Google TV Stick"
+  },
+  {
+   "device": "zhongshan",
+   "name": "NEXT",
+   "model": "4K SMART TV"
   }
  ],
  "Next Learning": [
@@ -105747,6 +105843,11 @@
    "model": "X600"
   },
   {
+   "device": "X600_NFC",
+   "name": "X600 NFC",
+   "model": "X600 NFC"
+  },
+  {
    "device": "X700",
    "name": "X700",
    "model": "OMIX X700"
@@ -106976,6 +107077,11 @@
    "device": "SmartX1",
    "name": "SmartX1",
    "model": "OpelMobile_SmartX1"
+  },
+  {
+   "device": "SmartZ6",
+   "name": "SmartZ6",
+   "model": "SmartZ6"
   }
  ],
  "OpenPeak": [
@@ -108482,6 +108588,11 @@
    "device": "OP4F1FL1",
    "name": "OPPO Reno5 pro",
    "model": "CPH2201"
+  },
+  {
+   "device": "OP4FA7L1",
+   "name": "OPPO Reno6 Z 5G",
+   "model": "CPH2237"
   },
   {
    "device": "OP533FL1",
@@ -111306,6 +111417,13 @@
    "device": "P9001",
    "name": "P9001",
    "model": "P9001"
+  }
+ ],
+ "POSSAFE": [
+  {
+   "device": "OrderGo5",
+   "name": "OrderGo5_EEA",
+   "model": "OrderGo5"
   }
  ],
  "PRISMPLUS": [
@@ -118245,6 +118363,11 @@
    "model": "M10"
   },
   {
+   "device": "M10-EEA",
+   "name": "M10-EEA",
+   "model": "M10-EEA"
+  },
+  {
    "device": "M10_A01_EEA",
    "name": "M10_A01_EEA",
    "model": "M10"
@@ -118353,6 +118476,11 @@
    "device": "M10_EEA",
    "name": "PRITOM",
    "model": "M10_EEA"
+  },
+  {
+   "device": "Pritom_M10_EEA",
+   "name": "Pritom_M10_EEA",
+   "model": "Pritom_M10_EEA"
   },
   {
    "device": "Pritom_M50",
@@ -118629,6 +118757,16 @@
   }
  ],
  "Punos": [
+  {
+   "device": "PTX1022G",
+   "name": "Punos X10",
+   "model": "X10 Tablet"
+  },
+  {
+   "device": "PTX822G",
+   "name": "Punos X8 PTX822G",
+   "model": "X8 Tablet"
+  },
   {
    "device": "Punos_10",
    "name": "Punos_10",
@@ -142007,6 +142145,11 @@
    "model": "SH825Wi"
   },
   {
+   "device": "zhongshan",
+   "name": "SHARP",
+   "model": "4K SMART TV"
+  },
+  {
    "device": "shinagawa",
    "name": "SHARP 2K SMART TV",
    "model": "SHARP 2K SMART TV"
@@ -143984,6 +144127,16 @@
    "model": "M20"
   },
   {
+   "device": "M30",
+   "name": "M30",
+   "model": "M30"
+  },
+  {
+   "device": "M50",
+   "name": "M50",
+   "model": "M50"
+  },
+  {
    "device": "Max",
    "name": "Max",
    "model": "Max"
@@ -144071,6 +144224,11 @@
    "device": "stanford",
    "name": "SMART TECHNOLOGY",
    "model": "2K SMART TV"
+  },
+  {
+   "device": "zhongshan",
+   "name": "SMART TEcHNOLGY",
+   "model": "4K SMART TV"
   },
   {
    "device": "yeongdeungpo",
@@ -149296,6 +149454,11 @@
   }
  ],
  "Surfans": [
+  {
+   "device": "K10",
+   "name": "K10",
+   "model": "K10"
+  },
   {
    "device": "K7",
    "name": "K7",
@@ -159391,6 +159554,16 @@
    "model": "P20HD_RUS"
   },
   {
+   "device": "P20S_EEA",
+   "name": "P20S_EEA",
+   "model": "P20S_EEA"
+  },
+  {
+   "device": "P20S_ROW",
+   "name": "P20S_ROW",
+   "model": "P20S_ROW"
+  },
+  {
    "device": "P20_EEA",
    "name": "P20_EEA",
    "model": "P20_EEA"
@@ -159871,6 +160044,11 @@
    "device": "TECNO-CI6n",
    "name": "CAMON 19",
    "model": "TECNO CI6n"
+  },
+  {
+   "device": "TECNO-Mobile-CI6n",
+   "name": "CAMON 19",
+   "model": "TECNO Mobile CI6n"
   },
   {
    "device": "TECNO-CI8",
@@ -163770,6 +163948,13 @@
    "device": "MQ703G",
    "name": "MQ703G",
    "model": "MQ703G"
+  }
+ ],
+ "UAUU": [
+  {
+   "device": "T60",
+   "name": "T60",
+   "model": "T60"
   }
  ],
  "UBCtv": [
@@ -168946,6 +169131,11 @@
    "device": "stanford",
    "name": "VIVAX",
    "model": "2K SMART TV"
+  },
+  {
+   "device": "zhongshan",
+   "name": "VIVAX",
+   "model": "4K SMART TV"
   },
   {
    "device": "VIVAX_Fly6",
@@ -185927,6 +186117,11 @@
    "device": "P450S10",
    "name": "ZTE Blade V9",
    "model": "ZTE V0900"
+  },
+  {
+   "device": "P963T02C",
+   "name": "ZTE Blade X10 Pro",
+   "model": "ZTE T1003"
   },
   {
    "device": "P963T01C",
