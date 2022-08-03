@@ -124,6 +124,8 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 mFingerprintServiceFingerprintManager
                     ?.startIdentify(object : IdentifyCallback {
+                        private var errorTs = System.currentTimeMillis()
+                        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
                         override fun onIdentified(i: Int, b: Boolean) {
                             listener?.onSuccess(
                                 tag(),
@@ -141,6 +143,10 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                         }
 
                         private fun fail(reason: AuthenticationFailureReason) {
+                            val tmp = System.currentTimeMillis()
+                            if(tmp - errorTs <= skipTimeout)
+                                return
+                            errorTs = tmp
                             var failureReason: AuthenticationFailureReason? = reason
                             if (restartCauseTimeout(failureReason)) {
                                 authenticate(

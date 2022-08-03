@@ -72,7 +72,8 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 August 3 15, 2022
 
-**Bugfix: BG biometric icons color and blur fixed ** - incorrect (RGB_565) color scheme used, as result, BG biometric icons tinted in wrong color, plus blur use a wrong bitmap 
+**Bugfix: BG biometric icons color and blur fixed ** - incorrect (RGB_565) color scheme used, as result, BG biometric icons tinted in wrong color, plus blur use a wrong bitmap
+**Bugfix: MS Surface Duo ** - legacy dialog height fixed; legacy dialog dialog dismissed if wrong finger enrolled
 
 July 15, 2022
 

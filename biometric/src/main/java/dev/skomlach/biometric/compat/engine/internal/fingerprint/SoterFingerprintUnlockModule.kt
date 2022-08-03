@@ -159,8 +159,14 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : BiometricManagerCompat.AuthenticationCallback() {
+        private var errorTs = System.currentTimeMillis()
+        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
@@ -237,6 +243,10 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
