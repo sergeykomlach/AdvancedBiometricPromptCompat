@@ -157,9 +157,15 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : FingerprintManager.AuthenticationCallback() {
+        private var errorTs = System.currentTimeMillis()
+        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FingerprintManager.FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
@@ -239,6 +245,10 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())

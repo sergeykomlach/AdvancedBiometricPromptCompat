@@ -480,8 +480,14 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : FaceManager.AuthenticationCallback() {
+        private var errorTs = System.currentTimeMillis()
+        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FACE_ERROR_NOT_ENROLLED -> failureReason =
@@ -558,6 +564,10 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())

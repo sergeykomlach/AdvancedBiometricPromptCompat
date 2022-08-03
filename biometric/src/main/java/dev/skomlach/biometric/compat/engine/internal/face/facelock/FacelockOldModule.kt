@@ -184,8 +184,14 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) {
+        private var errorTs = System.currentTimeMillis()
+        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
         fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void? {
             d("$name.onAuthenticationError: $errMsgId-$errString")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return null
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
@@ -258,6 +264,10 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
         fun onAuthenticationFailed(): Void? {
             d("$name.onAuthenticationFailed")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return null
+            errorTs = tmp
             listener?.onFailure(
                 AuthenticationFailureReason.AUTHENTICATION_FAILED,
                 tag()

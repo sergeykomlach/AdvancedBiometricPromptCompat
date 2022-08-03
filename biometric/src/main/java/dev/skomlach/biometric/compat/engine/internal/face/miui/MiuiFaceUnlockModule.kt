@@ -157,8 +157,14 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : IMiuiFaceManager.AuthenticationCallback() {
+        private var errorTs = System.currentTimeMillis()
+        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
 
             //See IMiuiFaceManagerImpl.getMessageInfo()
