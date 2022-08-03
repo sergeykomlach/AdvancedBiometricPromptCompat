@@ -70,6 +70,10 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 ## Recent changes
 
+August 3 15, 2022
+
+**Bugfix: BG biometric icons color and blur fixed ** - incorrect (RGB_565) color scheme used, as result, BG biometric icons tinted in wrong color, plus blur use a wrong bitmap 
+
 July 15, 2022
 
 

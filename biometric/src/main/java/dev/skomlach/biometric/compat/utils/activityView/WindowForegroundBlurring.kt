@@ -297,15 +297,11 @@ class WindowForegroundBlurring(
                             )
                         }"
                     )
-                    val color = palette?.getDominantColor(defColor) ?: defColor
-
-                    isDark = ColorUtil.isDark(color)
-
-                    defaultColor = if(Utils.isAtLeastS) {
-                        DialogMainColor.getColor(context, isDark)//Cause used system blur, the color will be a bit different
-                    } else{
-                        DialogMainColor.getColor(context, !isDark)
-                    }
+                    defaultColor =
+                        palette?.getDominantColor(defColor)?.let { color->
+                            isDark = ColorUtil.isDark(color)
+                            DialogMainColor.getColor(context, isDark)
+                        }?:defColor
                     BiometricLoggerImpl.d(
                         "${this.javaClass.name}.updateDefaultColor#2 isDark - ${
                             ColorUtil.isDark(

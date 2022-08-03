@@ -82,7 +82,7 @@ object BlurUtil {
                                 BiometricLoggerImpl.d("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
                                 blur(
                                     view,
-                                    bm.copy(Bitmap.Config.RGB_565, false),
+                                    bm.copy(Bitmap.Config.ARGB_4444, false),
                                     listener
                                 )
                             } catch (e: Throwable) {
@@ -109,7 +109,7 @@ object BlurUtil {
                     Bitmap.createBitmap(
                         view.measuredWidth,
                         view.measuredHeight,
-                        Bitmap.Config.RGB_565
+                        Bitmap.Config.ARGB_4444
                     )
                 val canvas = Canvas(bm)
                 view.draw(canvas)
