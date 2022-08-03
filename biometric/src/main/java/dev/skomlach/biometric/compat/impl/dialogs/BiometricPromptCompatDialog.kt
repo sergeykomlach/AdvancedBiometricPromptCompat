@@ -236,13 +236,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) delegate.localNightMode =
                 NIGHT_MODE
             this.setCanceledOnTouchOutside(true)
-            this.window?.let { w ->
-                val wlp = w.attributes
-                wlp.height = WindowManager.LayoutParams.WRAP_CONTENT
-                wlp.gravity = Gravity.BOTTOM
-                w.attributes = wlp
-                ScreenProtection().applyProtectionInWindow(w)
-            }
             this.setOnShowListener(onShowDialogInterface)
         }
     }
@@ -250,6 +243,18 @@ class BiometricPromptCompatDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         dialog?.let {
+            it.window?.let { w ->
+                val wlp = w.attributes
+                wlp.height = containerView?.apply {
+                    this.measure(
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                    )
+                }?.measuredHeight ?: WindowManager.LayoutParams.WRAP_CONTENT
+                wlp.gravity = Gravity.BOTTOM
+                w.attributes = wlp
+                ScreenProtection().applyProtectionInWindow(w)
+            }
             it.setOnCancelListener(cancelDialogInterface)
             it.setOnDismissListener(dismissDialogInterface)
         }
