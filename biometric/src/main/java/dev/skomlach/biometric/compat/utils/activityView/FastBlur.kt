@@ -33,7 +33,7 @@ internal object FastBlur {
         if (hasZero(width, height)) {
             return null
         }
-        var bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+        var bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444)
         val canvas = Canvas(bitmap)
         canvas.scale(1 / factor.sampling.toFloat(), 1 / factor.sampling.toFloat())
         val paint = Paint()
