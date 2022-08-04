@@ -28,7 +28,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:4.3'
     implementation 'com.jaredrummler:android-device-names:2.1.0'
-    implementation "org.jsoup:jsoup:1.15.1"
+    implementation "org.jsoup:jsoup:1.15.2"
     implementation "androidx.biometric:biometric-ktx:1.2.0-alpha04"
     implementation 'com.github.Tencent.soter:soter-core:2.0.11'
     implementation "androidx.appcompat:appcompat:1.4.2"

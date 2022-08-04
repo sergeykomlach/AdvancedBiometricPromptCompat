@@ -192,11 +192,10 @@ class BiometricPromptCompatDialog : DialogFragment() {
             }
 
             override fun onViewDetachedFromWindow(v: View) {
-                if (isShowing)
-                    dismiss()
                 try {
                     v.context.unregisterReceiver(wallpaperChangedReceiver)
                 } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e, "setupMonet")
                 }
             }
         })
@@ -259,11 +258,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
             it.setOnDismissListener(dismissDialogInterface)
         }
     }
-
-    fun cancel() {
-        dialog?.cancel()
-    }
-
     fun <T : View?> findViewById(id: Int): T? {
         return dialog?.findViewById<T>(id)
     }
