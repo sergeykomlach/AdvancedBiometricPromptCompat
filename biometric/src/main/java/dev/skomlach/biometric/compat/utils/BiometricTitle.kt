@@ -30,10 +30,13 @@ object BiometricTitle {
         val set = types.toMutableSet().apply {
             remove(BiometricType.BIOMETRIC_ANY)
         }
-        if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FACE))
+        if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FACE)) {
             getSystemTitle(context, "face")?.let {
                 return it
             }
+            return context
+                .getString(androidx.biometric.R.string.face_prompt_message)
+        }
         else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
             getSystemTitle(context, "iris")?.let {
                 return it
@@ -43,7 +46,7 @@ object BiometricTitle {
                 return it
             }
             return context
-                .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
+                .getString(androidx.biometric.R.string.fingerprint_prompt_message)
         } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
             getSystemTitle(context, "voice")?.let {
                 return it
@@ -77,7 +80,7 @@ object BiometricTitle {
         }
         //Give up
         return context
-            .getString(androidx.biometric.R.string.fingerprint_dialog_touch_sensor)
+            .getString(androidx.biometric.R.string.biometric_prompt_message)
     }
 
     private fun getSystemTitle(context: Context, alias: String): String? {

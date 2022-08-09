@@ -69,6 +69,11 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
+August 9, 2022
+
+
+**Bugfix: Biometric Title** - fixed incorrect title on biometric dialog
+
 
 August 3, 2022
 
