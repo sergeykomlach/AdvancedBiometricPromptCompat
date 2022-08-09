@@ -26091,6 +26091,16 @@
    "model": "Core-X5"
   },
   {
+   "device": "L790",
+   "name": "Core-Z5",
+   "model": "Core-Z5"
+  },
+  {
+   "device": "L790_02",
+   "name": "Core-Z5",
+   "model": "Core-Z5"
+  },
+  {
    "device": "ODYSSEY3G",
    "name": "ODYSSEY",
    "model": "ODYSSEY"
@@ -31970,6 +31980,13 @@
    "device": "Eclipse_G500M",
    "name": "Eclipse G500M",
    "model": "Eclipse_G500M"
+  }
+ ],
+ "E-LEAD": [
+  {
+   "device": "RSE",
+   "name": "RSE",
+   "model": "EL-712"
   }
  ],
  "E-TACHI": [
@@ -48153,6 +48170,11 @@
  ],
  "Hammer": [
   {
+   "device": "Energy_2_2022",
+   "name": "Energy_2_2022_EEA",
+   "model": "Hammer_Energy_2_2022"
+  },
+  {
    "device": "Hammer_Blade_3",
    "name": "Hammer Blade 3",
    "model": "Hammer_Blade_3"
@@ -48171,11 +48193,6 @@
    "device": "Hammer_Expl_Pro",
    "name": "Hammer Explorer Pro",
    "model": "Hammer_Explorer_Pro"
-  },
-  {
-   "device": "Energy_2_2022",
-   "name": "Hammer_Energy_2_2022",
-   "model": "Hammer_Energy_2_2022"
   }
  ],
  "Handheld Group": [
@@ -104887,6 +104904,11 @@
    "model": "AI PONT"
   },
   {
+   "device": "mateo",
+   "name": "Smart TV",
+   "model": "2K PA Smart TV"
+  },
+  {
    "device": "redwood",
    "name": "Smart TV",
    "model": "AI PONT"
@@ -150493,6 +150515,11 @@
   {
    "device": "BeyondTV",
    "name": "C02_4K_US",
+   "model": "Smart TV"
+  },
+  {
+   "device": "C06",
+   "name": "C06_2K_GB",
    "model": "Smart TV"
   },
   {
