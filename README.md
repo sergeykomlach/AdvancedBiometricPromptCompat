@@ -69,6 +69,12 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
+August 11, 2022
+
+
+**Bugfix: Samsung FaceId + Android 9+** - should be fixed bug on Samsung devices when FaceId failed with UNKNOWN error due to incorrect "authenticate" call
+
+
 August 9, 2022
 
 
