@@ -26,6 +26,26 @@ import android.os.Handler
 
 
 class FaceManager {
+    fun authenticate(
+        crypto: android.hardware.biometrics.CryptoObject?,
+        cancel: CancellationSignal?,
+        flags: Int,
+        callback: AuthenticationCallback,
+        handler: Handler?
+    ) {
+        throw IllegalArgumentException("Must supply an authentication callback")
+    }
+
+    fun authenticate(
+        crypto: android.hardware.biometrics.CryptoObject?,
+        cancel: CancellationSignal?,
+        flags: Int,
+        callback: AuthenticationCallback,
+        handler: Handler?,
+        userId: Int
+    ) {
+        throw IllegalArgumentException("Must supply an authentication callback")
+    }
 
     fun authenticate(
         crypto: android.hardware.biometrics.CryptoObject?,
