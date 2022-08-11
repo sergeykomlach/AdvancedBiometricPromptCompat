@@ -27,15 +27,35 @@ import android.os.Handler
 
 class IrisManager {
     fun authenticate(
-        crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?,
-        flags: Int, callback: AuthenticationCallback, handler: Handler?
+        crypto: android.hardware.biometrics.CryptoObject?,
+        cancel: CancellationSignal?,
+        flags: Int,
+        callback: AuthenticationCallback,
+        handler: Handler?
     ) {
+        throw IllegalArgumentException("Must supply an authentication callback")
     }
 
     fun authenticate(
-        crypto: android.hardware.biometrics.CryptoObject?, cancel: CancellationSignal?,
-        flags: Int, callback: AuthenticationCallback, handler: Handler?, userId: Int
+        crypto: android.hardware.biometrics.CryptoObject?,
+        cancel: CancellationSignal?,
+        flags: Int,
+        callback: AuthenticationCallback,
+        handler: Handler?,
+        userId: Int
     ) {
+        throw IllegalArgumentException("Must supply an authentication callback")
+    }
+
+    fun authenticate(
+        crypto: android.hardware.biometrics.CryptoObject?,
+        cancel: CancellationSignal?,
+        callback: AuthenticationCallback?,
+        handler: Handler?,
+        userId: Int,
+        isKeyguardBypassEnabled: Boolean
+    ) {
+        throw IllegalArgumentException("Must supply an authentication callback")
     }
 
     fun getEnrolledIrises(userId: Int): List<Iris>? {

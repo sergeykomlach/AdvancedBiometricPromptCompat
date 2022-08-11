@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.hardware.biometrics.CryptoObject
 import android.hardware.iris.IrisManager
 import android.os.Build
+import android.os.Handler
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -220,9 +221,63 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     e(e, name)
             }
         }
+        verifyManager()
         listener?.initFinished(biometricMethod, this@AndroidIrisUnlockModule)
     }
+    private fun verifyManager() {
+        if (manager != null) {
+            //verify that 'authenticate' can be used
+            try {
+                if (manager?.javaClass?.getMethod(
+                        "authenticate",
+                        CryptoObject::class.java,
+                        CancellationSignal::class.java,
+                        IrisManager.AuthenticationCallback::class.java,
+                        Handler::class.java,
+                        Int::class.javaPrimitiveType,
+                        Boolean::class.javaPrimitiveType
+                    ) != null
+                ) {
+                    return
+                }
+            } catch (e: Throwable) {
 
+            }
+            try {
+                if (manager?.javaClass?.getMethod(
+                        "authenticate",
+                        CryptoObject::class.java,
+                        CancellationSignal::class.java,
+                        Int::class.javaPrimitiveType,
+                        IrisManager.AuthenticationCallback::class.java,
+                        Handler::class.java
+                    ) != null
+                ) {
+                    return
+                }
+            } catch (e: Throwable) {
+
+            }
+            try {
+                if (manager?.javaClass?.getMethod(
+                        "authenticate",
+                        CryptoObject::class.java,
+                        CancellationSignal::class.java,
+                        Int::class.javaPrimitiveType,
+                        IrisManager.AuthenticationCallback::class.java,
+                        Handler::class.java,
+                        Int::class.javaPrimitiveType,
+                    ) != null
+                ) {
+                    return
+                }
+            } catch (e: Throwable) {
+
+            }
+        }
+
+        manager = null
+    }
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {
@@ -300,12 +355,36 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         null
                 }
                 d("$name.authenticate:  Crypto=$crypto")
+                try {
+                    it.authenticate(
+                        crypto,
+                        signalObject,
+                        callback,
+                        ExecutorHelper.handler,
+                        0,
+                        true
+                    )
+                    return
+                } catch (e: Throwable) {
+                }
+                try {
+                    it.authenticate(
+                        crypto,
+                        signalObject,
+                        0,
+                        callback,
+                        ExecutorHelper.handler
+                    )
+                    return
+                } catch (e: Throwable) {
+                }
                 it.authenticate(
                     crypto,
                     signalObject,
                     0,
                     callback,
-                    ExecutorHelper.handler
+                    ExecutorHelper.handler,
+                    0
                 )
                 return
             } catch (e: Throwable) {
