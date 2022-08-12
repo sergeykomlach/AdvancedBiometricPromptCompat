@@ -85,7 +85,7 @@ August 3, 2022
 
 **Bugfix: BG biometric icons color and blur fixed** - fixed incorrect (RGB_565) color scheme used, as result, bug when BG biometric icons tinted in wrong color, plus blur use a wrong bitmap
 
-**Bugfix: MS Surface Duo** - fixed legacy dialog height fixed; fixed issue when legacy dialog dialog dismissed if wrong finger enrolled
+**Bugfix: MS Surface Duo** - fixed legacy dialog height; fixed issue when legacy dialog dismissed if wrong finger enrolled
 
 July 15, 2022
 
