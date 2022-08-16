@@ -246,6 +246,10 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
         fun onAuthenticationSucceeded(result: Any?): Void? {
             d("$name.onAuthenticationSucceeded $result")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return null
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

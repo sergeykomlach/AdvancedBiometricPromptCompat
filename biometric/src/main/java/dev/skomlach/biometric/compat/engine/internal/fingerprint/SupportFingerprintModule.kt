@@ -251,6 +251,10 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

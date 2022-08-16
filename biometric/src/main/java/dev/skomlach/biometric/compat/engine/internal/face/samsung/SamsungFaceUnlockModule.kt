@@ -229,6 +229,10 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationSucceeded(result: SemBioFaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

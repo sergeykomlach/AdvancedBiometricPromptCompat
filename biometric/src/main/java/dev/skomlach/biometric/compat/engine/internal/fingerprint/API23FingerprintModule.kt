@@ -232,6 +232,10 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

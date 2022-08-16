@@ -137,6 +137,10 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     private var errorTs = System.currentTimeMillis()
                     private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
                     override fun onFinished(status: Int) {
+                        val tmp = System.currentTimeMillis()
+                        if(tmp - errorTs <= skipTimeout)
+                            return
+                        errorTs = tmp
                         when (status) {
                             SpassFingerprint.STATUS_AUTHENTIFICATION_SUCCESS, SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS -> {
                                 listener?.onSuccess(
@@ -165,10 +169,6 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     }
 
                     private fun fail(reason: AuthenticationFailureReason) {
-                        val tmp = System.currentTimeMillis()
-                        if(tmp - errorTs <= skipTimeout)
-                            return
-                        errorTs = tmp
                         var failureReason: AuthenticationFailureReason? = reason
                         if (restartCauseTimeout(failureReason)) {
                             authenticate(

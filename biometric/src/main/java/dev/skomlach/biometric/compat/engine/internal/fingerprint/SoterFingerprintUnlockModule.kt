@@ -231,6 +231,10 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
         override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

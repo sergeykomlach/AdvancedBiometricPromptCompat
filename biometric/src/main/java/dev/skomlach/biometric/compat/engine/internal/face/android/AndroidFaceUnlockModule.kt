@@ -631,6 +631,10 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(

@@ -232,6 +232,10 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
         override fun onAuthenticationSucceeded(miuiface: Miuiface?) {
             d("$name.onAuthenticationSucceeded: $miuiface")
+            val tmp = System.currentTimeMillis()
+            if(tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
