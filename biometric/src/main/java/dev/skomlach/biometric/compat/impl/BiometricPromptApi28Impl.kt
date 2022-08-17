@@ -174,7 +174,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                d("BiometricPromptApi28Impl.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+                d("BiometricPromptApi28Impl.onAuthenticationSucceeded: ${result.authenticationType}; Crypto=${result.cryptoObject}")
                 val tmp = System.currentTimeMillis()
                 if(tmp - errorTs <= skipTimeout)
                     return
@@ -239,11 +239,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 forceToFingerprint = true
             }
         }
-        if (isAtLeastR) {
-            promptInfoBuilder.setAllowedAuthenticators(if (forceToFingerprint) BiometricManager.Authenticators.BIOMETRIC_STRONG else BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        } else {
-            promptInfoBuilder.setDeviceCredentialAllowed(false)
-        }
+
+        promptInfoBuilder.setDeviceCredentialAllowed(false)
+        promptInfoBuilder.setAllowedAuthenticators(if (forceToFingerprint) BiometricManager.Authenticators.BIOMETRIC_STRONG else
+            (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG))
+
         promptInfoBuilder.setConfirmationRequired(false)
         biometricPromptInfo = promptInfoBuilder.build()
         biometricPrompt = BiometricPrompt(
