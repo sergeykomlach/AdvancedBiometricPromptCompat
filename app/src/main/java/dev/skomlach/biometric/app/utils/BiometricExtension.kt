@@ -77,10 +77,6 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setNegativeButton(
-            "Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more",
-            null
-        )
 //        .setCryptographyPurpose(
 //            BiometricCryptographyPurpose(
 //                if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,

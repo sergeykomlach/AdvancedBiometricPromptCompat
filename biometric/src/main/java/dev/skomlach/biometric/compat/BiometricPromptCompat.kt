@@ -735,10 +735,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var description: CharSequence? = null
 
-        private var negativeButtonText: CharSequence? = null
-
-        private var negativeButtonListener: DialogInterface.OnClickListener? = null
-
         private lateinit var multiWindowSupport: MultiWindowSupport
 
         private var notificationEnabled = true
@@ -794,14 +790,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         fun getDescription(): CharSequence? {
             return description
-        }
-
-        fun getNegativeButtonText(): CharSequence? {
-            return negativeButtonText
-        }
-
-        fun getNegativeButtonListener(): DialogInterface.OnClickListener? {
-            return negativeButtonListener
         }
 
         fun getNavBarColor(): Int {
@@ -913,33 +901,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return this
         }
 
-        fun setNegativeButtonText(text: CharSequence): Builder {
-            negativeButtonText = text
-            return this
-        }
-
-        fun setNegativeButtonText(@StringRes res: Int): Builder {
-            negativeButtonText = appContext.getString(res)
-            return this
-        }
-
-        fun setNegativeButton(
-            text: CharSequence,
-            listener: DialogInterface.OnClickListener?
-        ): Builder {
-            negativeButtonText = text
-            negativeButtonListener = listener
-            return this
-        }
-
-        fun setNegativeButton(
-            @StringRes textResId: Int,
-            listener: DialogInterface.OnClickListener?
-        ): Builder {
-            negativeButtonText = appContext.getString(textResId)
-            negativeButtonListener = listener
-            return this
-        }
 
         fun build(): BiometricPromptCompat {
             if (title == null)
@@ -947,8 +908,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     appContext,
                     getAllAvailableTypes()
                 )
-            if (negativeButtonText == null)
-                negativeButtonText = appContext.getString(android.R.string.cancel)
             TruncatedTextFix.recalculateTexts(this, object : TruncatedTextFix.OnTruncateChecked {
                 override fun onDone() {
                     isTruncateChecked = true

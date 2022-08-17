@@ -38,7 +38,6 @@ object TruncatedTextFix {
     private var TITLE_SHIFT = 7
     private var SUBTITLE_SHIFT = 1
     private var DESCRIPTION_SHIFT = 2
-    private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
 
     init {
@@ -78,12 +77,11 @@ object TruncatedTextFix {
         val title: TextView? = rootView?.findViewById(R.id.title)
         val subtitle: TextView? = rootView?.findViewById(R.id.subtitle)
         val description: TextView? = rootView?.findViewById(R.id.description)
-        val negativeButton: Button? = rootView?.findViewById(android.R.id.button1)
         val action = {
             windowView.removeView(layout)
             onTruncateChecked.onDone()
         }
-        val counter = AtomicInteger(4)
+        val counter = AtomicInteger(3)
         getMaxStringForCurrentConfig(builder.getTitle(), title, { str ->
             builder.setTitle(str)
             if (counter.decrementAndGet() == 0) {
@@ -112,20 +110,6 @@ object TruncatedTextFix {
             },
             DESCRIPTION_SHIFT
         )
-        getMaxStringForCurrentConfig(
-            builder.getNegativeButtonText(),
-            negativeButton,
-            { str ->
-                str?.let {
-                    builder.setNegativeButton(it, builder.getNegativeButtonListener())
-                }
-                if (counter.decrementAndGet() == 0) {
-                    action.invoke()
-                }
-            },
-            NEGATIVE_BUTTON_SHIFT
-        )
-
     }
 
     private fun getMaxStringForCurrentConfig(

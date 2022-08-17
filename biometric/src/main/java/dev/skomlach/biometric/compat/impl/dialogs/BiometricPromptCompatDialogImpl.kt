@@ -105,15 +105,14 @@ class BiometricPromptCompatDialogImpl(
             } else {
                 dialog.description?.text = compatBuilder.getDescription()
             }
-            if (compatBuilder.getNegativeButtonText() == null) {
-                dialog.negativeButton?.visibility = View.INVISIBLE
-            } else {
-                dialog.negativeButton?.text = compatBuilder.getNegativeButtonText()
-                dialog.negativeButton?.setOnClickListener {
-                    dismissDialog()
-                    authCallback?.cancelAuth()
-                }
+
+            dialog.negativeButton?.text =
+                compatBuilder.getContext().getString(android.R.string.cancel)
+            dialog.negativeButton?.setOnClickListener {
+                dismissDialog()
+                authCallback?.cancelAuth()
             }
+
             dialog.status?.text = promptText
             originalColor = dialog.status?.textColors
 

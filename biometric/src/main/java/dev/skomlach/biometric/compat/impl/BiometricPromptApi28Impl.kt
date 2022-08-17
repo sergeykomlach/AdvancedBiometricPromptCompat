@@ -200,30 +200,35 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         builder.getDescription()?.let {
             promptInfoBuilder.setDescription(it)
         }
-        var buttonTextColor: Int =
-            ContextCompat.getColor(
-                builder.getContext(),
-                if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
-            )
 
-        if (Utils.isAtLeastS) {
-            val monetColors = SystemColorScheme()
-            if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
-                monetColors.accent2[100]?.toArgb()?.let {
-                    buttonTextColor = it
-                }
-            else
-                monetColors.neutral2[500]?.toArgb()?.let {
-                    buttonTextColor = it
-                }
-        }
 
-        builder.getNegativeButtonText()?.let {
-            if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
-                getFixedString(
-                    it, color = buttonTextColor
+        val systemInScreenDialogMustBeUsed =
+            isFingerprint.get() && DevicesWithKnownBugs.isHideDialogInstantly
+        if (!systemInScreenDialogMustBeUsed) {
+            var buttonTextColor: Int =
+                ContextCompat.getColor(
+                    builder.getContext(),
+                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
                 )
-            )
+
+            if (Utils.isAtLeastS) {
+                val monetColors = SystemColorScheme()
+                if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
+                    monetColors.accent2[100]?.toArgb()?.let {
+                        buttonTextColor = it
+                    }
+                else
+                    monetColors.neutral2[500]?.toArgb()?.let {
+                        buttonTextColor = it
+                    }
+            }
+            builder.getContext().getString(android.R.string.cancel).let {
+                if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
+                    getFixedString(
+                        it, color = buttonTextColor
+                    )
+                )
+            }
         }
         //Should force to Fingerprint-only
         if (isSamsungWorkaroundRequired) {
