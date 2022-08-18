@@ -135,10 +135,12 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                 cancelFingerprintRequest()
                 it.startIdentify(object : SpassFingerprint.IdentifyListener {
                     private var errorTs = System.currentTimeMillis()
-                    private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+                    private val skipTimeout =
+                        context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
                     override fun onFinished(status: Int) {
                         val tmp = System.currentTimeMillis()
-                        if(tmp - errorTs <= skipTimeout)
+                        if (tmp - errorTs <= skipTimeout)
                             return
                         errorTs = tmp
                         when (status) {

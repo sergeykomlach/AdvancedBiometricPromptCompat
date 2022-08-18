@@ -160,11 +160,13 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         private val listener: AuthenticationListener?
     ) : BiometricManagerCompat.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -232,7 +234,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -248,7 +250,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
 import android.view.*
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import dev.skomlach.biometric.compat.BiometricPromptCompat

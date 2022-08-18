@@ -250,11 +250,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : FaceManager.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -312,7 +314,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -328,7 +330,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
@@ -356,11 +358,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : HuaweiFaceManager.AuthenticatorCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int) {
             d("$name.onAuthenticationError: $errMsgId")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -418,7 +422,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationSucceeded() {
             d("$name.onAuthenticationSucceeded: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -434,7 +438,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

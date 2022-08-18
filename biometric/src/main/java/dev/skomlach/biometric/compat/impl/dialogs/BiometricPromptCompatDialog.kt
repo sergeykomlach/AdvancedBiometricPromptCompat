@@ -258,6 +258,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
             it.setOnDismissListener(dismissDialogInterface)
         }
     }
+
     fun <T : View?> findViewById(id: Int): T? {
         return dialog?.findViewById<T>(id)
     }

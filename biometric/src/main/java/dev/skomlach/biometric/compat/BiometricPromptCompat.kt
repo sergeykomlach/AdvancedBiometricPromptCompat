@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat
 
-import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Build
 import android.os.Looper
@@ -404,11 +403,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 authFlowInProgress.set(false)
             } else {
                 val activityViewWatcher = try {
-                    ActivityViewWatcher(impl.builder, object : ActivityViewWatcher.ForceToCloseCallback {
-                        override fun onCloseBiometric() {
-                            cancelAuthentication()
-                        }
-                    })
+                    ActivityViewWatcher(
+                        impl.builder,
+                        object : ActivityViewWatcher.ForceToCloseCallback {
+                            override fun onCloseBiometric() {
+                                cancelAuthentication()
+                            }
+                        })
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                     null

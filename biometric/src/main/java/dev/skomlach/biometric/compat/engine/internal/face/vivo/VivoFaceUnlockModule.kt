@@ -128,11 +128,13 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private val listener: AuthenticationListener?
     ) : FaceAuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onFaceAuthenticationResult(errorCode: Int, retry_times: Int) {
             d("$name.onFaceAuthenticationResult: $errorCode-$retry_times")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             if (errorCode == FaceDetectManager.FACE_DETECT_SUCEESS) {

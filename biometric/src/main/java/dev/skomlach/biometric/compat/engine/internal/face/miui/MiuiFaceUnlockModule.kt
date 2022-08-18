@@ -158,11 +158,13 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private val listener: AuthenticationListener?
     ) : IMiuiFaceManager.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -233,7 +235,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onAuthenticationSucceeded(miuiface: Miuiface?) {
             d("$name.onAuthenticationSucceeded: $miuiface")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(

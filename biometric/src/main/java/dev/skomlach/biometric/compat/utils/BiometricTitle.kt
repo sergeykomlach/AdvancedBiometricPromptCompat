@@ -36,8 +36,7 @@ object BiometricTitle {
             }
             return context
                 .getString(androidx.biometric.R.string.face_prompt_message)
-        }
-        else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
+        } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
             getSystemTitle(context, "iris")?.let {
                 return it
             }
