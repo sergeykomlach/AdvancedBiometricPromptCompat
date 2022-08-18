@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -133,7 +134,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         mSpassFingerprint?.let {
             try {
                 cancelFingerprintRequest()
-                it.startIdentify(object : SpassFingerprint.IdentifyListener {
+                val callback = object : SpassFingerprint.IdentifyListener {
                     private var errorTs = System.currentTimeMillis()
                     private val skipTimeout =
                         context.resources.getInteger(android.R.integer.config_shortAnimTime)
@@ -204,8 +205,15 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     override fun onReady() {}
                     override fun onStarted() {}
                     override fun onCompleted() {}
-                })
-                cancellationSignal?.setOnCancelListener { cancelFingerprintRequest() }
+                }
+                it.startIdentify(callback)
+                cancellationSignal?.setOnCancelListener {
+                    cancelFingerprintRequest()
+                    BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
+                    callback.onFinished(
+                        SpassFingerprint.STATUS_USER_CANCELLED
+                    )
+                }
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")

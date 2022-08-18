@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.IMiuiFaceMan
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.MiuiFaceFactory
 import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.Miuiface
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -134,6 +135,14 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 if (!it.isFaceUnlockInited)
                     it.preInitAuthen()
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                signalObject.setOnCancelListener {
+                    BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
+                    callback.onAuthenticationError(
+                        -1,
+                        context
+                            .getString(androidx.biometric.R.string.generic_error_user_canceled)
+                    )
+                }
                 it.authenticate(
                     signalObject,
                     0,

@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
 import android.content.Context
-import android.os.CancellationSignal
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -33,6 +32,7 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManager
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceManagerFactory
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFaceRecognizeManager
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -192,18 +192,27 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                             else
                                 null
                         }
+                        val callback = AuthCallback3DFace(
+                            biometricCryptoObject,
+                            restartPredicate,
+                            cancellationSignal,
+                            listener
+                        )
+                        signalObject.setOnCancelListener {
+                            BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
+                            callback.onAuthenticationError(
+                                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_CANCEL,
+                                context
+                                    .getString(androidx.biometric.R.string.generic_error_user_canceled)
+                            )
+                        }
                         // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                         d("$name.authenticate:  Crypto=$crypto")
                         it.authenticate(
                             crypto,
                             signalObject,
                             0,
-                            AuthCallback3DFace(
-                                biometricCryptoObject,
-                                restartPredicate,
-                                cancellationSignal,
-                                listener
-                            ),
+                            callback,
                             ExecutorHelper.handler
                         )
                         return
@@ -215,21 +224,24 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) {
                 huaweiFaceManagerLegacy?.let {
                     try {
-                        signalObject.setOnCancelListener(CancellationSignal.OnCancelListener {
-                            it.cancel(
-                                0
+                        val callback = AuthCallbackLegacy(
+                            biometricCryptoObject,
+                            restartPredicate,
+                            cancellationSignal,
+                            listener
+                        )
+
+                        signalObject.setOnCancelListener {
+                            BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
+                            callback.onAuthenticationError(
+                                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_CANCEL
                             )
-                        })
+                        }
                         // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                         it.authenticate(
                             0,
                             0,
-                            AuthCallbackLegacy(
-                                biometricCryptoObject,
-                                restartPredicate,
-                                cancellationSignal,
-                                listener
-                            )
+                            callback
                         )
                         return
                     } catch (e: Throwable) {
