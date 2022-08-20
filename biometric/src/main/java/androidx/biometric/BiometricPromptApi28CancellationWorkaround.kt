@@ -45,6 +45,14 @@ object BiometricPromptApi28CancellationWorkaround {
                 )
             }
             //NOTE: biometricCancellationSignal.setOnCancelListener breaks the dialog dismissing
+            cancellationSignalProvider.biometricCancellationSignal.setOnCancelListener {
+                BiometricLoggerImpl.e("biometricCancellationSignal fired")
+                callback.onAuthenticationError(
+                    BiometricPrompt.ERROR_CANCELED,
+                    biometricFragment.requireContext()
+                        .getString(R.string.generic_error_user_canceled)
+                )
+            }
             BiometricLoggerImpl.e("register workarounds for CancellationSignal")
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

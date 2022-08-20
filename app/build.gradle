@@ -90,7 +90,7 @@ afterEvaluate {
     }
 }
 task copyApk(type: Copy) {
-    from "$buildDir/intermediates/apk/debug/"
+    from "$buildDir/outputs/apk/debug/"
     into "$projectDir/"
     include '*.apk'
 }
