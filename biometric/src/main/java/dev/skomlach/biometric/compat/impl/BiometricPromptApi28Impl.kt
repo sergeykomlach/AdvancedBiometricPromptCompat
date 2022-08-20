@@ -548,8 +548,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             m.isAccessible = false
                     }
 
-                    //TODO: handle cancellation
-                    //BiometricPromptApi28CancellationWorkaround.applyHook(biometricFragment.get()?:return)
+                    BiometricPromptApi28CancellationWorkaround.applyHook(biometricFragment.get()?:return@startOnBackground)
                 } catch (e: Throwable) {
                     e(e)
                 }
