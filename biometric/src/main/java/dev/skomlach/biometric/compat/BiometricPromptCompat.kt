@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollCha
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
+import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -61,6 +62,7 @@ import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.lang.ref.WeakReference
+import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -418,9 +420,31 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 val callback = object : AuthenticationCallback() {
 
                     private var isOpened = AtomicBoolean(false)
-                    override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded = $confirmed")
+                    override fun onSucceeded(result: Set<AuthenticationResult>) {
+                        val confirmed = result.toMutableSet()
                         try {
+                            //Fix for device that call onAuthenticationSucceeded() without enrolled biometric
+                            if (!builder.isCryptographyRequestedByUser()) {
+                                if (CryptographyManager.encryptData(
+                                        appContext.packageName.toByteArray(
+                                            Charset.forName("UTF-8")
+                                        ), confirmed
+                                    ) == null
+                                ) {
+                                    onCanceled()
+                                    return
+                                } else {
+                                    val filtered = confirmed.map {
+                                        AuthenticationResult(it.confirmed)
+                                    }
+                                    confirmed.apply {
+                                        clear()
+                                        confirmed.addAll(filtered)
+                                    }
+                                }
+                            }
+
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded = $confirmed")
                             if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                                 HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
                                     .updateBiometricEnrollChanged()
@@ -441,7 +465,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     .updateBiometricEnrollChanged()
                             }
 
-                            callbackOuter.onSucceeded(confirmed)
+                            callbackOuter.onSucceeded(confirmed.toSet())
                         } finally {
                             onUIClosed()
                         }
@@ -744,7 +768,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
 
-        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? = null
+        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? =
+            BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
 
 
         @ColorInt
@@ -758,7 +783,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var isTruncateChecked = false
         private val appContext = AndroidContext.appContext
-
+        private var cryptographyRequestedByUser = false
         init {
             getContext().let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -780,6 +805,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 BiometricType.BIOMETRIC_ANY
             ), dummy_reference
         )
+
+        fun isCryptographyRequestedByUser(): Boolean {
+            return cryptographyRequestedByUser
+        }
 
         fun getTitle(): CharSequence? {
             return title
@@ -853,6 +882,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setCryptographyPurpose(
             biometricCryptographyPurpose: BiometricCryptographyPurpose
         ): Builder {
+            cryptographyRequestedByUser = true
             this.biometricCryptographyPurpose = biometricCryptographyPurpose
             return this
         }
