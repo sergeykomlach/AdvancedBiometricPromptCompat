@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -207,13 +206,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     override fun onCompleted() {}
                 }
                 it.startIdentify(callback)
-                cancellationSignal?.setOnCancelListener {
-                    cancelFingerprintRequest()
-                    BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
-                    callback.onFinished(
-                        SpassFingerprint.STATUS_USER_CANCELLED
-                    )
-                }
+
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")

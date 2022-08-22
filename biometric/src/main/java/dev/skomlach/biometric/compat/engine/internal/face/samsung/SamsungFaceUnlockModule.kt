@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
@@ -143,14 +142,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     else
                         null
                 }
-                signalObject.setOnCancelListener {
-                    BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
-                    callback.onAuthenticationError(
-                        FACE_ERROR_CANCELED,
-                        context
-                            .getString(androidx.biometric.R.string.generic_error_user_canceled)
-                    )
-                }
+
                 d("$name.authenticate:  Crypto=$crypto")
                 it.authenticate(
                     crypto,

@@ -29,12 +29,14 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import androidx.annotation.ColorInt
-import androidx.biometric.*
+import androidx.biometric.BiometricFragment
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
+import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.*
-import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
@@ -547,8 +549,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         if (!isAccessible)
                             m.isAccessible = false
                     }
-
-                    BiometricPromptApi28CancellationWorkaround.applyHook(biometricFragment.get()?:return@startOnBackground)
                 } catch (e: Throwable) {
                     e(e)
                 }

@@ -25,7 +25,7 @@ object CancellationHelper {
     @SuppressLint("RestrictedApi")
     fun forceCancel(biometricFragment: BiometricFragment?) {
         try {
-            biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_USER)
+            biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT)
         } catch (ignore: Throwable) {
         }
     }

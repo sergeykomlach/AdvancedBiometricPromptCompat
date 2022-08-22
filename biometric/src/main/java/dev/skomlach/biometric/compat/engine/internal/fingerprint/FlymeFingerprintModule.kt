@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -182,11 +181,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 }
                 mFingerprintServiceFingerprintManager
                     ?.startIdentify(callback, mFingerprintServiceFingerprintManager?.ids)
-                cancellationSignal?.setOnCancelListener {
-                    BiometricLoggerImpl.e("$biometricMethod CancellationSignal fired")
-                    listener?.onCanceled(tag())
-                    cancelFingerprintServiceFingerprintRequest()
-                }
+
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
