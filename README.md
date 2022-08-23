@@ -69,17 +69,17 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
-August 11, 2022
+August 23, 2022
 
+**Bugfix: OnePlus 9+** - fixed bug when pressing "Cancel" button on biometric dialog, leads to `onAuthenticationSucceeded` call instead of `onAuthenticationError`
+
+August 11, 2022
 
 **Bugfix: Samsung FaceId + Android 9+** - should be fixed bug on Samsung devices when FaceId failed with UNKNOWN error due to incorrect "authenticate" call
 
-
 August 9, 2022
 
-
 **Bugfix: Biometric Title** - fixed incorrect title on biometric dialog
-
 
 August 3, 2022
 
@@ -87,20 +87,6 @@ August 3, 2022
 
 **Bugfix: MS Surface Duo** - fixed legacy dialog height; fixed issue when legacy dialog dismissed if wrong finger enrolled
 
-July 15, 2022
-
-
-**Bugfix: OnePlus** - fixed UI behavior - Fingerprint API calls lead to the system Biometric Prompt UI appearing, so fallback dialog not needed anymore
-
-
-July 08, 2022
-
-
-**Feature: Cryptography** - allow to get the Cipher, initialized by biometric, for ENCRYPT/DECRYPT purpose, see ``BiometricPromptCompat.Builder.setCryptographyPurpose()``
-
-**Bugfix: Samsung Intelligent Scan** - fixed bug in case of Intelligent Scan started, face out of camera angle, and rescan do not started automatically
-
-**Bugfix: Blur** - fixed bug when biometric dismissed, but blur remains on the screen
 
 
 ## Test app
