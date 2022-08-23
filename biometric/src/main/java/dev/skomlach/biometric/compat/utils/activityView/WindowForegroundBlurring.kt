@@ -54,6 +54,7 @@ class WindowForegroundBlurring(
     private var contentView: ViewGroup? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
+
     @Volatile
     private var isAttached = false
     private var drawingInProgress = AtomicBoolean(false)
@@ -291,17 +292,21 @@ class WindowForegroundBlurring(
                     val defColor =
                         DialogMainColor.getColor(context, !isDark)
                     BiometricLoggerImpl.d(
-                        "${this.javaClass.name}.updateDefaultColor#0 isDark -  ${ColorUtil.isDark(defColor)}; color - ${
+                        "${this.javaClass.name}.updateDefaultColor#0 isDark -  ${
+                            ColorUtil.isDark(
+                                defColor
+                            )
+                        }; color - ${
                             Integer.toHexString(
                                 defColor
                             )
                         }"
                     )
                     defaultColor =
-                        palette?.getDominantColor(defColor)?.let { color->
+                        palette?.getDominantColor(defColor)?.let { color ->
                             isDark = ColorUtil.isDark(color)
                             DialogMainColor.getColor(context, isDark)
-                        }?:defColor
+                        } ?: defColor
                     BiometricLoggerImpl.d(
                         "${this.javaClass.name}.updateDefaultColor#2 isDark - ${
                             ColorUtil.isDark(

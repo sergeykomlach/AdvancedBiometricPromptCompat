@@ -224,6 +224,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         verifyManager()
         listener?.initFinished(biometricMethod, this@AndroidIrisUnlockModule)
     }
+
     private fun verifyManager() {
         if (manager != null) {
             //verify that 'authenticate' can be used
@@ -278,6 +279,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         manager = null
     }
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {
@@ -402,11 +404,13 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val listener: AuthenticationListener?
     ) : IrisManager.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -469,6 +473,10 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationSucceeded(result: IrisManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if (tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
@@ -482,7 +490,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

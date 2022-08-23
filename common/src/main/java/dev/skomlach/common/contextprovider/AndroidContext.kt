@@ -208,11 +208,8 @@ object AndroidContext {
             val listCompat = ConfigurationCompat.getLocales(
                 configuration ?: return Locale.getDefault()
             )
-            var l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
-            if (l == null) {
-                l = Locale.getDefault()
-            }
-            return l
+            val l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
+            return l ?: Locale.getDefault()
         }
 
     init {

@@ -152,6 +152,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                     else
                         null
                 }
+
                 d("$name.authenticate:  Crypto=$crypto")
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 it.authenticate(
@@ -180,11 +181,13 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : FingerprintManagerCompat.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -251,6 +254,10 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if (tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
@@ -264,7 +271,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

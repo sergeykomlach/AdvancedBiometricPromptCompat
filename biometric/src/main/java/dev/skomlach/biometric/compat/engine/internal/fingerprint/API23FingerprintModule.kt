@@ -133,6 +133,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                     else
                         null
                 }
+
                 d("$name.authenticate:  Crypto=$crypto")
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 it.authenticate(
@@ -158,12 +159,14 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         private val listener: AuthenticationListener?
     ) : FingerprintManager.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -232,6 +235,10 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if (tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
@@ -246,7 +253,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

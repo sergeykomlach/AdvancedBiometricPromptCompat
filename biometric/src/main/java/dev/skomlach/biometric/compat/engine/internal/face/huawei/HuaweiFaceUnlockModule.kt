@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
 import android.content.Context
-import android.os.CancellationSignal
 import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -192,18 +191,20 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                             else
                                 null
                         }
+                        val callback = AuthCallback3DFace(
+                            biometricCryptoObject,
+                            restartPredicate,
+                            cancellationSignal,
+                            listener
+                        )
+
                         // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                         d("$name.authenticate:  Crypto=$crypto")
                         it.authenticate(
                             crypto,
                             signalObject,
                             0,
-                            AuthCallback3DFace(
-                                biometricCryptoObject,
-                                restartPredicate,
-                                cancellationSignal,
-                                listener
-                            ),
+                            callback,
                             ExecutorHelper.handler
                         )
                         return
@@ -215,21 +216,18 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) {
                 huaweiFaceManagerLegacy?.let {
                     try {
-                        signalObject.setOnCancelListener(CancellationSignal.OnCancelListener {
-                            it.cancel(
-                                0
-                            )
-                        })
+                        val callback = AuthCallbackLegacy(
+                            biometricCryptoObject,
+                            restartPredicate,
+                            cancellationSignal,
+                            listener
+                        )
+
                         // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                         it.authenticate(
                             0,
                             0,
-                            AuthCallbackLegacy(
-                                biometricCryptoObject,
-                                restartPredicate,
-                                cancellationSignal,
-                                listener
-                            )
+                            callback
                         )
                         return
                     } catch (e: Throwable) {
@@ -250,11 +248,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : FaceManager.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -311,6 +311,10 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if (tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
@@ -324,7 +328,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
@@ -352,11 +356,13 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         private val listener: AuthenticationListener?
     ) : HuaweiFaceManager.AuthenticatorCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int) {
             d("$name.onAuthenticationError: $errMsgId")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -413,6 +419,10 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationSucceeded() {
             d("$name.onAuthenticationSucceeded: ")
+            val tmp = System.currentTimeMillis()
+            if (tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
@@ -426,7 +436,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

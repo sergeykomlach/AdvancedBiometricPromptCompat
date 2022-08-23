@@ -155,9 +155,12 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
 
                     callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result : AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r->
-                            result = AuthenticationResult(r.confirmed, if(fixCryptoObjects) null else r.cryptoObject)
+                        var result: AuthenticationResult? = null
+                        onlySuccess[it]?.successData?.let { r ->
+                            result = AuthenticationResult(
+                                r.confirmed,
+                                if (fixCryptoObjects) null else r.cryptoObject
+                            )
                         }
                         result
                     }.toSet())

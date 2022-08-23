@@ -124,6 +124,7 @@ object BiometricManagerCompat {
         return isHardwareDetected(api) && hasEnrolled(api) &&
                 !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
+
     @JvmStatic
     fun isBiometricReadyForEnroll(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -131,9 +132,10 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api)  &&
+        return isHardwareDetected(api) &&
                 !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
+
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
         api: BiometricAuthRequest = BiometricAuthRequest(

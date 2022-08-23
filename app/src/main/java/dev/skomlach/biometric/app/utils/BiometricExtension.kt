@@ -25,7 +25,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
-import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import java.nio.charset.Charset
@@ -77,10 +76,6 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setNegativeButton(
-            "Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more",
-            null
-        )
 //        .setCryptographyPurpose(
 //            BiometricCryptographyPurpose(
 //                if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,

@@ -390,6 +390,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         verifyManager()
         listener?.initFinished(biometricMethod, this@AndroidFaceUnlockModule)
     }
+
     private fun verifyManager() {
         if (manager != null) {
             //verify that 'authenticate' can be used
@@ -512,6 +513,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     else
                         null
                 }
+
                 d("$name.authenticate:  Crypto=$crypto")
                 try {
                     it.authenticate(
@@ -560,11 +562,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val listener: AuthenticationListener?
     ) : FaceManager.AuthenticationCallback() {
         private var errorTs = System.currentTimeMillis()
-        private val skipTimeout = context.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val skipTimeout =
+            context.resources.getInteger(android.R.integer.config_shortAnimTime)
+
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -631,6 +635,10 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
+            val tmp = System.currentTimeMillis()
+            if (tmp - errorTs <= skipTimeout)
+                return
+            errorTs = tmp
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
@@ -644,7 +652,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if(tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

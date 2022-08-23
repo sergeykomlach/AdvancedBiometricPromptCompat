@@ -19,7 +19,10 @@
 
 package androidx.biometric
 
+import android.annotation.SuppressLint
+
 object CancellationHelper {
+    @SuppressLint("RestrictedApi")
     fun forceCancel(biometricFragment: BiometricFragment?) {
         try {
             biometricFragment?.cancelAuthentication(BiometricFragment.CANCELED_FROM_CLIENT)

@@ -77,15 +77,24 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
-    private var biometricFragment: AtomicReference<BiometricFragment?> = AtomicReference<BiometricFragment?>(null)
+    private var biometricFragment: AtomicReference<BiometricFragment?> =
+        AtomicReference<BiometricFragment?>(null)
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
     val authCallback: BiometricPrompt.AuthenticationCallback =
         object : BiometricPrompt.AuthenticationCallback() {
+            private var errorTs = System.currentTimeMillis()
+            private val skipTimeout =
+                builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
+
             //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
             private var onePlusWithBiometricBugFailure = false
             override fun onAuthenticationFailed() {
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
+                val tmp = System.currentTimeMillis()
+                if (tmp - errorTs <= skipTimeout)
+                    return
+                errorTs = tmp
                 if (isOnePlusWithBiometricBug) {
                     onePlusWithBiometricBugFailure = true
                     cancelAuthentication()
@@ -100,6 +109,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 d("BiometricPromptApi28Impl.onAuthenticationError: $errorCode $errString")
+                val tmp = System.currentTimeMillis()
+                if (tmp - errorTs <= skipTimeout)
+                    return
+                errorTs = tmp
                 // Authentication failed on OnePlus device with broken BiometricPrompt implementation
                 // Present the same screen with additional buttons to allow retry/fail
                 if (onePlusWithBiometricBugFailure) {
@@ -164,7 +177,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                d("BiometricPromptApi28Impl.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+                d("BiometricPromptApi28Impl.onAuthenticationSucceeded: ${result.authenticationType}; Crypto=${result.cryptoObject}")
+                val tmp = System.currentTimeMillis()
+                if (tmp - errorTs <= skipTimeout)
+                    return
+                errorTs = tmp
                 onePlusWithBiometricBugFailure = false
                 checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
             }
@@ -186,30 +203,35 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         builder.getDescription()?.let {
             promptInfoBuilder.setDescription(it)
         }
-        var buttonTextColor: Int =
-            ContextCompat.getColor(
-                builder.getContext(),
-                if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
-            )
 
-        if (Utils.isAtLeastS) {
-            val monetColors = SystemColorScheme()
-            if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
-                monetColors.accent2[100]?.toArgb()?.let {
-                    buttonTextColor = it
-                }
-            else
-                monetColors.neutral2[500]?.toArgb()?.let {
-                    buttonTextColor = it
-                }
-        }
 
-        builder.getNegativeButtonText()?.let {
-            if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
-                getFixedString(
-                    it, color = buttonTextColor
+        val systemInScreenDialogMustBeUsed =
+            isFingerprint.get() && DevicesWithKnownBugs.isHideDialogInstantly
+        if (!systemInScreenDialogMustBeUsed) {
+            var buttonTextColor: Int =
+                ContextCompat.getColor(
+                    builder.getContext(),
+                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
                 )
-            )
+
+            if (Utils.isAtLeastS) {
+                val monetColors = SystemColorScheme()
+                if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
+                    monetColors.accent2[100]?.toArgb()?.let {
+                        buttonTextColor = it
+                    }
+                else
+                    monetColors.neutral2[500]?.toArgb()?.let {
+                        buttonTextColor = it
+                    }
+            }
+            builder.getContext().getString(android.R.string.cancel).let {
+                if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
+                    getFixedString(
+                        it, color = buttonTextColor
+                    )
+                )
+            }
         }
         //Should force to Fingerprint-only
         if (isSamsungWorkaroundRequired) {
@@ -225,11 +247,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 forceToFingerprint = true
             }
         }
-        if (isAtLeastR) {
-            promptInfoBuilder.setAllowedAuthenticators(if (forceToFingerprint) BiometricManager.Authenticators.BIOMETRIC_STRONG else BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        } else {
-            promptInfoBuilder.setDeviceCredentialAllowed(false)
-        }
+
+        promptInfoBuilder.setDeviceCredentialAllowed(false)
+        promptInfoBuilder.setAllowedAuthenticators(
+            if (forceToFingerprint) BiometricManager.Authenticators.BIOMETRIC_STRONG else
+                (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        )
+
         promptInfoBuilder.setConfirmationRequired(false)
         biometricPromptInfo = promptInfoBuilder.build()
         biometricPrompt = BiometricPrompt(
@@ -366,8 +390,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             builder.getContext(),
                             ExecutorHelper.executor,
                             object : BiometricPrompt.AuthenticationCallback() {
+                                private var errorTs = System.currentTimeMillis()
+                                private val skipTimeout =
+                                    builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
                                 var onePlusWithBiometricBugFailure = false
                                 override fun onAuthenticationFailed() {
+                                    val tmp = System.currentTimeMillis()
+                                    if (tmp - errorTs <= skipTimeout)
+                                        return
+                                    errorTs = tmp
                                     if (isOnePlusWithBiometricBug) {
                                         onePlusWithBiometricBugFailure = true
                                         if (!dialogClosed.get()) {
@@ -382,6 +413,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     errorCode: Int,
                                     errString: CharSequence
                                 ) {
+                                    val tmp = System.currentTimeMillis()
+                                    if (tmp - errorTs <= skipTimeout)
+                                        return
+                                    errorTs = tmp
                                     if (onePlusWithBiometricBugFailure) {
                                         onePlusWithBiometricBugFailure = false
                                         return
@@ -394,6 +429,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 }
 
                                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                                    val tmp = System.currentTimeMillis()
+                                    if (tmp - errorTs <= skipTimeout)
+                                        return
+                                    errorTs = tmp
                                     if (!dialogClosed.get()) {
                                         dialogClosed.set(true)
                                         stopAuth()
@@ -500,10 +539,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     try {
                         if (!isAccessible)
                             m.isAccessible = true
-                        biometricFragment.set(m.invoke(
-                            null,
-                            builder.getContext().supportFragmentManager
-                        ) as BiometricFragment?)
+                        biometricFragment.set(
+                            m.invoke(
+                                null,
+                                builder.getContext().supportFragmentManager
+                            ) as BiometricFragment?
+                        )
                     } finally {
                         if (!isAccessible)
                             m.isAccessible = false
@@ -521,6 +562,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             )
         }
     }
+
 
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")

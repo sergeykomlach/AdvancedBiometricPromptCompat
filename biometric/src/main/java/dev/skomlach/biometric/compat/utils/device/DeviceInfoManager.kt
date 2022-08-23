@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils.device
 import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
+import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -144,42 +145,47 @@ object DeviceInfoManager {
         onDeviceInfoListener.onReady(null)
     }
 
-    private val lastUpdated: Long
+    private var lastUpdated: Long = 0
         get() {
-            val apks: MutableSet<String> = HashSet()
-            try {
-                val applicationInfo = AndroidContext.appContext.packageManager.getApplicationInfo(
-                    appContext.packageName,
-                    0
-                )
-                applicationInfo.sourceDir?.let {
-                    apks.add(it)
-                }
-                applicationInfo.publicSourceDir?.let {
-                    apks.add(it)
-                }
+            if (field == 0L)
+                try {
+                    val apks: MutableSet<String> = HashSet()
+                    val applicationInfo =
+                        AndroidContext.appContext.packageManager.getApplicationInfo(
+                            appContext.packageName,
+                            0
+                        )
+                    applicationInfo.sourceDir?.let {
+                        apks.add(it)
+                    }
+                    applicationInfo.publicSourceDir?.let {
+                        apks.add(it)
+                    }
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    applicationInfo.splitSourceDirs?.let {
-                        apks.addAll(listOf(*it))
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        applicationInfo.splitSourceDirs?.let {
+                            apks.addAll(listOf(*it))
+                        }
+                        applicationInfo.splitPublicSourceDirs?.let {
+                            apks.addAll(listOf(*it))
+                        }
                     }
-                    applicationInfo.splitPublicSourceDirs?.let {
-                        apks.addAll(listOf(*it))
-                    }
-                }
 
-            } catch (e: Throwable) {
-            }
-            var lst: Long = 0
-            for (s in apks) {
-                if (File(s).exists()) {
-                    val t = File(s).lastModified()
-                    if (t > lst) {
-                        lst = t
+                    scanRecursivly(ContextCompat.getCodeCacheDir(AndroidContext.appContext), apks)
+                    var lst: Long = 0
+                    for (s in apks) {
+                        if (File(s).exists()) {
+                            val t = File(s).lastModified()
+                            if (t > lst) {
+                                lst = t
+                            }
+                        }
                     }
+                    field = lst
+                } catch (e: Throwable) {
+                    field = SecureRandom().nextLong()
                 }
-            }
-            return lst
+            return field
         }
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
@@ -198,6 +204,25 @@ object DeviceInfoManager {
             }
             return field
         }
+
+    private fun scanRecursivly(fileOrDirectory: File?, apks: MutableSet<String>) {
+        try {
+            if (fileOrDirectory?.isDirectory == true) {
+                val files = fileOrDirectory.listFiles()
+                if (files != null && files.isNotEmpty()) {
+                    for (child in files) {
+                        scanRecursivly(child, apks)
+                    }
+                }
+            } else {
+                if (fileOrDirectory?.isFile == true && (fileOrDirectory.name.endsWith("dex"))) {
+                    apks.add(fileOrDirectory.absolutePath)
+                }
+            }
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        }
+    }
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
@@ -229,7 +254,13 @@ object DeviceInfoManager {
             if (html == null) return DeviceInfo(modelReadableName, HashSet<String>())
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
-            DeviceInfo(modelReadableName, l)
+            val m = try {
+                Jsoup.parse(html).body().getElementById("content")
+                    ?.getElementsByClass("section nobor")?.text() ?: modelReadableName
+            } catch (ignore: Throwable) {
+                modelReadableName
+            }
+            DeviceInfo(m, l)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             null
@@ -278,8 +309,19 @@ object DeviceInfoManager {
                 }
                 if (name.equals(model, ignoreCase = true)) {
                     return NetworkApi.resolveUrl(url, element.attr("href"))
-                } else if (firstFound.isNullOrEmpty() && name.contains(model, ignoreCase = true)) {
-                    firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
+                } else if (firstFound.isNullOrEmpty()) {
+                    if (name.contains(model, ignoreCase = true))
+                        firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
+                    else {
+                        val arr = model.split(" ")
+                        val stringBuilder = StringBuilder()
+                        for (s in arr) {
+                            stringBuilder.append(" ").append(s)
+                            if (name.contains(stringBuilder.toString().trim(), ignoreCase = true))
+                                firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
+                        }
+
+                    }
                 }
             }
             return firstFound
