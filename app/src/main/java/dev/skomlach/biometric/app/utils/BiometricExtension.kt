@@ -141,7 +141,7 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
             Toast.makeText(AndroidContext.appContext, "Canceled", Toast.LENGTH_SHORT).show()
         }
 
-        override fun onFailed(reason: AuthenticationFailureReason?) {
+        override fun onFailed(reason: AuthenticationFailureReason?, msg: CharSequence?) {
             BiometricLoggerImpl.e("CheckBiometric.onFailed() - $reason")
             try {
                 showAlertDialog(requireActivity(), "Failure: $reason")
