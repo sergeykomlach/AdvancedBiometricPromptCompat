@@ -19,19 +19,16 @@
 
 package dev.skomlach.biometric.compat.utils.device
 
-import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
-import androidx.core.content.ContextCompat
+import dev.skomlach.biometric.compat.utils.LastUpdatedTs
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import org.jsoup.Jsoup
 import org.jsoup.select.Elements
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URLEncoder
@@ -43,7 +40,6 @@ import java.util.regex.Pattern
 import javax.net.ssl.SSLHandshakeException
 
 object DeviceInfoManager {
-    private val appContext = AndroidContext.appContext
     val agents = arrayOf(
         "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
@@ -145,57 +141,17 @@ object DeviceInfoManager {
         onDeviceInfoListener.onReady(null)
     }
 
-    private var lastUpdated: Long = 0
-        get() {
-            if (field == 0L)
-                try {
-                    val apks: MutableSet<String> = HashSet()
-                    val applicationInfo =
-                        AndroidContext.appContext.packageManager.getApplicationInfo(
-                            appContext.packageName,
-                            0
-                        )
-                    applicationInfo.sourceDir?.let {
-                        apks.add(it)
-                    }
-                    applicationInfo.publicSourceDir?.let {
-                        apks.add(it)
-                    }
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        applicationInfo.splitSourceDirs?.let {
-                            apks.addAll(listOf(*it))
-                        }
-                        applicationInfo.splitPublicSourceDirs?.let {
-                            apks.addAll(listOf(*it))
-                        }
-                    }
-
-                    scanRecursivly(ContextCompat.getCodeCacheDir(AndroidContext.appContext), apks)
-                    var lst: Long = 0
-                    for (s in apks) {
-                        if (File(s).exists()) {
-                            val t = File(s).lastModified()
-                            if (t > lst) {
-                                lst = t
-                            }
-                        }
-                    }
-                    field = lst
-                } catch (e: Throwable) {
-                    field = SecureRandom().nextLong()
-                }
-            return field
-        }
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
                 val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
-                if (sharedPreferences.getBoolean("checked-$lastUpdated", false)) {
+                if (sharedPreferences.getBoolean("checked-${LastUpdatedTs.timestamp}", false)) {
                     val model =
-                        sharedPreferences.getString("model-$lastUpdated", null) ?: return null
+                        sharedPreferences.getString("model-${LastUpdatedTs.timestamp}", null)
+                            ?: return null
                     val sensors =
-                        sharedPreferences.getStringSet("sensors-$lastUpdated", null)
+                        sharedPreferences.getStringSet("sensors-${LastUpdatedTs.timestamp}", null)
                             ?: HashSet<String>()
                     field = DeviceInfo(model, sensors)
                 } else {
@@ -205,24 +161,6 @@ object DeviceInfoManager {
             return field
         }
 
-    private fun scanRecursivly(fileOrDirectory: File?, apks: MutableSet<String>) {
-        try {
-            if (fileOrDirectory?.isDirectory == true) {
-                val files = fileOrDirectory.listFiles()
-                if (files != null && files.isNotEmpty()) {
-                    for (child in files) {
-                        scanRecursivly(child, apks)
-                    }
-                }
-            } else {
-                if (fileOrDirectory?.isFile == true && (fileOrDirectory.name.endsWith("dex"))) {
-                    apks.add(fileOrDirectory.absolutePath)
-                }
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-    }
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
@@ -231,9 +169,9 @@ object DeviceInfoManager {
                 .edit()
             sharedPreferences.clear().commit()
             sharedPreferences
-                .putStringSet("sensors-$lastUpdated", deviceInfo.sensors)
-                .putString("model-$lastUpdated", deviceInfo.model)
-                .putBoolean("checked-$lastUpdated", true)
+                .putStringSet("sensors-${LastUpdatedTs.timestamp}", deviceInfo.sensors)
+                .putString("model-${LastUpdatedTs.timestamp}", deviceInfo.model)
+                .putBoolean("checked-${LastUpdatedTs.timestamp}", true)
                 .apply()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

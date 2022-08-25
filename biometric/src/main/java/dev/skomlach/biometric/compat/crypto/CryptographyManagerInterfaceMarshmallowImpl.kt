@@ -35,7 +35,6 @@ import javax.crypto.spec.GCMParameterSpec
 class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface {
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
-    private val KEY_SIZE: Int = 256
     private val context = AndroidContext.appContext
     override fun getInitializedCipherForEncryption(
         keyName: String,
@@ -90,7 +89,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     }
 
     private fun getCipher(): Cipher {
-        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_GCM/$ENCRYPTION_PADDING_NONE"
+        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_CBC/$ENCRYPTION_PADDING_PKCS7"
         return Cipher.getInstance(transformation)
     }
 
@@ -106,9 +105,8 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             PURPOSE_ENCRYPT or PURPOSE_DECRYPT
         )
         paramsBuilder.apply {
-            setBlockModes(BLOCK_MODE_GCM)
-            setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
-            setKeySize(KEY_SIZE)
+            setBlockModes(BLOCK_MODE_CBC)
+            setEncryptionPaddings(ENCRYPTION_PADDING_PKCS7)
             setUserAuthenticationRequired(isUserAuthRequired)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 setInvalidatedByBiometricEnrollment(isUserAuthRequired)

@@ -68,7 +68,9 @@ object AndroidContext {
             try {
                 lock.runCatching { this.lock() }
                 getContextRef()?.let {
-                    fixDirAccess(it)
+                    GlobalScope.launch(Dispatchers.IO) {
+                        fixDirAccess(it)
+                    }
                     return it
                 }
                 if (Looper.getMainLooper().thread !== Thread.currentThread()) {

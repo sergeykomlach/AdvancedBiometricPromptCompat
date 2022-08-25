@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.crypto
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.utils.LastUpdatedTs
 
 object BiometricCryptoObjectHelper {
     private val managerInterface: CryptographyManagerInterface =
@@ -34,7 +35,7 @@ object BiometricCryptoObjectHelper {
                 CryptographyManagerInterfaceLegacyImpl()
 
     fun deleteCrypto(name: String?) {
-        managerInterface.deleteKey(name ?: return)
+        managerInterface.deleteKey((name ?: return) + "-${LastUpdatedTs.timestamp}")
     }
 
     fun getBiometricCryptoObject(
@@ -48,11 +49,11 @@ object BiometricCryptoObjectHelper {
             val cipher =
                 when (purpose.purpose) {
                     BiometricCryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
-                        name,
+                        "$name-${LastUpdatedTs.timestamp}",
                         isUserAuthRequired
                     )
                     BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
-                        name,
+                        "$name-${LastUpdatedTs.timestamp}",
                         isUserAuthRequired,
                         purpose.initVector
                     )
