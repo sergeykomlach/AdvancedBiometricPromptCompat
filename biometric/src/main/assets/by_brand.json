@@ -13366,7 +13366,24 @@
    "model": "B_TAB1021"
   }
  ],
+ "BOREAL": [
+  {
+   "device": "R1",
+   "name": "Android TV",
+   "model": "ATV R1"
+  },
+  {
+   "device": "R2",
+   "name": "Android TV",
+   "model": "ATV R2"
+  }
+ ],
  "BOTECH": [
+  {
+   "device": "R1",
+   "name": "Android TV",
+   "model": "ATV R1"
+  },
   {
    "device": "HND",
    "name": "WZONE",
@@ -52870,6 +52887,11 @@
    "device": "R1",
    "name": "Android TV",
    "model": "ATV R1"
+  },
+  {
+   "device": "R2",
+   "name": "Android TV",
+   "model": "ATV R2"
   }
  ],
  "Home Planet": [
@@ -70767,11 +70789,6 @@
   {
    "device": "stanford",
    "name": "AP",
-   "model": "2K SMART TV"
-  },
-  {
-   "device": "stanford",
-   "name": "AP",
    "model": "40D"
   },
   {
@@ -70808,6 +70825,11 @@
    "device": "zhongshan",
    "name": "DIGGIO",
    "model": "CSV4K"
+  },
+  {
+   "device": "stanford",
+   "name": "ENGLAON",
+   "model": "2K SMART TV"
   },
   {
    "device": "zhongshan",
@@ -94827,6 +94849,11 @@
    "device": "R1",
    "name": "Android TV",
    "model": "ATV R1"
+  },
+  {
+   "device": "R2",
+   "name": "Android TV",
+   "model": "ATV R2"
   }
  ],
  "Mint": [
@@ -111363,11 +111390,6 @@
    "device": "R1",
    "name": "Android TV",
    "model": "ATV R1"
-  },
-  {
-   "device": "R2",
-   "name": "Android TV",
-   "model": "ATV R2"
   }
  ],
  "PAPAGO": [
@@ -111800,6 +111822,11 @@
    "model": "M2104K10I"
   },
   {
+   "device": "ingres",
+   "name": "POCO F4 GT",
+   "model": "21121210G"
+  },
+  {
    "device": "shiva",
    "name": "POCO M2",
    "model": "M2004J19PI"
@@ -111833,6 +111860,11 @@
    "device": "light",
    "name": "POCO M4 5G",
    "model": "22041219PI"
+  },
+  {
+   "device": "thunder",
+   "name": "POCO M4 5G",
+   "model": "22041219PG"
   },
   {
    "device": "fleur",
@@ -111873,6 +111905,11 @@
    "device": "vayu",
    "name": "POCO X3 Pro",
    "model": "M2102J20SG"
+  },
+  {
+   "device": "xaga",
+   "name": "POCO X4 GT",
+   "model": "22041216G"
   },
   {
    "device": "peux",
@@ -122543,6 +122580,16 @@
    "model": "220233L2C"
   },
   {
+   "device": "dandelion",
+   "name": "Redmi 10A",
+   "model": "220233L2G"
+  },
+  {
+   "device": "dandelion",
+   "name": "Redmi 10A Sport",
+   "model": "220233L2I"
+  },
+  {
    "device": "fog",
    "name": "Redmi 10C",
    "model": "220333QAG"
@@ -122836,6 +122883,11 @@
    "device": "ingres",
    "name": "Redmi K50G",
    "model": "21121210C"
+  },
+  {
+   "device": "xagain",
+   "name": "Redmi K50i",
+   "model": "22041216I"
   },
   {
    "device": "camellia",
@@ -125392,6 +125444,13 @@
    "device": "tap-POS-AM",
    "name": "tap-POS-AM",
    "model": "SAH55AM"
+  }
+ ],
+ "SPJtv": [
+  {
+   "device": "R2",
+   "name": "Android TV",
+   "model": "ATV R2"
   }
  ],
  "SPURT": [
@@ -178215,6 +178274,11 @@
    "device": "pissarroin",
    "name": "Xiaomi 11i",
    "model": "21091116I"
+  },
+  {
+   "device": "pissarroinpro",
+   "name": "Xiaomi 11i HyperCharge",
+   "model": "21091116UI"
   },
   {
    "device": "cupid",

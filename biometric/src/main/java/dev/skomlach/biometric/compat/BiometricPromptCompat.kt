@@ -325,14 +325,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         if (!API_ENABLED) {
-            callbackOuter.onFailed(AuthenticationFailureReason.NO_HARDWARE, appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_present))
+            callbackOuter.onFailed(
+                AuthenticationFailureReason.NO_HARDWARE,
+                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_present)
+            )
             authFlowInProgress.set(false)
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
         if (WideGamutBug.unsupportedColorMode(builder.getContext())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
-            callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE, appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_available))
+            callbackOuter.onFailed(
+                AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_available)
+            )
             authFlowInProgress.set(false)
             return
         }
@@ -370,25 +376,37 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         if (!isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
-            callbackOuter.onFailed(AuthenticationFailureReason.NO_HARDWARE, appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_present))
+            callbackOuter.onFailed(
+                AuthenticationFailureReason.NO_HARDWARE,
+                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_present)
+            )
             authFlowInProgress.set(false)
             return
         }
         if (!hasEnrolled(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
-            callbackOuter.onFailed(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED, appContext.getString(androidx.biometric.R.string.fingerprint_error_no_fingerprints))
+            callbackOuter.onFailed(
+                AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
+                appContext.getString(androidx.biometric.R.string.fingerprint_error_no_fingerprints)
+            )
             authFlowInProgress.set(false)
             return
         }
         if (isLockOut(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
-            callbackOuter.onFailed(AuthenticationFailureReason.LOCKED_OUT, appContext.getString(androidx.biometric.R.string.fingerprint_error_lockout))
+            callbackOuter.onFailed(
+                AuthenticationFailureReason.LOCKED_OUT,
+                appContext.getString(androidx.biometric.R.string.fingerprint_error_lockout)
+            )
             authFlowInProgress.set(false)
             return
         }
         if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
-            callbackOuter.onFailed(AuthenticationFailureReason.HARDWARE_UNAVAILABLE, appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_available))
+            callbackOuter.onFailed(
+                AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_available)
+            )
             authFlowInProgress.set(false)
             return
         }
@@ -423,8 +441,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
                         val confirmed = result.toMutableSet()
                         try {
-                            //Fix for OnePlus devices that call onAuthenticationSucceeded() without enrolled biometric
-                            if (builder.shouldVerifyCryptoAfterSuccess()) {
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
+                            //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
+                            if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
                                 if (CryptographyManager.encryptData(
                                         appContext.packageName.toByteArray(
                                             Charset.forName("UTF-8")
@@ -444,7 +463,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 }
                             }
 
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded = $confirmed")
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
                             if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
                                 HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
                                     .updateBiometricEnrollChanged()
@@ -480,7 +499,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     }
 
-                    override fun onFailed(reason: AuthenticationFailureReason?, description: CharSequence?) {
+                    override fun onFailed(
+                        reason: AuthenticationFailureReason?,
+                        description: CharSequence?
+                    ) {
                         BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
                         try {
                             if (description == null) {
@@ -787,7 +809,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var experimentalFeaturesEnabled = BuildConfig.DEBUG
 
-        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? = null
+        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? =
+            BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
 
 
         @ColorInt
@@ -800,8 +823,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var colorStatusBar: Int = Color.TRANSPARENT
 
         private var isTruncateChecked = false
+
         private val appContext = AndroidContext.appContext
-        private var verifyCryptoAfterSuccess = false
+
+        private var verifyCryptoAfterSuccess = true
+
         init {
             getContext().let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -815,10 +841,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (API_ENABLED) {
                 multiWindowSupport = MultiWindowSupport()
             }
-            if(DevicesWithKnownBugs.isOnePlus){
-                biometricCryptographyPurpose = BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
-                verifyCryptoAfterSuccess = true
-            }
         }
 
         constructor(dummy_reference: FragmentActivity) : this(
@@ -828,7 +850,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             ), dummy_reference
         )
 
-        fun shouldVerifyCryptoAfterSuccess(): Boolean {
+        fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {
             return verifyCryptoAfterSuccess
         }
 
