@@ -45748,6 +45748,11 @@
   {
    "device": "htc_botdugls",
    "name": "HTC Desire 22 5G",
+   "model": "2QBK100"
+  },
+  {
+   "device": "htc_botdugls",
+   "name": "HTC Desire 22 5G",
    "model": "2QBK10000"
   },
   {
@@ -105164,6 +105169,16 @@
    "model": "Nokia C10"
   },
   {
+   "device": "DKT",
+   "name": "Nokia C100",
+   "model": "N152DL"
+  },
+  {
+   "device": "DKT",
+   "name": "Nokia C100",
+   "model": "Nokia C100"
+  },
+  {
    "device": "NBL",
    "name": "Nokia C2",
    "model": "Nebula"
@@ -105287,6 +105302,21 @@
    "device": "AKT",
    "name": "Nokia G300",
    "model": "N1374DL"
+  },
+  {
+   "device": "STF",
+   "name": "Nokia G400 5G",
+   "model": "N1530DL"
+  },
+  {
+   "device": "STM",
+   "name": "Nokia G400 5G",
+   "model": "Nokia G400 5G"
+  },
+  {
+   "device": "STO",
+   "name": "Nokia G400 5G",
+   "model": "Nokia G400 5G"
   },
   {
    "device": "PHR",
@@ -161923,6 +161953,11 @@
    "device": "TECNO-LF7n",
    "name": "TECNO POVA 3",
    "model": "TECNO LF7n"
+  },
+  {
+   "device": "TECNO-LG8n",
+   "name": "TECNO POVA 4 Pro",
+   "model": "TECNO LG8n"
   },
   {
    "device": "TECNO-LE8",
