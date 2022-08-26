@@ -807,11 +807,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var backgroundBiometricIconsEnabled = true
 
-        private var experimentalFeaturesEnabled = BuildConfig.DEBUG
-
-        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? =
-            BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
-
+        private var biometricCryptographyPurpose: BiometricCryptographyPurpose? = null
 
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
@@ -826,7 +822,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private val appContext = AndroidContext.appContext
 
-        private var verifyCryptoAfterSuccess = true
+        private var autoVerifyCryptoAfterSuccess = false
 
         init {
             getContext().let { context ->
@@ -841,6 +837,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (API_ENABLED) {
                 multiWindowSupport = MultiWindowSupport()
             }
+
+            //OnePlus 9 call onSuccess when "Cancel" button clicked,
+            //so checking the crypto is only the way to check real reason
+            //TODO: investigate for some more clever solution for this
+            if(DevicesWithKnownBugs.isOnePlus && DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+                autoVerifyCryptoAfterSuccess = true
+                biometricCryptographyPurpose = BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
+            }
         }
 
         constructor(dummy_reference: FragmentActivity) : this(
@@ -851,7 +855,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         )
 
         fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {
-            return verifyCryptoAfterSuccess
+            return autoVerifyCryptoAfterSuccess
         }
 
         fun getTitle(): CharSequence? {
@@ -878,9 +882,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return dividerColor
         }
 
-        fun isExperimentalFeaturesEnabled(): Boolean {
-            return experimentalFeaturesEnabled
-        }
+
 
         fun isBackgroundBiometricIconsEnabled(): Boolean {
             return backgroundBiometricIconsEnabled
@@ -926,13 +928,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setCryptographyPurpose(
             biometricCryptographyPurpose: BiometricCryptographyPurpose
         ): Builder {
-            verifyCryptoAfterSuccess = false
+            autoVerifyCryptoAfterSuccess = false
             this.biometricCryptographyPurpose = biometricCryptographyPurpose
-            return this
-        }
-
-        fun setExperimentalFeaturesEnabled(enabled: Boolean): Builder {
-            this.experimentalFeaturesEnabled = enabled
             return this
         }
 
@@ -978,7 +975,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
 
         fun build(): BiometricPromptCompat {
-            if (title == null)
+            if (title.isNullOrEmpty())
                 title = BiometricTitle.getRelevantTitle(
                     appContext,
                     getAllAvailableTypes()
