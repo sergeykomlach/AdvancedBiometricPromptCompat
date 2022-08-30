@@ -9323,6 +9323,11 @@
   {
    "device": "ASUS_AI2201",
    "name": "ROG Phone 6 (AI2201)",
+   "model": "ASUS_AI2201_A"
+  },
+  {
+   "device": "ASUS_AI2201",
+   "name": "ROG Phone 6 (AI2201)",
    "model": "ASUS_AI2201_B"
   },
   {
@@ -13383,6 +13388,11 @@
    "device": "R1",
    "name": "Android TV",
    "model": "ATV R1"
+  },
+  {
+   "device": "R2",
+   "name": "Android TV",
+   "model": "ATV R2"
   },
   {
    "device": "HND",
@@ -32266,6 +32276,11 @@
   }
  ],
  "EAS ELECTRIC": [
+  {
+   "device": "R1",
+   "name": "Android TV",
+   "model": "ATV R1"
+  },
   {
    "device": "R2",
    "name": "Android TV",
@@ -70922,6 +70937,16 @@
    "model": "Smart FHD TV"
   },
   {
+   "device": "zhongshan",
+   "name": "POWER GREEN",
+   "model": "4K SMART TV"
+  },
+  {
+   "device": "stanford",
+   "name": "POWER_GREEN",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "stanford",
    "name": "Rosso",
    "model": "40D"
@@ -71153,6 +71178,11 @@
    "device": "smartphone",
    "name": "Element 4 Plus",
    "model": "Element 4 Plus"
+  },
+  {
+   "device": "Element_5",
+   "name": "Element 5",
+   "model": "Element 5"
   },
   {
    "device": "ELEMENT_PLAY",
@@ -96533,6 +96563,11 @@
    "model": "SmartE11"
   },
   {
+   "device": "MobiWire_Verda",
+   "name": "Smart Green",
+   "model": "Vodafone Lite 4G"
+  },
+  {
    "device": "Smart_N11",
    "name": "Smart N11",
    "model": "SmartN11"
@@ -96576,6 +96611,11 @@
    "device": "MobiWire_Verda",
    "name": "Verda",
    "model": "Verda"
+  },
+  {
+   "device": "MobiWire_Verda",
+   "name": "Vodafone Lite 4G",
+   "model": "Vodafone Lite 4G"
   }
  ],
  "Mobvoi": [
@@ -99527,6 +99567,16 @@
    "model": "motorola"
   },
   {
+   "device": "devon",
+   "name": "moto g32",
+   "model": "moto g(100)"
+  },
+  {
+   "device": "devon",
+   "name": "moto g32",
+   "model": "moto g32"
+  },
+  {
    "device": "hanoip",
    "name": "moto g40 fusion",
    "model": "moto g(40) fusion"
@@ -99725,6 +99775,16 @@
    "device": "tundra",
    "name": "motorola edge 30 fusion",
    "model": "motorola edge 30 fusion"
+  },
+  {
+   "device": "miami",
+   "name": "motorola edge 30 neo",
+   "model": "moto g71 5G"
+  },
+  {
+   "device": "miami",
+   "name": "motorola edge 30 neo",
+   "model": "motorola edge 30 neo"
   },
   {
    "device": "hiphi",
@@ -105209,6 +105269,16 @@
    "model": "Nokia C20 Plus"
   },
   {
+   "device": "DRK",
+   "name": "Nokia C200",
+   "model": "N151DL"
+  },
+  {
+   "device": "DRK",
+   "name": "Nokia C200",
+   "model": "Nokia C200"
+  },
+  {
    "device": "COR",
    "name": "Nokia C21",
    "model": "Nokia C21"
@@ -105252,6 +105322,16 @@
    "device": "ROGA_sprout",
    "name": "Nokia G10",
    "model": "Nokia G10"
+  },
+  {
+   "device": "DPT",
+   "name": "Nokia G100",
+   "model": "N150DL"
+  },
+  {
+   "device": "DPT",
+   "name": "Nokia G100",
+   "model": "Nokia G100"
   },
   {
    "device": "SCT_sprout",
@@ -105302,11 +105382,6 @@
    "device": "AKT",
    "name": "Nokia G300",
    "model": "N1374DL"
-  },
-  {
-   "device": "STF",
-   "name": "Nokia G400 5G",
-   "model": "N1530DL"
   },
   {
    "device": "STM",
@@ -111850,6 +111925,16 @@
    "device": "aresin",
    "name": "POCO F3 GT",
    "model": "M2104K10I"
+  },
+  {
+   "device": "munch",
+   "name": "POCO F4",
+   "model": "22021211RG"
+  },
+  {
+   "device": "munch",
+   "name": "POCO F4",
+   "model": "22021211RI"
   },
   {
    "device": "ingres",
@@ -119015,6 +119100,11 @@
    "model": "M30_EEA"
   },
   {
+   "device": "M60",
+   "name": "M60",
+   "model": "M60"
+  },
+  {
    "device": "P7",
    "name": "P7",
    "model": "P7"
@@ -123070,6 +123160,16 @@
    "model": "21091116UG"
   },
   {
+   "device": "secret",
+   "name": "Redmi Note 11 SE",
+   "model": "22087RA4DI"
+  },
+  {
+   "device": "secret",
+   "name": "Redmi Note 11 SE",
+   "model": "M2101K7BI"
+  },
+  {
    "device": "light",
    "name": "Redmi Note 11E",
    "model": "22041219C"
@@ -123404,6 +123504,11 @@
    "model": "P13 Blue Max Lite"
   },
   {
+   "device": "P13_Blue_2022kk1",
+   "name": "P13 Blue Max Lite 2022",
+   "model": "P13 Blue Max Lite 2022"
+  },
+  {
    "device": "P13_Blue_Max_Pro",
    "name": "P13 Blue Max Pro",
    "model": "P13 Blue Max Pro"
@@ -123690,6 +123795,11 @@
    "device": "RD62E",
    "name": "RD62E",
    "model": "RD62E"
+  },
+  {
+   "device": "RD695TE",
+   "name": "RD695TE",
+   "model": "RD695TE"
   },
   {
    "device": "RD81PT",
@@ -124206,6 +124316,11 @@
   }
  ],
  "S Vision": [
+  {
+   "device": "stanford",
+   "name": "AP",
+   "model": "2K SMART TV"
+  },
   {
    "device": "nippori",
    "name": "Australia",
@@ -139416,22 +139531,22 @@
   },
   {
    "device": "projectxbl",
-   "name": "Galaxy Watch5",
+   "name": "Galaxy Watch5 Pro",
    "model": "SM-R920"
   },
   {
    "device": "projectxul",
-   "name": "Galaxy Watch5",
+   "name": "Galaxy Watch5 Pro",
    "model": "SM-R925F"
   },
   {
    "device": "projectxul",
-   "name": "Galaxy Watch5",
+   "name": "Galaxy Watch5 Pro",
    "model": "SM-R925N"
   },
   {
    "device": "projectxul",
-   "name": "Galaxy Watch5",
+   "name": "Galaxy Watch5 Pro",
    "model": "SM-R925U"
   },
   {
@@ -165530,6 +165645,11 @@
    "model": "Note 13P"
   },
   {
+   "device": "Note_14",
+   "name": "Note 14",
+   "model": "Note 14"
+  },
+  {
    "device": "Note_6",
    "name": "Note 6",
    "model": "Note 6"
@@ -166401,8 +166521,23 @@
    "model": "S5 Pro"
   },
   {
+   "device": "UMIDIGI_C1",
+   "name": "UMIDIGI C1",
+   "model": "MP07"
+  },
+  {
+   "device": "UMIDIGI_C1",
+   "name": "UMIDIGI C1 EEA",
+   "model": "MP07"
+  },
+  {
    "device": "UMIDIGI_G1",
    "name": "UMIDIGI G1",
+   "model": "MP08"
+  },
+  {
+   "device": "UMIDIGI_G1",
+   "name": "UMIDIGI G1 EEA",
    "model": "MP08"
   },
   {
@@ -172399,6 +172534,11 @@
    "device": "PD1718",
    "name": "vivo Y75A",
    "model": "vivo Y75A"
+  },
+  {
+   "device": "PD2069",
+   "name": "vivo Y75s",
+   "model": "V2069BA"
   },
   {
    "device": "PD2219",
