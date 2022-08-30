@@ -840,8 +840,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             //OnePlus 9 call onSuccess when "Cancel" button clicked,
             //so checking the crypto is only the way to check real reason
-            //TODO: investigate for some more clever solution for this
-            if(DevicesWithKnownBugs.isOnePlus && DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+            if(deviceInfo?.model?.startsWith("OnePlus 9", ignoreCase = true) == true) {
                 autoVerifyCryptoAfterSuccess = true
                 biometricCryptographyPurpose = BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
             }
