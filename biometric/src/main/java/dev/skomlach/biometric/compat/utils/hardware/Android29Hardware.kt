@@ -81,7 +81,20 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 }
                 if (biometricManager != null) {
                     code = if (isAtLeastR) {
-                        biometricManager.canAuthenticate(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                        val authenticators = arrayOf(
+                            android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK
+                                    or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG,
+                            android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK,
+                            android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
+                        )
+                        var canAuthenticate = biometricManager.canAuthenticate()
+                        for (authenticator in authenticators) {
+                            canAuthenticate = biometricManager.canAuthenticate(authenticator)
+                            if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
+                                break
+                            }
+                        }
+                        canAuthenticate
                     } else {
                         biometricManager.canAuthenticate()
                     }

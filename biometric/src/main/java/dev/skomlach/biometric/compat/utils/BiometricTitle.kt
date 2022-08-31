@@ -64,11 +64,20 @@ object BiometricTitle {
                         Context.BIOMETRIC_SERVICE
                     ) as android.hardware.biometrics.BiometricManager?
                 }
-                val strings =
-                    biometricManager?.getStrings(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG)
-                val prompt = strings?.promptMessage
-                if (!prompt.isNullOrEmpty())
-                    return prompt.toString()
+
+                val authenticators = arrayOf(
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK
+                            or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG,
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK,
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
+                )
+                for(authenticator in authenticators) {
+                    val strings =
+                        biometricManager?.getStrings(authenticator)
+                    val prompt = strings?.promptMessage
+                    if (!prompt.isNullOrEmpty())
+                        return prompt.toString()
+                }
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
