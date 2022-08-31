@@ -53698,6 +53698,11 @@
    "model": "NTN-LX3"
   },
   {
+   "device": "HNFNE",
+   "name": "HONOR 70",
+   "model": "FNE-NX9"
+  },
+  {
    "device": "HNANY-Q1",
    "name": "HONOR Magic4 Lite",
    "model": "ANY-LX1"
@@ -64880,6 +64885,16 @@
    "model": "Infinix X6817"
   },
   {
+   "device": "Infinix-X668",
+   "name": "Infinix HOT 12 PRO",
+   "model": "Infinix X668"
+  },
+  {
+   "device": "Infinix-X668C",
+   "name": "Infinix HOT 12 PRO",
+   "model": "Infinix X668C"
+  },
+  {
    "device": "Infinix-X6816C",
    "name": "Infinix HOT 12 Play",
    "model": "Infinix X6816C"
@@ -64983,6 +64998,11 @@
    "device": "Infinix-X671",
    "name": "Infinix NOTE 12 5G",
    "model": "Infinix X671"
+  },
+  {
+   "device": "Infinix-X676B",
+   "name": "Infinix NOTE 12 PRO",
+   "model": "Infinix X676B"
   },
   {
    "device": "Infinix-X671B",
@@ -99717,6 +99737,16 @@
    "model": "motorola edge plus"
   },
   {
+   "device": "tesla",
+   "name": "motorola edge (2022)",
+   "model": "moto g(50) 5G"
+  },
+  {
+   "device": "tesla",
+   "name": "motorola edge (2022)",
+   "model": "motorola edge (2022)"
+  },
+  {
    "device": "berlin",
    "name": "motorola edge 20",
    "model": "motorola edge 20"
@@ -105407,6 +105437,11 @@
    "device": "HND",
    "name": "Nokia Steaming Box 8000",
    "model": "Nokia Streaming Box 8000"
+  },
+  {
+   "device": "PGN",
+   "name": "Nokia T10",
+   "model": "Nokia T10"
   },
   {
    "device": "RDD",
@@ -124873,6 +124908,11 @@
    "device": "BFX-AT100",
    "name": "BFX-AT100",
    "model": "BFX-AT100"
+  },
+  {
+   "device": "BFX-UA300",
+   "name": "BFX-UA300",
+   "model": "BFX-UA300"
   },
   {
    "device": "BKO-AT800",
