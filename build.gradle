@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 16
+    ext.libsMinorVersion = 17
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -43,7 +43,6 @@ buildscript {
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
-//        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         google()
 
@@ -64,7 +63,6 @@ allprojects {
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
-//        maven { url "https://dl.bintray.com/tencent-soter/maven/" }
         google()
 
     }
