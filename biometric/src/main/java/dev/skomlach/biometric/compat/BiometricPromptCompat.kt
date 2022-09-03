@@ -117,7 +117,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             Collections.synchronizedList(ArrayList<Runnable?>())
         private var isBiometricInit = AtomicBoolean(false)
         var isInit = false
-            get() = isBiometricInit.get()
+            get() = isBiometricInit.get().also {
+                //lazy init
+                if(!it && !initInProgress.get()){
+                    init()
+                }
+            }
             private set
         private var initInProgress = AtomicBoolean(false)
         var deviceInfo: DeviceInfo? = null
@@ -728,6 +733,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private val biometricAuthRequest: BiometricAuthRequest,
         dummy_reference: FragmentActivity
     ) {
+        companion object {
+            init {
+                //lazy init
+                val initialized = isInit
+                BiometricLoggerImpl.d("isInitialized - $initialized")
+            }
+        }
         private val reference = WeakReference<FragmentActivity>(dummy_reference)
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
