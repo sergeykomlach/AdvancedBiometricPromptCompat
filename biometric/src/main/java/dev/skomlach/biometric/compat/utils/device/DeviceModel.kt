@@ -113,7 +113,7 @@ object DeviceModel {
             if (it.isNotEmpty())
                 return getName(brand, it)
         }
-        return null
+        return if (brand.equals( "Huawei", ignoreCase = true) || brand.equals("Honor", ignoreCase = true)) "$brand $model" else null
     }
 
     @WorkerThread
