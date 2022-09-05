@@ -69,7 +69,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     }
 
     override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = huawei3DFaceManager != null
+        get() = isManagerAccessible
 
     private val faceManager: FaceManager?
         get() {
@@ -95,20 +95,11 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         huawei3DFaceManager?.let {
             managers.add(it)
         }
+        huaweiFaceManagerLegacy?.let {
+            managers.add(it)
+        }
         return managers
     }
-
-    override fun getIds(manager: Any): List<String> {
-        val ids = ArrayList<String>(super.getIds(manager))
-        huaweiFaceManagerLegacy?.let {
-            it.getEnrolledTemplates()?.let { array ->
-                for (a in array)
-                    ids.add("$a")
-            }
-        }
-        return ids
-    }
-
     override val isManagerAccessible: Boolean
         get() = huaweiFaceManagerLegacy != null || huawei3DFaceManager != null
     override val isHardwarePresent: Boolean

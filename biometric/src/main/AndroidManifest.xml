@@ -20,20 +20,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         package="dev.skomlach.biometric.compat">
-    <!-- <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>-->
-    <!-- Most of applications has this action, so we could use it as workaround
-    on order to avoid QUERY_ALL_PACKAGES permission -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.MAIN" />
-        </intent>
-    </queries>
-    <!-- Google Play doesn't allow QUERY_ALL_PACKAGES -->
-    <!-- https://support.google.com/googleplay/android-developer/answer/10158779?hl=en -->
-    <uses-permission
-            android:name="android.permission.QUERY_ALL_PACKAGES"
-            tools:node="remove" />
-
     <uses-feature
             android:name="android.hardware.fingerprint"
             android:required="false" />

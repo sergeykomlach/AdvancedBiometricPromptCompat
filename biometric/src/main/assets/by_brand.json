@@ -28603,9 +28603,19 @@
    "model": "DS-BD1"
   },
   {
+   "device": "DS_BD2",
+   "name": "DS_BD2",
+   "model": "DS-BD2"
+  },
+  {
    "device": "DS_CL1",
    "name": "DS_CL1",
    "model": "DS-CL1"
+  },
+  {
+   "device": "DS_CL2_Pro",
+   "name": "DS_CL2_Pro",
+   "model": "DS-CL2 Pro"
   }
  ],
  "Ddm": [
@@ -34467,6 +34477,21 @@
  ],
  "Epson": [
   {
+   "device": "sti6200d101",
+   "name": "EF-12/EH-LS300",
+   "model": "Projector"
+  },
+  {
+   "device": "sti6202d101",
+   "name": "EH-LS800",
+   "model": "HA90"
+  },
+  {
+   "device": "Bushi",
+   "name": "ELPAP12",
+   "model": "STI6110"
+  },
+  {
    "device": "embt4",
    "name": "Epson",
    "model": "EMBT4"
@@ -34474,11 +34499,6 @@
   {
    "device": "sti6200d101",
    "name": "Projector",
-   "model": "Projector"
-  },
-  {
-   "device": "sti6200d101",
-   "name": "SMF2",
    "model": "Projector"
   },
   {
@@ -39623,6 +39643,11 @@
    "device": "Pad_M30",
    "name": "Pad_M30",
    "model": "Pad_M30"
+  },
+  {
+   "device": "TK-E8765",
+   "name": "TK-E8765",
+   "model": "TK-E8765"
   },
   {
    "device": "Z8",
@@ -64645,6 +64670,16 @@
    "model": "Infinix X510"
   },
   {
+   "device": "Infinix-X665C",
+   "name": "HOT 20i",
+   "model": "Infinix X665C"
+  },
+  {
+   "device": "Infinix-X665E",
+   "name": "HOT 20i",
+   "model": "Infinix X665E"
+  },
+  {
    "device": "INFINIX-X554",
    "name": "HOT 3",
    "model": "Infinix HOT 3 Pro"
@@ -65078,6 +65113,11 @@
    "device": "Infinix-X572",
    "name": "Infinix X572",
    "model": "Infinix X572"
+  },
+  {
+   "device": "Infinix-X6821",
+   "name": "Infinix ZERO 20",
+   "model": "Infinix X6821"
   },
   {
    "device": "Infinix-X6815B",
@@ -68114,6 +68154,11 @@
    "model": "itel P651W"
   },
   {
+   "device": "itel-P661W",
+   "name": "P38",
+   "model": "itel P661W"
+  },
+  {
    "device": "P51",
    "name": "P51",
    "model": "itel P51"
@@ -68787,6 +68832,11 @@
    "device": "itel-S661W",
    "name": "itel S17",
    "model": "itel S661W"
+  },
+  {
+   "device": "itel-S663L",
+   "name": "itel S18",
+   "model": "itel S663L"
   },
   {
    "device": "itel-S32LTE",
@@ -71010,6 +71060,11 @@
    "device": "zhongshan",
    "name": "VISTA",
    "model": "4K SMART TV"
+  },
+  {
+   "device": "stanford",
+   "name": "VON",
+   "model": "2K SMART TV"
   },
   {
    "device": "stanford",
@@ -97742,6 +97797,11 @@
    "model": "Lenovo XT2091-7"
   },
   {
+   "device": "stanford",
+   "name": "MOTOROLA",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "umts_primus",
    "name": "Master Touch",
    "model": "XT621"
@@ -101182,6 +101242,11 @@
    "device": "ML-TI0D-MS80X",
    "name": "MS80X",
    "model": "MS80X"
+  },
+  {
+   "device": "zhongshan",
+   "name": "MULTILASER",
+   "model": "4K SMART TV"
   },
   {
    "device": "MTL-MS5",
@@ -114329,6 +114394,11 @@
    "model": "PCS02"
   },
   {
+   "device": "zhongshan",
+   "name": "PHILCO",
+   "model": "4K SMART TV"
+  },
+  {
    "device": "SW4H",
    "name": "PHILCO Smart TV",
    "model": "PHILCO Smart TV"
@@ -125285,6 +125355,11 @@
    "model": "GRAVITY_3"
   },
   {
+   "device": "GRAVITY_3_PRO",
+   "name": "GRAVITY_3_PRO",
+   "model": "GRAVITY 3 PRO"
+  },
+  {
    "device": "GRAVITY_3_SE",
    "name": "GRAVITY_3_SE",
    "model": "GRAVITY_3_SE"
@@ -125330,11 +125405,6 @@
    "device": "GRAVITY_3_4G",
    "name": "GRAVITY_3_4G",
    "model": "GRAVITY 3 4G"
-  },
-  {
-   "device": "GRAVITY_3_PRO",
-   "name": "GRAVITY_3_PRO",
-   "model": "GRAVITY 3 PRO"
   },
   {
    "device": "L100",
@@ -143114,6 +143184,11 @@
    "model": "SH825Wi"
   },
   {
+   "device": "stanford",
+   "name": "SHARP",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "zhongshan",
    "name": "SHARP",
    "model": "4K SMART TV"
@@ -160643,6 +160718,11 @@
    "model": "P25_RUS"
   },
   {
+   "device": "P25_T",
+   "name": "P25_T_ROW",
+   "model": "P25_T_ROW"
+  },
+  {
    "device": "P30Air_ROW",
    "name": "P30Air_ROW",
    "model": "P30Air_ROW"
@@ -162108,6 +162188,11 @@
    "device": "TECNO-LF7n",
    "name": "TECNO POVA 3",
    "model": "TECNO LF7n"
+  },
+  {
+   "device": "TECNO-LG7n",
+   "name": "TECNO POVA 4",
+   "model": "TECNO LG7n"
   },
   {
    "device": "TECNO-LG8n",
@@ -166244,6 +166329,11 @@
    "device": "AblePad_S",
    "name": "AblePad S EEA",
    "model": "MT03"
+  },
+  {
+   "device": "AblePad_Pro",
+   "name": "AblePad_Pro",
+   "model": "MT04"
   },
   {
    "device": "BISON",
