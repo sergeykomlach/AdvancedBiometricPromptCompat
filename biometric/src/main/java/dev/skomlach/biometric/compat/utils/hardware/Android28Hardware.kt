@@ -422,19 +422,24 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 fingersEnrolled
             } else {
                 if (type == BiometricType.BIOMETRIC_FACE &&
-                    LockType.isBiometricEnabledInSettings(appContext, "face")
+                    (LockType.isBiometricEnabledInSettings(appContext, "face") ||
+                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_IRIS &&
-                    LockType.isBiometricEnabledInSettings(appContext, "iris")
+                    (LockType.isBiometricEnabledInSettings(appContext, "iris") ||
+                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_PALMPRINT &&
-                    LockType.isBiometricEnabledInSettings(appContext, "palm")
+                    (LockType.isBiometricEnabledInSettings(appContext, "palm") ||
+                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_VOICE &&
-                    LockType.isBiometricEnabledInSettings(appContext, "voice")
+                    (LockType.isBiometricEnabledInSettings(appContext, "voice") ||
+                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_HEARTRATE &&
-                    LockType.isBiometricEnabledInSettings(appContext, "heartrate")
+                    (LockType.isBiometricEnabledInSettings(appContext, "heartrate") ||
+                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
                 ) return true
 
                 return !fingersEnrolled && isHardwareAvailableForType(type)
