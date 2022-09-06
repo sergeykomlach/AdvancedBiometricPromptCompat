@@ -123,14 +123,6 @@ object SensorPrivacyCheck {
             }
 
             override fun onCameraAvailable(cameraId: String) {
-                if (isCameraBlocked()) {
-                    try {
-                        isCameraInUse.set(false)
-                    } finally {
-                        unregisterListener()
-                    }
-                    return
-                }
                 try {
                     super.onCameraAvailable(cameraId)
                     cameraManager?.getCameraCharacteristics(cameraId)?.let {
@@ -155,14 +147,6 @@ object SensorPrivacyCheck {
             }
 
             override fun onCameraUnavailable(cameraId: String) {
-                if (isCameraBlocked()) {
-                    try {
-                        isCameraInUse.set(false)
-                    } finally {
-                        unregisterListener()
-                    }
-                    return
-                }
                 try {
                     super.onCameraUnavailable(cameraId)
                     cameraManager?.getCameraCharacteristics(cameraId)?.let {
@@ -190,14 +174,26 @@ object SensorPrivacyCheck {
 
     //Android 12 stuff
     fun isCameraBlocked(): Boolean {
-        return Utils.isAtLeastS && checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
+        return if(Utils.isAtLeastS && !DevicesWithKnownBugs.isSamsung)
+            checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
+        else
+            false
     }
 
     @TargetApi(Build.VERSION_CODES.S)
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
             if (System.currentTimeMillis() - lastCheckedTime.get() <= CHECK_TIMEOUT) {
-                return lastKnownState.get()
+                return if(isUiRequested.get() &&
+                    SensorBlockedFallbackFragment.isUnblockDialogShown())
+                    lastKnownState.get()
+                else{
+                    if (sensor == SensorPrivacyManager.Sensors.CAMERA)
+                        SensorBlockedFallbackFragment.askForCameraUnblock()
+                    else
+                        SensorBlockedFallbackFragment.askForMicUnblock()
+                    lastKnownState.get()
+                }
             } else if (isUiRequested.get() &&
                 SensorBlockedFallbackFragment.isUnblockDialogShown()
             ) {

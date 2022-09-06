@@ -213,6 +213,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 //just cache value
                                 hasEnrolled(biometricAuthRequest)
                                 isLockOut(biometricAuthRequest)
+                                isBiometricSensorPermanentlyLocked(biometricAuthRequest)
                                 isBiometricEnrollChanged(biometricAuthRequest)
                             }
                         }
@@ -397,7 +398,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        if (isLockOut(impl.builder.getBiometricAuthRequest())) {
+        if (isLockOut(impl.builder.getBiometricAuthRequest(), false)) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.LOCKED_OUT,
@@ -406,7 +407,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest())) {
+        if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest(), false)) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
