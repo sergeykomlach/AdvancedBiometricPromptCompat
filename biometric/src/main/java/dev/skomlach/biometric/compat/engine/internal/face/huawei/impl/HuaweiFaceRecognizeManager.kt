@@ -100,7 +100,7 @@ class HuaweiFaceRecognizeManager {
                 FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE -> HUAWEI_FACE_AUTH_ERROR_LOCKED
                 FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE, FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS, FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT, FaceRecognizeManager.FaceErrorCode.FAILED -> HUAWEI_FACE_AUTH_ERROR_VENDOR
                 FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL, FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA, FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES -> HUAWEI_FACE_AUTHENTICATOR_FAIL
-                else -> HUAWEI_FACE_AUTHENTICATOR_FAIL
+                else -> HUAWEI_FACE_AUTH_ERROR_CANCEL
             }
         }
 
