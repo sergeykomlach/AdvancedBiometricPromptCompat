@@ -65,7 +65,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
             if (jobEnrollChanged?.isActive == true) {
                 if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
-                        30
+                        5
                     )
                 ) {
                     jobEnrollChanged?.cancel()
@@ -150,7 +150,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
             if (jobEnrolled?.isActive == true) {
                 if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
-                        30
+                        5
                     )
                 ) {
                     jobEnrolled?.cancel()

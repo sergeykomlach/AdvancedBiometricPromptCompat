@@ -51,7 +51,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
         private fun canAuthenticate(): Int {
 
             if (job?.isActive == true) {
-                if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(30)) {
+                if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(5)) {
                     job?.cancel()
                     job = null
                 }
