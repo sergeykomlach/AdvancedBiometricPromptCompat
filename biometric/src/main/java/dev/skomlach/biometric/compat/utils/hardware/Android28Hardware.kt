@@ -78,6 +78,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 jobEnrollChanged = GlobalScope.launch(Dispatchers.IO) {
                     updateBiometricChanged()
                 }
+                Thread.sleep(50)
             }
 
 
@@ -163,6 +164,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 jobEnrolled = GlobalScope.launch(Dispatchers.IO) {
                     updateBiometricEnrolled()
                 }
+                Thread.sleep(50)
             }
 
             return cachedIsBiometricEnrolledValue.get()
@@ -242,11 +244,6 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 return
             }
             cachedIsBiometricEnrolledValue.set(false)
-        }
-
-        init {
-            biometricEnrollChanged()
-            biometricEnrolled()
         }
     }
 

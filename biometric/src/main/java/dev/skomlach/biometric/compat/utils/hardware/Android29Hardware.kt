@@ -61,6 +61,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 job = GlobalScope.launch(Dispatchers.IO) {
                     updateCodeSync()
                 }
+                Thread.sleep(50)
             }
             return cachedCanAuthenticateValue.get()
         }
@@ -105,10 +106,6 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 e("Android29Hardware - canAuthenticate=$code")
                 cachedCanAuthenticateValue.set(code)
             }
-        }
-
-        init {
-            canAuthenticate()
         }
     }
 
