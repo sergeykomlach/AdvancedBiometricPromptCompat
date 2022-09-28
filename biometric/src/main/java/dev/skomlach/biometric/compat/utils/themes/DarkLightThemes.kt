@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils.themes
 import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.SettingsHelper
@@ -58,15 +59,20 @@ object DarkLightThemes {
                 UiModeManager.MODE_NIGHT_NO
             }
             else -> {
-                val config = AndroidContext.configuration
-                if (config != null) {
-                    if (config.uiMode and
-                        Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES ||
+                AndroidContext.configuration?.let { config ->
+                    if ((config.uiMode and
+                                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) ||
                         (Utils.isAtLeastR && config.isNightModeActive)
                     )
                         return UiModeManager.MODE_NIGHT_YES
                 }
-
+                Resources.getSystem().configuration?.let { config ->
+                    if ((config.uiMode and
+                                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) ||
+                        (Utils.isAtLeastR && config.isNightModeActive)
+                    )
+                        return UiModeManager.MODE_NIGHT_YES
+                }
 
                 val mUiModeManager =
                     context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
