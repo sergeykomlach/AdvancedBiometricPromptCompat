@@ -594,7 +594,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             } catch (ignore: Throwable) {
                             }
                             authFlowInProgress.set(false)
-                            ExecutorHelper.releaseAllScopes()
                         }
                     }
                 }
