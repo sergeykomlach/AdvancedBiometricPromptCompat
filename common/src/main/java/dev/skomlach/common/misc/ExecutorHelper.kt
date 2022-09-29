@@ -30,12 +30,39 @@ import java.util.concurrent.Executors
 
 object ExecutorHelper {
 
+    private val mainThreadHandler: Handler = Handler(Looper.getMainLooper())
+    private val mainThreadExecutor: Executor = HandlerExecutor(mainThreadHandler)
+    private val backgroundThreadExecutor: ExecutorService = Executors.newCachedThreadPool()
 
-    val handler: Handler = Handler(Looper.getMainLooper())
-    val executor: Executor = HandlerExecutor()
-
-    val backgroundExecutor: ExecutorService = Executors.newCachedThreadPool()
+    private var backgroundScope = CoroutineScope(backgroundThreadExecutor.asCoroutineDispatcher())
+    private var mainThreadScope = CoroutineScope(mainThreadExecutor.asCoroutineDispatcher())
     private val tasksInMain = Collections.synchronizedMap(WeakHashMap<Runnable, Job>())
+
+
+    val handler: Handler
+        get() {
+            return Handler(Looper.getMainLooper())
+        }
+    val executor: Executor
+        get() {
+            return CoroutineScopeExecutor(mainThreadScope)
+        }
+    val backgroundExecutor: Executor
+        get() {
+            return CoroutineScopeExecutor(backgroundScope)
+        }
+
+    fun releaseAllScopes() {
+        backgroundScope.cancel()
+        mainThreadScope.cancel()
+        backgroundScope = CoroutineScope(backgroundThreadExecutor.asCoroutineDispatcher())
+        mainThreadScope = CoroutineScope(mainThreadExecutor.asCoroutineDispatcher())
+        try {
+            tasksInMain.clear()
+        } catch (e: Throwable) {
+            LogCat.logException(e, "releaseAllScopes")
+        }
+    }
 
     private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
 
@@ -60,7 +87,7 @@ object ExecutorHelper {
     }
 
     fun startOnBackground(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
+        val job = backgroundScope.launch {
             delay(delay)
             task.run()
         }
@@ -71,7 +98,7 @@ object ExecutorHelper {
         if (!isMain()) {
             task.run()
         } else {
-            val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
+            val job = backgroundScope.launch {
                 task.run()
             }
             addTaskSafely(task, job)
@@ -81,7 +108,7 @@ object ExecutorHelper {
 
     fun postDelayed(task: Runnable, delay: Long) {
 
-        val job = GlobalScope.launch(Dispatchers.Main) {
+        val job = mainThreadScope.launch {
             delay(delay)
             task.run()
             removeTaskSafely(task)
@@ -93,7 +120,7 @@ object ExecutorHelper {
         if (isMain()) {
             task.run()
         } else {
-            val job = GlobalScope.launch(Dispatchers.Main) {
+            val job = mainThreadScope.launch {
                 task.run()
                 removeTaskSafely(task)
             }
@@ -115,9 +142,17 @@ object ExecutorHelper {
     /**
      * An [Executor] which posts to a [Handler].
      */
-    class HandlerExecutor : Executor {
+    private class HandlerExecutor(private val h: Handler) : Executor {
         override fun execute(runnable: Runnable) {
-            handler.post(runnable)
+            h.post(runnable)
+        }
+    }
+
+    private class CoroutineScopeExecutor(private val h: CoroutineScope) : Executor {
+        override fun execute(runnable: Runnable) {
+            h.launch {
+                runnable.run()
+            }
         }
     }
 }

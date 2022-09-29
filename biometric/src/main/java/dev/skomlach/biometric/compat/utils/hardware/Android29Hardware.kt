@@ -28,11 +28,14 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -46,7 +49,9 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
             AtomicInteger(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE)
         private var job: Job? = null
         private var checkStartedTs = 0L
-
+        private val backgroundThreadExecutor: ExecutorService = Executors.newCachedThreadPool()
+        private var backgroundScope =
+            CoroutineScope(backgroundThreadExecutor.asCoroutineDispatcher())
 
         private fun canAuthenticate(): Int {
 
@@ -56,12 +61,17 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                     job = null
                 }
             }
-            if (job?.isActive != true) {
+            if (job == null || job?.isCompleted == true) {
                 checkStartedTs = System.currentTimeMillis()
-                job = GlobalScope.launch(Dispatchers.IO) {
+                val isFinished = AtomicBoolean(false)
+                job = backgroundScope.launch {
+                    isFinished.set(false)
                     updateCodeSync()
+                    isFinished.set(true)
                 }
-                Thread.sleep(50)
+                while (!isFinished.get() && (System.currentTimeMillis() - checkStartedTs <= 5)) {
+                    Thread.sleep(1)
+                }
             }
             return cachedCanAuthenticateValue.get()
         }
