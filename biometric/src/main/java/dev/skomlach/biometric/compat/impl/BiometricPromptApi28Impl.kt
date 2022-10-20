@@ -100,7 +100,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     cancelAuthentication()
                 } else {
                     //...normal failed processing...//
-                    for (module in (if (isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                    for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
                         IconStateHelper.errorType(module)
                     }
                     dialog?.onFailure(false)
@@ -158,7 +158,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
-                            for (module in (if (isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                            for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
                                 IconStateHelper.errorType(module)
                             }
                             dialog?.onFailure(
@@ -234,7 +234,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
         promptInfoBuilder.setDeviceCredentialAllowed(false)
         promptInfoBuilder.setAllowedAuthenticators(
-            if (builder.getCryptographyPurpose()!=null)
+            if (builder.getCryptographyPurpose() != null)
                 BiometricManager.Authenticators.BIOMETRIC_STRONG
             else
                 (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
@@ -318,7 +318,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             it != BiometricType.BIOMETRIC_FINGERPRINT
         }
 
-        if (!isSamsungWorkaroundRequired) {
+        if (!isNativeBiometricWorkaroundRequired) {
             if (!hasSecondaryFinished()) {
                 val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
                 if (secondary.isNotEmpty()) {
@@ -564,12 +564,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         callback?.onUIClosed()
     }
 
-    private val isSamsungWorkaroundRequired: Boolean
+    private val isNativeBiometricWorkaroundRequired: Boolean
         get() {
             val candidates = builder.getAllAvailableTypes().filter {
                 it != BiometricType.BIOMETRIC_ANY
             }
-            return DevicesWithKnownBugs.isSamsung && candidates.size > 1 //If only one - let the system to deal with this
+            return DevicesWithKnownBugs.systemDealWithBiometricPrompt && candidates.size > 1 //If only one - let the system to deal with this
         }
 
     private fun checkAuthResultForPrimary(
@@ -590,7 +590,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val crypto = if (cryptoObject == null) null else {
             BiometricCryptoObject(cryptoObject.signature, cryptoObject.cipher, cryptoObject.mac)
         }
-        for (module in (if (isSamsungWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+        for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
             authFinished[module] =
                 AuthResult(authResult, AuthenticationResult(module, crypto), failureReason)
             dialog?.authFinishedCopy = authFinished
@@ -617,7 +617,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("checkAuthResultForPrimary.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
         if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
-            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.isSamsung || allList.isEmpty()))
+            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
         ) {
             ExecutorHelper.post {
                 cancelAuthentication()

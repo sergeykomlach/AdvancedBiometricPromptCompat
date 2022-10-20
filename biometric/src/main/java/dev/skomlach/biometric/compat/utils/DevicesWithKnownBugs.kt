@@ -70,14 +70,16 @@ object DevicesWithKnownBugs {
                     return true
                 }
             }
-            return (isSamsung || (isOnePlus && Utils.isAtLeastS)) && hasUnderDisplayFingerprint
+            return (systemDealWithBiometricPrompt || (isOnePlus && Utils.isAtLeastS) ) && hasUnderDisplayFingerprint
         }
 
-    val isSamsung: Boolean
+    val systemDealWithBiometricPrompt: Boolean
+        get() = (isSamsung || Utils.isAtLeastT)
+    private val isSamsung: Boolean
         get() {
             return Build.BRAND.equals("Samsung", ignoreCase = true)
         }
-    val isOnePlus: Boolean
+    private val isOnePlus: Boolean
         get() {
             return Build.BRAND.equals("OnePlus", ignoreCase = true)
         }

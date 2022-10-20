@@ -174,7 +174,7 @@ object SensorPrivacyCheck {
 
     //Android 12 stuff
     fun isCameraBlocked(): Boolean {
-        return if(Utils.isAtLeastS && !DevicesWithKnownBugs.isSamsung)
+        return if (Utils.isAtLeastS && !DevicesWithKnownBugs.systemDealWithBiometricPrompt)
             checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
         else
             false
@@ -184,10 +184,11 @@ object SensorPrivacyCheck {
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
             if (System.currentTimeMillis() - lastCheckedTime.get() <= CHECK_TIMEOUT) {
-                return if(isUiRequested.get() &&
-                    SensorBlockedFallbackFragment.isUnblockDialogShown())
+                return if (isUiRequested.get() &&
+                    SensorBlockedFallbackFragment.isUnblockDialogShown()
+                )
                     lastKnownState.get()
-                else{
+                else {
                     if (sensor == SensorPrivacyManager.Sensors.CAMERA)
                         SensorBlockedFallbackFragment.askForCameraUnblock()
                     else
