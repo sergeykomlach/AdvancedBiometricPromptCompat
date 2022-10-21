@@ -28,6 +28,7 @@ import android.view.View
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
@@ -268,11 +269,14 @@ class BiometricPromptCompatDialogImpl(
         get() = dialog.authPreview
 
     fun dismissDialog() {
+        detachWindowListeners()
+        cancelAuth()
         if (dialog.isShowing) {
-            detachWindowListeners()
-            cancelAuth()
             dialog.dismiss()
         }
+        val viewModel : DialogViewModel =
+            ViewModelProvider(compatBuilder.getContext())[DialogViewModel::class.java]
+        viewModel.dismissDialog()
     }
 
     fun onHelp(msg: CharSequence?) {
