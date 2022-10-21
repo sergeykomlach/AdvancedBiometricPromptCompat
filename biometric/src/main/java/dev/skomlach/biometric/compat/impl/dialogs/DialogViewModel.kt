@@ -20,16 +20,18 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dev.skomlach.common.misc.SingleLiveEvent
 
 class DialogViewModel : ViewModel() {
-    private val mutableLiveData = MutableLiveData<Boolean>()
-    val listener: LiveData<Boolean> = mutableLiveData
-    fun dismissDialog() {
-        mutableLiveData.apply {
-            value = true
-            postValue(false)
+    private val mutableLiveData = SingleLiveEvent<Boolean>()
+    val listener: LiveData<Boolean>
+        get() {
+            mutableLiveData.value = false
+            return mutableLiveData
         }
+
+    fun dismissDialog() {
+        mutableLiveData.value = true
     }
 }
