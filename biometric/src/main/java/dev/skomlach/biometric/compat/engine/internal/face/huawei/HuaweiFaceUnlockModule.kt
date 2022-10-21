@@ -19,8 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
-import android.content.Context
-import com.huawei.facerecognition.FaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
@@ -35,26 +33,15 @@ import dev.skomlach.biometric.compat.engine.internal.face.huawei.impl.HuaweiFace
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
-import java.lang.reflect.InvocationTargetException
 
 
 class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_HUAWEI) {
     //EMUI 10.1.0
     private var huaweiFaceManagerLegacy: HuaweiFaceManager? = null
-    private var huawei3DFaceManager: FaceManager? = null
 
     init {
         ExecutorHelper.post {
-
-            try {
-                huawei3DFaceManager = faceManager
-                d("$name.huawei3DFaceManager - $huawei3DFaceManager")
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-                huawei3DFaceManager = null
-            }
             try {
                 huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager()
                 d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
@@ -71,44 +58,18 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = isManagerAccessible
 
-    private val faceManager: FaceManager?
-        get() {
-            try {
-                val t = Class.forName("com.huawei.facerecognition.FaceManagerFactory")
-                val method = t.getDeclaredMethod("getFaceManager", Context::class.java)
-                return method.invoke(null, context) as FaceManager
-            } catch (var3: ClassNotFoundException) {
-                d("$name.Throw exception: ClassNotFoundException")
-            } catch (var4: NoSuchMethodException) {
-                d("$name.Throw exception: NoSuchMethodException")
-            } catch (var5: IllegalAccessException) {
-                d("$name.Throw exception: IllegalAccessException")
-            } catch (var6: InvocationTargetException) {
-                d("$name.Throw exception: InvocationTargetException")
-            }
-            return null
-        }
-
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
-        //pass only EMUI 10.1.0 manager
-        huawei3DFaceManager?.let {
-            managers.add(it)
-        }
         huaweiFaceManagerLegacy?.let {
             managers.add(it)
         }
         return managers
     }
+
     override val isManagerAccessible: Boolean
-        get() = huaweiFaceManagerLegacy != null || huawei3DFaceManager != null
+        get() = huaweiFaceManagerLegacy != null
     override val isHardwarePresent: Boolean
         get() {
-            try {
-                if (huawei3DFaceManager?.isHardwareDetected == true) return true
-            } catch (e: Throwable) {
-                e(e, name)
-            }
             try {
                 if (huaweiFaceManagerLegacy?.isHardwareDetected == true) return true
             } catch (e: Throwable) {
@@ -119,33 +80,6 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         }
 
     override fun hasEnrolled(): Boolean {
-        try {
-            val hasEnrolled = try {
-                huawei3DFaceManager?.hasEnrolledTemplates() == true
-            } catch (ignore: Throwable) {
-                val m = huawei3DFaceManager?.javaClass?.declaredMethods?.firstOrNull {
-                    it.name.contains("hasEnrolled", ignoreCase = true)
-                }
-                val isAccessible = m?.isAccessible ?: true
-                var result = false
-                try {
-                    if (!isAccessible)
-                        m?.isAccessible = true
-                    if (m?.returnType == Boolean::class.javaPrimitiveType)
-                        result = (m?.invoke(huawei3DFaceManager) as Boolean?) == true
-                    else
-                        if (m?.returnType == Int::class.javaPrimitiveType)
-                            result = (m?.invoke(huawei3DFaceManager) as Int?) ?: 0 > 0
-                } finally {
-                    if (!isAccessible)
-                        m?.isAccessible = false
-                }
-                result
-            }
-            if (huawei3DFaceManager?.isHardwareDetected == true && hasEnrolled) return true
-        } catch (e: Throwable) {
-            e(e, name)
-        }
         try {
             if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
         } catch (e: Throwable) {
@@ -168,176 +102,27 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             val signalObject =
                 (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                     ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+            huaweiFaceManagerLegacy?.let {
 
-            if (huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() == true) {
-                huawei3DFaceManager?.let {
-                    try {
-                        val crypto = if (biometricCryptoObject == null) null else {
-                            if (biometricCryptoObject.cipher != null)
-                                FaceManager.CryptoObject(biometricCryptoObject.cipher)
-                            else if (biometricCryptoObject.mac != null)
-                                FaceManager.CryptoObject(biometricCryptoObject.mac)
-                            else if (biometricCryptoObject.signature != null)
-                                FaceManager.CryptoObject(biometricCryptoObject.signature)
-                            else
-                                null
-                        }
-                        val callback = AuthCallback3DFace(
-                            biometricCryptoObject,
-                            restartPredicate,
-                            cancellationSignal,
-                            listener
-                        )
-
-                        // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                        d("$name.authenticate:  Crypto=$crypto")
-                        it.authenticate(
-                            crypto,
-                            signalObject,
-                            0,
-                            callback,
-                            ExecutorHelper.handler
-                        )
-                        return
-                    } catch (e: Throwable) {
-                        e(e, "$name: authenticate failed unexpectedly")
-                    }
-                }
+                val callback = AuthCallbackLegacy(
+                    biometricCryptoObject,
+                    restartPredicate,
+                    cancellationSignal,
+                    listener
+                )
+                // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                it.authenticate(
+                    0,
+                    0,
+                    callback
+                )
+                return
             }
-            if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) {
-                huaweiFaceManagerLegacy?.let {
-                    try {
-                        val callback = AuthCallbackLegacy(
-                            biometricCryptoObject,
-                            restartPredicate,
-                            cancellationSignal,
-                            listener
-                        )
 
-                        // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                        it.authenticate(
-                            0,
-                            0,
-                            callback
-                        )
-                        return
-                    } catch (e: Throwable) {
-                        e(e, "$name: authenticate failed unexpectedly")
-                    }
-                }
-            }
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
-    }
-
-    private inner class AuthCallback3DFace(
-        private val biometricCryptoObject: BiometricCryptoObject?,
-        private val restartPredicate: RestartPredicate?,
-        private val cancellationSignal: androidx.core.os.CancellationSignal?,
-        private val listener: AuthenticationListener?
-    ) : FaceManager.AuthenticationCallback() {
-        private var errorTs = System.currentTimeMillis()
-        private val skipTimeout =
-            context.resources.getInteger(android.R.integer.config_shortAnimTime)
-
-        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
-            d("$name.onAuthenticationError: $errMsgId-$errString")
-            val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
-                return
-            errorTs = tmp
-            var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
-                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL -> failureReason =
-                    AuthenticationFailureReason.AUTHENTICATION_FAILED
-
-                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-
-                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_TIMEOUT -> failureReason =
-                    AuthenticationFailureReason.TIMEOUT
-                HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
-                    lockout()
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                }
-                else -> {
-                    Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
-                }
-            }
-            if (restartCauseTimeout(failureReason)) {
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
-            } else
-                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
-                        failureReason
-                    ) == true
-                ) {
-                    listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
-                } else {
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
-                        lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
-                    }
-                    listener?.onFailure(failureReason, tag())
-                }
-        }
-
-        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
-            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
-            listener?.onHelp(helpString)
-        }
-
-        override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
-            val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
-                return
-            errorTs = tmp
-            listener?.onSuccess(
-                tag(),
-                BiometricCryptoObject(
-                    result?.cryptoObject?.getSignature(),
-                    result?.cryptoObject?.getCipher(),
-                    result?.cryptoObject?.getMac()
-                )
-            )
-        }
-
-        override fun onAuthenticationFailed() {
-            d("$name.onAuthenticationFailed: ")
-            val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
-                return
-            errorTs = tmp
-            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
-            } else {
-                if (mutableListOf(
-                        AuthenticationFailureReason.SENSOR_FAILED,
-                        AuthenticationFailureReason.AUTHENTICATION_FAILED
-                    ).contains(failureReason)
-                ) {
-                    lockout()
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                }
-                listener?.onFailure(failureReason, tag())
-            }
-        }
     }
 
     private inner class AuthCallbackLegacy(

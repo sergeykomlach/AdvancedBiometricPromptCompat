@@ -626,7 +626,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
                     BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
                     BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
-                    BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
+                    BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D, BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
                     BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
                     BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
                     BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")

@@ -39,6 +39,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.ViewModelProvider
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -92,7 +93,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
             updateMonetColorsInternal(context ?: return)
         }
     }
-
+    private lateinit var viewModel : DialogViewModel
     override fun dismiss() {
         if (isAdded) {
             val fragmentManager = parentFragmentManager
@@ -113,6 +114,12 @@ class BiometricPromptCompatDialog : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.Theme_BiometricPromptDialog)
+        viewModel = ViewModelProvider(requireActivity())[DialogViewModel::class.java]
+        viewModel.listener.observe(this) {
+            if(it) {
+                dismiss()
+            }
+        }
     }
 
     fun makeVisible() {

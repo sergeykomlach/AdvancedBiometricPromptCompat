@@ -33,18 +33,19 @@ import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException
 import java.security.KeyStore
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
@@ -59,13 +60,15 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         private var cachedIsBiometricEnrollChangedValue = AtomicBoolean(false)
         private var jobEnrollChanged: Job? = null
         private var checkEnrollChangedStartedTs = 0L
-
+        private val backgroundThreadExecutor: ExecutorService = Executors.newCachedThreadPool()
+        private var backgroundScope =
+            CoroutineScope(backgroundThreadExecutor.asCoroutineDispatcher())
 
         private fun biometricEnrollChanged(): Boolean {
 
             if (jobEnrollChanged?.isActive == true) {
                 if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
-                        30
+                        5
                     )
                 ) {
                     jobEnrollChanged?.cancel()
@@ -73,10 +76,16 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 }
             }
 
-            if (jobEnrollChanged?.isActive != true) {
+            if (jobEnrollChanged == null || jobEnrollChanged?.isCompleted == true) {
                 checkEnrollChangedStartedTs = System.currentTimeMillis()
-                jobEnrollChanged = GlobalScope.launch(Dispatchers.IO) {
+                val isFinished = AtomicBoolean(false)
+                jobEnrollChanged = backgroundScope.launch {
+                    isFinished.set(false)
                     updateBiometricChanged()
+                    isFinished.set(true)
+                }
+                while (!isFinished.get() && (System.currentTimeMillis() - checkEnrollChangedStartedTs <= 5)) {
+                    Thread.sleep(1)
                 }
             }
 
@@ -150,7 +159,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
             if (jobEnrolled?.isActive == true) {
                 if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
-                        30
+                        5
                     )
                 ) {
                     jobEnrolled?.cancel()
@@ -158,10 +167,16 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 }
             }
 
-            if (jobEnrolled?.isActive != true) {
+            if (jobEnrolled == null || jobEnrolled?.isCompleted == true) {
                 checkEnrolledStartedTs = System.currentTimeMillis()
-                jobEnrolled = GlobalScope.launch(Dispatchers.IO) {
+                val isFinished = AtomicBoolean(false)
+                jobEnrolled = backgroundScope.launch {
+                    isFinished.set(false)
                     updateBiometricEnrolled()
+                    isFinished.set(true)
+                }
+                while (!isFinished.get() && (System.currentTimeMillis() - checkEnrolledStartedTs <= 5)) {
+                    Thread.sleep(1)
                 }
             }
 
@@ -242,11 +257,6 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 return
             }
             cachedIsBiometricEnrolledValue.set(false)
-        }
-
-        init {
-            biometricEnrollChanged()
-            biometricEnrolled()
         }
     }
 
@@ -423,23 +433,28 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             } else {
                 if (type == BiometricType.BIOMETRIC_FACE &&
                     (LockType.isBiometricEnabledInSettings(appContext, "face") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
+                            BiometricAuthentication.getAvailableBiometricModule(type)
+                                ?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_IRIS &&
                     (LockType.isBiometricEnabledInSettings(appContext, "iris") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
+                            BiometricAuthentication.getAvailableBiometricModule(type)
+                                ?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_PALMPRINT &&
                     (LockType.isBiometricEnabledInSettings(appContext, "palm") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
+                            BiometricAuthentication.getAvailableBiometricModule(type)
+                                ?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_VOICE &&
                     (LockType.isBiometricEnabledInSettings(appContext, "voice") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
+                            BiometricAuthentication.getAvailableBiometricModule(type)
+                                ?.hasEnrolled() == true)
                 ) return true
                 if (type == BiometricType.BIOMETRIC_HEARTRATE &&
                     (LockType.isBiometricEnabledInSettings(appContext, "heartrate") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
+                            BiometricAuthentication.getAvailableBiometricModule(type)
+                                ?.hasEnrolled() == true)
                 ) return true
 
                 return !fingersEnrolled && isHardwareAvailableForType(type)

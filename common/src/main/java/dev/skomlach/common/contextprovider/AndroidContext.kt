@@ -29,6 +29,7 @@ import android.os.Bundle
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.ExecutorHelper
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.lang.ref.Reference
@@ -68,7 +69,7 @@ object AndroidContext {
             try {
                 lock.runCatching { this.lock() }
                 getContextRef()?.let {
-                    GlobalScope.launch(Dispatchers.IO) {
+                    ExecutorHelper.startOnBackground{
                         fixDirAccess(it)
                     }
                     return it
@@ -83,7 +84,7 @@ object AndroidContext {
                     updateApplicationReference()
                 }
                 getContextRef()?.let {
-                    GlobalScope.launch(Dispatchers.IO) {
+                    ExecutorHelper.startOnBackground {
                         fixDirAccess(it)
                     }
                     return it
