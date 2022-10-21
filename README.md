@@ -69,6 +69,14 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
+October 21, 2022
+
+**Bugfix: Pixel 7** - fixed bug user get "Hardware not available" on such device
+
+**Bugfix: Empty dialog after screen rotation** - dismiss dialog properly
+
+**Bugfix: Broken night theme detection**
+
 August 23, 2022
 
 **Bugfix: OnePlus 9+** - fixed bug when pressing "Cancel" button on biometric dialog, leads to `onAuthenticationSucceeded` call instead of `onAuthenticationError`
