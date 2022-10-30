@@ -20,5 +20,5 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
         android:shape="rectangle">
     <solid android:color="@color/api33_finger_bg" />
-    <corners android:radius="@dimen/fingerprint_icon_size" />
+    <corners android:radius="@dimen/fingerprint_icon_size_compat" />
 </shape>
