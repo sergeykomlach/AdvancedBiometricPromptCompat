@@ -607,9 +607,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             val permission: MutableSet<String> = HashSet()
 
-            if (Utils.isAtLeastT && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
-                permission.add("android.permission.POST_NOTIFICATIONS")
-            }
             if (Build.VERSION.SDK_INT >= 28) {
                 permission.add("android.permission.USE_BIOMETRIC")
             }
