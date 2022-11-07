@@ -23,6 +23,7 @@ import android.app.Activity
 import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import dev.skomlach.biometric.compat.*
@@ -237,16 +238,18 @@ object BiometricAuthentication {
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
         targetView: View?,
         method: BiometricType,
-        listener: BiometricAuthenticationListener
+        listener: BiometricAuthenticationListener,
+        bundle: Bundle?
     ) {
-        authenticate(biometricCryptographyPurpose, targetView, listOf(method), listener)
+        authenticate(biometricCryptographyPurpose, targetView, listOf(method), listener, bundle)
     }
 
     fun authenticate(
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
         targetView: View?,
         requestedMethods: List<BiometricType?>,
-        listener: BiometricAuthenticationListener
+        listener: BiometricAuthenticationListener,
+        bundle: Bundle?
     ) {
         if (requestedMethods.isEmpty()) return
         d("BiometricAuthentication.authenticate")
@@ -258,6 +261,12 @@ object BiometricAuthentication {
             if (biometricModule == null || !biometricModule.hasEnrolled()) continue
             Core.registerModule(biometricModule)
             when (biometricModule) {
+                is SoterFaceUnlockModule ->{
+                    biometricModule.bundle = bundle
+                }
+                is SoterFingerprintUnlockModule ->{
+                    biometricModule.bundle = bundle
+                }
                 is FacelockOldModule -> {
                     biometricModule.setCallerView(targetView)
                 }

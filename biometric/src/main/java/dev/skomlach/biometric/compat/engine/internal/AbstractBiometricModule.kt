@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.engine.internal
 
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.Bundle
 import android.os.UserHandle
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BuildConfig
@@ -47,6 +48,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     val name: String
         get() = javaClass.simpleName
     val context = AndroidContext.appContext
+    var bundle: Bundle? = null
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = true
 

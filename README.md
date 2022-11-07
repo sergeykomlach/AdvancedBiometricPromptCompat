@@ -69,6 +69,11 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
+October 30, 2022
+
+**Bugfix: Permission error on Android T** - fixed bug when permission error happens during notification posting
+
+
 October 21, 2022
 
 **Bugfix: Pixel 7** - fixed bug user get "Hardware not available" on such device

@@ -30,8 +30,11 @@ dependencies {
     implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:4.3'
     implementation 'com.jaredrummler:android-device-names:2.1.0'
     implementation "org.jsoup:jsoup:1.15.3"
-    implementation "androidx.biometric:biometric-ktx:1.2.0-alpha04"
-    implementation 'com.github.Tencent.soter:soter-core:2.0.11'
+
+    implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
+    implementation 'com.github.Tencent.soter:soter-core:2.1.8'
+    implementation "com.huawei.security:localauthentication:1.1.1"
+
     implementation "androidx.appcompat:appcompat:1.5.1"
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
     implementation 'androidx.core:core-ktx:1.9.0'

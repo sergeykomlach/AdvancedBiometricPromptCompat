@@ -143,7 +143,8 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                     0,
                     signalObject,
                     callback,
-                    ExecutorHelper.handler
+                    ExecutorHelper.handler,
+                    bundle?:throw IllegalArgumentException("Bundle should be not NULL")
                 )
                 return
             } catch (e: Throwable) {

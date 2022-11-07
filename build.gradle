@@ -19,7 +19,7 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '1.7.20'
     ext.minSDK = 16
 //    ext.compileSDK = "Tiramisu"
 //    ext.targetSDK = "Tiramisu"
@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 20
+    ext.libsMinorVersion = 22
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -45,7 +45,8 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         google()
-
+        // Add the Maven repository.
+        maven {url 'https://developer.huawei.com/repo/'}
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'
@@ -54,8 +55,8 @@ buildscript {
         classpath 'org.owasp:dependency-check-gradle:6.5.3'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.1'
-        classpath 'com.google.gms:google-services:4.3.13'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.2'
+        classpath 'com.google.gms:google-services:4.3.14'
     }
 }
 
@@ -63,6 +64,8 @@ allprojects {
     repositories {
         maven { url "https://jitpack.io" }
         maven { url "https://plugins.gradle.org/m2/" }
+        // Add the Maven repository.
+        maven {url 'https://developer.huawei.com/repo/'}
         google()
 
     }
