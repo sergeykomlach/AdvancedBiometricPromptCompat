@@ -36,7 +36,11 @@ private var cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>().apply {
     }
 }
 
-fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
+fun Fragment.startBiometric(
+    biometricAuthRequest: BiometricAuthRequest,
+    silentAuth: Boolean,
+    crypto: Boolean
+) {
 
     if (!BiometricManagerCompat.isBiometricReady(biometricAuthRequest)) {
         if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
@@ -76,12 +80,23 @@ fun Fragment.startBiometric(biometricAuthRequest: BiometricAuthRequest) {
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-//        .setCryptographyPurpose(
-//            BiometricCryptographyPurpose(
-//                if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,
-//                cryptoTests[biometricAuthRequest]?.vector
-//            )
-//        )
+        .also {
+            if (crypto) {
+                it.setCryptographyPurpose(
+                    BiometricCryptographyPurpose(
+                        if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,
+                        cryptoTests[biometricAuthRequest]?.vector
+                    )
+                )
+            }
+            if (silentAuth && !it.enableSilentAuth()) {
+                showAlertDialog(
+                    requireActivity(),
+                    "Unable to use silent Auth",
+                )
+                return
+            }
+        }
         .build()
 
     BiometricLoggerImpl.e(

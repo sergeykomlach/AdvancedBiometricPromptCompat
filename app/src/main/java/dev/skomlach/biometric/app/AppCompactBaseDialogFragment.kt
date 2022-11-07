@@ -76,6 +76,25 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                 Toast.makeText(AndroidContext.appContext, "Changes applied", Toast.LENGTH_LONG)
                     .show()
             }
+        view.findViewById<CheckBox>(R.id.checkboxCrypto)?.let {
+            it.isChecked =
+                SharedPreferenceProvider.getPreferences("app_settings")
+                    .getBoolean("crypto", false)
+            it.setOnCheckedChangeListener { buttonView, isChecked ->
+                SharedPreferenceProvider.getPreferences("app_settings").edit()
+                    .putBoolean("crypto", isChecked).apply()
+            }
+
+        }
+        view.findViewById<CheckBox>(R.id.checkboxSilent)?.let {
+            it.isChecked =
+                SharedPreferenceProvider.getPreferences("app_settings")
+                    .getBoolean("silent", false)
+            it.setOnCheckedChangeListener { buttonView, isChecked ->
+                SharedPreferenceProvider.getPreferences("app_settings").edit()
+                    .putBoolean("silent", isChecked).apply()
+            }
+        }
         return view
     }
 
@@ -91,7 +110,13 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
             button.setOnClickListener {
-                startBiometric(authRequest)
+                startBiometric(
+                    authRequest,
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("silent", false),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("crypto", false)
+                )
             }
             buttonsList.addView(container)
         }

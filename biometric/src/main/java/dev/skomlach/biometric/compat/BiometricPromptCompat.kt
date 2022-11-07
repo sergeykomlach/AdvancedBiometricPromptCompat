@@ -40,10 +40,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
-import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
-import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
-import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
-import dev.skomlach.biometric.compat.impl.PermissionsFragment
+import dev.skomlach.biometric.compat.impl.*
 import dev.skomlach.biometric.compat.impl.dialogs.HomeWatcher
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
@@ -56,7 +53,6 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
@@ -252,7 +248,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             "BiometricPromptCompat.IBiometricPromptImpl - " +
                     "$isBiometricPrompt"
         )
-        val iBiometricPromptImpl = if (isBiometricPrompt) {
+        val iBiometricPromptImpl = if (builder.isSilentAuthEnabled())
+            BiometricPromptSilentImpl(builder)
+        else if (isBiometricPrompt) {
             BiometricPromptApi28Impl(builder)
         } else {
             BiometricPromptGenericImpl(builder)
@@ -541,24 +539,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (!isOpened.get()) {
                             isOpened.set(true)
                             callbackOuter.onUIOpened()
-                            if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
-                                BiometricNotificationManager.showNotification(builder)
+                            if(!builder.isSilentAuthEnabled()) {
+                                if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo)  && builder.isNotificationEnabled()) {
+                                    BiometricNotificationManager.showNotification(builder)
+                                }
+                                StatusBarTools.setNavBarAndStatusBarColors(
+                                    builder.getContext().window,
+                                    DialogMainColor.getColor(
+                                        builder.getContext(),
+                                        DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                                    ),
+                                    DialogMainColor.getColor(
+                                        builder.getContext(),
+                                        !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                                    ),
+                                    builder.getStatusBarColor()
+                                )
+
+                                activityViewWatcher?.setupListeners()
                             }
-
-                            StatusBarTools.setNavBarAndStatusBarColors(
-                                builder.getContext().window,
-                                DialogMainColor.getColor(
-                                    builder.getContext(),
-                                    DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                                ),
-                                DialogMainColor.getColor(
-                                    builder.getContext(),
-                                    !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                                ),
-                                builder.getStatusBarColor()
-                            )
-
-                            activityViewWatcher?.setupListeners()
                         }
                     }
 
@@ -567,16 +566,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (isOpened.get()) {
                             isOpened.set(false)
                             val closeAll = Runnable {
-                                if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
-                                    BiometricNotificationManager.dismissAll()
+                                if(!builder.isSilentAuthEnabled()) {
+                                    if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo)  && builder.isNotificationEnabled()) {
+                                        BiometricNotificationManager.dismissAll()
+                                    }
+                                    activityViewWatcher?.resetListeners()
+                                    StatusBarTools.setNavBarAndStatusBarColors(
+                                        builder.getContext().window,
+                                        builder.getNavBarColor(),
+                                        builder.getDividerColor(),
+                                        builder.getStatusBarColor()
+                                    )
                                 }
-                                activityViewWatcher?.resetListeners()
-                                StatusBarTools.setNavBarAndStatusBarColors(
-                                    builder.getContext().window,
-                                    builder.getNavBarColor(),
-                                    builder.getDividerColor(),
-                                    builder.getStatusBarColor()
-                                )
                             }
                             ExecutorHelper.post(closeAll)
                             val delay =
@@ -805,6 +806,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             types
         }
 
+        private var silentAuth = false
+
         private var title: CharSequence? = null
 
         private var subtitle: CharSequence? = null
@@ -863,6 +866,40 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             ), dummy_reference
         )
 
+        fun isSilentAuthEnabled(): Boolean {
+            return silentAuth
+        }
+        fun enableSilentAuth(): Boolean {
+            val list = allAvailableTypes.filter {
+                !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
+                        && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo))
+            }
+            if(list.isEmpty()) {
+                silentAuth = false
+            } else {
+                //update sets
+                val primary = primaryAvailableTypes.filter {
+                    !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
+                            && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo))
+                }
+                primaryAvailableTypes.clear()
+                primaryAvailableTypes.addAll(primary)
+
+                val secondary = secondaryAvailableTypes.filter {
+                    !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
+                            && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo))
+                }
+                secondaryAvailableTypes.clear()
+                secondaryAvailableTypes.addAll(secondary)
+
+                allAvailableTypes.clear()
+                allAvailableTypes.addAll(primaryAvailableTypes)
+                allAvailableTypes.addAll(secondaryAvailableTypes)
+
+                silentAuth = true
+            }
+            return silentAuth
+        }
         fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {
             return autoVerifyCryptoAfterSuccess
         }

@@ -75,6 +75,16 @@ class FirstFragment : Fragment() {
         } else {
             fillList(inflater, binding?.buttonsList)
         }
+        updateUi()
+        return binding?.root?.apply {
+            this.viewTreeObserver.addOnGlobalLayoutListener {
+                updateUi()
+            }
+        }
+    }
+
+    private fun updateUi() {
+
         binding?.checkboxFullscreen?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("checkboxFullscreen", false)
@@ -96,6 +106,21 @@ class FirstFragment : Fragment() {
             (activity as MainActivity).updateUI()
             Toast.makeText(AndroidContext.appContext, "Changes applied", Toast.LENGTH_LONG).show()
         }
+        binding?.checkboxCrypto?.isChecked =
+            SharedPreferenceProvider.getPreferences("app_settings")
+                .getBoolean("crypto", false)
+        binding?.checkboxCrypto?.setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
+                .putBoolean("crypto", isChecked).apply()
+        }
+
+        binding?.checkboxSilent?.isChecked =
+            SharedPreferenceProvider.getPreferences("app_settings")
+                .getBoolean("silent", false)
+        binding?.checkboxSilent?.setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
+                .putBoolean("silent", isChecked).apply()
+        }
 
         binding?.buttonFirst?.setOnClickListener {
             (activity as MainActivity).sendLogs()
@@ -107,7 +132,6 @@ class FirstFragment : Fragment() {
         binding?.buttonThird?.setOnClickListener {
             activity?.startActivity(LeakCanary.newLeakDisplayActivityIntent())
         }
-        return binding?.root
     }
 
     private fun checkDeviceInfo() {
@@ -122,7 +146,13 @@ class FirstFragment : Fragment() {
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
             button.setOnClickListener {
-                startBiometric(BiometricAuthRequest(authRequest.api, authRequest.type))
+                startBiometric(
+                    BiometricAuthRequest(authRequest.api, authRequest.type),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("silent", false),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("crypto", false)
+                )
             }
             buttonsList?.addView(container)
         }
