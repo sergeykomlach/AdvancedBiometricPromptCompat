@@ -69,6 +69,13 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
+
+November 8, 2022
+
+**Bugfix: Cryptography** - wrong vector was used
+
+**Feature: Silent Auth implemented** - added solution that allow to recognize the user without any UI (not all devices)
+
 October 30, 2022
 
 **Bugfix: Permission error on Android T** - fixed bug when permission error happens during notification posting
@@ -339,9 +346,12 @@ private fun startBioAuth() {
            this.setEnabledNotification(false)//hide notification
            this.setEnabledBackgroundBiometricIcons(false)//hide duplicate biometric icons above dialog
            this.setCryptographyPurpose(BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT))//request Cipher for encryption
-       }.build()
-
-       prompt.authenticate(object : BiometricPromptCompat.AuthenticationCallback {
+       }
+     if(!prompt.enableSilentAuth()){
+       showToast("Unable to use Silent Auth on current device :|")
+       return 
+     }
+       prompt.build().authenticate(object : BiometricPromptCompat.AuthenticationCallback {
            override fun onSucceeded(confirmed: Set<BiometricType>) {
                val encryptedData = CryptographyManager.encryptData(
                  "Hello, my friends".toByteArray(Charset.forName("UTF-8")),
