@@ -84,7 +84,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             builder.getCryptographyPurpose(),
             if (dialog != null) dialog?.authPreview else null,
             types,
-            fmAuthCallback
+            fmAuthCallback,
+            BundleBuilder.create(builder)
         )
     }
 

@@ -326,7 +326,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         builder.getCryptographyPurpose(),
                         null,
                         ArrayList<BiometricType>(secondary),
-                        fmAuthCallback
+                        fmAuthCallback,
+                        BundleBuilder.create(builder)
                     )
                 }
             }
@@ -361,7 +362,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
 
                     override fun onCanceled(module: BiometricType?) {}
-                }
+                },
+                BundleBuilder.create(builder)
             )
             val finalTaskExecuted = AtomicBoolean(false)
             val finalTask = Runnable {

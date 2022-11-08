@@ -98,8 +98,8 @@
 
                 <dev.skomlach.biometric.compat.impl.dialogs.FingerprintIconView
                         android:id="@+id/fingerprint_icon"
-                        android:layout_width="@dimen/fingerprint_icon_size"
-                        android:layout_height="@dimen/fingerprint_icon_size"
+                        android:layout_width="@dimen/fingerprint_icon_size_compat"
+                        android:layout_height="@dimen/fingerprint_icon_size_compat"
                         />
 
                 <androidx.appcompat.widget.AppCompatTextView

@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
+import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -34,7 +35,72 @@ object BiometricManagerCompat {
 
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+    @JvmStatic
+    fun isSilentAuthAvailable(
+        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        val primaryAvailableTypes: java.util.HashSet<BiometricType> by lazy {
+            val types = java.util.HashSet<BiometricType>()
+            val api =
+                if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                for (type in BiometricType.values()) {
+                    if (type == BiometricType.BIOMETRIC_ANY)
+                        continue
+                    val request = BiometricAuthRequest(
+                        api,
+                        type
+                    )
+                    if (isBiometricReady(request)) {
+                        types.add(type)
+                    }
+                }
+            } else {
+                if (isBiometricReady(biometricAuthRequest))
+                    types.add(biometricAuthRequest.type)
+            }
+            types
+        }
+        val secondaryAvailableTypes: java.util.HashSet<BiometricType> by lazy {
+            val types = java.util.HashSet<BiometricType>()
+            if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
+                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                    for (type in BiometricType.values()) {
+                        if (type == BiometricType.BIOMETRIC_ANY)
+                            continue
+                        val request = BiometricAuthRequest(
+                            BiometricApi.LEGACY_API,
+                            type
+                        )
+                        if (isBiometricReady(request)) {
+                            types.add(type)
+                        }
+                    }
+                } else {
+                    if (isBiometricReady(biometricAuthRequest))
+                        types.add(biometricAuthRequest.type)
+                }
+                types.removeAll(primaryAvailableTypes)
+            }
+            types
+        }
+        val allAvailableTypes: java.util.HashSet<BiometricType> by lazy {
+            val types = java.util.HashSet<BiometricType>()
+            types.addAll(primaryAvailableTypes)
+            types.addAll(secondaryAvailableTypes)
+            types
+        }
+        val list = allAvailableTypes.filter {
+            !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
+                    && DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo))
+        }
 
+        return list.isNotEmpty()
+
+    }
     private fun isCameraNotAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,

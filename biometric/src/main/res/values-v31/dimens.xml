@@ -18,7 +18,7 @@
   -->
 
 <resources>
-    <dimen name="fingerprint_icon_size">38dp</dimen>
+    <dimen name="fingerprint_icon_size_compat">38dp</dimen>
     <dimen name="fingerprint_status_layout_margin_vertical_top">64dp</dimen>
     <dimen name="fingerprint_status_layout_margin_vertical_bottom">18dp</dimen>
 </resources>

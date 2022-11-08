@@ -88,7 +88,7 @@ class AppMonitoringDevTools(val app: Application) {
                     }
                     Log.e(
                         "AppMonitoringDevTools",
-                        "Found large file $file with size ${getReadableFileSize(fileOrDirectory.length() ?: 0)}"
+                        "Found large file $file with size ${getReadableFileSize(fileOrDirectory.length())}"
                     )
                 }
             }

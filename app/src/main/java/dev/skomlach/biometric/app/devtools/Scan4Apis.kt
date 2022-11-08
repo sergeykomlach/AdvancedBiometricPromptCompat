@@ -32,7 +32,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
-class Scan4Apis() {
+class Scan4Apis {
     @WorkerThread
     fun getList(): String? {
         try {

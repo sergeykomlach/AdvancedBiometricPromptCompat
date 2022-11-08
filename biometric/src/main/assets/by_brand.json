@@ -161916,6 +161916,11 @@
   },
   {
    "device": "P80T",
+   "name": "P80T_EEA",
+   "model": "P80T_EEA"
+  },
+  {
+   "device": "P80T",
    "name": "P80T_ROW",
    "model": "P80T_ROW"
   },

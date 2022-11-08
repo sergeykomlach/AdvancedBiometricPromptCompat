@@ -25,6 +25,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import androidx.annotation.ColorInt
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
 
 
 object StatusBarTools {
@@ -56,14 +57,14 @@ object StatusBarTools {
         }
         val view = window.decorView
         if (HelperTool.isVisible(view, 100)) {
-            view.post(runnable)
+            ExecutorHelper.post(runnable)
         } else {
             view.viewTreeObserver.addOnGlobalLayoutListener(object : OnGlobalLayoutListener {
                 override fun onGlobalLayout() {
                     if (HelperTool.isVisible(view, 100)) {
                         if (view.viewTreeObserver.isAlive) {
                             view.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                            view.post(runnable)
+                            ExecutorHelper.post(runnable)
                         }
                     }
                 }

@@ -122,7 +122,8 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                     0,
                     signalObject,
                     callback,
-                    ExecutorHelper.handler
+                    ExecutorHelper.handler,
+                    bundle?:throw IllegalArgumentException("Bundle should be not NULL")
                 )
                 return
             } catch (e: Throwable) {
