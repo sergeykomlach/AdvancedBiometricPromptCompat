@@ -870,11 +870,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return silentAuth
         }
         fun enableSilentAuth(): Boolean {
-            val list = allAvailableTypes.filter {
-                !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
-                        && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo))
-            }
-            if(list.isEmpty()) {
+            if(!BiometricManagerCompat.isSilentAuthAvailable(biometricAuthRequest)) {
                 silentAuth = false
             } else {
                 //update sets

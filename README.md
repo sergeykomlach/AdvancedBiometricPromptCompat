@@ -246,6 +246,8 @@ biometric.
 **NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return
 incorrect result in many cases**
 
+`fun isSilentAuthAvailable(): Boolean` - returns `true` if silent auth available.
+
 ##
 **BiometricPromptCompat.Builder**
 
