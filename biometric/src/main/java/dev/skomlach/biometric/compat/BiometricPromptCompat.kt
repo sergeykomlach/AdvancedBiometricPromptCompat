@@ -443,67 +443,63 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                     private var isOpened = AtomicBoolean(false)
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
-                        if(isOpened.get()) {
-                            val confirmed = result.toMutableSet()
-                            try {
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
-                                //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
-                                if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
-                                    if (CryptographyManager.encryptData(
-                                            appContext.packageName.toByteArray(
-                                                Charset.forName("UTF-8")
-                                            ), confirmed
-                                        ) == null
-                                    ) {
-                                        onCanceled()
-                                        return
-                                    } else {
-                                        val filtered = confirmed.map {
-                                            AuthenticationResult(it.confirmed)
-                                        }
-                                        confirmed.apply {
-                                            clear()
-                                            confirmed.addAll(filtered)
-                                        }
+                        val confirmed = result.toMutableSet()
+                        try {
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
+                            //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
+                            if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
+                                if (CryptographyManager.encryptData(
+                                        appContext.packageName.toByteArray(
+                                            Charset.forName("UTF-8")
+                                        ), confirmed
+                                    ) == null
+                                ) {
+                                    onCanceled()
+                                    return
+                                } else {
+                                    val filtered = confirmed.map {
+                                        AuthenticationResult(it.confirmed)
+                                    }
+                                    confirmed.apply {
+                                        clear()
+                                        confirmed.addAll(filtered)
                                     }
                                 }
-
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
-                                if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
-                                    HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
-                                        .updateBiometricEnrollChanged()
-                                } else {
-                                    HardwareAccessImpl.getInstance(
-                                        BiometricAuthRequest(
-                                            BiometricApi.BIOMETRIC_API,
-                                            builder.getBiometricAuthRequest().type
-                                        )
-                                    )
-                                        .updateBiometricEnrollChanged()
-                                    HardwareAccessImpl.getInstance(
-                                        BiometricAuthRequest(
-                                            BiometricApi.LEGACY_API,
-                                            builder.getBiometricAuthRequest().type
-                                        )
-                                    )
-                                        .updateBiometricEnrollChanged()
-                                }
-
-                                callbackOuter.onSucceeded(confirmed.toSet())
-                            } finally {
-                                onUIClosed()
                             }
+
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
+                            if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                                HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                                    .updateBiometricEnrollChanged()
+                            } else {
+                                HardwareAccessImpl.getInstance(
+                                    BiometricAuthRequest(
+                                        BiometricApi.BIOMETRIC_API,
+                                        builder.getBiometricAuthRequest().type
+                                    )
+                                )
+                                    .updateBiometricEnrollChanged()
+                                HardwareAccessImpl.getInstance(
+                                    BiometricAuthRequest(
+                                        BiometricApi.LEGACY_API,
+                                        builder.getBiometricAuthRequest().type
+                                    )
+                                )
+                                    .updateBiometricEnrollChanged()
+                            }
+
+                            callbackOuter.onSucceeded(confirmed.toSet())
+                        } finally {
+                            onUIClosed()
                         }
                     }
 
                     override fun onCanceled() {
-                        if(isOpened.get()) {
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
-                            try {
-                                callbackOuter.onCanceled()
-                            } finally {
-                                onUIClosed()
-                            }
+                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
+                        try {
+                            callbackOuter.onCanceled()
+                        } finally {
+                            onUIClosed()
                         }
                     }
 
@@ -511,32 +507,30 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         reason: AuthenticationFailureReason?,
                         description: CharSequence?
                     ) {
-                        if(isOpened.get()) {
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
-                            try {
-                                if (description == null) {
-                                    val msg = when (reason) {
-                                        AuthenticationFailureReason.LOCKED_OUT -> appContext.getString(
-                                            androidx.biometric.R.string.fingerprint_error_lockout
-                                        )
-                                        AuthenticationFailureReason.NO_HARDWARE -> appContext.getString(
-                                            androidx.biometric.R.string.fingerprint_error_hw_not_present
-                                        )
-                                        AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED -> appContext.getString(
-                                            androidx.biometric.R.string.fingerprint_error_no_fingerprints
-                                        )
-                                        AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> appContext.getString(
-                                            androidx.biometric.R.string.fingerprint_error_hw_not_available
-                                        )
-                                        else -> null
-                                    }
-                                    callbackOuter.onFailed(reason, msg)
-                                } else {
-                                    callbackOuter.onFailed(reason, description)
+                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
+                        try {
+                            if (description == null) {
+                                val msg = when (reason) {
+                                    AuthenticationFailureReason.LOCKED_OUT -> appContext.getString(
+                                        androidx.biometric.R.string.fingerprint_error_lockout
+                                    )
+                                    AuthenticationFailureReason.NO_HARDWARE -> appContext.getString(
+                                        androidx.biometric.R.string.fingerprint_error_hw_not_present
+                                    )
+                                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED -> appContext.getString(
+                                        androidx.biometric.R.string.fingerprint_error_no_fingerprints
+                                    )
+                                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> appContext.getString(
+                                        androidx.biometric.R.string.fingerprint_error_hw_not_available
+                                    )
+                                    else -> null
                                 }
-                            } finally {
-                                onUIClosed()
+                                callbackOuter.onFailed(reason, msg)
+                            } else {
+                                callbackOuter.onFailed(reason, description)
                             }
+                        } finally {
+                            onUIClosed()
                         }
                     }
 

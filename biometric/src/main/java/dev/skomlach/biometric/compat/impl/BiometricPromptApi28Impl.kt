@@ -151,7 +151,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
                         }
                         else -> {
-                            callback?.onCanceled()
+                            cancelAuth()
                             cancelAuthentication()
                             return@Runnable
                         }
@@ -555,6 +555,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun cancelAuth() {
+        val success =
+            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+        if(success!=null)
+            return
         callback?.onCanceled()
     }
 
