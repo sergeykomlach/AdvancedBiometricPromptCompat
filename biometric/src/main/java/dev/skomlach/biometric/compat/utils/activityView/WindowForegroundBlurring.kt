@@ -41,6 +41,7 @@ import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -111,7 +112,7 @@ class WindowForegroundBlurring(
                 contentView = v
             }
         }
-        contentView?.post {
+        ExecutorHelper.post {
             @SuppressLint("ClickableViewAccessibility")
             v = LayoutInflater.from(ContextWrapper(context))
                 .inflate(R.layout.blurred_screen, null, false).apply {
@@ -176,7 +177,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        v?.post {
+        ExecutorHelper.post {
             updateBiometricIconsLayout()
             drawingInProgress.set(false)
         }
@@ -187,7 +188,7 @@ class WindowForegroundBlurring(
         isAttached = true
 
         try {
-            contentView?.post {
+            ExecutorHelper.post {
                 v?.apply {
                     parentView.addView(this)
                 }

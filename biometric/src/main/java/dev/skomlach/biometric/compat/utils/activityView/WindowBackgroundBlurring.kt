@@ -32,6 +32,7 @@ import android.view.ViewTreeObserver
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 
 class WindowBackgroundBlurring(
@@ -132,7 +133,7 @@ class WindowBackgroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        v?.post {
+        ExecutorHelper.post {
             drawingInProgress = false
         }
     }
