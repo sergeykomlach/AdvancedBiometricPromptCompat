@@ -124,12 +124,22 @@ object DeviceInfoManager {
         }
         val names = getNames()
         for (m in names) {
-            deviceInfo = loadDeviceInfo(m.first, m.second)
-            if (!deviceInfo?.sensors.isNullOrEmpty()) {
-                BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                setCachedDeviceInfo(deviceInfo ?: continue)
-                onDeviceInfoListener.onReady(deviceInfo)
-                return
+            val first = m.first
+            val secondArray = splitString(m.second, " ")
+            for (i in secondArray.indices - 1) {
+                val limit = secondArray.size - i
+                if(limit < 2)//Device should have at least brand + model
+                    break
+                val second = join(secondArray, " ", limit)
+                deviceInfo = loadDeviceInfo(first, second)
+                if (!deviceInfo?.sensors.isNullOrEmpty()) {
+                    BiometricLoggerImpl.d("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
+                    setCachedDeviceInfo(deviceInfo ?: continue)
+                    onDeviceInfoListener.onReady(deviceInfo)
+                    return
+                } else {
+                    BiometricLoggerImpl.e("DeviceInfoManager: no data for $first/$second")
+                }
             }
         }
         if (names.isNotEmpty()) {
@@ -182,7 +192,9 @@ object DeviceInfoManager {
         BiometricLoggerImpl.d("DeviceInfoManager: loadDeviceInfo for $modelReadableName/$model")
         return if (model.isEmpty()) null else try {
             val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
+            BiometricLoggerImpl.d("DeviceInfoManager: SearchUrl: $url")
             var html: String? = getHtml(url) ?: return null
+            BiometricLoggerImpl.d("DeviceInfoManager: html loaded, start parsing")
             val detailsLink = getDetailsLink(url, html, model)
                 ?: return DeviceInfo(modelReadableName, HashSet<String>())
 
@@ -222,7 +234,7 @@ object DeviceInfoManager {
                             val s = matcher.group()
                             name = name.replace(s, s.replace(",", ";"))
                         }
-                        val split = name.split(",").toTypedArray()
+                        val split = splitString(name, ",")
                         for (s in split) {
                             list.add(capitalize(s.trim { it <= ' ' }))
                         }
@@ -251,12 +263,16 @@ object DeviceInfoManager {
                     if (name.contains(model, ignoreCase = true))
                         firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
                     else {
-                        val arr = model.split(" ")
-                        val stringBuilder = StringBuilder()
+                        val arr = splitString(model, " ")
+                        var i = arr.size
                         for (s in arr) {
-                            stringBuilder.append(" ").append(s)
-                            if (name.contains(stringBuilder.toString().trim(), ignoreCase = true))
+                            if(i < 2) //Device should have at least brand + model
+                                break
+                            val shortName = join(arr, " ", i)
+                            if (name.contains(shortName, ignoreCase = true)) {
                                 firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
+                            }
+                            i--
                         }
 
                     }
@@ -313,6 +329,31 @@ object DeviceInfoManager {
 
     interface OnDeviceInfoListener {
         fun onReady(deviceInfo: DeviceInfo?)
+    }
+
+    private fun join(array: Array<String>, delim: String, limit: Int): String {
+        val stringBuilder = StringBuilder()
+        for (i in 0 until (array.size).coerceAtMost(limit)) {
+            stringBuilder.append(array[i]).append(delim)
+        }
+        return stringBuilder.toString().trim()
+
+    }
+
+    private fun splitString(str: String, delimiter: String): Array<String> {
+        if (str.isEmpty() || delimiter.isEmpty()) {
+            return arrayOf(str)
+        }
+        val list = ArrayList<String>()
+        var start = 0
+        var end = str.indexOf(delimiter, start)
+        while (end != -1) {
+            list.add(str.substring(start, end))
+            start = end + delimiter.length
+            end = str.indexOf(delimiter, start)
+        }
+        list.add(str.substring(start))
+        return list.toTypedArray()
     }
 
     private fun capitalize(s: String?): String {
