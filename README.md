@@ -64,11 +64,17 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 | Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
-| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet| 
+| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
+| Lava FaceId | Android (Unknown) and Lava devices |Not tested yet|
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
 
 ## Recent changes
+November 14, 2022
+
+**Bugfix: Crash on Android 4.1** - fixed crash when RenderScript executed
+
+**Feature: Added Lava FaceID impl** - FaceID for Lava devices, not tested
 
 November 8, 2022
 
