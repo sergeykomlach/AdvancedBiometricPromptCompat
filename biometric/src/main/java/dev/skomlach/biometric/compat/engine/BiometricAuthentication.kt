@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnl
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.Huawei3DFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule
+import dev.skomlach.biometric.compat.engine.internal.face.lava.FaceunlockLavaModule
 import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule
@@ -67,6 +68,7 @@ object BiometricAuthentication {
         //any API
         allMethods.add(BiometricMethod.DUMMY_BIOMETRIC)
         allMethods.add(BiometricMethod.FACELOCK)
+        allMethods.add(BiometricMethod.FACEUNLOCK_LAVA)
 
         //Samsung Pass on Kitkat-Marshmallow (4.4/5.x/6.x), then deprecated
         if (Build.VERSION.SDK_INT in 19..23) {
@@ -147,6 +149,7 @@ object BiometricAuthentication {
                         biometricModule = when (method) {
                             BiometricMethod.DUMMY_BIOMETRIC -> DummyBiometricModule(initListener)
                             BiometricMethod.FACELOCK -> FacelockOldModule(initListener)
+                            BiometricMethod.FACEUNLOCK_LAVA -> FaceunlockLavaModule(initListener)
                             BiometricMethod.FINGERPRINT_API23 -> API23FingerprintModule(initListener)
                             BiometricMethod.FINGERPRINT_SUPPORT -> SupportFingerprintModule(
                                 initListener
