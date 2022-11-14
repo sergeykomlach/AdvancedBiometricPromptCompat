@@ -42,7 +42,8 @@ internal object FastBlur {
         paint.colorFilter = filter
         canvas.drawBitmap(source, 0f, 0f, paint)
         bitmap = try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            //crash on JB/Kitkat
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 rs(context, bitmap, factor.radius)
             } else stack(bitmap, factor.radius, true)
         } catch (e: RSRuntimeException) {
