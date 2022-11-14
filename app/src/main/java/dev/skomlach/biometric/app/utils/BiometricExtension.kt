@@ -84,7 +84,7 @@ fun Fragment.startBiometric(
             if (crypto) {
                 it.setCryptographyPurpose(
                     BiometricCryptographyPurpose(
-                        if (cryptoTests[biometricAuthRequest]?.vector == null) BiometricCryptographyPurpose.ENCRYPT else BiometricCryptographyPurpose.DECRYPT,
+                        cryptoTests[biometricAuthRequest]?.type?:BiometricCryptographyPurpose.ENCRYPT,
                         cryptoTests[biometricAuthRequest]?.vector
                     )
                 )
@@ -111,7 +111,7 @@ fun Fragment.startBiometric(
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             var cryptoText = "Crypto doesn't work or disabled"
-            if (cryptoTests[biometricAuthRequest]?.vector == null) {
+            if (cryptoTests[biometricAuthRequest]?.type == BiometricCryptographyPurpose.ENCRYPT) {
                 CryptographyManager.encryptData(
                     cryptoTests[biometricAuthRequest]?.byteArray,
                     confirmed
@@ -122,7 +122,7 @@ fun Fragment.startBiometric(
                             Charset.forName("UTF-8")
                         )
                     }"
-                    cryptoTests[biometricAuthRequest] = CryptoTest(it.data, it.initializationVector)
+                    cryptoTests[biometricAuthRequest] = CryptoTest(it.data, it.initializationVector, BiometricCryptographyPurpose.DECRYPT)
                 }
 
             } else {
@@ -190,7 +190,8 @@ private fun showAlertDialog(context: Context, msg: String) {
 
 data class CryptoTest(
     val byteArray: ByteArray,
-    val vector: ByteArray? = null
+    val vector: ByteArray? = null,
+    val type : Int = BiometricCryptographyPurpose.ENCRYPT,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -203,6 +204,7 @@ data class CryptoTest(
             if (other.vector == null) return false
             if (!vector.contentEquals(other.vector)) return false
         } else if (other.vector != null) return false
+        if (type != other.type) return false
 
         return true
     }
@@ -210,6 +212,7 @@ data class CryptoTest(
     override fun hashCode(): Int {
         var result = byteArray.contentHashCode()
         result = 31 * result + (vector?.contentHashCode() ?: 0)
+        result = 31 * result + type
         return result
     }
 }

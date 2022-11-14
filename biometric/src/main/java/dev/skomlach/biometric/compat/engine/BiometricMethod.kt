@@ -36,6 +36,7 @@ enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
     FACE_SOTERAPI(206, BiometricType.BIOMETRIC_FACE), //https://github.com/Tencent/soter
     FACE_MIUI(207,BiometricType.BIOMETRIC_FACE),
     FACE_VIVO(208,BiometricType.BIOMETRIC_FACE),
+    FACEUNLOCK_LAVA(209,BiometricType.BIOMETRIC_FACE),
     FACELOCK(299,BiometricType.BIOMETRIC_FACE),  //old FaceLock impl https://forum.xda-developers.com/showthread.php?p=25572510#post25572510
 
     IRIS_ANDROIDAPI(300,BiometricType.BIOMETRIC_IRIS), //https://android-review.googlesource.com/c/platform/frameworks/base/+/608396/2/core/java/android/hardware/iris/IrisManager.java#46

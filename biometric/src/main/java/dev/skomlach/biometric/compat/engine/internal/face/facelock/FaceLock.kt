@@ -88,7 +88,7 @@ class FaceLock {
             return false
         }
         mServiceConnection = ServiceConnectionWrapper(connection)
-        val intent = Intent(flInterface?.name)
+        val intent = Intent()
         intent.setPackage(pkg)
         return context
             .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
@@ -216,7 +216,7 @@ class FaceLock {
     private inner class ServiceConnectionWrapper constructor(private val mServiceConnection: ServiceConnection) :
         ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            d(TAG + " service connected")
+            d(TAG + " service connected to $name")
             try {
                 mFaceLockService = flInterfaceStub?.getMethod("asInterface", IBinder::class.java)
                     ?.invoke(null, service)
@@ -237,7 +237,7 @@ class FaceLock {
         }
 
         override fun onServiceDisconnected(name: ComponentName) {
-            d(TAG + " service disconnected")
+            d(TAG + " service disconnected from $name")
             mServiceConnection.onServiceDisconnected(name)
             mFaceLockService = null
         }
@@ -258,14 +258,8 @@ class FaceLock {
                 // Callback may be called outside the UI thread
                 ExecutorHelper.post {
                     try {
-                        IFaceLockCallback::class.java.getMethod(mMap[code]).invoke(mCallback)
-                    } catch (e: IllegalArgumentException) {
-                        e(e, TAG + e.message)
-                    } catch (e: IllegalAccessException) {
-                        e(e, TAG + e.message)
-                    } catch (e: InvocationTargetException) {
-                        e(e, TAG + e.message)
-                    } catch (e: NoSuchMethodException) {
+                        IFaceLockCallback::class.java.getMethod(mMap[code]?:return@post).invoke(mCallback)
+                    } catch (e: Throwable) {
                         e(e, TAG + e.message)
                     }
                 }
