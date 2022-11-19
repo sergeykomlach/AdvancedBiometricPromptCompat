@@ -1,293 +1,270 @@
-package android.hardware.face
+package android.hardware.face;
 
-import android.hardware.face.FaceManager.authenticate
-import androidx.annotation.RequiresApi
-import android.hardware.face.OplusFaceManager.OplusAuthenticationCallback
-import android.hardware.face.OplusFaceManager
-import android.hardware.face.OplusFaceManager.FaceCommandCallback
-import android.hardware.face.IFaceCommandCallback
-import android.hardware.face.IOplusFaceManager
-import android.os.*
-import kotlin.Throws
+import android.os.Binder;
+import android.os.Build;
+import android.os.IBinder;
+import android.os.IInterface;
+import android.os.Parcel;
+import android.os.RemoteException;
+
+import androidx.annotation.RequiresApi;
 
 @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-interface IOplusFaceManager : IInterface {
-    @get:Throws(RemoteException::class)
-    val faceProcessMemory: Int
+public interface IOplusFaceManager extends IInterface {
+    String DESCRIPTOR = "android.hardware.face.IOplusFaceManager";
 
-    @get:Throws(RemoteException::class)
-    val failedAttempts: Int
+    int getFaceProcessMemory() throws RemoteException;
 
-    @Throws(RemoteException::class)
-    fun getLockoutAttemptDeadline(i: Int): Long
+    int getFailedAttempts() throws RemoteException;
 
-    @Throws(RemoteException::class)
-    fun regsiterFaceCmdCallback(iFaceCommandCallback: IFaceCommandCallback?): Int
+    long getLockoutAttemptDeadline(int i) throws RemoteException;
 
-    @Throws(RemoteException::class)
-    fun resetFaceDaemon()
+    int regsiterFaceCmdCallback(IFaceCommandCallback iFaceCommandCallback) throws RemoteException;
 
-    @Throws(RemoteException::class)
-    fun sendFaceCmd(i: Int, i2: Int, bArr: ByteArray?): Int
+    void resetFaceDaemon() throws RemoteException;
 
-    @Throws(RemoteException::class)
-    fun unregsiterFaceCmdCallback(iFaceCommandCallback: IFaceCommandCallback?): Int
-    class Default : IOplusFaceManager {
-        override fun asBinder(): IBinder {
-            return null
+    int sendFaceCmd(int i, int i2, byte[] bArr) throws RemoteException;
+
+    int unregsiterFaceCmdCallback(IFaceCommandCallback iFaceCommandCallback) throws RemoteException;
+
+    class Default implements IOplusFaceManager {
+        @Override
+        public IBinder asBinder() {
+            return null;
         }
-
-        @Throws(RemoteException::class)
-        override fun getFaceProcessMemory(): Int {
-            return 0
+        @Override
+        public int getFaceProcessMemory() throws RemoteException {
+            return 0;
         }
-
-        @Throws(RemoteException::class)
-        override fun getFailedAttempts(): Int {
-            return 0
+        @Override
+        public int getFailedAttempts() throws RemoteException {
+            return 0;
         }
-
-        @Throws(RemoteException::class)
-        override fun getLockoutAttemptDeadline(i: Int): Long {
-            return 0
+        @Override
+        public long getLockoutAttemptDeadline(int i) throws RemoteException {
+            return 0;
         }
-
-        @Throws(RemoteException::class)
-        override fun regsiterFaceCmdCallback(iFaceCommandCallback: IFaceCommandCallback?): Int {
-            return 0
+        @Override
+        public int regsiterFaceCmdCallback(IFaceCommandCallback iFaceCommandCallback) throws RemoteException {
+            return 0;
         }
-
-        @Throws(RemoteException::class)
-        override fun resetFaceDaemon() {
+        @Override
+        public void resetFaceDaemon() throws RemoteException {
         }
-
-        @Throws(RemoteException::class)
-        override fun sendFaceCmd(i: Int, i2: Int, bArr: ByteArray?): Int {
-            return 0
+        @Override
+        public int sendFaceCmd(int i, int i2, byte[] bArr) throws RemoteException {
+            return 0;
         }
-
-        @Throws(RemoteException::class)
-        override fun unregsiterFaceCmdCallback(iFaceCommandCallback: IFaceCommandCallback?): Int {
-            return 0
+        @Override
+        public int unregsiterFaceCmdCallback(IFaceCommandCallback iFaceCommandCallback) throws RemoteException {
+            return 0;
         }
     }
 
-    abstract class Stub : Binder(), IOplusFaceManager {
-        init {
-            attachInterface(this, IOplusFaceManager.interfaceDescriptor)
+    abstract class Stub extends Binder implements IOplusFaceManager {
+        static final int TRANSACTION_getFaceProcessMemory = 5;
+        static final int TRANSACTION_getFailedAttempts = 2;
+        static final int TRANSACTION_getLockoutAttemptDeadline = 1;
+        static final int TRANSACTION_regsiterFaceCmdCallback = 6;
+        static final int TRANSACTION_resetFaceDaemon = 4;
+        static final int TRANSACTION_sendFaceCmd = 3;
+        static final int TRANSACTION_unregsiterFaceCmdCallback = 7;
+
+        public Stub() {
+            attachInterface(this, IOplusFaceManager.DESCRIPTOR);
         }
 
-        override fun asBinder(): IBinder {
-            return this
+        public static IOplusFaceManager asInterface(IBinder iBinder) {
+            if (iBinder == null) {
+                return null;
+            }
+            IInterface queryLocalInterface = iBinder.queryLocalInterface(IOplusFaceManager.DESCRIPTOR);
+            return (queryLocalInterface == null || !(queryLocalInterface instanceof IOplusFaceManager)) ? new Proxy(iBinder) : (IOplusFaceManager) queryLocalInterface;
         }
-
-        @Throws(RemoteException::class)
-        public override fun onTransact(i: Int, parcel: Parcel, parcel2: Parcel?, i2: Int): Boolean {
+        @Override
+        public IBinder asBinder() {
+            return this;
+        }
+        @Override
+        public boolean onTransact(int i, Parcel parcel, Parcel parcel2, int i2) throws RemoteException {
             if (i >= 1 && i <= 16777215) {
-                parcel.enforceInterface(IOplusFaceManager.interfaceDescriptor)
+                parcel.enforceInterface(IOplusFaceManager.DESCRIPTOR);
             }
-            return when (i) {
-                1598968902 -> {
-                    parcel2!!.writeString(IOplusFaceManager.interfaceDescriptor)
-                    true
-                }
-                else -> when (i) {
-                    1 -> {
-                        val readInt = parcel.readInt()
-                        parcel.enforceNoDataAvail()
-                        val lockoutAttemptDeadline = getLockoutAttemptDeadline(readInt)
-                        parcel2!!.writeNoException()
-                        parcel2.writeLong(lockoutAttemptDeadline)
-                        true
+            switch (i) {
+                case 1598968902:
+                    parcel2.writeString(IOplusFaceManager.DESCRIPTOR);
+                    return true;
+                default:
+                    switch (i) {
+                        case 1:
+                            int readInt = parcel.readInt();
+                            parcel.enforceNoDataAvail();
+                            long lockoutAttemptDeadline = getLockoutAttemptDeadline(readInt);
+                            parcel2.writeNoException();
+                            parcel2.writeLong(lockoutAttemptDeadline);
+                            return true;
+                        case 2:
+                            int failedAttempts = getFailedAttempts();
+                            parcel2.writeNoException();
+                            parcel2.writeInt(failedAttempts);
+                            return true;
+                        case 3:
+                            int readInt2 = parcel.readInt();
+                            int readInt3 = parcel.readInt();
+                            byte[] createByteArray = parcel.createByteArray();
+                            parcel.enforceNoDataAvail();
+                            int sendFaceCmd = sendFaceCmd(readInt2, readInt3, createByteArray);
+                            parcel2.writeNoException();
+                            parcel2.writeInt(sendFaceCmd);
+                            return true;
+                        case 4:
+                            resetFaceDaemon();
+                            parcel2.writeNoException();
+                            return true;
+                        case 5:
+                            int faceProcessMemory = getFaceProcessMemory();
+                            parcel2.writeNoException();
+                            parcel2.writeInt(faceProcessMemory);
+                            return true;
+                        case 6:
+                            IFaceCommandCallback asInterface = IFaceCommandCallback.Stub.asInterface(parcel.readStrongBinder());
+                            parcel.enforceNoDataAvail();
+                            int regsiterFaceCmdCallback = regsiterFaceCmdCallback(asInterface);
+                            parcel2.writeNoException();
+                            parcel2.writeInt(regsiterFaceCmdCallback);
+                            return true;
+                        case 7:
+                            IFaceCommandCallback asInterface2 = IFaceCommandCallback.Stub.asInterface(parcel.readStrongBinder());
+                            parcel.enforceNoDataAvail();
+                            int unregsiterFaceCmdCallback = unregsiterFaceCmdCallback(asInterface2);
+                            parcel2.writeNoException();
+                            parcel2.writeInt(unregsiterFaceCmdCallback);
+                            return true;
+                        default:
+                            return super.onTransact(i, parcel, parcel2, i2);
                     }
-                    2 -> {
-                        val failedAttempts = failedAttempts
-                        parcel2!!.writeNoException()
-                        parcel2.writeInt(failedAttempts)
-                        true
-                    }
-                    3 -> {
-                        val readInt2 = parcel.readInt()
-                        val readInt3 = parcel.readInt()
-                        val createByteArray = parcel.createByteArray()
-                        parcel.enforceNoDataAvail()
-                        val sendFaceCmd = sendFaceCmd(readInt2, readInt3, createByteArray)
-                        parcel2!!.writeNoException()
-                        parcel2.writeInt(sendFaceCmd)
-                        true
-                    }
-                    4 -> {
-                        resetFaceDaemon()
-                        parcel2!!.writeNoException()
-                        true
-                    }
-                    5 -> {
-                        val faceProcessMemory = faceProcessMemory
-                        parcel2!!.writeNoException()
-                        parcel2.writeInt(faceProcessMemory)
-                        true
-                    }
-                    6 -> {
-                        val asInterface =
-                            IFaceCommandCallback.Stub.asInterface(parcel.readStrongBinder())
-                        parcel.enforceNoDataAvail()
-                        val regsiterFaceCmdCallback = regsiterFaceCmdCallback(asInterface)
-                        parcel2!!.writeNoException()
-                        parcel2.writeInt(regsiterFaceCmdCallback)
-                        true
-                    }
-                    7 -> {
-                        val asInterface2 =
-                            IFaceCommandCallback.Stub.asInterface(parcel.readStrongBinder())
-                        parcel.enforceNoDataAvail()
-                        val unregsiterFaceCmdCallback = unregsiterFaceCmdCallback(asInterface2)
-                        parcel2!!.writeNoException()
-                        parcel2.writeInt(unregsiterFaceCmdCallback)
-                        true
-                    }
-                    else -> super.onTransact(i, parcel, parcel2, i2)
-                }
             }
         }
 
-        private class Proxy internal constructor(private val mRemote: IBinder) : IOplusFaceManager {
-            override fun asBinder(): IBinder {
-                return mRemote
+        private static class Proxy implements IOplusFaceManager {
+            private final IBinder mRemote;
+
+            Proxy(IBinder iBinder) {
+                this.mRemote = iBinder;
             }
 
-            @Throws(RemoteException::class)
-            override fun getFaceProcessMemory(): Int {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
-                return try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    mRemote.transact(5, obtain, obtain2, 0)
-                    obtain2.readException()
-                    obtain2.readInt()
-                } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
-                }
+            @Override
+            public IBinder asBinder() {
+                return this.mRemote;
             }
-
-            @Throws(RemoteException::class)
-            override fun getFailedAttempts(): Int {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
-                return try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    mRemote.transact(2, obtain, obtain2, 0)
-                    obtain2.readException()
-                    obtain2.readInt()
-                } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
-                }
-            }
-
-            @Throws(RemoteException::class)
-            override fun getLockoutAttemptDeadline(i: Int): Long {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
-                return try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    obtain.writeInt(i)
-                    mRemote.transact(1, obtain, obtain2, 0)
-                    obtain2.readException()
-                    obtain2.readLong()
-                } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
-                }
-            }
-
-            @Throws(RemoteException::class)
-            override fun regsiterFaceCmdCallback(iFaceCommandCallback: IFaceCommandCallback?): Int {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
-                return try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    obtain.writeStrongInterface(iFaceCommandCallback)
-                    mRemote.transact(6, obtain, obtain2, 0)
-                    obtain2.readException()
-                    obtain2.readInt()
-                } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
-                }
-            }
-
-            @Throws(RemoteException::class)
-            override fun resetFaceDaemon() {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
+            @Override
+            public int getFaceProcessMemory() throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
                 try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    mRemote.transact(4, obtain, obtain2, 0)
-                    obtain2.readException()
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    this.mRemote.transact(5, obtain, obtain2, 0);
+                    obtain2.readException();
+                    return obtain2.readInt();
                 } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
+                    obtain2.recycle();
+                    obtain.recycle();
+                }
+            }
+            @Override
+            public int getFailedAttempts() throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
+                try {
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    this.mRemote.transact(2, obtain, obtain2, 0);
+                    obtain2.readException();
+                    return obtain2.readInt();
+                } finally {
+                    obtain2.recycle();
+                    obtain.recycle();
                 }
             }
 
-            @Throws(RemoteException::class)
-            override fun sendFaceCmd(i: Int, i2: Int, bArr: ByteArray?): Int {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
-                return try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    obtain.writeInt(i)
-                    obtain.writeInt(i2)
-                    obtain.writeByteArray(bArr)
-                    mRemote.transact(3, obtain, obtain2, 0)
-                    obtain2.readException()
-                    obtain2.readInt()
+            public String getInterfaceDescriptor() {
+                return IOplusFaceManager.DESCRIPTOR;
+            }
+            @Override
+            public long getLockoutAttemptDeadline(int i) throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
+                try {
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    obtain.writeInt(i);
+                    this.mRemote.transact(1, obtain, obtain2, 0);
+                    obtain2.readException();
+                    return obtain2.readLong();
                 } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
+                    obtain2.recycle();
+                    obtain.recycle();
+                }
+            }
+            @Override
+            public int regsiterFaceCmdCallback(IFaceCommandCallback iFaceCommandCallback) throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
+                try {
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    obtain.writeStrongInterface(iFaceCommandCallback);
+                    this.mRemote.transact(6, obtain, obtain2, 0);
+                    obtain2.readException();
+                    return obtain2.readInt();
+                } finally {
+                    obtain2.recycle();
+                    obtain.recycle();
+                }
+            }
+            @Override
+            public void resetFaceDaemon() throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
+                try {
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    this.mRemote.transact(4, obtain, obtain2, 0);
+                    obtain2.readException();
+                } finally {
+                    obtain2.recycle();
+                    obtain.recycle();
+                }
+            }
+            @Override
+            public int sendFaceCmd(int i, int i2, byte[] bArr) throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
+                try {
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    obtain.writeInt(i);
+                    obtain.writeInt(i2);
+                    obtain.writeByteArray(bArr);
+                    this.mRemote.transact(3, obtain, obtain2, 0);
+                    obtain2.readException();
+                    return obtain2.readInt();
+                } finally {
+                    obtain2.recycle();
+                    obtain.recycle();
                 }
             }
 
-            @Throws(RemoteException::class)
-            override fun unregsiterFaceCmdCallback(iFaceCommandCallback: IFaceCommandCallback?): Int {
-                val obtain = Parcel.obtain()
-                val obtain2 = Parcel.obtain()
-                return try {
-                    obtain.writeInterfaceToken(interfaceDescriptor)
-                    obtain.writeStrongInterface(iFaceCommandCallback)
-                    mRemote.transact(7, obtain, obtain2, 0)
-                    obtain2.readException()
-                    obtain2.readInt()
+            @Override
+            public int unregsiterFaceCmdCallback(IFaceCommandCallback iFaceCommandCallback) throws RemoteException {
+                Parcel obtain = Parcel.obtain();
+                Parcel obtain2 = Parcel.obtain();
+                try {
+                    obtain.writeInterfaceToken(IOplusFaceManager.DESCRIPTOR);
+                    obtain.writeStrongInterface(iFaceCommandCallback);
+                    this.mRemote.transact(7, obtain, obtain2, 0);
+                    obtain2.readException();
+                    return obtain2.readInt();
                 } finally {
-                    obtain2.recycle()
-                    obtain.recycle()
+                    obtain2.recycle();
+                    obtain.recycle();
                 }
             }
         }
-
-        companion object {
-            const val TRANSACTION_getFaceProcessMemory = 5
-            const val TRANSACTION_getFailedAttempts = 2
-            const val TRANSACTION_getLockoutAttemptDeadline = 1
-            const val TRANSACTION_regsiterFaceCmdCallback = 6
-            const val TRANSACTION_resetFaceDaemon = 4
-            const val TRANSACTION_sendFaceCmd = 3
-            const val TRANSACTION_unregsiterFaceCmdCallback = 7
-            fun asInterface(iBinder: IBinder?): IOplusFaceManager? {
-                if (iBinder == null) {
-                    return null
-                }
-                val queryLocalInterface = iBinder.queryLocalInterface(interfaceDescriptor)
-                return if (queryLocalInterface == null || queryLocalInterface !is IOplusFaceManager) Proxy(
-                    iBinder
-                ) else queryLocalInterface
-            }
-        }
-    }
-
-    companion object {
-        val interfaceDescriptor = "android.hardware.face.IOplusFaceManager"
-            get() = Companion.field
     }
 }
