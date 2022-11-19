@@ -87,7 +87,7 @@ class FaceManager {
         open fun onAuthenticationHelp(helpCode: Int, helpString: CharSequence?) {}
         open fun onAuthenticationSucceeded(result: AuthenticationResult?) {}
         open fun onAuthenticationFailed() {}
-        fun onAuthenticationAcquired(acquireInfo: Int) {}
-        fun onProgressChanged(progressInfo: Int) {}
+        open fun onAuthenticationAcquired(acquireInfo: Int) {}
+        open fun onProgressChanged(progressInfo: Int) {}
     }
 }
