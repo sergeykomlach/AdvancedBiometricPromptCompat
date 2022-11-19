@@ -1,192 +1,188 @@
-package android.hardware.face;
+package android.hardware.face
 
-import android.content.Context;
-import android.hardware.biometrics.CryptoObject;
-import android.os.Build;
-import android.os.CancellationSignal;
-import android.os.Handler;
-import android.os.RemoteException;
-import android.util.Log;
-
-import androidx.annotation.RequiresApi;
-
-import java.util.concurrent.atomic.AtomicReference;
+import android.content.Context
+import android.hardware.biometrics.CryptoObject
+import android.hardware.face.FaceManager.authenticate
+import androidx.annotation.RequiresApi
+import android.hardware.face.OplusFaceManager.OplusAuthenticationCallback
+import android.hardware.face.OplusFaceManager
+import android.hardware.face.OplusFaceManager.FaceCommandCallback
+import android.hardware.face.IFaceCommandCallback
+import android.hardware.face.IOplusFaceManager
+import android.os.*
+import android.util.Log
+import java.lang.Exception
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.Throws
 
 @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
-public class OplusFaceManager {
-    public static final String TAG = "OplusFaceManager";
-    private static final AtomicReference<IOplusFaceManager> IOplusFaceManagerSingleton =
-            new AtomicReference<IOplusFaceManager>(null);//IOplusFaceManager.Stub.asInterface(ServiceManager.getService("face").getExtension()));
+class OplusFaceManager(context: Context) {
     /* access modifiers changed from: private */
-    public OplusAuthenticationCallback mClientCallback;
-    FaceManager.AuthenticationCallback mFaceAuthenticationCallback = new FaceManager.AuthenticationCallback() {
-        @Override
-        public void onAuthenticationAcquired(int i) {
-            OplusFaceManager.this.mClientCallback.onAuthenticationAcquired(i);
-        }
-        @Override
-        public void onAuthenticationError(int i, CharSequence charSequence) {
-            OplusFaceManager.this.mClientCallback.onAuthenticationError(i, charSequence);
-        }
-        @Override
-        public void onAuthenticationFailed() {
-            OplusFaceManager.this.mClientCallback.onAuthenticationFailed();
-        }
-        @Override
-        public void onAuthenticationHelp(int i, CharSequence charSequence) {
-            OplusFaceManager.this.mClientCallback.onAuthenticationHelp(i, charSequence);
-        }
-        @Override
-        public void onAuthenticationSucceeded(FaceManager.AuthenticationResult authenticationResult) {
-            OplusFaceManager.this.mClientCallback.onAuthenticationSucceeded();
-        }
-    };
+    var mClientCallback: OplusAuthenticationCallback? = null
+    var mFaceAuthenticationCallback: FaceManager.AuthenticationCallback =
+        object : FaceManager.AuthenticationCallback() {
+            override fun onAuthenticationAcquired(i: Int) {
+                mClientCallback!!.onAuthenticationAcquired(i)
+            }
 
-    private final FaceManager mFaceManager;
+            override fun onAuthenticationError(i: Int, charSequence: CharSequence?) {
+                mClientCallback!!.onAuthenticationError(i, charSequence)
+            }
 
-    public OplusFaceManager(Context context) {
-        this.mFaceManager = (FaceManager) context.getSystemService(FaceManager.class);
-    }
+            override fun onAuthenticationFailed() {
+                mClientCallback!!.onAuthenticationFailed()
+            }
 
-    public static IOplusFaceManager getService() {
-        return (IOplusFaceManager) IOplusFaceManagerSingleton.get();
+            override fun onAuthenticationHelp(i: Int, charSequence: CharSequence?) {
+                mClientCallback!!.onAuthenticationHelp(i, charSequence)
+            }
+
+            override fun onAuthenticationSucceeded(authenticationResult: FaceManager.AuthenticationResult?) {
+                mClientCallback!!.onAuthenticationSucceeded()
+            }
+        }
+    private val mFaceManager: FaceManager
+
+    init {
+        mFaceManager = context.getSystemService(FaceManager::class.java) as FaceManager
     }
 
     /* access modifiers changed from: private */
-    public void cancelAONAuthentication(CryptoObject cryptoObject) {
-        Log.d(TAG, "OplusFaceManager#cancelAONAuthentication");
+    fun cancelAONAuthentication(cryptoObject: CryptoObject?) {
+        Log.d(TAG, "OplusFaceManager#cancelAONAuthentication")
     }
 
-    public void authenticateAON(CryptoObject cryptoObject, CancellationSignal cancellationSignal, int i, OplusAuthenticationCallback oplusAuthenticationCallback, int i2, byte[] bArr, Handler handler) {
-        this.mClientCallback = oplusAuthenticationCallback;
-        this.mFaceManager.authenticate(cryptoObject, cancellationSignal, this.mFaceAuthenticationCallback, handler, i2, false);
+    fun authenticateAON(
+        cryptoObject: CryptoObject?,
+        cancellationSignal: CancellationSignal?,
+        i: Int,
+        oplusAuthenticationCallback: OplusAuthenticationCallback?,
+        i2: Int,
+        bArr: ByteArray?,
+        handler: Handler?
+    ) {
+        mClientCallback = oplusAuthenticationCallback
+        mFaceManager.authenticate(
+            cryptoObject,
+            cancellationSignal,
+            mFaceAuthenticationCallback,
+            handler,
+            i2,
+            false
+        )
     }
 
-    public int getFaceProcessMemory() {
-        try {
-            return getService().getFaceProcessMemory();
-        } catch (RemoteException e) {
-            Log.e(TAG, "getFaceProcessMemory : " + e);
-            return -1;
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
-            return -1;
+    val faceProcessMemory: Int
+        get() = try {
+            service.getFaceProcessMemory()
+        } catch (e: RemoteException) {
+            Log.e(TAG, "getFaceProcessMemory : $e")
+            -1
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
+            -1
+        }
+    val failedAttempts: Int
+        get() = try {
+            service.getFailedAttempts()
+        } catch (e: RemoteException) {
+            Log.e(TAG, "getFailedAttempts : $e")
+            -1
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
+            -1
+        }
+
+    fun getLockoutAttemptDeadline(i: Int): Long {
+        return try {
+            service!!.getLockoutAttemptDeadline(i)
+        } catch (e: RemoteException) {
+            Log.e(TAG, "getLockoutAttemptDeadline : $e")
+            -1
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
+            -1
         }
     }
 
-    public int getFailedAttempts() {
-        try {
-            return getService().getFailedAttempts();
-        } catch (RemoteException e) {
-            Log.e(TAG, "getFailedAttempts : " + e);
-            return -1;
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
-            return -1;
-        }
-    }
-
-    public long getLockoutAttemptDeadline(int i) {
-        try {
-            return getService().getLockoutAttemptDeadline(i);
-        } catch (RemoteException e) {
-            Log.e(TAG, "getLockoutAttemptDeadline : " + e);
-            return -1;
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
-            return -1;
-        }
-    }
-
-    public int regsiterFaceCmdCallback(final FaceCommandCallback faceCommandCallback) {
-        try {
-            return getService().regsiterFaceCmdCallback(new IFaceCommandCallback.Stub() {
-                @Override
-                public void onFaceCmd(int i, byte[] bArr) {
-                    faceCommandCallback.onFaceCmd(i, bArr);
+    fun regsiterFaceCmdCallback(faceCommandCallback: FaceCommandCallback): Int {
+        return try {
+            service!!.regsiterFaceCmdCallback(object : IFaceCommandCallback.Stub() {
+                override fun onFaceCmd(i: Int, bArr: ByteArray) {
+                    faceCommandCallback.onFaceCmd(i, bArr)
                 }
-            });
-        } catch (RemoteException e) {
-            Log.e(TAG, "regsiterFaceCmdCallback : " + e);
-            return -1;
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
-            return -1;
+            })
+        } catch (e: RemoteException) {
+            Log.e(TAG, "regsiterFaceCmdCallback : $e")
+            -1
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
+            -1
         }
     }
 
-    public void resetFaceDaemon() {
+    fun resetFaceDaemon() {
         try {
-            getService().resetFaceDaemon();
-        } catch (RemoteException e) {
-            Log.e(TAG, "resetFaceDaemon : " + e);
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
+            service!!.resetFaceDaemon()
+        } catch (e: RemoteException) {
+            Log.e(TAG, "resetFaceDaemon : $e")
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
         }
     }
 
-    public int sendFaceCmd(int i, int i2, byte[] bArr) {
-        try {
-            return getService().sendFaceCmd(i, i2, bArr);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Remote exception in sendFaceCmd(): " + e);
-            return -1;
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
-            return -1;
+    fun sendFaceCmd(i: Int, i2: Int, bArr: ByteArray?): Int {
+        return try {
+            service!!.sendFaceCmd(i, i2, bArr)
+        } catch (e: RemoteException) {
+            Log.e(TAG, "Remote exception in sendFaceCmd(): $e")
+            -1
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
+            -1
         }
     }
 
-    public int unregsiterFaceCmdCallback(final FaceCommandCallback faceCommandCallback) {
-        try {
-            return getService().unregsiterFaceCmdCallback(new IFaceCommandCallback.Stub() {
-                @Override
-                public void onFaceCmd(int i, byte[] bArr) {
-                    faceCommandCallback.onFaceCmd(i, bArr);
+    fun unregsiterFaceCmdCallback(faceCommandCallback: FaceCommandCallback): Int {
+        return try {
+            service!!.unregsiterFaceCmdCallback(object : IFaceCommandCallback.Stub() {
+                override fun onFaceCmd(i: Int, bArr: ByteArray) {
+                    faceCommandCallback.onFaceCmd(i, bArr)
                 }
-            });
-        } catch (RemoteException e) {
-            Log.e(TAG, "unregsiterFaceCmdCallback : " + e);
-            return -1;
-        } catch (Exception e2) {
-            Log.e(TAG, Log.getStackTraceString(e2));
-            return -1;
+            })
+        } catch (e: RemoteException) {
+            Log.e(TAG, "unregsiterFaceCmdCallback : $e")
+            -1
+        } catch (e2: Exception) {
+            Log.e(TAG, Log.getStackTraceString(e2))
+            -1
         }
     }
 
-    public interface FaceCommandCallback {
-        void onFaceCmd(int i, byte[] bArr);
+    interface FaceCommandCallback {
+        fun onFaceCmd(i: Int, bArr: ByteArray?)
     }
 
-    protected class OnAONAuthenticationCancelListener implements CancellationSignal.OnCancelListener {
-        private final CryptoObject mCrypto;
-
-        OnAONAuthenticationCancelListener(CryptoObject cryptoObject) {
-            this.mCrypto = cryptoObject;
-        }
-        @Override
-        public void onCancel() {
-            OplusFaceManager.this.cancelAONAuthentication(this.mCrypto);
+    protected inner class OnAONAuthenticationCancelListener internal constructor(private val mCrypto: CryptoObject) :
+        CancellationSignal.OnCancelListener {
+        override fun onCancel() {
+            cancelAONAuthentication(mCrypto)
         }
     }
 
-    public abstract static class OplusAuthenticationCallback {
-        public OplusAuthenticationCallback() {
-        }
+    abstract class OplusAuthenticationCallback {
+        fun onAuthenticationAcquired(i: Int) {}
+        fun onAuthenticationError(i: Int, charSequence: CharSequence?) {}
+        fun onAuthenticationFailed() {}
+        fun onAuthenticationHelp(i: Int, charSequence: CharSequence?) {}
+        fun onAuthenticationSucceeded() {}
+    }
 
-        public void onAuthenticationAcquired(int i) {
-        }
-
-        public void onAuthenticationError(int i, CharSequence charSequence) {
-        }
-
-        public void onAuthenticationFailed() {
-        }
-
-        public void onAuthenticationHelp(int i, CharSequence charSequence) {
-        }
-
-        public void onAuthenticationSucceeded() {
-        }
+    companion object {
+        const val TAG = "OplusFaceManager"
+        private val IOplusFaceManagerSingleton =
+            AtomicReference<IOplusFaceManager?>(null) //IOplusFaceManager.Stub.asInterface(ServiceManager.getService("face").getExtension()));
+        val service: IOplusFaceManager?
+            get() = IOplusFaceManagerSingleton.get()
     }
 }
