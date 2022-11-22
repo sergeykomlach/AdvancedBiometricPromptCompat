@@ -79,7 +79,7 @@ object DevicesWithKnownBugs {
         get() {
             return Build.BRAND.equals("Samsung", ignoreCase = true)
         }
-    private val isOnePlus: Boolean
+    val isOnePlus: Boolean
         get() {
             return Build.BRAND.equals("OnePlus", ignoreCase = true)
         }

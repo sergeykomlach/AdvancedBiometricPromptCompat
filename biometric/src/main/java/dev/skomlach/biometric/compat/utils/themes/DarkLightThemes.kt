@@ -25,6 +25,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.SettingsHelper
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -46,9 +47,10 @@ object DarkLightThemes {
     }
 
     fun getNightMode(context: Context, shouldInscreenCaseAffected: Boolean = false): Int {
-        if (shouldInscreenCaseAffected && DeviceInfoManager.hasUnderDisplayFingerprint(
-                BiometricPromptCompat.deviceInfo
-            )
+        if (shouldInscreenCaseAffected &&
+            DevicesWithKnownBugs.isOnePlus &&
+            !Utils.isAtLeastT &&
+            DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo )
         )
             return UiModeManager.MODE_NIGHT_YES
         return when (getIsOsDarkTheme(context)) {
