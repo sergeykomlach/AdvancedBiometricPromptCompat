@@ -19,15 +19,11 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.lava
 
-import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.os.Handler
-import android.os.IBinder
-import android.os.Message
-import android.os.RemoteException
+import android.os.*
 import android.provider.Settings
 import android.util.Log
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -45,27 +41,37 @@ class FaceVerifyManager(private val mContext: Context) {
     private var mIFaceVerifyService: IFaceVerifyService? = null
     private var isBinded = false
     private var mFaceUnlockCallback: FaceUnlockCallback? = null
+    private var mHandler: Handler?
+    private val mMainThread: HandlerThread = HandlerThread(TAG).apply {
+        this.start()
+        mHandler = object : Handler(this.looper) {
+            override fun handleMessage(msg: Message) {
+                if (msg.what == VERIFY_MSG) {
+                    val result = msg.arg1
+                    val resultStr = msg.obj as String
+                    mFaceUnlockCallback?.onFaceVerifyChanged(result, resultStr)
 
-    @SuppressLint("HandlerLeak")
-    private val mHandler: Handler = object : Handler() {
-        override fun handleMessage(msg: Message) {
-            if (msg.what == VERIFY_MSG) {
-                val result = msg.arg1
-                val resultStr = msg.obj as String
-                mFaceUnlockCallback?.onFaceVerifyChanged(result, resultStr)
-
+                }
             }
         }
     }
+
+    /* Access modifiers changed, original: protected */
+    @Throws(Throwable::class)
+    fun finalize() {
+        mMainThread.looper?.quit()
+        mMainThread.quit()
+    }
+
     private val mIFaceVerifyServiceCallback: IFaceVerifyServiceCallback =
         object : IFaceVerifyServiceCallback.Stub() {
             @Throws(RemoteException::class)
             override fun sendRecognizeResult(resultId: Int, commandStr: String?) {
-                val msg = mHandler.obtainMessage()
+                val msg = mHandler?.obtainMessage()?:return
                 msg.what = VERIFY_MSG
                 msg.arg1 = resultId
                 msg.obj = commandStr
-                mHandler.sendMessage(msg)
+                mHandler?.sendMessage(msg)
             }
         }
     private val conn: ServiceConnection = object : ServiceConnection {
