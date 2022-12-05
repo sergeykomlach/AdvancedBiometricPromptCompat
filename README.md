@@ -175,11 +175,6 @@ Linked `com.github.Tencent.soter` require the Jitpack.io repo into the root buil
 
 **BiometricPromptCompat.Companion:**
 
-At first, better in `Application.onCreate()`, call
-
-```kotlin  
-BiometricPromptCompat.init(callback);//Callback - null or Runnable{ do_something_after_init(); }     
-```   
 
 `fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
 
