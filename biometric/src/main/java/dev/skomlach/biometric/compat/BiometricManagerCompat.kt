@@ -28,13 +28,25 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 object BiometricManagerCompat {
 
+    init {
+        ExecutorHelper.post {
+            try {
+                BiometricPromptCompat.init()
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
+        }
+    }
+
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+
     @JvmStatic
     fun isSilentAuthAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
@@ -101,6 +113,7 @@ object BiometricManagerCompat {
         return list.isNotEmpty()
 
     }
+
     private fun isCameraNotAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
