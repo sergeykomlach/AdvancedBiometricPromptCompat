@@ -87,5 +87,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
+        <provider
+                android:name="dev.skomlach.biometric.compat.init.AppInitProvider"
+                android:authorities="${applicationId}.appinitprovider"
+                android:exported="false"
+                android:initOrder="900"/>
     </application>
 </manifest>
