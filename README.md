@@ -160,6 +160,12 @@ Add dependency to Gradle
 ```groovy  
  implementation 'dev.skomlach:biometric:${VERSION}' 
 ```  
+!!!NOTE:
+Linked `com.github.Tencent.soter` require the Jitpack.io repo into the root build.gradle
+
+```groovy  
+  maven { url "https://jitpack.io" }
+```  
 
 ## Usage
 
