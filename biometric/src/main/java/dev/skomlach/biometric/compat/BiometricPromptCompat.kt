@@ -505,11 +505,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                     override fun onFailed(
                         reason: AuthenticationFailureReason?,
-                        description: CharSequence?
+                        dialogDescription: CharSequence?
                     ) {
                         BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
                         try {
-                            if (description == null) {
+                            if (dialogDescription == null) {
                                 val msg = when (reason) {
                                     AuthenticationFailureReason.LOCKED_OUT -> appContext.getString(
                                         androidx.biometric.R.string.fingerprint_error_lockout
@@ -527,7 +527,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 }
                                 callbackOuter.onFailed(reason, msg)
                             } else {
-                                callbackOuter.onFailed(reason, description)
+                                callbackOuter.onFailed(reason, dialogDescription)
                             }
                         } finally {
                             onUIClosed()
@@ -716,7 +716,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         @MainThread
-        open fun onFailed(reason: AuthenticationFailureReason?, description: CharSequence? = null) {
+        open fun onFailed(reason: AuthenticationFailureReason?, dialogDescription: CharSequence? = null) {
         }
 
         @MainThread
@@ -808,11 +808,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var silentAuth = false
 
-        private var title: CharSequence? = null
+        private var dialogTitle: CharSequence? = null
+         get() {
+             if (field.isNullOrEmpty())
+                 field = BiometricTitle.getRelevantTitle(
+                     appContext,
+                     getAllAvailableTypes()
+                 )
+             return field
+         }
 
-        private var subtitle: CharSequence? = null
+        private var dialogSubtitle: CharSequence? = null
 
-        private var description: CharSequence? = null
+        private var dialogDescription: CharSequence? = null
 
         private lateinit var multiWindowSupport: MultiWindowSupport
 
@@ -831,7 +839,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @ColorInt
         private var colorStatusBar: Int = Color.TRANSPARENT
 
-        private var isTruncateChecked = false
+        private var isTruncateChecked : Boolean? = null
 
         private val appContext = AndroidContext.appContext
 
@@ -901,15 +909,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getTitle(): CharSequence? {
-            return title
+            return dialogTitle
         }
 
         fun getSubtitle(): CharSequence? {
-            return subtitle
+            return dialogSubtitle
         }
 
         fun getDescription(): CharSequence? {
-            return description
+            return dialogDescription
         }
 
         fun getNavBarColor(): Int {
@@ -935,7 +943,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun isTruncateChecked(): Boolean {
-            return isTruncateChecked
+            if(isTruncateChecked == null) {
+                isTruncateChecked = false
+                ExecutorHelper.post {
+                    TruncatedTextFix.recalculateTexts(
+                        this,
+                        object : TruncatedTextFix.OnTruncateChecked {
+                            override fun onDone() {
+                                isTruncateChecked = true
+                            }
+                        })
+                }
+            }
+            return isTruncateChecked?:true
         }
 
         fun getPrimaryAvailableTypes(): Set<BiometricType> {
@@ -985,48 +1005,38 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return this
         }
 
-        fun setTitle(title: CharSequence?): Builder {
-            this.title = title
+        fun setTitle(dialogTitle: CharSequence?): Builder {
+            this.dialogTitle = dialogTitle
             return this
         }
 
-        fun setTitle(@StringRes titleRes: Int): Builder {
-            title = appContext.getString(titleRes)
+        fun setTitle(@StringRes dialogTitleRes: Int): Builder {
+            dialogTitle = appContext.getString(dialogTitleRes)
             return this
         }
 
-        fun setSubtitle(subtitle: CharSequence?): Builder {
-            this.subtitle = subtitle
+        fun setSubtitle(dialogSubtitle: CharSequence?): Builder {
+            this.dialogSubtitle = dialogSubtitle
             return this
         }
 
-        fun setSubtitle(@StringRes subtitleRes: Int): Builder {
-            subtitle = appContext.getString(subtitleRes)
+        fun setSubtitle(@StringRes dialogSubtitleRes: Int): Builder {
+            dialogSubtitle = appContext.getString(dialogSubtitleRes)
             return this
         }
 
-        fun setDescription(description: CharSequence?): Builder {
-            this.description = description
+        fun setDescription(dialogDescription: CharSequence?): Builder {
+            this.dialogDescription = dialogDescription
             return this
         }
 
-        fun setDescription(@StringRes descriptionRes: Int): Builder {
-            description = appContext.getString(descriptionRes)
+        fun setDescription(@StringRes dialogDescriptionRes: Int): Builder {
+            dialogDescription = appContext.getString(dialogDescriptionRes)
             return this
         }
 
 
         fun build(): BiometricPromptCompat {
-            if (title.isNullOrEmpty())
-                title = BiometricTitle.getRelevantTitle(
-                    appContext,
-                    getAllAvailableTypes()
-                )
-            TruncatedTextFix.recalculateTexts(this, object : TruncatedTextFix.OnTruncateChecked {
-                override fun onDone() {
-                    isTruncateChecked = true
-                }
-            })
             return BiometricPromptCompat(this)
         }
     }
