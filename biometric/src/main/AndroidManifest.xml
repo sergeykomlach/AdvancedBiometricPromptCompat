@@ -88,7 +88,7 @@
             </intent-filter>
         </receiver>
         <provider
-                android:name="dev.skomlach.biometric.compat.init.AppInitProvider"
+                android:name="dev.skomlach.biometric.compat.BiometricInitProvider"
                 android:authorities="${applicationId}.appinitprovider"
                 android:exported="false"
                 android:initOrder="900"/>

@@ -17,23 +17,24 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.init
+package dev.skomlach.biometric.compat
 
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
 
-/**
- * Base class for [ContentProvider]s used for initialization purposes.
- */
-open class InitProvider : ContentProvider() {
-    fun unsupported(errorMessage: String? = null): Nothing =
+class BiometricInitProvider : ContentProvider() {
+
+    override fun onCreate(): Boolean {
+        BiometricPromptCompat.init()
+        return false
+    }
+
+    private fun unsupported(errorMessage: String? = null): Nothing =
         throw UnsupportedOperationException(errorMessage)
 
     override fun insert(uri: Uri, values: ContentValues?) = unsupported()
-    override fun onCreate(): Boolean {
-        return false
-    }
+
 
     override fun query(
         uri: Uri,
