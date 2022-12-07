@@ -72,7 +72,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     IBiometricPromptImpl, AuthCallback {
     private val biometricPromptInfo: PromptInfo
     private val biometricPrompt: BiometricPrompt
-    private val restartPredicate = defaultPredicate()
+    private var restartPredicate = defaultPredicate()
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
@@ -264,6 +264,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun authenticate(cbk: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptApi28Impl.authenticate():")
+        this.restartPredicate = defaultPredicate()
+        this.authFinished.clear()
+        this.biometricFragment.set(null)
         callback = cbk
         onUiOpened()
         if (DevicesWithKnownBugs.isMissedBiometricUI) {
