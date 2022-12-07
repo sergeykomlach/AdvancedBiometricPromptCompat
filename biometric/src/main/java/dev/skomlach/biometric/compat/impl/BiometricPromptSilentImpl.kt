@@ -51,6 +51,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptSilentImpl.authenticate():")
+        this.authFinished.clear()
         this.callback = callback
         startAuth()
         onUiOpened()
