@@ -331,7 +331,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (!API_ENABLED) {
             callbackOuter.onFailed(
                 AuthenticationFailureReason.NO_HARDWARE,
-                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_present)
+                null
             )
             authFlowInProgress.set(false)
             return
@@ -341,7 +341,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_available)
+                null
             )
             authFlowInProgress.set(false)
             return
@@ -382,7 +382,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.NO_HARDWARE,
-                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_present)
+                null
             )
             authFlowInProgress.set(false)
             return
@@ -391,7 +391,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                appContext.getString(androidx.biometric.R.string.fingerprint_error_no_fingerprints)
+                null
             )
             authFlowInProgress.set(false)
             return
@@ -400,7 +400,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.LOCKED_OUT,
-                appContext.getString(androidx.biometric.R.string.fingerprint_error_lockout)
+                null
             )
             authFlowInProgress.set(false)
             return
@@ -409,7 +409,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                appContext.getString(androidx.biometric.R.string.fingerprint_error_hw_not_available)
+                null
             )
             authFlowInProgress.set(false)
             return
@@ -509,26 +509,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ) {
                         BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
                         try {
-                            if (dialogDescription == null) {
-                                val msg = when (reason) {
-                                    AuthenticationFailureReason.LOCKED_OUT -> appContext.getString(
-                                        androidx.biometric.R.string.fingerprint_error_lockout
-                                    )
-                                    AuthenticationFailureReason.NO_HARDWARE -> appContext.getString(
-                                        androidx.biometric.R.string.fingerprint_error_hw_not_present
-                                    )
-                                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED -> appContext.getString(
-                                        androidx.biometric.R.string.fingerprint_error_no_fingerprints
-                                    )
-                                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> appContext.getString(
-                                        androidx.biometric.R.string.fingerprint_error_hw_not_available
-                                    )
-                                    else -> null
-                                }
-                                callbackOuter.onFailed(reason, msg)
-                            } else {
-                                callbackOuter.onFailed(reason, dialogDescription)
-                            }
+                            callbackOuter.onFailed(reason, dialogDescription)
                         } finally {
                             onUIClosed()
                         }
