@@ -1,6 +1,9 @@
 Advanced BiometricPromptCompat
 ====  
 
+[Help/Discussing chat](https://t.me/advancedbiometric)
+
+
 ## Introduction
 
 #### What is `BiometricPrompt API`?
