@@ -34,7 +34,7 @@ Its interface is very close to the original `BiometricPrompt`.
 
 Minimal supported Android OS version: **Android 4.1 Jelly Bean**
 
-Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
+Latest supported Android OS version: **Android 13 Tiramisu**
 
 **NOTE: TargetSDK=33**
 
