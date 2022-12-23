@@ -57,13 +57,13 @@ publishing {
 
             pom {
                 name = PUBLISH_ARTIFACT_ID
-                if (libArtifactId_common == artifactId) {
-                    description = 'The set of helper tools for AdvancedBiometricPromptCompat library'
-                } else if (libArtifactId_biometric_api == artifactId) {
-                    description = 'The set of API\'s that allow to access some hidden features for AdvancedBiometricPromptCompat library'
-                } else if (libArtifactId_biometric == artifactId) {
-                    description = 'This is an Android project allowing you to use the advanced biometric authorization features'
-                }
+                 if (libArtifactId_biometric_api == artifactId) {
+                     description = 'The set of API\'s that allow to access some hidden features for AdvancedBiometricPromptCompat library'
+                 } else if (libArtifactId_biometric == artifactId) {
+                     description = 'This is an Android project allowing you to use the advanced biometric authorization features'
+                 } else {
+                     description = 'The set of helper tools for AdvancedBiometricPromptCompat library'
+                 }
                 url = 'https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat'
                 licenses {
                     license {
