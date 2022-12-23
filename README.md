@@ -34,7 +34,7 @@ Its interface is very close to the original `BiometricPrompt`.
 
 Minimal supported Android OS version: **Android 4.1 Jelly Bean**
 
-Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
+Latest supported Android OS version: **Android 13 Tiramisu**
 
 **NOTE: TargetSDK=33**
 
@@ -73,6 +73,10 @@ Latest supported Android OS version: **Android 13 Tiramisu (IN PROGRESS)**
 
 
 ## Recent changes
+December 23, 2022
+
+**Improvment: Soter-Core added to project** instead of downloading from jitpack.io 
+
 November 14, 2022
 
 **Bugfix: Crash on Android 4.1** - fixed crash when RenderScript executed
@@ -162,12 +166,6 @@ Add dependency to Gradle
 
 ```groovy  
  implementation 'dev.skomlach:biometric:${VERSION}' 
-```  
-!!!NOTE:
-Linked `com.github.Tencent.soter` require the Jitpack.io repo into the root build.gradle
-
-```groovy  
-  maven { url "https://jitpack.io" }
 ```  
 
 ## Usage
