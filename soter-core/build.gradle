@@ -36,3 +36,12 @@ android {
         implementation 'androidx.core:core-ktx:1.9.0'
     }
 }
+
+// Publishing
+ext {
+    PUBLISH_GROUP_ID = libsGroupId
+    PUBLISH_ARTIFACT_ID = libArtifactId_soter
+    PUBLISH_VERSION = libVersion
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
