@@ -20,10 +20,12 @@
 package dev.skomlach.biometric.compat.utils.device
 
 import android.os.Looper
+import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.LastUpdatedTs
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import org.jsoup.Jsoup
@@ -143,11 +145,14 @@ object DeviceInfoManager {
             }
         }
         if (names.isNotEmpty()) {
-            setCachedDeviceInfo(DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
-                onDeviceInfoListener.onReady(it)
+            onDeviceInfoListener.onReady(DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
+                BiometricLoggerImpl.d("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                cachedDeviceInfo = it
             })
             return
         }
+        BiometricLoggerImpl.d("DeviceInfoManager: (null) null -> null")
+        cachedDeviceInfo = null
         onDeviceInfoListener.onReady(null)
     }
 
@@ -200,8 +205,8 @@ object DeviceInfoManager {
 
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
-            html = getHtml(detailsLink)
-            if (html == null) return DeviceInfo(modelReadableName, HashSet<String>())
+            html = getHtml(detailsLink)?: return DeviceInfo(modelReadableName, HashSet<String>())
+            BiometricLoggerImpl.e("DeviceInfoManager: html loaded, start parsing")
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
             val m = try {
@@ -210,6 +215,7 @@ object DeviceInfoManager {
             } catch (ignore: Throwable) {
                 modelReadableName
             }
+            BiometricLoggerImpl.d("DeviceInfoManager: Model: $m Sensors: $l")
             DeviceInfo(m, l)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
@@ -301,10 +307,24 @@ object DeviceInfoManager {
                         agents[SecureRandom().nextInt(agents.size)]
                     )
                     urlConnection.connect()
+                    val responseCode = urlConnection.responseCode
                     val byteArrayOutputStream = ByteArrayOutputStream()
-                    var inputStream: InputStream? = null
-                    inputStream = urlConnection.inputStream
-                    if (inputStream == null) inputStream = urlConnection.errorStream
+                    val inputStream: InputStream
+                    BiometricLoggerImpl.e("getHtml: $responseCode=${urlConnection.responseMessage}")
+                    //if any 2XX response code
+                    if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                        inputStream = urlConnection.inputStream
+                    } else {
+                        //Redirect happen
+                        if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
+                            var target = urlConnection.getHeaderField("Location")
+                            if (target != null && !isWebUrl(target)) {
+                                target = "https://$target"
+                            }
+                            return getHtml(target)
+                        }
+                        inputStream = urlConnection.inputStream?:urlConnection.errorStream
+                    }
                     NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                     inputStream.close()
                     val data = byteArrayOutputStream.toByteArray()
@@ -355,7 +375,19 @@ object DeviceInfoManager {
         list.add(str.substring(start))
         return list.toTypedArray()
     }
-
+    private fun isWebUrl(u: String): Boolean {
+        var url = u
+        if (TextUtils.isEmpty(url)) return false
+        url = url.lowercase(AndroidContext.locale)
+        //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
+        val slash = url.indexOf("/")
+        if (slash > 0 && slash < url.indexOf("?")) {
+            url = url.substring(0, url.indexOf("?"))
+        }
+        return (url.startsWith("http://") || url.startsWith("https://")) && android.util.Patterns.WEB_URL.matcher(
+            url
+        ).matches()
+    }
     private fun capitalize(s: String?): String {
         if (s.isNullOrEmpty()) {
             return ""

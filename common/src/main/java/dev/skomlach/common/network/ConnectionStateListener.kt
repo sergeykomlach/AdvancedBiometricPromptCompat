@@ -44,12 +44,7 @@ class ConnectionStateListener {
     init {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        isConnectionOk.set(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-            else
-                connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-        )
+        isConnectionOk.set(isConnectionDetected())
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -76,6 +71,11 @@ class ConnectionStateListener {
             }
         }
     }
+
+    fun isConnectionDetected()  = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+        connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+    else
+        connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
 
     fun startListeners() {
         try {
