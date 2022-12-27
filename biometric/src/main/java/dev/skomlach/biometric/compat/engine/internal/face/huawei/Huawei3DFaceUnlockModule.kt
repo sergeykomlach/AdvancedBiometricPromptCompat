@@ -80,29 +80,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
 
     override fun hasEnrolled(): Boolean {
         try {
-            val hasEnrolled = try {
-                huawei3DFaceManager?.hasEnrolledTemplates() == true
-            } catch (ignore: Throwable) {
-                val m = huawei3DFaceManager?.javaClass?.declaredMethods?.firstOrNull {
-                    it.name.contains("hasEnrolled", ignoreCase = true)
-                }
-                val isAccessible = m?.isAccessible ?: true
-                var result = false
-                try {
-                    if (!isAccessible)
-                        m?.isAccessible = true
-                    if (m?.returnType == Boolean::class.javaPrimitiveType)
-                        result = (m?.invoke(huawei3DFaceManager) as Boolean?) == true
-                    else
-                        if (m?.returnType == Int::class.javaPrimitiveType)
-                            result = (m?.invoke(huawei3DFaceManager) as Int?) ?: 0 > 0
-                } finally {
-                    if (!isAccessible)
-                        m?.isAccessible = false
-                }
-                result
-            }
-            if (huawei3DFaceManager?.isHardwareDetected == true && hasEnrolled) return true
+            return huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates()?:false
         } catch (e: Throwable) {
             e(e, name)
         }
