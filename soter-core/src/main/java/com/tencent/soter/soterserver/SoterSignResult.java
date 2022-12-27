@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SoterSignResult implements Parcelable {
-    public static final Creator<SoterSignResult> CREATOR = new Creator<SoterSignResult>() {
+    public static final Parcelable.Creator<SoterSignResult> CREATOR = new Parcelable.Creator<SoterSignResult>() {
         @Override
         public SoterSignResult createFromParcel(Parcel in) {
             return new SoterSignResult(in);
@@ -20,7 +20,6 @@ public class SoterSignResult implements Parcelable {
     public int exportDataLength;
 
     public SoterSignResult() {
-        super();
     }
 
     protected SoterSignResult(Parcel in) {

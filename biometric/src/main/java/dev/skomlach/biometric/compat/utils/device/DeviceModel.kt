@@ -171,7 +171,7 @@ object DeviceModel {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        return null;
+        return null
     }
 
     @WorkerThread

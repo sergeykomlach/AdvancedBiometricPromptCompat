@@ -109,7 +109,7 @@ public abstract class KeyGenParameterSpecCompatBuilder {
     @TargetApi(23)
     private static class NormalKeyGenParameterSpecCompatBuilder extends KeyGenParameterSpecCompatBuilder {
 
-        private KeyGenParameterSpec.Builder builder = null;
+        private final KeyGenParameterSpec.Builder builder;
 
         public NormalKeyGenParameterSpecCompatBuilder(String keystoreAlias, int purposes) {
             super(keystoreAlias, purposes);
@@ -222,7 +222,7 @@ public abstract class KeyGenParameterSpecCompatBuilder {
         private static final String CLASSNAME = "android.security.keystore.KeyGenParameterSpec";
 
         private final String mKeystoreAlias;
-        private int mPurposes;
+        private final int mPurposes;
 
         private int mKeySize = -1;
         private AlgorithmParameterSpec mSpec;
@@ -288,7 +288,7 @@ public abstract class KeyGenParameterSpecCompatBuilder {
             if (date == null) {
                 throw new NullPointerException("date == null");
             }
-            mCertificateNotBefore = cloneIfNotNull(date);
+            mCertificateNotBefore = KeyGenParameterSpecCompatBuilder.cloneIfNotNull(date);
             return this;
         }
 
@@ -296,12 +296,12 @@ public abstract class KeyGenParameterSpecCompatBuilder {
             if (date == null) {
                 throw new NullPointerException("date == null");
             }
-            mCertificateNotAfter = cloneIfNotNull(date);
+            mCertificateNotAfter = KeyGenParameterSpecCompatBuilder.cloneIfNotNull(date);
             return this;
         }
 
         public KeyGenParameterSpecCompatBuilder setKeyValidityStart(Date startDate) {
-            mKeyValidityStart = cloneIfNotNull(startDate);
+            mKeyValidityStart = KeyGenParameterSpecCompatBuilder.cloneIfNotNull(startDate);
             return this;
         }
 
@@ -312,34 +312,34 @@ public abstract class KeyGenParameterSpecCompatBuilder {
         }
 
         public KeyGenParameterSpecCompatBuilder setKeyValidityForOriginationEnd(Date endDate) {
-            mKeyValidityForOriginationEnd = cloneIfNotNull(endDate);
+            mKeyValidityForOriginationEnd = KeyGenParameterSpecCompatBuilder.cloneIfNotNull(endDate);
             return this;
         }
 
         public KeyGenParameterSpecCompatBuilder setKeyValidityForConsumptionEnd(Date endDate) {
-            mKeyValidityForConsumptionEnd = cloneIfNotNull(endDate);
+            mKeyValidityForConsumptionEnd = KeyGenParameterSpecCompatBuilder.cloneIfNotNull(endDate);
             return this;
         }
 
         public KeyGenParameterSpecCompatBuilder setDigests(String... digests) {
-            mDigests = cloneIfNotEmpty(digests);
+            mDigests = KeyGenParameterSpecCompatBuilder.cloneIfNotEmpty(digests);
             return this;
         }
 
         public KeyGenParameterSpecCompatBuilder setEncryptionPaddings(
                 String... paddings) {
-            mEncryptionPaddings = cloneIfNotEmpty(paddings);
+            mEncryptionPaddings = KeyGenParameterSpecCompatBuilder.cloneIfNotEmpty(paddings);
             return this;
         }
 
         public KeyGenParameterSpecCompatBuilder setSignaturePaddings(
                 String... paddings) {
-            mSignaturePaddings = cloneIfNotEmpty(paddings);
+            mSignaturePaddings = KeyGenParameterSpecCompatBuilder.cloneIfNotEmpty(paddings);
             return this;
         }
 
         public KeyGenParameterSpecCompatBuilder setBlockModes(String... blockModes) {
-            mBlockModes = cloneIfNotEmpty(blockModes);
+            mBlockModes = KeyGenParameterSpecCompatBuilder.cloneIfNotEmpty(blockModes);
             return this;
         }
 

@@ -50,7 +50,7 @@ public class CertUtil {
     }
 
     public static String format(Certificate certificate) throws Exception {
-        String type = "CERTIFICATE";
+        final String type = "CERTIFICATE";
         StringWriter stringWriter = new StringWriter();
         BufferedWriter bufferedWriter = new BufferedWriter(stringWriter);
 
@@ -62,7 +62,7 @@ public class CertUtil {
         return stringWriter.toString();
     }
 
-    public static void extractAttestationSequence(X509Certificate attestationCert, SoterPubKeyModel soterPubKeyModel) throws Exception, IOException {
+    public static void extractAttestationSequence(X509Certificate attestationCert, SoterPubKeyModel soterPubKeyModel) throws Exception {
         byte[] attestationExtensionBytes = attestationCert.getExtensionValue(KEY_DESCRIPTION_OID);
         if (attestationExtensionBytes == null || attestationExtensionBytes.length == 0) {
             throw new Exception("Couldn't find the keystore attestation " + "extension data.");

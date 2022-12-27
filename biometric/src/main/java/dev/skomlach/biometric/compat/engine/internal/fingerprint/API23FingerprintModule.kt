@@ -242,9 +242,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
-                    result?.cryptoObject?.getSignature(),
-                    result?.cryptoObject?.getCipher(),
-                    result?.cryptoObject?.getMac()
+                    result.cryptoObject?.signature,
+                    result.cryptoObject?.cipher,
+                    result.cryptoObject?.mac
                 )
             )
         }

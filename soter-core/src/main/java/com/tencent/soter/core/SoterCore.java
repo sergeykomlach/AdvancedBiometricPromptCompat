@@ -114,7 +114,7 @@ public class SoterCore implements ConstantsSoter, SoterErrCode {
         }
         for (Provider provider : providers) {
             String providerName = provider.getName();
-            if (providerName != null && providerName.startsWith(SoterCore.SOTER_PROVIDER_NAME)) {
+            if (providerName != null && providerName.startsWith(ConstantsSoter.SOTER_PROVIDER_NAME)) {
                 if (providerName.split("\\.").length > 1) {
                     return new CertSoterCore(providerName);
                 }
@@ -181,7 +181,7 @@ public class SoterCore implements ConstantsSoter, SoterErrCode {
     public static SoterCoreResult generateAppGlobalSecureKey() {
         if (IMPL == null) {
             SLogger.e(TAG, "soter: generateAppGlobalSecureKey IMPL is null, not support soter");
-            return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+            return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
         }
         return IMPL.generateAppGlobalSecureKey();
     }
@@ -194,7 +194,7 @@ public class SoterCore implements ConstantsSoter, SoterErrCode {
     public static SoterCoreResult removeAppGlobalSecureKey() {
         if (IMPL == null) {
             SLogger.e(TAG, "soter: removeAppGlobalSecureKey IMPL is null, not support soter");
-            return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+            return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
         }
         return IMPL.removeAppGlobalSecureKey();
     }
@@ -248,7 +248,7 @@ public class SoterCore implements ConstantsSoter, SoterErrCode {
     public static SoterCoreResult generateAuthKey(String authKeyName) {
         if (IMPL == null) {
             SLogger.e(TAG, "soter: generateAuthKey IMPL is null, not support soter");
-            return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+            return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
         }
         return IMPL.generateAuthKey(authKeyName);
     }
@@ -263,7 +263,7 @@ public class SoterCore implements ConstantsSoter, SoterErrCode {
     public static SoterCoreResult removeAuthKey(String authKeyName, boolean isAutoDeleteASK) {
         if (IMPL == null) {
             SLogger.e(TAG, "soter: removeAuthKey IMPL is null, not support soter");
-            return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+            return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
         }
         return IMPL.removeAuthKey(authKeyName, isAutoDeleteASK);
     }
@@ -524,7 +524,7 @@ public class SoterCore implements ConstantsSoter, SoterErrCode {
         key.append(android.os.Build.DISPLAY);
         key.append("\">");
         key.append("</DISPLAY></VERSION_INCREMENTAL></VERSION_RELEASE></MODEL></MANUFACTURER></deviceinfo>");
-        SLogger.d(TAG, "soter: getFingerprint  " + key.toString());
+        SLogger.d(TAG, "soter: getFingerprint  " + key);
         return key.toString();
     }
 }

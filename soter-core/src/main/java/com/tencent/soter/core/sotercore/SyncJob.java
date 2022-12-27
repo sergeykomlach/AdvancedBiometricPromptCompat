@@ -10,8 +10,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SyncJob {
     private static final String TAG = "Soter.SyncJob";
-    private static Handler mMainLooperHandler = null;
-    private CountDownLatch countDownWait = null;
+    private static Handler mMainLooperHandler;
+    private CountDownLatch countDownWait;
 
     private static void postToMainThread(final Runnable run) {
         if (run == null) {

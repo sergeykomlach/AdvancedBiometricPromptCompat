@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SoterExtraParam implements Parcelable {
-    public static final Creator<SoterExtraParam> CREATOR = new Creator<SoterExtraParam>() {
+    public static final Parcelable.Creator<SoterExtraParam> CREATOR = new Parcelable.Creator<SoterExtraParam>() {
         @Override
         public SoterExtraParam createFromParcel(Parcel in) {
             return new SoterExtraParam(in);

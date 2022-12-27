@@ -37,7 +37,7 @@ public class SoterPubKeyModel {
     private String cpu_id = "";
     private String pub_key_in_x509 = "";
     private String rawJson = "";
-    private ArrayList<String> certs = null;
+    private ArrayList<String> certs;
     private String signature = "";
 
     @SuppressWarnings("unused")

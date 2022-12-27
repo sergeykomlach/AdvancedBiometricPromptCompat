@@ -40,9 +40,9 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
     private static final String TAG = "Soter.SoterCoreBeforeTreble";
     private static final String MAGIC_SOTER_PWD = "from_soter_ui";
 
-    private static boolean isAlreadyCheckedSetUp = false;
+    private static boolean isAlreadyCheckedSetUp;
 
-    protected String providerName = SOTER_PROVIDER_NAME;
+    protected String providerName = ConstantsSoter.SOTER_PROVIDER_NAME;
 
     public SoterCoreBeforeTreble(String providerName) {
         this.providerName = providerName;
@@ -93,7 +93,7 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
         }
         for (Provider provider : providers) {
             String providerName = provider.getName();
-            if (providerName != null && providerName.startsWith(SOTER_PROVIDER_NAME)) {
+            if (providerName != null && providerName.startsWith(ConstantsSoter.SOTER_PROVIDER_NAME)) {
                 SLogger.i(TAG, "soter: found soter provider");
                 return true;
             }
@@ -108,7 +108,7 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
             try {
                 KeyStore keyStore = KeyStore.getInstance(providerName);
                 keyStore.load(null);
-                KeyPairGenerator generator = KeyPairGenerator.getInstance(KeyPropertiesCompact.KEY_ALGORITHM_RSA, SOTER_PROVIDER_NAME);
+                KeyPairGenerator generator = KeyPairGenerator.getInstance(KeyPropertiesCompact.KEY_ALGORITHM_RSA, ConstantsSoter.SOTER_PROVIDER_NAME);
                 AlgorithmParameterSpec spec = KeyGenParameterSpecCompatBuilder.
                         newInstance(SoterCoreData.getInstance().getAskName() +
                                 ".addcounter.auto_signed_when_get_pubkey_attk", KeyPropertiesCompact.PURPOSE_SIGN).setDigests(KeyPropertiesCompact.DIGEST_SHA256)
@@ -119,11 +119,11 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                 long cost = SoterCoreUtil.ticksToNowInMs(currentTicks);
                 SLogger.i(TAG, "soter: generate successfully. cost: %d ms", cost);
                 SoterDelegate.reset();
-                return new SoterCoreResult(ERR_OK);
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             } catch (Exception e) {
-                SLogger.e(TAG, "soter: generateAppGlobalSecureKey " + e.toString());
+                SLogger.e(TAG, "soter: generateAppGlobalSecureKey " + e);
                 SLogger.printErrStackTrace(TAG, e, "soter: generateAppGlobalSecureKey error");
-                return new SoterCoreResult(ERR_ASK_GEN_FAILED, e.toString());
+                return new SoterCoreResult(SoterErrCode.ERR_ASK_GEN_FAILED, e.toString());
             } catch (OutOfMemoryError oomError) {
                 SLogger.printErrStackTrace(TAG, oomError, "soter: out of memory when generate ASK!! maybe no attk inside");
                 SoterDelegate.onTriggerOOM();
@@ -131,7 +131,7 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
         } else {
             SLogger.e(TAG, "soter: not support soter");
         }
-        return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+        return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
     }
 
     public SoterCoreResult removeAppGlobalSecureKey() {
@@ -141,15 +141,15 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                 KeyStore keyStore = KeyStore.getInstance(providerName);
                 keyStore.load(null);
                 keyStore.deleteEntry(SoterCoreData.getInstance().getAskName());
-                return new SoterCoreResult(ERR_OK);
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             } catch (Exception e) {
-                SLogger.e(TAG, "soter: removeAppGlobalSecureKey " + e.toString());
-                return new SoterCoreResult(ERR_REMOVE_ASK, e.toString());
+                SLogger.e(TAG, "soter: removeAppGlobalSecureKey " + e);
+                return new SoterCoreResult(SoterErrCode.ERR_REMOVE_ASK, e.toString());
             }
         } else {
             SLogger.e(TAG, "soter: not support soter");
         }
-        return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+        return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
     }
 
     public boolean hasAppGlobalSecureKey() {
@@ -158,7 +158,7 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
             keyStore.load(null);
             return keyStore.getCertificate(SoterCoreData.getInstance().getAskName()) != null;
         } catch (Exception e) {
-            SLogger.e(TAG, "soter: hasAppGlobalSecureKey exception: " + e.toString());
+            SLogger.e(TAG, "soter: hasAppGlobalSecureKey exception: " + e);
         }
         return false;
     }
@@ -178,12 +178,12 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                     Key key = keyStore.getKey(SoterCoreData.getInstance().getAskName(), "from_soter_ui".toCharArray());
                     if (key != null) {
                         SoterDelegate.reset();
-                        return retrieveJsonFromExportedData(key.getEncoded());
+                        return SoterCoreBase.retrieveJsonFromExportedData(key.getEncoded());
                     }
                     SLogger.e(TAG, "soter: key can not be retrieved");
                     return null;
                 } catch (ClassCastException e) {
-                    SLogger.e(TAG, "soter: cast error: " + e.toString());
+                    SLogger.e(TAG, "soter: cast error: " + e);
                 }
                 return null;
             } catch (Exception e) {
@@ -201,12 +201,12 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
     public SoterCoreResult generateAuthKey(String authKeyName) {
         if (SoterCoreUtil.isNullOrNil(authKeyName)) {
             SLogger.e(TAG, "soter: auth key name is null or nil. abort.");
-            return new SoterCoreResult(ERR_PARAMERROR, "no authKeyName");
+            return new SoterCoreResult(SoterErrCode.ERR_PARAMERROR, "no authKeyName");
         }
         if (isNativeSupportSoter()) {
             try {
                 if (!hasAppGlobalSecureKey()) {
-                    return new SoterCoreResult(ERR_ASK_NOT_EXIST, "app secure key not exist");
+                    return new SoterCoreResult(SoterErrCode.ERR_ASK_NOT_EXIST, "app secure key not exist");
                 }
                 KeyStore keyStore = KeyStore.getInstance(providerName);
                 keyStore.load(null);
@@ -222,14 +222,14 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                     long cost = SoterCoreUtil.ticksToNowInMs(currentTicks);
                     SLogger.i(TAG, "soter: generate successfully, cost: %d ms", cost);
                     SoterDelegate.reset();
-                    return new SoterCoreResult(ERR_OK);
+                    return new SoterCoreResult(SoterErrCode.ERR_OK);
                 } catch (Exception e) {
-                    SLogger.e(TAG, "soter: cause exception. maybe reflection exception: " + e.toString());
-                    return new SoterCoreResult(ERR_AUTH_KEY_GEN_FAILED, e.toString());
+                    SLogger.e(TAG, "soter: cause exception. maybe reflection exception: " + e);
+                    return new SoterCoreResult(SoterErrCode.ERR_AUTH_KEY_GEN_FAILED, e.toString());
                 }
             } catch (Exception e) {
-                SLogger.e(TAG, "soter: generate auth key failed: " + e.toString());
-                return new SoterCoreResult(ERR_AUTH_KEY_GEN_FAILED, e.toString());
+                SLogger.e(TAG, "soter: generate auth key failed: " + e);
+                return new SoterCoreResult(SoterErrCode.ERR_AUTH_KEY_GEN_FAILED, e.toString());
             } catch (OutOfMemoryError oomError) {
                 SLogger.printErrStackTrace(TAG, oomError, "soter: out of memory when generate AuthKey!! maybe no attk inside");
                 SoterDelegate.onTriggerOOM();
@@ -237,13 +237,13 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
         } else {
             SLogger.e(TAG, "soter: not support soter");
         }
-        return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+        return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
     }
 
     public SoterCoreResult removeAuthKey(String authKeyName, boolean isAutoDeleteASK) {
         if (SoterCoreUtil.isNullOrNil(authKeyName)) {
             SLogger.e(TAG, "soter: auth key name is null or nil. abort.");
-            return new SoterCoreResult(ERR_PARAMERROR, "no authKeyName");
+            return new SoterCoreResult(SoterErrCode.ERR_PARAMERROR, "no authKeyName");
         }
         SLogger.i(TAG, "soter: start remove key: " + authKeyName);
         if (isNativeSupportSoter()) {
@@ -257,15 +257,15 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                         removeAppGlobalSecureKey();
                     }
                 }
-                return new SoterCoreResult(ERR_OK);
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             } catch (Exception e) {
-                SLogger.e(TAG, "soter: removeAuthKey " + e.toString());
-                return new SoterCoreResult(ERR_REMOVE_AUTH_KEY, e.toString());
+                SLogger.e(TAG, "soter: removeAuthKey " + e);
+                return new SoterCoreResult(SoterErrCode.ERR_REMOVE_AUTH_KEY, e.toString());
             }
         } else {
             SLogger.e(TAG, "soter: not support soter");
         }
-        return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+        return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
     }
 
     public boolean hasAuthKey(String authKeyName) {
@@ -278,7 +278,7 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
             keyStore.load(null);
             return keyStore.getCertificate(authKeyName) != null;
         } catch (Exception e) {
-            SLogger.e(TAG, "soter: hasAppGlobalSecureKey exception: " + e.toString());
+            SLogger.e(TAG, "soter: hasAppGlobalSecureKey exception: " + e);
         }
         return false;
     }
@@ -335,12 +335,12 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                     Key key = keyStore.getKey(authKeyName, MAGIC_SOTER_PWD.toCharArray());
                     SoterDelegate.reset();
                     if (key != null) {
-                        return retrieveJsonFromExportedData(key.getEncoded());
+                        return SoterCoreBase.retrieveJsonFromExportedData(key.getEncoded());
                     }
                     SLogger.e(TAG, "soter: key can not be retrieved");
                     return null;
                 } catch (ClassCastException e) {
-                    SLogger.e(TAG, "soter: cast error: " + e.toString());
+                    SLogger.e(TAG, "soter: cast error: " + e);
                 }
                 return null;
             } catch (Exception e) {
@@ -368,7 +368,7 @@ public class SoterCoreBeforeTreble extends SoterCoreBase implements ConstantsSot
                 SLogger.e(TAG, "soter: key invalid. Advice remove the key");
                 return null;
             } catch (Exception e) {
-                SLogger.e(TAG, "soter: exception when getSignatureResult: " + e.toString());
+                SLogger.e(TAG, "soter: exception when getSignatureResult: " + e);
                 SLogger.printErrStackTrace(TAG, e, "soter: exception when getSignatureResult");
                 return null;
             } catch (OutOfMemoryError oomError) {

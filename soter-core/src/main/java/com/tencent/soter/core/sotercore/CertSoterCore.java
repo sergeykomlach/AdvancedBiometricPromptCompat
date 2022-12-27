@@ -7,6 +7,7 @@ import com.tencent.soter.core.model.SoterCoreData;
 import com.tencent.soter.core.model.SoterCoreResult;
 import com.tencent.soter.core.model.SoterCoreUtil;
 import com.tencent.soter.core.model.SoterDelegate;
+import com.tencent.soter.core.model.SoterErrCode;
 import com.tencent.soter.core.model.SoterPubKeyModel;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class CertSoterCore extends SoterCoreBeforeTreble {
         if (isNativeSupportSoter()) {
             try {
                 KeyPairGenerator generator = KeyPairGenerator.getInstance(KeyPropertiesCompact.KEY_ALGORITHM_RSA, providerName);
-                int purpose = KeyPropertiesCompact.PURPOSE_SOTER_ATTEST_KEY;
+                final int purpose = KeyPropertiesCompact.PURPOSE_SOTER_ATTEST_KEY;
                 AlgorithmParameterSpec spec =
                         KeyGenParameterSpecCompatBuilder.newInstance(SoterCoreData.getInstance().getAskName() + ".addcounter.auto_signed_when_get_pubkey_attk", purpose)
                                 .setDigests(KeyPropertiesCompact.DIGEST_SHA256)
@@ -48,11 +49,11 @@ public class CertSoterCore extends SoterCoreBeforeTreble {
                 long cost = SoterCoreUtil.ticksToNowInMs(currentTicks);
                 SLogger.i(TAG, "soter: generate successfully. cost: %d ms", cost);
                 SoterDelegate.reset();
-                return new SoterCoreResult(ERR_OK);
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             } catch (Exception e) {
-                SLogger.e(TAG, "soter: generateAppGlobalSecureKey " + e.toString());
+                SLogger.e(TAG, "soter: generateAppGlobalSecureKey " + e);
                 SLogger.printErrStackTrace(TAG, e, "soter: generateAppGlobalSecureKey error");
-                return new SoterCoreResult(ERR_ASK_GEN_FAILED, e.toString());
+                return new SoterCoreResult(SoterErrCode.ERR_ASK_GEN_FAILED, e.toString());
             } catch (OutOfMemoryError oomError) {
                 SLogger.printErrStackTrace(TAG, oomError, "soter: out of memory when generate ASK!! maybe no attk inside");
                 SoterDelegate.onTriggerOOM();
@@ -60,7 +61,7 @@ public class CertSoterCore extends SoterCoreBeforeTreble {
         } else {
             SLogger.e(TAG, "soter: not support soter");
         }
-        return new SoterCoreResult(ERR_SOTER_NOT_SUPPORTED);
+        return new SoterCoreResult(SoterErrCode.ERR_SOTER_NOT_SUPPORTED);
     }
 
     @Override
@@ -81,7 +82,7 @@ public class CertSoterCore extends SoterCoreBeforeTreble {
                     SLogger.e(TAG, "soter: key can not be retrieved");
                     return null;
                 } catch (ClassCastException e) {
-                    SLogger.e(TAG, "soter: cast error: " + e.toString());
+                    SLogger.e(TAG, "soter: cast error: " + e);
                 }
                 return null;
             } catch (Exception e) {

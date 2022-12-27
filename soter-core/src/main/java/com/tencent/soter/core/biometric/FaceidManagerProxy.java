@@ -41,9 +41,9 @@ final class FaceidManagerProxy {
     private static FaceManager getFaceManager(Context ctx) {
         FaceManager faceManager = null;
         try {
-            faceManager = (FaceManager) Class.forName(FACEMANAGER_FACTORY_CLASS_NAME).getDeclaredMethod("getFaceManager", new Class[]{Context.class}).invoke((Object) null, new Object[]{ctx});
+            faceManager = (FaceManager) Class.forName(FACEMANAGER_FACTORY_CLASS_NAME).getDeclaredMethod("getFaceManager", new Class[]{Context.class}).invoke(null, new Object[]{ctx});
         } catch (Exception e) {
-            SLogger.e(TAG, "soter: FaceManager init failed, maybe not support." + e.toString());
+            SLogger.e(TAG, "soter: FaceManager init failed, maybe not support." + e);
             e.printStackTrace();
         }
         return faceManager;
@@ -212,7 +212,7 @@ final class FaceidManagerProxy {
     }
 
     public static final class AuthenticationResult {
-        private CryptoObject mCryptoObject;
+        private final CryptoObject mCryptoObject;
 
         public AuthenticationResult(CryptoObject crypto) {
             mCryptoObject = crypto;
@@ -223,7 +223,7 @@ final class FaceidManagerProxy {
         }
     }
 
-    public static abstract class AuthenticationCallback {
+    public abstract static class AuthenticationCallback {
 
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
         }

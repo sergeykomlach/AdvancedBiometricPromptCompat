@@ -31,8 +31,8 @@ public class SoterSignatureResult {
 
     private static final int DEFAULT_SALT_LEN = 20;
 
-    private String rawValue = null;
-    private String fid = null;
+    private String rawValue;
+    private String fid;
     private long counter = -1;
     private String TEEName = "";
     private String TEEVersion = "";
@@ -78,7 +78,7 @@ public class SoterSignatureResult {
             result.setSaltLen(jsonObj.optInt(SIGNATURE_KEY_SALTLEN, DEFAULT_SALT_LEN));
             return result;
         } catch (JSONException e) {
-            SLogger.e(TAG, "soter: convert from json failed." + e.toString());
+            SLogger.e(TAG, "soter: convert from json failed." + e);
             return null;
         }
     }

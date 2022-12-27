@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SoterSessionResult implements Parcelable {
-    public static final Creator<SoterSessionResult> CREATOR = new Creator<SoterSessionResult>() {
+    public static final Parcelable.Creator<SoterSessionResult> CREATOR = new Parcelable.Creator<SoterSessionResult>() {
         @Override
         public SoterSessionResult createFromParcel(Parcel in) {
             return new SoterSessionResult(in);
@@ -19,7 +19,6 @@ public class SoterSessionResult implements Parcelable {
     public int resultCode;
 
     public SoterSessionResult() {
-        super();
     }
 
     protected SoterSessionResult(Parcel in) {

@@ -224,7 +224,7 @@ final class FingerprintManagerCompatApi23 {
     }
 
     public static final class AuthenticationResultInternal {
-        private CryptoObject mCryptoObject;
+        private final CryptoObject mCryptoObject;
 
         public AuthenticationResultInternal(CryptoObject crypto) {
             mCryptoObject = crypto;
@@ -235,7 +235,7 @@ final class FingerprintManagerCompatApi23 {
         }
     }
 
-    public static abstract class AuthenticationCallback {
+    public abstract static class AuthenticationCallback {
 
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
         }
