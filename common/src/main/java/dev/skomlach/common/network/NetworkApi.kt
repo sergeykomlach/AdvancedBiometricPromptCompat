@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.network
 
+import android.net.TrafficStats
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -48,6 +49,7 @@ object NetworkApi {
         conn.instanceFollowRedirects = true
         conn.connectTimeout = timeout
         conn.readTimeout = timeout
+        TrafficStats.setThreadStatsTag(link?.hashCode()?:0)
         return conn
     }
 

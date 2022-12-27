@@ -88,29 +88,23 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
 
     @WorkerThread
     private fun startPing() {
-        val connectivityManager =
-            appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        val hasConnection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            connectivityManager?.isDefaultNetworkActive == true
-        else
-            connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
 
-        if (!hasConnection) {
+        if (!connectionStateListener.isConnectionDetected()) {
             connectionStateListener.setState(false)
             return
         }
         for (host in hosts) {
             var urlConnection: HttpURLConnection? = null
             try {
-                if (InetAddress.getAllByName(host).isNotEmpty()) {
                     val uri = URI("https://$host")
-                    urlConnection = NetworkApi.createConnection(uri.toString(), 1000)
+                    urlConnection = NetworkApi.createConnection(uri.toString(), TimeUnit.SECONDS.toMillis(10).toInt())
                     urlConnection.instanceFollowRedirects = true
                     urlConnection.requestMethod = "GET"
                     urlConnection.connect()
                     val responseCode = urlConnection.responseCode
                     val byteArrayOutputStream = ByteArrayOutputStream()
                     var inputStream: InputStream
+                    LogCat.log("ping: $responseCode=${urlConnection.responseMessage}")
                     //if any 2XX response code
                     if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
                         inputStream = urlConnection.inputStream
@@ -126,7 +120,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                                 throw IOException("Unable to connect to $host")
                             }
                         }
-                        inputStream = urlConnection.errorStream
+                        inputStream = urlConnection.inputStream?:urlConnection.errorStream
                     }
                     NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                     inputStream.close()
@@ -136,14 +130,10 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                     if (!verifyHTML(uri.toString(), html)) {
                         throw IOException("Unable to connect to $host")
                     }
-
                     connectionStateListener.setState(true)
-                    return
-                } else {
-                    throw IOException("Unable to connect to $host")
-                }
+                return
             } catch (e: Throwable) {
-                connectionStateListener.setState(false)
+
             } finally {
                 if (urlConnection != null) {
                     try {
@@ -154,6 +144,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
             }
         }
+        connectionStateListener.setState(false)
     }
 
     @Throws(Exception::class)
