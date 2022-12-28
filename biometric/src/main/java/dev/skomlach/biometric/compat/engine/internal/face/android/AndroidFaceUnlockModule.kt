@@ -23,8 +23,8 @@ import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.hardware.biometrics.CryptoObject
 import android.hardware.face.FaceManager
-import android.os.Build
 import android.os.Handler
+import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -370,13 +370,11 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     init {
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            try {
-                manager = context.getSystemService(FaceManager::class.java)
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-            }
+        try {
+            manager = ContextCompat.getSystemService(context, FaceManager::class.java)
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
         }
 
         if (manager == null) {

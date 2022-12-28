@@ -24,6 +24,7 @@ import android.hardware.biometrics.CryptoObject
 import android.hardware.iris.IrisManager
 import android.os.Build
 import android.os.Handler
+import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -204,14 +205,14 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     private var manager: IrisManager? = null
 
     init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
             try {
-                manager = context.getSystemService(IrisManager::class.java)
+                manager = ContextCompat.getSystemService(context, IrisManager::class.java)
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
             }
-        }
+
 
         if (manager == null) {
             try {
