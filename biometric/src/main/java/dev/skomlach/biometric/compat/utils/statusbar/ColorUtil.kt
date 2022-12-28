@@ -96,6 +96,6 @@ object ColorUtil {
      * @return True if this is a "dark" color, false otherwise.
      */
     fun isDark(color: Int): Boolean {
-        return ColorUtils.calculateLuminance(color) < 0.5;
+        return ColorUtils.calculateLuminance(color) < 0.5
     }
 }

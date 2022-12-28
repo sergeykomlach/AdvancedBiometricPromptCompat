@@ -15,7 +15,7 @@ package com.tencent.soter.core.model;
  */
 
 public class SoterCoreData {
-    private volatile static SoterCoreData instance = null;
+    private static volatile SoterCoreData instance;
     private String mAskName = ConstantsSoter.COMMON_SOTER_APP_SECURE_KEY_NAME;
 
     public static SoterCoreData getInstance() {

@@ -52,7 +52,7 @@ public class FingerprintManagerCompat {
         }
     }
 
-    private Context mContext;
+    private final Context mContext;
 
     private FingerprintManagerCompat(Context context) {
         mContext = context;
@@ -185,7 +185,7 @@ public class FingerprintManagerCompat {
 
     @SuppressWarnings("unused")
     public static final class AuthenticationResult {
-        private CryptoObject mCryptoObject;
+        private final CryptoObject mCryptoObject;
 
         public AuthenticationResult(CryptoObject crypto) {
             mCryptoObject = crypto;
@@ -196,7 +196,7 @@ public class FingerprintManagerCompat {
         }
     }
 
-    public static abstract class AuthenticationCallback {
+    public abstract static class AuthenticationCallback {
         /**
          * Called when an unrecoverable error has been encountered and the operation is complete.
          * No further callbacks will be made on this object.
@@ -300,7 +300,7 @@ public class FingerprintManagerCompat {
                                                                                          final AuthenticationCallback callback) {
             return new FingerprintManagerCompatApi23.AuthenticationCallback() {
 
-                private boolean mMarkPermanentlyCallbacked = false;
+                private boolean mMarkPermanentlyCallbacked;
 
                 @Override
                 public void onAuthenticationError(int errMsgId, CharSequence errString) {

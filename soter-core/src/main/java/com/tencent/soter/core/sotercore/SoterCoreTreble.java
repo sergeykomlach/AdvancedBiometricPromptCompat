@@ -47,24 +47,42 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
     //Fib(3)=2
     private static final int INITIAL_FIB_VALUE = 3;
     private static final Object lock = new Object();
-    public static int uid = 0;
+    public static int uid;
     protected static ISoterService mSoterService;
     private static int connectState = DISCONNECT;
-    private static boolean isInitializing = false;
-    private static boolean isInitializeSuccessed = false;
-    private static SyncJob syncJob = new SyncJob();
+    private static boolean isInitializing;
+    private static boolean isInitializeSuccessed;
+    private static final SyncJob syncJob = new SyncJob();
     private Context mContext;
     private boolean canRetry = true;
-    private int disconnectCount = 0;
+    private int disconnectCount;
     private int noResponseCount = INITIAL_FIB_VALUE;
-    private long lastBindTime = 0L;
-    private boolean hasBind = false;
-    private Handler mMainLooperHandler = new Handler(Looper.getMainLooper());
+    private long lastBindTime;
+    private boolean hasBind;
+    private final Handler mMainLooperHandler = new Handler(Looper.getMainLooper());
     private SoterCoreTrebleServiceListener serviceListener;
 
     public static boolean isInitializing() {
         return isInitializing;
-    }    private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
+    }
+
+    private static long getFib(long n) {
+        if (n < 0) {
+            return -1;
+        } else if (n == 0) {
+            return 0;
+        } else if (n == 1 || n == 2) {
+            return 1;
+        } else {
+            long c = 0, a = 1, b = 1;
+            for (int i = 3; i <= n; i++) {
+                c = a + b;
+                a = b;
+                b = c;
+            }
+            return c;
+        }
+    }    private final IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
 
         @Override
         public void binderDied() {
@@ -88,23 +106,19 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         }
     };
 
-    private static long getFib(long n) {
-        if (n < 0) {
-            return -1;
-        } else if (n == 0) {
-            return 0;
-        } else if (n == 1 || n == 2) {
-            return 1;
-        } else {
-            long c = 0, a = 1, b = 1;
-            for (int i = 3; i <= n; i++) {
-                c = a + b;
-                a = b;
-                b = c;
+    public void unbindService() {
+        if (hasBind) {
+            try {
+                mContext.unbindService(mServiceConnection);
+            } catch (Exception e) {
+                SLogger.printErrStackTrace(TAG, e, "");
+            } finally {
+                hasBind = false;
             }
-            return c;
         }
-    }    private ServiceConnection mServiceConnection = new ServiceConnection() {
+    }
+
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
         public void onServiceConnected(
                 ComponentName className, IBinder service) {
             SLogger.i(TAG, "soter: onServiceConnected");
@@ -118,7 +132,7 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
                 service.linkToDeath(mDeathRecipient, 0);
                 mSoterService = ISoterService.Stub.asInterface(service);
             } catch (RemoteException e) {
-                SLogger.e(TAG, "soter: Binding deathRecipient is error - RemoteException" + e.toString());
+                SLogger.e(TAG, "soter: Binding deathRecipient is error - RemoteException" + e);
             }
 
             if (serviceListener != null) {
@@ -286,17 +300,9 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         }
     }
 
-    public void unbindService() {
-        if (hasBind) {
-            try {
-                mContext.unbindService(mServiceConnection);
-            } catch (Exception e) {
-                SLogger.printErrStackTrace(TAG, e, "");
-            } finally {
-                hasBind = false;
-            }
-        }
-    }    private Runnable retryFunc = new Runnable() {
+
+
+    private final Runnable retryFunc = new Runnable() {
         @Override
         public void run() {
             if (!canRetry || !isInitializeSuccessed) {
@@ -340,28 +346,28 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         SLogger.i(TAG, "soter: generateAppSecureKey in");
 
         if (!isNativeSupportSoter()) {
-            return new SoterCoreResult(ERR_ASK_GEN_FAILED);
+            return new SoterCoreResult(SoterErrCode.ERR_ASK_GEN_FAILED);
         }
 
         if (mContext == null) {
             SLogger.w(TAG, "soter: context is null");
-            return new SoterCoreResult(ERR_ASK_GEN_FAILED);
+            return new SoterCoreResult(SoterErrCode.ERR_ASK_GEN_FAILED);
         }
 
         bindServiceIfNeeded();
 
         if (checkIfServiceNull()) {
-            return new SoterCoreResult(ERR_ASK_GEN_FAILED);
+            return new SoterCoreResult(SoterErrCode.ERR_ASK_GEN_FAILED);
         }
 
         try {
-            if (mSoterService.generateAppSecureKey(uid) == ERR_OK) {
-                return new SoterCoreResult(ERR_OK);
+            if (mSoterService.generateAppSecureKey(uid) == SoterErrCode.ERR_OK) {
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             }
         } catch (Exception e) {
             SLogger.printErrStackTrace(TAG, e, "soter: generateAppSecureKey fail: ");
         }
-        return new SoterCoreResult(ERR_ASK_GEN_FAILED);
+        return new SoterCoreResult(SoterErrCode.ERR_ASK_GEN_FAILED);
     }
 
     @Override
@@ -369,29 +375,29 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         SLogger.i(TAG, "soter: removeAppGlobalSecureKey in");
 
         if (!isNativeSupportSoter()) {
-            return new SoterCoreResult(ERR_REMOVE_ASK);
+            return new SoterCoreResult(SoterErrCode.ERR_REMOVE_ASK);
         }
 
         if (mContext == null) {
             SLogger.w(TAG, "soter: context is null");
-            return new SoterCoreResult(ERR_REMOVE_ASK);
+            return new SoterCoreResult(SoterErrCode.ERR_REMOVE_ASK);
         }
 
         bindServiceIfNeeded();
 
         if (checkIfServiceNull()) {
             SLogger.w(TAG, "soter: soter service not found");
-            return new SoterCoreResult(ERR_REMOVE_ASK);
+            return new SoterCoreResult(SoterErrCode.ERR_REMOVE_ASK);
         }
 
         try {
-            if (mSoterService.removeAllAuthKey(uid) == ERR_OK) {
-                return new SoterCoreResult(ERR_OK);
+            if (mSoterService.removeAllAuthKey(uid) == SoterErrCode.ERR_OK) {
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             }
         } catch (Exception e) {
             SLogger.printErrStackTrace(TAG, e, "soter: removeAppGlobalSecureKey fail: ");
         }
-        return new SoterCoreResult(ERR_REMOVE_ASK);
+        return new SoterCoreResult(SoterErrCode.ERR_REMOVE_ASK);
     }
 
     @Override
@@ -455,7 +461,7 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
             byte[] rawBytes = soterExportResult.exportData;
 
             if (rawBytes != null && rawBytes.length > 0) {
-                return retrieveJsonFromExportedData(rawBytes);
+                return SoterCoreBase.retrieveJsonFromExportedData(rawBytes);
             } else {
                 SLogger.e(TAG, "soter: soter: key can not be retrieved");
                 return null;
@@ -471,30 +477,30 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         SLogger.i(TAG, "soter: generateAuthKey in");
 
         if (!isNativeSupportSoter()) {
-            return new SoterCoreResult(ERR_AUTH_KEY_GEN_FAILED);
+            return new SoterCoreResult(SoterErrCode.ERR_AUTH_KEY_GEN_FAILED);
         }
 
         if (mContext == null) {
             SLogger.w(TAG, "soter: context is null");
-            return new SoterCoreResult(ERR_AUTH_KEY_GEN_FAILED);
+            return new SoterCoreResult(SoterErrCode.ERR_AUTH_KEY_GEN_FAILED);
         }
 
         bindServiceIfNeeded();
 
         if (checkIfServiceNull()) {
             SLogger.w(TAG, "soter: soter service not found");
-            return new SoterCoreResult(ERR_AUTH_KEY_GEN_FAILED);
+            return new SoterCoreResult(SoterErrCode.ERR_AUTH_KEY_GEN_FAILED);
         }
 
         try {
-            if (mSoterService.generateAuthKey(uid, authKeyName) == ERR_OK) {
-                return new SoterCoreResult(ERR_OK);
+            if (mSoterService.generateAuthKey(uid, authKeyName) == SoterErrCode.ERR_OK) {
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             }
         } catch (Exception e) {
             SLogger.printErrStackTrace(TAG, e, "soter: generateAuthKey fail: ");
         }
 
-        return new SoterCoreResult(ERR_AUTH_KEY_GEN_FAILED);
+        return new SoterCoreResult(SoterErrCode.ERR_AUTH_KEY_GEN_FAILED);
     }
 
     @Override
@@ -502,36 +508,36 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         SLogger.i(TAG, "soter: removeAuthKey in");
 
         if (!isNativeSupportSoter()) {
-            return new SoterCoreResult(ERR_REMOVE_AUTH_KEY);
+            return new SoterCoreResult(SoterErrCode.ERR_REMOVE_AUTH_KEY);
         }
 
         if (mContext == null) {
             SLogger.w(TAG, "soter: context is null");
-            return new SoterCoreResult(ERR_REMOVE_AUTH_KEY);
+            return new SoterCoreResult(SoterErrCode.ERR_REMOVE_AUTH_KEY);
         }
 
         bindServiceIfNeeded();
 
         if (checkIfServiceNull()) {
             SLogger.w(TAG, "soter: soter service not found");
-            return new SoterCoreResult(ERR_REMOVE_AUTH_KEY);
+            return new SoterCoreResult(SoterErrCode.ERR_REMOVE_AUTH_KEY);
         }
 
         try {
-            if (mSoterService.removeAuthKey(uid, authKeyName) == ERR_OK) {
+            if (mSoterService.removeAuthKey(uid, authKeyName) == SoterErrCode.ERR_OK) {
                 if (isAutoDeleteASK) {
-                    if (mSoterService.removeAllAuthKey(uid) == ERR_OK) {
-                        return new SoterCoreResult(ERR_OK);
+                    if (mSoterService.removeAllAuthKey(uid) == SoterErrCode.ERR_OK) {
+                        return new SoterCoreResult(SoterErrCode.ERR_OK);
                     } else {
-                        return new SoterCoreResult(ERR_REMOVE_ASK);
+                        return new SoterCoreResult(SoterErrCode.ERR_REMOVE_ASK);
                     }
                 }
-                return new SoterCoreResult(ERR_OK);
+                return new SoterCoreResult(SoterErrCode.ERR_OK);
             }
         } catch (Exception e) {
             SLogger.printErrStackTrace(TAG, e, "soter: removeAuthKey fail: ");
         }
-        return new SoterCoreResult(ERR_REMOVE_AUTH_KEY);
+        return new SoterCoreResult(SoterErrCode.ERR_REMOVE_AUTH_KEY);
     }
 
     @Override
@@ -574,7 +580,7 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
             soterExportResult = mSoterService.getAuthKey(uid, authKeyName);
             byte[] rawBytes = soterExportResult.exportData;
             if (rawBytes != null && rawBytes.length > 0) {
-                return retrieveJsonFromExportedData(rawBytes);
+                return SoterCoreBase.retrieveJsonFromExportedData(rawBytes);
             } else {
                 SLogger.e(TAG, "soter: key can not be retrieved");
                 return null;
@@ -677,7 +683,7 @@ public class SoterCoreTreble extends SoterCoreBase implements ConstantsSoter, So
         try {
             soterSignResult = mSoterService.finishSign(signSession);
             rawBytes = soterSignResult.exportData;
-            if (soterSignResult.resultCode != ERR_OK) {
+            if (soterSignResult.resultCode != SoterErrCode.ERR_OK) {
                 throw new Exception("finishSign error");
             }
         } catch (Exception e) {

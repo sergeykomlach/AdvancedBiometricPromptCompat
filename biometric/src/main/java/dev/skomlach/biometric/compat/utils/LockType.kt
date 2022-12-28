@@ -59,10 +59,13 @@ object LockType {
     }
 
 
-    fun isBiometricWeakEnabled(context: Context): Boolean {
+    fun isBiometricWeakEnabled(pkg: String?, context: Context): Boolean {
         return try {
             val mode: Int
-            val lockUtilsClass = Class.forName("com.android.internal.widget.LockPatternUtils")
+            val lockUtilsClass = ReflectionTools.getClassFromPkg(
+                pkg ?: throw IllegalArgumentException("Pkg is null"),
+                "com.android.internal.widget.LockPatternUtils"
+            )
             var method: Method? = null
             val lockUtils =
                 lockUtilsClass.getConstructor(Context::class.java).newInstance(appContext)
@@ -131,7 +134,7 @@ object LockType {
         return false
     }
 
-    private fun isBiometricEnabledInSettings(context: Context): Boolean {
+    fun isBiometricEnabledInSettings(context: Context): Boolean {
         try {
             val keyValue: MutableList<String> = ArrayList()
             val u = Uri.parse("content://settings/secure")

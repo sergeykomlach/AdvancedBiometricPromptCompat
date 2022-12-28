@@ -135,7 +135,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
     @Throws(SecurityException::class)
     override fun hasEnrolled(): Boolean {
-        return isBiometricWeakEnabled(context)
+        return isBiometricWeakEnabled("com.android.facelock", context)
     }
 
     @Throws(SecurityException::class)

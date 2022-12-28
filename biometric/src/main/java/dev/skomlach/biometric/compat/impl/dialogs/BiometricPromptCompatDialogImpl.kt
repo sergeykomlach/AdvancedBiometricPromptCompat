@@ -130,7 +130,6 @@ class BiometricPromptCompatDialogImpl(
     }
 
     private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
-        private set
         get() {
             val list = mutableListOf<BiometricType>()
             if (compatBuilder.getSecondaryAvailableTypes().isEmpty()) {

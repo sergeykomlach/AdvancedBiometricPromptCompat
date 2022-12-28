@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -77,20 +78,22 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
     // Retrieve all services that can match the given intent
     override val isHardwarePresent: Boolean
         get() {
-            return hasEnrolled()
+            // Retrieve all services that can match the given intent
+            if (faceLockHelper?.isFaceUnlockOn != true) return false
+            val pm = context.packageManager
+            if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+                return false
+            }
+            val dpm =
+                context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
+            return if (dpm?.getCameraDisabled(null) == true) {
+                false
+            } else hasEnrolled()
         }
 
     @Throws(SecurityException::class)
     override fun hasEnrolled(): Boolean {
-        // Retrieve all services that can match the given intent
-        if (faceLockHelper?.isFaceUnlockOn != true) return false
-        val pm = context.packageManager
-        if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
-            return false
-        }
-        val dpm =
-            context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
-        return dpm?.getCameraDisabled(null) != true
+        return LockType.isBiometricWeakEnabled("com.prize.faceunlock", context)
     }
 
     @Throws(SecurityException::class)

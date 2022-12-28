@@ -10,9 +10,9 @@ public class SoterExParameters {
 
     private static final String SOTEREX_PROVIDER_CLASS_NAME = "com.tencent.soter.core.model.SoterExParameterProvider";
 
-    private static SoterExParameters instance = null;
+    private static SoterExParameters instance;
 
-    private ISoterExParameters impl = null;
+    private ISoterExParameters impl;
 
     private SoterExParameters() {
         try {

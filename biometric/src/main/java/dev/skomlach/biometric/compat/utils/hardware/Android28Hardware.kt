@@ -189,7 +189,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 appContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
             if (keyguardManager?.isDeviceSecure == true) {
                 if (BiometricAuthentication.hasEnrolled()
-                    || LockType.isBiometricWeakEnabled(appContext)
+                    || LockType.isBiometricEnabledInSettings(appContext)
                 ) {
                     cachedIsBiometricEnrolledValue.set(true)
                     return

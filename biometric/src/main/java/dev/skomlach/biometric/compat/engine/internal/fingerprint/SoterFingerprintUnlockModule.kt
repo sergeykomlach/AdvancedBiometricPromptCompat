@@ -242,9 +242,9 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
-                    result?.cryptoObject?.getSignature(),
-                    result?.cryptoObject?.getCipher(),
-                    result?.cryptoObject?.getMac()
+                    result.cryptoObject?.signature,
+                    result.cryptoObject?.cipher,
+                    result.cryptoObject?.mac
                 )
             )
         }

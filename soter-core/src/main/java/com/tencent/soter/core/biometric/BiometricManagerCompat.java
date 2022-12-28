@@ -60,8 +60,8 @@ public class BiometricManagerCompat {
         }
     }
 
-    private Context mContext;
-    private Integer mBiometricType;
+    private final Context mContext;
+    private final Integer mBiometricType;
 
     private BiometricManagerCompat(Context context, Integer biometricType) {
         mContext = context;
@@ -232,7 +232,7 @@ public class BiometricManagerCompat {
 
     @SuppressWarnings("unused")
     public static final class AuthenticationResult {
-        private CryptoObject mCryptoObject;
+        private final CryptoObject mCryptoObject;
 
         public AuthenticationResult(CryptoObject crypto) {
             mCryptoObject = crypto;
@@ -243,7 +243,7 @@ public class BiometricManagerCompat {
         }
     }
 
-    public static abstract class AuthenticationCallback {
+    public abstract static class AuthenticationCallback {
         /**
          * Called when an unrecoverable error has been encountered and the operation is complete.
          * No further callbacks will be made on this object.
@@ -354,7 +354,7 @@ public class BiometricManagerCompat {
                 final AuthenticationCallback callback) {
             return new FingerprintManagerProxy.AuthenticationCallback() {
 
-                private boolean mMarkPermanentlyCallbacked = false;
+                private boolean mMarkPermanentlyCallbacked;
 
                 @Override
                 public void onAuthenticationError(int errMsgId, CharSequence errString) {
@@ -536,7 +536,7 @@ public class BiometricManagerCompat {
                                                                               final AuthenticationCallback callback) {
             return new FaceidManagerProxy.AuthenticationCallback() {
 
-                private boolean mMarkPermanentlyCallbacked = false;
+                private boolean mMarkPermanentlyCallbacked;
 
                 @Override
                 public void onAuthenticationError(int errMsgId, CharSequence errString) {
@@ -549,14 +549,14 @@ public class BiometricManagerCompat {
 
                     // filter cases when user has already cancelled the authentication.
                     if (errMsgId == FaceManager.FACE_ERROR_CANCELED) {
-                        SLogger.i(TAG, "soter: basic onAuthenticationError code[%d], msg[%s] callbacked and returned cause FACE_ERROR_CANCELED got.", errMsgId, errString);
+                        SLogger.i(TAG, "soter: basic onAuthenticationError code[%d], msg[%s] callbacked and returned cause FACE_ERROR_CANCELED got.", FaceManager.FACE_ERROR_CANCELED, errString);
                         callback.onAuthenticationCancelled();
                         return;
                     }
 
                     //sync freeze state
                     if (errMsgId == FaceManager.FACE_ERROR_LOCKOUT) {
-                        SLogger.i(TAG, "soter: basic onAuthenticationError code[%d], msg[%s] callbacked and returned cause FACE_ERROR_LOCKOUT got.", errMsgId, errString);
+                        SLogger.i(TAG, "soter: basic onAuthenticationError code[%d], msg[%s] callbacked and returned cause FACE_ERROR_LOCKOUT got.", FaceManager.FACE_ERROR_LOCKOUT, errString);
                         if (!SoterBiometricAntiBruteForceStrategy.isCurrentFailTimeAvailable(context)
                                 && !SoterBiometricAntiBruteForceStrategy.isCurrentTweenTimeAvailable(context)
                                 && !SoterBiometricAntiBruteForceStrategy.isSystemHasAntiBruteForce()) {

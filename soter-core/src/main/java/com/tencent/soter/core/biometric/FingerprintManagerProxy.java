@@ -48,7 +48,7 @@ import javax.crypto.Mac;
 final class FingerprintManagerProxy {
     public static final String FINGERPRINT_SERVICE = "fingerprint";
     private static final String TAG = "Soter.FingerprintManagerProxy";
-    public static boolean sCLOSE_API31 = false;
+    public static boolean sCLOSE_API31;
 
     private static FingerprintManager getFingerprintManager(Context ctx) {
         return (FingerprintManager) ctx.getSystemService(FINGERPRINT_SERVICE);
@@ -309,7 +309,7 @@ final class FingerprintManagerProxy {
     }
 
     public static final class AuthenticationResultInternal {
-        private CryptoObject mCryptoObject;
+        private final CryptoObject mCryptoObject;
 
         public AuthenticationResultInternal(CryptoObject crypto) {
             mCryptoObject = crypto;
@@ -320,7 +320,7 @@ final class FingerprintManagerProxy {
         }
     }
 
-    public static abstract class AuthenticationCallback {
+    public abstract static class AuthenticationCallback {
 
         public void onAuthenticationError(int errMsgId, CharSequence errString) {
         }

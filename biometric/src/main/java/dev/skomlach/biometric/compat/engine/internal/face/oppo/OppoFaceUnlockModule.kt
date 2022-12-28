@@ -159,16 +159,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     override fun hasEnrolled(): Boolean {
 
         try {
-            manager?.javaClass?.methods?.firstOrNull { method ->
-                method.name.startsWith(
-                    "hasEnrolled"
-                )
-            }?.invoke(manager)?.let {
-                if (it is Boolean)
-                    return it
-                else
-                    throw RuntimeException("Unexpected type - $it")
-            }
+            return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates()?:false
         } catch (e: Throwable) {
             e(e, name)
 

@@ -10,7 +10,7 @@ public class SoterDelegate {
     private static final String TAG = "Soter.SoterDelegate";
     @NonNull
     private static volatile ISoterDelegate sSoterDelegateImp = new ISoterDelegate() {
-        private boolean isTriggeredOOM = false; // once triggered OOM, we regard it as no attk or error stack. mark as not native support.
+        private boolean isTriggeredOOM; // once triggered OOM, we regard it as no attk or error stack. mark as not native support.
 
         @Override
         public void onTriggeredOOM() {

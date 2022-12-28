@@ -5,7 +5,7 @@ import dev.skomlach.biometric.compat.utils.monet.colors.Srgb
 import dev.skomlach.common.contextprovider.AndroidContext
 
 @RequiresApi(31)
-class SystemColorScheme() {
+class SystemColorScheme {
     private val appContext = AndroidContext.appContext
     val accent1 = getSwatch(ACCENT1_RES)
     val accent2 = getSwatch(ACCENT2_RES)

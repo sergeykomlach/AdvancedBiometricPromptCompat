@@ -81,7 +81,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
     override var isManagerAccessible = false
     override val isHardwarePresent: Boolean
         get() {
-            if (isManagerAccessible) {
+
                 try {
                     mFingerprintServiceFingerprintManager = FingerprintManager.open()
                     return mFingerprintServiceFingerprintManager
@@ -91,22 +91,26 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 } finally {
                     cancelFingerprintServiceFingerprintRequest()
                 }
-            }
+
             return false
         }
 
     override fun hasEnrolled(): Boolean {
-        if (isManagerAccessible) {
-            try {
-                mFingerprintServiceFingerprintManager = FingerprintManager.open()
+
+        try {
+            mFingerprintServiceFingerprintManager = FingerprintManager.open()
+            if (mFingerprintServiceFingerprintManager
+                    ?.isFingerEnable == true
+            ) {
                 val fingerprintIds = mFingerprintServiceFingerprintManager?.ids
                 return fingerprintIds?.isNotEmpty() == true
-            } catch (e: Throwable) {
+            }
+        } catch (e: Throwable) {
                 e(e, name)
             } finally {
                 cancelFingerprintServiceFingerprintRequest()
             }
-        }
+
         return false
     }
 
@@ -118,8 +122,8 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         restartPredicate: RestartPredicate?
     ) {
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
-        if (isManagerAccessible) {
-            try {
+
+        try {
                 cancelFingerprintServiceFingerprintRequest()
                 mFingerprintServiceFingerprintManager = FingerprintManager.open()
                 val callback = object : IdentifyCallback {
@@ -186,7 +190,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
             }
-        }
+
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
         cancelFingerprintServiceFingerprintRequest()
         return

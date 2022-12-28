@@ -30,20 +30,20 @@ public class SoterCoreResult implements SoterErrCode {
     public SoterCoreResult(int errCode) {
         this.errCode = errCode;
         switch (this.errCode) {
-            case ERR_OK:
+            case SoterErrCode.ERR_OK:
                 this.errMsg = "ok";
                 break;
-            case ERR_SOTER_NOT_SUPPORTED:
+            case SoterErrCode.ERR_SOTER_NOT_SUPPORTED:
                 this.errMsg = "device not support soter";
                 break;
-            case ERR_UNKNOWN:
+            case SoterErrCode.ERR_UNKNOWN:
             default:
                 this.errMsg = "errmsg not specified";
         }
     }
 
     public boolean isSuccess() {
-        return errCode == ERR_OK;
+        return errCode == SoterErrCode.ERR_OK;
     }
 
     @Override

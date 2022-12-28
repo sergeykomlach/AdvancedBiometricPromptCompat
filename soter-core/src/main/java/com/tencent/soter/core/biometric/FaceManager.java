@@ -158,15 +158,9 @@ public abstract class FaceManager {
     /** The faceid alias in system */
     public abstract String getBiometricName(Context context);
 
-    ;
-
     public abstract boolean hasEnrolledFaces();
 
-    ;
-
     public abstract boolean isHardwareDetected();
-
-    ;
 
     public abstract void authenticate(CryptoObject crypto,
                                       CancellationSignal cancel,
@@ -205,7 +199,7 @@ public abstract class FaceManager {
 
     public static class AuthenticationResult {
 
-        private CryptoObject mCryptoObject;
+        private final CryptoObject mCryptoObject;
 
         public AuthenticationResult(CryptoObject crypto) {
             mCryptoObject = crypto;
@@ -216,7 +210,7 @@ public abstract class FaceManager {
         }
     }
 
-    public static abstract class AuthenticationCallback {
+    public abstract static class AuthenticationCallback {
         /**
          * Called when an unrecoverable error has been encountered and the operation is complete.
          * No further callbacks will be made on this object.

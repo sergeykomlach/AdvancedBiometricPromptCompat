@@ -5,7 +5,7 @@ import android.os.Parcelable;
 
 public class SoterExportResult implements Parcelable {
 
-    public static final Creator<SoterExportResult> CREATOR = new Creator<SoterExportResult>() {
+    public static final Parcelable.Creator<SoterExportResult> CREATOR = new Parcelable.Creator<SoterExportResult>() {
         @Override
         public SoterExportResult createFromParcel(Parcel in) {
             return new SoterExportResult(in);
@@ -21,7 +21,6 @@ public class SoterExportResult implements Parcelable {
     public int exportDataLength;
 
     public SoterExportResult() {
-        super();
     }
 
     public SoterExportResult(Parcel in) {

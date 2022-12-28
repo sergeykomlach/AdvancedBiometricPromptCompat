@@ -112,9 +112,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
     override fun hasEnrolled(): Boolean {
 
         try {
-            if (mSpassFingerprint?.hasRegisteredFinger() == true) {
-                return true
-            }
+                return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true && mSpassFingerprint?.hasRegisteredFinger() == true
         } catch (e: Throwable) {
             e(e, name)
         }
