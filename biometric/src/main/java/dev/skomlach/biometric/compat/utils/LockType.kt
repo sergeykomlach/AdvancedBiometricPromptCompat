@@ -134,7 +134,7 @@ object LockType {
         return false
     }
 
-    private fun isBiometricEnabledInSettings(context: Context): Boolean {
+    fun isBiometricEnabledInSettings(context: Context): Boolean {
         try {
             val keyValue: MutableList<String> = ArrayList()
             val u = Uri.parse("content://settings/secure")
