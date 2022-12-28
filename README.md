@@ -73,6 +73,11 @@ Latest supported Android OS version: **Android 13 Tiramisu**
 
 
 ## Recent changes
+
+December 28, 2022
+
+Code cleanup and minor fixes
+
 December 23, 2022
 
 **Improvment: Soter-Core added to project** instead of downloading from jitpack.io 
