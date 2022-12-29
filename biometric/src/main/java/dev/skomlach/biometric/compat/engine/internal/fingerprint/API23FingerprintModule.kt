@@ -23,6 +23,7 @@ import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.hardware.fingerprint.FingerprintManager
 import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -44,9 +45,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
     private var manager: FingerprintManager? = null
 
     init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
             try {
-                manager = context.getSystemService(
+                manager = ContextCompat.getSystemService(context,
                     FingerprintManager::class.java
                 )
             } catch (e: Throwable) {
@@ -54,7 +55,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                     e(e, name)
 
             }
-        }
+
 
         if (manager == null) {
             try {
