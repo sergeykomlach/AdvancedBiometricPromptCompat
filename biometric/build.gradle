@@ -24,7 +24,7 @@ android {
 }
 
 dependencies {
-    implementation project(":soter-core")//2.1.8
+    implementation project(":" + libArtifactId_soter)//2.1.8
     implementation project(":" + libArtifactId_common)
     compileOnly project(":" + libArtifactId_biometric_api)
     implementation fileTree(include: ['*.jar'], dir: 'libs')
