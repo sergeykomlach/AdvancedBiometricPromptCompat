@@ -24,6 +24,7 @@ import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -126,7 +127,7 @@ class HuaweiFaceRecognizeManager {
     //    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 14 type 2 code 2 errCode 0]
     //    EMUI 9/1/0
     //    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 1 errCode 9]
-    //     [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 2 errCode 0]
+    //    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 180 type 2 code 2 errCode 0]
     //    EMUI 11/0/0
     //    [HuaweiFaceRecognize,  onCallbackEvent gotten reqId 174 type 2 code 1 errCode 1]
     //    MatePad 8T
@@ -148,52 +149,60 @@ class HuaweiFaceRecognizeManager {
                 e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
                 return
             }
-            if (type != TYPE_CALLBACK_AUTH) {
-                str = TAG
-                stringBuilder = StringBuilder()
-                stringBuilder.append(" gotten not huawei's auth callback reqid ")
-                stringBuilder.append(reqId)
-                stringBuilder.append(" type ")
-                stringBuilder.append(type)
-                stringBuilder.append(" code ")
-                stringBuilder.append(code)
-                stringBuilder.append(" errCode ")
-                stringBuilder.append(errorCode)
-                e(str, stringBuilder.toString())
-            } else
-                if (code == CODE_CALLBACK_ACQUIRE) {
-                    val result = converHwAcquireInfoToHuawei(errorCode)
-                    val str2 = TAG
-                    val stringBuilder2 = StringBuilder()
-                    stringBuilder2.append(" result ")
-                    stringBuilder2.append(result)
-                    d(str2, stringBuilder2.toString())
-                    if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-                        mAuthenticatorCallback?.onAuthenticationStatus(result)
-                    }
-                } else if (code == CODE_CALLBACK_RESULT) {
-                    val result = converHwErrorCodeToHuawei(errorCode)
-                    var str2 = TAG
-                    var stringBuilder2 = StringBuilder()
-                    stringBuilder2.append(" result ")
-                    stringBuilder2.append(result)
-                    d(str2, stringBuilder2.toString())
-                    if (result == HUAWEI_FACE_AUTHENTICATOR_SUCCESS) {
-                        d(TAG, "huawei face auth success")
-                        mAuthenticatorCallback?.onAuthenticationSucceeded()
-                        mAuthenticatorCallback = null
-                    } else if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
-                        mAuthenticatorCallback?.onAuthenticationError(result)
-                        mAuthenticatorCallback = null
-                    } else {
-                        mAuthenticatorCallback?.onAuthenticationFailed()
-                        str2 = TAG
-                        stringBuilder2 = StringBuilder()
-                        stringBuilder2.append(" fail reason ")
+            ExecutorHelper.post {
+                if (type != TYPE_CALLBACK_AUTH) {
+                    str = TAG
+                    stringBuilder = StringBuilder()
+                    stringBuilder.append(" gotten not huawei's auth callback reqid ")
+                    stringBuilder.append(reqId)
+                    stringBuilder.append(" type ")
+                    stringBuilder.append(type)
+                    stringBuilder.append(" code ")
+                    stringBuilder.append(code)
+                    stringBuilder.append(" errCode ")
+                    stringBuilder.append(errorCode)
+                    e(str, stringBuilder.toString())
+                } else
+                    if (code == CODE_CALLBACK_ACQUIRE) {
+                        val result = converHwAcquireInfoToHuawei(errorCode)
+                        val str2 = TAG
+                        val stringBuilder2 = StringBuilder()
+                        stringBuilder2.append(" result ")
                         stringBuilder2.append(result)
-                        e(str2, stringBuilder2.toString())
+                        d(str2, stringBuilder2.toString())
+                        if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
+                            mAuthenticatorCallback?.onAuthenticationStatus(result)
+                        }
+                    } else if (code == CODE_CALLBACK_RESULT) {
+                        val result = converHwErrorCodeToHuawei(errorCode)
+                        var str2 = TAG
+                        var stringBuilder2 = StringBuilder()
+                        stringBuilder2.append(" result ")
+                        stringBuilder2.append(result)
+                        d(str2, stringBuilder2.toString())
+                        if (result == HUAWEI_FACE_AUTHENTICATOR_SUCCESS) {
+                            d(TAG, "huawei face auth success")
+                            mAuthenticatorCallback?.onAuthenticationSucceeded()
+                            mAuthenticatorCallback = null
+                        } else if (result != HUAWEI_FACE_AUTHENTICATOR_FAIL) {
+                            str2 = TAG
+                            stringBuilder2 = StringBuilder()
+                            stringBuilder2.append(" error reason ")
+                            stringBuilder2.append(result)
+                            e(str2, stringBuilder2.toString())
+
+                            mAuthenticatorCallback?.onAuthenticationError(result)
+                            mAuthenticatorCallback = null
+                        } else {
+                            mAuthenticatorCallback?.onAuthenticationFailed()
+                            str2 = TAG
+                            stringBuilder2 = StringBuilder()
+                            stringBuilder2.append(" fail reason ")
+                            stringBuilder2.append(result)
+                            e(str2, stringBuilder2.toString())
+                        }
                     }
-                }
+            }
         }
     }
     private val context = AndroidContext.appContext
