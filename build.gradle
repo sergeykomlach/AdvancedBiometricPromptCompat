@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 40
+    ext.libsMinorVersion = 41
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -50,7 +50,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:7.3.1'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:2.0.2"
-        classpath 'org.owasp:dependency-check-gradle:6.5.3'
+        classpath 'org.owasp:dependency-check-gradle:7.4.3'
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.2'
