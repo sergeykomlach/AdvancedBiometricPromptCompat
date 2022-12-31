@@ -95,13 +95,20 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(hwErrorCode)
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
-                FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
+                FaceRecognizeManager.FaceErrorCode.SUCCESS, FaceRecognizeManager.FaceErrorCode.SUCCESS_HONOR_PLAY_ISSUE -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
                 FaceRecognizeManager.FaceErrorCode.CANCELED -> HUAWEI_FACE_AUTH_ERROR_CANCEL
                 FaceRecognizeManager.FaceErrorCode.TIMEOUT -> HUAWEI_FACE_AUTH_ERROR_TIMEOUT
                 FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE -> HUAWEI_FACE_AUTH_ERROR_LOCKED
-                FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE, FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS, FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT, FaceRecognizeManager.FaceErrorCode.FAILED -> HUAWEI_FACE_AUTH_ERROR_VENDOR
-                FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL, FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA, FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES -> HUAWEI_FACE_AUTHENTICATOR_FAIL
-                else -> HUAWEI_FACE_AUTH_ERROR_CANCEL
+
+                FaceRecognizeManager.FaceErrorCode.HAL_INVALIDE,
+                FaceRecognizeManager.FaceErrorCode.INVALID_PARAMETERS,
+                FaceRecognizeManager.FaceErrorCode.ALGORITHM_NOT_INIT -> HUAWEI_FACE_AUTH_ERROR_VENDOR
+
+//                FaceRecognizeManager.FaceErrorCode.COMPARE_FAIL,
+//                FaceRecognizeManager.FaceErrorCode.NO_FACE_DATA,
+//                FaceRecognizeManager.FaceErrorCode.OVER_MAX_FACES,
+//                FaceRecognizeManager.FaceErrorCode.FAILED-> HUAWEI_FACE_AUTHENTICATOR_FAIL
+                else -> HUAWEI_FACE_AUTHENTICATOR_FAIL
             }
         }
 

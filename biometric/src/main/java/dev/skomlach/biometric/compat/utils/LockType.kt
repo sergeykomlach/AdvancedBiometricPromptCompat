@@ -24,10 +24,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.net.Uri
 import android.os.Build
-import android.os.Process
-import android.os.UserHandle
 import dev.skomlach.common.contextprovider.AndroidContext
-import java.lang.reflect.Method
 import java.util.*
 
 @SuppressLint("PrivateApi")
@@ -59,33 +56,47 @@ object LockType {
     }
 
 
-    fun isBiometricWeakEnabled(pkg: String?, context: Context): Boolean {
+    private fun getClass(pkg: String?): Class<*> {
         return try {
-            val mode: Int
-            val lockUtilsClass = ReflectionTools.getClassFromPkg(
-                pkg ?: throw IllegalArgumentException("Pkg is null"),
+            ReflectionTools.getClassFromPkg(
+                pkg ?: return Class.forName("com.android.internal.widget.LockPatternUtils"),
                 "com.android.internal.widget.LockPatternUtils"
             )
-            var method: Method? = null
+        } catch (e: Throwable) {
+            Class.forName("com.android.internal.widget.LockPatternUtils")
+        }
+    }
+
+    fun isBiometricWeakEnabled(pkg: String?, context: Context): Boolean {
+        try {
+            val mode: Int
+            val lockUtilsClass = getClass(pkg)
             val lockUtils =
                 lockUtilsClass.getConstructor(Context::class.java).newInstance(appContext)
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                method = lockUtilsClass.getMethod("getActivePasswordQuality")
-                mode = Integer.valueOf(method.invoke(lockUtils).toString())
-            } else {
-                method = lockUtilsClass.getMethod(
+
+            val method = lockUtilsClass.getMethod("getActivePasswordQuality")
+            mode = method.invoke(lockUtils) as Int
+            return mode == DevicePolicyManager.PASSWORD_QUALITY_BIOMETRIC_WEAK
+        } catch (ignore: Throwable) {
+
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            try {
+                val mode: Int
+                val lockUtilsClass = getClass(pkg)
+                val lockUtils =
+                    lockUtilsClass.getConstructor(Context::class.java).newInstance(appContext)
+
+                val method = lockUtilsClass.getMethod(
                     "getActivePasswordQuality",
                     Int::class.javaPrimitiveType
                 )
-                val userid =
-                    UserHandle::class.java.getMethod("getUserId", Int::class.javaPrimitiveType)
-                        .invoke(null, Process.myUid()) as Int
-                mode = Integer.valueOf(method.invoke(lockUtils, userid).toString())
+                mode = method.invoke(lockUtils, 0) as Int
+                return mode == DevicePolicyManager.PASSWORD_QUALITY_BIOMETRIC_WEAK
+            } catch (ignore: Throwable) {
+
             }
-            mode == DevicePolicyManager.PASSWORD_QUALITY_BIOMETRIC_WEAK
-        } catch (ignore: Throwable) {
-            isBiometricEnabledInSettings(context)
-        }
+        return isBiometricEnabledInSettings(context)
     }
 
     fun isBiometricEnabledInSettings(context: Context, type: String): Boolean {
