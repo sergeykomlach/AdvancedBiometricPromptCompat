@@ -72,7 +72,6 @@ class FaceRecognizeManager(context: Context?, callback: FaceRecognizeCallback?) 
             const val NO_FACE_DATA = 10
             const val OVER_MAX_FACES = 7
             const val SUCCESS = 0
-            const val SUCCESS_HONOR_PLAY_ISSUE = 12
             const val TIMEOUT = 4
             const val UNKNOWN = 100
         }
