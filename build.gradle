@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 42
+    ext.libsMinorVersion = 43
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -88,17 +88,17 @@ allprojects {
 subprojects { project ->
     group = libsGroupId
     version = libVersion
-    afterEvaluate {
-        try {
-            android.libraryVariants.all { v ->
-                // if (v.buildType.name == "release") {
-                v.assemble.finalizedBy(dependencyCheckAnalyze)
-                // }
-            }
-        } catch (Exception ignore) {
-        }
-
-    }
+//    afterEvaluate {
+//        try {
+//            android.libraryVariants.all { v ->
+//                // if (v.buildType.name == "release") {
+//                v.assemble.finalizedBy(dependencyCheckAnalyze)
+//                // }
+//            }
+//        } catch (Exception ignore) {
+//        }
+//
+//    }
 }
 
 task clean(type: Delete) {

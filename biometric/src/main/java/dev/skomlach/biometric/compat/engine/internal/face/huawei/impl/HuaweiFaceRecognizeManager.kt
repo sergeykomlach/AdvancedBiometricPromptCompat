@@ -31,7 +31,7 @@ import java.util.concurrent.locks.ReentrantLock
 class HuaweiFaceRecognizeManager {
 
     companion object {
-        const val SUCCESS_HONOR_PLAY_ISSUE = 12
+
         const val DEFAULT_FLAG = 1
         const val CODE_CALLBACK_ACQUIRE = 3
         const val CODE_CALLBACK_BUSY = 4
@@ -96,7 +96,7 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(hwErrorCode)
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
-                FaceRecognizeManager.FaceErrorCode.SUCCESS, SUCCESS_HONOR_PLAY_ISSUE -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
+                FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
                 FaceRecognizeManager.FaceErrorCode.CANCELED -> HUAWEI_FACE_AUTH_ERROR_CANCEL
                 FaceRecognizeManager.FaceErrorCode.TIMEOUT -> HUAWEI_FACE_AUTH_ERROR_TIMEOUT
                 FaceRecognizeManager.FaceErrorCode.IN_LOCKOUT_MODE -> HUAWEI_FACE_AUTH_ERROR_LOCKED
