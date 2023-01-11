@@ -113,6 +113,74 @@ class HuaweiFaceRecognizeManager {
             }
         }
 
+        fun getTypeString(type: Int): String {
+            return when (type) {
+                1 -> "ENROLL"
+                2 -> "AUTH"
+                3 -> "REMOVE"
+                else -> "" + type
+            }
+        }
+
+        fun getCodeString(code: Int): String {
+            return when (code) {
+                1 -> "result"
+                2 -> "cancel"
+                3 -> "acquire"
+                4 -> "request busy"
+                else -> "" + code
+            }
+        }
+
+        fun getErrorCodeString(code: Int, errorCode: Int): String {
+            if (code != 1) {
+                if (code == 3) {
+                    when (errorCode) {
+                        4 -> return "bad quality"
+                        5 -> return "no face detected"
+                        6 -> return "face too small"
+                        7 -> return "face too large"
+                        8 -> return "offset left"
+                        9 -> return "offset top"
+                        10 -> return "offset right"
+                        11 -> return "offset bottom"
+                        13 -> return "aliveness warning"
+                        14 -> return "aliveness failure"
+                        15 -> return "rotate left"
+                        16 -> return "face rise to high"
+                        17 -> return "rotate right"
+                        18 -> return "face too low"
+                        19 -> return "keep still"
+                        21 -> return "eyes occlusion"
+                        22 -> return "eyes closed"
+                        23 -> return "mouth occlusion"
+                        27 -> return "multi faces"
+                        28 -> return "face blur"
+                        29 -> return "face not complete"
+                        30 -> return "too dark"
+                        31 -> return "too light"
+                        32 -> return "half shadow"
+                        else -> {}
+                    }
+                }
+            }
+            when (errorCode) {
+                0 -> return "success"
+                1 -> return "failed"
+                2 -> return "cancelled"
+                3 -> return "compare fail"
+                4 -> return "time out"
+                5 -> return "invoke init first"
+                6 -> return "hal invalid"
+                7 -> return "over max faces"
+                8 -> return "in lockout mode"
+                9 -> return "invalid parameters"
+                10 -> return "no face data"
+                11 -> return "low temp & cap"
+            }
+            return "" + errorCode
+        }
+
         private val lock = ReentrantLock()
         fun createInstance() {
             try {
@@ -147,11 +215,12 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(" onCallbackEvent gotten reqId ")
             stringBuilder.append(reqId)
             stringBuilder.append(" type ")
-            stringBuilder.append(type)
+            stringBuilder.append(type).append(" (").append(getTypeString(type)).append(")")
             stringBuilder.append(" code ")
-            stringBuilder.append(code)
+            stringBuilder.append(code).append(" (").append(getCodeString(code)).append(")")
             stringBuilder.append(" errCode ")
-            stringBuilder.append(errorCode)
+            stringBuilder.append(errorCode).append(" (").append(getErrorCodeString(code, type))
+                .append(")")
             d(str, stringBuilder.toString())
 
             ExecutorHelper.post {
