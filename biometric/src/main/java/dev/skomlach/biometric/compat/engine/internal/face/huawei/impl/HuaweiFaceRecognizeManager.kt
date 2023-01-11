@@ -153,11 +153,13 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(" errCode ")
             stringBuilder.append(errorCode)
             d(str, stringBuilder.toString())
-            if (mAuthenticatorCallback == null) {
-                e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
-                return
-            }
+
             ExecutorHelper.post {
+                if (mAuthenticatorCallback == null) {
+                    e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
+                    release()
+                    return@post
+                }
                 if (type != TYPE_CALLBACK_AUTH) {
                     str = TAG
                     stringBuilder = StringBuilder()
@@ -209,6 +211,9 @@ class HuaweiFaceRecognizeManager {
                             stringBuilder2.append(result)
                             e(str2, stringBuilder2.toString())
                         }
+                        release()
+                    } else{
+                        e("bad params, ignore")
                     }
             }
         }
@@ -232,8 +237,6 @@ class HuaweiFaceRecognizeManager {
         if (fRManager != null) {
             fRManager?.release()
         }
-        fRManager = null
-        instance = null
     }
 
     fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {
