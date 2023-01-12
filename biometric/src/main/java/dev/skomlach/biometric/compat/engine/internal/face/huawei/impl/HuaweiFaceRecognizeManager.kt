@@ -233,13 +233,6 @@ class HuaweiFaceRecognizeManager {
                     str = TAG
                     stringBuilder = StringBuilder()
                     stringBuilder.append(" gotten not huawei's auth callback reqid ")
-                    stringBuilder.append(reqId)
-                    stringBuilder.append(" type ")
-                    stringBuilder.append(type)
-                    stringBuilder.append(" code ")
-                    stringBuilder.append(code)
-                    stringBuilder.append(" errCode ")
-                    stringBuilder.append(errorCode)
                     e(str, stringBuilder.toString())
                 } else
                     if (code == CODE_CALLBACK_ACQUIRE) {
