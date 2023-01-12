@@ -163,12 +163,13 @@ class MainActivity : AppCompatActivity() {
         LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(log: String) {
                 LogCat.setLog2ViewCallback(null)
-                MailTo.startMailClient(
+                if(!MailTo.startMailClient(
                     this@MainActivity,
                     "s.komlach@gmail.com",
                     "Advanced BiometricPromptCompat Logs",
                     log
-                )
+                ))
+                    Toast.makeText(this@MainActivity, "Unexpected error occurred :(", Toast.LENGTH_LONG).show()
             }
         })
 
