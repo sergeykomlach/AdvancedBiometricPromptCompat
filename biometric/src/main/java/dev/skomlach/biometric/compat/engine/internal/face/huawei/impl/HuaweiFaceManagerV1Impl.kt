@@ -82,7 +82,12 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
         get() = 1
     override val isHardwareDetected: Boolean
         get() = try {
-            (HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: (0 and 1)) != 0
+            try {
+                HuaweiFaceRecognizeManager.fRManager?.faceRecognitionAbility?.isFaceRecognitionSupport
+                    ?: false
+            } catch (e: Throwable) {
+                (HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: (0 and 1)) != 0
+            }
         } catch (ignore: Throwable) {
             false
         }

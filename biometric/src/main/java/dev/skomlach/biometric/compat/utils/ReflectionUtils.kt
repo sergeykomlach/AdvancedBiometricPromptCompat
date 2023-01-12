@@ -24,36 +24,38 @@ import java.lang.reflect.Modifier
 
 
 object ReflectionUtils {
-    fun printClass(name: String?) {
+    fun printClass(builder: StringBuilder, name: String?) {
         try {
             // print class name and superclass name (if != Object)
             val cl = Class.forName(name)
-            printClass(cl)
+            printClass(builder, cl)
         } catch (ignore: ClassNotFoundException) {
         }
     }
 
-    fun printClass(cl: Class<*>) {
+    fun printClass(builder: StringBuilder, cl: Class<*>) {
         try {
             val supercl = cl.superclass
             val modifiers = Modifier.toString(cl.modifiers)
             if (modifiers.isNotEmpty()) {
-                System.err.print("$modifiers ")
+                builder.append("$modifiers ")
             }
-            System.err.print("class " + cl.name)
+            builder.append("class " + cl.name)
             if (supercl != null && supercl != Any::class.java) {
-                System.err.print(
+                builder.append(
                     " extends "
                             + supercl.name
                 )
             }
-            System.err.print("\n{\n")
-            printConstructors(cl)
-            System.err.println()
-            printMethods(cl)
-            System.err.println()
-            printFields(cl)
-            System.err.println("}")
+            builder.append("\n{\n")
+            printConstructors(builder, cl)
+            builder.append("\n")
+            printFields(builder, cl)
+            builder.append("\n")
+            printMethods(builder, cl)
+            builder.append("\n")
+            printClasses(builder, cl)
+            builder.append("\n}\n")
         } catch (e: Exception) {
             e(e)
         }
@@ -64,26 +66,26 @@ object ReflectionUtils {
      *
      * @param cl a class
      */
-    fun printConstructors(cl: Class<*>) {
+    fun printConstructors(builder: StringBuilder, cl: Class<*>) {
         val constructors = cl.declaredConstructors
         for (c in constructors) {
             val name = c.name
-            System.err.print("   ")
+            builder.append("   ")
             val modifiers = Modifier.toString(c.modifiers)
             if (modifiers.isNotEmpty()) {
-                System.err.print("$modifiers ")
+                builder.append("$modifiers ")
             }
-            System.err.print("$name(")
+            builder.append("$name(")
 
             // print parameter types
             val paramTypes = c.parameterTypes
             for (j in paramTypes.indices) {
                 if (j > 0) {
-                    System.err.print(", ")
+                    builder.append(", ")
                 }
-                System.err.print(paramTypes[j].name)
+                builder.append(paramTypes[j].name)
             }
-            System.err.println(");")
+            builder.append(");\n")
         }
     }
 
@@ -92,28 +94,28 @@ object ReflectionUtils {
      *
      * @param cl a class
      */
-    fun printMethods(cl: Class<*>) {
+    fun printMethods(builder: StringBuilder, cl: Class<*>) {
         val methods = cl.declaredMethods
         for (m in methods) {
             val retType = m.returnType
             val name = m.name
-            System.err.print("   ")
+            builder.append("   ")
             // print modifiers, return type and method name
             val modifiers = Modifier.toString(m.modifiers)
             if (modifiers.isNotEmpty()) {
-                System.err.print("$modifiers ")
+                builder.append("$modifiers ")
             }
-            System.err.print(retType.name + " " + name + "(")
+            builder.append(retType.name + " " + name + "(")
 
             // print parameter types
             val paramTypes = m.parameterTypes
             for (j in paramTypes.indices) {
                 if (j > 0) {
-                    System.err.print(", ")
+                    builder.append(", ")
                 }
-                System.err.print(paramTypes[j].name)
+                builder.append(paramTypes[j].name)
             }
-            System.err.println(");")
+            builder.append(");\n")
         }
     }
 
@@ -123,7 +125,7 @@ object ReflectionUtils {
      * @param cl a class
      */
     @Throws(IllegalAccessException::class)
-    fun printFields(cl: Class<*>) {
+    fun printFields(builder: StringBuilder, cl: Class<*>) {
         val fields = cl.declaredFields
         for (f in fields) {
             val isAccessible = f.isAccessible
@@ -132,19 +134,33 @@ object ReflectionUtils {
             }
             val type = f.type
             val name = f.name
-            System.err.print("   ")
+            builder.append("   ")
             val modifiers = Modifier.toString(f.modifiers)
             if (modifiers.isNotEmpty()) {
-                System.err.print("$modifiers ")
+                builder.append("$modifiers ")
             }
             if (Modifier.isStatic(f.modifiers)) {
-                if (type == String::class.java) System.err.println(type.name + " " + name + " = \"" + f[null] + "\";") else System.err.println(
-                    type.name + " " + name + " = " + f[null] + ";"
+                if (type == String::class.java)
+                    builder.append(type.name + " " + name + " = \"" + f[null] + "\";\n") else builder.append(
+                    type.name + " " + name + " = " + f[null] + ";\n"
                 )
-            } else System.err.println(type.name + " " + name + ";")
+            } else builder.append(type.name + " " + name + ";\n")
             if (!isAccessible) {
                 f.isAccessible = true
             }
+        }
+    }
+
+    /**
+     * Prints all fields of a class
+     *
+     * @param cl a class
+     */
+    @Throws(IllegalAccessException::class)
+    fun printClasses(builder: StringBuilder, cl: Class<*>) {
+        val fields = cl.declaredClasses
+        for (f in fields) {
+            printClass(builder, f)
         }
     }
 }
