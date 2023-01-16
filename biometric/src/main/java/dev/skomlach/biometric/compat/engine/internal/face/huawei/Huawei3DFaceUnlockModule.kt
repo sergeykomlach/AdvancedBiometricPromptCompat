@@ -55,7 +55,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
     }
 
     override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = isManagerAccessible
+        get() = false
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
