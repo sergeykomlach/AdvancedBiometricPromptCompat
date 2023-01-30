@@ -183,6 +183,9 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                             }
                     }
                 }
+                 cancellationSignal?.setOnCancelListener {
+                     cancelFingerprintServiceFingerprintRequest()
+                 }
                 mFingerprintServiceFingerprintManager
                     ?.startIdentify(callback, mFingerprintServiceFingerprintManager?.ids)
 

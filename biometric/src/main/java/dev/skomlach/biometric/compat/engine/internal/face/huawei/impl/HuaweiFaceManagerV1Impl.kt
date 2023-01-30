@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
+import com.huawei.facerecognition.FaceRecognizeManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
@@ -29,13 +30,17 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
         private const val HUAWEI_OP_FAIL = -1
         private const val HUAWEI_OP_SUCCESS = 0
         private const val TAG = "HuaweiFaceManagerV1Impl"
+        private const val REQ_ID = 0
+        private const val TYPE_AUTH = FaceRecognizeManager.TYPE_CALLBACK_AUTH
     }
 
     init {
         HuaweiFaceRecognizeManager.createInstance()
     }
 
-    override fun authenticate(reqID: Int, flag: Int, callback: AuthenticatorCallback?) {
+    override fun authenticate(callback: AuthenticatorCallback?) {
+        val reqID = REQ_ID
+        val type = TYPE_AUTH
         val frManager: HuaweiFaceRecognizeManager? =
             HuaweiFaceRecognizeManager.instance
         if (frManager == null) {
@@ -48,8 +53,8 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
             val stringBuilder = StringBuilder()
             stringBuilder.append("reqID is ")
             stringBuilder.append(reqID)
-            stringBuilder.append("flag is ")
-            stringBuilder.append(flag)
+            stringBuilder.append(" flag is ")
+            stringBuilder.append(type)
             d(str, stringBuilder.toString())
             val ret = frManager.init()
             if (ret != HUAWEI_OP_SUCCESS) {
@@ -62,42 +67,41 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
                 return
             }
             d(TAG, "authenicating... ")
-            HuaweiFaceRecognizeManager.fRManager?.authenticate(reqID, flag, null)
+            HuaweiFaceRecognizeManager.fRManager?.authenticate(reqID, type, null)
         }
     }
 
-    override fun cancel(reqID: Int): Int {
+    override fun cancel(): Int {
         d(TAG, "canceling...")
         if (HuaweiFaceRecognizeManager.instance == null) {
             e(TAG, "HuaweiFaceRecognizeManager is null")
             return -1
         }
-        HuaweiFaceRecognizeManager.fRManager?.cancelAuthenticate(reqID)
+        HuaweiFaceRecognizeManager.fRManager?.cancelAuthenticate(REQ_ID)
         HuaweiFaceRecognizeManager.fRManager?.release()
         HuaweiFaceRecognizeManager.createInstance()
-        return 0
+        return HUAWEI_OP_SUCCESS
     }
 
     override val version: Int
-        get() = 1
+        get() = FACE_AUTH_VERSION_V1
     override val isHardwareDetected: Boolean
-        get() = try {
+        get() = HuaweiFaceRecognizeManager.instance?.isCameraBroken() != true && try {
             try {
                 HuaweiFaceRecognizeManager.fRManager?.faceRecognitionAbility?.isFaceRecognitionSupport
                     ?: false
             } catch (e: Throwable) {
-                (HuaweiFaceRecognizeManager.fRManager?.hardwareSupportType ?: (0 and 1)) != 0
+                HuaweiFaceRecognizeManager.fRManager?.let {
+                    return (it.hardwareSupportType and 1) !== 0
+                }
+                false
             }
         } catch (ignore: Throwable) {
             false
         }
 
     override fun hasEnrolledTemplates(): Boolean {
-        return try {
-            HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs?.isNotEmpty() == true
-        } catch (ignore: Throwable) {
-            false
-        }
+        return getEnrolledTemplates()?.isNotEmpty() == true
     }
 
     override fun getEnrolledTemplates(): IntArray? {

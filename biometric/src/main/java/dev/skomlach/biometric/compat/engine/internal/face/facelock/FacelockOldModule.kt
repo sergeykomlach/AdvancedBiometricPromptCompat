@@ -148,6 +148,9 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         try {
             d("$name: Facelock call authorize")
+            cancellationSignal?.setOnCancelListener {
+                stopAuth()
+            }
             authorize(
                 ProxyListener(
                     biometricCryptoObject,
