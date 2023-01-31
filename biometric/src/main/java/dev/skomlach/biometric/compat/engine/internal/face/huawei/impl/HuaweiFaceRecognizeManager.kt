@@ -99,8 +99,9 @@ class HuaweiFaceRecognizeManager {
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
                 FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL->{
+                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
                     SharedPreferenceProvider.getPreferences(TAG).edit().putBoolean("broken_camera-${LastUpdatedTs.timestamp}", true).apply()
-                    return HUAWEI_FACE_AUTHENTICATOR_FAIL
+                    return HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
                 FaceRecognizeManager.FaceErrorCode.CANCELED -> HUAWEI_FACE_AUTH_ERROR_CANCEL
