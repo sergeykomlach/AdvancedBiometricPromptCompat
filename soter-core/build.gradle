@@ -20,9 +20,6 @@ android {
         }
     }
 
-    lintOptions {
-        disable "TrulyRandom", "RtlSymmetry", "RtlHardcoded", "ContentDescription", "DefaultLocale", "AllowBackup", "GoogleAppIndexingWarning"
-    }
     compileOptions {
         sourceCompatibility javaVersion
         targetCompatibility javaVersion
@@ -34,6 +31,9 @@ android {
 
     dependencies {
         implementation 'androidx.core:core-ktx:1.9.0'
+    }
+    lint {
+        disable 'TrulyRandom', 'RtlSymmetry', 'RtlHardcoded', 'ContentDescription', 'DefaultLocale', 'AllowBackup', 'GoogleAppIndexingWarning'
     }
 }
 

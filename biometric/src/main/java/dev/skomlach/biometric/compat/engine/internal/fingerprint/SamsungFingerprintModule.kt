@@ -203,6 +203,9 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     override fun onStarted() {}
                     override fun onCompleted() {}
                 }
+                cancellationSignal?.setOnCancelListener{
+                    cancelFingerprintRequest()
+                }
                 it.startIdentify(callback)
 
                 return

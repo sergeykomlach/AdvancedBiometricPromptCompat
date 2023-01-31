@@ -109,7 +109,9 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 val signalObject =
                     (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                         ?: throw IllegalArgumentException("CancellationSignal cann't be null")
-
+                signalObject.setOnCancelListener {
+                    it.stopFaceUnlock()
+                }
                 // Occasionally, an NPE will bubble up out of SemBioSomeManager.authenticate
                 it.startFaceUnlock(callback)
                 return

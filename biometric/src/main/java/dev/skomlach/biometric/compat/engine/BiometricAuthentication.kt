@@ -333,6 +333,9 @@ object BiometricAuthentication {
                 if (biometricModule is FacelockOldModule) {
                     biometricModule.stopAuth()
                 }
+                if (biometricModule is FaceunlockLavaModule) {
+                    biometricModule.stopAuth()
+                }
             }
             Core.cancelAuthentication()
 

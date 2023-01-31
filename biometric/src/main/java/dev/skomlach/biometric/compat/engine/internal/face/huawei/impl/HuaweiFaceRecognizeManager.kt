@@ -21,10 +21,12 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
+import dev.skomlach.biometric.compat.utils.LastUpdatedTs
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -96,6 +98,11 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(hwErrorCode)
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
+                FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL->{
+                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
+                    SharedPreferenceProvider.getPreferences(TAG).edit().putBoolean("broken_camera-${LastUpdatedTs.timestamp}", true).apply()
+                    return HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE
+                }
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
                 FaceRecognizeManager.FaceErrorCode.CANCELED -> HUAWEI_FACE_AUTH_ERROR_CANCEL
                 FaceRecognizeManager.FaceErrorCode.TIMEOUT -> HUAWEI_FACE_AUTH_ERROR_TIMEOUT
@@ -219,14 +226,13 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(" code ")
             stringBuilder.append(code).append(" (").append(getCodeString(code)).append(")")
             stringBuilder.append(" errCode ")
-            stringBuilder.append(errorCode).append(" (").append(getErrorCodeString(code, type))
+            stringBuilder.append(errorCode).append(" (").append(getErrorCodeString(code, errorCode))
                 .append(")")
             d(str, stringBuilder.toString())
 
             ExecutorHelper.post {
                 if (mAuthenticatorCallback == null) {
                     e(TAG, "mAuthenticatorCallback empty in onCallbackEvent ")
-                    release()
                     return@post
                 }
                 if (type != TYPE_CALLBACK_AUTH) {
@@ -273,7 +279,6 @@ class HuaweiFaceRecognizeManager {
                             stringBuilder2.append(result)
                             e(str2, stringBuilder2.toString())
                         }
-                        release()
                     } else{
                         e("bad params, ignore")
                     }
@@ -301,6 +306,9 @@ class HuaweiFaceRecognizeManager {
         }
     }
 
+    fun isCameraBroken() : Boolean{
+        return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera-${LastUpdatedTs.timestamp}", false)
+    }
     fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {
         mAuthenticatorCallback = authCallback
     }

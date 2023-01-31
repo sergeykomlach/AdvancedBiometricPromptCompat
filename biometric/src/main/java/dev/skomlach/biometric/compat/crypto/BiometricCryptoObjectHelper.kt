@@ -34,26 +34,26 @@ object BiometricCryptoObjectHelper {
             else
                 CryptographyManagerInterfaceLegacyImpl()
 
-    fun deleteCrypto(name: String?) {
-        managerInterface.deleteKey((name ?: return) + "-${LastUpdatedTs.timestamp}")
+    fun deleteCrypto(name: String) {
+        managerInterface.deleteKey(name)
     }
 
     fun getBiometricCryptoObject(
-        name: String?,
+        name: String,
         purpose: BiometricCryptographyPurpose?,
         isUserAuthRequired: Boolean = true
     ): BiometricCryptoObject? {
-        if (purpose == null || name.isNullOrEmpty())
+        if (purpose == null)
             return null
         try {
             val cipher =
                 when (purpose.purpose) {
                     BiometricCryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
-                        "$name-${LastUpdatedTs.timestamp}",
+                        name,
                         isUserAuthRequired
                     )
                     BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
-                        "$name-${LastUpdatedTs.timestamp}",
+                        name,
                         isUserAuthRequired,
                         purpose.initVector
                     )
