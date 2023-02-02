@@ -22,12 +22,14 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 import android.os.Build
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
-import dev.skomlach.biometric.compat.utils.LastUpdatedTs
+import dev.skomlach.biometric.compat.utils.HexUtils
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import java.nio.charset.Charset
+import java.security.MessageDigest
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -101,7 +103,10 @@ class HuaweiFaceRecognizeManager {
             return when (hwErrorCode) {
                 FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL->{
                     SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
-                    SharedPreferenceProvider.getPreferences(TAG).edit().putBoolean("broken_camera-${Build.FINGERPRINT}", true).apply()
+                    SharedPreferenceProvider.getPreferences(TAG).edit()
+                        .putBoolean(md5(Build.FINGERPRINT), false)
+                        .putBoolean("broken_camera", true)
+                        .apply()
                     return HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
@@ -188,7 +193,28 @@ class HuaweiFaceRecognizeManager {
             }
             return "" + errorCode
         }
+        fun isCameraBroken() : Boolean{
+            return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera", false)
+        }
+        fun resetCheckCamera(){
+            val pref = SharedPreferenceProvider.getPreferences(TAG)
+            pref.edit().clear().putBoolean(md5(Build.FINGERPRINT), false).apply()
+        }
+        fun shouldCheckCamera() : Boolean{
+            val pref = SharedPreferenceProvider.getPreferences(TAG)
+            return pref.getBoolean(md5(Build.FINGERPRINT), true)
+        }
+        private fun md5(s: String): String? {
+            try {
+                val digest = MessageDigest.getInstance("MD5")
+                digest.reset()
+                digest.update(s.toByteArray(Charset.forName("UTF-8")))
+                return HexUtils.bytesToHex(digest.digest())
+            } catch (e: Exception) {
 
+            }
+            return null
+        }
         private val lock = ReentrantLock()
         fun createInstance() {
             try {
@@ -307,9 +333,7 @@ class HuaweiFaceRecognizeManager {
         }
     }
 
-    fun isCameraBroken() : Boolean{
-        return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera-${Build.FINGERPRINT}", false)
-    }
+
     fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {
         mAuthenticatorCallback = authCallback
     }
