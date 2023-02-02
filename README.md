@@ -72,7 +72,12 @@ Latest supported Android OS version: **Android 13 Tiramisu**
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
 
-## Recent changes
+## Recent changes (last 3 month)
+February 2, 2023
+
+**Bugfix: FaceId doesn't work on Honor** check for camera access on Huawei/Honor devices
+
+**Improvement: auth dismiss** more correct auth cancel for non-modern methods
 
 December 28, 2022
 
@@ -80,7 +85,7 @@ Code cleanup and minor fixes
 
 December 23, 2022
 
-**Improvment: Soter-Core added to project** instead of downloading from jitpack.io 
+**Improvement: Soter-Core added to project** instead of downloading from jitpack.io 
 
 November 14, 2022
 
@@ -94,36 +99,6 @@ November 8, 2022
 
 **Feature: Silent Auth implemented** - added solution that allow to recognize the user without any UI (not all devices)
 
-October 30, 2022
-
-**Bugfix: Permission error on Android T** - fixed bug when permission error happens during notification posting
-
-
-October 21, 2022
-
-**Bugfix: Pixel 7** - fixed bug user get "Hardware not available" on such device
-
-**Bugfix: Empty dialog after screen rotation** - dismiss dialog properly
-
-**Bugfix: Broken night theme detection**
-
-August 23, 2022
-
-**Bugfix: OnePlus 9+** - fixed bug when pressing "Cancel" button on biometric dialog, leads to `onAuthenticationSucceeded` call instead of `onAuthenticationError`
-
-August 11, 2022
-
-**Bugfix: Samsung FaceId + Android 9+** - should be fixed bug on Samsung devices when FaceId failed with UNKNOWN error due to incorrect "authenticate" call
-
-August 9, 2022
-
-**Bugfix: Biometric Title** - fixed incorrect title on biometric dialog
-
-August 3, 2022
-
-**Bugfix: BG biometric icons color and blur fixed** - fixed incorrect (RGB_565) color scheme used, as result, bug when BG biometric icons tinted in wrong color, plus blur use a wrong bitmap
-
-**Bugfix: MS Surface Duo** - fixed legacy dialog height; fixed issue when legacy dialog dismissed if wrong finger enrolled
 
 
 

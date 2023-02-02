@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
+import android.os.Build
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.utils.LastUpdatedTs
@@ -100,7 +101,7 @@ class HuaweiFaceRecognizeManager {
             return when (hwErrorCode) {
                 FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL->{
                     SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
-                    SharedPreferenceProvider.getPreferences(TAG).edit().putBoolean("broken_camera-${LastUpdatedTs.timestamp}", true).apply()
+                    SharedPreferenceProvider.getPreferences(TAG).edit().putBoolean("broken_camera-${Build.FINGERPRINT}", true).apply()
                     return HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
@@ -307,7 +308,7 @@ class HuaweiFaceRecognizeManager {
     }
 
     fun isCameraBroken() : Boolean{
-        return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera-${LastUpdatedTs.timestamp}", false)
+        return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera-${Build.FINGERPRINT}", false)
     }
     fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {
         mAuthenticatorCallback = authCallback
