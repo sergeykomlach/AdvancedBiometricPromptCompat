@@ -15,9 +15,9 @@
             <option value="$PROJECT_DIR$/biometric" />
             <option value="$PROJECT_DIR$/biometric-api" />
             <option value="$PROJECT_DIR$/common" />
+            <option value="$PROJECT_DIR$/soter-core" />
           </set>
         </option>
-        <option name="resolveModulePerSourceSet" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
