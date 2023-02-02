@@ -67,6 +67,7 @@ class HuaweiFaceRecognizeManager {
             private set
         var fRManager: FaceRecognizeManager? = null
             private set
+        private var isCameraFailed = false
 
         fun converHwAcquireInfoToHuawei(hwAcquireInfo: Int): Int {
             val str = TAG
@@ -99,8 +100,7 @@ class HuaweiFaceRecognizeManager {
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
                 FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL->{
-                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
-                    SharedPreferenceProvider.getPreferences(TAG).edit().putBoolean("broken_camera-${LastUpdatedTs.timestamp}", true).apply()
+                    isCameraFailed = true
                     return HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
@@ -307,7 +307,7 @@ class HuaweiFaceRecognizeManager {
     }
 
     fun isCameraBroken() : Boolean{
-        return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera-${LastUpdatedTs.timestamp}", false)
+        return isCameraFailed
     }
     fun setAuthCallback(authCallback: HuaweiFaceManager.AuthenticatorCallback?) {
         mAuthenticatorCallback = authCallback
