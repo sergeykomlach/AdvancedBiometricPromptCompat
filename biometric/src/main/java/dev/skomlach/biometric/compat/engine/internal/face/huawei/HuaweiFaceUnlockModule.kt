@@ -48,7 +48,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager()
                 d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
-                if(HuaweiFaceRecognizeManager.shouldCheckCamera()) {
+                if(hasEnrolled() && HuaweiFaceRecognizeManager.shouldCheckCamera()) {
                     val cancellationSignal = CancellationSignal()
                     val checkTask = Runnable {
                         HuaweiFaceRecognizeManager.resetCheckCamera()

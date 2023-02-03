@@ -19,7 +19,7 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.7.21'
+    ext.kotlin_version = '1.8.0'
     ext.minSDK = 16
 //    ext.compileSDK = "Tiramisu"
 //    ext.targetSDK = "Tiramisu"
@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 47
+    ext.libsMinorVersion = 48
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -47,7 +47,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.0'
+        classpath 'com.android.tools.build:gradle:7.4.1'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:2.0.2"
         classpath 'org.owasp:dependency-check-gradle:7.4.3'
