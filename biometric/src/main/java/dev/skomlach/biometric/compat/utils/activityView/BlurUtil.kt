@@ -49,6 +49,63 @@ object BlurUtil {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
     }
 
+    interface onScreenshotListener {
+        fun invoke(originalBitmap: Bitmap)
+    }
+
+    fun takeScreenshot(view: View, listener: onScreenshotListener) {
+        ExecutorHelper.startOnBackground {
+            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
+            val isBlackBerryBug = (Build.BRAND.equals(
+                "Blackberry",
+                ignoreCase = true
+            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
+                    && try {
+                val f =
+                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+                val isAccessible = f?.isAccessible ?: true
+                var result = false
+                try {
+                    f?.isAccessible = true
+                    result = f?.get(view) == null
+                } finally {
+                    if (!isAccessible)
+                        f?.isAccessible = false
+                }
+                result
+            } catch (ignore: Throwable) {
+                false
+            }
+            if (!isBlackBerryBug) {
+                m?.let { method ->
+                    val startMs = System.currentTimeMillis()
+                    try {
+                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                            try {
+                                BiometricLoggerImpl.d("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
+                                ExecutorHelper.post {
+                                    listener.invoke(
+                                        bm.copy(Bitmap.Config.ARGB_4444, false)
+                                    )
+                                }
+                            } catch (e: Throwable) {
+                                BiometricLoggerImpl.e(e)
+                            }
+                        }
+                    } catch (ignore: Throwable) {
+                        ExecutorHelper.post {
+                            listener.invoke(
+                                fallbackViewCapture(view) ?: return@post
+                            )
+                        }
+                    }
+                    return@startOnBackground
+                }
+            }
+            ExecutorHelper.post { listener.invoke(fallbackViewCapture(view) ?: return@post) }
+        }
+
+    }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
         ExecutorHelper.startOnBackground {
@@ -90,18 +147,18 @@ object BlurUtil {
                             }
                         }
                     } catch (ignore: Throwable) {
-                        fallbackViewCapture(view, listener)
+                        blur(view, fallbackViewCapture(view) ?: return@startOnBackground, listener)
                     }
                     return@startOnBackground
                 }
             }
 
-            fallbackViewCapture(view, listener)
+            blur(view, fallbackViewCapture(view) ?: return@startOnBackground, listener)
         }
 
     }
 
-    private fun fallbackViewCapture(view: View, listener: OnPublishListener) {
+    private fun fallbackViewCapture(view: View): Bitmap? {
         val startMs = System.currentTimeMillis()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
@@ -114,8 +171,8 @@ object BlurUtil {
                 val canvas = Canvas(bm)
                 view.draw(canvas)
                 BiometricLoggerImpl.d("BlurUtil.takeScreenshot#2 time - ${System.currentTimeMillis() - startMs} ms")
-                blur(view, bm, listener)
-                return
+
+                return bm
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
@@ -131,7 +188,7 @@ object BlurUtil {
                 view.drawingCache?.let {
                     val bm = Bitmap.createBitmap(it)
                     BiometricLoggerImpl.d("BlurUtil.takeScreenshot#3 time - ${System.currentTimeMillis() - startMs} ms")
-                    blur(view, bm, listener)
+                    return bm
                 }
             } finally {
                 if (!old) {
@@ -142,7 +199,7 @@ object BlurUtil {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-
+        return null
     }
 
     private fun blur(view: View, bkg: Bitmap, listener: OnPublishListener) {

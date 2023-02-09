@@ -59,6 +59,7 @@ Latest supported Android OS version: **Android 13 Tiramisu**
 | Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10|   
 | Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
 | Fingerprint | Android 6+ |Xiaomi POCO F1|  
+| **FaceId** | **Android UpsideDownCake** |**Emulator**|  
 | In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| 
 | Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 | 
 | Face Unlock (aka TrustedFaces) | Android 4.1+ |Prestigio PAP3400|  
