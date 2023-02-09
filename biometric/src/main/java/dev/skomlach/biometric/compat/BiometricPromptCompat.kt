@@ -162,7 +162,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
-                    AndroidContext.appContext
+                    AndroidContext.appInstance?.registerActivityLifecycleCallbacks(BiometricActivityContextProvider)
                     startBiometricInit()
                     ExecutorHelper.startOnBackground {
                         isDeviceInfoCheckInProgress.set(true)
