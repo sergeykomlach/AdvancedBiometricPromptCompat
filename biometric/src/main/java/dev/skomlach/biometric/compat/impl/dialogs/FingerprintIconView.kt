@@ -50,7 +50,7 @@ class FingerprintIconView @JvmOverloads constructor(
 ) {
 
     private var state = State.OFF
-    private var type = BiometricType.BIOMETRIC_FACE
+    private var type = BiometricType.BIOMETRIC_FINGERPRINT
     private var color: Int? = R.color.material_blue_500
 
     init {

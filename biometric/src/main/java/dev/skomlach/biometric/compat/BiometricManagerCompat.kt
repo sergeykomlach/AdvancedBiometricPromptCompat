@@ -240,7 +240,7 @@ object BiometricManagerCompat {
             result = total > 0 && (total == counted)
         }
         val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
-        BiometricLoggerImpl.d("BiometricPromptManager. isBiometricSensorPermanentlyLocked - result=$result; isCameraBlocked=$isCameraBlocked")
+        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
         return result || isCameraBlocked
     }
 
@@ -271,7 +271,7 @@ object BiometricManagerCompat {
                     api.type
                 )
             ).isHardwareAvailable
-
+        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
         preferences.edit().putBoolean("isHardwareDetected-${api.api}-${api.type}", result).apply()
         return result
     }
@@ -303,7 +303,7 @@ object BiometricManagerCompat {
                     api.type
                 )
             ).isBiometricEnrolled
-
+        BiometricLoggerImpl.d("BiometricManagerCompat.hasEnrolled for $api return $result")
         preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).apply()
         return result
     }
@@ -336,7 +336,7 @@ object BiometricManagerCompat {
                     api.type
                 )
             ).isBiometricEnrollChanged
-
+        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricEnrollChanged for $api return $result")
         preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
             .apply()
         return result
@@ -373,9 +373,10 @@ object BiometricManagerCompat {
                     api.type
                 )
             ).isLockedOut
-
+        val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
+        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return ${result || cameraInUse}")
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
-        return result || isCameraInUse(api, ignoreCameraCheck)
+        return result || cameraInUse
     }
 
     @JvmStatic
