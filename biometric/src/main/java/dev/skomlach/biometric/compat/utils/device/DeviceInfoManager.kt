@@ -318,7 +318,7 @@ object DeviceInfoManager {
                         //Redirect happen
                         if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
                             var target = urlConnection.getHeaderField("Location")
-                            if (target != null && !isWebUrl(target)) {
+                            if (target != null && !NetworkApi.isWebUrl(target)) {
                                 target = "https://$target"
                             }
                             return getHtml(target)
@@ -375,19 +375,7 @@ object DeviceInfoManager {
         list.add(str.substring(start))
         return list.toTypedArray()
     }
-    private fun isWebUrl(u: String): Boolean {
-        var url = u
-        if (TextUtils.isEmpty(url)) return false
-        url = url.lowercase(AndroidContext.locale)
-        //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
-        val slash = url.indexOf("/")
-        if (slash > 0 && slash < url.indexOf("?")) {
-            url = url.substring(0, url.indexOf("?"))
-        }
-        return (url.startsWith("http://") || url.startsWith("https://")) && android.util.Patterns.WEB_URL.matcher(
-            url
-        ).matches()
-    }
+
     private fun capitalize(s: String?): String {
         if (s.isNullOrEmpty()) {
             return ""

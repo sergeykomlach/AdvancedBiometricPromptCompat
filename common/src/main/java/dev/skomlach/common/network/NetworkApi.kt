@@ -20,6 +20,8 @@
 package dev.skomlach.common.network
 
 import android.net.TrafficStats
+import android.text.TextUtils
+import dev.skomlach.common.contextprovider.AndroidContext
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -33,7 +35,19 @@ import java.nio.channels.WritableByteChannel
 import javax.net.ssl.HttpsURLConnection
 
 object NetworkApi {
-
+    fun isWebUrl(u: String): Boolean {
+        var url = u
+        if (TextUtils.isEmpty(url)) return false
+        url = url.lowercase(AndroidContext.locale)
+        //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
+        val slash = url.indexOf("/")
+        if (slash > 0 && slash < url.indexOf("?")) {
+            url = url.substring(0, url.indexOf("?"))
+        }
+        return (url.startsWith("http://") || url.startsWith("https://")) && android.util.Patterns.WEB_URL.matcher(
+            url
+        ).matches()
+    }
     fun hasInternet(): Boolean {
         return Connection.isConnection
     }

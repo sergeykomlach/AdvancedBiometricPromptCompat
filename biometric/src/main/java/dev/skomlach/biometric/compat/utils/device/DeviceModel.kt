@@ -28,6 +28,13 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.nio.charset.Charset
+import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 object DeviceModel {
 
@@ -157,9 +164,24 @@ object DeviceModel {
     }
 
     //tools
+    //https://github.com/androidtrackers/certified-android-devices/
     private fun getJSON(): String? {
         try {
-            //https://github.com/androidtrackers/certified-android-devices/
+            val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
+            if (file.parentFile?.exists() == false) {
+                file.parentFile?.mkdirs()
+            }
+            file.also {
+                if (it.exists()) {
+                    return it.readText(
+                        Charset.forName("UTF-8")
+                    )
+                }
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+        try {
             val inputStream =
                 appContext.assets.open("by_brand.json")
             val byteArrayOutputStream = ByteArrayOutputStream()
@@ -167,7 +189,71 @@ object DeviceModel {
             inputStream.close()
             byteArrayOutputStream.close()
             val data = byteArrayOutputStream.toByteArray()
-            return String(data)
+            return String(data, Charset.forName("UTF-8"))
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+        return downloadJsonFile()
+    }
+
+    private fun downloadJsonFile(): String? {
+        try {
+            val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
+            if (file.parentFile?.exists() == false) {
+                file.parentFile?.mkdirs()
+            }
+            val data =
+                downloadFromWeb("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
+            file.also {
+                it.delete()
+                it.writeText(data ?: return null, Charset.forName("UTF-8"))
+            }
+            return data
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+        return null
+    }
+
+    private fun downloadFromWeb(url: String): String? {
+        try {
+            val urlConnection =
+                NetworkApi.createConnection(
+                    url,
+                    TimeUnit.SECONDS.toMillis(30).toInt()
+                )
+
+            urlConnection.requestMethod = "GET"
+            urlConnection.setRequestProperty("Content-Language", "en-US")
+            urlConnection.setRequestProperty("Accept-Language", "en-US")
+            urlConnection.setRequestProperty(
+                "User-Agent",
+                DeviceInfoManager.agents[SecureRandom().nextInt(DeviceInfoManager.agents.size)]
+            )
+            urlConnection.connect()
+            val responseCode = urlConnection.responseCode
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            val inputStream: InputStream
+            BiometricLoggerImpl.e("downloadFromWeb: $responseCode=${urlConnection.responseMessage}")
+            //if any 2XX response code
+            if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                inputStream = urlConnection.inputStream
+            } else {
+                //Redirect happen
+                if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
+                    var target = urlConnection.getHeaderField("Location")
+                    if (target != null && !NetworkApi.isWebUrl(target)) {
+                        target = "https://$target"
+                    }
+                    return downloadFromWeb(target)
+                }
+                inputStream = urlConnection.inputStream ?: urlConnection.errorStream
+            }
+            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+            inputStream.close()
+            val data = byteArrayOutputStream.toByteArray()
+            byteArrayOutputStream.close()
+            return String(data, Charset.forName("UTF-8"))
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
