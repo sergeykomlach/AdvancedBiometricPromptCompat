@@ -55084,6 +55084,21 @@
    "model": "VNE-N41"
   },
   {
+   "device": "HNCRT-M1",
+   "name": "HONOR X8a",
+   "model": "CRT-LX1"
+  },
+  {
+   "device": "HNCRT-M1",
+   "name": "HONOR X8a",
+   "model": "CRT-LX2"
+  },
+  {
+   "device": "HNCRT-M1",
+   "name": "HONOR X8a",
+   "model": "CRT-LX3"
+  },
+  {
    "device": "HNANY-Q1",
    "name": "HONOR X9",
    "model": "ANY-LX1"
@@ -103082,6 +103097,11 @@
    "model": "M7_WIFI"
   },
   {
+   "device": "ML_SO0P_M7_WIFI",
+   "name": "M7 WIFI",
+   "model": "M7_WIFI"
+  },
+  {
    "device": "ML_SO1E_M7_Wifi",
    "name": "M7 WIFI",
    "model": "M7_WIFI"
@@ -109471,6 +109491,11 @@
    "model": "D00"
   },
   {
+   "device": "Edinburgh",
+   "name": "E00",
+   "model": "E00"
+  },
+  {
    "device": "A0001",
    "name": "One",
    "model": "A0001"
@@ -110183,6 +110208,11 @@
    "model": "Easy_Smart_2"
   },
   {
+   "device": "OpelMobile_OMSJ523B",
+   "name": "OMSJ523B",
+   "model": "Smart J5"
+  },
+  {
    "device": "Smart_J2",
    "name": "Opel Mobile_Smart_J2",
    "model": "Smart_J2"
@@ -110832,6 +110862,16 @@
    "device": "OP52F3L1",
    "name": "A77 5G",
    "model": "CPH2339"
+  },
+  {
+   "device": "OP52F3L1",
+   "name": "A78 5G",
+   "model": "CPH2483"
+  },
+  {
+   "device": "OP52F3L1",
+   "name": "A78 5G",
+   "model": "CPH2495"
   },
   {
    "device": "A79",
@@ -176327,6 +176367,11 @@
    "model": "vivo Y33"
   },
   {
+   "device": "PD2236",
+   "name": "Y33t",
+   "model": "V2236A"
+  },
+  {
    "device": "PD1502L",
    "name": "Y35",
    "model": "vivo Y35"
@@ -195721,7 +195766,7 @@
  "iMin": [
   {
    "device": "I22T01",
-   "name": "Falcon_1",
+   "name": "Falcon 1",
    "model": "I22T01"
   },
   {
