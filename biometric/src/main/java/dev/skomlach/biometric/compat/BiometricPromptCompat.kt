@@ -80,6 +80,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     e.printStackTrace()
                 }
             }
+            ExecutorHelper.startOnBackground{
+                try {
+                    BiometricPromptCompat.init()
+                }catch (e: Throwable){}
+            }
         }
 
         @JvmStatic
