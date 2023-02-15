@@ -19,13 +19,17 @@
 
 package dev.skomlach.biometric.compat.impl
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -43,6 +47,7 @@ import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.*
@@ -60,7 +65,7 @@ class PermissionsFragment : Fragment() {
         ) {
             e("PermissionsFragment.askForPermissions()")
             if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
-                val tag = "${PermissionsFragment.javaClass.name}-${
+                val tag = "${PermissionsFragment::class.java.name}-${
                     permissions.joinToString(",").hashCode()
                 }"
                 if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
@@ -87,6 +92,21 @@ class PermissionsFragment : Fragment() {
             }
         }
     }
+
+    private val startForResultForPermissions =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
+                ExecutorHelper.postDelayed({
+                    try {
+                        activity?.supportFragmentManager?.beginTransaction()
+                            ?.remove(this@PermissionsFragment)
+                            ?.commitNowAllowingStateLoss()
+                    } catch (e: Throwable) {
+                        e("PermissionsFragment", e.message, e)
+                    }
+                }, 250)
+            }
+        }
 
     private enum class PermissionRequestState {
         NORMAL_REQUEST,
@@ -124,26 +144,6 @@ class PermissionsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         if (permissionsRequestState.get() == PermissionRequestState.MANUAL_REQUEST.ordinal) {
-            ExecutorHelper.postDelayed({
-                try {
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.remove(this@PermissionsFragment)
-                        ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable) {
-                    e("PermissionsFragment", e.message, e)
-                }
-            }, 250)
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
             ExecutorHelper.postDelayed({
                 try {
                     activity?.supportFragmentManager?.beginTransaction()
@@ -220,7 +220,11 @@ class PermissionsFragment : Fragment() {
 
             // Must use startActivityForResult(), not startActivity(), even if
             // you don't use the result code returned in onActivityResult().
-            startActivityForResult(intent, 5678)
+            val startForResult: ActivityResultLauncher<Intent> =
+                registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                    //no-op
+                }
+            startForResult.launch(intent)
         } catch (e: Throwable) {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", requireActivity().packageName, null)
@@ -238,7 +242,7 @@ class PermissionsFragment : Fragment() {
             }) {
             SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
                 .putBoolean("denied", true).apply()
-            showPermissionDeniedDialog(permissions, 1001)
+            showPermissionDeniedDialog(permissions)
             return
         } else {
             if (!permissions.any {
@@ -254,10 +258,7 @@ class PermissionsFragment : Fragment() {
             } else {
                 permissionsRequestState.set(PermissionRequestState.NORMAL_REQUEST.ordinal)
                 //ask permission
-                requestPermissions(
-                    permissions.toTypedArray(),
-                    1001
-                )
+                startForResultForPermissions.launch(permissions.toTypedArray())
             }
         }
     }
@@ -265,7 +266,7 @@ class PermissionsFragment : Fragment() {
     /**
      * We show this custom dialog to alert user denied permission
      */
-    private fun showPermissionDeniedDialog(permissions: List<String>, permissionRequestCode: Int) {
+    private fun showPermissionDeniedDialog(permissions: List<String>) {
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
         val text = try {
@@ -285,10 +286,13 @@ class PermissionsFragment : Fragment() {
         }
         val title = try {
             requireActivity().getString(
-                requireActivity().packageManager.getApplicationInfo(
+                (if(Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    PackageManager.ApplicationInfoFlags.of(0L)
+                ) else requireActivity().packageManager.getApplicationInfo(
                     requireActivity().application.packageName,
                     0
-                ).labelRes
+                )).labelRes
             )
         } catch (e: Throwable) {
             null
@@ -324,10 +328,7 @@ class PermissionsFragment : Fragment() {
             setPositiveButton(android.R.string.ok) { dialog, _ ->
                 dialog.dismiss()
                 permissionsRequestState.set(PermissionRequestState.RATIONAL_REQUEST.ordinal)
-                requestPermissions(
-                    permissions.toTypedArray(),
-                    permissionRequestCode
-                )
+                startForResultForPermissions.launch(permissions.toTypedArray())
             }
         }.show()
     }
@@ -414,6 +415,7 @@ class PermissionsFragment : Fragment() {
 
     //grant_permissions_header_text
     //turn_on_magnification_settings_action
+    @SuppressLint("PrivateApi")
     private fun getString(name: String): String? {
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
