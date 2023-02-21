@@ -624,6 +624,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
             }
+            if(!builder.isSilentAuthEnabled()) {
+                if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                    permission.add("android.permission.POST_NOTIFICATIONS")
+                }
+            }
             return ArrayList(permission)
         }
 

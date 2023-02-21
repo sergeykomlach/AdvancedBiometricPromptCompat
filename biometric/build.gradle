@@ -34,7 +34,7 @@ dependencies {
 
     implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
 
-    implementation "androidx.appcompat:appcompat:1.6.0"
+    implementation "androidx.appcompat:appcompat:1.6.1"
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
     implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'com.google.guava:guava:31.1-android'

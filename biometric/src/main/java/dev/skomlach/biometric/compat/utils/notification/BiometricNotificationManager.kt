@@ -57,7 +57,7 @@ object BiometricNotificationManager {
                     notificationChannel1 = NotificationChannel(
                         CHANNEL_ID,
                         "Biometric",
-                        NotificationManager.IMPORTANCE_LOW
+                        NotificationManager.IMPORTANCE_DEFAULT
                     )
                 }
                 notificationChannel1.setShowBadge(false)

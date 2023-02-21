@@ -17131,6 +17131,11 @@
   {
    "device": "martin",
    "name": "EU、UK、AP",
+   "model": "BLAUPUNKT 2K Android TV"
+  },
+  {
+   "device": "martin",
+   "name": "EU、UK、AP",
    "model": "BLAUPUNKT 2K Android TV"
   },
   {
@@ -34073,6 +34078,11 @@
    "device": "SEI800RCN",
    "name": "FRC1-RCN",
    "model": "FRC1-RCN"
+  },
+  {
+   "device": "SEI800MOBI",
+   "name": "USA",
+   "model": "MOBI-Buckeye"
   }
  ],
  "EVVO": [
@@ -37744,6 +37754,11 @@
    "device": "HP40A2",
    "name": "FlowBox-F1",
    "model": "FlowBox-F1"
+  },
+  {
+   "device": "HP44H",
+   "name": "FlowBox-F2",
+   "model": "FlowBox-F2"
   },
   {
    "device": "m393gena_teco",
@@ -54365,6 +54380,11 @@
    "model": "22M Gathers"
   },
   {
+   "device": "msmnile_au",
+   "name": "IVI-SYSTEM",
+   "model": "IVI-SYSTEM"
+  },
+  {
    "device": "koelsch",
    "name": "MY15ADA",
    "model": "MY15ADA"
@@ -69379,6 +69399,11 @@
  ],
  "Iskon": [
   {
+   "device": "HY44G",
+   "name": "Iskon.Play TV",
+   "model": "Iskon.Play TV"
+  },
+  {
    "device": "wh220_iskon",
    "name": "Iskon.TV",
    "model": "Iskon.TV"
@@ -74841,6 +74866,11 @@
    "device": "MA4000",
    "name": "MA4000",
    "model": "MA4000"
+  },
+  {
+   "device": "MA4100",
+   "name": "MA4100",
+   "model": "MA4100"
   }
  ],
  "Krik Krak": [
@@ -101973,6 +102003,16 @@
    "model": "moto g72"
   },
   {
+   "device": "devonf",
+   "name": "moto g73 5G",
+   "model": "moto g(50) 5G"
+  },
+  {
+   "device": "devonf",
+   "name": "moto g73 5G",
+   "model": "moto g73 5G"
+  },
+  {
    "device": "rhodep",
    "name": "moto g82 5G",
    "model": "moto g71 5G"
@@ -127397,6 +127437,11 @@
   {
    "device": "martin",
    "name": "EU、UK、AP",
+   "model": "SVISION 2K Android TV"
+  },
+  {
+   "device": "martin",
+   "name": "EU、UK、AP",
    "model": "SVISION 2K Android TV"
   },
   {
@@ -127638,6 +127683,11 @@
    "device": "R2",
    "name": "Android TV",
    "model": "ATV R2"
+  },
+  {
+   "device": "martin",
+   "name": "EU、UK、AP",
+   "model": "Schneider 2K Android TV"
   },
   {
    "device": "martin",
@@ -129235,6 +129285,11 @@
    "model": "STK X2"
   },
   {
+   "device": "X3",
+   "name": "STK X3",
+   "model": "X3"
+  },
+  {
    "device": "STK_Sync_5c",
    "name": "SYNC 5C",
    "model": "STK_Sync_5c"
@@ -130110,11 +130165,6 @@
    "device": "hendrix",
    "name": "Galaxy 070",
    "model": "YP-GI2"
-  },
-  {
-   "device": "b0q",
-   "name": "Galaxy 12",
-   "model": "SM-S908W"
   },
   {
    "device": "archer",
@@ -138397,26 +138447,6 @@
    "model": "SM-S901B"
   },
   {
-   "device": "b0q",
-   "name": "Galaxy S22 Ultra",
-   "model": "SM-S9080"
-  },
-  {
-   "device": "b0q",
-   "name": "Galaxy S22 Ultra",
-   "model": "SM-S908E"
-  },
-  {
-   "device": "b0q",
-   "name": "Galaxy S22 Ultra",
-   "model": "SM-S908U"
-  },
-  {
-   "device": "b0s",
-   "name": "Galaxy S22 Ultra",
-   "model": "SM-S908B"
-  },
-  {
    "device": "SC-52C",
    "name": "Galaxy S22 Ultra",
    "model": "SC-52C"
@@ -138434,12 +138464,32 @@
   {
    "device": "b0q",
    "name": "Galaxy S22 Ultra",
+   "model": "SM-S908E"
+  },
+  {
+   "device": "b0q",
+   "name": "Galaxy S22 Ultra",
    "model": "SM-S908N"
   },
   {
    "device": "b0q",
    "name": "Galaxy S22 Ultra",
+   "model": "SM-S908U"
+  },
+  {
+   "device": "b0q",
+   "name": "Galaxy S22 Ultra",
    "model": "SM-S908U1"
+  },
+  {
+   "device": "b0q",
+   "name": "Galaxy S22 Ultra",
+   "model": "SM-S908W"
+  },
+  {
+   "device": "b0s",
+   "name": "Galaxy S22 Ultra",
+   "model": "SM-S908B"
   },
   {
    "device": "g0q",
@@ -143842,6 +143892,11 @@
    "model": "SM-W2017"
   },
   {
+   "device": "q4q",
+   "name": "asdf121",
+   "model": "SM-F936B"
+  },
+  {
    "device": "ik1",
    "name": "olleh",
    "model": "SMT-E5015"
@@ -147509,6 +147564,11 @@
  ],
  "Sky (CH)": [
   {
+   "device": "Elite_A6",
+   "name": "Elite A6",
+   "model": "Elite A6"
+  },
+  {
    "device": "Elite_C55USA",
    "name": "Elite C55",
    "model": "Elite C55"
@@ -148433,6 +148493,11 @@
    "device": "KSTB6165",
    "name": "KSTB6165",
    "model": "KSTB6165"
+  },
+  {
+   "device": "MA5000",
+   "name": "MA5000",
+   "model": "MA5000"
   },
   {
    "device": "DMTS18SS",
@@ -155347,6 +155412,11 @@
    "device": "Odin2",
    "name": "TAB 10s New",
    "model": "9081X"
+  },
+  {
+   "device": "Apollo84GBoostR",
+   "name": "TBD",
+   "model": "9132S"
   },
   {
    "device": "Odin_5G_TMO",
@@ -166296,6 +166366,11 @@
    "model": "TECNO KI5n"
   },
   {
+   "device": "TECNO-KI5k",
+   "name": "TECNO SPARK 10C",
+   "model": "TECNO KI5k"
+  },
+  {
    "device": "TECNO-KC2",
    "name": "TECNO SPARK 4",
    "model": "TECNO KC2"
@@ -167180,6 +167255,13 @@
    "device": "V51",
    "name": "V51",
    "model": "Infinity_i4"
+  }
+ ],
+ "Telenor(HU)": [
+  {
+   "device": "Hipernet_TV_Box_B866V2",
+   "name": "Hipernet TV Box",
+   "model": "Hipernet TV Box"
   }
  ],
  "Teleone": [
@@ -169951,6 +170033,11 @@
    "model": "Note 14"
   },
   {
+   "device": "Note_15",
+   "name": "Note 15",
+   "model": "Note 15"
+  },
+  {
    "device": "Note_6",
    "name": "Note 6",
    "model": "Note 6"
@@ -171822,6 +171909,11 @@
   }
  ],
  "VNPT Technology": [
+  {
+   "device": "vnptt_smb_3",
+   "name": "VNPT SmartBox",
+   "model": "VNPT SmartBox 3"
+  },
   {
    "device": "vnptt_smb_v2x",
    "name": "VNPT SmartBox 2x",
@@ -175285,11 +175377,6 @@
    "device": "2036",
    "name": "V2035",
    "model": "V2035"
-  },
-  {
-   "device": "2036",
-   "name": "V2036",
-   "model": "V2031"
   },
   {
    "device": "2036",
@@ -193157,6 +193244,11 @@
   }
  ],
  "Zephir": [
+  {
+   "device": "martin",
+   "name": "EU、UK、AP",
+   "model": "Zephir 2K Android TV"
+  },
   {
    "device": "martin",
    "name": "EU、UK、AP",
