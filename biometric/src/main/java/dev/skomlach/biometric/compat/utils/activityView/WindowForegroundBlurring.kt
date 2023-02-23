@@ -177,7 +177,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        ExecutorHelper.postDelayed( {
+        ExecutorHelper.postDelayed({
             updateBiometricIconsLayout()
             drawingInProgress.set(false)
         }, context.resources.getInteger(android.R.integer.config_shortAnimTime).toLong())

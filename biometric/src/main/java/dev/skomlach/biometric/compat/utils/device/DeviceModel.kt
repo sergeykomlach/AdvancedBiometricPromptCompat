@@ -34,7 +34,6 @@ import java.net.HttpURLConnection
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 
 object DeviceModel {
 
@@ -58,24 +57,27 @@ object DeviceModel {
 
         getSimpleDeviceName()?.let {
             val str = fixVendorName(it)
-            strings.put(str, str.filter { c ->
-                c.isLetterOrDigit() || c.isWhitespace()
-            })
+            if (str.trim().isNotEmpty())
+                strings.put(str, str.filter { c ->
+                    c.isLetterOrDigit() || c.isWhitespace()
+                })
         }
         getNameFromAssets()?.let {
             for (s in it) {
                 val str = fixVendorName(s)
-                strings.put(str, str.filter { c ->
-                    c.isLetterOrDigit() || c.isWhitespace()
-                })
+                if (str.trim().isNotEmpty())
+                    strings.put(str, str.filter { c ->
+                        c.isLetterOrDigit() || c.isWhitespace()
+                    })
             }
         }
         getNameFromDatabase()?.let {
             for (s in it) {
                 val str = fixVendorName(s)
-                strings.put(str, str.filter { c ->
-                    c.isLetterOrDigit() || c.isWhitespace()
-                })
+                if (str.trim().isNotEmpty())
+                    strings.put(str, str.filter { c ->
+                        c.isLetterOrDigit() || c.isWhitespace()
+                    })
             }
         }
 
@@ -102,6 +104,8 @@ object DeviceModel {
     }
 
     private fun fixVendorName(string: String): String {
+        if (string.trim().isEmpty())
+            return string
         val parts = string.split(" ")
 
         var vendor = parts[0]
@@ -120,7 +124,11 @@ object DeviceModel {
             if (it.isNotEmpty())
                 return getName(brand, it)
         }
-        return if (brand.equals( "Huawei", ignoreCase = true) || brand.equals("Honor", ignoreCase = true)) "$brand $model" else null
+        return if (brand.equals("Huawei", ignoreCase = true) || brand.equals(
+                "Honor",
+                ignoreCase = true
+            )
+        ) "$brand $model" else null
     }
 
     @WorkerThread

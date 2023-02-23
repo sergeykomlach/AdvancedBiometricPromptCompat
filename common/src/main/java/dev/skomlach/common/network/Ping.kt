@@ -18,9 +18,6 @@
  */
 package dev.skomlach.common.network
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.os.Build
 import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -31,7 +28,6 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.InetAddress
 import java.net.URI
 import java.net.URL
 import java.util.*
@@ -96,41 +92,44 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         for (host in hosts) {
             var urlConnection: HttpURLConnection? = null
             try {
-                    val uri = URI("https://$host")
-                    urlConnection = NetworkApi.createConnection(uri.toString(), TimeUnit.SECONDS.toMillis(10).toInt())
-                    urlConnection.instanceFollowRedirects = true
-                    urlConnection.requestMethod = "GET"
-                    urlConnection.connect()
-                    val responseCode = urlConnection.responseCode
-                    val byteArrayOutputStream = ByteArrayOutputStream()
-                    var inputStream: InputStream
-                    LogCat.log("ping: $responseCode=${urlConnection.responseMessage}")
-                    //if any 2XX response code
-                    if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-                        inputStream = urlConnection.inputStream
-                    } else {
-                        //Redirect happen
-                        if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
-                            var target = urlConnection.getHeaderField("Location")
-                            if (target != null && !isWebUrl(target)) {
-                                target = "https://$target"
-                            }
-                            //Some providers show "dummy" page, lets compare with target URL
-                            if (target != null && !matchesUrl(uri.toString(), target)) {
-                                throw IOException("Unable to connect to $host")
-                            }
+                val uri = URI("https://$host")
+                urlConnection = NetworkApi.createConnection(
+                    uri.toString(),
+                    TimeUnit.SECONDS.toMillis(10).toInt()
+                )
+                urlConnection.instanceFollowRedirects = true
+                urlConnection.requestMethod = "GET"
+                urlConnection.connect()
+                val responseCode = urlConnection.responseCode
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                var inputStream: InputStream
+                LogCat.log("ping: $responseCode=${urlConnection.responseMessage}")
+                //if any 2XX response code
+                if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                    inputStream = urlConnection.inputStream
+                } else {
+                    //Redirect happen
+                    if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
+                        var target = urlConnection.getHeaderField("Location")
+                        if (target != null && !isWebUrl(target)) {
+                            target = "https://$target"
                         }
-                        inputStream = urlConnection.inputStream?:urlConnection.errorStream
+                        //Some providers show "dummy" page, lets compare with target URL
+                        if (target != null && !matchesUrl(uri.toString(), target)) {
+                            throw IOException("Unable to connect to $host")
+                        }
                     }
-                    NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-                    inputStream.close()
-                    val data = byteArrayOutputStream.toByteArray()
-                    byteArrayOutputStream.close()
-                    val html = String(data)
-                    if (!verifyHTML(uri.toString(), html)) {
-                        throw IOException("Unable to connect to $host")
-                    }
-                    connectionStateListener.setState(true)
+                    inputStream = urlConnection.inputStream ?: urlConnection.errorStream
+                }
+                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+                inputStream.close()
+                val data = byteArrayOutputStream.toByteArray()
+                byteArrayOutputStream.close()
+                val html = String(data)
+                if (!verifyHTML(uri.toString(), html)) {
+                    throw IOException("Unable to connect to $host")
+                }
+                connectionStateListener.setState(true)
                 return
             } catch (e: Throwable) {
 

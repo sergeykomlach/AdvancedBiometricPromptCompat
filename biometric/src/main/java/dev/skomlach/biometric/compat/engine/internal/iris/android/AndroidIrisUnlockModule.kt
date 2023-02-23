@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.engine.internal.iris.android
 import android.annotation.SuppressLint
 import android.hardware.biometrics.CryptoObject
 import android.hardware.iris.IrisManager
-import android.os.Build
 import android.os.Handler
 import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
@@ -206,12 +205,12 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     init {
 
-            try {
-                manager = ContextCompat.getSystemService(context, IrisManager::class.java)
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-            }
+        try {
+            manager = ContextCompat.getSystemService(context, IrisManager::class.java)
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+        }
 
 
         if (manager == null) {
@@ -306,7 +305,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     override fun hasEnrolled(): Boolean {
 
         try {
-           return manager?.isHardwareDetected == true && manager?.hasEnrolledIrises()?:false
+            return manager?.isHardwareDetected == true && manager?.hasEnrolledIrises() ?: false
         } catch (ignore: Throwable) {
         }
 

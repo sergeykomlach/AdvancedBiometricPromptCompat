@@ -71,7 +71,7 @@ object BiometricTitle {
                     android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK,
                     android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
                 )
-                for(authenticator in authenticators) {
+                for (authenticator in authenticators) {
                     val strings =
                         biometricManager?.getStrings(authenticator)
                     val prompt = strings?.promptMessage

@@ -112,7 +112,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
     override fun hasEnrolled(): Boolean {
 
         try {
-                return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true && mSpassFingerprint?.hasRegisteredFinger() == true
+            return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true && mSpassFingerprint?.hasRegisteredFinger() == true
         } catch (e: Throwable) {
             e(e, name)
         }
@@ -203,7 +203,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     override fun onStarted() {}
                     override fun onCompleted() {}
                 }
-                cancellationSignal?.setOnCancelListener{
+                cancellationSignal?.setOnCancelListener {
                     cancelFingerprintRequest()
                 }
                 it.startIdentify(callback)

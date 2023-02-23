@@ -72,7 +72,7 @@ class ConnectionStateListener {
         }
     }
 
-    fun isConnectionDetected()  = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+    fun isConnectionDetected() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
         connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
     else
         connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true

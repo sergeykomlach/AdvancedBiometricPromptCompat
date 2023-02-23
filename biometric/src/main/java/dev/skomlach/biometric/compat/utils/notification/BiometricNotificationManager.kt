@@ -45,11 +45,8 @@ object BiometricNotificationManager {
     @SuppressLint("StaticFieldLeak")
     private val notificationCompat = NotificationManagerCompat.from(appContext)
 
-    init {
-        initNotificationsPreferences()
-    }
 
-    private fun initNotificationsPreferences() {
+    fun initNotificationsPreferences() {
         if (Build.VERSION.SDK_INT >= 26) {
             try {
                 var notificationChannel1 = notificationCompat.getNotificationChannel(CHANNEL_ID)

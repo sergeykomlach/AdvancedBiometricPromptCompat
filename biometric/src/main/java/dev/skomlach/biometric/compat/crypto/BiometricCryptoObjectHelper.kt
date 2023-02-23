@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.crypto
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
-import dev.skomlach.biometric.compat.utils.LastUpdatedTs
 
 object BiometricCryptoObjectHelper {
     private val managerInterface: CryptographyManagerInterface =

@@ -82,15 +82,15 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
     override val isHardwarePresent: Boolean
         get() {
 
-                try {
-                    mFingerprintServiceFingerprintManager = FingerprintManager.open()
-                    return mFingerprintServiceFingerprintManager
-                        ?.isFingerEnable == true
-                } catch (e: Throwable) {
-                    e(e, name)
-                } finally {
-                    cancelFingerprintServiceFingerprintRequest()
-                }
+            try {
+                mFingerprintServiceFingerprintManager = FingerprintManager.open()
+                return mFingerprintServiceFingerprintManager
+                    ?.isFingerEnable == true
+            } catch (e: Throwable) {
+                e(e, name)
+            } finally {
+                cancelFingerprintServiceFingerprintRequest()
+            }
 
             return false
         }
@@ -106,10 +106,10 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 return fingerprintIds?.isNotEmpty() == true
             }
         } catch (e: Throwable) {
-                e(e, name)
-            } finally {
-                cancelFingerprintServiceFingerprintRequest()
-            }
+            e(e, name)
+        } finally {
+            cancelFingerprintServiceFingerprintRequest()
+        }
 
         return false
     }
@@ -124,75 +124,75 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
 
         try {
-                cancelFingerprintServiceFingerprintRequest()
-                mFingerprintServiceFingerprintManager = FingerprintManager.open()
-                val callback = object : IdentifyCallback {
-                    private var errorTs = System.currentTimeMillis()
-                    private val skipTimeout =
-                        context.resources.getInteger(android.R.integer.config_shortAnimTime)
+            cancelFingerprintServiceFingerprintRequest()
+            mFingerprintServiceFingerprintManager = FingerprintManager.open()
+            val callback = object : IdentifyCallback {
+                private var errorTs = System.currentTimeMillis()
+                private val skipTimeout =
+                    context.resources.getInteger(android.R.integer.config_shortAnimTime)
 
-                    override fun onIdentified(i: Int, b: Boolean) {
-                        val tmp = System.currentTimeMillis()
-                        if (tmp - errorTs <= skipTimeout)
-                            return
-                        errorTs = tmp
-                        listener?.onSuccess(
-                            tag(),
-                            BiometricCryptoObject(
-                                biometricCryptoObject?.signature,
-                                biometricCryptoObject?.cipher,
-                                biometricCryptoObject?.mac
-                            )
+                override fun onIdentified(i: Int, b: Boolean) {
+                    val tmp = System.currentTimeMillis()
+                    if (tmp - errorTs <= skipTimeout)
+                        return
+                    errorTs = tmp
+                    listener?.onSuccess(
+                        tag(),
+                        BiometricCryptoObject(
+                            biometricCryptoObject?.signature,
+                            biometricCryptoObject?.cipher,
+                            biometricCryptoObject?.mac
                         )
-                        cancelFingerprintServiceFingerprintRequest()
-                    }
+                    )
+                    cancelFingerprintServiceFingerprintRequest()
+                }
 
-                    override fun onNoMatch() {
-                        fail(AuthenticationFailureReason.AUTHENTICATION_FAILED)
-                    }
+                override fun onNoMatch() {
+                    fail(AuthenticationFailureReason.AUTHENTICATION_FAILED)
+                }
 
-                    private fun fail(reason: AuthenticationFailureReason) {
-                        var failureReason: AuthenticationFailureReason? = reason
-                        if (restartCauseTimeout(failureReason)) {
+                private fun fail(reason: AuthenticationFailureReason) {
+                    var failureReason: AuthenticationFailureReason? = reason
+                    if (restartCauseTimeout(failureReason)) {
+                        authenticate(
+                            biometricCryptoObject,
+                            cancellationSignal,
+                            listener,
+                            restartPredicate
+                        )
+                    } else
+                        if (restartPredicate?.invoke(failureReason) == true) {
+                            listener?.onFailure(failureReason, tag())
                             authenticate(
                                 biometricCryptoObject,
                                 cancellationSignal,
                                 listener,
                                 restartPredicate
                             )
-                        } else
-                            if (restartPredicate?.invoke(failureReason) == true) {
-                                listener?.onFailure(failureReason, tag())
-                                authenticate(
-                                    biometricCryptoObject,
-                                    cancellationSignal,
-                                    listener,
-                                    restartPredicate
-                                )
-                            } else {
-                                if (mutableListOf(
-                                        AuthenticationFailureReason.SENSOR_FAILED,
-                                        AuthenticationFailureReason.AUTHENTICATION_FAILED
-                                    ).contains(failureReason)
-                                ) {
-                                    lockout()
-                                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                                }
-                                listener?.onFailure(failureReason, tag())
-                                cancelFingerprintServiceFingerprintRequest()
+                        } else {
+                            if (mutableListOf(
+                                    AuthenticationFailureReason.SENSOR_FAILED,
+                                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+                                ).contains(failureReason)
+                            ) {
+                                lockout()
+                                failureReason = AuthenticationFailureReason.LOCKED_OUT
                             }
-                    }
+                            listener?.onFailure(failureReason, tag())
+                            cancelFingerprintServiceFingerprintRequest()
+                        }
                 }
-                 cancellationSignal?.setOnCancelListener {
-                     cancelFingerprintServiceFingerprintRequest()
-                 }
-                mFingerprintServiceFingerprintManager
-                    ?.startIdentify(callback, mFingerprintServiceFingerprintManager?.ids)
-
-                return
-            } catch (e: Throwable) {
-                e(e, "$name: authenticate failed unexpectedly")
             }
+            cancellationSignal?.setOnCancelListener {
+                cancelFingerprintServiceFingerprintRequest()
+            }
+            mFingerprintServiceFingerprintManager
+                ?.startIdentify(callback, mFingerprintServiceFingerprintManager?.ids)
+
+            return
+        } catch (e: Throwable) {
+            e(e, "$name: authenticate failed unexpectedly")
+        }
 
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
         cancelFingerprintServiceFingerprintRequest()

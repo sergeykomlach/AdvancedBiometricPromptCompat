@@ -40,6 +40,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
     private var faceLockHelper: FaceVerifyManager? = null
     private var facelockProxyListener: ProxyListener? = null
     override var isManagerAccessible = false
+
     init {
         val faceLockInterface: FaceUnlockCallback = object : FaceUnlockCallback {
             override fun onFaceVerifyChanged(resultCode: Int, msg: String?) {

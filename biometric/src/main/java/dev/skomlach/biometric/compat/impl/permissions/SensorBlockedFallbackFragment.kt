@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.impl
+package dev.skomlach.biometric.compat.impl.permissions
 
 import android.content.Context
 import android.content.Intent

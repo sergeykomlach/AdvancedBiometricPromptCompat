@@ -27,7 +27,7 @@ object CryptographyManager {
         plaintext: ByteArray?,
         confirmed: Set<AuthenticationResult>
     ): BiometricCryptographyResult? {
-        if(plaintext == null)
+        if (plaintext == null)
             return null
         for (result in confirmed) {
             try {
@@ -46,7 +46,7 @@ object CryptographyManager {
         ciphertext: ByteArray?,
         confirmed: Set<AuthenticationResult>
     ): BiometricCryptographyResult? {
-        if(ciphertext == null)
+        if (ciphertext == null)
             return null
         for (result in confirmed) {
             try {

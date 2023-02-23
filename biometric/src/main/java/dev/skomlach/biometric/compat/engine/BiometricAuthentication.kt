@@ -59,12 +59,13 @@ object BiometricAuthentication {
 
     private var initInProgress = AtomicBoolean(false)
     private var authInProgress = AtomicBoolean(false)
+
     @JvmOverloads
     fun init(
         globalInitListener: BiometricInitListener? = null,
         mlist: Collection<BiometricType>? = null
     ) {
-        if(initInProgress.get())
+        if (initInProgress.get())
             return
         initInProgress.set(true)
         val ts = System.currentTimeMillis()
@@ -157,7 +158,7 @@ object BiometricAuthentication {
         }
     }
 
-    private fun initModule(method: BiometricMethod, initListener: BiometricInitListener){
+    private fun initModule(method: BiometricMethod, initListener: BiometricInitListener) {
         ExecutorHelper.startOnBackground {
             e("BiometricAuthentication.check started for $method")
             var biometricModule: BiometricModule? = null
@@ -276,10 +277,10 @@ object BiometricAuthentication {
             if (biometricModule == null || !biometricModule.hasEnrolled()) continue
             Core.registerModule(biometricModule)
             when (biometricModule) {
-                is SoterFaceUnlockModule ->{
+                is SoterFaceUnlockModule -> {
                     biometricModule.bundle = bundle
                 }
-                is SoterFingerprintUnlockModule ->{
+                is SoterFingerprintUnlockModule -> {
                     biometricModule.bundle = bundle
                 }
                 is FacelockOldModule -> {

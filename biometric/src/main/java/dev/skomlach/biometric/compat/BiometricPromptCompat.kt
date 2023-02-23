@@ -40,8 +40,14 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
-import dev.skomlach.biometric.compat.impl.*
+import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
+import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
+import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
+import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.dialogs.HomeWatcher
+import dev.skomlach.biometric.compat.impl.permissions.PermissionsFragment
+import dev.skomlach.biometric.compat.impl.permissions.notification.NotificationPermissionsFragment
+import dev.skomlach.biometric.compat.impl.permissions.notification.NotificationPermissionsHelper
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.device.DeviceInfo
@@ -69,6 +75,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var API_ENABLED = true
             private set
 
+        val SHOW_DETAILS_IN_UI = false
+
         init {
             if (API_ENABLED) {
                 AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
@@ -80,11 +88,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     e.printStackTrace()
                 }
             }
-            ExecutorHelper.startOnBackground{
+            ExecutorHelper.post {
                 try {
-                    BiometricPromptCompat.init()
-                }catch (e: Throwable){}
+                    init()
+                } catch (e: Throwable) {
+                }
             }
+
         }
 
         @JvmStatic
@@ -120,8 +130,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var isInit = false
             get() = isBiometricInit.get().also {
                 //lazy init
-                if(!it && !initInProgress.get()){
-                    init()
+                if (!it && !initInProgress.get()) {
+                    ExecutorHelper.post {
+                        init()
+                    }
                 }
             }
             private set
@@ -167,7 +179,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
-                    AndroidContext.appInstance?.registerActivityLifecycleCallbacks(BiometricActivityContextProvider)
+                    AndroidContext.appInstance?.registerActivityLifecycleCallbacks(
+                        BiometricActivityContextProvider
+                    )
+                    BiometricNotificationManager.initNotificationsPreferences()
+                    NotificationPermissionsFragment.preloadTranslations()
                     startBiometricInit()
                     ExecutorHelper.startOnBackground {
                         isDeviceInfoCheckInProgress.set(true)
@@ -227,6 +243,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             })
         }
+    }
+
+    init {
+        NotificationPermissionsFragment.preloadTranslations()
     }
 
     private val appContext = AndroidContext.appContext
@@ -420,173 +440,197 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
-        PermissionsFragment.askForPermissions(
-            impl.builder.getContext(),
-            usedPermissions
-        ) {
-            if (usedPermissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(
-                    usedPermissions
-                )
+        val checkPermissions = {
+            PermissionsFragment.askForPermissions(
+                impl.builder.getContext(),
+                usedPermissions
             ) {
-                callbackOuter.onFailed(AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR, null)
-                authFlowInProgress.set(false)
-            } else {
-                val activityViewWatcher = try {
-                    ActivityViewWatcher(
-                        impl.builder,
-                        object : ActivityViewWatcher.ForceToCloseCallback {
-                            override fun onCloseBiometric() {
-                                cancelAuthentication()
-                            }
-                        })
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                    null
-                }
+                if (usedPermissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(
+                        usedPermissions
+                    )
+                ) {
+                    callbackOuter.onFailed(
+                        AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                        null
+                    )
+                    authFlowInProgress.set(false)
+                } else {
+                    val activityViewWatcher = try {
+                        ActivityViewWatcher(
+                            impl.builder,
+                            object : ActivityViewWatcher.ForceToCloseCallback {
+                                override fun onCloseBiometric() {
+                                    cancelAuthentication()
+                                }
+                            })
+                    } catch (e: Throwable) {
+                        BiometricLoggerImpl.e(e)
+                        null
+                    }
 
-                val callback = object : AuthenticationCallback() {
+                    val callback = object : AuthenticationCallback() {
 
-                    private var isOpened = AtomicBoolean(false)
-                    override fun onSucceeded(result: Set<AuthenticationResult>) {
-                        val confirmed = result.toMutableSet()
-                        try {
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
-                            //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
-                            if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
-                                if (CryptographyManager.encryptData(
-                                        appContext.packageName.toByteArray(
-                                            Charset.forName("UTF-8")
-                                        ), confirmed
-                                    ) == null
-                                ) {
-                                    onCanceled()
-                                    return
+                        private var isOpened = AtomicBoolean(false)
+                        override fun onSucceeded(result: Set<AuthenticationResult>) {
+                            val confirmed = result.toMutableSet()
+                            try {
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
+                                //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
+                                if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
+                                    if (CryptographyManager.encryptData(
+                                            appContext.packageName.toByteArray(
+                                                Charset.forName("UTF-8")
+                                            ), confirmed
+                                        ) == null
+                                    ) {
+                                        onCanceled()
+                                        return
+                                    } else {
+                                        val filtered = confirmed.map {
+                                            AuthenticationResult(it.confirmed)
+                                        }
+                                        confirmed.apply {
+                                            clear()
+                                            confirmed.addAll(filtered)
+                                        }
+                                    }
+                                }
+
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
+                                if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                                    HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                                        .updateBiometricEnrollChanged()
                                 } else {
-                                    val filtered = confirmed.map {
-                                        AuthenticationResult(it.confirmed)
-                                    }
-                                    confirmed.apply {
-                                        clear()
-                                        confirmed.addAll(filtered)
-                                    }
-                                }
-                            }
-
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
-                            if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
-                                HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
-                                    .updateBiometricEnrollChanged()
-                            } else {
-                                HardwareAccessImpl.getInstance(
-                                    BiometricAuthRequest(
-                                        BiometricApi.BIOMETRIC_API,
-                                        builder.getBiometricAuthRequest().type
+                                    HardwareAccessImpl.getInstance(
+                                        BiometricAuthRequest(
+                                            BiometricApi.BIOMETRIC_API,
+                                            builder.getBiometricAuthRequest().type
+                                        )
                                     )
-                                )
-                                    .updateBiometricEnrollChanged()
-                                HardwareAccessImpl.getInstance(
-                                    BiometricAuthRequest(
-                                        BiometricApi.LEGACY_API,
-                                        builder.getBiometricAuthRequest().type
+                                        .updateBiometricEnrollChanged()
+                                    HardwareAccessImpl.getInstance(
+                                        BiometricAuthRequest(
+                                            BiometricApi.LEGACY_API,
+                                            builder.getBiometricAuthRequest().type
+                                        )
                                     )
-                                )
-                                    .updateBiometricEnrollChanged()
-                            }
-
-                            callbackOuter.onSucceeded(confirmed.toSet())
-                        } finally {
-                            onUIClosed()
-                        }
-                    }
-
-                    override fun onCanceled() {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
-                        try {
-                            callbackOuter.onCanceled()
-                        } finally {
-                            onUIClosed()
-                        }
-                    }
-
-                    override fun onFailed(
-                        reason: AuthenticationFailureReason?,
-                        dialogDescription: CharSequence?
-                    ) {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
-                        try {
-                            callbackOuter.onFailed(reason, dialogDescription)
-                        } finally {
-                            onUIClosed()
-                        }
-                    }
-
-                    override fun onUIOpened() {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
-                        if (!isOpened.get()) {
-                            isOpened.set(true)
-                            callbackOuter.onUIOpened()
-                            if(!builder.isSilentAuthEnabled()) {
-                                if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo)  && builder.isNotificationEnabled()) {
-                                    BiometricNotificationManager.showNotification(builder)
+                                        .updateBiometricEnrollChanged()
                                 }
-                                StatusBarTools.setNavBarAndStatusBarColors(
-                                    builder.getContext().window,
-                                    DialogMainColor.getColor(
-                                        builder.getContext(),
-                                        DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                                    ),
-                                    DialogMainColor.getColor(
-                                        builder.getContext(),
-                                        !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
-                                    ),
-                                    builder.getStatusBarColor()
-                                )
 
-                                activityViewWatcher?.setupListeners()
+                                callbackOuter.onSucceeded(confirmed.toSet())
+                            } finally {
+                                onUIClosed()
                             }
                         }
-                    }
 
-                    override fun onUIClosed() {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
-                        if (isOpened.get()) {
-                            isOpened.set(false)
-                            val closeAll = Runnable {
-                                if(!builder.isSilentAuthEnabled()) {
-                                    if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo)  && builder.isNotificationEnabled()) {
-                                        BiometricNotificationManager.dismissAll()
+                        override fun onCanceled() {
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
+                            try {
+                                callbackOuter.onCanceled()
+                            } finally {
+                                onUIClosed()
+                            }
+                        }
+
+                        override fun onFailed(
+                            reason: AuthenticationFailureReason?,
+                            dialogDescription: CharSequence?
+                        ) {
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
+                            try {
+                                callbackOuter.onFailed(reason, dialogDescription)
+                            } finally {
+                                onUIClosed()
+                            }
+                        }
+
+                        override fun onUIOpened() {
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
+                            if (!isOpened.get()) {
+                                isOpened.set(true)
+                                callbackOuter.onUIOpened()
+                                if (!builder.isSilentAuthEnabled()) {
+                                    if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                                        BiometricNotificationManager.showNotification(builder)
                                     }
-                                    activityViewWatcher?.resetListeners()
                                     StatusBarTools.setNavBarAndStatusBarColors(
                                         builder.getContext().window,
-                                        builder.getNavBarColor(),
-                                        builder.getDividerColor(),
+                                        DialogMainColor.getColor(
+                                            builder.getContext(),
+                                            DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                                        ),
+                                        DialogMainColor.getColor(
+                                            builder.getContext(),
+                                            !DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
+                                        ),
                                         builder.getStatusBarColor()
                                     )
+
+                                    activityViewWatcher?.setupListeners()
                                 }
                             }
-                            ExecutorHelper.post(closeAll)
-                            val delay =
-                                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                                    .toLong()
-                            ExecutorHelper.postDelayed(closeAll, delay)
-                            callbackOuter.onUIClosed()
+                        }
+
+                        override fun onUIClosed() {
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
+                            if (isOpened.get()) {
+                                isOpened.set(false)
+                                val closeAll = Runnable {
+                                    if (!builder.isSilentAuthEnabled()) {
+                                        if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                                            BiometricNotificationManager.dismissAll()
+                                        }
+                                        activityViewWatcher?.resetListeners()
+                                        StatusBarTools.setNavBarAndStatusBarColors(
+                                            builder.getContext().window,
+                                            builder.getNavBarColor(),
+                                            builder.getDividerColor(),
+                                            builder.getStatusBarColor()
+                                        )
+                                    }
+                                }
+                                ExecutorHelper.post(closeAll)
+                                val delay =
+                                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                                        .toLong()
+                                ExecutorHelper.postDelayed(closeAll, delay)
+                                callbackOuter.onUIClosed()
 //                    ExecutorHelper.removeCallbacks(fragmentLifecycleCallbacks.dismissTask)
-                            stopWatcher?.run()
-                            stopWatcher = null
-                            try {
-                                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
-                                    fragmentLifecycleCallbacks
-                                )
-                            } catch (ignore: Throwable) {
+                                stopWatcher?.run()
+                                stopWatcher = null
+                                try {
+                                    impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+                                        fragmentLifecycleCallbacks
+                                    )
+                                } catch (ignore: Throwable) {
+                                }
+                                authFlowInProgress.set(false)
                             }
-                            authFlowInProgress.set(false)
                         }
                     }
+                    authenticateInternal(callback)
                 }
-                authenticateInternal(callback)
             }
         }
+        if (!builder.isSilentAuthEnabled()) {
+            if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                NotificationPermissionsHelper.checkNotificationPermissions(
+                    builder.getContext(),
+                    BiometricNotificationManager.CHANNEL_ID,
+                    {
+                        checkPermissions.invoke()
+                    },
+                    {
+                        callbackOuter.onFailed(
+                            AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                            null
+                        )
+                        authFlowInProgress.set(false)
+                    })
+                return
+            }
+        }
+        checkPermissions.invoke()
     }
 
     private val usedPermissions: List<String>
@@ -610,7 +654,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
                     BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
                     BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
-                    BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D, BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
+                    BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D, BiometricMethod.FACE_SOTERAPI -> permission.add(
+                        "android.permission.USE_FACERECOGNITION"
+                    )
                     BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
                     BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
                     BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
@@ -624,11 +670,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
             }
-            if(!builder.isSilentAuthEnabled()) {
-                if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
-                    permission.add("android.permission.POST_NOTIFICATIONS")
-                }
-            }
+
             return ArrayList(permission)
         }
 
@@ -707,7 +749,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         @MainThread
-        open fun onFailed(reason: AuthenticationFailureReason?, dialogDescription: CharSequence? = null) {
+        open fun onFailed(
+            reason: AuthenticationFailureReason?,
+            dialogDescription: CharSequence? = null
+        ) {
         }
 
         @MainThread
@@ -730,6 +775,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 BiometricLoggerImpl.d("isInitialized - $initialized")
             }
         }
+
         private val reference = WeakReference<FragmentActivity>(dummy_reference)
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
@@ -800,14 +846,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var silentAuth = false
 
         private var dialogTitle: CharSequence? = null
-         get() {
-             if (field.isNullOrEmpty())
-                 field = BiometricTitle.getRelevantTitle(
-                     appContext,
-                     getAllAvailableTypes()
-                 )
-             return field
-         }
+            get() {
+                if (field.isNullOrEmpty())
+                    field = BiometricTitle.getRelevantTitle(
+                        appContext,
+                        getAllAvailableTypes()
+                    )
+                return field
+            }
 
         private var dialogSubtitle: CharSequence? = null
 
@@ -830,7 +876,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @ColorInt
         private var colorStatusBar: Int = Color.TRANSPARENT
 
-        private var isTruncateChecked : Boolean? = null
+        private var isTruncateChecked: Boolean? = null
 
         private val appContext = AndroidContext.appContext
 
@@ -852,9 +898,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             //OnePlus 9 call onSuccess when "Cancel" button clicked,
             //so checking the crypto is only the way to check real reason
-            if(deviceInfo?.model?.startsWith("OnePlus 9", ignoreCase = true) == true) {
+            if (deviceInfo?.model?.startsWith("OnePlus 9", ignoreCase = true) == true) {
                 autoVerifyCryptoAfterSuccess = true
-                biometricCryptographyPurpose = BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
+                biometricCryptographyPurpose =
+                    BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
             }
         }
 
@@ -868,8 +915,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun isSilentAuthEnabled(): Boolean {
             return silentAuth
         }
+
         fun enableSilentAuth(): Boolean {
-            if(!BiometricManagerCompat.isSilentAuthAvailable(biometricAuthRequest)) {
+            if (!BiometricManagerCompat.isSilentAuthAvailable(biometricAuthRequest)) {
                 silentAuth = false
             } else {
                 //update sets
@@ -895,6 +943,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             return silentAuth
         }
+
         fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {
             return autoVerifyCryptoAfterSuccess
         }
@@ -924,7 +973,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
 
-
         fun isBackgroundBiometricIconsEnabled(): Boolean {
             return backgroundBiometricIconsEnabled
         }
@@ -934,7 +982,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun isTruncateChecked(): Boolean {
-            if(isTruncateChecked == null) {
+            if (isTruncateChecked == null) {
                 isTruncateChecked = false
                 ExecutorHelper.post {
                     TruncatedTextFix.recalculateTexts(
@@ -946,7 +994,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         })
                 }
             }
-            return isTruncateChecked?:true
+            return isTruncateChecked ?: true
         }
 
         fun getPrimaryAvailableTypes(): Set<BiometricType> {

@@ -273,7 +273,7 @@ class BiometricPromptCompatDialogImpl(
         if (dialog.isShowing) {
             dialog.dismiss()
         }
-        val viewModel : DialogViewModel =
+        val viewModel: DialogViewModel =
             ViewModelProvider(compatBuilder.getContext())[DialogViewModel::class.java]
         viewModel.dismissDialog()
     }

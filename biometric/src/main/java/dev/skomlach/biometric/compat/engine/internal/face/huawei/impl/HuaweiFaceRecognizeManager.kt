@@ -101,7 +101,7 @@ class HuaweiFaceRecognizeManager {
             stringBuilder.append(hwErrorCode)
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
-                FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL->{
+                FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL -> {
                     SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
                     SharedPreferenceProvider.getPreferences(TAG).edit()
                         .putBoolean(md5(Build.FINGERPRINT), false)
@@ -193,17 +193,21 @@ class HuaweiFaceRecognizeManager {
             }
             return "" + errorCode
         }
-        fun isCameraBroken() : Boolean{
+
+        fun isCameraBroken(): Boolean {
             return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera", false)
         }
-        fun resetCheckCamera(){
+
+        fun resetCheckCamera() {
             val pref = SharedPreferenceProvider.getPreferences(TAG)
             pref.edit().clear().putBoolean(md5(Build.FINGERPRINT), false).apply()
         }
-        fun shouldCheckCamera() : Boolean{
+
+        fun shouldCheckCamera(): Boolean {
             val pref = SharedPreferenceProvider.getPreferences(TAG)
             return pref.getBoolean(md5(Build.FINGERPRINT), true)
         }
+
         private fun md5(s: String): String? {
             try {
                 val digest = MessageDigest.getInstance("MD5")
@@ -215,6 +219,7 @@ class HuaweiFaceRecognizeManager {
             }
             return null
         }
+
         private val lock = ReentrantLock()
         fun createInstance() {
             try {
@@ -306,7 +311,7 @@ class HuaweiFaceRecognizeManager {
                             stringBuilder2.append(result)
                             e(str2, stringBuilder2.toString())
                         }
-                    } else{
+                    } else {
                         e("bad params, ignore")
                     }
             }

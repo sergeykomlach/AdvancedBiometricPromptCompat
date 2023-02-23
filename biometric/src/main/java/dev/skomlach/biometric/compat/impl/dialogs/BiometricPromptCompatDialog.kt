@@ -42,7 +42,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
@@ -93,7 +92,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
             updateMonetColorsInternal(context ?: return)
         }
     }
-    private lateinit var viewModel : DialogViewModel
+    private lateinit var viewModel: DialogViewModel
     override fun dismiss() {
         if (isAdded) {
             val fragmentManager = parentFragmentManager
@@ -116,7 +115,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
         setStyle(STYLE_NORMAL, R.style.Theme_BiometricPromptDialog)
         viewModel = ViewModelProvider(requireActivity())[DialogViewModel::class.java]
         viewModel.listener.observe(this) {
-            if(it) {
+            if (it) {
                 dismiss()
             }
         }
@@ -194,7 +193,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                     )
                     updateMonetColorsInternal(v.context ?: return)
                 } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e, "setupMonet")
+                    e(e, "setupMonet")
                 }
             }
 
@@ -202,7 +201,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 try {
                     v.context.unregisterReceiver(wallpaperChangedReceiver)
                 } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e, "setupMonet")
+                    e(e, "setupMonet")
                 }
             }
         })
@@ -336,7 +335,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 }
 
             } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e, "Monet colors")
+                e(e, "Monet colors")
             }
 
         } else if (Utils.isAtLeastS) {
@@ -390,7 +389,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 }
 
             } catch (e: Throwable) {
-                BiometricLoggerImpl.e(e, "Monet colors")
+                e(e, "Monet colors")
             }
         }
     }
@@ -447,7 +446,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 swatch = "neutral2"
             }
         }
-        BiometricLoggerImpl.e("MonetColor $name = $swatch[$k]; distance=$distance")
+        e("MonetColor $name = $swatch[$k]; distance=$distance")
     }
 
     private fun setTextToTextViews(view: View?, color: Int) {
@@ -477,7 +476,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
             } catch (e: Exception) {
                 //not sure is exception can happens, but better to track at least
-                BiometricLoggerImpl.e(e, "ActivityContextProvider")
+                e(e, "ActivityContextProvider")
             }
         }
 
@@ -556,7 +555,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 }
             } catch (e: Exception) {
                 //not sure is exception can happens, but better to track at least
-                BiometricLoggerImpl.e(e, e.message)
+                e(e, e.message)
             }
         }
 

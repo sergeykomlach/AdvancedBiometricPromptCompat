@@ -259,7 +259,7 @@ object PermissionUtils {
             NotificationManagerCompat.from(appContext).areNotificationsEnabled()
 
     //Notification channel permissions
-    fun isAllowedNotificationsChannelPermission(channelId: String): Boolean {
+    fun isAllowedNotificationsChannelPermission(channelId: String?): Boolean {
         if (VERSION.SDK_INT < 26) {
             return true
         }

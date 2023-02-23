@@ -48,7 +48,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager()
                 d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
-                if(isHardwarePresent && HuaweiFaceRecognizeManager.shouldCheckCamera()) {
+                if (isHardwarePresent && HuaweiFaceRecognizeManager.shouldCheckCamera()) {
                     val cancellationSignal = CancellationSignal()
                     val checkTask = Runnable {
                         HuaweiFaceRecognizeManager.resetCheckCamera()
@@ -131,7 +131,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     @Throws(SecurityException::class)
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
-        cancellationSignal: androidx.core.os.CancellationSignal?,
+        cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
@@ -166,7 +166,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     private inner class AuthCallbackLegacy(
         private val biometricCryptoObject: BiometricCryptoObject?,
         private val restartPredicate: RestartPredicate?,
-        private val cancellationSignal: androidx.core.os.CancellationSignal?,
+        private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : HuaweiFaceManager.AuthenticatorCallback() {
         private var errorTs = System.currentTimeMillis()

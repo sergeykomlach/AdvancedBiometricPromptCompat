@@ -19,12 +19,8 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyPermanentlyInvalidatedException
-import android.security.keystore.KeyProperties
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -49,7 +45,6 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBio
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
@@ -59,12 +54,8 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
-import java.security.KeyStore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
 
 @TargetApi(Build.VERSION_CODES.P)
 
@@ -536,7 +527,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }
             }
         } catch (e: BiometricCryptoException) {
-            BiometricLoggerImpl.e(e)
+            e(e)
             checkAuthResultForPrimary(
                 AuthResult.AuthResultState.FATAL_ERROR,
                 null,
@@ -560,7 +551,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun cancelAuth() {
         val success =
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-        if(success!=null)
+        if (success != null)
             return
         callback?.onCanceled()
     }

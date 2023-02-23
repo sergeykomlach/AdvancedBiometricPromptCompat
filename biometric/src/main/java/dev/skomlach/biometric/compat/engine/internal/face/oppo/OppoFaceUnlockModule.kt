@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.oppo
 import android.annotation.SuppressLint
 import android.hardware.biometrics.CryptoObject
 import android.hardware.face.OppoMirrorFaceManager
-import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -114,12 +113,12 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     init {
 
 
-            try {
-                manager = ContextCompat.getSystemService(context, OppoMirrorFaceManager::class.java)
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-            }
+        try {
+            manager = ContextCompat.getSystemService(context, OppoMirrorFaceManager::class.java)
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+        }
 
 
         if (manager == null) {
@@ -160,7 +159,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     override fun hasEnrolled(): Boolean {
 
         try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates()?:false
+            return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates() ?: false
         } catch (e: Throwable) {
             e(e, name)
 

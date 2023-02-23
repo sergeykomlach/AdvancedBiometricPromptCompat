@@ -48,6 +48,7 @@ object NetworkApi {
             url
         ).matches()
     }
+
     fun hasInternet(): Boolean {
         return Connection.isConnection
     }
@@ -63,7 +64,7 @@ object NetworkApi {
         conn.instanceFollowRedirects = true
         conn.connectTimeout = timeout
         conn.readTimeout = timeout
-        TrafficStats.setThreadStatsTag(link?.hashCode()?:0)
+        TrafficStats.setThreadStatsTag(link?.hashCode() ?: 0)
         return conn
     }
 

@@ -67,7 +67,7 @@ class FaceVerifyManager(private val mContext: Context) {
         object : IFaceVerifyServiceCallback.Stub() {
             @Throws(RemoteException::class)
             override fun sendRecognizeResult(resultId: Int, commandStr: String?) {
-                val msg = mHandler?.obtainMessage()?:return
+                val msg = mHandler?.obtainMessage() ?: return
                 msg.what = VERIFY_MSG
                 msg.arg1 = resultId
                 msg.obj = commandStr

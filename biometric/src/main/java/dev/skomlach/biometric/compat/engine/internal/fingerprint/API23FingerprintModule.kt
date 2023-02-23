@@ -46,15 +46,16 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
 
     init {
 
-            try {
-                manager = ContextCompat.getSystemService(context,
-                    FingerprintManager::class.java
-                )
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
+        try {
+            manager = ContextCompat.getSystemService(
+                context,
+                FingerprintManager::class.java
+            )
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
 
-            }
+        }
 
 
         if (manager == null) {

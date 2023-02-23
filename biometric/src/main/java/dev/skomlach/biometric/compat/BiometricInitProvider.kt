@@ -22,16 +22,15 @@ package dev.skomlach.biometric.compat
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
-import dev.skomlach.common.misc.ExecutorHelper
 
 class BiometricInitProvider : ContentProvider() {
 
     override fun onCreate(): Boolean {
-        ExecutorHelper.startOnBackground{
-            try {
-                BiometricPromptCompat.init()
-            }catch (e: Throwable){}
+        try {
+            BiometricPromptCompat.init()
+        } catch (e: Throwable) {
         }
+
         return false
     }
 

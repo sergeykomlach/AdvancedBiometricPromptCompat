@@ -20,12 +20,10 @@
 package dev.skomlach.biometric.compat.utils.device
 
 import android.os.Looper
-import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import dev.skomlach.biometric.compat.utils.LastUpdatedTs
 import dev.skomlach.biometric.compat.utils.device.DeviceModel.getNames
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import org.jsoup.Jsoup
@@ -130,7 +128,7 @@ object DeviceInfoManager {
             val secondArray = splitString(m.second, " ")
             for (i in secondArray.indices - 1) {
                 val limit = secondArray.size - i
-                if(limit < 2)//Device should have at least brand + model
+                if (limit < 2)//Device should have at least brand + model
                     break
                 val second = join(secondArray, " ", limit)
                 deviceInfo = loadDeviceInfo(first, second)
@@ -145,10 +143,14 @@ object DeviceInfoManager {
             }
         }
         if (names.isNotEmpty()) {
-            onDeviceInfoListener.onReady(DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
-                BiometricLoggerImpl.d("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
-                cachedDeviceInfo = it
-            })
+            onDeviceInfoListener.onReady(
+                DeviceInfo(
+                    names.toList()[0].first,
+                    HashSet<String>()
+                ).also {
+                    BiometricLoggerImpl.d("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                    cachedDeviceInfo = it
+                })
             return
         }
         BiometricLoggerImpl.d("DeviceInfoManager: (null) null -> null")
@@ -205,7 +207,7 @@ object DeviceInfoManager {
 
             //not found
             BiometricLoggerImpl.d("DeviceInfoManager: Link: $detailsLink")
-            html = getHtml(detailsLink)?: return DeviceInfo(modelReadableName, HashSet<String>())
+            html = getHtml(detailsLink) ?: return DeviceInfo(modelReadableName, HashSet<String>())
             BiometricLoggerImpl.e("DeviceInfoManager: html loaded, start parsing")
             val l = getSensorDetails(html)
             BiometricLoggerImpl.d("DeviceInfoManager: Sensors: $l")
@@ -272,7 +274,7 @@ object DeviceInfoManager {
                         val arr = splitString(model, " ")
                         var i = arr.size
                         for (s in arr) {
-                            if(i < 2) //Device should have at least brand + model
+                            if (i < 2) //Device should have at least brand + model
                                 break
                             val shortName = join(arr, " ", i)
                             if (name.contains(shortName, ignoreCase = true)) {
@@ -323,7 +325,7 @@ object DeviceInfoManager {
                             }
                             return getHtml(target)
                         }
-                        inputStream = urlConnection.inputStream?:urlConnection.errorStream
+                        inputStream = urlConnection.inputStream ?: urlConnection.errorStream
                     }
                     NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                     inputStream.close()

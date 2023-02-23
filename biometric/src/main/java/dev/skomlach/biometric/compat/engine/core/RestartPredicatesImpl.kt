@@ -49,7 +49,7 @@ object RestartPredicatesImpl {
     /**
      * A predicate that will retry all non-fatal failures indefinitely, and timeouts 5 times.
      */
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun defaultPredicate(): RestartPredicate {
         return restartTimeouts(5)
     }

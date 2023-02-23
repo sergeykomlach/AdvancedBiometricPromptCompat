@@ -70,7 +70,7 @@ object DevicesWithKnownBugs {
                     return true
                 }
             }
-            return (systemDealWithBiometricPrompt || (isOnePlus && Utils.isAtLeastS) ) && hasUnderDisplayFingerprint
+            return (systemDealWithBiometricPrompt || (isOnePlus && Utils.isAtLeastS)) && hasUnderDisplayFingerprint
         }
 
     val systemDealWithBiometricPrompt: Boolean

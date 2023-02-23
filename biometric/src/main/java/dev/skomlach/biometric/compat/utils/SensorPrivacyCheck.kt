@@ -29,7 +29,8 @@ import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
-import dev.skomlach.biometric.compat.impl.SensorBlockedFallbackFragment
+import dev.skomlach.biometric.compat.impl.permissions.SensorBlockedFallbackFragment
+
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper

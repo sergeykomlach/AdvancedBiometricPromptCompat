@@ -98,7 +98,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     override fun cancelAuth() {
         val success =
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-        if(success!=null)
+        if (success != null)
             return
         callback?.onCanceled()
     }

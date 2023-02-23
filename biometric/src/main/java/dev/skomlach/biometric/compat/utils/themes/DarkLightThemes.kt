@@ -50,7 +50,7 @@ object DarkLightThemes {
         if (shouldInscreenCaseAffected &&
             DevicesWithKnownBugs.isOnePlus &&
             !Utils.isAtLeastT &&
-            DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo )
+            DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
         )
             return UiModeManager.MODE_NIGHT_YES
         return when (getIsOsDarkTheme(context)) {

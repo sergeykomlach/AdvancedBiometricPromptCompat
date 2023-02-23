@@ -258,7 +258,8 @@ class FaceLock {
                 // Callback may be called outside the UI thread
                 ExecutorHelper.post {
                     try {
-                        IFaceLockCallback::class.java.getMethod(mMap[code]?:return@post).invoke(mCallback)
+                        IFaceLockCallback::class.java.getMethod(mMap[code] ?: return@post)
+                            .invoke(mCallback)
                     } catch (e: Throwable) {
                         e(e, TAG + e.message)
                     }

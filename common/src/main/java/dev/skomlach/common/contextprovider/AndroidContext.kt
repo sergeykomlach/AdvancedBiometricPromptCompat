@@ -28,6 +28,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Looper
 import androidx.core.os.ConfigurationCompat
+import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import kotlinx.coroutines.*
@@ -40,11 +41,13 @@ import java.util.concurrent.locks.ReentrantLock
 
 @SuppressLint("StaticFieldLeak")
 object AndroidContext {
+    private val _resumedActivityLiveData = MutableLiveData<Activity?>()
+    val resumedActivityLiveData = _resumedActivityLiveData
     private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
-    private val activityResumedRelay = AtomicReference<Reference<Activity?>?>(null)
+    private val activityRelay = AtomicReference<Reference<Activity?>?>(null)
     val activity: Activity?
         get() = try {
-            activityResumedRelay.get()?.get()
+            activityRelay.get()?.get()
         } catch (e: Throwable) {
             null
         }
@@ -69,7 +72,7 @@ object AndroidContext {
             try {
                 lock.runCatching { this.lock() }
                 getContextRef()?.let {
-                    ExecutorHelper.startOnBackground{
+                    ExecutorHelper.startOnBackground {
                         fixDirAccess(it)
                     }
                     return it
@@ -134,17 +137,31 @@ object AndroidContext {
                                 "AndroidContext",
                                 "onConfigurationChanged ${activity.resources.configuration}"
                             )
-                            activityResumedRelay.set(SoftReference(activity))
+                            activityRelay.set(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
-                            activityResumedRelay.set(SoftReference(activity))
+                            activityRelay.set(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
+                            _resumedActivityLiveData.postValue(activity)
                         }
 
-                        override fun onActivityPaused(activity: Activity) {}
+                        override fun onActivityPaused(activity: Activity) {
+                            if (activity !== resumedActivityLiveData.value) {
+                                LogCat.logError(
+                                    "AndroidContext", "Another activity already resumed"
+                                )
+                            } else {
+                                _resumedActivityLiveData.postValue(null)
+                            }
+                            LogCat.logError(
+                                "AndroidContext",
+                                "onActivityPaused: ${activity.javaClass.simpleName}"
+                            )
+                        }
+
                         override fun onActivityStopped(activity: Activity) {}
                         override fun onActivitySaveInstanceState(
                             activity: Activity,
@@ -154,7 +171,7 @@ object AndroidContext {
 
                         override fun onActivityDestroyed(activity: Activity) {
                             if (activity == AndroidContext.activity) {
-                                activityResumedRelay.set(null)
+                                activityRelay.set(null)
                             }
                         }
                     })

@@ -80,7 +80,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
 
     override fun hasEnrolled(): Boolean {
         try {
-            return huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates()?:false
+            return huawei3DFaceManager?.isHardwareDetected == true && huawei3DFaceManager?.hasEnrolledTemplates() ?: false
         } catch (e: Throwable) {
             e(e, name)
         }

@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.impl
+package dev.skomlach.biometric.compat.impl.permissions
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -93,6 +93,20 @@ class PermissionsFragment : Fragment() {
         }
     }
 
+    private val startForResult: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
+                ExecutorHelper.postDelayed({
+                    try {
+                        activity?.supportFragmentManager?.beginTransaction()
+                            ?.remove(this@PermissionsFragment)
+                            ?.commitNowAllowingStateLoss()
+                    } catch (e: Throwable) {
+                        e("PermissionsFragment", e.message, e)
+                    }
+                }, 250)
+            }
+        }
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
@@ -220,10 +234,7 @@ class PermissionsFragment : Fragment() {
 
             // Must use startActivityForResult(), not startActivity(), even if
             // you don't use the result code returned in onActivityResult().
-            val startForResult: ActivityResultLauncher<Intent> =
-                registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                    //no-op
-                }
+
             startForResult.launch(intent)
         } catch (e: Throwable) {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -286,7 +297,7 @@ class PermissionsFragment : Fragment() {
         }
         val title = try {
             requireActivity().getString(
-                (if(Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
                     requireActivity().application.packageName,
                     PackageManager.ApplicationInfoFlags.of(0L)
                 ) else requireActivity().packageManager.getApplicationInfo(
