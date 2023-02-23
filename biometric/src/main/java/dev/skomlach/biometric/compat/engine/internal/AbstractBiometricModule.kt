@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
-        var DEBUG_MANAGERS = BuildConfig.DEBUG
+        var DEBUG_MANAGERS = false
     }
 
     private var firstTimeout: Long? = null
