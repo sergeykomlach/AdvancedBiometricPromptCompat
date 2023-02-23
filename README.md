@@ -74,6 +74,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+February 23, 2023
+
+**Improvement: Notifications handling** improved notifications and permissions handling
+
 February 2, 2023
 
 **Bugfix: FaceId doesn't work on Honor** check for camera access on Huawei/Honor devices
