@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.impl.permissions
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -40,18 +41,18 @@ import androidx.core.text.TextUtilsCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
-import dev.skomlach.common.misc.BroadcastTools.sendGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.*
-import java.util.concurrent.atomic.AtomicInteger
 
 class PermissionsFragment : Fragment() {
     companion object {
@@ -93,47 +94,40 @@ class PermissionsFragment : Fragment() {
         }
     }
 
-    private val startForResult: ActivityResultLauncher<Intent> =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
-                ExecutorHelper.postDelayed({
-                    try {
-                        activity?.supportFragmentManager?.beginTransaction()
-                            ?.remove(this@PermissionsFragment)
-                            ?.commitNowAllowingStateLoss()
-                    } catch (e: Throwable) {
-                        e("PermissionsFragment", e.message, e)
-                    }
-                }, 250)
-            }
-        }
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            if (permissionsRequestState.get() != PermissionRequestState.NONE.ordinal) {
+            ExecutorHelper.postDelayed({
+                closeFragment()
+            }, 250)
+        }
+    private val startForResult: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == Activity.RESULT_OK) {
                 ExecutorHelper.postDelayed({
-                    try {
-                        activity?.supportFragmentManager?.beginTransaction()
-                            ?.remove(this@PermissionsFragment)
-                            ?.commitNowAllowingStateLoss()
-                    } catch (e: Throwable) {
-                        e("PermissionsFragment", e.message, e)
-                    }
+                    closeFragment()
                 }, 250)
+
+            } else { //workaround
+                val observer = object : Observer<Activity?> {
+                    private var waitForResume = false
+                    override fun onChanged(t: Activity?) {
+                        if (t == null) {
+                            waitForResume = true
+                            return
+                        }
+                        if (waitForResume && t == activity) {
+                            AndroidContext.resumedActivityLiveData.removeObserver(this)
+                            ExecutorHelper.postDelayed({
+                                closeFragment()
+                            }, 250)
+                        }
+
+
+                    }
+                }
+                AndroidContext.resumedActivityLiveData.observeForever(observer)
             }
         }
-
-    private enum class PermissionRequestState {
-        NORMAL_REQUEST,
-        RATIONAL_REQUEST,
-        MANUAL_REQUEST,
-        NONE
-    }
-
-    private var permissionsRequestState = AtomicInteger(PermissionRequestState.NONE.ordinal)
-    override fun onDetach() {
-        super.onDetach()
-        sendGlobalBroadcastIntent(appContext, Intent(INTENT_KEY))
-    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -143,35 +137,11 @@ class PermissionsFragment : Fragment() {
                 requestPermissions(permissions)
             }, 250)
         } else {
-            ExecutorHelper.postDelayed({
-                try {
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.remove(this@PermissionsFragment)
-                        ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable) {
-                    e("PermissionsFragment", e.message, e)
-                }
-            }, 250)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (permissionsRequestState.get() == PermissionRequestState.MANUAL_REQUEST.ordinal) {
-            ExecutorHelper.postDelayed({
-                try {
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.remove(this@PermissionsFragment)
-                        ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable) {
-                    e("PermissionsFragment", e.message, e)
-                }
-            }, 250)
+            closeFragment()
         }
     }
 
     private fun unusedAppRestrictionsDisabled() {
-        permissionsRequestState.set(PermissionRequestState.MANUAL_REQUEST.ordinal)
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
         if (!permissions.any {
                 ActivityCompat.shouldShowRequestPermissionRationale(
@@ -184,21 +154,12 @@ class PermissionsFragment : Fragment() {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", requireActivity().packageName, null)
             intent.data = uri
-            startActivity(intent)
+            startForResult.launch(intent)
         } else
-            ExecutorHelper.postDelayed({
-                try {
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.remove(this@PermissionsFragment)
-                        ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable) {
-                    e("PermissionsFragment", e.message, e)
-                }
-            }, 250)
+            closeFragment()
     }
 
     private fun onResult(appRestrictionsStatus: Int) {
-        permissionsRequestState.set(PermissionRequestState.MANUAL_REQUEST.ordinal)
         when (appRestrictionsStatus) {
             // If the user doesn't start your app for months, its permissions
             // will be revoked and/or it will be hibernated.
@@ -240,7 +201,7 @@ class PermissionsFragment : Fragment() {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", requireActivity().packageName, null)
             intent.data = uri
-            startActivity(intent)
+            startForResult.launch(intent)
         }
     }
 
@@ -267,7 +228,6 @@ class PermissionsFragment : Fragment() {
                 showMandatoryPermissionsNeedDialog(permissions)
                 return
             } else {
-                permissionsRequestState.set(PermissionRequestState.NORMAL_REQUEST.ordinal)
                 //ask permission
                 startForResultForPermissions.launch(permissions.toTypedArray())
             }
@@ -280,21 +240,10 @@ class PermissionsFragment : Fragment() {
     private fun showPermissionDeniedDialog(permissions: List<String>) {
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-        val text = try {
-            if (isLeftToRight)
-                (getString("grant_permissions_header_text")
-                    ?: throw IllegalArgumentException()) + ": " + (extractDescriptionsForPermissions(
-                    permissions
-                ) ?: throw IllegalArgumentException())
-            else
-                (extractDescriptionsForPermissions(
-                    permissions
-                )
-                    ?: throw IllegalArgumentException()) + " :" + (getString("grant_permissions_header_text")
-                    ?: throw IllegalArgumentException())
-        } catch (e: Throwable) {
-            null
-        }
+        val textStart = getString("grant_permissions_header_text")
+        val textEnd = extractDescriptionsForPermissions(permissions)
+        val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n"+ textEnd
+
         val title = try {
             requireActivity().getString(
                 (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
@@ -308,37 +257,22 @@ class PermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             null
         }
-        if (text.isNullOrEmpty() || title.isNullOrEmpty()) {
-            ExecutorHelper.postDelayed({
-                try {
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.remove(this@PermissionsFragment)
-                        ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable) {
-                    e("PermissionsFragment", e.message, e)
-                }
-            }, 250)
+        if (textEnd.isNullOrEmpty() || textStart.isNullOrEmpty() || title.isNullOrEmpty()) {
+            closeFragment()
         }
         AlertDialog.Builder(
             requireActivity()
         ).apply {
             setTitle(title)
-            setCancelable(true)
+            setCancelable(false)
             setMessage(text)
             setOnCancelListener {
-                ExecutorHelper.postDelayed({
-                    try {
-                        activity?.supportFragmentManager?.beginTransaction()
-                            ?.remove(this@PermissionsFragment)
-                            ?.commitNowAllowingStateLoss()
-                    } catch (e: Throwable) {
-                        e("PermissionsFragment", e.message, e)
-                    }
-                }, 250)
+                closeFragment()
             }
+            setNegativeButton(android.R.string.cancel
+            ) { dialog, which -> closeFragment() }
             setPositiveButton(android.R.string.ok) { dialog, _ ->
                 dialog.dismiss()
-                permissionsRequestState.set(PermissionRequestState.RATIONAL_REQUEST.ordinal)
                 startForResultForPermissions.launch(permissions.toTypedArray())
             }
         }.show()
@@ -348,12 +282,29 @@ class PermissionsFragment : Fragment() {
      * We show this custom dialog to alert user that please go to settings to enable permission
      */
     private fun showMandatoryPermissionsNeedDialog(permissions: List<String>) {
-        val text = extractDescriptionsForPermissions(permissions)
+
         val button = getString("turn_on_magnification_settings_action")
             ?: getString("global_action_settings")
-        val title = getString("error_message_change_not_allowed")
+        val isLeftToRight =
+            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+        val textStart = getString("error_message_change_not_allowed")
+        val textEnd = extractDescriptionsForPermissions(permissions)
+        val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n"+ textEnd
 
-        if (text.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
+        val title = try {
+            requireActivity().getString(
+                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    PackageManager.ApplicationInfoFlags.of(0L)
+                ) else requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    0
+                )).labelRes
+            )
+        } catch (e: Throwable) {
+            null
+        }
+        if (textEnd.isNullOrEmpty() || textStart.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
             try {
                 val future: ListenableFuture<Int> =
                     PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
@@ -364,25 +315,18 @@ class PermissionsFragment : Fragment() {
             } catch (e: Throwable) {
                 unusedAppRestrictionsDisabled()
             }
+            return
         }
 
         AlertDialog.Builder(requireActivity()).apply {
-            val isLeftToRight =
-                TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-            setTitle(if (isLeftToRight) "$title:" else ":$title")
-            setCancelable(true)
+            setTitle(title)
+            setCancelable(false)
             setMessage(text)
             setOnCancelListener {
-                ExecutorHelper.postDelayed({
-                    try {
-                        activity?.supportFragmentManager?.beginTransaction()
-                            ?.remove(this@PermissionsFragment)
-                            ?.commitNowAllowingStateLoss()
-                    } catch (e: Throwable) {
-                        e("PermissionsFragment", e.message, e)
-                    }
-                }, 250)
+                closeFragment()
             }
+            setNegativeButton(android.R.string.cancel
+            ) { dialog, which -> closeFragment() }
             setPositiveButton(button) { dialog, _ ->
                 dialog.dismiss()
                 try {
@@ -408,7 +352,7 @@ class PermissionsFragment : Fragment() {
             for ((_, str) in permissionsList.keys.withIndex()) {
                 val permName = permissionsList[str]
                 if (!permName.isNullOrEmpty()) {
-                    if (keys.size > 1) {
+                    if (permissionsList.size > 1) {
                         if (isLeftToRight)
                             sb.append("- $permName\n")
                         else
@@ -448,5 +392,26 @@ class PermissionsFragment : Fragment() {
             e(e)
         }
         return null
+    }
+
+    private fun closeFragment() {
+        val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
+        val tag = "${PermissionsFragment::class.java.name}-${
+            permissions.joinToString(",").hashCode()
+        }"
+        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
+        try {
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.remove(this@PermissionsFragment)
+                ?.commitNowAllowingStateLoss()
+        } catch (e: Throwable) {
+            e("PermissionsFragment", e.message, e)
+        } finally {
+            BroadcastTools.sendGlobalBroadcastIntent(
+                appContext, Intent(
+                    INTENT_KEY
+                )
+            )
+        }
     }
 }
