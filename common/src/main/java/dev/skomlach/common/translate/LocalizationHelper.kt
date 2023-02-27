@@ -166,12 +166,18 @@ object LocalizationHelper {
     }
 
     private fun translate(text: String, fromLang: Locale, toLang: Locale): String {
+        return (translateUseGoogleApi(text, fromLang, toLang)?://first try
+        translateUseFallbackApi(text, fromLang, toLang))?://second
+        text //return not translated
+    }
+    //https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=father&ie=UTF-8&oe=UTF-8
+    //https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=fr&dt=t&q=father
+    private fun translateUseGoogleApi(text: String, fromLang: Locale, toLang: Locale): String?{
         if (Connection.isConnection)
             try {
                 val encode: String = URLEncoder.encode(text, "UTF-8")
                 val sb = StringBuilder()
-                //https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=father&ie=UTF-8&oe=UTF-8
-                //https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=fr&dt=t&q=father
+
                 sb.append("https://translate.googleapis.com/translate_a/single?client=gtx&sl=")
                 sb.append(fromLang.language)
                 sb.append("&tl=")
@@ -186,23 +192,50 @@ object LocalizationHelper {
                 inputStream.close()
                 val data = byteArrayOutputStream.toByteArray()
 
+                //note:
+                //[[["père","father",null,null,10]],null,"en",null,null,null,null,[]]
                 val jSONArray: JSONArray =
                     JSONArray(String(data, Charset.forName("UTF-8"))).getJSONArray(0)
-                var str2 = ""
+
                 for (i in 0 until jSONArray.length()) {
                     val jSONArray2: JSONArray = jSONArray.getJSONArray(i)
-                    val sb2 = StringBuilder()
-                    sb2.append(str2)
-                    sb2.append(jSONArray2.get(0).toString())
-                    str2 = sb2.toString()
+                    val str = jSONArray2.get(0).toString()
+                    if(str.isNotEmpty())
+                        return str
                 }
-                return str2
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
-        return text
+        return null
     }
+    private fun translateUseFallbackApi(text: String, fromLang: Locale, toLang: Locale): String?{
+        if (Connection.isConnection)
+            try {
+                val encode: String = URLEncoder.encode(text, "UTF-8")
+                val sb = StringBuilder()
+                sb.append("https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=")
+                sb.append(fromLang.language)
+                sb.append("&tl=")
+                sb.append(toLang.language)
+                sb.append("&dt=t&q=")
+                sb.append(encode).append("&ie=UTF-8&oe=UTF-8")
 
+
+                val inputStream: InputStream = getStream(sb.toString(), toLang)
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+                inputStream.close()
+                val data = byteArrayOutputStream.toByteArray()
+
+                //["père"]
+                val jSONArray =
+                    JSONArray(String(data, Charset.forName("UTF-8")))
+                return jSONArray.get(0).toString()
+            } catch (e: Throwable) {
+                LogCat.logException(e, "LocalizationHelper")
+            }
+        return null
+    }
     private fun getStream(url: String, lang: Locale): InputStream {
         val urlConnection = NetworkApi.createConnection(url, TimeUnit.SECONDS.toMillis(30).toInt())
         urlConnection.requestMethod = "GET"
