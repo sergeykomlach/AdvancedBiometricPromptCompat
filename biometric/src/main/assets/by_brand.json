@@ -75286,6 +75286,11 @@
    "model": "9309S"
   },
   {
+   "device": "U3A_7_WIFI_Refresh_KD",
+   "name": "KURIO LITE GO NEW",
+   "model": "9309S_EEA"
+  },
+  {
    "device": "Aquaman_10_WIFI",
    "name": "Kurio Smart 2 in 1 PRO",
    "model": "8391X"
@@ -109027,6 +109032,11 @@
    "device": "MPC10T",
    "name": "MPC10T",
    "model": "MPC10T"
+  },
+  {
+   "device": "MPC80T",
+   "name": "MPC80T",
+   "model": "MPC80T"
   }
  ],
  "ONYX": [
@@ -119617,6 +119627,16 @@
    "model": "Twist Tab"
   },
   {
+   "device": "T770G",
+   "name": "Twist Tab",
+   "model": "Twist Tab +"
+  },
+  {
+   "device": "T770G",
+   "name": "Twist Tab",
+   "model": "Twist Tab Minions +"
+  },
+  {
    "device": "T770",
    "name": "Twist Tab Kids",
    "model": "Twist Tab"
@@ -126867,6 +126887,11 @@
    "model": "RD195T"
   },
   {
+   "device": "RD1XT",
+   "name": "RD1XT",
+   "model": "RD1XT"
+  },
+  {
    "device": "RD40T",
    "name": "RD40T",
    "model": "RD40T"
@@ -130639,6 +130664,21 @@
    "model": "SM-S136DL"
   },
   {
+   "device": "a14",
+   "name": "Galaxy A14",
+   "model": "SM-A145F"
+  },
+  {
+   "device": "a14m",
+   "name": "Galaxy A14",
+   "model": "SM-A145P"
+  },
+  {
+   "device": "a14m",
+   "name": "Galaxy A14",
+   "model": "SM-A145R"
+  },
+  {
    "device": "a14x",
    "name": "Galaxy A14 5G",
    "model": "SM-A146B"
@@ -131199,6 +131239,31 @@
    "model": "SM-A336N"
   },
   {
+   "device": "a34x",
+   "name": "Galaxy A34 5G",
+   "model": "SM-A3460"
+  },
+  {
+   "device": "a34x",
+   "name": "Galaxy A34 5G",
+   "model": "SM-A346B"
+  },
+  {
+   "device": "a34x",
+   "name": "Galaxy A34 5G",
+   "model": "SM-A346E"
+  },
+  {
+   "device": "a34x",
+   "name": "Galaxy A34 5G",
+   "model": "SM-A346M"
+  },
+  {
+   "device": "a34x",
+   "name": "Galaxy A34 5G",
+   "model": "SM-A346N"
+  },
+  {
    "device": "a40",
    "name": "Galaxy A40",
    "model": "SM-A405FM"
@@ -131697,6 +131762,46 @@
    "device": "a53x",
    "name": "Galaxy A53 5G UW",
    "model": "SM-A536V"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A5460"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A546B"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A546E"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A546U"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A546U1"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A546V"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-A546W"
+  },
+  {
+   "device": "a54x",
+   "name": "Galaxy A54 5G",
+   "model": "SM-S546VL"
   },
   {
    "device": "a6elteaio",
@@ -156061,6 +156166,11 @@
    "model": "9032X"
   },
   {
+   "device": "Luna_8_4G_TMO",
+   "name": "TCL TAB 8 LE",
+   "model": "9137W"
+  },
+  {
    "device": "Thor_8_4G_VZW",
    "name": "TCL TAB Disney Edition",
    "model": "9050S"
@@ -160678,11 +160788,6 @@
    "device": "A554C",
    "name": "Juke-A554C",
    "model": "A554C"
-  },
-  {
-   "device": "U3A_7_WIFI_Refresh_KD",
-   "name": "KURIO LITE GO NEW",
-   "model": "9309S_EEA"
   },
   {
    "device": "PIXI3_45_4G",
@@ -181254,6 +181359,11 @@
  ],
  "Wiseasy": [
   {
+   "device": "Nano6",
+   "name": "Nano 6",
+   "model": "Nano6"
+  },
+  {
    "device": "Tech-A1",
    "name": "Tech-A1",
    "model": "Tech A1"
@@ -181262,6 +181372,11 @@
    "device": "WISENET5",
    "name": "WISENET5",
    "model": "WISENET5"
+  },
+  {
+   "device": "P5",
+   "name": "Wiseasy P5",
+   "model": "P5"
   }
  ],
  "Wishtel": [
