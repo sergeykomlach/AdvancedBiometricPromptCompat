@@ -111,6 +111,53 @@ object LocalizationHelper {
         )
     }
 
+    fun hasTranslation(
+        context: Context,
+        @StringRes resId: Int
+    ): Boolean {
+        val str = context.resources.apply {
+            val config = this.configuration
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                config.setLocale(Locale.US)
+            } else {
+                @Suppress("DEPRECATION")
+                config.locale = Locale.US
+            }
+        }.getString(resId)
+        return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(str) != str
+    }
+
+    fun hasTranslation(
+        context: Context,
+        @StringRes resId: Int,
+        vararg formatArgs: Any?
+    ): Boolean {
+        val str = context.resources.apply {
+            val config = this.configuration
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                config.setLocale(Locale.US)
+            } else {
+                @Suppress("DEPRECATION")
+                config.locale = Locale.US
+            }
+        }.getString(resId)
+
+        return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(
+            str,
+            *formatArgs
+        ) != String.format(str, *formatArgs)
+    }
+
+    fun hasTranslation(str: String): Boolean {
+        return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(str) != str
+    }
+
+    fun hasTranslation(str: String, vararg formatArgs: Any?): Boolean {
+        return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(
+            str,
+            *formatArgs
+        ) != String.format(str, *formatArgs)
+    }
 
     private fun invoke(
         text: String,
@@ -134,6 +181,8 @@ object LocalizationHelper {
         toLang: Locale,
         text: String
     ): String? {
+        if (fromLang.language == toLang.language)
+            return text
         val pref = SharedPreferenceProvider.getPreferences("LocalizationHelper")
         val key = fromLang.language + ">>" + toLang.language
         val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
@@ -152,6 +201,8 @@ object LocalizationHelper {
         text: String,
         result: String
     ) {
+        if (fromLang.language == toLang.language)
+            return
         if (text.trim().isEmpty() || result.trim().isEmpty() || text == result)
             return
         val pref = SharedPreferenceProvider.getPreferences("LocalizationHelper")
@@ -166,13 +217,14 @@ object LocalizationHelper {
     }
 
     private fun translate(text: String, fromLang: Locale, toLang: Locale): String {
-        return (translateUseGoogleApi(text, fromLang, toLang)?://first try
-        translateUseFallbackApi(text, fromLang, toLang))?://second
+        return (translateUseGoogleApi(text, fromLang, toLang) ?://first try
+        translateUseFallbackApi(text, fromLang, toLang)) ?://second
         text //return not translated
     }
+
     //https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=father&ie=UTF-8&oe=UTF-8
     //https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=fr&dt=t&q=father
-    private fun translateUseGoogleApi(text: String, fromLang: Locale, toLang: Locale): String?{
+    private fun translateUseGoogleApi(text: String, fromLang: Locale, toLang: Locale): String? {
         if (Connection.isConnection)
             try {
                 val encode: String = URLEncoder.encode(text, "UTF-8")
@@ -200,7 +252,7 @@ object LocalizationHelper {
                 for (i in 0 until jSONArray.length()) {
                     val jSONArray2: JSONArray = jSONArray.getJSONArray(i)
                     val str = jSONArray2.get(0).toString()
-                    if(str.isNotEmpty())
+                    if (str.isNotEmpty())
                         return str
                 }
             } catch (e: Throwable) {
@@ -208,7 +260,8 @@ object LocalizationHelper {
             }
         return null
     }
-    private fun translateUseFallbackApi(text: String, fromLang: Locale, toLang: Locale): String?{
+
+    private fun translateUseFallbackApi(text: String, fromLang: Locale, toLang: Locale): String? {
         if (Connection.isConnection)
             try {
                 val encode: String = URLEncoder.encode(text, "UTF-8")
@@ -236,6 +289,7 @@ object LocalizationHelper {
             }
         return null
     }
+
     private fun getStream(url: String, lang: Locale): InputStream {
         val urlConnection = NetworkApi.createConnection(url, TimeUnit.SECONDS.toMillis(30).toInt())
         urlConnection.requestMethod = "GET"
