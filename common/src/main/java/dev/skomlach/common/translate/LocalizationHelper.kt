@@ -183,7 +183,7 @@ object LocalizationHelper {
     ): String? {
         if (fromLang.language == toLang.language)
             return text
-        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelper")
+        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV2")
         val key = fromLang.language + ">>" + toLang.language
         val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
         set.forEach {
@@ -205,7 +205,7 @@ object LocalizationHelper {
             return
         if (text.trim().isEmpty() || result.trim().isEmpty() || text == result)
             return
-        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelper")
+        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV2")
         val key = fromLang.language + ">>" + toLang.language
         val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
         set.add(JSONObject().apply {
@@ -227,7 +227,7 @@ object LocalizationHelper {
     private fun translateUseGoogleApi(text: String, fromLang: Locale, toLang: Locale): String? {
         if (Connection.isConnection)
             try {
-                val encode: String = URLEncoder.encode(text, "UTF-8")
+                val encode: String = URLEncoder.encode(text.replace("\n", "\\n"), "UTF-8")
                 val sb = StringBuilder()
 
                 sb.append("https://translate.googleapis.com/translate_a/single?client=gtx&sl=")
@@ -246,15 +246,13 @@ object LocalizationHelper {
 
                 //note:
                 //[[["père","father",null,null,10]],null,"en",null,null,null,null,[]]
-                val jSONArray: JSONArray =
-                    JSONArray(String(data, Charset.forName("UTF-8"))).getJSONArray(0)
 
-                for (i in 0 until jSONArray.length()) {
-                    val jSONArray2: JSONArray = jSONArray.getJSONArray(i)
-                    val str = jSONArray2.get(0).toString()
-                    if (str.isNotEmpty())
-                        return str
-                }
+                val s = JSONArray(String(data, Charset.forName("UTF-8")))
+                    .getJSONArray(0)
+                    .getJSONArray(0)
+                    .getString(0).toString()
+
+                return s.replace("\\n", "\n")
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
@@ -283,7 +281,14 @@ object LocalizationHelper {
                 //["père"]
                 val jSONArray =
                     JSONArray(String(data, Charset.forName("UTF-8")))
-                return jSONArray.get(0).toString()
+                var s = jSONArray.get(0).toString()
+                for (i in 0..Int.MAX_VALUE) {
+                    if (s.contains("%$i $ s")) {
+                        s = s.replace("%$i $ s", "%$i\$s")
+                    } else
+                        break
+                }
+                return s
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
