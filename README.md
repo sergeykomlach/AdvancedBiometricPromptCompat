@@ -74,6 +74,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+March 5, 2023
+
+**Bugfix: Dialog paddings** fixed issue on some devices when dialog ignore system bars paddings
+
 February 23, 2023
 
 **Improvement: Notifications handling** improved notifications and permissions handling
@@ -83,28 +87,6 @@ February 2, 2023
 **Bugfix: FaceId doesn't work on Honor** check for camera access on Huawei/Honor devices
 
 **Improvement: auth dismiss** more correct auth cancel for non-modern methods
-
-December 28, 2022
-
-Code cleanup and minor fixes
-
-December 23, 2022
-
-**Improvement: Soter-Core added to project** instead of downloading from jitpack.io 
-
-November 14, 2022
-
-**Bugfix: Crash on Android 4.1** - fixed crash when RenderScript executed
-
-**Feature: Added Lava FaceID impl** - FaceID for Lava devices, not tested
-
-November 8, 2022
-
-**Bugfix: Cryptography** - wrong vector was used
-
-**Feature: Silent Auth implemented** - added solution that allow to recognize the user without any UI (not all devices)
-
-
 
 
 ## Test app
