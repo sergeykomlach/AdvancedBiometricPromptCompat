@@ -897,6 +897,11 @@
    "device": "F11",
    "name": "F11",
    "model": "F11"
+  },
+  {
+   "device": "P21",
+   "name": "P21",
+   "model": "P21"
   }
  ],
  "AOYODKG": [
@@ -19791,6 +19796,13 @@
    "model": "M8047IU"
   }
  ],
+ "Britania": [
+  {
+   "device": "sunnyvale",
+   "name": "Britania Smart TV",
+   "model": "Britania Smart TV"
+  }
+ ],
  "British Telecom": [
   {
    "device": "BT_Home_SmartPhone_III",
@@ -21748,16 +21760,6 @@
    "model": "B15Q"
   },
   {
-   "device": "BM1S1B",
-   "name": "BM1S1B",
-   "model": "Cat S75"
-  },
-  {
-   "device": "BM1S1B",
-   "name": "BM1S1B",
-   "model": "S75"
-  },
-  {
    "device": "S22FLIP",
    "name": "Cat S22 FLIP",
    "model": "S22 FLIP"
@@ -21811,6 +21813,16 @@
    "device": "S62Pro",
    "name": "Cat S62 Pro",
    "model": "S62 Pro"
+  },
+  {
+   "device": "BM1S1B",
+   "name": "Cat S75",
+   "model": "Cat S75"
+  },
+  {
+   "device": "BM1S1B",
+   "name": "Cat S75",
+   "model": "S75"
   },
   {
    "device": "CatS50c",
@@ -117582,11 +117594,6 @@
    "device": "ikebukuro",
    "name": "Android TV",
    "model": "AI PONT"
-  },
-  {
-   "device": "sunnyvale",
-   "name": "Britania Smart TV",
-   "model": "Britania Smart TV"
   },
   {
    "device": "HIT_P10a",

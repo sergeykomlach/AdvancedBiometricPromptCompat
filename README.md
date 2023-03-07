@@ -74,6 +74,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+March 7, 2023
+
+**Minor bugfix** fixed AOS and device vendor detection; ChromeOS detection added
+
 March 5, 2023
 
 **Bugfix: Dialog paddings** fixed issue on some devices when dialog ignore system bars paddings
