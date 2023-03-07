@@ -25,6 +25,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
+import java.lang.reflect.Modifier
 
 object DevicesWithKnownBugs {
     private val appContext = AndroidContext.appContext
@@ -58,7 +59,7 @@ object DevicesWithKnownBugs {
     )
 
     val isOnePlusWithBiometricBug: Boolean
-        get() = Build.BRAND.equals("OnePlus", ignoreCase = true) &&
+        get() = isOnePlus &&
                 !listOf(*onePlusModelsWithoutBiometricBug).contains(Build.MODEL)
 
     val isHideDialogInstantly: Boolean
@@ -77,14 +78,14 @@ object DevicesWithKnownBugs {
         get() = (isSamsung || Utils.isAtLeastT)
     private val isSamsung: Boolean
         get() {
-            return Build.BRAND.equals("Samsung", ignoreCase = true)
+            return checkForVendor("Samsung", ignoreCase = true)
         }
     val isOnePlus: Boolean
         get() {
-            return Build.BRAND.equals("OnePlus", ignoreCase = true)
+            return checkForVendor("OnePlus", ignoreCase = true)
         }
     val isMissedBiometricUI: Boolean
-        get() = (Build.BRAND.equals("LG", ignoreCase = true) &&
+        get() = (checkForVendor("LG", ignoreCase = false) &&
                 listOf(*lgWithMissedBiometricUI).any { knownModel ->
                     Build.MODEL.contains(
                         knownModel,
@@ -94,4 +95,26 @@ object DevicesWithKnownBugs {
 
     val hasUnderDisplayFingerprint: Boolean
         get() = DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
+
+    private fun checkForVendor(vendor: String, ignoreCase : Boolean): Boolean {
+        val allFields = Build::class.java.fields
+        for (f in allFields) try {
+            if (!Modifier.isPrivate(f.modifiers) && f.type == String::class.java) {
+                val value = f[null] as String
+                if (value.contains(vendor, ignoreCase = ignoreCase)) return true
+            }
+        } catch (ignore: Throwable) {
+
+        }
+        return false
+    }
+
+    val isChromeBook: Boolean
+        get() {
+            //https://developer.chrome.com/apps/getstarted_arc
+            //https://github.com/google/talkback/blob/master/src/main/java/com/google/android/marvin/talkback/TalkBackService.java#L1779-L1781
+            //https://stackoverflow.com/a/39843396
+            return (checkForVendor("Chromium", ignoreCase = true) || Build.DEVICE != null && Build.DEVICE.matches(Regex(".+_cheets"))
+                    || AndroidContext.appContext.packageManager.hasSystemFeature("org.chromium.arc.device_management"))
+        }
 }
