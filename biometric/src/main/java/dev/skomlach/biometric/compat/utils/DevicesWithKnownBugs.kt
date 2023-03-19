@@ -29,19 +29,6 @@ import java.lang.reflect.Modifier
 
 object DevicesWithKnownBugs {
     private val appContext = AndroidContext.appContext
-
-    //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
-    private val onePlusModelsWithoutBiometricBug = arrayOf(
-        "A0001",  // OnePlus One
-        "ONE A2001", "ONE A2003", "ONE A2005",  // OnePlus 2
-        "ONE E1001", "ONE E1003", "ONE E1005",  // OnePlus X
-        "ONEPLUS A3000", "ONEPLUS SM-A3000", "ONEPLUS A3003",  // OnePlus 3
-        "ONEPLUS A3010",  // OnePlus 3T
-        "ONEPLUS A5000",  // OnePlus 5
-        "ONEPLUS A5010",  // OnePlus 5T
-        "ONEPLUS A6000", "ONEPLUS A6003" // OnePlus 6
-    )
-
     //Users reports that on LG devices have a bug with wrong/missing BiometricUI
     //After digging I found that it seems like system BiometricPrompt simply missing on this device
     //https://lg-firmwares.com/models-list/
@@ -58,9 +45,8 @@ object DevicesWithKnownBugs {
         "G910",
     )
 
-    val isOnePlusWithBiometricBug: Boolean
-        get() = !Utils.isAtLeastR && (hasUnderDisplayFingerprint && isOnePlus &&
-                !listOf(*onePlusModelsWithoutBiometricBug).contains(Build.MODEL))
+    private val isOnePlusWithBiometricBug: Boolean
+        get() = (isOnePlus && !Utils.isAtLeastS) && hasUnderDisplayFingerprint
 
     val isHideDialogInstantly: Boolean
         get() {
@@ -91,7 +77,7 @@ object DevicesWithKnownBugs {
                         knownModel,
                         ignoreCase = true
                     )
-                }) || !CheckBiometricUI.hasExists(appContext)
+                }) || isOnePlusWithBiometricBug || !CheckBiometricUI.hasExists(appContext)
 
     val hasUnderDisplayFingerprint: Boolean
         get() = DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)

@@ -41,7 +41,6 @@ import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPr
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isOnePlusWithBiometricBug
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
@@ -78,26 +77,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             private val skipTimeout =
                 builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
 
-            //https://forums.oneplus.com/threads/oneplus-7-pro-fingerprint-biometricprompt-does-not-show.1035821/
-            private var onePlusWithBiometricBugFailure = false
             override fun onAuthenticationFailed() {
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
                 val tmp = System.currentTimeMillis()
                 if (tmp - errorTs <= skipTimeout)
                     return
                 errorTs = tmp
-                // Authentication failed on OnePlus device with broken BiometricPrompt implementation
-                // Present the same screen with additional buttons to allow retry/fail
-                if (isOnePlusWithBiometricBug) {
-                    onePlusWithBiometricBugFailure = true
-                    cancelAuthentication()
-                } else {
-                    //...normal failed processing...//
-                    for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
-                        IconStateHelper.errorType(module)
-                    }
-                    dialog?.onFailure(false)
+                for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                    IconStateHelper.errorType(module)
                 }
+                dialog?.onFailure(false)
+
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -106,13 +96,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (tmp - errorTs <= skipTimeout)
                     return
                 errorTs = tmp
-                // Authentication failed on OnePlus device with broken BiometricPrompt implementation
-                // Present the same screen with additional buttons to allow retry/fail
-                if (onePlusWithBiometricBugFailure) {
-                    onePlusWithBiometricBugFailure = false
-                    //...present retryable error screen...
-                    return
-                }
                 //...present normal failed screen...
 
                 ExecutorHelper.post(Runnable {
@@ -175,7 +158,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (tmp - errorTs <= skipTimeout)
                     return
                 errorTs = tmp
-                onePlusWithBiometricBugFailure = false
                 checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
             }
         }
@@ -377,20 +359,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 private var errorTs = System.currentTimeMillis()
                                 private val skipTimeout =
                                     builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
-                                var onePlusWithBiometricBugFailure = false
+
                                 override fun onAuthenticationFailed() {
                                     val tmp = System.currentTimeMillis()
                                     if (tmp - errorTs <= skipTimeout)
                                         return
                                     errorTs = tmp
-                                    if (isOnePlusWithBiometricBug) {
-                                        onePlusWithBiometricBugFailure = true
-                                        if (!dialogClosed.get()) {
-                                            dialogClosed.set(true)
-                                            stopAuth()
-                                            callback?.onSucceeded(successList)
-                                        }
-                                    }
                                 }
 
                                 override fun onAuthenticationError(
@@ -401,10 +375,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     if (tmp - errorTs <= skipTimeout)
                                         return
                                     errorTs = tmp
-                                    if (onePlusWithBiometricBugFailure) {
-                                        onePlusWithBiometricBugFailure = false
-                                        return
-                                    }
                                     if (!dialogClosed.get()) {
                                         dialogClosed.set(true)
                                         stopAuth()
