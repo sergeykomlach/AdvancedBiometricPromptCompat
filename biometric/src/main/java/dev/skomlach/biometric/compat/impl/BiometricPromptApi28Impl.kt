@@ -86,6 +86,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (tmp - errorTs <= skipTimeout)
                     return
                 errorTs = tmp
+                // Authentication failed on OnePlus device with broken BiometricPrompt implementation
+                // Present the same screen with additional buttons to allow retry/fail
                 if (isOnePlusWithBiometricBug) {
                     onePlusWithBiometricBugFailure = true
                     cancelAuthentication()

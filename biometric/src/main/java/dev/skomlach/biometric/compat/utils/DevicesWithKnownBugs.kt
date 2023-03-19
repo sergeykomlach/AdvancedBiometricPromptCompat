@@ -59,8 +59,8 @@ object DevicesWithKnownBugs {
     )
 
     val isOnePlusWithBiometricBug: Boolean
-        get() = isOnePlus &&
-                !listOf(*onePlusModelsWithoutBiometricBug).contains(Build.MODEL)
+        get() = !Utils.isAtLeastR && (hasUnderDisplayFingerprint && isOnePlus &&
+                !listOf(*onePlusModelsWithoutBiometricBug).contains(Build.MODEL))
 
     val isHideDialogInstantly: Boolean
         get() {
