@@ -66,7 +66,8 @@
 
     <!--Android API's -->
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-    <uses-permission android:name="android.permission.USE_IRIS" />
+    <uses-permission android:name="android.permission.USE_IRIS"
+            tools:ignore="SystemPermissionTypo" />
     <uses-permission android:name="android.permission.USE_FACE_AUTHENTICATION" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
@@ -74,8 +75,14 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
 
+    <uses-permission android:name="com.soter.permission.ACCESS_SOTER_KEYSTORE" />
     <uses-sdk tools:overrideLibrary="com.huawei.security.localauthentication" />
-    <application>
+    <application
+            android:enableOnBackInvokedCallback="true"
+            tools:ignore="UnusedAttribute">
+        <uses-library
+                android:name="soterkeystore"
+                android:required="false" />
         <receiver
                 android:name="dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver"
                 android:enabled="true"

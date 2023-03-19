@@ -23,10 +23,29 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "androidx.window:window:1.1.0-alpha04"
+    implementation "androidx.window:window:1.1.0-alpha06"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+    implementation 'com.google.guava:guava:31.1-android'
+    implementation "org.jsoup:jsoup:1.15.3"
+    implementation 'com.jaredrummler:android-device-names:2.1.0'
 }
 
+afterEvaluate {
+    android.libraryVariants.all { v ->
+        if (v.buildType.name == "release") {
+            v.assemble.doFirst {
+                def f = new File("$projectDir/src/main/assets/by_brand.json")
+                println("Path" + f.absolutePath)
+                if (f.exists()) {
+                    f.delete()
+                }
+                new URL("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
+                        .withInputStream { i -> f.withOutputStream { it << i } }
+
+            }
+        }
+    }
+}
 // Publishing
 ext {
     PUBLISH_GROUP_ID = libsGroupId

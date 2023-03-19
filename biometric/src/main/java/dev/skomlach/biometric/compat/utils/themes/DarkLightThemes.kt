@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,12 @@ import android.content.res.Resources
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
-import dev.skomlach.biometric.compat.utils.SettingsHelper
-import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.device.DeviceInfoManager
+import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.themes.DarkThemeCheckResult
+import dev.skomlach.common.themes.getIsOsDarkTheme
 import java.time.LocalTime
 
 

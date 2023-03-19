@@ -23,9 +23,9 @@ import android.content.Context
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
-import dev.skomlach.biometric.compat.utils.monet.toArgb
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.themes.monet.SystemColorScheme
+import dev.skomlach.common.themes.monet.toArgb
 
 object DialogMainColor {
     @ColorInt

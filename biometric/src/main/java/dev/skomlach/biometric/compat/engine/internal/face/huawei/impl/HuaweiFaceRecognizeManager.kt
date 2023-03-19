@@ -22,11 +22,11 @@ package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 import android.os.Build
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
-import dev.skomlach.biometric.compat.utils.HexUtils
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.HexUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.nio.charset.Charset
 import java.security.MessageDigest

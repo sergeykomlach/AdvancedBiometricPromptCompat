@@ -24,13 +24,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.UserHandle
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
-import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
-import dev.skomlach.biometric.compat.utils.HexUtils
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.HexUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
 import java.security.MessageDigest

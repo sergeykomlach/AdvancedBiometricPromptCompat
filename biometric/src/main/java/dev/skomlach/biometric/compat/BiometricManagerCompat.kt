@@ -26,8 +26,8 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
-import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 

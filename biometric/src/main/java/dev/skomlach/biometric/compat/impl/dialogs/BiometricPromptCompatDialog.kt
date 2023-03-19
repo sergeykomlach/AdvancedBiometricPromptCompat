@@ -44,11 +44,11 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.biometric.compat.utils.monet.SystemColorScheme
-import dev.skomlach.biometric.compat.utils.monet.toArgb
-import dev.skomlach.biometric.compat.utils.statusbar.ColorUtil
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.statusbar.ColorUtil
+import dev.skomlach.common.themes.monet.SystemColorScheme
+import dev.skomlach.common.themes.monet.toArgb
 
 
 class BiometricPromptCompatDialog : DialogFragment() {

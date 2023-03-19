@@ -22,8 +22,8 @@ package dev.skomlach.biometric.compat.utils
 import android.os.Build
 import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.Utils
 import java.lang.reflect.Modifier
 
@@ -96,7 +96,7 @@ object DevicesWithKnownBugs {
     val hasUnderDisplayFingerprint: Boolean
         get() = DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo)
 
-    private fun checkForVendor(vendor: String, ignoreCase : Boolean): Boolean {
+    private fun checkForVendor(vendor: String, ignoreCase: Boolean): Boolean {
         val allFields = Build::class.java.fields
         for (f in allFields) try {
             if (!Modifier.isPrivate(f.modifiers) && f.type == String::class.java) {
@@ -114,7 +114,10 @@ object DevicesWithKnownBugs {
             //https://developer.chrome.com/apps/getstarted_arc
             //https://github.com/google/talkback/blob/master/src/main/java/com/google/android/marvin/talkback/TalkBackService.java#L1779-L1781
             //https://stackoverflow.com/a/39843396
-            return (checkForVendor("Chromium", ignoreCase = true) || Build.DEVICE != null && Build.DEVICE.matches(Regex(".+_cheets"))
+            return (checkForVendor(
+                "Chromium",
+                ignoreCase = true
+            ) || Build.DEVICE != null && Build.DEVICE.matches(Regex(".+_cheets"))
                     || AndroidContext.appContext.packageManager.hasSystemFeature("org.chromium.arc.device_management"))
         }
 }

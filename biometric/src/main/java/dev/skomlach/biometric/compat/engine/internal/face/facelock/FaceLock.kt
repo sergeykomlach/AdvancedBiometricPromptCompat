@@ -32,12 +32,12 @@ import android.os.Binder
 import android.os.IBinder
 import android.os.Parcel
 import android.os.RemoteException
-import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakLivelinessEnabled
-import dev.skomlach.biometric.compat.utils.ReflectionTools.getClassFromPkg
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.LockType.isBiometricWeakLivelinessEnabled
+import dev.skomlach.common.misc.ReflectionTools.getClassFromPkg
 import java.lang.reflect.InvocationTargetException
 
 @SuppressLint("PrivateApi")

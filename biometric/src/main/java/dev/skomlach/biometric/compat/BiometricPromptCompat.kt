@@ -27,9 +27,7 @@ import androidx.annotation.MainThread
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollChanged
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
@@ -44,31 +42,30 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
-import dev.skomlach.biometric.compat.impl.dialogs.HomeWatcher
-import dev.skomlach.biometric.compat.impl.permissions.PermissionsFragment
-import dev.skomlach.biometric.compat.impl.permissions.notification.NotificationPermissionsFragment
-import dev.skomlach.biometric.compat.impl.permissions.notification.NotificationPermissionsHelper
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
-import dev.skomlach.biometric.compat.utils.device.DeviceInfo
-import dev.skomlach.biometric.compat.utils.device.DeviceInfoManager
+import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
-import dev.skomlach.biometric.compat.utils.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.device.DeviceInfo
+import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
-import dev.skomlach.common.misc.multiwindow.MultiWindowSupport
+import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.permissionui.PermissionsFragment
+import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
+import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
+import dev.skomlach.common.statusbar.StatusBarTools
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.lang.ref.WeakReference
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -82,7 +79,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
                 try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        HiddenApiBypass.setHiddenApiExemptions("L")
+                        HiddenApiBypass.addHiddenApiExemptions("")
                     }
                 } catch (e: Throwable) {
                     e.printStackTrace()
@@ -282,62 +279,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         iBiometricPromptImpl
     }
-    private var stopWatcher: Runnable? = null
-    private val homeWatcher = HomeWatcher(object : HomeWatcher.OnHomePressedListener {
-        override fun onHomePressed() {
+    private val appBackgroundDetector: AppBackgroundDetector by lazy {
+        AppBackgroundDetector(impl) {
             cancelAuthentication()
-        }
-
-        override fun onRecentAppPressed() {
-            cancelAuthentication()
-        }
-
-        override fun onPowerPressed() {
-            cancelAuthentication()
-        }
-    })
-    private val fragmentLifecycleCallbacks = object :
-        FragmentManager.FragmentLifecycleCallbacks() {
-        private val atomicBoolean = AtomicInteger(0)
-        private val dismissTask = Runnable {
-            if (atomicBoolean.get() <= 0) {
-                BiometricLoggerImpl.e("BiometricPromptCompat.dismissTask")
-                cancelAuthentication()
-            }
-        }
-
-        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
-            if (f is androidx.biometric.BiometricFragment ||
-                f is androidx.biometric.FingerprintDialogFragment ||
-                f is dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
-            ) {
-                BiometricLoggerImpl.d(
-                    "BiometricPromptCompat.FragmentLifecycleCallbacks.onFragmentResumed - " +
-                            "$f"
-                )
-                atomicBoolean.incrementAndGet()
-            }
-        }
-
-        override fun onFragmentPaused(fm: FragmentManager, f: Fragment) {
-            if (f is androidx.biometric.BiometricFragment ||
-                f is androidx.biometric.FingerprintDialogFragment ||
-                f is dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialog
-            ) {
-                BiometricLoggerImpl.d(
-                    "BiometricPromptCompat.FragmentLifecycleCallbacks.onFragmentPaused - " +
-                            "$f"
-                )
-                atomicBoolean.decrementAndGet()
-                ExecutorHelper.removeCallbacks(dismissTask)
-                val delay =
-                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                        .toLong()
-                ExecutorHelper.postDelayed(
-                    dismissTask,
-                    delay
-                )//delay for case when system fragment closed and fallback shown
-            }
         }
     }
 
@@ -596,14 +540,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 ExecutorHelper.postDelayed(closeAll, delay)
                                 callbackOuter.onUIClosed()
 //                    ExecutorHelper.removeCallbacks(fragmentLifecycleCallbacks.dismissTask)
-                                stopWatcher?.run()
-                                stopWatcher = null
-                                try {
-                                    impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
-                                        fragmentLifecycleCallbacks
-                                    )
-                                } catch (ignore: Throwable) {
-                                }
+                                appBackgroundDetector.detachListeners()
                                 authFlowInProgress.set(false)
                             }
                         }
@@ -684,29 +621,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
-            try {
-                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
-                    fragmentLifecycleCallbacks
-                )
-            } catch (ignore: Throwable) {
-            }
-            impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(
-                fragmentLifecycleCallbacks,
-                false
-            )
-            stopWatcher = homeWatcher.startWatch()
-//            val delay =
-//                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-//                    .toLong()
-//            ExecutorHelper.postDelayed(fragmentLifecycleCallbacks.dismissTask, delay)
+            appBackgroundDetector.attachListeners()
             impl.authenticate(callback)
         } catch (ignore: IllegalStateException) {
-            try {
-                impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
-                    fragmentLifecycleCallbacks
-                )
-            } catch (ignore: Throwable) {
-            }
+            appBackgroundDetector.detachListeners()
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR, null)
             authFlowInProgress.set(false)
         }

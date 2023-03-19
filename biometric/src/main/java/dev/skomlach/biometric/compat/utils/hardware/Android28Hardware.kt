@@ -30,9 +30,9 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
-import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.LockType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher

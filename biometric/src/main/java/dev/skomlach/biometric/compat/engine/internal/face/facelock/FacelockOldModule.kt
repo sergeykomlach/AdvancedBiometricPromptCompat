@@ -32,9 +32,9 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakEnabled
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.LockType.isBiometricWeakEnabled
 import java.lang.ref.WeakReference
 
 

@@ -30,9 +30,9 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.LockType
 
 
 class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
