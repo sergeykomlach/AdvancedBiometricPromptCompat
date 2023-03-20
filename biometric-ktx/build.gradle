@@ -1,0 +1,31 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+/*
+Note: Keep module in Java to keep compatibility with OEM/AOSP API's
+*/
+android {
+    //compileSdkPreview compileSDK
+    compileSdkVersion compileSDK
+    defaultConfig {
+        minSdkVersion minSDK
+        //targetSdkPreview targetSDK
+        targetSdkVersion targetSDK
+
+    }
+    namespace 'dev.skomlach.biometric.ktx'
+}
+
+dependencies {
+    compileOnly project(":" + libArtifactId_biometric)
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}
+
+// Publishing
+ext {
+    PUBLISH_GROUP_ID = libsGroupId
+    PUBLISH_ARTIFACT_ID = libArtifactId_biometric_ktx
+    PUBLISH_VERSION = libVersion
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
