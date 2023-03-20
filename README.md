@@ -76,7 +76,7 @@ Latest supported Android OS version: **Android UpsideDownCake**
 ## Recent changes (last 3 month)
 March 20 2023
 
-**Improvement** Code refactoring; Fixes for OnePlus devices; **biometric-ktx** added
+**Improvement** Code refactoring; Fixes for OnePlus devices; **biometric-ktx** added - see `BiometricAuthExtensions`
 
 March 7, 2023
 
