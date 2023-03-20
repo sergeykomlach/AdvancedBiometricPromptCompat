@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +16,22 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package dev.skomlach.biometric.compat.auth.helpers
 
-rootProject.name = "biometric"
-include ":app", ":biometric", ":biometric-api", ':biometric-ktx', ":common"
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+
+class AuthPromptHost {
+    var activity: FragmentActivity? = null
+        private set
+    var fragment: Fragment? = null
+        private set
+
+    constructor(activity: FragmentActivity) {
+        this.activity = activity
+    }
+
+    constructor(fragment: Fragment) {
+        this.fragment = fragment
+    }
+}

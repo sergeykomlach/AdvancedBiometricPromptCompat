@@ -34,6 +34,7 @@ buildscript {
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
     ext.libArtifactId_biometric_api = 'biometric-api'
+    ext.libArtifactId_biometric_ktx = 'biometric-ktx'
     ext.libVersion = libsMajorVersion + "." + libsMinorVersion
     ext.libDesc = 'This is an Android project allowing you to use the advanced biometric authorization features.'
     ext.libLicenses = ['Apache-2.0']
