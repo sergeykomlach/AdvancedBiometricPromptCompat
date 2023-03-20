@@ -224,12 +224,6 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,

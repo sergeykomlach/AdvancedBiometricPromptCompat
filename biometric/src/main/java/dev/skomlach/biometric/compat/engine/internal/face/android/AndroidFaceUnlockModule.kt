@@ -607,12 +607,6 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -656,7 +650,6 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

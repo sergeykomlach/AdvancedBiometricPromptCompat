@@ -18,4 +18,4 @@
  */
 
 rootProject.name = "biometric"
-include ":app", ":biometric", ":biometric-api", ":common", ":soter-core"
+include ":app", ":biometric", ":biometric-api", ':biometric-auth', ":common"

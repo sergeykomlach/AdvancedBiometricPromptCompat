@@ -209,12 +209,6 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -258,7 +252,6 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

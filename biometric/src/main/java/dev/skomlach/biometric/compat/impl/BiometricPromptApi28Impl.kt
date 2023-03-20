@@ -140,7 +140,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             dialog?.onFailure(
                                 failureReason == AuthenticationFailureReason.LOCKED_OUT
                             )
-                            authenticate(callback)
                         }
                     } else {
                         checkAuthResultForPrimary(

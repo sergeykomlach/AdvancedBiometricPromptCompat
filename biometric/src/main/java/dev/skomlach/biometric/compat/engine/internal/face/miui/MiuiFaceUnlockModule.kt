@@ -68,7 +68,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 manager = null
             }
         }
-        e("MiuiFaceUnlockModule - $manager")
+
 
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
@@ -208,12 +208,6 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -254,7 +248,6 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             d("$name.onAuthenticationFailed: ")
             //NOTE: unlike other API's, MIUI call this one only for TIMEOUT
             listener?.onFailure(AuthenticationFailureReason.TIMEOUT, tag())
-            authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
         }
     }
 

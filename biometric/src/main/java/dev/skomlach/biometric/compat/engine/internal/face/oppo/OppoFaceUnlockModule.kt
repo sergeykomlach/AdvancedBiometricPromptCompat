@@ -271,12 +271,6 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             } else
                 if (restartPredicate?.invoke(failureReason) == true) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -321,7 +315,6 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

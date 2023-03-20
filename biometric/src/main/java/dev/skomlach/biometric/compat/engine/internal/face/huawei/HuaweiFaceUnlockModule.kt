@@ -207,12 +207,6 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -256,7 +250,6 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,
