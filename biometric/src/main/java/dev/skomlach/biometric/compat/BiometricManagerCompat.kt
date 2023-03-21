@@ -401,13 +401,6 @@ object BiometricManagerCompat {
         }
 
         if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            if (Utils.startActivity(
-                    Intent(Settings.ACTION_SECURITY_SETTINGS),
-                    activity
-                )
-            ) {
-                return true
-            }
             return Utils.startActivity(
                 Intent(Settings.ACTION_SETTINGS), activity
             )
