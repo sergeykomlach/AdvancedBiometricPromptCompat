@@ -63,8 +63,8 @@ Latest supported Android OS version: **Android UpsideDownCake**
 | In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| 
 | Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 | 
 | Face Unlock (aka TrustedFaces) | Android 4.1+ |Prestigio PAP3400|  
-| Huawei FaceID | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30| 
-| Huawei 3D FaceID | Android 10+ and Huawei devices |Huawei Mate 30 Pro|  
+| Huawei FaceID (3D) | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30,Huawei Mate 30 Pro| 
+| Honor FaceID (3D)| Android 8+ and Honor devices |Honor Magic 5 Lite|
 | Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|  
 | Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
