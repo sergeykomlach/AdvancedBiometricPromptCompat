@@ -33,6 +33,8 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
+import dev.skomlach.biometric.compat.engine.internal.face.hihonor.Hihonor3DFaceUnlockModule
+import dev.skomlach.biometric.compat.engine.internal.face.hihonor.HihonorFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.Huawei3DFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.huawei.HuaweiFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.lava.FaceunlockLavaModule
@@ -103,6 +105,7 @@ object BiometricAuthentication {
         if (Build.VERSION.SDK_INT >= 26) {
             allMethods.add(BiometricMethod.FACE_VIVO)
             allMethods.add(BiometricMethod.FACE_HUAWEI)
+            allMethods.add(BiometricMethod.FACE_HIHONOR)
         }
         //Android biometric - Pie (9.0)
         if (Build.VERSION.SDK_INT >= 28) {
@@ -111,6 +114,7 @@ object BiometricAuthentication {
         }
         if (Build.VERSION.SDK_INT >= 29) {
             allMethods.add(BiometricMethod.FACE_HUAWEI3D)
+            allMethods.add(BiometricMethod.FACE_HIHONOR3D)
         }
         moduleHashMap.clear()
         //launch in BG because for init needed about 2-3 seconds
@@ -180,6 +184,8 @@ object BiometricAuthentication {
                     )
                     BiometricMethod.FACE_HUAWEI -> HuaweiFaceUnlockModule(initListener)
                     BiometricMethod.FACE_HUAWEI3D -> Huawei3DFaceUnlockModule(initListener)
+                    BiometricMethod.FACE_HIHONOR -> HihonorFaceUnlockModule(initListener)
+                    BiometricMethod.FACE_HIHONOR3D -> Hihonor3DFaceUnlockModule(initListener)
                     BiometricMethod.FACE_MIUI -> MiuiFaceUnlockModule(initListener)
                     BiometricMethod.FACE_SOTERAPI -> SoterFaceUnlockModule(initListener)
                     BiometricMethod.FACE_OPPO -> OppoFaceUnlockModule(initListener)
