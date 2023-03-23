@@ -345,44 +345,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
-
-        if (!isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
-            callbackOuter.onFailed(
-                AuthenticationFailureReason.NO_HARDWARE,
-                null
-            )
-            authFlowInProgress.set(false)
-            return
-        }
-        if (!hasEnrolled(impl.builder.getBiometricAuthRequest())) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
-            callbackOuter.onFailed(
-                AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                null
-            )
-            authFlowInProgress.set(false)
-            return
-        }
-        if (isLockOut(impl.builder.getBiometricAuthRequest(), false)) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
-            callbackOuter.onFailed(
-                AuthenticationFailureReason.LOCKED_OUT,
-                null
-            )
-            authFlowInProgress.set(false)
-            return
-        }
-        if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest(), false)) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
-            callbackOuter.onFailed(
-                AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                null
-            )
-            authFlowInProgress.set(false)
-            return
-        }
         BiometricLoggerImpl.d("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
         val checkPermissions = {
             PermissionsFragment.askForPermissions(
@@ -399,6 +361,44 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     )
                     authFlowInProgress.set(false)
                 } else {
+                    BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
+
+                    if (!isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
+                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
+                        callbackOuter.onFailed(
+                            AuthenticationFailureReason.NO_HARDWARE,
+                            null
+                        )
+                        authFlowInProgress.set(false)
+                        return@askForPermissions
+                    }
+                    if (!hasEnrolled(impl.builder.getBiometricAuthRequest())) {
+                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
+                        callbackOuter.onFailed(
+                            AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
+                            null
+                        )
+                        authFlowInProgress.set(false)
+                        return@askForPermissions
+                    }
+                    if (isLockOut(impl.builder.getBiometricAuthRequest(), false)) {
+                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
+                        callbackOuter.onFailed(
+                            AuthenticationFailureReason.LOCKED_OUT,
+                            null
+                        )
+                        authFlowInProgress.set(false)
+                        return@askForPermissions
+                    }
+                    if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest(), false)) {
+                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
+                        callbackOuter.onFailed(
+                            AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                            null
+                        )
+                        authFlowInProgress.set(false)
+                        return@askForPermissions
+                    }
                     val activityViewWatcher = try {
                         ActivityViewWatcher(
                             impl.builder,
@@ -594,6 +594,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D, BiometricMethod.FACE_SOTERAPI -> permission.add(
                         "android.permission.USE_FACERECOGNITION"
                     )
+                    BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add("android.permission.CAMERA")
                     BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
                     BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
                     BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")

@@ -36,8 +36,6 @@
             android:name="android.hardware.sensor.heartrate"
             android:required="false" />
 
-    <uses-permission android:name="com.oplus.permission.safe.FACE" />
-    <uses-permission android:name="com.oppo.permission.safe.FACE" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -48,7 +46,7 @@
     <uses-permission android:name="com.huawei.permission.USE_FACERECOGNITION" />
     <uses-permission android:name="android.permission.USE_FACERECOGNITION" />
     <uses-permission android:name="com.hihonor.permission.USE_FACERECOGNITION" />
-
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- Oppo -->
     <uses-permission android:name="oppo.permission.USE_FACE" />

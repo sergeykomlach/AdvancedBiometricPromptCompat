@@ -74,6 +74,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+March 23 2023
+
+**Improvement** Added FaceId for Honor devices
+
 March 20 2023
 
 **Improvement** Code refactoring; Fixes for OnePlus devices; **biometric-ktx** added - see `BiometricAuthExtensions`
