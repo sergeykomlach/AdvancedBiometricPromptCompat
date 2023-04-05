@@ -74,6 +74,12 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+
+April 5 2023
+
+**Improvement** `PingConfig` added
+
+
 March 23 2023
 
 **Improvement** Added FaceId for Honor devices
