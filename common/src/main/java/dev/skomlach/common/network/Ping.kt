@@ -35,8 +35,6 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 internal class Ping(private val connectionStateListener: ConnectionStateListener) {
-    private val appContext = AndroidContext.appContext
-    private val hosts = arrayOf("1.1.1.1", "google.com", "aliexpress.com")
     private val patternMeta =
         Pattern.compile("<meta(.*?)>") //compile RegEx to extract all <meta/> tags
     private val patternLink =
@@ -89,13 +87,13 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             connectionStateListener.setState(false)
             return
         }
-        for (host in hosts) {
+        for (host in PingConfig.hostsList) {
             var urlConnection: HttpURLConnection? = null
             try {
                 val uri = URI("https://$host")
                 urlConnection = NetworkApi.createConnection(
                     uri.toString(),
-                    TimeUnit.SECONDS.toMillis(10).toInt()
+                    TimeUnit.SECONDS.toMillis(PingConfig.pingTimeoutSec).toInt()
                 )
                 urlConnection.instanceFollowRedirects = true
                 urlConnection.requestMethod = "GET"
