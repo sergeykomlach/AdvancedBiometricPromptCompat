@@ -34569,6 +34569,11 @@
   {
    "device": "SEI800MOBI",
    "name": "USA",
+   "model": "FRC1-MOBI"
+  },
+  {
+   "device": "SEI800MOBI",
+   "name": "USA",
    "model": "MOBI-Buckeye"
   }
  ],
@@ -41892,6 +41897,11 @@
    "device": "gminfo37",
    "name": "Infotainment 3.8",
    "model": "gminfo38"
+  },
+  {
+   "device": "aegean",
+   "name": "VCU",
+   "model": "aegean"
   }
  ],
  "GeneralMobile": [
@@ -195414,6 +195424,13 @@
    "device": "H20_EEA",
    "name": "H20",
    "model": "H20"
+  }
+ ],
+ "Zeop": [
+  {
+   "device": "B866V2F",
+   "name": "Zeop N9000",
+   "model": "Zeop N9000"
   }
  ],
  "Zephir": [
