@@ -128,14 +128,18 @@ class MainActivity : AppCompatActivity() {
 
             scanTask.execute()
         }
-        val color = if (DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
-        StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
+
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus)
             updateUI()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateUI()
     }
 
 
@@ -156,6 +160,8 @@ class MainActivity : AppCompatActivity() {
             window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
 
+        val color = if (DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
+        StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
 
     }
 

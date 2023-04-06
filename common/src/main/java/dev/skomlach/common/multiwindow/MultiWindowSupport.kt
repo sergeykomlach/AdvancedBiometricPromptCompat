@@ -34,10 +34,14 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.isActivityFinished
 
-class MultiWindowSupport {
+class MultiWindowSupport private constructor() {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
-
+        @SuppressLint("StaticFieldLeak")
+        private val instance  = MultiWindowSupport()
+        fun get() : MultiWindowSupport{
+            return instance
+        }
         @SuppressLint("StaticFieldLeak")
         val ctx = AndroidContext.appContext
         fun isTablet(): Boolean {
@@ -155,7 +159,7 @@ class MultiWindowSupport {
                 }
             }
         }
-    private val navigationBarHeight: Int
+    val navigationBarHeight: Int
         get() {
             if (!hasNavBar()) {
                 return 0
@@ -180,7 +184,7 @@ class MultiWindowSupport {
                 resources.getDimensionPixelSize(resourceId)
             } else 0
         }
-    private val navigationBarWidth: Int
+    val navigationBarWidth: Int
         get() {
             if (!hasNavBar()) {
                 return 0
@@ -206,7 +210,7 @@ class MultiWindowSupport {
             } else 0
         }
 
-    private fun hasNavBar(): Boolean {
+    fun hasNavBar(): Boolean {
         val realSize = realScreenSize
         val realHeight = realSize.y
         val realWidth = realSize.x
@@ -227,7 +231,7 @@ class MultiWindowSupport {
     }
 
     // status bar height
-    private val statusBarHeight: Int
+    val statusBarHeight: Int
         get() {
             // status bar height
             var statusBarHeight = 0
@@ -240,7 +244,7 @@ class MultiWindowSupport {
         }//This should be close, as lower API devices should not have window navigation bars//this may not be 100% accurate, but it's all we've got//reflection for this weird in-between time
 
     //new pleasant way to get real metrics
-    private val realScreenSize: Point
+    val realScreenSize: Point
         get() {
             val configuration = activity.resources.configuration
             val point = Companion.realScreenSize[configuration]

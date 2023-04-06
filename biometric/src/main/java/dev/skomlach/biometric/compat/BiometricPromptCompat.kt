@@ -812,7 +812,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             }
             if (API_ENABLED) {
-                multiWindowSupport = MultiWindowSupport()
+                multiWindowSupport = MultiWindowSupport.get()
             }
 
             //OnePlus 9 call onSuccess when "Cancel" button clicked,
