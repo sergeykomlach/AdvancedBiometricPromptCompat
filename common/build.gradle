@@ -10,6 +10,8 @@ android {
         targetSdkVersion targetSDK
         consumerProguardFiles "proguard-project-common.pro"
     }
+
+    namespace 'dev.skomlach.common'
     compileOptions {
         sourceCompatibility javaVersion
         targetCompatibility javaVersion
@@ -17,16 +19,15 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
-    namespace 'dev.skomlach.common'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "androidx.window:window:1.1.0-alpha06"
+    implementation "androidx.window:window:1.1.0-beta02"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'com.google.guava:guava:31.1-android'
-    implementation "org.jsoup:jsoup:1.15.3"
+    implementation "org.jsoup:jsoup:1.15.4"
     implementation 'com.jaredrummler:android-device-names:2.1.0'
 }
 

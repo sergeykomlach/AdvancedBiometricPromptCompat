@@ -14,10 +14,20 @@ android {
 
     }
     namespace 'dev.skomlach.biometric.apis'
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
+    buildFeatures {
+        aidl true
+    }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 }
 
 // Publishing

@@ -14,6 +14,13 @@ android {
 
     }
     namespace 'dev.skomlach.biometric.ktx'
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
 }
 
 dependencies {

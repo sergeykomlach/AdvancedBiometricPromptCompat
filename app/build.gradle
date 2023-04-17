@@ -47,6 +47,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        viewBinding true
+    }
+    namespace 'dev.skomlach.biometric.app'
     compileOptions {
         sourceCompatibility javaVersion
         targetCompatibility javaVersion
@@ -54,10 +58,7 @@ android {
     kotlinOptions {
         jvmTarget = javaVersion.toString()
     }
-    buildFeatures {
-        viewBinding true
-    }
-    namespace 'dev.skomlach.biometric.app'
+
 }
 
 dependencies {
@@ -66,7 +67,7 @@ dependencies {
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0-alpha02'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -81,17 +82,7 @@ dependencies {
     implementation 'com.squareup.leakcanary:leakcanary-android:2.9.1'
 
     implementation platform('com.google.firebase:firebase-bom:29.0.3')
+    implementation "com.google.firebase:firebase-perf"
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
-}
-
-afterEvaluate {
-    android.applicationVariants.all { v ->
-        v.assemble.finalizedBy(copyApk)
-    }
-}
-task copyApk(type: Copy) {
-    from "$buildDir/outputs/apk/debug/"
-    into "$projectDir/"
-    include '*.apk'
 }
