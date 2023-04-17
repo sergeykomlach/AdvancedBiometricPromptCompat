@@ -24,7 +24,6 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import androidx.core.view.WindowCompat
-import dev.skomlach.common.misc.MiuiDetection
 import java.util.*
 
 
@@ -93,9 +92,6 @@ object StatusBarIconsDarkMode {
     }
 
     fun setDarkIconMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
-        if (MiuiDetection.isDetected() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && window.decorView.isForceDarkAllowed) {
-            window.decorView.isForceDarkAllowed = false
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.getInsetsController(window, window.decorView).apply {
                 if (type == BarType.STATUSBAR)
