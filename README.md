@@ -75,6 +75,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 ## Recent changes (last 3 month)
 
+April 19 2023
+
+**HOTFIX!!!** Fixed device details retrieving
+
 April 5 2023
 
 **Improvement** `PingConfig` added
