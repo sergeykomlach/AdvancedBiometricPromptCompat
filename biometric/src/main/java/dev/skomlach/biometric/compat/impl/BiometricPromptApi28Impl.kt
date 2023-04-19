@@ -537,10 +537,20 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     private val isNativeBiometricWorkaroundRequired: Boolean
         get() {
-            val candidates = builder.getAllAvailableTypes().filter {
+            val candidatesPrimary = builder.getPrimaryAvailableTypes().filter {
                 it != BiometricType.BIOMETRIC_ANY
+            }.filter {
+                it != BiometricType.BIOMETRIC_FINGERPRINT
             }
-            return DevicesWithKnownBugs.systemDealWithBiometricPrompt && candidates.size > 1 //If only one - let the system to deal with this
+
+            val candidatesSecondary = builder.getSecondaryAvailableTypes().filter {
+                it != BiometricType.BIOMETRIC_ANY
+            }.filter {
+                it != BiometricType.BIOMETRIC_FINGERPRINT
+            }
+            return DevicesWithKnownBugs.systemDealWithBiometricPrompt //Samsung OR Android 13+
+                    && (candidatesPrimary.isEmpty() //Primary has ONLY fingerprint/any
+                    && candidatesSecondary.isNotEmpty()) //Secondary has non-fingerprint/any
         }
 
     private fun checkAuthResultForPrimary(
