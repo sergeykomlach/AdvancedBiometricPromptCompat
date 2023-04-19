@@ -27635,6 +27635,11 @@
    "model": "P60"
   },
   {
+   "device": "P80",
+   "name": "P80",
+   "model": "P80"
+  },
+  {
    "device": "POCKET_3",
    "name": "POCKET 3",
    "model": "POCKET 3"
@@ -71851,6 +71856,11 @@
    "model": "JVCSA 4KGoogle TV"
   },
   {
+   "device": "expo",
+   "name": "JVC",
+   "model": "JVCUS 4K TV"
+  },
+  {
    "device": "kaitak",
    "name": "JVC",
    "model": "JVCPA 4KAndroid TV"
@@ -92868,7 +92878,7 @@
   },
   {
    "device": "ME40K_M",
-   "name": "ME40K",
+   "name": "ME40M",
    "model": "ME40K"
   }
  ],
@@ -111154,6 +111164,16 @@
    "model": "CPH2409"
   },
   {
+   "device": "OP5958L1",
+   "name": "OnePlus Nord CE 3 Lite 5G",
+   "model": "CPH2465"
+  },
+  {
+   "device": "OP5958L1",
+   "name": "OnePlus Nord CE 3 Lite 5G",
+   "model": "CPH2467"
+  },
+  {
    "device": "OnePlusNordCE",
    "name": "OnePlus Nord CE 5G",
    "model": "EB2101"
@@ -128628,6 +128648,11 @@
  ],
  "Riviera": [
   {
+   "device": "sindorim",
+   "name": "Android TV",
+   "model": "AI PONT"
+  },
+  {
    "device": "songshan",
    "name": "HIKA5",
    "model": "SmartTV 4K"
@@ -128635,11 +128660,6 @@
   {
    "device": "ikebukuro",
    "name": "RLED-AND42CHG6F",
-   "model": "AI PONT"
-  },
-  {
-   "device": "sindorim",
-   "name": "RLED-AND50CHG6FP",
    "model": "AI PONT"
   },
   {
@@ -132525,6 +132545,21 @@
    "model": "SM-A236V"
   },
   {
+   "device": "a24",
+   "name": "Galaxy A24",
+   "model": "SM-A245F"
+  },
+  {
+   "device": "a24",
+   "name": "Galaxy A24",
+   "model": "SM-A245M"
+  },
+  {
+   "device": "a24",
+   "name": "Galaxy A24",
+   "model": "SM-A245N"
+  },
+  {
    "device": "a33g",
    "name": "Galaxy A3",
    "model": "SM-A300H"
@@ -135048,6 +135083,11 @@
    "device": "f52x",
    "name": "Galaxy F52 5G",
    "model": "SM-E5260"
+  },
+  {
+   "device": "m54x",
+   "name": "Galaxy F54 5G",
+   "model": "SM-E546B"
   },
   {
    "device": "f62",
@@ -156624,6 +156664,16 @@
    "model": "Symphony Z45"
   },
   {
+   "device": "Z60",
+   "name": "Z60",
+   "model": "Symphony Z60"
+  },
+  {
+   "device": "Z60",
+   "name": "Z60",
+   "model": "Z60"
+  },
+  {
    "device": "ZVII",
    "name": "ZVII",
    "model": "ZVII"
@@ -173905,6 +173955,11 @@
    "model": "VIMOQ A507LE"
   },
   {
+   "device": "VIMOQ-S661LS",
+   "name": "VIMOQ Vision 3",
+   "model": "VIMOQ S661LS"
+  },
+  {
    "device": "VIMOQ-A512WS",
    "name": "itel A18",
    "model": "VIMOQ A512WS"
@@ -178684,6 +178739,11 @@
    "model": "vivo 1801"
   },
   {
+   "device": "PD2278",
+   "name": "Y78",
+   "model": "V2278A"
+  },
+  {
    "device": "V2244",
    "name": "Y78 5G",
    "model": "V2244"
@@ -178692,6 +178752,11 @@
    "device": "PD2271",
    "name": "Y78+",
    "model": "V2271A"
+  },
+  {
+   "device": "PD2278",
+   "name": "Y78m",
+   "model": "V2278A"
   },
   {
    "device": "PD1708",
@@ -179272,6 +179337,11 @@
    "device": "PD2199",
    "name": "vivo T2",
    "model": "V2199GA"
+  },
+  {
+   "device": "PD2256",
+   "name": "vivo X Flip",
+   "model": "V2256A"
   },
   {
    "device": "PD2178",
@@ -180593,6 +180663,11 @@
    "device": "longshan",
    "name": "Android TV",
    "model": "AI PONT"
+  },
+  {
+   "device": "wuyishan",
+   "name": "ULED",
+   "model": "VU TV FFM"
   },
   {
    "device": "hamamatsucho",
@@ -185634,6 +185709,11 @@
    "device": "ziyi",
    "name": "Xiaomi civi2",
    "model": "2209129SC"
+  },
+  {
+   "device": "liuqin",
+   "name": "Xiaomi pad 6 Pro",
+   "model": "23046RP50C"
   },
   {
    "device": "baiji",
