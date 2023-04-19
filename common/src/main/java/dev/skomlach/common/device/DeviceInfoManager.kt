@@ -199,7 +199,7 @@ object DeviceInfoManager {
     private fun loadDeviceInfo(modelReadableName: String, model: String): DeviceInfo? {
         LogCat.log("DeviceInfoManager: loadDeviceInfo for $modelReadableName/$model")
         return if (model.isEmpty()) null else try {
-            val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model)
+            val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model) +"&tn="+getTn()
             LogCat.log("DeviceInfoManager: SearchUrl: $url")
             var html: String? = getHtml(url) ?: return null
             LogCat.log("DeviceInfoManager: html loaded, start parsing")
@@ -346,6 +346,33 @@ object DeviceInfoManager {
                 return "<html></html>"
             }
             LogCat.logException(e)
+        }
+        return null
+    }
+
+    private fun getTn():String?{
+        val url = "https://m.gsmarena.com"
+        LogCat.log("DeviceInfoManager: getTnValue: $url")
+        val html =  getHtml(url) ?: return null
+
+        return getTnValue(html)
+    }
+    private fun getTnValue(html: String?): String? {
+        html?.let {
+            val doc = Jsoup.parse(html)
+            val body = doc.body()
+            val rElements = body.getElementsByTag("input") ?: Elements()
+            for (i in rElements.indices) {
+                val element = rElements[i]
+                val name = element.attr("name")
+                if (name.isNullOrEmpty()) {
+                    continue
+                }
+                if (name.equals("tn", ignoreCase = true)) {
+                    return element.`val`()
+                }
+            }
+
         }
         return null
     }
