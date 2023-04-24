@@ -179,7 +179,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AndroidContext.appInstance?.registerActivityLifecycleCallbacks(
                         BiometricActivityContextProvider
                     )
-                    BiometricNotificationManager.initNotificationsPreferences()
+
                     NotificationPermissionsFragment.preloadTranslations()
                     startBiometricInit()
                     ExecutorHelper.startOnBackground {
@@ -551,6 +551,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         if (!builder.isSilentAuthEnabled()) {
             if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                BiometricNotificationManager.initNotificationsPreferences()
                 NotificationPermissionsHelper.checkNotificationPermissions(
                     builder.getContext(),
                     BiometricNotificationManager.CHANNEL_ID,

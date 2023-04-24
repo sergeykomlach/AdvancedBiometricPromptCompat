@@ -30,10 +30,12 @@ import androidx.core.app.NotificationManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicReference
 
 
@@ -49,16 +51,16 @@ object BiometricNotificationManager {
     fun initNotificationsPreferences() {
         if (Build.VERSION.SDK_INT >= 26) {
             try {
-                var notificationChannel1 = notificationCompat.getNotificationChannel(CHANNEL_ID)
-                if (notificationChannel1 == null) {
-                    notificationChannel1 = NotificationChannel(
+                var notificationChannel = notificationCompat.getNotificationChannel(CHANNEL_ID)
+                if (notificationChannel == null) {
+                    notificationChannel = NotificationChannel(
                         CHANNEL_ID,
-                        "Biometric",
+                        LocalizationHelper.getLocalizedString(appContext.getString(R.string.biometriccompat_channel_id)),
                         NotificationManager.IMPORTANCE_DEFAULT
                     )
+                    notificationChannel.setShowBadge(false)
+                    notificationCompat.createNotificationChannel(notificationChannel)
                 }
-                notificationChannel1.setShowBadge(false)
-                notificationCompat.createNotificationChannel(notificationChannel1)
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
@@ -69,6 +71,7 @@ object BiometricNotificationManager {
         builder: BiometricPromptCompat.Builder
     ) {
         BiometricLoggerImpl.d("BiometricNotificationManager", "showNotification")
+        initNotificationsPreferences()
         dismissAll()
         val notify = Runnable {
             try {

@@ -41,6 +41,7 @@ class NotificationPermissionsFragment : Fragment() {
         fun preloadTranslations() {
             LocalizationHelper.prefetch(
                 AndroidContext.appContext,
+                R.string.biometriccompat_channel_id,
                 R.string.biometriccompat_request_perm,
                 R.string.biometriccompat_allow_notifications_perm,
                 R.string.biometriccompat_allow_notifications_channel_perm,

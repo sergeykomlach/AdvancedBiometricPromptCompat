@@ -18,6 +18,7 @@
   -->
 
 <resources>
+    <string name="biometriccompat_channel_id">Biometrics</string>
     <string name="biometriccompat_allow_notifications_channel_perm">Allow show notification channels</string>
     <string name="biometriccompat_allow_notifications_perm">Allow show notifications</string>
     <string name="biometriccompat_permissions_request_failed">The action cannot be performed due to the required permission not being granted.</string>
