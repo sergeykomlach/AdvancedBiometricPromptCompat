@@ -130,6 +130,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
 
     private fun authorize(proxyListener: ProxyListener) {
         facelockProxyListener = proxyListener
+        authCallTimestamp.set(System.currentTimeMillis())
         faceLockHelper?.stopFaceVerify()
         faceLockHelper?.startFaceVerify()
     }
@@ -148,7 +149,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
         fun onAuthenticationError(): Void? {
             d("$name.onAuthenticationError")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return null
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
@@ -183,7 +184,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
         fun onAuthenticationSucceeded(result: Any?): Void? {
             d("$name.onAuthenticationSucceeded $result")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return null
             errorTs = tmp
             listener?.onSuccess(
@@ -205,7 +206,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
         fun onAuthenticationFailed(): Void? {
             d("$name.onAuthenticationFailed")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return null
             errorTs = tmp
             listener?.onFailure(

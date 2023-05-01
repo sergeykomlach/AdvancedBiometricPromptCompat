@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.hardware.biometrics.CryptoObject
 import android.hardware.face.FaceManager
-import android.os.Handler
 import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -385,63 +384,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     e(e, name)
             }
         }
-        verifyManager()
         listener?.initFinished(biometricMethod, this@AndroidFaceUnlockModule)
-    }
-
-    private fun verifyManager() {
-        if (manager != null) {
-            //verify that 'authenticate' can be used
-            try {
-                if (manager?.javaClass?.getMethod(
-                        "authenticate",
-                        CryptoObject::class.java,
-                        CancellationSignal::class.java,
-                        FaceManager.AuthenticationCallback::class.java,
-                        Handler::class.java,
-                        Int::class.javaPrimitiveType,
-                        Boolean::class.javaPrimitiveType
-                    ) != null
-                ) {
-                    return
-                }
-            } catch (e: Throwable) {
-
-            }
-            try {
-                if (manager?.javaClass?.getMethod(
-                        "authenticate",
-                        CryptoObject::class.java,
-                        CancellationSignal::class.java,
-                        Int::class.javaPrimitiveType,
-                        FaceManager.AuthenticationCallback::class.java,
-                        Handler::class.java
-                    ) != null
-                ) {
-                    return
-                }
-            } catch (e: Throwable) {
-
-            }
-            try {
-                if (manager?.javaClass?.getMethod(
-                        "authenticate",
-                        CryptoObject::class.java,
-                        CancellationSignal::class.java,
-                        Int::class.javaPrimitiveType,
-                        FaceManager.AuthenticationCallback::class.java,
-                        Handler::class.java,
-                        Int::class.javaPrimitiveType,
-                    ) != null
-                ) {
-                    return
-                }
-            } catch (e: Throwable) {
-
-            }
-        }
-
-        manager = null
     }
 
     override fun getManagers(): Set<Any> {
@@ -514,6 +457,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 d("$name.authenticate:  Crypto=$crypto")
                 try {
+                    authCallTimestamp.set(System.currentTimeMillis())
                     it.authenticate(
                         crypto,
                         signalObject,
@@ -526,6 +470,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 } catch (e: Throwable) {
                 }
                 try {
+                    authCallTimestamp.set(System.currentTimeMillis())
                     it.authenticate(
                         crypto,
                         signalObject,
@@ -536,6 +481,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     return
                 } catch (e: Throwable) {
                 }
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
                     signalObject,
@@ -547,6 +493,8 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
+                listener?.onFailure(AuthenticationFailureReason.HARDWARE_UNAVAILABLE, tag())
+                return
             }
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
@@ -566,7 +514,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -628,7 +576,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -644,7 +592,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

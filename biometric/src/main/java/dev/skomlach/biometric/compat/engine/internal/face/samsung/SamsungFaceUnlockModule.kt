@@ -144,6 +144,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 d("$name.authenticate:  Crypto=$crypto")
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
                     signalObject,
@@ -174,7 +175,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -227,7 +228,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationSucceeded(result: SemBioFaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -243,7 +244,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
 

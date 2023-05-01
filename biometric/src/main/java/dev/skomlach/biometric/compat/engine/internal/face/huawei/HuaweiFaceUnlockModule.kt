@@ -153,6 +153,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     it.cancel()
                 }
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(callback)
                 return
             }
@@ -176,7 +177,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationError(errMsgId: Int) {
             d("$name.onAuthenticationError: $errMsgId")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -228,7 +229,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationSucceeded() {
             d("$name.onAuthenticationSucceeded: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -244,7 +245,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

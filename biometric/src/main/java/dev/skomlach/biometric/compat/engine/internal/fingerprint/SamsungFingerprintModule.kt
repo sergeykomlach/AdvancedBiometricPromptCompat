@@ -138,7 +138,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
                     override fun onFinished(status: Int) {
                         val tmp = System.currentTimeMillis()
-                        if (tmp - errorTs <= skipTimeout)
+                        if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                             return
                         errorTs = tmp
                         when (status) {
@@ -200,6 +200,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                 cancellationSignal?.setOnCancelListener {
                     cancelFingerprintRequest()
                 }
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.startIdentify(callback)
 
                 return

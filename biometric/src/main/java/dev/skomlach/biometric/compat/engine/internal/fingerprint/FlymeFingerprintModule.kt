@@ -133,7 +133,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
 
                 override fun onIdentified(i: Int, b: Boolean) {
                     val tmp = System.currentTimeMillis()
-                    if (tmp - errorTs <= skipTimeout)
+                    if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                         return
                     errorTs = tmp
                     listener?.onSuccess(
@@ -180,6 +180,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             cancellationSignal?.setOnCancelListener {
                 cancelFingerprintServiceFingerprintRequest()
             }
+            authCallTimestamp.set(System.currentTimeMillis())
             mFingerprintServiceFingerprintManager
                 ?.startIdentify(callback, mFingerprintServiceFingerprintManager?.ids)
 

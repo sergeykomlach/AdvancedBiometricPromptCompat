@@ -54,12 +54,14 @@ import dev.skomlach.common.misc.Utils.isAtLeastR
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
 @TargetApi(Build.VERSION_CODES.P)
 
 class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
+    private val authCallTimestamp = AtomicLong(0)
     private val biometricPromptInfo: PromptInfo
     private val biometricPrompt: BiometricPrompt
     private var restartPredicate = defaultPredicate()
@@ -80,7 +82,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationFailed() {
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
                 val tmp = System.currentTimeMillis()
-                if (tmp - errorTs <= skipTimeout)
+                if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                     return
                 errorTs = tmp
                 for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
@@ -93,7 +95,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 d("BiometricPromptApi28Impl.onAuthenticationError: $errorCode $errString")
                 val tmp = System.currentTimeMillis()
-                if (tmp - errorTs <= skipTimeout)
+                if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                     return
                 errorTs = tmp
                 //...present normal failed screen...
@@ -154,7 +156,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 d("BiometricPromptApi28Impl.onAuthenticationSucceeded: ${result.authenticationType}; Crypto=${result.cryptoObject}")
                 val tmp = System.currentTimeMillis()
-                if (tmp - errorTs <= skipTimeout)
+                if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                     return
                 errorTs = tmp
                 checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
@@ -361,7 +363,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                                 override fun onAuthenticationFailed() {
                                     val tmp = System.currentTimeMillis()
-                                    if (tmp - errorTs <= skipTimeout)
+                                    if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                                         return
                                     errorTs = tmp
                                 }
@@ -371,7 +373,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     errString: CharSequence
                                 ) {
                                     val tmp = System.currentTimeMillis()
-                                    if (tmp - errorTs <= skipTimeout)
+                                    if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                                         return
                                     errorTs = tmp
                                     if (!dialogClosed.get()) {
@@ -383,7 +385,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                                 override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                                     val tmp = System.currentTimeMillis()
-                                    if (tmp - errorTs <= skipTimeout)
+                                    if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                                         return
                                     errorTs = tmp
                                     if (!dialogClosed.get()) {
@@ -466,11 +468,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             d("BiometricPromptCompat.authenticate:  Crypto=$crpObject")
             if (crpObject != null) {
                 try {
+                    authCallTimestamp.set(System.currentTimeMillis())
                     biometricPrompt.authenticate(biometricPromptInfo, crpObject)
                 } catch (e: Throwable) {
+                    authCallTimestamp.set(System.currentTimeMillis())
                     biometricPrompt.authenticate(biometricPromptInfo)
                 }
             } else {
+                authCallTimestamp.set(System.currentTimeMillis())
                 biometricPrompt.authenticate(biometricPromptInfo)
             }
             ExecutorHelper.startOnBackground {

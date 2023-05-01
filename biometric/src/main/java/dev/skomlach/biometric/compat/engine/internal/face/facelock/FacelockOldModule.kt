@@ -176,6 +176,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
     private fun authorize(proxyListener: ProxyListener) {
         facelockProxyListener = proxyListener
+        authCallTimestamp.set(System.currentTimeMillis())
         faceLockHelper?.stopFaceLock()
         faceLockHelper?.initFacelock()
     }
@@ -194,7 +195,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void? {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return null
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -246,7 +247,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         fun onAuthenticationSucceeded(result: Any?): Void? {
             d("$name.onAuthenticationSucceeded $result")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return null
             errorTs = tmp
             listener?.onSuccess(
@@ -268,7 +269,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         fun onAuthenticationFailed(): Void? {
             d("$name.onAuthenticationFailed")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return null
             errorTs = tmp
             listener?.onFailure(

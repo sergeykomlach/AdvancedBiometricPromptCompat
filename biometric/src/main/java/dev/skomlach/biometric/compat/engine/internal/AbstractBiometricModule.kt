@@ -34,6 +34,7 @@ import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicLong
 
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
@@ -50,6 +51,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     var bundle: Bundle? = null
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = true
+    protected val authCallTimestamp = AtomicLong(0)
 
     fun getUserId(): Int {
         return try {

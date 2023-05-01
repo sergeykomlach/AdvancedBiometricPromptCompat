@@ -138,6 +138,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
 
                 d("$name.authenticate:  Crypto=$crypto")
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
                     signalObject,
@@ -168,7 +169,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -232,7 +233,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -249,7 +250,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

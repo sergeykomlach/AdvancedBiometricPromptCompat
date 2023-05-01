@@ -123,6 +123,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
 
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 d("$name.authenticate:  Crypto=$crypto")
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
                     signalObject,
@@ -151,7 +152,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -203,7 +204,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationSucceeded(result: FaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -219,7 +220,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED

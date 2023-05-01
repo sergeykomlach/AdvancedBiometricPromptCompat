@@ -113,6 +113,7 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     it.stopFaceUnlock()
                 }
                 // Occasionally, an NPE will bubble up out of SemBioSomeManager.authenticate
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.startFaceUnlock(callback)
                 return
             } catch (e: Throwable) {
@@ -136,7 +137,7 @@ class VivoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onFaceAuthenticationResult(errorCode: Int, retry_times: Int) {
             d("$name.onFaceAuthenticationResult: $errorCode-$retry_times")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             if (errorCode == FaceDetectManager.FACE_DETECT_SUCEESS) {

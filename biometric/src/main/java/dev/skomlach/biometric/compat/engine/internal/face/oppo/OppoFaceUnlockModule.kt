@@ -206,6 +206,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
 
                 d("$name.authenticate:  Crypto=$crypto")
+                authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
                     crypto,
                     signalObject,
@@ -235,7 +236,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
@@ -292,7 +293,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onAuthenticationSucceeded(result: OppoMirrorFaceManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
             listener?.onSuccess(
@@ -308,7 +309,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
 
