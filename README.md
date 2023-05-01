@@ -75,6 +75,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 ## Recent changes (last 3 month)
 
+May 1 2023
+
+**Improvement** Added Chucker to test app
+
 April 19 2023
 
 **HOTFIX!!!** Fixed device details retrieving
@@ -99,16 +103,6 @@ March 7, 2023
 March 5, 2023
 
 **Bugfix: Dialog paddings** fixed issue on some devices when dialog ignore system bars paddings
-
-February 23, 2023
-
-**Improvement: Notifications handling** improved notifications and permissions handling
-
-February 2, 2023
-
-**Bugfix: FaceId doesn't work on Honor** check for camera access on Huawei/Honor devices
-
-**Improvement: auth dismiss** more correct auth cancel for non-modern methods
 
 
 ## Test app
