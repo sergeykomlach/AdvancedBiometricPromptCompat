@@ -14,8 +14,8 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/biometric" />
             <option value="$PROJECT_DIR$/biometric-api" />
+            <option value="$PROJECT_DIR$/biometric-ktx" />
             <option value="$PROJECT_DIR$/common" />
-            <option value="$PROJECT_DIR$/soter-core" />
           </set>
         </option>
       </GradleProjectSettings>
