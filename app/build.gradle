@@ -80,7 +80,8 @@ dependencies {
     implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
     //memory leaks
     implementation 'com.squareup.leakcanary:leakcanary-android:2.9.1'
-
+    implementation 'com.readystatesoftware.chuck:library:1.1.0'
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.10.0"
     implementation platform('com.google.firebase:firebase-bom:29.0.3')
     implementation "com.google.firebase:firebase-perf"
     implementation 'com.google.firebase:firebase-crashlytics'

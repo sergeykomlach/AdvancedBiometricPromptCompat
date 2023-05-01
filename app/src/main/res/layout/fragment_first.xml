@@ -79,31 +79,47 @@
             android:layout_centerInParent="true"
             android:gravity="center"
             android:orientation="horizontal"
+            android:weightSum="4"
             >
 
 
         <Button
+                android:layout_weight="1"
                 android:id="@+id/button_second"
+                android:textSize="12sp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="6dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
                 android:text="@string/dialog"
                 />
 
         <Button
+                android:layout_weight="1"
                 android:id="@+id/button_first"
+                android:textSize="12sp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="6dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
                 android:text="@string/send_logs"
                 />
 
         <Button
+                android:layout_weight="1"
                 android:id="@+id/button_third"
+                android:textSize="12sp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="6dp"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
                 android:text="@string/leak_canary_display_activity_label"
+                />
+        <Button
+                android:layout_weight="1"
+                android:id="@+id/button_forth"
+                android:textSize="12sp"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:text="@string/chuck_name"
                 />
     </LinearLayout>
 

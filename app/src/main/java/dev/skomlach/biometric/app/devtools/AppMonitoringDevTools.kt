@@ -29,6 +29,9 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.github.anrwatchdog.ANRWatchDog
 import java.io.File
+import java.lang.reflect.Modifier
+import java.net.URL
+import java.net.URLStreamHandlerFactory
 import java.text.DecimalFormat
 
 class AppMonitoringDevTools(val app: Application) {
@@ -40,7 +43,16 @@ class AppMonitoringDevTools(val app: Application) {
 
     private val FILE_SIZE_LIMIT = 524288
 
+    private var oldURLStreamHandlerFactory: URLStreamHandlerFactory? = null
     init {
+        try {
+            oldURLStreamHandlerFactory = URL::class.java.declaredFields.firstOrNull {
+                Modifier.isStatic(it.modifiers) && it.type == URLStreamHandlerFactory::class.java
+            }.apply {
+                this?.isAccessible = true
+            }?.get(null) as URLStreamHandlerFactory?
+        } catch (e: Throwable) {
+        }
         try {
             val path = try {
                 val dir = ContextCompat.getDataDir(app)
@@ -100,6 +112,13 @@ class AppMonitoringDevTools(val app: Application) {
     fun enableMonitoringTools(enable: Boolean) {
 
         this.enable = enable
+        if (enable) {
+            OkUrlFactory.setURLStreamHandlerFactory()
+        } else {
+            oldURLStreamHandlerFactory?.let {
+                URL.setURLStreamHandlerFactory(it)
+            }
+        }
 
         LeakCanaryConfig.setup(enable)
 
