@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat
 import android.graphics.Color
 import android.os.Build
 import android.os.Looper
+import androidx.annotation.CallSuper
 import androidx.annotation.ColorInt
 import androidx.annotation.MainThread
 import androidx.annotation.StringRes
@@ -66,6 +67,7 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -416,6 +418,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                         private var isOpened = AtomicBoolean(false)
                         override fun onSucceeded(result: Set<AuthenticationResult>) {
+                            super.onSucceeded(result)
                             val confirmed = result.toMutableSet()
                             try {
                                 BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
@@ -624,6 +627,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         try {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
             appBackgroundDetector.attachListeners()
+            callback.updateTimestamp()
             impl.authenticate(callback)
         } catch (ignore: IllegalStateException) {
             appBackgroundDetector.detachListeners()
@@ -660,8 +664,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     abstract class AuthenticationCallback {
+        private val skipTimeout =
+            AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+        private val authCallTimeStamp = AtomicLong(System.currentTimeMillis())
+        internal fun updateTimestamp(){
+            authCallTimeStamp.set(System.currentTimeMillis())
+        }
         @MainThread
+        @CallSuper
+        @Throws(BiometricAuthException::class)
         open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
+            val tmp = System.currentTimeMillis()
+            if (tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException()
         }
 
         @MainThread

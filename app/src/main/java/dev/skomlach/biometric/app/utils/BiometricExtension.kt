@@ -110,6 +110,7 @@ fun Fragment.startBiometric(
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
+            super.onSucceeded(confirmed)
             var cryptoText = "Crypto doesn't work or disabled"
             if (cryptoTests[biometricAuthRequest]?.type == BiometricCryptographyPurpose.ENCRYPT) {
                 CryptographyManager.encryptData(
