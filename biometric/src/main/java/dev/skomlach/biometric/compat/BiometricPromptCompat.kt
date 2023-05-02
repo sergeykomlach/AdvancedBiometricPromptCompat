@@ -677,7 +677,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @Throws(BiometricAuthException::class)
         open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             val tmp = System.currentTimeMillis()
-            if (tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException()
+            if (tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException("Biometric flow hooking detected")
         }
 
         @MainThread
