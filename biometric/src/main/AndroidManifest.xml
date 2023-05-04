@@ -68,6 +68,7 @@
     <uses-permission android:name="android.permission.USE_IRIS"
             tools:ignore="SystemPermissionTypo" />
     <uses-permission android:name="android.permission.USE_FACE_AUTHENTICATION" />
+    <uses-permission android:name="android.permission.USE_FACE"/>
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
 
