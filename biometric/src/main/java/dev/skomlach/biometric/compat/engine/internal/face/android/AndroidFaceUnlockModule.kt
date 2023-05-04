@@ -403,7 +403,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -414,7 +414,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         try {
             return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates() == true
         } catch (e: Throwable) {
-            e(e, name)
+
         }
 
         return false
