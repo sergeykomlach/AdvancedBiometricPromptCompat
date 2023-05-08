@@ -261,6 +261,7 @@ object DeviceModel {
             inputStream.close()
             val data = byteArrayOutputStream.toByteArray()
             byteArrayOutputStream.close()
+            urlConnection.disconnect()
             return String(data, Charset.forName("UTF-8"))
         } catch (e: Throwable) {
             LogCat.logException(e)

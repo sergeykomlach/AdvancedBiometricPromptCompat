@@ -332,6 +332,7 @@ object DeviceInfoManager {
                     inputStream.close()
                     val data = byteArrayOutputStream.toByteArray()
                     byteArrayOutputStream.close()
+                    urlConnection.disconnect()
                     String(data, Charset.forName("UTF-8"))
                 } finally {
                     if (urlConnection != null) {

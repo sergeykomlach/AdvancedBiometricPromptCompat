@@ -123,6 +123,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 inputStream.close()
                 val data = byteArrayOutputStream.toByteArray()
                 byteArrayOutputStream.close()
+                urlConnection.disconnect()
                 val html = String(data)
                 if (!verifyHTML(uri.toString(), html)) {
                     throw IOException("Unable to connect to $host")

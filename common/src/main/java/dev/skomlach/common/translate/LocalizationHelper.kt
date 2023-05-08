@@ -29,6 +29,7 @@ import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -312,6 +313,7 @@ object LocalizationHelper {
         )
         urlConnection.connect()
         val responseCode = urlConnection.responseCode
+        val byteArrayOutputStream = ByteArrayOutputStream()
         val inputStream: InputStream
         //if any 2XX response code
         if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
@@ -327,6 +329,11 @@ object LocalizationHelper {
             }
             inputStream = urlConnection.inputStream ?: urlConnection.errorStream
         }
-        return inputStream
+        NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+        inputStream.close()
+        val data = byteArrayOutputStream.toByteArray()
+        byteArrayOutputStream.close()
+        urlConnection.disconnect()
+        return ByteArrayInputStream(data)
     }
 }
