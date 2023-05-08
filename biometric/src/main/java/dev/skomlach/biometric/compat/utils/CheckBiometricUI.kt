@@ -84,7 +84,7 @@ object CheckBiometricUI {
 
     fun hasExists(context: Context): Boolean {
         try {
-            val apks = getAPKs(context, "com.android.systemui")
+            val apks = getAPKs(context, getBiometricUiPackage(context) ?: "com.android.systemui")
             if (apks.isEmpty())
                 return true
 
@@ -96,5 +96,28 @@ object CheckBiometricUI {
             BiometricLoggerImpl.e(e)
         }
         return false
+    }
+
+    fun getBiometricUiPackage(context: Context): String? {
+        try {
+            val fields = Class.forName("com.android.internal.R\$string").declaredFields
+            for (field in fields) {
+                if (field.name.equals("config_biometric_prompt_ui_package")) {
+                    val isAccessible = field.isAccessible
+                    return try {
+                        if (!isAccessible) field.isAccessible = true
+                        val s = context.getString(field[null] as Int)
+                        if (s.isEmpty())
+                            throw RuntimeException("String is empty")
+                        s
+                    } finally {
+                        if (!isAccessible) field.isAccessible = false
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
+        return null
     }
 }
