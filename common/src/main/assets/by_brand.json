@@ -13603,6 +13603,11 @@
    "model": "BL52"
   },
   {
+   "device": "Bmobile_BL52Pro",
+   "name": "BL52Pro",
+   "model": "BL52Pro"
+  },
+  {
    "device": "Bmobile_BL52_TG06",
    "name": "BL52_TG06",
    "model": "BL52"
@@ -18386,6 +18391,11 @@
    "model": "G71 PLUS"
   },
   {
+   "device": "G0771",
+   "name": "G73",
+   "model": "G73"
+  },
+  {
    "device": "G0160LL",
    "name": "G8",
    "model": "G8"
@@ -19530,6 +19540,11 @@
    "device": "EF550R",
    "name": "EF550R",
    "model": "EF550R"
+  },
+  {
+   "device": "EF551",
+   "name": "EF551",
+   "model": "EF551"
   },
   {
    "device": "EK430",
@@ -50577,6 +50592,11 @@
    "model": "Nautiz X41"
   },
   {
+   "device": "Nautiz_X81",
+   "name": "Nautiz X81",
+   "model": "Nautiz X81"
+  },
+  {
    "device": "Nautiz_X9P",
    "name": "Nautiz X9",
    "model": "Nautiz X9P"
@@ -65832,6 +65852,11 @@
    "device": "32S1U_Pro",
    "name": "32S1U Pro",
    "model": "32S1U_Pro"
+  },
+  {
+   "device": "YUL",
+   "name": "S1",
+   "model": "S1"
   }
  ],
  "INOI": [
@@ -69511,6 +69536,11 @@
    "device": "S1",
    "name": "S1",
    "model": "S1"
+  },
+  {
+   "device": "nagata",
+   "name": "Spain",
+   "model": "INVES SMART TV"
   },
   {
    "device": "UNO",
@@ -84494,6 +84524,13 @@
    "model": "K600"
   }
  ],
+ "LTC(LR)": [
+  {
+   "device": "LTC1066",
+   "name": "LTC1066",
+   "model": "LTC1066"
+  }
+ ],
  "LUCOMS": [
   {
    "device": "R1",
@@ -84685,6 +84722,13 @@
    "device": "Lt6248",
    "name": "Lt6248",
    "model": "Lt6248"
+  }
+ ],
+ "Lango Tech": [
+  {
+   "device": "OPS-8195A",
+   "name": "LANGO OPS8195",
+   "model": "OPS-8195A-3-V0"
   }
  ],
  "Lanix": [
@@ -91164,6 +91208,11 @@
    "device": "DCN88_72604_LN",
    "name": "X1 Prime",
    "model": "DCN88_72604_LN"
+  },
+  {
+   "device": "DTC2160",
+   "name": "X1-Prime-R2",
+   "model": "X1-Prime-R2"
   },
   {
    "device": "DTC2140",
@@ -102788,6 +102837,16 @@
    "model": "moto g power (XT2041DL)"
   },
   {
+   "device": "devonn",
+   "name": "moto g power 5G - 2023",
+   "model": "moto g power 5G - 2023"
+  },
+  {
+   "device": "devonn",
+   "name": "moto g power 5G - 2023",
+   "model": "moto g(50) 5G"
+  },
+  {
    "device": "sofiap_sprout",
    "name": "moto g pro",
    "model": "moto g pro"
@@ -103133,6 +103192,16 @@
    "model": "moto g(10) power"
   },
   {
+   "device": "penangf",
+   "name": "moto g13",
+   "model": "moto g13"
+  },
+  {
+   "device": "penangf",
+   "name": "moto g13",
+   "model": "penangf"
+  },
+  {
    "device": "xpeng",
    "name": "moto g200 5G",
    "model": "moto g200 5G"
@@ -103151,6 +103220,11 @@
    "device": "hawaiip",
    "name": "moto g22",
    "model": "moto g22"
+  },
+  {
+   "device": "penangf",
+   "name": "moto g23",
+   "model": "moto g23"
   },
   {
    "device": "cofud",
@@ -103476,6 +103550,26 @@
    "device": "eqs",
    "name": "motorola edge 30 ultra",
    "model": "motorola edge 30 ultra"
+  },
+  {
+   "device": "lyriq",
+   "name": "motorola edge 40",
+   "model": "moto g 5G (2022)"
+  },
+  {
+   "device": "lyriq",
+   "name": "motorola edge 40",
+   "model": "motorola edge 40"
+  },
+  {
+   "device": "rtwo",
+   "name": "motorola edge 40 pro",
+   "model": "motorola edge 30 pro"
+  },
+  {
+   "device": "rtwo",
+   "name": "motorola edge 40 pro",
+   "model": "motorola edge 40 pro"
   },
   {
    "device": "berlna",
@@ -109011,6 +109105,16 @@
    "device": "IRS",
    "name": "Nokia C01 Plus",
    "model": "Nokia C01 Plus"
+  },
+  {
+   "device": "CYR",
+   "name": "Nokia C02",
+   "model": "Cypher"
+  },
+  {
+   "device": "CYR",
+   "name": "Nokia C02",
+   "model": "Nokia C02"
   },
   {
    "device": "RKU",
@@ -120247,6 +120351,13 @@
    "device": "TAB_TS101S_LTE",
    "name": "TAB_TS101S_LTE",
    "model": "TAB_TS101S_LTE"
+  }
+ ],
+ "PointMobile": [
+  {
+   "device": "PM86",
+   "name": "PM86",
+   "model": "PM86"
   }
  ],
  "Pokini": [
@@ -148621,6 +148732,11 @@
    "model": "SH-04D"
   },
   {
+   "device": "R4",
+   "name": "R4-SH",
+   "model": "R4-SH"
+  },
+  {
    "device": "STTM21VAPP",
    "name": "ROUVO V",
    "model": "STTM21VAPP"
@@ -150934,6 +151050,11 @@
    "device": "martin",
    "name": "EU、UK、AP",
    "model": "WALTON Android TV"
+  },
+  {
+   "device": "nagata",
+   "name": "Europe",
+   "model": "Apollo Premium2K TV"
   },
   {
    "device": "tamachi",
@@ -157959,6 +158080,11 @@
    "device": "Model_3",
    "name": "TCL 40 SE",
    "model": "T610K"
+  },
+  {
+   "device": "Encore_CAN",
+   "name": "TCL 40 XE 5G",
+   "model": "T609J"
   },
   {
    "device": "Sonata_Pro_OM",
@@ -168149,6 +168275,11 @@
    "model": "TECNO LG7n"
   },
   {
+   "device": "TECNO-LH7n",
+   "name": "POVA 5",
+   "model": "TECNO LH7n"
+  },
+  {
    "device": "TECNO-LE6",
    "name": "POVA Neo",
    "model": "TECNO LE6"
@@ -168499,6 +168630,11 @@
    "model": "TECNO BF7n"
   },
   {
+   "device": "TECNO-BF7s",
+   "name": "TECNO",
+   "model": "TECNO BF7s"
+  },
+  {
    "device": "TECNO-AX8",
    "name": "TECNO AX8",
    "model": "TECNO AX8"
@@ -168787,6 +168923,11 @@
    "device": "TECNO-KI5q",
    "name": "TECNO SPARK 10",
    "model": "TECNO KI5q"
+  },
+  {
+   "device": "TECNO-KI5qs",
+   "name": "TECNO SPARK 10",
+   "model": "TECNO KI5qs"
   },
   {
    "device": "TECNO-KI5k",
@@ -172885,6 +173026,11 @@
    "device": "U452TL",
    "name": "U452TL",
    "model": "U452TL"
+  },
+  {
+   "device": "kaitak",
+   "name": "UMAX",
+   "model": "Ultra 4K GTV"
   },
   {
    "device": "seocho",
@@ -179068,6 +179214,11 @@
    "model": "V2205"
   },
   {
+   "device": "PD2279",
+   "name": "Y35+",
+   "model": "V2279A"
+  },
+  {
    "device": "PD1502A",
    "name": "Y35A",
    "model": "vivo Y35A"
@@ -179076,6 +179227,11 @@
    "device": "PD2230",
    "name": "Y35m",
    "model": "V2230A"
+  },
+  {
+   "device": "PD2279",
+   "name": "Y35m+",
+   "model": "V2279A"
   },
   {
    "device": "Y51",
@@ -179298,6 +179454,11 @@
    "model": "V2232A"
   },
   {
+   "device": "PD2302",
+   "name": "iQOO Neo8 Pro",
+   "model": "V2302A"
+  },
+  {
    "device": "2018",
    "name": "iQOO Z5",
    "model": "I2018"
@@ -179351,6 +179512,11 @@
    "device": "PD2230",
    "name": "iQOO Z7i",
    "model": "V2230EA"
+  },
+  {
+   "device": "I2223",
+   "name": "iQOO Z7s 5G",
+   "model": "I2223"
   },
   {
    "device": "PD2272",
@@ -199957,6 +200123,11 @@
    "device": "gangbyeon",
    "name": "4K Smart TV",
    "model": "4K AI Smart TV"
+  },
+  {
+   "device": "RED8D7",
+   "name": "RMX3268",
+   "model": "RMX3268"
   },
   {
    "device": "RE588DL1",
