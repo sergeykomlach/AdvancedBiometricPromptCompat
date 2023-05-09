@@ -297,11 +297,23 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         signalObject,
                         callback,
                         ExecutorHelper.handler,
+                        0
+                    )
+                    return
+                } catch (e: NoSuchMethodError) {
+                }
+                try {
+                    authCallTimestamp.set(System.currentTimeMillis())
+                    it.authenticate(
+                        crypto,
+                        signalObject,
+                        callback,
+                        ExecutorHelper.handler,
                         0,
                         true
                     )
                     return
-                } catch (e: Throwable) {
+                } catch (e: NoSuchMethodError) {
                 }
                 try {
                     authCallTimestamp.set(System.currentTimeMillis())
@@ -313,7 +325,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         ExecutorHelper.handler
                     )
                     return
-                } catch (e: Throwable) {
+                } catch (e: NoSuchMethodError) {
                 }
                 authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(

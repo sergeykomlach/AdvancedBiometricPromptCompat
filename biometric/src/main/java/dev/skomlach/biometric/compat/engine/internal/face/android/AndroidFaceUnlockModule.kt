@@ -456,6 +456,19 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 d("$name.authenticate:  Crypto=$crypto")
+
+                try {
+                    authCallTimestamp.set(System.currentTimeMillis())
+                    it.authenticate(
+                        crypto,
+                        signalObject,
+                        callback,
+                        ExecutorHelper.handler,
+                        0
+                    )
+                    return
+                } catch (e: NoSuchMethodError) {
+                }
                 try {
                     authCallTimestamp.set(System.currentTimeMillis())
                     it.authenticate(
@@ -467,7 +480,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         true
                     )
                     return
-                } catch (e: Throwable) {
+                } catch (e: NoSuchMethodError) {
                 }
                 try {
                     authCallTimestamp.set(System.currentTimeMillis())
@@ -479,7 +492,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         ExecutorHelper.handler
                     )
                     return
-                } catch (e: Throwable) {
+                } catch (e: NoSuchMethodError) {
                 }
                 authCallTimestamp.set(System.currentTimeMillis())
                 it.authenticate(
