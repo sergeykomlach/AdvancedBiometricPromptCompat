@@ -42,7 +42,7 @@ fun Fragment.startBiometric(
     crypto: Boolean
 ) {
 
-    if (!BiometricManagerCompat.isBiometricReady(biometricAuthRequest)) {
+    if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)) {
         if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
             showAlertDialog(
                 requireActivity(),

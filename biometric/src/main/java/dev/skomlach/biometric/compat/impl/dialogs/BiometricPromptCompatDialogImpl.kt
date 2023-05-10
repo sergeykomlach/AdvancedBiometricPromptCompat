@@ -139,7 +139,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (BiometricManagerCompat.isBiometricReady(request))
+                    if (BiometricManagerCompat.isBiometricReadyForUsage(request))
                         list.add(type)
                 }
             } else {
@@ -149,7 +149,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (BiometricManagerCompat.isBiometricReady(request))
+                    if (BiometricManagerCompat.isBiometricReadyForUsage(request))
                         list.add(type)
                 }
             }

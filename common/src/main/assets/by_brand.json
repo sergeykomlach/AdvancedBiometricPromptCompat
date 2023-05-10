@@ -121283,6 +121283,11 @@
    "model": "T810"
   },
   {
+   "device": "T2050M",
+   "name": "Tab Q10",
+   "model": "Tab Q10"
+  },
+  {
    "device": "S520",
    "name": "Twist",
    "model": "Positivo Twist M"
@@ -179232,6 +179237,11 @@
    "device": "PD2279",
    "name": "Y35m+",
    "model": "V2279A"
+  },
+  {
+   "device": "V2247",
+   "name": "Y36",
+   "model": "V2247"
   },
   {
    "device": "Y51",

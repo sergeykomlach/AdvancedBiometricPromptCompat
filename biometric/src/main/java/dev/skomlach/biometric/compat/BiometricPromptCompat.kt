@@ -267,7 +267,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         var found = false
                         for (v in builder.getPrimaryAvailableTypes()) {
                             val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
-                            if (BiometricManagerCompat.isBiometricReady(request)) {
+                            if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                                 found = true
                                 break
                             }
@@ -743,12 +743,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             )
                         }"
                     )
-                    if (BiometricManagerCompat.isBiometricReady(request)) {
+                    if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (BiometricManagerCompat.isBiometricReady(biometricAuthRequest))
+                if (BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
             }
             types
@@ -771,12 +771,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                             }"
                         )
-                        if (BiometricManagerCompat.isBiometricReady(request)) {
+                        if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (BiometricManagerCompat.isBiometricReady(biometricAuthRequest))
+                    if (BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest))
                         types.add(biometricAuthRequest.type)
                 }
                 types.removeAll(primaryAvailableTypes)

@@ -69,7 +69,7 @@ class WindowForegroundBlurring(
             return (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
                 compatBuilder.getAllAvailableTypes()
             ) else emptyList()).filter {
-                BiometricManagerCompat.isBiometricReady(
+                BiometricManagerCompat.isBiometricReadyForUsage(
                     BiometricAuthRequest(
                         compatBuilder.getBiometricAuthRequest().api,
                         type = it

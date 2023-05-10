@@ -54,12 +54,12 @@ object BiometricManagerCompat {
                         api,
                         type
                     )
-                    if (isBiometricReady(request)) {
+                    if (isBiometricReadyForUsage(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (isBiometricReady(biometricAuthRequest))
+                if (isBiometricReadyForUsage(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
             }
             types
@@ -75,12 +75,12 @@ object BiometricManagerCompat {
                             BiometricApi.LEGACY_API,
                             type
                         )
-                        if (isBiometricReady(request)) {
+                        if (isBiometricReadyForUsage(request)) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (isBiometricReady(biometricAuthRequest))
+                    if (isBiometricReadyForUsage(biometricAuthRequest))
                         types.add(biometricAuthRequest.type)
                 }
                 types.removeAll(primaryAvailableTypes)
@@ -186,9 +186,18 @@ object BiometricManagerCompat {
         }
         return false
     }
+    @JvmStatic
+    fun isBiometricAvailable(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        return isHardwareDetected(api) && hasEnrolled(api)
+    }
 
     @JvmStatic
-    fun isBiometricReady(
+    fun isBiometricReadyForUsage(
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY

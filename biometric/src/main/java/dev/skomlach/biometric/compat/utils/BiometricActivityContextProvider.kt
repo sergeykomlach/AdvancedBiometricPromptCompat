@@ -35,7 +35,7 @@ object BiometricActivityContextProvider : ActivityLifecycleCallbacks {
             for (type in BiometricType.values()) {
                 for (api in BiometricApi.values()) {
                     try {
-                        BiometricManagerCompat.isBiometricReady(
+                        BiometricManagerCompat.isBiometricReadyForUsage(
                             BiometricAuthRequest(
                                 api = api,
                                 type = type
