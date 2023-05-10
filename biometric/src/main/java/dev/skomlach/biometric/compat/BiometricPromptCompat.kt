@@ -184,11 +184,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                     NotificationPermissionsFragment.preloadTranslations()
                     startBiometricInit()
+                    val forceInit = Runnable {
+                        if(isDeviceInfoCheckInProgress.get()) {
+                            isDeviceInfoCheckInProgress.set(false)
+                            deviceInfo = DeviceInfoManager.getAnyDeviceInfo()
+                        }
+                    }
+                    ExecutorHelper.startOnBackground(forceInit, 2500)
                     ExecutorHelper.startOnBackground {
                         isDeviceInfoCheckInProgress.set(true)
                         DeviceInfoManager.getDeviceInfo(object :
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
+                                ExecutorHelper.removeCallbacks(forceInit)
                                 isDeviceInfoCheckInProgress.set(false)
                                 deviceInfo = info
                             }

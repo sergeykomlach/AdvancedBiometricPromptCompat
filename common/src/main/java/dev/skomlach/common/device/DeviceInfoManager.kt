@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.device
 
+import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import dev.skomlach.common.device.DeviceModel.getNames
@@ -35,7 +36,7 @@ import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.security.SecureRandom
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import javax.net.ssl.SSLHandshakeException
@@ -143,20 +144,7 @@ object DeviceInfoManager {
                 }
             }
         }
-        if (names.isNotEmpty()) {
-            onDeviceInfoListener.onReady(
-                DeviceInfo(
-                    names.toList()[0].first,
-                    HashSet<String>()
-                ).also {
-                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
-                    cachedDeviceInfo = it
-                })
-            return
-        }
-        LogCat.log("DeviceInfoManager: (null) null -> null")
-        cachedDeviceInfo = null
-        onDeviceInfoListener.onReady(null)
+        onDeviceInfoListener.onReady(getAnyDeviceInfo())
     }
 
 
@@ -172,13 +160,51 @@ object DeviceInfoManager {
                         sharedPreferences.getStringSet("sensors-${LastUpdatedTs.timestamp}", null)
                             ?: HashSet<String>()
                     field = DeviceInfo(model, sensors)
-                } else {
-                    sharedPreferences.edit().clear().commit()
                 }
             }
             return field
         }
 
+    fun getAnyDeviceInfo(): DeviceInfo {
+        cachedDeviceInfo?.let {
+            return it
+        }
+
+        val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
+        return if (sharedPreferences.getBoolean(sharedPreferences.all.keys.firstOrNull {
+                it.startsWith(
+                    "checked-"
+                )
+            } ?: "", false)) {
+            val model =
+                sharedPreferences.getString(sharedPreferences.all.keys.firstOrNull { it.startsWith("model-") }
+                    ?: Build.MODEL, null) ?: ""
+            val sensors =
+                sharedPreferences.getStringSet(sharedPreferences.all.keys.firstOrNull {
+                    it.startsWith(
+                        "sensors-"
+                    )
+                } ?: "", null)
+                    ?: HashSet<String>()
+            DeviceInfo(model, sensors).also {
+                LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                cachedDeviceInfo = it
+            }
+        } else {
+            val names = getNames()
+            if (names.isNotEmpty())
+                DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
+                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                    cachedDeviceInfo = it
+                }
+            else
+                DeviceInfo(Build.MODEL, HashSet<String>()).also {
+                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                    cachedDeviceInfo = it
+                }
+
+        }
+    }
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
         cachedDeviceInfo = deviceInfo
