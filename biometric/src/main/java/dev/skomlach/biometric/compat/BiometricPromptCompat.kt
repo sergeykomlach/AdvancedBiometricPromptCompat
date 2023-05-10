@@ -562,11 +562,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         checkPermissions.invoke()
                     },
                     {
-                        callbackOuter.onFailed(
-                            AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                            null
-                        )
-                        authFlowInProgress.set(false)
+                        //continue anyway
+                        checkPermissions.invoke()
                     })
                 return
             }
