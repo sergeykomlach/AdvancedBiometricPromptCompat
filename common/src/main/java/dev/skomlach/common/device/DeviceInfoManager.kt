@@ -169,41 +169,46 @@ object DeviceInfoManager {
         cachedDeviceInfo?.let {
             return it
         }
-
-        val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
-        return if (sharedPreferences.getBoolean(sharedPreferences.all.keys.firstOrNull {
-                it.startsWith(
-                    "checked-"
-                )
-            } ?: "", false)) {
-            val model =
-                sharedPreferences.getString(sharedPreferences.all.keys.firstOrNull { it.startsWith("model-") }
-                    ?: Build.MODEL, null) ?: ""
-            val sensors =
-                sharedPreferences.getStringSet(sharedPreferences.all.keys.firstOrNull {
+        try {
+            val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
+            if (sharedPreferences.getBoolean(sharedPreferences.all.keys.firstOrNull {
                     it.startsWith(
-                        "sensors-"
+                        "checked-"
                     )
-                } ?: "", null)
-                    ?: HashSet<String>()
-            DeviceInfo(model, sensors).also {
+                } ?: "", false)) {
+                val model =
+                    sharedPreferences.getString(sharedPreferences.all.keys.firstOrNull {
+                        it.startsWith(
+                            "model-"
+                        )
+                    }
+                        ?: Build.MODEL, null) ?: ""
+                val sensors =
+                    sharedPreferences.getStringSet(sharedPreferences.all.keys.firstOrNull {
+                        it.startsWith(
+                            "sensors-"
+                        )
+                    } ?: "", null)
+                        ?: HashSet<String>()
+                DeviceInfo(model, sensors).also {
+                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                    cachedDeviceInfo = it
+                }
+            }
+        } catch (e :Throwable){
+            LogCat.logException(e, "DeviceInfoManager")
+        }
+        val names = getNames()
+        return if (names.isNotEmpty())
+            DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
                 LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
             }
-        } else {
-            val names = getNames()
-            if (names.isNotEmpty())
-                DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
-                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
-                    cachedDeviceInfo = it
-                }
-            else
-                DeviceInfo(Build.MODEL, HashSet<String>()).also {
-                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
-                    cachedDeviceInfo = it
-                }
-
-        }
+        else
+            DeviceInfo(Build.MODEL, HashSet<String>()).also {
+                LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+                cachedDeviceInfo = it
+            }
     }
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
