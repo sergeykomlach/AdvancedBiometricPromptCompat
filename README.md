@@ -74,6 +74,9 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+May 10 2023
+
+**Bugfixes** Some flow fixes - DeviceInfo hangs, MissedPermission error etc
 
 May 1 2023
 
