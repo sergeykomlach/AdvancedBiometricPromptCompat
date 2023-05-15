@@ -290,21 +290,27 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
-        if (!hasSecondaryFinished()) {
-            val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
-            if (secondary.isNotEmpty()) {
-                BiometricAuthentication.authenticate(
-                    builder.getCryptographyPurpose(),
-                    null,
-                    ArrayList<BiometricType>(secondary),
-                    fmAuthCallback,
-                    BundleBuilder.create(builder)
-                )
+        if (!isNativeBiometricWorkaroundRequired) {
+            if (!hasSecondaryFinished()) {
+                val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
+                if (secondary.isNotEmpty()) {
+                    BiometricAuthentication.authenticate(
+                        builder.getCryptographyPurpose(),
+                        null,
+                        ArrayList<BiometricType>(secondary),
+                        fmAuthCallback,
+                        BundleBuilder.create(builder)
+                    )
+                }
             }
-        }
 
-        if (!hasPrimaryFinished()) {
-            showSystemUi(biometricPrompt)
+            if (!hasPrimaryFinished()) {
+                showSystemUi(biometricPrompt)
+            }
+        } else {
+            if (!hasPrimaryFinished()) {
+                showSystemUi(biometricPrompt)
+            }
         }
     }
 
