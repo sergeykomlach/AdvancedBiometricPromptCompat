@@ -126,36 +126,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private val pendingTasks: MutableList<Runnable?> =
             Collections.synchronizedList(ArrayList<Runnable?>())
         private var isBiometricInit = AtomicBoolean(false)
-        var isInit = false
-            get() = isBiometricInit.get().also {
-                //lazy init
-                if (!it && !initInProgress.get()) {
-                    ExecutorHelper.post {
-                        init()
-                    }
-                }
-            }
+        var isInitialized = false
+            get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
         var deviceInfo: DeviceInfo? = null
             private set
-            get() {
-                if (field == null && !isDeviceInfoCheckInProgress.get()) {
-                    ExecutorHelper.startOnBackground {
-                        isDeviceInfoCheckInProgress.set(true)
-                        DeviceInfoManager.getDeviceInfo(object :
-                            DeviceInfoManager.OnDeviceInfoListener {
-                            override fun onReady(info: DeviceInfo?) {
-                                isDeviceInfoCheckInProgress.set(false)
-                                field = info
-                            }
-                        })
-                    }
-                }
-                return field
-            }
-
-        private var isDeviceInfoCheckInProgress = AtomicBoolean(false)
         private var authFlowInProgress = AtomicBoolean(false)
 
         @MainThread
@@ -166,7 +142,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (Looper.getMainLooper().thread !== Thread.currentThread())
                 throw IllegalThreadStateException("Main Thread required")
 
-            if (isBiometricInit.get()) {
+            if (isInitialized) {
                 BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
                 execute?.let { ExecutorHelper.post(it) }
             } else {
@@ -183,22 +159,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     )
 
                     NotificationPermissionsFragment.preloadTranslations()
-                    startBiometricInit()
-                    val forceInit = Runnable {
-                        if(isDeviceInfoCheckInProgress.get()) {
-                            isDeviceInfoCheckInProgress.set(false)
-                            deviceInfo = DeviceInfoManager.getAnyDeviceInfo()
-                        }
-                    }
-                    ExecutorHelper.startOnBackground(forceInit, 2500)
                     ExecutorHelper.startOnBackground {
-                        isDeviceInfoCheckInProgress.set(true)
                         DeviceInfoManager.getDeviceInfo(object :
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
-                                ExecutorHelper.removeCallbacks(forceInit)
-                                isDeviceInfoCheckInProgress.set(false)
                                 deviceInfo = info
+                                ExecutorHelper.post{startBiometricInit()}
                             }
                         })
                     }
@@ -328,7 +294,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val startTime = System.currentTimeMillis()
         var timeout = false
         ExecutorHelper.startOnBackground {
-            while (!builder.isTruncateChecked() || isDeviceInfoCheckInProgress.get() || !isInit) {
+            while (!builder.isTruncateChecked() || !isInitialized) {
                 timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
                 if (timeout) {
                     break
@@ -505,7 +471,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 isOpened.set(true)
                                 callbackOuter.onUIOpened()
                                 if (!builder.isSilentAuthEnabled()) {
-                                    if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                                    if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                         BiometricNotificationManager.showNotification(builder)
                                     }
                                     StatusBarTools.setNavBarAndStatusBarColors(
@@ -532,7 +498,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 isOpened.set(false)
                                 val closeAll = Runnable {
                                     if (!builder.isSilentAuthEnabled()) {
-                                        if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+                                        if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                             BiometricNotificationManager.dismissAll()
                                         }
                                         activityViewWatcher?.resetListeners()
@@ -561,7 +527,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
         if (!builder.isSilentAuthEnabled()) {
-            if (DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo) && builder.isNotificationEnabled()) {
+            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                 BiometricNotificationManager.initNotificationsPreferences()
                 NotificationPermissionsHelper.checkNotificationPermissions(
                     builder.getContext(),
@@ -646,7 +612,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         ExecutorHelper.startOnBackground {
-            while (isDeviceInfoCheckInProgress.get() || !isInit) {
+            while (!isInitialized) {
                 try {
                     Thread.sleep(250)
                 } catch (ignore: InterruptedException) {
@@ -712,7 +678,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         companion object {
             init {
                 //lazy init
-                val initialized = isInit
+                val initialized = isInitialized
                 BiometricLoggerImpl.d("isInitialized - $initialized")
             }
         }
@@ -864,14 +830,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 //update sets
                 val primary = primaryAvailableTypes.filter {
                     !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
-                            && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo))
+                            && DevicesWithKnownBugs.hasUnderDisplayFingerprint)
                 }
                 primaryAvailableTypes.clear()
                 primaryAvailableTypes.addAll(primary)
 
                 val secondary = secondaryAvailableTypes.filter {
                     !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
-                            && DeviceInfoManager.hasUnderDisplayFingerprint(deviceInfo))
+                            && DevicesWithKnownBugs.hasUnderDisplayFingerprint)
                 }
                 secondaryAvailableTypes.clear()
                 secondaryAvailableTypes.addAll(secondary)

@@ -27,22 +27,35 @@ dependencies {
     implementation "androidx.window:window:1.1.0-beta02"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'com.google.guava:guava:31.1-android'
-    implementation "org.jsoup:jsoup:1.15.4"
     implementation 'com.jaredrummler:android-device-names:2.1.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 afterEvaluate {
     android.libraryVariants.all { v ->
         if (v.buildType.name == "release") {
             v.assemble.doFirst {
-                def f = new File("$projectDir/src/main/assets/by_brand.json")
-                println("Path" + f.absolutePath)
-                if (f.exists()) {
-                    f.delete()
+                def device = new File("$projectDir/src/main/assets/device.json")
+                println("Path" + device.absolutePath)
+                if (device.exists()) {
+                    device.delete()
+                }
+                new URL("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
+                        .withInputStream { i -> device.withOutputStream { it << i } }
+
+                if (!device.exists()) {
+                    throw IllegalStateException("Device spec are missing")
+                }
+                def by_brand = new File("$projectDir/src/main/assets/by_brand.json")
+                println("Path" + by_brand.absolutePath)
+                if (by_brand.exists()) {
+                    by_brand.delete()
                 }
                 new URL("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
-                        .withInputStream { i -> f.withOutputStream { it << i } }
-
+                        .withInputStream { i -> by_brand.withOutputStream { it << i } }
+                if (!by_brand.exists()) {
+                    throw IllegalStateException("Brand spec are missing")
+                }
             }
         }
     }

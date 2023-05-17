@@ -24,10 +24,10 @@ import android.content.Intent
 import android.provider.Settings
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
@@ -95,7 +95,7 @@ object BiometricManagerCompat {
         }
         val list = allAvailableTypes.filter {
             !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
-                    && DeviceInfoManager.hasUnderDisplayFingerprint(BiometricPromptCompat.deviceInfo))
+                    && DevicesWithKnownBugs.hasUnderDisplayFingerprint)
         }
 
         return list.isNotEmpty()
@@ -262,7 +262,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if (!BiometricPromptCompat.isInit) {
+        if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
         }
@@ -294,7 +294,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if (!BiometricPromptCompat.isInit) {
+        if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
         }
@@ -327,7 +327,7 @@ object BiometricManagerCompat {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
         BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")
-        if (!BiometricPromptCompat.isInit) {
+        if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
         }
@@ -361,7 +361,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if (!BiometricPromptCompat.isInit) {
+        if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
                 "isLockOut-${api.api}-${api.type}",
@@ -401,7 +401,7 @@ object BiometricManagerCompat {
         if (!isHardwareDetected(api) || isLockOut(api) || isBiometricSensorPermanentlyLocked(api))//Enroll cann't be started till access blocked
             return false
 
-        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInit && BiometricAuthentication.openSettings(
+        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInitialized && BiometricAuthentication.openSettings(
                 activity,
                 api.type
             )

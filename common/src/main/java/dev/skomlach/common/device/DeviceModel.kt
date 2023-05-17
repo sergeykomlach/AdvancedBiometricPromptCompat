@@ -26,6 +26,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.SystemPropertiesProxy
 import dev.skomlach.common.network.NetworkApi
+import dev.skomlach.common.translate.LocalizationHelper.agents
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -37,10 +38,12 @@ import java.util.concurrent.TimeUnit
 
 object DeviceModel {
 
-    private var brand = (Build.BRAND ?: "").replace("  ", " ")
-    private val model = (Build.MODEL ?: "").replace("  ", " ")
-    private val device = (Build.DEVICE ?: "").replace("  ", " ")
+    var brand = (Build.BRAND ?: "").replace("  ", " ")
+        private set
+    val model = (Build.MODEL ?: "").replace("  ", " ")
+    val device = (Build.DEVICE ?: "").replace("  ", " ")
     private val appContext = AndroidContext.appContext
+    private val list = ArrayList<Pair<String, String>>()
 
     init {
         if (brand == "Amazon") {
@@ -53,15 +56,10 @@ object DeviceModel {
     }
 
     fun getNames(): List<Pair<String, String>> {
-        val strings = HashMap<String, String>()
+        if (list.isNotEmpty())
+            return list
 
-        getSimpleDeviceName()?.let {
-            val str = fixVendorName(it)
-            if (str.trim().isNotEmpty())
-                strings.put(str, str.filter { c ->
-                    c.isLetterOrDigit() || c.isWhitespace()
-                })
-        }
+        val strings = HashMap<String, String>()
         getNameFromAssets()?.let {
             for (s in it) {
                 val str = fixVendorName(s)
@@ -71,15 +69,25 @@ object DeviceModel {
                     })
             }
         }
-        getNameFromDatabase()?.let {
-            for (s in it) {
-                val str = fixVendorName(s)
+        if (strings.isEmpty())
+            getNameFromDatabase()?.let {
+                for (s in it) {
+                    val str = fixVendorName(s)
+                    if (str.trim().isNotEmpty())
+                        strings.put(str, str.filter { c ->
+                            c.isLetterOrDigit() || c.isWhitespace()
+                        })
+                }
+            }
+        if (strings.isEmpty())
+            getSimpleDeviceName()?.let {
+                val str = fixVendorName(it)
                 if (str.trim().isNotEmpty())
                     strings.put(str, str.filter { c ->
                         c.isLetterOrDigit() || c.isWhitespace()
                     })
             }
-        }
+
 
         val set = HashSet<String>(strings.keys)
         val toRemove = HashSet<String>()
@@ -93,7 +101,7 @@ object DeviceModel {
         }
         set.removeAll(toRemove)
         val l = set.toMutableList().also {
-            it.sortWith { p0, p1 -> p1.length.compareTo(p0.length) }
+            it.sortWith { p0, p1 -> p0.length.compareTo(p1.length) }
         }
         val list = ArrayList<Pair<String, String>>()
         for (s in l) {
@@ -132,7 +140,7 @@ object DeviceModel {
     }
 
     @WorkerThread
-    private fun getNameFromAssets(): List<String>? {
+    private fun getNameFromAssets(): Set<String>? {
 
         LogCat.log("AndroidModel.getNameFromAssets started")
 
@@ -149,17 +157,18 @@ object DeviceModel {
                         if (name.isNullOrEmpty()) {
                             continue
                         } else if (!m.isNullOrEmpty() && model.equals(m, ignoreCase = true)) {
-                            LogCat.log("AndroidModel.getNameFromAssets1 - $jsonObject")
-
-                            return mutableListOf<String>().apply {
-                                this.add(getName(brand, getFullName(name)))
+                            return mutableSetOf<String>().apply {
                                 this.add(getName(brand, getFullName(model)))
+                                this.add(getName(brand, getFullName(name)))
+                            }.also {
+                                LogCat.log("AndroidModel.getNameFromAssets1 - $jsonObject -> $it")
                             }
                         } else if (!d.isNullOrEmpty() && device.equals(d, ignoreCase = true)) {
-                            LogCat.log("AndroidModel.getNameFromAssets2 - $jsonObject")
-                            return mutableListOf<String>().apply {
-                                this.add(getName(brand, getFullName(name)))
+                            return mutableSetOf<String>().apply {
                                 this.add(getName(brand, getFullName(model)))
+                                this.add(getName(brand, getFullName(name)))
+                            }.also {
+                                LogCat.log("AndroidModel.getNameFromAssets2 - $jsonObject -> $it")
                             }
                         }
                     }
@@ -167,6 +176,8 @@ object DeviceModel {
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
+        } finally {
+            System.gc()
         }
         return null
     }
@@ -175,7 +186,7 @@ object DeviceModel {
     //https://github.com/androidtrackers/certified-android-devices/
     private fun getJSON(): String? {
         try {
-            val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
+            val file = File(appContext.cacheDir, "by_brand.json")
             if (file.parentFile?.exists() == false) {
                 file.parentFile?.mkdirs()
             }
@@ -236,7 +247,7 @@ object DeviceModel {
             urlConnection.setRequestProperty("Accept-Language", "en-US")
             urlConnection.setRequestProperty(
                 "User-Agent",
-                DeviceInfoManager.agents[SecureRandom().nextInt(DeviceInfoManager.agents.size)]
+                agents[SecureRandom().nextInt(agents.size)]
             )
             urlConnection.connect()
             val responseCode = urlConnection.responseCode
@@ -283,13 +294,13 @@ object DeviceModel {
                 list.add(
                     getName(
                         if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
-                        getFullName(info.name)
+                        getFullName(info.model)
                     )
                 )
                 list.add(
                     getName(
                         if (info.manufacturer?.isNotEmpty() == true) info.manufacturer else brand,
-                        getFullName(info.model)
+                        getFullName(info.name)
                     )
                 )
             }

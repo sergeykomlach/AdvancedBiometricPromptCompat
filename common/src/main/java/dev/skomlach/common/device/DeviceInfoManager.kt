@@ -22,39 +22,25 @@ package dev.skomlach.common.device
 import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
+import com.google.gson.Gson
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceModel.getNames
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.LastUpdatedTs
-
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import org.jsoup.Jsoup
-import org.jsoup.select.Elements
+import dev.skomlach.common.translate.LocalizationHelper
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-import javax.net.ssl.SSLHandshakeException
 
 object DeviceInfoManager {
-    val agents = arrayOf(
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
-    )
-
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     fun hasFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
@@ -133,7 +119,7 @@ object DeviceInfoManager {
                 if (limit < 2)//Device should have at least brand + model
                     break
                 val second = join(secondArray, " ", limit)
-                deviceInfo = loadDeviceInfo(first, second)
+                deviceInfo = loadDeviceInfo(first, second, DeviceModel.device)
                 if (!deviceInfo?.sensors.isNullOrEmpty()) {
                     LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
                     setCachedDeviceInfo(deviceInfo ?: continue)
@@ -227,188 +213,183 @@ object DeviceInfoManager {
         }
     }
 
-    private fun loadDeviceInfo(modelReadableName: String, model: String): DeviceInfo? {
-        LogCat.log("DeviceInfoManager: loadDeviceInfo for $modelReadableName/$model")
-        return if (model.isEmpty()) null else try {
-            val url = "https://m.gsmarena.com/res.php3?sSearch=" + URLEncoder.encode(model) +"&tn="+getTn()
-            LogCat.log("DeviceInfoManager: SearchUrl: $url")
-            var html: String? = getHtml(url) ?: return null
-            LogCat.log("DeviceInfoManager: html loaded, start parsing")
-            val detailsLink = getDetailsLink(url, html, model)
-                ?: return DeviceInfo(modelReadableName, HashSet<String>())
+    private fun loadDeviceInfo(
+        modelReadableName: String,
+        model: String,
+        codeName: String
+    ): DeviceInfo? {
+        try {
+            val devicesList = Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)
 
-            //not found
-            LogCat.log("DeviceInfoManager: Link: $detailsLink")
-            html = getHtml(detailsLink) ?: return DeviceInfo(modelReadableName, HashSet<String>())
-            LogCat.log("DeviceInfoManager: html loaded, start parsing")
-            val l = getSensorDetails(html)
-            LogCat.log("DeviceInfoManager: Sensors: $l")
-            val m = try {
-                Jsoup.parse(html).body().getElementById("content")
-                    ?.getElementsByClass("section nobor")?.text() ?: modelReadableName
-            } catch (ignore: Throwable) {
-                modelReadableName
-            }
-            LogCat.log("DeviceInfoManager: Model: $m Sensors: $l")
-            DeviceInfo(m, l)
+            val info = findDeviceInfo(devicesList, model, codeName)
+            if (info != null)
+                return info
+
+            return findDeviceInfo(devicesList, modelReadableName, codeName)
         } catch (e: Throwable) {
-            LogCat.logException(e)
-            null
+            LogCat.logException(e, "DeviceInfoManager")
+            return null
+        } finally {
+            System.gc()
         }
     }
 
-    //parser
-    private fun getSensorDetails(html: String?): Set<String> {
-        val list: MutableSet<String> = HashSet()
-        html?.let {
-            val doc = Jsoup.parse(html)
-            val body = doc.body().getElementById("content")
-            val rElements = body?.getElementsByAttribute("data-spec") ?: Elements()
-            for (i in rElements.indices) {
-                val element = rElements[i]
-                if (element.attr("data-spec") == "sensors") {
-                    var name = element.text()
-                    if (!name.isNullOrEmpty()) {
-                        val matcher = pattern.matcher(name)
-                        while (matcher.find()) {
-                            val s = matcher.group()
-                            name = name.replace(s, s.replace(",", ";"))
+    private fun findDeviceInfo(
+        devicesList: Array<DeviceSpec>,
+        model: String,
+        codeName: String
+    ): DeviceInfo? {
+        LogCat.log("DeviceInfoManager: findDeviceInfo(${devicesList.size}, $model, $codeName)")
+        var firstFound: DeviceInfo? = null
+        devicesList.forEach {
+            val m = if (it.name?.startsWith(
+                    it.brand ?: "",
+                    ignoreCase = true
+                ) == true
+            ) capitalize(it.name) else capitalize(it.brand) + " " + capitalize(it.name)
+
+            if (it.name.equals(model, ignoreCase = true) || it.codename == codeName) {
+                LogCat.log("DeviceInfoManager: $it")
+                return DeviceInfo(m, getSensors(it))
+            } else if (firstFound == null) {
+                if (it.name?.contains(model, ignoreCase = true) == true) {
+                    LogCat.log("DeviceInfoManager: $it")
+                    firstFound = DeviceInfo(m, getSensors(it))
+                } else {
+                    val arr = splitString(model, " ")
+                    var i = arr.size
+                    for (s in arr) {
+                        if (i < 2) //Device should have at least brand + model
+                            break
+                        val shortName = join(arr, " ", i)
+                        if (it.name?.contains(shortName, ignoreCase = true) == true) {
+                            LogCat.log("DeviceInfoManager: $it")
+                            firstFound = DeviceInfo(m, getSensors(it))
                         }
-                        val split = splitString(name, ",")
-                        for (s in split) {
-                            list.add(capitalize(s.trim { it <= ' ' }))
-                        }
+                        i--
                     }
+
                 }
+            }
+        }
+
+        return firstFound
+    }
+
+    private fun getSensors(spec: DeviceSpec): Set<String> {
+        val list = mutableSetOf<String>()
+        var name: String = spec.specs?.sensors ?: ""
+        if (name.isNotEmpty()) {
+            val matcher = pattern.matcher(name)
+            while (matcher.find()) {
+                val s = matcher.group()
+                name = name.replace(s, s.replace(",", ";"))
+            }
+            val split = splitString(name, ",")
+            for (s in split) {
+                list.add(capitalize(s.trim { it <= ' ' }))
             }
         }
         return list
     }
 
-    private fun getDetailsLink(url: String, html: String?, model: String): String? {
-        html?.let {
-            var firstFound: String? = null
-            val doc = Jsoup.parse(html)
-            val body = doc.body().getElementById("content")
-            val rElements = body?.getElementsByTag("a") ?: Elements()
-            for (i in rElements.indices) {
-                val element = rElements[i]
-                val name = element.text()
-                if (name.isNullOrEmpty()) {
-                    continue
-                }
-                if (name.equals(model, ignoreCase = true)) {
-                    return NetworkApi.resolveUrl(url, element.attr("href"))
-                } else if (firstFound.isNullOrEmpty()) {
-                    if (name.contains(model, ignoreCase = true))
-                        firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
-                    else {
-                        val arr = splitString(model, " ")
-                        var i = arr.size
-                        for (s in arr) {
-                            if (i < 2) //Device should have at least brand + model
-                                break
-                            val shortName = join(arr, " ", i)
-                            if (name.contains(shortName, ignoreCase = true)) {
-                                firstFound = NetworkApi.resolveUrl(url, element.attr("href"))
-                            }
-                            i--
-                        }
-
-                    }
-                }
-            }
-            return firstFound
-        }
-        return null
-    }
-
     //tools
-    private fun getHtml(url: String): String? {
+    //https://github.com/nowrom/devices/
+    private fun getJSON(): String? {
         try {
-            var urlConnection: HttpURLConnection? = null
-            if (NetworkApi.hasInternet()) {
-                return try {
-                    urlConnection = NetworkApi.createConnection(
-                        url, TimeUnit.SECONDS.toMillis(30)
-                            .toInt()
+            val file = File(AndroidContext.appContext.cacheDir, "devices.json")
+            if (file.parentFile?.exists() == false) {
+                file.parentFile?.mkdirs()
+            }
+            file.also {
+                if (it.exists()) {
+                    return it.readText(
+                        Charset.forName("UTF-8")
                     )
-                    urlConnection.requestMethod = "GET"
-                    urlConnection.setRequestProperty("Content-Language", "en-US")
-                    urlConnection.setRequestProperty("Accept-Language", "en-US")
-                    urlConnection.setRequestProperty(
-                        "User-Agent",
-                        agents[SecureRandom().nextInt(agents.size)]
-                    )
-                    urlConnection.connect()
-                    val responseCode = urlConnection.responseCode
-                    val byteArrayOutputStream = ByteArrayOutputStream()
-                    val inputStream: InputStream
-                    LogCat.log("getHtml: $responseCode=${urlConnection.responseMessage}")
-                    //if any 2XX response code
-                    if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-                        inputStream = urlConnection.inputStream
-                    } else {
-                        //Redirect happen
-                        if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
-                            var target = urlConnection.getHeaderField("Location")
-                            if (target != null && !NetworkApi.isWebUrl(target)) {
-                                target = "https://$target"
-                            }
-                            return getHtml(target)
-                        }
-                        inputStream = urlConnection.inputStream ?: urlConnection.errorStream
-                    }
-                    NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-                    inputStream.close()
-                    val data = byteArrayOutputStream.toByteArray()
-                    byteArrayOutputStream.close()
-                    urlConnection.disconnect()
-                    String(data, Charset.forName("UTF-8"))
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect()
-                        urlConnection = null
-                    }
                 }
             }
         } catch (e: Throwable) {
-            //ignore - old device cannt resolve SSL connection
-            if (e is SSLHandshakeException) {
-                return "<html></html>"
+            LogCat.logException(e)
+        }
+        try {
+            val inputStream =
+                AndroidContext.appContext.assets.open("devices.json")
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+            inputStream.close()
+            byteArrayOutputStream.close()
+            val data = byteArrayOutputStream.toByteArray()
+            return String(data, Charset.forName("UTF-8"))
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+        return downloadJsonFile()
+    }
+
+    private fun downloadJsonFile(): String? {
+        try {
+            val file = File(AndroidContext.appContext.cacheDir, "devices.json")
+            if (file.parentFile?.exists() == false) {
+                file.parentFile?.mkdirs()
             }
+            val data =
+                downloadFromWeb("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
+            file.also {
+                it.delete()
+                it.writeText(data ?: return null, Charset.forName("UTF-8"))
+            }
+            return data
+        } catch (e: Throwable) {
             LogCat.logException(e)
         }
         return null
     }
 
-    private fun getTn():String?{
-        val url = "https://m.gsmarena.com"
-        LogCat.log("DeviceInfoManager: getTnValue: $url")
-        val html =  getHtml(url) ?: return null
+    private fun downloadFromWeb(url: String): String? {
+        try {
+            val urlConnection =
+                NetworkApi.createConnection(
+                    url,
+                    TimeUnit.SECONDS.toMillis(30).toInt()
+                )
 
-        return getTnValue(html)
-    }
-    private fun getTnValue(html: String?): String? {
-        html?.let {
-            val doc = Jsoup.parse(html)
-            val body = doc.body()
-            val rElements = body.getElementsByTag("input") ?: Elements()
-            for (i in rElements.indices) {
-                val element = rElements[i]
-                val name = element.attr("name")
-                if (name.isNullOrEmpty()) {
-                    continue
+            urlConnection.requestMethod = "GET"
+            urlConnection.setRequestProperty("Content-Language", "en-US")
+            urlConnection.setRequestProperty("Accept-Language", "en-US")
+            urlConnection.setRequestProperty(
+                "User-Agent",
+                LocalizationHelper.agents[SecureRandom().nextInt(LocalizationHelper.agents.size)]
+            )
+            urlConnection.connect()
+            val responseCode = urlConnection.responseCode
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            val inputStream: InputStream
+            LogCat.log("downloadFromWeb: $responseCode=${urlConnection.responseMessage}")
+            //if any 2XX response code
+            if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                inputStream = urlConnection.inputStream
+            } else {
+                //Redirect happen
+                if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
+                    var target = urlConnection.getHeaderField("Location")
+                    if (target != null && !NetworkApi.isWebUrl(target)) {
+                        target = "https://$target"
+                    }
+                    return downloadFromWeb(target)
                 }
-                if (name.equals("tn", ignoreCase = true)) {
-                    return element.`val`()
-                }
+                inputStream = urlConnection.inputStream ?: urlConnection.errorStream
             }
-
+            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+            inputStream.close()
+            val data = byteArrayOutputStream.toByteArray()
+            byteArrayOutputStream.close()
+            urlConnection.disconnect()
+            return String(data, Charset.forName("UTF-8"))
+        } catch (e: Throwable) {
+            LogCat.logException(e)
         }
         return null
     }
-
     interface OnDeviceInfoListener {
         fun onReady(deviceInfo: DeviceInfo?)
     }
