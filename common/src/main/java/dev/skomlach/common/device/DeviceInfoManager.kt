@@ -130,7 +130,9 @@ object DeviceInfoManager {
                 }
             }
         }
-        onDeviceInfoListener.onReady(getAnyDeviceInfo())
+        onDeviceInfoListener.onReady(getAnyDeviceInfo().also {
+            setCachedDeviceInfo(it)
+        })
     }
 
 
