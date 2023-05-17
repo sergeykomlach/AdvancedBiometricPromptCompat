@@ -45339,6 +45339,11 @@
    "device": "mateo",
    "name": "Smart TV",
    "model": "HKC 2K SA Smart TV"
+  },
+  {
+   "device": "pioneer",
+   "name": "Smart TV",
+   "model": "4K PA Smart TV"
   }
  ],
  "HKT": [
