@@ -268,49 +268,77 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiClosed()
     }
 
-    private fun hasPrimaryFinished(): Boolean {
-
-        val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
-        val allList: MutableList<BiometricType?> = ArrayList(
-            builder.getPrimaryAvailableTypes()
-        )
-        allList.removeAll(authFinishedList)
-        return allList.isEmpty()
-    }
-
-    private fun hasSecondaryFinished(): Boolean {
-
-        val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
-        val allList: MutableList<BiometricType?> = ArrayList(
-            builder.getSecondaryAvailableTypes()
-        )
-        allList.removeAll(authFinishedList)
-        return allList.isEmpty()
-    }
-
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
-        if (!isNativeBiometricWorkaroundRequired) {
-            if (!hasSecondaryFinished()) {
-                val secondary = HashSet<BiometricType>(builder.getSecondaryAvailableTypes())
-                if (secondary.isNotEmpty()) {
+        val shortDelayMillis =
+            builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
+                .toLong()
+        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
+
+        showSystemUi(biometricPrompt)
+        if (secondary.isNotEmpty()) {
+            ExecutorHelper.postDelayed({
+                if (!isNativeBiometricWorkaroundRequired) {
                     BiometricAuthentication.authenticate(
                         builder.getCryptographyPurpose(),
                         null,
-                        ArrayList<BiometricType>(secondary),
+                        secondary,
                         fmAuthCallback,
                         BundleBuilder.create(builder)
                     )
-                }
-            }
+                } else {
+                    BiometricAuthentication.authenticate(
+                        builder.getCryptographyPurpose(),
+                        null,
+                        secondary,
+                        object : BiometricAuthenticationListener {
+                            override fun onSuccess(module: AuthenticationResult?) {
+                                checkAuthResultForSecondary(
+                                    module,
+                                    AuthResult.AuthResultState.SUCCESS
+                                )
+                            }
 
-            if (!hasPrimaryFinished()) {
-                showSystemUi(biometricPrompt)
-            }
-        } else {
-            if (!hasPrimaryFinished()) {
-                showSystemUi(biometricPrompt)
-            }
+                            override fun onHelp(msg: CharSequence?) {
+
+                            }
+
+                            override fun onFailure(
+                                failureReason: AuthenticationFailureReason?,
+                                module: BiometricType?
+                            ) {
+                                checkAuthResultForSecondary(
+                                    AuthenticationResult(confirmed = module),
+                                    AuthResult.AuthResultState.FATAL_ERROR,
+                                    failureReason
+                                )
+                            }
+
+
+                            override fun onCanceled(module: BiometricType?) {}
+                        },
+                        BundleBuilder.create(builder)
+                    )
+                    val finalTaskExecuted = AtomicBoolean(false)
+                    val finalTask = Runnable {
+                        finalTaskExecuted.set(true)
+                        BiometricAuthentication.cancelAuthentication()
+                        val finished = secondary.filter { type ->
+                            authFinished.keys.contains(type)
+                        }
+                        secondary.removeAll(finished.toSet())
+                        secondary.forEach {
+                            checkAuthResultForSecondary(
+                                AuthenticationResult(confirmed = it),
+                                AuthResult.AuthResultState.FATAL_ERROR,
+                                AuthenticationFailureReason.TIMEOUT
+                            )
+                        }
+
+                    }
+                    ExecutorHelper.postDelayed(finalTask, 1500)
+                }
+            }, shortDelayMillis)
         }
     }
 
@@ -425,20 +453,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     private val isNativeBiometricWorkaroundRequired: Boolean
         get() {
-            val candidatesPrimary = builder.getPrimaryAvailableTypes().filter {
+            val candidatesAll = builder.getAllAvailableTypes().filter {
                 it != BiometricType.BIOMETRIC_ANY
-            }.filter {
-                it != BiometricType.BIOMETRIC_FINGERPRINT
             }
 
-            val candidatesSecondary = builder.getSecondaryAvailableTypes().filter {
-                it != BiometricType.BIOMETRIC_ANY
-            }.filter {
-                it != BiometricType.BIOMETRIC_FINGERPRINT
+            if (DevicesWithKnownBugs.systemDealWithBiometricPrompt) //Samsung OR Android 13+
+            {
+                return candidatesAll.size > 1 && builder.getPrimaryAvailableTypes()
+                    .contains(BiometricType.BIOMETRIC_FINGERPRINT)
             }
-            return DevicesWithKnownBugs.systemDealWithBiometricPrompt //Samsung OR Android 13+
-                    && (candidatesPrimary.isEmpty() //Primary has ONLY fingerprint/any
-                    && candidatesSecondary.isNotEmpty()) //Secondary has non-fingerprint/any
+            return false
         }
 
     private fun checkAuthResultForPrimary(
