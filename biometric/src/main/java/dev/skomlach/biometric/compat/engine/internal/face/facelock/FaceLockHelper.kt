@@ -42,7 +42,6 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
     private var mServiceConnection: ServiceConnection? = null
     private val hasHardware: Boolean
     private val context = AndroidContext.appContext
-    private var time = System.currentTimeMillis()
 
     companion object {
         const val FACELOCK_UNABLE_TO_BIND = 1
@@ -110,24 +109,13 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
 
                 @Throws(RemoteException::class)
                 override fun cancel() {
-                    val diff = System.currentTimeMillis() - time
-                    d(TAG + ".IFaceIdCallback.cancel t=$diff ms")
+                    d(TAG + ".IFaceIdCallback.cancel")
                     if (mBoundToFaceLockService) {
-                        if (diff >= 4500L) {
-                            d(TAG + ".timeout")
-                            faceLockInterface.onError(
-                                FACELOCK_TIMEOUT,
-                                getMessage(FACELOCK_TIMEOUT)
-                            )
-
-                        } else {
-                            d(TAG + ".canceled")
-                            faceLockInterface.onError(
-                                FACELOCK_CANCELED,
-                                getMessage(FACELOCK_CANCELED)
-                            )
-
-                        }
+                        d(TAG + ".timeout")
+                        faceLockInterface.onError(
+                            FACELOCK_TIMEOUT,
+                            getMessage(FACELOCK_TIMEOUT)
+                        )
                         if (screenLock?.isHeld == true) {
                             screenLock?.release()
                         }
@@ -138,7 +126,6 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 @Throws(RemoteException::class)
                 override fun reportFailedAttempt() {
                     d(TAG + ".IFaceIdCallback.reportFailedAttempt")
-                    time = System.currentTimeMillis()
                     faceLockInterface.onError(
                         FACELOCK_FAILED_ATTEMPT, getMessage(
                             FACELOCK_FAILED_ATTEMPT
@@ -300,7 +287,6 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                     rect.left, rect.top,
                     rect.width(), rect.height()
                 )
-                time = System.currentTimeMillis()
             } catch (e: Exception) {
                 e(e, TAG + ("Caught exception starting FaceId: " + e.message))
                 faceLockInterface.onError(FACELOCK_CANNT_START, getMessage(FACELOCK_CANNT_START))
