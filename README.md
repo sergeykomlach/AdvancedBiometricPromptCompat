@@ -74,6 +74,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+May 19 2023
+
+**Improvement** Fixed UI opening delay
+
 May 17 2023
 
 **HOTFIX!!!** old scrapper for GSMArena no longer able to parse website's HTML, so code moved to local device spec database

@@ -3803,6 +3803,11 @@
    "model": "PIC8GS10"
   },
   {
+   "device": "PIC8GS12",
+   "name": "PIC8GS12",
+   "model": "PIC8GS12"
+  },
+  {
    "device": "PIC8GS8",
    "name": "PIC8GS8",
    "model": "PIC8GS8"
@@ -37595,6 +37600,11 @@
    "device": "Q3pro_eea",
    "name": "Q3pro_eea",
    "model": "Q3pro_eea"
+  },
+  {
+   "device": "Q5_EEA",
+   "name": "Q5_EEA",
+   "model": "3W_EEA"
   }
  ],
  "FACILOTAB": [
@@ -44692,6 +44702,11 @@
    "device": "SW6H",
    "name": "GREEN HOUSE TV",
    "model": "GREEN HOUSE TV"
+  },
+  {
+   "device": "mateo",
+   "name": "Smart TV",
+   "model": "2K SA Smart TV"
   }
  ],
  "Greentel": [
@@ -74048,16 +74063,6 @@
   {
    "device": "zhongshan",
    "name": "VON",
-   "model": "4K SMART TV"
-  },
-  {
-   "device": "stanford",
-   "name": "XITRIX",
-   "model": "SMART TV"
-  },
-  {
-   "device": "zhongshan",
-   "name": "XITRIX",
    "model": "4K SMART TV"
   },
   {
@@ -116142,6 +116147,11 @@
    "device": "Tab-T8",
    "name": "Tab-T8",
    "model": "Tab-T8"
+  },
+  {
+   "device": "Tab_M12",
+   "name": "Tab_M12",
+   "model": "Tab M12"
   }
  ],
  "PAX (CN)": [
@@ -119101,6 +119111,11 @@
    "device": "shinjuku",
    "name": "PhilcoTV",
    "model": "PhilcoTV"
+  },
+  {
+   "device": "TP10A332",
+   "name": "TP10A332",
+   "model": "TP10A332"
   },
   {
    "device": "TP10A3N",
@@ -126675,6 +126690,13 @@
    "model": "Q882"
   }
  ],
+ "REBEOSOII": [
+  {
+   "device": "C11",
+   "name": "C11",
+   "model": "C11"
+  }
+ ],
  "RECCO": [
   {
    "device": "R1",
@@ -127261,16 +127283,6 @@
    "device": "RMX3261",
    "name": "realme C21 Y",
    "model": "RMX3261"
-  },
-  {
-   "device": "RMX3262",
-   "name": "realme C21Y",
-   "model": "RMX3262"
-  },
-  {
-   "device": "RE54D1",
-   "name": "realme C25Y",
-   "model": "RMX3265"
   },
   {
    "device": "RMX2020",
@@ -129788,6 +129800,13 @@
    "device": "Wise_Tech_Wifi",
    "name": "Wise_Tech_Wifi",
    "model": "Wise Tech Wifi"
+  }
+ ],
+ "SATCO": [
+  {
+   "device": "Y-20",
+   "name": "SATCO_Y-20",
+   "model": "Y-20"
   }
  ],
  "SAWINK": [
@@ -148399,6 +148418,11 @@
    "model": "FS8014"
   },
   {
+   "device": "sandiego",
+   "name": "FV1",
+   "model": "AQUOS-TVX23A"
+  },
+  {
    "device": "SBM003SH",
    "name": "GALAPAGOS SoftBank 003SH",
    "model": "SBM003SH"
@@ -150646,6 +150670,11 @@
   {
    "device": "Platinum_J5",
    "name": "Platinum_J5",
+   "model": "Platinum J5"
+  },
+  {
+   "device": "Platinum_J5US",
+   "name": "Platinum_J5US",
    "model": "Platinum J5"
   },
   {
@@ -173682,6 +173711,11 @@
    "model": "MP24"
   },
   {
+   "device": "UMIDIGI_G3",
+   "name": "G3 EEA",
+   "model": "MP24"
+  },
+  {
    "device": "G3_Plus",
    "name": "G3 Plus",
    "model": "MP25"
@@ -173844,6 +173878,11 @@
   {
    "device": "UMIDIGI_C2",
    "name": "UMIDIGI C2",
+   "model": "MP20"
+  },
+  {
+   "device": "UMIDIGI_C2",
+   "name": "UMIDIGI C2 EEA",
    "model": "MP20"
   },
   {
@@ -186547,6 +186586,18 @@
    "model": "HC750"
   }
  ],
+ "Xitrix": [
+  {
+   "device": "stanford",
+   "name": "XITRIX",
+   "model": "SMART TV"
+  },
+  {
+   "device": "zhongshan",
+   "name": "XITRIX",
+   "model": "4K SMART TV"
+  }
+ ],
  "Xmobile": [
   {
    "device": "X1",
@@ -194455,6 +194506,11 @@
    "model": "ZTE 2050RU"
   },
   {
+   "device": "P720F02",
+   "name": "ZTE 7160N",
+   "model": "ZTE 7160N"
+  },
+  {
    "device": "P633S07",
    "name": "ZTE 7530N",
    "model": "ZTE 7530N"
@@ -195350,12 +195406,22 @@
    "model": "ZTE Blade A53"
   },
   {
+   "device": "P963F63",
+   "name": "ZTE Blade A53 Pro",
+   "model": "ZTE Blade A53 Pro"
+  },
+  {
    "device": "P963F62",
    "name": "ZTE Blade A53+",
    "model": "P630"
   },
   {
    "device": "P963F62",
+   "name": "ZTE Blade A53+",
+   "model": "ZTE Blade A53+"
+  },
+  {
+   "device": "P963F62_A",
    "name": "ZTE Blade A53+",
    "model": "ZTE Blade A53+"
   },
@@ -200644,6 +200710,11 @@
    "model": "RMX3261"
   },
   {
+   "device": "RMX3262",
+   "name": "realme C21Y",
+   "model": "RMX3262"
+  },
+  {
    "device": "RMX3191",
    "name": "realme C25",
    "model": "RMX3191"
@@ -200652,6 +200723,11 @@
    "device": "RMX3193",
    "name": "realme C25",
    "model": "RMX3193"
+  },
+  {
+   "device": "RE54D1",
+   "name": "realme C25Y",
+   "model": "RMX3265"
   },
   {
    "device": "RED8F6",
