@@ -299,7 +299,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     break
                 }
                 try {
-                    Thread.sleep(250)
+                    Thread.sleep(20)
                 } catch (ignore: InterruptedException) {
                 }
             }
@@ -613,7 +613,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         ExecutorHelper.startOnBackground {
             while (!isInitialized) {
                 try {
-                    Thread.sleep(250)
+                    Thread.sleep(20)
                 } catch (ignore: InterruptedException) {
                 }
             }
