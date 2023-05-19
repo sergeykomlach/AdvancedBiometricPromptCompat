@@ -26,23 +26,6 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 
 
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
-    val availableBiometricsCount: Int
-        get() {
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                var count = 0
-                for (type in BiometricAuthentication.availableBiometrics) {
-                    val biometricModule = BiometricAuthentication.getAvailableBiometricModule(type)
-                    if (biometricModule != null && biometricModule.isHardwarePresent && biometricModule.hasEnrolled()) {
-                        count++
-                    }
-                }
-                return count
-            }
-            val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
-                biometricAuthRequest.type
-            )
-            return if (biometricModule != null) 1 else 0
-        }
     override val isHardwareAvailable: Boolean
         get() {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.isHardwareDetected

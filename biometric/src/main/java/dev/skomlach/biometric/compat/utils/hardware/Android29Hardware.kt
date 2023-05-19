@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.utils.hardware
 
-import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
 import android.os.Build
@@ -28,56 +27,15 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 
 @TargetApi(Build.VERSION_CODES.Q)
 
 class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(authRequest) {
-    companion object {
-        private val appContext = AndroidContext.appContext
+    private val appContext = AndroidContext.appContext
 
-        private var cachedCanAuthenticateValue =
-            AtomicInteger(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE)
-        private var job: Job? = null
-        private var checkStartedTs = 0L
-        private val backgroundThreadExecutor: ExecutorService = Executors.newCachedThreadPool()
-        private var backgroundScope =
-            CoroutineScope(backgroundThreadExecutor.asCoroutineDispatcher())
-
-        private fun canAuthenticate(): Int {
-
-            if (job?.isActive == true) {
-                if (System.currentTimeMillis() - checkStartedTs >= TimeUnit.SECONDS.toMillis(5)) {
-                    job?.cancel()
-                    job = null
-                }
-            }
-            if (job == null || job?.isCompleted == true) {
-                checkStartedTs = System.currentTimeMillis()
-                val isFinished = AtomicBoolean(false)
-                job = backgroundScope.launch {
-                    isFinished.set(false)
-                    updateCodeSync()
-                    isFinished.set(true)
-                }
-                while (!isFinished.get() && (System.currentTimeMillis() - checkStartedTs <= 5)) {
-                    Thread.sleep(1)
-                }
-            }
-            return cachedCanAuthenticateValue.get()
-        }
-
-        @SuppressLint("WrongConstant")
-        private fun updateCodeSync() {
+    private val canAuthenticate: Int
+        get() {
             var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
             try {
                 var biometricManager: android.hardware.biometrics.BiometricManager? =
@@ -114,14 +72,15 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 e(e)
             } finally {
                 e("Android29Hardware - canAuthenticate=$code")
-                cachedCanAuthenticateValue.set(code)
             }
+            return code
         }
-    }
 
     override val isAnyHardwareAvailable: Boolean
         get() {
-            val canAuthenticate = canAuthenticate()
+            if(super.isAnyHardwareAvailable)
+                return true
+            val canAuthenticate = canAuthenticate
             return if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
                 true
             } else {
@@ -130,7 +89,9 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
         }
     override val isAnyBiometricEnrolled: Boolean
         get() {
-            val canAuthenticate = canAuthenticate()
+            if(super.isAnyBiometricEnrolled)
+                return true
+            val canAuthenticate = canAuthenticate
             return if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
                 true
             } else {

@@ -33,19 +33,11 @@ import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.LockType
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
 import java.security.InvalidAlgorithmParameterException
 import java.security.KeyStore
 import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
 import javax.crypto.KeyGenerator
@@ -55,46 +47,11 @@ import javax.crypto.KeyGenerator
 
 open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
 
-    companion object {
-        private val appContext = AndroidContext.appContext
-        private var cachedIsBiometricEnrollChangedValue = AtomicBoolean(false)
-        private var jobEnrollChanged: Job? = null
-        private var checkEnrollChangedStartedTs = 0L
-        private val backgroundThreadExecutor: ExecutorService = Executors.newCachedThreadPool()
-        private var backgroundScope =
-            CoroutineScope(backgroundThreadExecutor.asCoroutineDispatcher())
 
-        private fun biometricEnrollChanged(): Boolean {
+    private val appContext = AndroidContext.appContext
 
-            if (jobEnrollChanged?.isActive == true) {
-                if (System.currentTimeMillis() - checkEnrollChangedStartedTs >= TimeUnit.SECONDS.toMillis(
-                        5
-                    )
-                ) {
-                    jobEnrollChanged?.cancel()
-                    jobEnrollChanged = null
-                }
-            }
-
-            if (jobEnrollChanged == null || jobEnrollChanged?.isCompleted == true) {
-                checkEnrollChangedStartedTs = System.currentTimeMillis()
-                val isFinished = AtomicBoolean(false)
-                jobEnrollChanged = backgroundScope.launch {
-                    isFinished.set(false)
-                    updateBiometricChanged()
-                    isFinished.set(true)
-                }
-                while (!isFinished.get() && (System.currentTimeMillis() - checkEnrollChangedStartedTs <= 5)) {
-                    Thread.sleep(1)
-                }
-            }
-
-
-            return cachedIsBiometricEnrollChangedValue.get()
-
-        }
-
-        private fun updateBiometricChanged() {
+    private val biometricEnrollChanged: Boolean
+        get() {
             try {
                 val name = "BiometricKey"
                 val keyStore = KeyStore.getInstance("AndroidKeyStore")
@@ -133,66 +90,32 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             } catch (throwable: Throwable) {
                 var e = throwable
                 if (e is IllegalBlockSizeException) {
-                    cachedIsBiometricEnrollChangedValue.set(true)
-                    return
+                    return true
                 }
                 var cause: Throwable? = e.cause
                 while (cause != null && cause != e) {
                     if (cause is IllegalStateException || cause.javaClass.name == "android.security.KeyStoreException") {
-                        cachedIsBiometricEnrollChangedValue.set(true)
-                        return
+                        return true
                     }
                     e = cause
                     cause = e.cause
                 }
             }
-            cachedIsBiometricEnrollChangedValue.set(false)
-        }
 
-
-        private var cachedIsBiometricEnrolledValue = AtomicBoolean(false)
-        private var jobEnrolled: Job? = null
-        private var checkEnrolledStartedTs = 0L
-
-
-        private fun biometricEnrolled(): Boolean {
-
-            if (jobEnrolled?.isActive == true) {
-                if (System.currentTimeMillis() - checkEnrolledStartedTs >= TimeUnit.SECONDS.toMillis(
-                        5
-                    )
-                ) {
-                    jobEnrolled?.cancel()
-                    jobEnrolled = null
-                }
-            }
-
-            if (jobEnrolled == null || jobEnrolled?.isCompleted == true) {
-                checkEnrolledStartedTs = System.currentTimeMillis()
-                val isFinished = AtomicBoolean(false)
-                jobEnrolled = backgroundScope.launch {
-                    isFinished.set(false)
-                    updateBiometricEnrolled()
-                    isFinished.set(true)
-                }
-                while (!isFinished.get() && (System.currentTimeMillis() - checkEnrolledStartedTs <= 5)) {
-                    Thread.sleep(1)
-                }
-            }
-
-            return cachedIsBiometricEnrolledValue.get()
+            return false
 
         }
 
-        private fun updateBiometricEnrolled() {
+
+    private val biometricEnrolled: Boolean
+        get() {
             val keyguardManager =
                 appContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
             if (keyguardManager?.isDeviceSecure == true) {
                 if (BiometricAuthentication.hasEnrolled()
                     || LockType.isBiometricEnabledInSettings(appContext)
                 ) {
-                    cachedIsBiometricEnrolledValue.set(true)
-                    return
+                    return true
                 }
 
                 //Fallback for some devices where previews methods failed
@@ -235,14 +158,12 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                 } catch (throwable: Throwable) {
                     var e = throwable
                     if (e is InvalidAlgorithmParameterException) {
-                        cachedIsBiometricEnrolledValue.set(false)
-                        return
+                        return false
                     }
                     var cause: Throwable? = e.cause
                     while (cause != null && cause != e) {
                         if (cause is IllegalStateException) {
-                            cachedIsBiometricEnrolledValue.set(false)
-                            return
+                            return false
                         }
                         e = cause
                         cause = e.cause
@@ -253,12 +174,12 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                     } catch (ignore: Throwable) {
                     }
                 }
-                cachedIsBiometricEnrolledValue.set(true)
-                return
+                return true
             }
-            cachedIsBiometricEnrolledValue.set(false)
+            return false
+
         }
-    }
+
 
     override val isHardwareAvailable: Boolean
         get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
@@ -275,7 +196,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     override val isBiometricEnrollChanged: Boolean
         get() {
             return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                biometricEnrollChanged()
+                biometricEnrollChanged
             } else
                 false
         }
@@ -350,7 +271,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
         get() = hasAnyHardware
     open val isAnyBiometricEnrolled: Boolean
         get() {
-            return biometricEnrolled()
+            return biometricEnrolled
         }
 
     fun lockout() {

@@ -30,7 +30,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricEnrollChanged
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
@@ -101,11 +100,36 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             API_ENABLED = enabled
         }
 
-        private val availableAuthRequests = ArrayList<BiometricAuthRequest>()
+        private val availableAuthRequests = HashSet<BiometricAuthRequest>()
+            get() {
+                if (field.isEmpty()) {
+                    //Add default first
+                    var biometricAuthRequest = BiometricAuthRequest()
+                    if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {
+                        field.add(biometricAuthRequest)
+                    }
+                    for (api in BiometricApi.values()) {
+                        if (api == BiometricApi.AUTO)
+                            continue
+                        for (type in BiometricType.values()) {
+                            if (type == BiometricType.BIOMETRIC_ANY)
+                                continue
+                            biometricAuthRequest = BiometricAuthRequest(api, type)
+                            if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {
+                                field.add(BiometricAuthRequest(BiometricApi.AUTO, type))
+                                field.add(biometricAuthRequest)
+                            }
+                        }
+                    }
+                }
+                return field
+            }
 
         @JvmStatic
         fun getAvailableAuthRequests(): List<BiometricAuthRequest> {
-            return availableAuthRequests
+            return availableAuthRequests.toList().sortedBy {
+                it.toString()
+            }
         }
 
         @JvmStatic
@@ -154,10 +178,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
-                    AndroidContext.appInstance?.registerActivityLifecycleCallbacks(
-                        BiometricActivityContextProvider
-                    )
-
                     NotificationPermissionsFragment.preloadTranslations()
                     ExecutorHelper.startOnBackground {
                         DeviceInfoManager.getDeviceInfo(object :
@@ -187,27 +207,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() - finished")
                     isBiometricInit.set(true)
                     initInProgress.set(false)
-                    //Add default first
-                    var biometricAuthRequest = BiometricAuthRequest()
-                    if (isHardwareDetected(biometricAuthRequest)) {
-                        availableAuthRequests.add(biometricAuthRequest)
-                    }
-
-                    for (api in BiometricApi.values()) {
-                        for (type in BiometricType.values()) {
-                            if (type == BiometricType.BIOMETRIC_ANY)
-                                continue
-                            biometricAuthRequest = BiometricAuthRequest(api, type)
-                            if (isHardwareDetected(biometricAuthRequest)) {
-                                availableAuthRequests.add(biometricAuthRequest)
-                                //just cache value
-                                hasEnrolled(biometricAuthRequest)
-                                isLockOut(biometricAuthRequest)
-                                isBiometricSensorPermanentlyLocked(biometricAuthRequest)
-                                isBiometricEnrollChanged(biometricAuthRequest)
-                            }
-                        }
-                    }
 
                     for (task in pendingTasks) {
                         task?.let { ExecutorHelper.post(it) }
@@ -702,13 +701,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         api,
                         type
                     )
-                    BiometricLoggerImpl.d(
-                        "primaryAvailableTypes - $request -> ${
-                            isHardwareDetected(
-                                request
-                            )
-                        }"
-                    )
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                         types.add(type)
                     }
@@ -729,13 +721,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         val request = BiometricAuthRequest(
                             BiometricApi.LEGACY_API,
                             type
-                        )
-                        BiometricLoggerImpl.d(
-                            "secondaryAvailableTypes - $request -> ${
-                                isHardwareDetected(
-                                    request
-                                )
-                            }"
                         )
                         if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                             types.add(type)
