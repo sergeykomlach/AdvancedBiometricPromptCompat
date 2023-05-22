@@ -20,7 +20,7 @@ IrisUnlock: https://www.samsung.com/ph/support/mobile-devices/what-is-iris-scann
 ## EN: 
 https://blog.kraken.com/post/11905/your-fingerprint-can-be-hacked-for-5-heres-how/
 
-
+https://arxiv.org/pdf/2305.10791.pdf
 
 ## RU:
 
