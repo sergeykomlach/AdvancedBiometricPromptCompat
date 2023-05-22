@@ -267,6 +267,22 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiClosed()
     }
 
+    private val finalTask = Runnable {
+        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
+        BiometricAuthentication.cancelAuthentication()
+        val finished = secondary.filter { type ->
+            authFinished.keys.contains(type)
+        }
+        secondary.removeAll(finished.toSet())
+        secondary.forEach {
+            checkAuthResultForSecondary(
+                AuthenticationResult(confirmed = it),
+                AuthResult.AuthResultState.FATAL_ERROR,
+                AuthenticationFailureReason.TIMEOUT
+            )
+        }
+
+    }
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
         val shortDelayMillis =
@@ -318,23 +334,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         },
                         BundleBuilder.create(builder)
                     )
-                    val finalTaskExecuted = AtomicBoolean(false)
-                    val finalTask = Runnable {
-                        finalTaskExecuted.set(true)
-                        BiometricAuthentication.cancelAuthentication()
-                        val finished = secondary.filter { type ->
-                            authFinished.keys.contains(type)
-                        }
-                        secondary.removeAll(finished.toSet())
-                        secondary.forEach {
-                            checkAuthResultForSecondary(
-                                AuthenticationResult(confirmed = it),
-                                AuthResult.AuthResultState.FATAL_ERROR,
-                                AuthenticationFailureReason.TIMEOUT
-                            )
-                        }
 
-                    }
                     ExecutorHelper.postDelayed(finalTask, 1500)
                 }
             }, shortDelayMillis)
@@ -426,6 +426,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun stopAuth() {
         d("BiometricPromptApi28Impl.stopAuth():")
+        ExecutorHelper.removeCallbacks(finalTask)
         BiometricAuthentication.cancelAuthentication()
         biometricFragment.get()?.let {
             CancellationHelper.forceCancel(it)
