@@ -24,7 +24,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "androidx.window:window:1.1.0-beta02"
+    implementation "androidx.window:window:1.1.0-rc01"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'com.google.guava:guava:31.1-android'
     implementation 'com.jaredrummler:android-device-names:2.1.0'

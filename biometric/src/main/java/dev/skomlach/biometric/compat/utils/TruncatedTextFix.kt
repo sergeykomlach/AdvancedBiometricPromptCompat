@@ -20,13 +20,17 @@
 package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.TextView
+import com.google.gson.Gson
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.concurrent.atomic.AtomicInteger
 
 /*
@@ -38,6 +42,7 @@ object TruncatedTextFix {
     private var SUBTITLE_SHIFT = 1
     private var DESCRIPTION_SHIFT = 2
     private val FINALIZED_STRING = ".."
+    private var truncatedText: TruncatedText? = null
 
     init {
         //Title and description should be fixed a bit for Android 12
@@ -57,6 +62,47 @@ object TruncatedTextFix {
         builder: BiometricPromptCompat.Builder,
         onTruncateChecked: OnTruncateChecked
     ) {
+        val config = AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
+        val cache =
+            truncatedText ?: getTruncatedText(config).also {
+                truncatedText = it
+            }
+        val map = cache?.map?.toMutableMap() ?: HashMap()
+        if (map.isNotEmpty()) {
+            var totalCount = 0
+            var changedCount = 0
+            var title = builder.getTitle()
+            var subtitle = builder.getSubtitle()
+            var description = builder.getDescription()
+
+            if (!title.isNullOrEmpty()) {
+                totalCount++
+                map[title]?.let {
+                    changedCount++
+                    title = it
+                }
+
+            }
+            if (!subtitle.isNullOrEmpty()) {
+                totalCount++
+                map[subtitle]?.let {
+                    changedCount++
+                    subtitle = it
+                }
+            }
+            if (!description.isNullOrEmpty()) {
+                totalCount++
+                map[description]?.let {
+                    changedCount++
+                    description = it
+                }
+            }
+            if (totalCount == changedCount) {
+                builder.setTitle(title).setSubtitle(subtitle).setDescription(description)
+                onTruncateChecked.onDone()
+                return
+            }
+        }
         val windowView = builder.getContext().findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
         val layout = LayoutInflater.from(builder.getContext())
             .inflate(R.layout.biometric_prompt_dialog_content, null).apply {
@@ -78,37 +124,70 @@ object TruncatedTextFix {
         val description: TextView? = rootView?.findViewById(R.id.description)
         val action = {
             windowView.removeView(layout)
+            setTruncatedText(config, TruncatedText(map).also {
+                truncatedText = it
+            })
             onTruncateChecked.onDone()
         }
         val counter = AtomicInteger(3)
-        getMaxStringForCurrentConfig(builder.getTitle(), title, { str ->
-            builder.setTitle(str)
+
+        if (map.contains(builder.getTitle())) {
+            builder.setTitle(map[builder.getTitle()])
             if (counter.decrementAndGet() == 0) {
                 action.invoke()
             }
-        }, TITLE_SHIFT)
-        getMaxStringForCurrentConfig(
-            builder.getSubtitle(),
-            subtitle,
-            { str ->
-                builder.setSubtitle(str)
+        } else
+            getMaxStringForCurrentConfig(builder.getTitle(), title, { str ->
+                builder.getTitle()?.let {
+                    map.put(it.toString(), str)
+                }
+                builder.setTitle(str)
                 if (counter.decrementAndGet() == 0) {
                     action.invoke()
                 }
-            },
-            SUBTITLE_SHIFT
-        )
-        getMaxStringForCurrentConfig(
-            builder.getDescription(),
-            description,
-            { str ->
-                builder.setDescription(str)
-                if (counter.decrementAndGet() == 0) {
-                    action.invoke()
-                }
-            },
-            DESCRIPTION_SHIFT
-        )
+            }, TITLE_SHIFT)
+
+        if (map.contains(builder.getSubtitle())) {
+            builder.setTitle(map[builder.getSubtitle()])
+            if (counter.decrementAndGet() == 0) {
+                action.invoke()
+            }
+        } else
+            getMaxStringForCurrentConfig(
+                builder.getSubtitle(),
+                subtitle,
+                { str ->
+                    builder.getSubtitle()?.let {
+                        map.put(it.toString(), str)
+                    }
+                    builder.setSubtitle(str)
+                    if (counter.decrementAndGet() == 0) {
+                        action.invoke()
+                    }
+                },
+                SUBTITLE_SHIFT
+            )
+        if (map.contains(builder.getDescription())) {
+            builder.setTitle(map[builder.getDescription()])
+            if (counter.decrementAndGet() == 0) {
+                action.invoke()
+            }
+        } else
+            getMaxStringForCurrentConfig(
+                builder.getDescription(),
+                description,
+                { str ->
+                    builder.getDescription()?.let {
+                        map.put(it.toString(), str)
+                    }
+                    builder.setDescription(str)
+                    if (counter.decrementAndGet() == 0) {
+                        action.invoke()
+                    }
+                },
+                DESCRIPTION_SHIFT
+            )
+
     }
 
     private fun getMaxStringForCurrentConfig(
@@ -171,7 +250,7 @@ object TruncatedTextFix {
             })
             tv.text = it
         } ?: run {
-            callback.invoke(s?.toString())
+            callback.invoke(null)
         }
 
     }
@@ -188,4 +267,29 @@ object TruncatedTextFix {
         }
         return false
     }
+
+    private fun getTruncatedText(config: Configuration): TruncatedText? {
+        val data = config.toString()
+        return try {
+            val json =
+                SharedPreferenceProvider.getPreferences("TruncatedText").getString(data, null)
+            if (json.isNullOrEmpty()) {
+                TruncatedText(HashMap())
+            } else {
+                Gson().fromJson(json, TruncatedText::class.java)
+            }
+        } catch (e: Throwable) {
+            SharedPreferenceProvider.getPreferences("TruncatedText").edit().remove(data).apply()
+            TruncatedText(HashMap())
+        }
+    }
+
+    private fun setTruncatedText(config: Configuration, truncatedText: TruncatedText) {
+        val json = Gson().toJson(truncatedText, TruncatedText::class.java)
+        val data: String = config.toString()
+        SharedPreferenceProvider.getPreferences("TruncatedText").edit().putString(data, json)
+            .apply()
+    }
+
+    data class TruncatedText(val map: Map<String, String?>)
 }

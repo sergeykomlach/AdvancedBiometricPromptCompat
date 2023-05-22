@@ -67,6 +67,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
@@ -259,8 +260,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             cancelAuthentication()
         }
     }
-
+    private var startTs = 0L
     fun authenticate(callbackOuter: AuthenticationCallback) {
+        startTs = System.currentTimeMillis()
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
             return
@@ -313,6 +315,32 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
+    private fun checkHardwareAsync(callback: (result: AuthenticationFailureReason?) -> Unit) {
+        ExecutorHelper.startOnBackground(Runnable {
+            if (!isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
+                callback.invoke(AuthenticationFailureReason.NO_HARDWARE)
+                return@Runnable
+            }
+            if (!hasEnrolled(impl.builder.getBiometricAuthRequest())) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
+                callback.invoke(AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED)
+                return@Runnable
+            }
+            if (isLockOut(impl.builder.getBiometricAuthRequest(), false)) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
+                callback.invoke(AuthenticationFailureReason.LOCKED_OUT)
+                return@Runnable
+            }
+            if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest(), false)) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
+                callback.invoke(AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
+                return@Runnable
+            }
+            callback.invoke(null)
+        })
+    }
+
     private fun startAuth(callbackOuter: AuthenticationCallback) {
         if (isActivityFinished(builder.getContext())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
@@ -321,6 +349,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
+        val result = AtomicReference<AuthenticationFailureReason?>(null)
+        checkHardwareAsync {
+            result.set(it ?: AuthenticationFailureReason.UNKNOWN)
+        }
         val checkPermissions = {
             PermissionsFragment.askForPermissions(
                 impl.builder.getContext(),
@@ -337,43 +369,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     authFlowInProgress.set(false)
                 } else {
                     BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
-
-                    if (!isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
-                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
-                        callbackOuter.onFailed(
-                            AuthenticationFailureReason.NO_HARDWARE,
-                            null
-                        )
-                        authFlowInProgress.set(false)
-                        return@askForPermissions
-                    }
-                    if (!hasEnrolled(impl.builder.getBiometricAuthRequest())) {
-                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
-                        callbackOuter.onFailed(
-                            AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                            null
-                        )
-                        authFlowInProgress.set(false)
-                        return@askForPermissions
-                    }
-                    if (isLockOut(impl.builder.getBiometricAuthRequest(), false)) {
-                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isLockOut")
-                        callbackOuter.onFailed(
-                            AuthenticationFailureReason.LOCKED_OUT,
-                            null
-                        )
-                        authFlowInProgress.set(false)
-                        return@askForPermissions
-                    }
-                    if (isBiometricSensorPermanentlyLocked(impl.builder.getBiometricAuthRequest(), false)) {
-                        BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isBiometricSensorPermanentlyLocked")
-                        callbackOuter.onFailed(
-                            AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                            null
-                        )
-                        authFlowInProgress.set(false)
-                        return@askForPermissions
-                    }
                     val activityViewWatcher = try {
                         ActivityViewWatcher(
                             impl.builder,
@@ -466,6 +461,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                         override fun onUIOpened() {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
+                            val s =
+                                "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
+                            BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             if (!isOpened.get()) {
                                 isOpened.set(true)
                                 callbackOuter.onUIOpened()
@@ -521,7 +519,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             }
                         }
                     }
-                    authenticateInternal(callback)
+                    ExecutorHelper.startOnBackground {
+                        while (result.get() == null) {
+                            try {
+                                Thread.sleep(20)
+                            } catch (e: Throwable) {
+                            }
+                        }
+                        if (result.get() != AuthenticationFailureReason.UNKNOWN) {
+                            callbackOuter.onFailed(
+                                result.get(),
+                                null
+                            )
+                            authFlowInProgress.set(false)
+                            return@startOnBackground
+                        } else
+                            ExecutorHelper.post {
+                                authenticateInternal(callback)
+                            }
+                    }
+
                 }
             }
         }
@@ -598,6 +615,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
             appBackgroundDetector.attachListeners()
             callback.updateTimestamp()
+            val s = "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
+            BiometricLoggerImpl.e("BiometricPromptCompat $s")
             impl.authenticate(callback)
         } catch (ignore: IllegalStateException) {
             appBackgroundDetector.detachListeners()

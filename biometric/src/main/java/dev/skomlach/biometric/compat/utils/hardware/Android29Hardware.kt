@@ -78,8 +78,6 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
 
     override val isAnyHardwareAvailable: Boolean
         get() {
-            if(super.isAnyHardwareAvailable)
-                return true
             val canAuthenticate = canAuthenticate
             return if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
                 true
@@ -89,8 +87,6 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
         }
     override val isAnyBiometricEnrolled: Boolean
         get() {
-            if(super.isAnyBiometricEnrolled)
-                return true
             val canAuthenticate = canAuthenticate
             return if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
                 true

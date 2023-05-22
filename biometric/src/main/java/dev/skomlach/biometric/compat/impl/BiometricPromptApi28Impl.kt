@@ -244,7 +244,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         this.authFinished.clear()
         this.biometricFragment.set(null)
         callback = cbk
-        onUiOpened()
         if (DevicesWithKnownBugs.isMissedBiometricUI) {
             //1) LG G8 do not have BiometricPrompt UI
             //2) One Plus 6T with InScreen fingerprint sensor
@@ -340,6 +339,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }
             }, shortDelayMillis)
         }
+        onUiOpened()
     }
 
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {

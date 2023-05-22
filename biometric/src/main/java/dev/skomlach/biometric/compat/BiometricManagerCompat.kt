@@ -271,12 +271,12 @@ object BiometricManagerCompat {
         else
             HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
+                    BiometricApi.LEGACY_API,
                     api.type
                 )
             ).isHardwareAvailable || HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
+                    BiometricApi.BIOMETRIC_API,
                     api.type
                 )
             ).isHardwareAvailable
@@ -303,12 +303,12 @@ object BiometricManagerCompat {
         else
             HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
+                    BiometricApi.LEGACY_API,
                     api.type
                 )
             ).isBiometricEnrolled || HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
+                    BiometricApi.BIOMETRIC_API,
                     api.type
                 )
             ).isBiometricEnrolled
@@ -336,12 +336,12 @@ object BiometricManagerCompat {
         else
             HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
+                    BiometricApi.LEGACY_API,
                     api.type
                 )
             ).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
+                    BiometricApi.BIOMETRIC_API,
                     api.type
                 )
             ).isBiometricEnrollChanged
@@ -373,12 +373,12 @@ object BiometricManagerCompat {
         else
             HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
+                    BiometricApi.LEGACY_API,
                     api.type
                 )
             ).isLockedOut && HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
+                    BiometricApi.BIOMETRIC_API,
                     api.type
                 )
             ).isLockedOut
