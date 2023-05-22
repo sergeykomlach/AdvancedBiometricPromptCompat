@@ -22,6 +22,10 @@ https://blog.kraken.com/post/11905/your-fingerprint-can-be-hacked-for-5-heres-ho
 
 https://arxiv.org/pdf/2305.10791.pdf
 
+https://securitycafe.ro/2022/09/05/mobile-pentesting-101-bypassing-biometric-authentication/
+
+https://hackerone.com/reports/637194
+
 ## RU:
 
 https://fi5t.xyz/posts/biometrics-how-it-works/
