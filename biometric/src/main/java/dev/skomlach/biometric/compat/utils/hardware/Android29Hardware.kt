@@ -56,7 +56,7 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                             android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK,
                             android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
                         )
-                        var canAuthenticate = biometricManager.canAuthenticate()
+                        var canAuthenticate = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
                         for (authenticator in authenticators) {
                             canAuthenticate = biometricManager.canAuthenticate(authenticator)
                             if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
