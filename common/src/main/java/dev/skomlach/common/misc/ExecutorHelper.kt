@@ -22,8 +22,15 @@ package dev.skomlach.common.misc
 import android.os.Handler
 import android.os.Looper
 import dev.skomlach.common.logging.LogCat
-import kotlinx.coroutines.*
-import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -37,8 +44,6 @@ object ExecutorHelper {
     val backgroundExecutor: ExecutorService = Executors.newCachedThreadPool()
     private val tasksInMain = Collections.synchronizedMap(WeakHashMap<Runnable, Job>())
 
-    private fun isMain(): Boolean = Looper.getMainLooper().thread === Thread.currentThread()
-
     private fun addTaskSafely(task: Runnable, job: Job) {
 
         try {
@@ -50,7 +55,6 @@ object ExecutorHelper {
     }
 
     private fun removeTaskSafely(task: Runnable) {
-
         try {
             tasksInMain.remove(task)
         } catch (e: Throwable) {
@@ -68,15 +72,10 @@ object ExecutorHelper {
     }
 
     fun startOnBackground(task: Runnable) {
-        if (!isMain()) {
+        val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
             task.run()
-        } else {
-            val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
-                task.run()
-            }
-            addTaskSafely(task, job)
         }
-
+        addTaskSafely(task, job)
     }
 
     fun postDelayed(task: Runnable, delay: Long) {
@@ -90,20 +89,17 @@ object ExecutorHelper {
     }
 
     fun post(task: Runnable) {
-        if (isMain()) {
+
+        val job = GlobalScope.launch(Dispatchers.Main) {
             task.run()
-        } else {
-            val job = GlobalScope.launch(Dispatchers.Main) {
-                task.run()
-                removeTaskSafely(task)
-            }
-            addTaskSafely(task, job)
+            removeTaskSafely(task)
         }
+        addTaskSafely(task, job)
+
 
     }
 
     fun removeCallbacks(task: Runnable) {
-
         try {
             tasksInMain[task]?.cancel()
             tasksInMain.remove(task)

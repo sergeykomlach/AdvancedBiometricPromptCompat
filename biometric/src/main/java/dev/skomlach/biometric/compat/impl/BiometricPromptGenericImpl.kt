@@ -116,14 +116,16 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         authResult: AuthResult.AuthResultState,
         failureReason: AuthenticationFailureReason? = null
     ) {
-        if (authResult == AuthResult.AuthResultState.SUCCESS) {
-            IconStateHelper.successType(module?.confirmed)
-            if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
-                Vibro.start()
+        ExecutorHelper.post {
+            if (authResult == AuthResult.AuthResultState.SUCCESS) {
+                if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
+                    Vibro.start()
+                }
+                IconStateHelper.successType(module?.confirmed)
+            } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
+                IconStateHelper.errorType(module?.confirmed)
             }
-        } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
-            IconStateHelper.errorType(module?.confirmed)
-            dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
         }
         //non fatal
         if (mutableListOf(
