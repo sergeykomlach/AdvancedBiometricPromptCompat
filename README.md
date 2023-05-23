@@ -74,6 +74,10 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+May 23 2023
+
+**Improvement** Auth flow performance improved
+
 May 19 2023
 
 **Improvement** Fixed UI opening delay

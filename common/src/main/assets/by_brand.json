@@ -9679,22 +9679,22 @@
   },
   {
    "device": "ASUS_I001_1",
-   "name": "ROG Phone ll",
+   "name": "ROG Phone II",
    "model": "ASUS_I001D"
   },
   {
    "device": "ASUS_I001_1",
-   "name": "ROG Phone ll",
+   "name": "ROG Phone II",
    "model": "ASUS_I001DC"
   },
   {
    "device": "ASUS_I001_1",
-   "name": "ROG Phone ll",
+   "name": "ROG Phone II",
    "model": "ASUS_I001DE"
   },
   {
    "device": "ASUS_I001_1",
-   "name": "ROG Phone ll",
+   "name": "ROG Phone II",
    "model": "ZS660KL"
   },
   {
@@ -47893,6 +47893,16 @@
    "model": "HTC Desire 22 pro"
   },
   {
+   "device": "htc_soodugls",
+   "name": "HTC Desire 23 Pro",
+   "model": "2QC9100"
+  },
+  {
+   "device": "htc_soodugls",
+   "name": "HTC Desire 23 Pro",
+   "model": "HTC U23 pro"
+  },
+  {
    "device": "htc_a3ul",
    "name": "HTC Desire 610",
    "model": "HTC Desire 610"
@@ -54679,6 +54689,11 @@
    "model": "Hisense U989 Pro"
   },
   {
+   "device": "hengshan",
+   "name": "ULED",
+   "model": "SmartTV 4K FFM"
+  },
+  {
    "device": "wuyishan",
    "name": "ULED",
    "model": "SmartTV 4K FFM"
@@ -55940,11 +55955,6 @@
  ],
  "Honor": [
   {
-   "device": "HNFRI",
-   "name": "FRI",
-   "model": "FRI-NX9"
-  },
-  {
    "device": "HNNTH",
    "name": "HONOR 50",
    "model": "NTH-NX9"
@@ -55973,6 +55983,11 @@
    "device": "HNRBN-Q",
    "name": "HONOR 70 Lite",
    "model": "RBN-NX1"
+  },
+  {
+   "device": "HNFRI",
+   "name": "HONOR Magic Vs",
+   "model": "FRI-NX9"
   },
   {
    "device": "HNANY-Q1",
@@ -102979,6 +102994,16 @@
    "model": "motorola"
   },
   {
+   "device": "gnevan",
+   "name": "moto g stylus (2023)",
+   "model": "moto g 5G (2022)"
+  },
+  {
+   "device": "gnevan",
+   "name": "moto g stylus (2023)",
+   "model": "moto g stylus (2023)"
+  },
+  {
    "device": "denver",
    "name": "moto g stylus 5G",
    "model": "moto g stylus (2021)"
@@ -121420,6 +121445,11 @@
    "model": "T810"
   },
   {
+   "device": "TL10",
+   "name": "TL10",
+   "model": "Vaio TL10"
+  },
+  {
    "device": "T2050M",
    "name": "Tab Q10",
    "model": "Tab Q10"
@@ -128794,6 +128824,11 @@
    "device": "S19_Max_Pro",
    "name": "S19 Max Pro",
    "model": "S19 Max Pro"
+  },
+  {
+   "device": "S23_Pro_Max",
+   "name": "S23 Pro Max",
+   "model": "S23 Pro Max"
   },
   {
    "device": "reeder_T8",
@@ -157318,6 +157353,11 @@
    "model": "Z60"
   },
   {
+   "device": "Z60_plus",
+   "name": "Z60 Plus",
+   "model": "Z60 plus"
+  },
+  {
    "device": "ZVII",
    "name": "ZVII",
    "model": "ZVII"
@@ -179480,6 +179520,11 @@
    "model": "V2247"
   },
   {
+   "device": "V2248",
+   "name": "Y36 5G",
+   "model": "V2248"
+  },
+  {
    "device": "Y51",
    "name": "Y51",
    "model": "vivo Y51"
@@ -179698,6 +179743,11 @@
    "device": "PD2232",
    "name": "iQOO Neo7 竞速版",
    "model": "V2232A"
+  },
+  {
+   "device": "PD2301",
+   "name": "iQOO Neo8",
+   "model": "V2301A"
   },
   {
    "device": "PD2302",
@@ -180263,6 +180313,11 @@
    "device": "PD2227",
    "name": "vivo X90 Pro+",
    "model": "V2227A"
+  },
+  {
+   "device": "PD2241",
+   "name": "vivo X90s",
+   "model": "V2241HA"
   },
   {
    "device": "PD1619",
@@ -200778,6 +200833,11 @@
    "device": "RE5894",
    "name": "realme C33",
    "model": "RMX3624"
+  },
+  {
+   "device": "RE58AF",
+   "name": "realme C33 128GB",
+   "model": "RMX3627"
   },
   {
    "device": "RE87BAL1",
