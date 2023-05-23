@@ -119,7 +119,7 @@ object DeviceInfoManager {
                 if (limit < 2)//Device should have at least brand + model
                     break
                 val second = join(secondArray, " ", limit)
-                deviceInfo = loadDeviceInfo(first, second, DeviceModel.device)
+                deviceInfo = loadDeviceInfo(first, second, DeviceModel.brand, DeviceModel.device)
                 if (!deviceInfo?.sensors.isNullOrEmpty()) {
                     LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
                     setCachedDeviceInfo(deviceInfo ?: continue)
@@ -218,16 +218,17 @@ object DeviceInfoManager {
     private fun loadDeviceInfo(
         modelReadableName: String,
         model: String,
+        brand : String,
         codeName: String
     ): DeviceInfo? {
         try {
             val devicesList = Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)
 
-            val info = findDeviceInfo(devicesList, model, codeName)
+            val info = findDeviceInfo(devicesList, model, brand, codeName)
             if (info != null)
                 return info
 
-            return findDeviceInfo(devicesList, modelReadableName, codeName)
+            return findDeviceInfo(devicesList, modelReadableName, brand, codeName)
         } catch (e: Throwable) {
             LogCat.logException(e, "DeviceInfoManager")
             return null
@@ -239,9 +240,10 @@ object DeviceInfoManager {
     private fun findDeviceInfo(
         devicesList: Array<DeviceSpec>,
         model: String,
+        brand : String,
         codeName: String
     ): DeviceInfo? {
-        LogCat.log("DeviceInfoManager: findDeviceInfo(${devicesList.size}, $model, $codeName)")
+        LogCat.log("DeviceInfoManager: findDeviceInfo(${devicesList.size}, $model, $brand, $codeName)")
         var firstFound: DeviceInfo? = null
         devicesList.forEach {
             val m = if (it.name?.startsWith(
@@ -250,7 +252,7 @@ object DeviceInfoManager {
                 ) == true
             ) capitalize(it.name) else capitalize(it.brand) + " " + capitalize(it.name)
 
-            if (it.name.equals(model, ignoreCase = true) || it.codename == codeName) {
+            if (it.name.equals(model, ignoreCase = true) || (brand.contains(it.brand.toString(), ignoreCase = true) && it.codename == codeName)) {
                 LogCat.log("DeviceInfoManager: $it")
                 return DeviceInfo(m, getSensors(it))
             } else if (firstFound == null) {

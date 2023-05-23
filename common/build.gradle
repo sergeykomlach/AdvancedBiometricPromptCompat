@@ -35,7 +35,7 @@ afterEvaluate {
     android.libraryVariants.all { v ->
         if (v.buildType.name == "release") {
             v.assemble.doFirst {
-                def device = new File("$projectDir/src/main/assets/device.json")
+                def device = new File("$projectDir/src/main/assets/devices.json")
                 println("Path" + device.absolutePath)
                 if (device.exists()) {
                     device.delete()
