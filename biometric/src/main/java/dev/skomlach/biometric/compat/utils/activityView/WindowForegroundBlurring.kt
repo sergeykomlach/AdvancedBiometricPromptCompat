@@ -41,6 +41,7 @@ import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.blur.BlurUtil
+import dev.skomlach.common.blur.DEFAULT_RADIUS
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.statusbar.ColorUtil
@@ -127,8 +128,13 @@ class WindowForegroundBlurring(
                         true
                     }
                     if (Utils.isAtLeastS) {
-                        renderEffect =
-                            RenderEffect.createBlurEffect(12f, 12f, Shader.TileMode.DECAL)
+                        if (renderEffect == null)
+                            renderEffect =
+                                RenderEffect.createBlurEffect(
+                                    DEFAULT_RADIUS.toFloat(),
+                                    DEFAULT_RADIUS.toFloat(),
+                                    Shader.TileMode.DECAL
+                                )
                         contentView?.setRenderEffect(renderEffect)
                     } else
                         ViewCompat.setBackground(this, ColorDrawable(Color.TRANSPARENT))
@@ -171,6 +177,13 @@ class WindowForegroundBlurring(
         try {
             v?.let {
                 if (Utils.isAtLeastS) {
+                    if (renderEffect == null)
+                        renderEffect =
+                            RenderEffect.createBlurEffect(
+                                DEFAULT_RADIUS.toFloat(),
+                                DEFAULT_RADIUS.toFloat(),
+                                Shader.TileMode.DECAL
+                            )
                     contentView?.setRenderEffect(renderEffect)
                 } else
                     ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
@@ -185,16 +198,14 @@ class WindowForegroundBlurring(
     }
 
     fun setupListeners() {
-        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
+        if (isAttached) return
         isAttached = true
-
         try {
-            ExecutorHelper.post {
-                v?.apply {
-                    parentView.addView(this)
-                }
-                updateBiometricIconsLayout()
+            v?.apply {
+                parentView.addView(this)
             }
+            updateBiometricIconsLayout()
+
             updateBackground()
             IconStateHelper.registerListener(this)
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
@@ -202,28 +213,34 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
+
     }
 
     fun resetListeners() {
-        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
+        if (!isAttached) return
         isAttached = false
+
         try {
+            v?.let {
+                parentView.removeView(it)
+            }
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-        }
-        try {
-            if (Utils.isAtLeastS) {
-                contentView?.setRenderEffect(null)
+        } finally {
+            try {
+                if (Utils.isAtLeastS) {
+                    contentView?.setRenderEffect(null)
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
-            v?.let {
-                parentView.removeView(it)
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
         }
         IconStateHelper.unregisterListener(this)
+        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
+
     }
 
     private fun updateBiometricIconsLayout() {

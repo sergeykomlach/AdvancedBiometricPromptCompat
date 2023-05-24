@@ -466,7 +466,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             if (!isOpened.get()) {
                                 isOpened.set(true)
-                                callbackOuter.onUIOpened()
                                 if (!builder.isSilentAuthEnabled()) {
                                     if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                         BiometricNotificationManager.showNotification(builder)
@@ -486,6 +485,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                                     activityViewWatcher?.setupListeners()
                                 }
+                                callbackOuter.onUIOpened()
                             }
                         }
 
@@ -493,12 +493,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                             if (isOpened.get()) {
                                 isOpened.set(false)
+                                if (!builder.isSilentAuthEnabled()) {
+                                    activityViewWatcher?.resetListeners()
+                                }
                                 val closeAll = Runnable {
                                     if (!builder.isSilentAuthEnabled()) {
                                         if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                             BiometricNotificationManager.dismissAll()
                                         }
-                                        activityViewWatcher?.resetListeners()
+
                                         StatusBarTools.setNavBarAndStatusBarColors(
                                             builder.getContext().window,
                                             builder.getNavBarColor(),
@@ -512,10 +515,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                                         .toLong()
                                 ExecutorHelper.postDelayed(closeAll, delay)
-                                callbackOuter.onUIClosed()
-//                    ExecutorHelper.removeCallbacks(fragmentLifecycleCallbacks.dismissTask)
                                 appBackgroundDetector.detachListeners()
                                 authFlowInProgress.set(false)
+                                callbackOuter.onUIClosed()
                             }
                         }
                     }

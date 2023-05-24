@@ -103,6 +103,13 @@ class WindowBackgroundBlurring(
         try {
             v?.let {
                 if (Utils.isAtLeastS) {
+                    if (renderEffect == null)
+                        renderEffect =
+                            RenderEffect.createBlurEffect(
+                                DEFAULT_RADIUS.toFloat(),
+                                DEFAULT_RADIUS.toFloat(),
+                                Shader.TileMode.DECAL
+                            )
                     contentView?.setRenderEffect(renderEffect)
                 } else
                     ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
@@ -119,12 +126,13 @@ class WindowBackgroundBlurring(
                             true
                         }
                         if (Utils.isAtLeastS) {
-                            renderEffect =
-                                RenderEffect.createBlurEffect(
-                                    DEFAULT_RADIUS.toFloat(),
-                                    DEFAULT_RADIUS.toFloat(),
-                                    Shader.TileMode.DECAL
-                                )
+                            if (renderEffect == null)
+                                renderEffect =
+                                    RenderEffect.createBlurEffect(
+                                        DEFAULT_RADIUS.toFloat(),
+                                        DEFAULT_RADIUS.toFloat(),
+                                        Shader.TileMode.DECAL
+                                    )
                             contentView?.setRenderEffect(renderEffect)
                         } else
                             ViewCompat.setBackground(this, BitmapDrawable(this.resources, bm))
@@ -141,7 +149,7 @@ class WindowBackgroundBlurring(
     }
 
     fun setupListeners() {
-        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
+        if (isAttached) return
         isAttached = true
         try {
             updateBackground()
@@ -150,11 +158,14 @@ class WindowBackgroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
+
     }
 
     fun resetListeners() {
-        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
+        if (!isAttached) return
         isAttached = false
+
         try {
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
@@ -168,10 +179,11 @@ class WindowBackgroundBlurring(
             v?.let {
                 parentView.removeView(it)
             }
-
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
+
     }
 
 }

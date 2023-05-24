@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils.activityView
 import android.view.ViewGroup
 import android.view.Window
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 class ActivityViewWatcher(
     private val compatBuilder: BiometricPromptCompat.Builder,
@@ -52,6 +53,7 @@ class ActivityViewWatcher(
     }
 
     fun setupListeners() {
+        BiometricLoggerImpl.e("${this.javaClass.name}.setupListeners")
         for (back in backgroundBlurs) {
             back.setupListeners()
         }
@@ -60,6 +62,7 @@ class ActivityViewWatcher(
     }
 
     fun resetListeners() {
+        BiometricLoggerImpl.e("${this.javaClass.name}.resetListeners")
         for (back in backgroundBlurs) {
             back.resetListeners()
         }
