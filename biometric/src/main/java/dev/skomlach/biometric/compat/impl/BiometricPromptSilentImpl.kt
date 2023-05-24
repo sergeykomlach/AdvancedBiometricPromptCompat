@@ -19,7 +19,12 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricConfirmation
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
@@ -53,14 +58,14 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         d("BiometricPromptSilentImpl.authenticate():")
         this.authFinished.clear()
         this.callback = callback
-        startAuth()
         onUiOpened()
+        startAuth()
     }
 
     override fun cancelAuthentication() {
         d("BiometricPromptSilentImpl.cancelAuthentication():")
-        stopAuth()
         onUiClosed()
+        stopAuth()
     }
 
     override fun startAuth() {
@@ -112,6 +117,8 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         authResult: AuthResult.AuthResultState,
         failureReason: AuthenticationFailureReason? = null
     ) {
+        if (!isOpened.get())
+            return
         //non fatal
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,

@@ -61,6 +61,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
+    private val isOpened = AtomicBoolean(false)
     private val authCallTimestamp = AtomicLong(0)
     private val biometricPromptInfo: PromptInfo
     private val biometricPrompt: BiometricPrompt
@@ -265,11 +266,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun cancelAuthentication() {
+        onUiClosed()
         e("BiometricPromptApi28Impl.cancelAuthentication():")
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
-        onUiClosed()
     }
 
     private val finalTask = Runnable {
@@ -294,7 +295,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
                 .toLong()
         val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
-
+        onUiOpened()
         showSystemUi(biometricPrompt)
         if (secondary.isNotEmpty()) {
             ExecutorHelper.postDelayed({
@@ -344,7 +345,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }
             }, shortDelayMillis)
         }
-        onUiOpened()
+
     }
 
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
@@ -451,12 +452,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun onUiOpened() {
+        if (isOpened.get())
+            return
+        isOpened.set(true)
         callback?.onUIOpened()
     }
 
     override fun onUiClosed() {
+        if (!isOpened.get())
+            return
         d("BiometricPromptApi28Impl.onUIClosed():")
         callback?.onUIClosed()
+        isOpened.set(false)
     }
 
     private val isNativeBiometricWorkaroundRequired: Boolean
@@ -478,6 +485,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         cryptoObject: BiometricPrompt.CryptoObject?,
         reason: AuthenticationFailureReason? = null
     ) {
+        if (!isOpened.get())
+            return
         d("BiometricPromptApi28Impl.checkAuthResultForPrimary():")
         var failureReason = reason
         if (mutableListOf(
@@ -598,6 +607,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         authResult: AuthResult.AuthResultState,
         failureReason: AuthenticationFailureReason? = null
     ) {
+        if (!isOpened.get())
+            return
         d("BiometricPromptApi28Impl.checkAuthResultForSecondary():")
         ExecutorHelper.post {
             if (authResult == AuthResult.AuthResultState.SUCCESS) {

@@ -19,7 +19,12 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricConfirmation
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
@@ -42,6 +47,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val isFingerprint = AtomicBoolean(false)
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
+    private val isOpened = AtomicBoolean(false)
 
     init {
         isFingerprint.set(
@@ -54,6 +60,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         this.authFinished.clear()
         this.callback = callback
         val doNotShowDialog = isFingerprint.get() && isHideDialogInstantly
+        onUiOpened()
         if (!doNotShowDialog) {
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
@@ -64,19 +71,17 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         } else {
             startAuth()
         }
-        onUiOpened()
     }
 
     override fun cancelAuthentication() {
         d("BiometricPromptGenericImpl.cancelAuthentication():")
+        onUiClosed()
         if (dialog != null) dialog?.dismissDialog() else {
             stopAuth()
         }
-        onUiClosed()
     }
 
     override fun startAuth() {
-
         d("BiometricPromptGenericImpl.startAuth():")
         val types: List<BiometricType?> = ArrayList(
             builder.getAllAvailableTypes()
@@ -104,11 +109,17 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun onUiOpened() {
+        if (isOpened.get())
+            return
+        isOpened.set(true)
         callback?.onUIOpened()
     }
 
     override fun onUiClosed() {
+        if (!isOpened.get())
+            return
         callback?.onUIClosed()
+        isOpened.set(false)
     }
 
     private fun checkAuthResult(
@@ -116,6 +127,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         authResult: AuthResult.AuthResultState,
         failureReason: AuthenticationFailureReason? = null
     ) {
+        if (!isOpened.get())
+            return
         ExecutorHelper.post {
             if (authResult == AuthResult.AuthResultState.SUCCESS) {
                 if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
