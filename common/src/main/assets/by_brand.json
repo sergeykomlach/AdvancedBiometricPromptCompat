@@ -47893,16 +47893,6 @@
    "model": "HTC Desire 22 pro"
   },
   {
-   "device": "htc_soodugls",
-   "name": "HTC Desire 23 Pro",
-   "model": "2QC9100"
-  },
-  {
-   "device": "htc_soodugls",
-   "name": "HTC Desire 23 Pro",
-   "model": "HTC U23 pro"
-  },
-  {
    "device": "htc_a3ul",
    "name": "HTC Desire 610",
    "model": "HTC Desire 610"
@@ -48006,6 +47996,16 @@
    "device": "htc_tetdugl",
    "name": "HTC U19e",
    "model": "HTC 2Q7A100"
+  },
+  {
+   "device": "htc_soodugls",
+   "name": "HTC U23 Pro",
+   "model": "2QC9100"
+  },
+  {
+   "device": "htc_soodugls",
+   "name": "HTC U23 Pro",
+   "model": "HTC U23 pro"
   },
   {
    "device": "htc_h11dugl",
@@ -67275,6 +67275,11 @@
    "device": "INFINIX-X553-A1",
    "name": "HOT 3 LTE",
    "model": "Infinix HOT 3 LTE"
+  },
+  {
+   "device": "Infinix-X6832",
+   "name": "HOT 30 5G",
+   "model": "Infinix X6832"
   },
   {
    "device": "Infinix-X5511",
@@ -120473,6 +120478,11 @@
    "model": "PM85R"
   },
   {
+   "device": "PM86",
+   "name": "PM86",
+   "model": "PM86"
+  },
+  {
    "device": "pm90",
    "name": "PM90",
    "model": "PM90"
@@ -120513,13 +120523,6 @@
    "device": "TAB_TS101S_LTE",
    "name": "TAB_TS101S_LTE",
    "model": "TAB_TS101S_LTE"
-  }
- ],
- "PointMobile": [
-  {
-   "device": "PM86",
-   "name": "PM86",
-   "model": "PM86"
   }
  ],
  "Pokini": [
@@ -124288,6 +124291,13 @@
    "device": "NeoSmart5",
    "name": "NeoSmart5",
    "model": "NeoSmart5"
+  }
+ ],
+ "Promethean": [
+  {
+   "device": "XM3566D",
+   "name": "Promethean OPS-A1",
+   "model": "OPS-A1"
   }
  ],
  "Proscan": [
@@ -133985,6 +133995,11 @@
    "device": "a53x",
    "name": "Galaxy A53 5G UW",
    "model": "SM-A536V"
+  },
+  {
+   "device": "SC-53D",
+   "name": "Galaxy A54 5G",
+   "model": "SC-53D"
   },
   {
    "device": "a54x",
@@ -148419,6 +148434,11 @@
   },
   {
    "device": "banqiao",
+   "name": "EN3/EL3",
+   "model": "AQUOS-TVE21F"
+  },
+  {
+   "device": "banqiao",
    "name": "EQ3/DN5",
    "model": "AQUOS-TVE21A"
   },
@@ -152198,6 +152218,11 @@
    "device": "SO-51D",
    "name": "Xperia 1 V",
    "model": "SO-51D"
+  },
+  {
+   "device": "XQ-DQ72",
+   "name": "Xperia 1 V",
+   "model": "XQ-DQ72"
   },
   {
    "device": "I3113",
@@ -175916,6 +175941,11 @@
    "model": "QTAQZ3KID"
   },
   {
+   "device": "Transformer_VZW",
+   "name": "TCL TAB Pro 5G",
+   "model": "9198S"
+  },
+  {
    "device": "dorado",
    "name": "Wear24",
    "model": "Wear24"
@@ -177905,6 +177935,11 @@
    "model": "vivo Y71A"
   },
   {
+   "device": "PD2284",
+   "name": "S17 Pro",
+   "model": "V2284A"
+  },
+  {
    "device": "V2154",
    "name": "T1",
    "model": "V2153"
@@ -179753,6 +179788,11 @@
    "device": "PD2302",
    "name": "iQOO Neo8 Pro",
    "model": "V2302A"
+  },
+  {
+   "device": "DPD2307",
+   "name": "iQOO Pad",
+   "model": "iPA2375"
   },
   {
    "device": "2018",
@@ -195701,6 +195741,11 @@
    "model": "Z851"
   },
   {
+   "device": "P898P01",
+   "name": "ZTE PA01",
+   "model": "ZTE PA01"
+  },
+  {
    "device": "P876T01J",
    "name": "ZTE T0801",
    "model": "ZTE T0801"
@@ -195929,6 +195974,16 @@
    "device": "YXE",
    "name": "zBox 1",
    "model": "zBox 1"
+  },
+  {
+   "device": "P963S71",
+   "name": "中兴畅行40",
+   "model": "ZTE 1020L"
+  },
+  {
+   "device": "P720S11",
+   "name": "中兴远航41",
+   "model": "ZTE 7541N"
   }
  ],
  "ZUKU": [
@@ -196350,6 +196405,11 @@
    "device": "TC75xDF",
    "name": "TC75xDF",
    "model": "TC75x"
+  },
+  {
+   "device": "TC78",
+   "name": "TC78",
+   "model": "TC78"
   },
   {
    "device": "TC8000",
