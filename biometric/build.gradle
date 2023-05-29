@@ -3,8 +3,8 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    //compileSdkPreview compileSDK
-    compileSdkVersion compileSDK
+    compileSdkPreview compileSDK
+//    compileSdkVersion compileSDK
     defaultConfig {
         //vector drawables + scaleType="centerCrop" is broken on Android 5.0 - 5.1
         vectorDrawables.useSupportLibrary = true

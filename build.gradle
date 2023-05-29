@@ -21,9 +21,9 @@
 buildscript {
     ext.kotlin_version = '1.8.10'
     ext.minSDK = 16
-//    ext.compileSDK = "Tiramisu"
+    ext.compileSDK = "UpsideDownCake"
 //    ext.targetSDK = "Tiramisu"
-    ext.compileSDK = 33
+//    ext.compileSDK = 33
     ext.targetSDK = 33
     ext.javaVersion = JavaVersion.VERSION_17
 
@@ -47,7 +47,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.1'
+        classpath 'com.android.tools.build:gradle:8.0.2'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:3.0.1"
         classpath "org.owasp:dependency-check-gradle:8.2.1"
