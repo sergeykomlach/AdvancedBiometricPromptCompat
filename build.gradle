@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 77
+    ext.libsMinorVersion = 78
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -72,7 +72,7 @@ allprojects {
 
     dependencies {
         // Optional, some source of nullability annotations
-        errorprone "com.google.errorprone:error_prone_core:2.9.0"
+        errorprone "com.google.errorprone:error_prone_core:2.19.1"
     }
 
 //Tool for detect known vulnerabilities in 3-rd party libraries
