@@ -26,6 +26,8 @@ https://securitycafe.ro/2022/09/05/mobile-pentesting-101-bypassing-biometric-aut
 
 https://hackerone.com/reports/637194
 
+https://www.darkreading.com/endpoint/bruteprint-short-work-fingerprint-security
+
 ## RU:
 
 https://fi5t.xyz/posts/biometrics-how-it-works/
