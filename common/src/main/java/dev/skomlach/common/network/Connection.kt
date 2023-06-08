@@ -27,6 +27,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -98,14 +99,14 @@ object Connection {
         val intentFilter = IntentFilter()
         intentFilter.addAction(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        appContext.registerReceiver(screenLockReceiver, intentFilter)
+        BroadcastTools.registerGlobalBroadcastIntent(appContext, screenLockReceiver, intentFilter)
         connectionStateListener.startListeners()
         LocalBroadcastManager.getInstance(appContext)
             .registerReceiver(checkConnection, IntentFilter(ACTION))
     }
 
     fun close() {
-        appContext.unregisterReceiver(screenLockReceiver)
+        BroadcastTools.unregisterGlobalBroadcastIntent(appContext, screenLockReceiver)
         connectionStateListener.stopListeners()
         LocalBroadcastManager.getInstance(appContext)
             .unregisterReceiver(checkConnection)

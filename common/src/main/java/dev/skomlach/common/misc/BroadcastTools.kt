@@ -23,6 +23,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.content.ContextCompat
 import dev.skomlach.common.logging.LogCat.logError
 
 object BroadcastTools {
@@ -50,7 +51,7 @@ object BroadcastTools {
                 logError("BroadcastTools: You tried to register custom global BroadcastReceiver. Make sure that action `$action` contains package-specific name")
             }
         }
-        context.registerReceiver(broadcastReceiver, filter)
+        ContextCompat.registerReceiver(context, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
     }
 
 

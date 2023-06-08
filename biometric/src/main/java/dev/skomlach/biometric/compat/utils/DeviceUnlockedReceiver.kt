@@ -27,6 +27,7 @@ import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.BroadcastTools
 
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
@@ -38,7 +39,7 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
                     filter.addAction(Intent.ACTION_USER_PRESENT)
                     filter.addAction(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
                     filter.addAction(Intent.ACTION_USER_UNLOCKED)
-                    appContext.registerReceiver(DeviceUnlockedReceiver(), filter)
+                    BroadcastTools.registerGlobalBroadcastIntent(appContext, DeviceUnlockedReceiver(), filter)
                 } catch (e: Throwable) {
                     e(e)
                 }

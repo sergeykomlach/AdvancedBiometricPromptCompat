@@ -45,6 +45,7 @@ import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.statusbar.ColorUtil
 import dev.skomlach.common.themes.monet.SystemColorScheme
@@ -187,10 +188,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
             override fun onViewAttachedToWindow(v: View) {
                 try {
                     @Suppress("DEPRECATION")
-                    v.context?.registerReceiver(
-                        wallpaperChangedReceiver,
-                        IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
-                    )
+                    BroadcastTools.registerGlobalBroadcastIntent(v.context, wallpaperChangedReceiver, IntentFilter(Intent.ACTION_WALLPAPER_CHANGED))
                     updateMonetColorsInternal(v.context ?: return)
                 } catch (e: Throwable) {
                     e(e, "setupMonet")
@@ -199,7 +197,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
             override fun onViewDetachedFromWindow(v: View) {
                 try {
-                    v.context.unregisterReceiver(wallpaperChangedReceiver)
+                    BroadcastTools.unregisterGlobalBroadcastIntent(v.context, wallpaperChangedReceiver)
                 } catch (e: Throwable) {
                     e(e, "setupMonet")
                 }

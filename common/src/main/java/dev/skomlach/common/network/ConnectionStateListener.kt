@@ -30,6 +30,7 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.BroadcastTools
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConnectionStateListener {
@@ -94,7 +95,7 @@ class ConnectionStateListener {
                 intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION)
                 intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)
                 intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
-                appContext.registerReceiver(receiverTypeConnection, intentFilter)
+                BroadcastTools.registerGlobalBroadcastIntent(appContext, receiverTypeConnection, intentFilter)
             }
         } catch (ignore: Throwable) {
         }
@@ -108,7 +109,7 @@ class ConnectionStateListener {
                     connectivityManager?.unregisterNetworkCallback(it)
                 }
             } else {
-                appContext.unregisterReceiver(receiverTypeConnection)
+                BroadcastTools.unregisterGlobalBroadcastIntent(appContext, receiverTypeConnection)
             }
         } catch (ignore: Throwable) {
         }
