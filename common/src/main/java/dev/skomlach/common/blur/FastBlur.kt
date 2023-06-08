@@ -69,7 +69,7 @@ internal object FastBlur {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
     @Throws(RSRuntimeException::class)
-    private fun rs(context: Context, bitmap: Bitmap, radius: Int): Bitmap? {
+    private fun rs(context: Context, bitmap: Bitmap, radius: Int): Bitmap {
         var rs: RenderScript? = null
         var input: Allocation? = null
         var output: Allocation? = null
@@ -96,8 +96,9 @@ internal object FastBlur {
         return bitmap
     }
 
-    private fun stack(sentBitmap: Bitmap, radius: Int, canReuseInBitmap: Boolean): Bitmap? {
+    private fun stack(sentBitmap: Bitmap, r: Int, canReuseInBitmap: Boolean): Bitmap {
 
+        var radius: Int = r
         // Stack Blur v1.0 from
         // http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
         //
@@ -131,7 +132,7 @@ internal object FastBlur {
             sentBitmap.copy(sentBitmap.config, true)
         }
         if (radius < 1) {
-            return null
+            radius = DEFAULT_RADIUS
         }
         val w = bitmap.width
         val h = bitmap.height

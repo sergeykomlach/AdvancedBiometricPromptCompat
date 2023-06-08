@@ -35,10 +35,10 @@ object CheckBiometricUI {
             apks.add(applicationInfo.publicSourceDir)
             if (Build.VERSION.SDK_INT >= 21) {
                 if (applicationInfo.splitSourceDirs != null) {
-                    apks.addAll(listOf(*applicationInfo.splitSourceDirs))
+                    apks.addAll(listOf(*applicationInfo.splitSourceDirs?: emptyArray()))
                 }
                 if (applicationInfo.splitPublicSourceDirs != null) {
-                    apks.addAll(listOf(*applicationInfo.splitPublicSourceDirs))
+                    apks.addAll(listOf(*applicationInfo.splitPublicSourceDirs?: emptyArray()))
                 }
             }
         } catch (e: Throwable) {

@@ -2,8 +2,8 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkPreview compileSDK
-//    compileSdkVersion compileSDK
+//    compileSdkPreview compileSDK
+    compileSdkVersion compileSDK
     defaultConfig {
         minSdkVersion minSDK
         //targetSdkPreview targetSDK

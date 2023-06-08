@@ -74,6 +74,11 @@ Latest supported Android OS version: **Android UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+
+June 8 2023
+
+**Improvement** Updated to Android 14 UpsideDownCake/SDK 34
+
 May 23 2023
 
 **Improvement** Auth flow performance improved
@@ -101,23 +106,6 @@ April 19 2023
 April 5 2023
 
 **Improvement** `PingConfig` added
-
-
-March 23 2023
-
-**Improvement** Added FaceId for Honor devices
-
-March 20 2023
-
-**Improvement** Code refactoring; Fixes for OnePlus devices; **biometric-ktx** added - see `BiometricAuthExtensions`
-
-March 7, 2023
-
-**Minor bugfix** fixed AOS and device vendor detection; ChromeOS detection added
-
-March 5, 2023
-
-**Bugfix: Dialog paddings** fixed issue on some devices when dialog ignore system bars paddings
 
 
 ## Test app

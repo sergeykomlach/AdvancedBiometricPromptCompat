@@ -21,15 +21,15 @@
 buildscript {
     ext.kotlin_version = '1.8.21'
     ext.minSDK = 16
-    ext.compileSDK = "UpsideDownCake"
-//    ext.targetSDK = "Tiramisu"
-//    ext.compileSDK = 33
-    ext.targetSDK = 33
+//    ext.compileSDK = "UpsideDownCake"
+//    ext.targetSDK = "UpsideDownCake"
+    ext.compileSDK = 34
+    ext.targetSDK = 34
     ext.javaVersion = JavaVersion.VERSION_17
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 78
+    ext.libsMinorVersion = 79
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
