@@ -26,7 +26,9 @@ android {
         aidl true
     }
 }
-
+kotlin {
+    jvmToolchain(javaVersion.ordinal() + 1)
+}
 dependencies {
     implementation project(":" + libArtifactId_common)
     compileOnly project(":" + libArtifactId_biometric_api)

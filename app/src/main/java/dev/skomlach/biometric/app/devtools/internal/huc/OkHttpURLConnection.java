@@ -764,8 +764,9 @@ public final class OkHttpURLConnection extends HttpURLConnection implements Call
       }
 
       // Try to lock in the Content-Length before transmitting the request body.
-      if (request.body() instanceof OutputStreamRequestBody requestBody) {
-        request = requestBody.prepareToSendRequest(request);
+      if (request.body() instanceof OutputStreamRequestBody) {
+         OutputStreamRequestBody requestBody = (OutputStreamRequestBody) request.body();
+         request = requestBody.prepareToSendRequest(request);
       }
 
       Response response = chain.proceed(request);

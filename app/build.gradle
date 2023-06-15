@@ -60,7 +60,9 @@ android {
     }
 
 }
-
+kotlin {
+    jvmToolchain(javaVersion.ordinal() + 1)
+}
 dependencies {
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)

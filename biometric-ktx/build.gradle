@@ -22,7 +22,9 @@ android {
         jvmTarget = javaVersion.toString()
     }
 }
-
+kotlin {
+    jvmToolchain(javaVersion.ordinal() + 1)
+}
 dependencies {
     compileOnly project(":" + libArtifactId_biometric)
     implementation 'androidx.appcompat:appcompat:1.6.1'

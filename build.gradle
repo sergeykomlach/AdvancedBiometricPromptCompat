@@ -25,11 +25,11 @@ buildscript {
 //    ext.targetSDK = "UpsideDownCake"
     ext.compileSDK = 34
     ext.targetSDK = 34
-    ext.javaVersion = JavaVersion.VERSION_17
+    ext.javaVersion = JavaVersion.VERSION_11
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 80
+    ext.libsMinorVersion = 81
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
