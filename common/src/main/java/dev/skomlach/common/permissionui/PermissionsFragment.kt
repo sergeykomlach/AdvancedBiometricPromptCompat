@@ -245,17 +245,18 @@ class PermissionsFragment : Fragment() {
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
         val title = try {
-            requireActivity().getString(
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                )).labelRes
-            )
+            val appInfo = (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                requireActivity().application.packageName,
+                PackageManager.ApplicationInfoFlags.of(0L)
+            ) else requireActivity().packageManager.getApplicationInfo(
+                requireActivity().application.packageName,
+                0
+            ))
+            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty{
+                getString(appInfo.labelRes)
+            }
         } catch (e: Throwable) {
-            null
+            "Unknown"
         }
         if (textEnd.isNullOrEmpty() || textStart.isNullOrEmpty() || title.isNullOrEmpty()) {
             closeFragment()
@@ -293,17 +294,18 @@ class PermissionsFragment : Fragment() {
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
         val title = try {
-            requireActivity().getString(
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                )).labelRes
-            )
+            val appInfo = (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                requireActivity().application.packageName,
+                PackageManager.ApplicationInfoFlags.of(0L)
+            ) else requireActivity().packageManager.getApplicationInfo(
+                requireActivity().application.packageName,
+                0
+            ))
+            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty{
+                getString(appInfo.labelRes)
+            }
         } catch (e: Throwable) {
-            null
+            "Unknown"
         }
         if (textEnd.isNullOrEmpty() || textStart.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
             try {

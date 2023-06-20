@@ -116,7 +116,7 @@ object BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_HUAWEI3D)
             allMethods.add(BiometricMethod.FACE_HIHONOR3D)
         }
-        moduleHashMap.clear()
+        val modulesMap = HashMap<BiometricMethod, BiometricModule?>()
         //launch in BG because for init needed about 2-3 seconds
         try {
             val list: MutableList<BiometricMethod>
@@ -142,10 +142,14 @@ object BiometricAuthentication {
                                 " hasHardware: " + (module != null && module.isHardwarePresent) + " remains: " + remains)
                     )
                     if (moduleReady) {
-                        moduleHashMap[method] = module
+                        modulesMap[method] = module
                     }
                     globalInitListener?.initFinished(method, module)
                     if (remains == 0) {
+                        moduleHashMap.apply {
+                            clear()
+                            putAll(modulesMap)
+                        }
                         globalInitListener?.onBiometricReady()
                         e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
                         initInProgress.set(false)

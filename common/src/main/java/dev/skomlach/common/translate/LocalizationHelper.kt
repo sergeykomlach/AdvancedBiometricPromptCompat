@@ -106,10 +106,15 @@ object LocalizationHelper {
     }
 
     fun getLocalizedString(raw: String, vararg formatArgs: Any?): String {
-        return String.format(
-            read(Locale.US, Locale.getDefault(), raw) ?: raw,
-            *formatArgs
-        )
+        return try {
+            String.format(
+                read(Locale.US, Locale.getDefault(), raw) ?: raw,
+                *formatArgs
+            )
+        } catch (e: Throwable){
+            LogCat.logException(e, "LocalizationHelper")
+            raw
+        }
     }
 
     fun hasTranslation(
@@ -143,10 +148,7 @@ object LocalizationHelper {
             }
         }.getString(resId)
 
-        return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(
-            str,
-            *formatArgs
-        ) != String.format(str, *formatArgs)
+        return hasTranslation(str, *formatArgs)
     }
 
     fun hasTranslation(str: String): Boolean {
@@ -154,10 +156,15 @@ object LocalizationHelper {
     }
 
     fun hasTranslation(str: String, vararg formatArgs: Any?): Boolean {
-        return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(
-            str,
-            *formatArgs
-        ) != String.format(str, *formatArgs)
+        return try{
+            (Locale.US.language == Locale.getDefault().language) || getLocalizedString(
+                str,
+                *formatArgs
+            ) != String.format(str, *formatArgs)
+        } catch (e: Throwable){
+            LogCat.logException(e, "LocalizationHelper")
+            false
+        }
     }
 
     private fun invoke(
@@ -184,13 +191,13 @@ object LocalizationHelper {
     ): String? {
         if (fromLang.language == toLang.language)
             return text
-        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV2")
+        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV3")
         val key = fromLang.language + ">>" + toLang.language
         val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
         set.forEach {
             val json = JSONObject(it)
             if (json.has(text))
-                return json.getString(text)
+                return json.getString(text).trim().ifEmpty { return null }
         }
 
         return null
@@ -206,7 +213,7 @@ object LocalizationHelper {
             return
         if (text.trim().isEmpty() || result.trim().isEmpty() || text == result)
             return
-        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV2")
+        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV3")
         val key = fromLang.language + ">>" + toLang.language
         val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
         set.add(JSONObject().apply {
@@ -253,7 +260,7 @@ object LocalizationHelper {
                     .getJSONArray(0)
                     .getString(0).toString()
 
-                return s.replace("\\n", "\n")
+                return s.replace("\\n", "\n").trim().ifEmpty { return null }
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
@@ -289,7 +296,7 @@ object LocalizationHelper {
                     } else
                         break
                 }
-                return s
+                return s.trim().ifEmpty { return null }
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
