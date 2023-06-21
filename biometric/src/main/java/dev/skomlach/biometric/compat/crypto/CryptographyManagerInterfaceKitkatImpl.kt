@@ -24,6 +24,7 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.util.Base64
 import androidx.annotation.RequiresApi
+import androidx.core.os.ConfigurationCompat
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -229,7 +230,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private fun getPrivateKeys(name: String): List<PrivateKey?> {
         val list = ArrayList<PrivateKey?>()
 
-        val localeBeforeFakingEnglishLocale = Locale.getDefault()
+        val localeBeforeFakingEnglishLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]?: Locale.getDefault()
         try {
 
             /*
@@ -256,7 +257,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
     private fun getPublicKeys(name: String): List<PublicKey?> {
         val list = ArrayList<PublicKey?>()
-        val localeBeforeFakingEnglishLocale = Locale.getDefault()
+        val localeBeforeFakingEnglishLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]?: Locale.getDefault()
         try {
 
             /*

@@ -22,6 +22,7 @@ package dev.skomlach.common.translate
 import android.content.Context
 import android.os.Build
 import androidx.annotation.StringRes
+import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.Connection
@@ -58,6 +59,9 @@ object LocalizationHelper {
             if (it is String)
                 invoke(it, Locale.US, Locale.getDefault())
             else if (it is Int) {
+                val localeBeforeFakingEnglishLocale =
+                    ConfigurationCompat.getLocales(context.resources.configuration)[0]
+                        ?: Locale.getDefault()
                 invoke(context.resources.apply {
                     val config = this.configuration
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -67,11 +71,21 @@ object LocalizationHelper {
                         config.locale = Locale.US
                     }
                 }.getString(it), Locale.US, Locale.getDefault())
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    context.resources.configuration.setLocale(localeBeforeFakingEnglishLocale)
+                } else {
+                    @Suppress("DEPRECATION")
+                    context.resources.configuration.locale = localeBeforeFakingEnglishLocale
+                }
             }
         }
     }
 
     fun getLocalizedString(context: Context, @StringRes resId: Int): String {
+        val localeBeforeFakingEnglishLocale =
+            ConfigurationCompat.getLocales(context.resources.configuration)[0]
+                ?: Locale.getDefault()
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -81,6 +95,13 @@ object LocalizationHelper {
                 config.locale = Locale.US
             }
         }.getString(resId)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            context.resources.configuration.setLocale(localeBeforeFakingEnglishLocale)
+        } else {
+            @Suppress("DEPRECATION")
+            context.resources.configuration.locale = localeBeforeFakingEnglishLocale
+        }
+
         return getLocalizedString(str)
     }
 
@@ -89,6 +110,9 @@ object LocalizationHelper {
         @StringRes resId: Int,
         vararg formatArgs: Any?
     ): String {
+        val localeBeforeFakingEnglishLocale =
+            ConfigurationCompat.getLocales(context.resources.configuration)[0]
+                ?: Locale.getDefault()
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -98,6 +122,14 @@ object LocalizationHelper {
                 config.locale = Locale.US
             }
         }.getString(resId)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            context.resources.configuration.setLocale(localeBeforeFakingEnglishLocale)
+        } else {
+            @Suppress("DEPRECATION")
+            context.resources.configuration.locale = localeBeforeFakingEnglishLocale
+        }
+
         return getLocalizedString(str, *formatArgs)
     }
 
@@ -121,6 +153,9 @@ object LocalizationHelper {
         context: Context,
         @StringRes resId: Int
     ): Boolean {
+        val localeBeforeFakingEnglishLocale =
+            ConfigurationCompat.getLocales(context.resources.configuration)[0]
+                ?: Locale.getDefault()
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -130,6 +165,12 @@ object LocalizationHelper {
                 config.locale = Locale.US
             }
         }.getString(resId)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            context.resources.configuration.setLocale(localeBeforeFakingEnglishLocale)
+        } else {
+            @Suppress("DEPRECATION")
+            context.resources.configuration.locale = localeBeforeFakingEnglishLocale
+        }
         return (Locale.US.language == Locale.getDefault().language) || getLocalizedString(str) != str
     }
 
@@ -138,6 +179,9 @@ object LocalizationHelper {
         @StringRes resId: Int,
         vararg formatArgs: Any?
     ): Boolean {
+        val localeBeforeFakingEnglishLocale =
+            ConfigurationCompat.getLocales(context.resources.configuration)[0]
+                ?: Locale.getDefault()
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -147,7 +191,12 @@ object LocalizationHelper {
                 config.locale = Locale.US
             }
         }.getString(resId)
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            context.resources.configuration.setLocale(localeBeforeFakingEnglishLocale)
+        } else {
+            @Suppress("DEPRECATION")
+            context.resources.configuration.locale = localeBeforeFakingEnglishLocale
+        }
         return hasTranslation(str, *formatArgs)
     }
 
