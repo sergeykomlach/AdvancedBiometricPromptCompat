@@ -35187,6 +35187,46 @@
  ],
  "EVOFORCE1": [
   {
+   "device": "SEI800ABB",
+   "name": "FRC1-ABB",
+   "model": "FRC1-ABB"
+  },
+  {
+   "device": "SEI800AS",
+   "name": "FRC1-Armstrong",
+   "model": "FRC1-Armstrong"
+  },
+  {
+   "device": "SEI800BR",
+   "name": "FRC1-BlueRidge",
+   "model": "FRC1-BlueRidge"
+  },
+  {
+   "device": "SEI800BS",
+   "name": "FRC1-BlueStream",
+   "model": "FRC1-BlueStream"
+  },
+  {
+   "device": "SEI800CB",
+   "name": "FRC1-CBT",
+   "model": "FRC1-CBT"
+  },
+  {
+   "device": "SEI800TV",
+   "name": "FRC1-CableCo",
+   "model": "FRC1-CableCo"
+  },
+  {
+   "device": "SEI800ESTL",
+   "name": "FRC1-Eastlink",
+   "model": "FRC1-ESTL"
+  },
+  {
+   "device": "SEI800MDCOM",
+   "name": "FRC1-MDCOM",
+   "model": "FRC1-MDCOM"
+  },
+  {
    "device": "SEI800MOBI",
    "name": "FRC1-MOBI",
    "model": "FRC1-MOBI"
@@ -35202,6 +35242,21 @@
    "model": "FRC1-RCN"
   },
   {
+   "device": "SEI800SECV",
+   "name": "FRC1-SECV",
+   "model": "FRC1-SECV"
+  },
+  {
+   "device": "SEI800TDS",
+   "name": "FRC1-TDS",
+   "model": "FRC1-TDS"
+  },
+  {
+   "device": "Canada",
+   "name": "\"US",
+   "model": "Mexico"
+  },
+  {
    "device": "SEI800MOBI",
    "name": "USA",
    "model": "FRC1-MOBI"
@@ -35210,6 +35265,16 @@
    "device": "SEI800MOBI",
    "name": "USA",
    "model": "MOBI-Buckeye"
+  },
+  {
+   "device": "SEI800MOBI",
+   "name": "USA&Canada",
+   "model": "FRC1-MOBI"
+  },
+  {
+   "device": "SEI800MOBI",
+   "name": "USA&Canada",
+   "model": "MOBI-SECTV"
   }
  ],
  "EVVO": [
@@ -72032,6 +72097,11 @@
    "model": "itel L5007"
   },
   {
+   "device": "itel-A507LSP",
+   "name": "itel A24 2023",
+   "model": "itel A507LSP"
+  },
+  {
    "device": "itel-A511LP2",
    "name": "itel A24 Pro",
    "model": "itel A511LP"
@@ -72185,6 +72255,11 @@
    "device": "itel-A662L",
    "name": "itel A60",
    "model": "itel A662L"
+  },
+  {
+   "device": "itel-A662LM",
+   "name": "itel A60s",
+   "model": "itel A662LM"
   },
   {
    "device": "itel-A14",
@@ -168873,6 +168948,16 @@
    "model": "M40_EEA"
   },
   {
+   "device": "M40_Plus_EEA",
+   "name": "M40_Plus_EEA",
+   "model": "M40_Plus_EEA"
+  },
+  {
+   "device": "M40_Plus_ROW",
+   "name": "M40_Plus_ROW",
+   "model": "M40_Plus_ROW"
+  },
+  {
    "device": "M40_ROW",
    "name": "M40_ROW",
    "model": "M40_ROW"
@@ -169056,6 +169141,16 @@
    "device": "P30S_ROW",
    "name": "P30S_ROW",
    "model": "P30S_ROW"
+  },
+  {
+   "device": "P30S_W_EEA",
+   "name": "P30S_W_EEA",
+   "model": "P30S_W_EEA"
+  },
+  {
+   "device": "P30S_W_ROW",
+   "name": "P30S_W_ROW",
+   "model": "P30S_W_ROW"
   },
   {
    "device": "P40HD_EEA",
@@ -169336,6 +169431,16 @@
    "device": "T40_Plus_RUS",
    "name": "T40_Plus_RUS",
    "model": "T40_Plus_RUS"
+  },
+  {
+   "device": "T40_Pro_W_EEA",
+   "name": "T40_Pro_W_EEA",
+   "model": "T40_Pro_W_EEA"
+  },
+  {
+   "device": "T40_Pro_W_ROW",
+   "name": "T40_Pro_W_ROW",
+   "model": "T40_Pro_W_ROW"
   },
   {
    "device": "T40",
@@ -200066,6 +200171,11 @@
    "device": "SEI500SECV",
    "name": "Pyxis-SECV",
    "model": "Pyxis-SECV"
+  },
+  {
+   "device": "SEI500TDS",
+   "name": "Pyxis-TDS",
+   "model": "Pyxis-TDS"
   },
   {
    "device": "SEI400TV",
