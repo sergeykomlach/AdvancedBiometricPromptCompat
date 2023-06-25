@@ -18188,6 +18188,11 @@
    "model": "C5L Max"
   },
   {
+   "device": "C0175",
+   "name": "C5L Max",
+   "model": "C5L Max"
+  },
+  {
    "device": "C0130UU",
    "name": "C5L PLUS",
    "model": "C5L PLUS"
@@ -27956,6 +27961,11 @@
    "model": "KINGKONG_MINI2_Pro"
   },
   {
+   "device": "KINGKONG_STAR",
+   "name": "KINGKONG STAR",
+   "model": "KINGKONG STAR"
+  },
+  {
    "device": "KINGKONG_MINI",
    "name": "KINGKONG_MINI",
    "model": "KINGKONG_MINI"
@@ -29435,6 +29445,11 @@
   }
  ],
  "DIJITSU": [
+  {
+   "device": "DCT_90",
+   "name": "DCT 90",
+   "model": "DCT 90"
+  },
   {
    "device": "Smart_A11s",
    "name": "Smart A11s",
@@ -45075,6 +45090,11 @@
    "model": "nocturne"
   },
   {
+   "device": "tangorpro",
+   "name": "Pixel Tablet",
+   "model": "Pixel Tablet"
+  },
+  {
    "device": "r11",
    "name": "Pixel Watch",
    "model": "Google Pixel Watch"
@@ -54178,6 +54198,11 @@
    "device": "HS7731ESP",
    "name": "Hisense U964",
    "model": "Hisense U60 Lite"
+  },
+  {
+   "device": "HS7731ESP",
+   "name": "Hisense U964",
+   "model": "Hisense U70"
   },
   {
    "device": "HS7731ESP",
@@ -65917,6 +65942,11 @@
    "model": "AI PONT"
   },
   {
+   "device": "stanford",
+   "name": "HYUNDAI",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "lasalle",
    "name": "HYUNDAI 2K Android TV",
    "model": "HYUNDAI 2K Android TV"
@@ -74840,6 +74870,11 @@
   },
   {
    "device": "stanford",
+   "name": "KENSTAR",
+   "model": "2K SMART TV"
+  },
+  {
+   "device": "stanford",
    "name": "KTC",
    "model": "2K SMART TV"
   },
@@ -75021,6 +75056,16 @@
   {
    "device": "zhongshan",
    "name": "VON",
+   "model": "4K SMART TV"
+  },
+  {
+   "device": "stanford",
+   "name": "WISMANN",
+   "model": "2K SMART TV"
+  },
+  {
+   "device": "zhongshan",
+   "name": "WISMANN",
    "model": "4K SMART TV"
   },
   {
@@ -104166,6 +104211,16 @@
    "model": "moto g(50)"
   },
   {
+   "device": "genevn",
+   "name": "moto g stylus 5G - 2023",
+   "model": "moto g stylus 5G - 2023"
+  },
+  {
+   "device": "genevn",
+   "name": "moto g stylus 5G - 2023",
+   "model": "moto g stylus 5g"
+  },
+  {
    "device": "capri",
    "name": "moto g(10)",
    "model": "moto e(7) plus"
@@ -105023,6 +105078,11 @@
   {
    "device": "oneli",
    "name": "motorola razr 2022",
+   "model": "motorola razr 2022"
+  },
+  {
+   "device": "lynkco",
+   "name": "motorola razr 2023",
    "model": "motorola razr 2022"
   },
   {
@@ -120769,6 +120829,11 @@
    "device": "PH9M_EA_5599",
    "name": "Philips Android TV",
    "model": "TPM191L"
+  },
+  {
+   "device": "PH1M_WW_9972",
+   "name": "Philips Google TV TA1",
+   "model": "Philips Google TV TA1"
   },
   {
    "device": "kujo",
@@ -172393,6 +172458,11 @@
    "model": "TEO84G"
   },
   {
+   "device": "TEO8M2BK32LTE",
+   "name": "TEO8M2BK32LTE",
+   "model": "TEO8M"
+  },
+  {
    "device": "TEOX102",
    "name": "TEOX102",
    "model": "TEOX102"
@@ -197523,6 +197593,11 @@
    "model": "ZTE Blade A7 2020RU"
   },
   {
+   "device": "P606F05",
+   "name": "ZTE Blade A72s",
+   "model": "ZTE A7050"
+  },
+  {
    "device": "P662F02",
    "name": "ZTE Blade A7s",
    "model": "ZTE Blade A7s"
@@ -197646,6 +197721,11 @@
    "device": "P671F70",
    "name": "ZTE Blade V2020 Vita",
    "model": "ZTE 8000"
+  },
+  {
+   "device": "P720F03",
+   "name": "ZTE Blade V50 Design 5G",
+   "model": "ZTE 8150N"
   },
   {
    "device": "P852F52",

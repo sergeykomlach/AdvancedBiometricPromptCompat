@@ -19,9 +19,13 @@
 
 package dev.skomlach.common.network
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.net.TrafficStats
+import android.os.Build
 import android.text.TextUtils
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -50,7 +54,16 @@ object NetworkApi {
     }
 
     fun hasInternet(): Boolean {
-        return Connection.isConnection
+        return try {
+            val connectivityManager: ConnectivityManager? =
+                appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+                connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+            else
+                connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+        } catch (ignore :Throwable){
+            true
+        }
     }
 
     @Throws(Exception::class)

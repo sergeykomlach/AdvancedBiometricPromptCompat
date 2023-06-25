@@ -33,6 +33,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import java.util.concurrent.atomic.AtomicBoolean
 
+@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 class ConnectionStateListener {
 
     private val isConnectionOk = AtomicBoolean(false)

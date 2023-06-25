@@ -25,7 +25,6 @@ import androidx.annotation.StringRes
 import androidx.core.os.ConfigurationCompat
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import org.json.JSONArray
@@ -282,7 +281,7 @@ object LocalizationHelper {
     //https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=father&ie=UTF-8&oe=UTF-8
     //https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=fr&dt=t&q=father
     private fun translateUseGoogleApi(text: String, fromLang: Locale, toLang: Locale): String? {
-        if (Connection.isConnection)
+        if (NetworkApi.hasInternet())
             try {
                 val encode: String = URLEncoder.encode(text.replace("\n", "\\n"), "UTF-8")
                 val sb = StringBuilder()
@@ -317,7 +316,7 @@ object LocalizationHelper {
     }
 
     private fun translateUseFallbackApi(text: String, fromLang: Locale, toLang: Locale): String? {
-        if (Connection.isConnection)
+        if (NetworkApi.hasInternet())
             try {
                 val encode: String = URLEncoder.encode(text, "UTF-8")
                 val sb = StringBuilder()

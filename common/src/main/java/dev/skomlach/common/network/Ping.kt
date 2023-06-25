@@ -34,6 +34,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
+@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 internal class Ping(private val connectionStateListener: ConnectionStateListener) {
     private val patternMeta =
         Pattern.compile("<meta(.*?)>") //compile RegEx to extract all <meta/> tags

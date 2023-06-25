@@ -33,6 +33,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
+@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 object Connection {
 
     private val appContext = AndroidContext.appContext

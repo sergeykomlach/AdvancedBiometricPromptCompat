@@ -21,6 +21,7 @@ package dev.skomlach.common.network
 
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
+@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 object PingConfig {
     //NOTE: in some cases Cloudflare (1.1.1.1) or/and Google (google.com) hosts can be blocked (like in China)
     //So you can try to use "aliexpress.com" or "yandex.ru" or other national domains
