@@ -118036,6 +118036,11 @@
    "model": "21121210G"
   },
   {
+   "device": "marble",
+   "name": "POCO F5",
+   "model": "23049PCD8G"
+  },
+  {
    "device": "shiva",
    "name": "POCO M2",
    "model": "M2004J19PI"
@@ -120839,6 +120844,16 @@
    "device": "kujo",
    "name": "Philips Google TV TA6",
    "model": "Philips Google TV TA6"
+  },
+  {
+   "device": "kujo",
+   "name": "Philips Google TV TA6",
+   "model": "Philips Google TV TA6 LT"
+  },
+  {
+   "device": "PH3M_AL_T32",
+   "name": "Philips Google TV TA7",
+   "model": "Philips Google TV TA7"
   },
   {
    "device": "S257",
@@ -129130,6 +129145,11 @@
    "model": "MiTV-AXFR0"
   },
   {
+   "device": "marblein",
+   "name": "POCO F5",
+   "model": "23049PCD8I"
+  },
+  {
    "device": "pine",
    "name": "Redmi  7A",
    "model": "Redmi 7A"
@@ -129278,6 +129298,26 @@
    "device": "light",
    "name": "Redmi 11 Prime 5G",
    "model": "22041219I"
+  },
+  {
+   "device": "fire",
+   "name": "Redmi 12",
+   "model": "23053RN02A"
+  },
+  {
+   "device": "fire",
+   "name": "Redmi 12",
+   "model": "23053RN02I"
+  },
+  {
+   "device": "fire",
+   "name": "Redmi 12",
+   "model": "23053RN02L"
+  },
+  {
+   "device": "heat",
+   "name": "Redmi 12",
+   "model": "23053RN02Y"
   },
   {
    "device": "aether",
@@ -129883,6 +129923,11 @@
    "device": "rubypro",
    "name": "Redmi Note 12 Pro+ 5G",
    "model": "22101316UG"
+  },
+  {
+   "device": "marble",
+   "name": "Redmi Note 12 Turbo",
+   "model": "23049RAD8C"
   },
   {
    "device": "ocean",
@@ -159441,6 +159486,13 @@
    "model": "T7K_PLUS"
   }
  ],
+ "TAIFA": [
+  {
+   "device": "TL1B_68",
+   "name": "TL1B_68",
+   "model": "TL1B_68"
+  }
+ ],
  "TASKPHONE": [
   {
    "device": "T20P",
@@ -170166,7 +170218,7 @@
   },
   {
    "device": "TECNO-AD10",
-   "name": "PHANTOM V  Fold",
+   "name": "PHANTOM V Fold",
    "model": "TECNO AD10"
   },
   {
@@ -176469,6 +176521,11 @@
   }
  ],
  "V7": [
+  {
+   "device": "rk3588_t",
+   "name": "IFPXX03-V7PRO",
+   "model": "IFPO3V7PRO"
+  },
   {
    "device": "zyro",
    "name": "Zyro",
@@ -188572,6 +188629,11 @@
    "model": "2304FPN6DC"
   },
   {
+   "device": "ishtar",
+   "name": "Xiaomi 13 Ultra",
+   "model": "2304FPN6DG"
+  },
+  {
    "device": "nuwa",
    "name": "Xiaomi 13 pro",
    "model": "2210132C"
@@ -188625,6 +188687,11 @@
    "device": "pipa",
    "name": "Xiaomi Pad 6",
    "model": "23043RP34C"
+  },
+  {
+   "device": "pipa",
+   "name": "Xiaomi Pad 6",
+   "model": "23043RP34I"
   },
   {
    "device": "jaws",
@@ -193691,6 +193758,11 @@
    "device": "P637F10",
    "name": "NOS NOVU III",
    "model": "NOS NOVU III"
+  },
+  {
+   "device": "P898P02",
+   "name": "NP01J",
+   "model": "NP01J"
   },
   {
    "device": "NX40X",
@@ -199416,6 +199488,11 @@
    "device": "MAGNO_C",
    "name": "MAGNO C",
    "model": "MAGNO C"
+  },
+  {
+   "device": "Magno_C_Plus",
+   "name": "MAGNO C PLUS",
+   "model": "Magno C Plus"
   },
   {
    "device": "MAGNO_C1",

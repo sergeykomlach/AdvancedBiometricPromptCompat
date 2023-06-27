@@ -72,6 +72,9 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+June 27 2023
+
+**Bugfixes** Fixes for Android 14 UpsideDownCake/SDK 34
 
 June 8 2023
 
