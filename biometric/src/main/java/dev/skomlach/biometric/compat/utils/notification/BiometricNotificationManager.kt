@@ -91,7 +91,12 @@ object BiometricNotificationManager {
                                 appContext,
                                 2,
                                 clickIntent,
-                                if (Utils.isAtLeastS) PendingIntent.FLAG_MUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
+                                //Targeting U+ (version 34 and above) disallows creating or retrieving
+                                // a PendingIntent with FLAG_MUTABLE, an implicit Intent within and
+                                // without FLAG_NO_CREATE and FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT for
+                                // security reasons. To retrieve an already existing PendingIntent,
+                                // use FLAG_NO_CREATE, however, to create a new PendingIntent with an implicit Intent use FLAG_IMMUTABLE.
+                                if (Utils.isAtLeastS) PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_CANCEL_CURRENT
                             )
                         )
                         .setSmallIcon(type.iconId).build()

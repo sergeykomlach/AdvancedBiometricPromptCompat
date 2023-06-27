@@ -399,61 +399,6 @@ object BiometricAuthentication {
         ) {
             return true
         }
-
-        if (BiometricType.BIOMETRIC_FINGERPRINT == method) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-//                enrollIntent.putExtra(
-//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-//                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
-//                )
-//                if (startActivity(enrollIntent, context))
-//                    return true
-//            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val enrollIntent = Intent(Settings.ACTION_FINGERPRINT_ENROLL)
-                if (startActivity(enrollIntent, context))
-                    return true
-            }
-        }
-
-        if (BiometricType.BIOMETRIC_FACE == method) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-//                enrollIntent.putExtra(
-//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-//                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
-//                )
-//                if (startActivity(enrollIntent, context))
-//                    return true
-//            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
-                startActivity(Intent("android.settings.FACE_ENROLL"), context)
-            ) {
-                return true
-            }
-        }
-
-
-        if (BiometricType.BIOMETRIC_IRIS == method) {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL)
-//                enrollIntent.putExtra(
-//                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-//                    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG
-//                )
-//                if (startActivity(enrollIntent, context))
-//                    return true
-//            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
-                startActivity(Intent("android.settings.IRIS_ENROLL"), context)
-            ) {
-                return true
-            }
-        }
-
-
         return false
     }
 

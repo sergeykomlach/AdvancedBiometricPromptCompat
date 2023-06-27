@@ -383,7 +383,7 @@ class PermissionsFragment : Fragment() {
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true
-                        val s = requireActivity().getString(field[null] as Int)
+                        val s = AndroidContext.appContext.getString(field[null] as Int)
                         if (s.isEmpty())
                             throw RuntimeException("String is empty")
                         s
