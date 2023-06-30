@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.view.*
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.google.gson.Gson
@@ -41,6 +42,7 @@ object TruncatedTextFix {
     private var TITLE_SHIFT = 7
     private var SUBTITLE_SHIFT = 1
     private var DESCRIPTION_SHIFT = 2
+    private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
     private var truncatedText: TruncatedText? = null
 
@@ -74,7 +76,7 @@ object TruncatedTextFix {
             var title = builder.getTitle()
             var subtitle = builder.getSubtitle()
             var description = builder.getDescription()
-
+            var negativeButton = builder.getNegativeButtonText()
             if (!title.isNullOrEmpty()) {
                 totalCount++
                 map[title]?.let {
@@ -97,8 +99,15 @@ object TruncatedTextFix {
                     description = it
                 }
             }
+            if (!negativeButton.isNullOrEmpty()) {
+                totalCount++
+                map[negativeButton]?.let {
+                    changedCount++
+                    negativeButton = it
+                }
+            }
             if (totalCount == changedCount) {
-                builder.setTitle(title).setSubtitle(subtitle).setDescription(description)
+                builder.setTitle(title).setSubtitle(subtitle).setDescription(description).setNegativeButtonText(negativeButton)
                 onTruncateChecked.onDone()
                 return
             }
@@ -122,6 +131,7 @@ object TruncatedTextFix {
         val title: TextView? = rootView?.findViewById(R.id.title)
         val subtitle: TextView? = rootView?.findViewById(R.id.subtitle)
         val description: TextView? = rootView?.findViewById(R.id.description)
+        val negativeButton: Button? = rootView?.findViewById(android.R.id.button1)
         val action = {
             windowView.removeView(layout)
             setTruncatedText(config, TruncatedText(map).also {
@@ -129,7 +139,7 @@ object TruncatedTextFix {
             })
             onTruncateChecked.onDone()
         }
-        val counter = AtomicInteger(3)
+        val counter = AtomicInteger(4)
 
         if (map.contains(builder.getTitle())) {
             builder.setTitle(map[builder.getTitle()])
@@ -148,7 +158,7 @@ object TruncatedTextFix {
             }, TITLE_SHIFT)
 
         if (map.contains(builder.getSubtitle())) {
-            builder.setTitle(map[builder.getSubtitle()])
+            builder.setSubtitle(map[builder.getSubtitle()])
             if (counter.decrementAndGet() == 0) {
                 action.invoke()
             }
@@ -168,7 +178,7 @@ object TruncatedTextFix {
                 SUBTITLE_SHIFT
             )
         if (map.contains(builder.getDescription())) {
-            builder.setTitle(map[builder.getDescription()])
+            builder.setDescription(map[builder.getDescription()])
             if (counter.decrementAndGet() == 0) {
                 action.invoke()
             }
@@ -187,7 +197,26 @@ object TruncatedTextFix {
                 },
                 DESCRIPTION_SHIFT
             )
-
+        if (map.contains(builder.getNegativeButtonText())) {
+            builder.setNegativeButtonText(map[builder.getNegativeButtonText()])
+            if (counter.decrementAndGet() == 0) {
+                action.invoke()
+            }
+        } else
+            getMaxStringForCurrentConfig(
+                builder.getNegativeButtonText(),
+                negativeButton,
+                { str ->
+                    builder.getNegativeButtonText()?.let {
+                        map.put(it.toString(), str)
+                    }
+                    builder.setNegativeButtonText(str)
+                    if (counter.decrementAndGet() == 0) {
+                        action.invoke()
+                    }
+                },
+                NEGATIVE_BUTTON_SHIFT
+            )
     }
 
     private fun getMaxStringForCurrentConfig(
@@ -272,14 +301,14 @@ object TruncatedTextFix {
         val data = config.toString()
         return try {
             val json =
-                SharedPreferenceProvider.getPreferences("TruncatedText").getString(data, null)
+                SharedPreferenceProvider.getPreferences("TruncatedText_v2").getString(data, null)
             if (json.isNullOrEmpty()) {
                 TruncatedText(HashMap())
             } else {
                 Gson().fromJson(json, TruncatedText::class.java)
             }
         } catch (e: Throwable) {
-            SharedPreferenceProvider.getPreferences("TruncatedText").edit().remove(data).apply()
+            SharedPreferenceProvider.getPreferences("TruncatedText_v2").edit().remove(data).apply()
             TruncatedText(HashMap())
         }
     }
@@ -287,7 +316,7 @@ object TruncatedTextFix {
     private fun setTruncatedText(config: Configuration, truncatedText: TruncatedText) {
         val json = Gson().toJson(truncatedText, TruncatedText::class.java)
         val data: String = config.toString()
-        SharedPreferenceProvider.getPreferences("TruncatedText").edit().putString(data, json)
+        SharedPreferenceProvider.getPreferences("TruncatedText_v2").edit().putString(data, json)
             .apply()
     }
 

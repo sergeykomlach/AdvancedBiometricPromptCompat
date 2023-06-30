@@ -772,6 +772,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var dialogDescription: CharSequence? = null
 
+        private var negativeButtonText: CharSequence? = null
+
         private lateinit var multiWindowSupport: MultiWindowSupport
 
         private var notificationEnabled = true
@@ -987,6 +989,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return this
         }
 
+        fun getNegativeButtonText(): CharSequence? {
+            return negativeButtonText
+        }
+
+        @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!! Not actual deprecated")
+        fun setNegativeButtonText(text: CharSequence?): Builder {
+            negativeButtonText = text
+            return this
+        }
+        @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!! Not actual deprecated")
+        fun setNegativeButtonText(@StringRes res: Int): Builder {
+            negativeButtonText = appContext.getString(res)
+            return this
+        }
 
         fun build(): BiometricPromptCompat {
             return BiometricPromptCompat(this)

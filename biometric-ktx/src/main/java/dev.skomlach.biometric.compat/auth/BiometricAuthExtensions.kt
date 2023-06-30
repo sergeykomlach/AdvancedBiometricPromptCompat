@@ -105,6 +105,7 @@ private fun buildBiometricAuthPrompt(
         biometricAuthRequestData.title?.let { setTitle(it) }
         biometricAuthRequestData.subtitle?.let { setSubtitle(it) }
         biometricAuthRequestData.description?.let { setDescription(it) }
+        biometricAuthRequestData.negativeButton?.let { setNegativeButtonText(it) }
         biometricAuthRequestData.cryptographyPurpose?.let {
             setCryptographyPurpose(it)
         }

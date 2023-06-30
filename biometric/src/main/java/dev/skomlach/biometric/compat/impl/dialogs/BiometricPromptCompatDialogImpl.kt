@@ -108,7 +108,7 @@ class BiometricPromptCompatDialogImpl(
             }
 
             dialog.negativeButton?.text =
-                compatBuilder.getContext().getString(android.R.string.cancel)
+                (compatBuilder.getNegativeButtonText()?:compatBuilder.getContext().getString(android.R.string.cancel))
             dialog.negativeButton?.setOnClickListener {
                 dismissDialog()
                 authCallback?.cancelAuth()

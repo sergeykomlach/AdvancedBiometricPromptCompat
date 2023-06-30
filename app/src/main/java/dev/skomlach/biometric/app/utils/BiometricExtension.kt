@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.app.utils
 
 import android.content.Context
+import android.content.DialogInterface
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -80,6 +81,7 @@ fun Fragment.startBiometric(
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .setNegativeButtonText("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .also {
             if (crypto) {
                 it.setCryptographyPurpose(
