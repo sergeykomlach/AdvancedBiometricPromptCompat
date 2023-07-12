@@ -535,7 +535,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
         ) {
             ExecutorHelper.post {
-                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -563,6 +562,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         callback?.onFailed(error.failureReason)
                     }
                 }
+                cancelAuthentication()
             }
         } else if (allList.isNotEmpty()) {
             if (dialog == null) {
@@ -649,7 +649,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             ExecutorHelper.post {
-                cancelAuthentication()
+
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -678,6 +678,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }, 2000)
                     }
                 }
+                cancelAuthentication()
             }
         }
     }

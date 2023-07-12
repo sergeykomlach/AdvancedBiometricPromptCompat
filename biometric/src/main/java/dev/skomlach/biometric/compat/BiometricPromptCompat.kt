@@ -386,64 +386,68 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                         private var isOpened = AtomicBoolean(false)
                         override fun onSucceeded(result: Set<AuthenticationResult>) {
-                            super.onSucceeded(result)
-                            val confirmed = result.toMutableSet()
-                            try {
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
-                                //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
-                                if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
-                                    if (CryptographyManager.encryptData(
-                                            appContext.packageName.toByteArray(
-                                                Charset.forName("UTF-8")
-                                            ), confirmed
-                                        ) == null
-                                    ) {
-                                        onCanceled()
-                                        return
-                                    } else {
-                                        val filtered = confirmed.map {
-                                            AuthenticationResult(it.confirmed)
-                                        }
-                                        confirmed.apply {
-                                            clear()
-                                            confirmed.addAll(filtered)
+                            if (isOpened.get()) {
+                                super.onSucceeded(result)
+                                val confirmed = result.toMutableSet()
+                                try {
+                                    BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
+                                    //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
+                                    if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
+                                        if (CryptographyManager.encryptData(
+                                                appContext.packageName.toByteArray(
+                                                    Charset.forName("UTF-8")
+                                                ), confirmed
+                                            ) == null
+                                        ) {
+                                            onCanceled()
+                                            return
+                                        } else {
+                                            val filtered = confirmed.map {
+                                                AuthenticationResult(it.confirmed)
+                                            }
+                                            confirmed.apply {
+                                                clear()
+                                                confirmed.addAll(filtered)
+                                            }
                                         }
                                     }
-                                }
 
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
-                                if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
-                                    HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
-                                        .updateBiometricEnrollChanged()
-                                } else {
-                                    HardwareAccessImpl.getInstance(
-                                        BiometricAuthRequest(
-                                            BiometricApi.BIOMETRIC_API,
-                                            builder.getBiometricAuthRequest().type
+                                    BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
+                                    if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                                            .updateBiometricEnrollChanged()
+                                    } else {
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.BIOMETRIC_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
                                         )
-                                    )
-                                        .updateBiometricEnrollChanged()
-                                    HardwareAccessImpl.getInstance(
-                                        BiometricAuthRequest(
-                                            BiometricApi.LEGACY_API,
-                                            builder.getBiometricAuthRequest().type
+                                            .updateBiometricEnrollChanged()
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.LEGACY_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
                                         )
-                                    )
-                                        .updateBiometricEnrollChanged()
-                                }
+                                            .updateBiometricEnrollChanged()
+                                    }
 
-                                callbackOuter.onSucceeded(confirmed.toSet())
-                            } finally {
-                                onUIClosed()
+                                    callbackOuter.onSucceeded(confirmed.toSet())
+                                } finally {
+                                    onUIClosed()
+                                }
                             }
                         }
 
                         override fun onCanceled() {
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
-                            try {
-                                callbackOuter.onCanceled()
-                            } finally {
-                                onUIClosed()
+                            if (isOpened.get()) {
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
+                                try {
+                                    callbackOuter.onCanceled()
+                                } finally {
+                                    onUIClosed()
+                                }
                             }
                         }
 
@@ -451,21 +455,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             reason: AuthenticationFailureReason?,
                             dialogDescription: CharSequence?
                         ) {
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
-                            try {
-                                callbackOuter.onFailed(reason, dialogDescription)
-                            } finally {
-                                onUIClosed()
+                            if (isOpened.get()) {
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
+                                try {
+                                    callbackOuter.onFailed(reason, dialogDescription)
+                                } finally {
+                                    onUIClosed()
+                                }
                             }
                         }
 
                         override fun onUIOpened() {
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
-                            val s =
-                                "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
-                            BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             if (!isOpened.get()) {
                                 isOpened.set(true)
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
+                                val s =
+                                    "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
+                                BiometricLoggerImpl.d("BiometricPromptCompat $s")
                                 if (!builder.isSilentAuthEnabled()) {
                                     if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                         BiometricNotificationManager.showNotification(builder)
@@ -628,7 +634,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun cancelAuthentication() {
-        if (!API_ENABLED) {
+        if (!API_ENABLED || !authFlowInProgress.get()) {
             return
         }
         ExecutorHelper.startOnBackground {

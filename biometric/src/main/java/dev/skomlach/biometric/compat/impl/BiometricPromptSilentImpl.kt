@@ -146,7 +146,6 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             ExecutorHelper.post {
-                cancelAuthentication()
                 if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
@@ -173,6 +172,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                         }, 2000)
                     }
                 }
+                cancelAuthentication()
             }
         }
     }
