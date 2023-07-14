@@ -42,7 +42,6 @@ import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockMod
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule
-import dev.skomlach.biometric.compat.engine.internal.face.vivo.VivoFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.*
 import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule
@@ -103,7 +102,6 @@ object BiometricAuthentication {
         }
         //Vivo and Huawei Face - Oreo (8.0)
         if (Build.VERSION.SDK_INT >= 26) {
-            allMethods.add(BiometricMethod.FACE_VIVO)
             allMethods.add(BiometricMethod.FACE_HUAWEI)
             allMethods.add(BiometricMethod.FACE_HIHONOR)
         }
@@ -195,7 +193,6 @@ object BiometricAuthentication {
                     BiometricMethod.FACE_OPPO -> OppoFaceUnlockModule(initListener)
                     BiometricMethod.FACE_SAMSUNG -> SamsungFaceUnlockModule(initListener)
                     BiometricMethod.FACE_ANDROIDAPI -> AndroidFaceUnlockModule(initListener)
-                    BiometricMethod.FACE_VIVO -> VivoFaceUnlockModule(initListener)
                     BiometricMethod.IRIS_SAMSUNG -> SamsungIrisUnlockModule(initListener)
                     BiometricMethod.IRIS_ANDROIDAPI -> AndroidIrisUnlockModule(initListener)
                     else -> throw IllegalStateException("Uknowon biometric type - $method")
