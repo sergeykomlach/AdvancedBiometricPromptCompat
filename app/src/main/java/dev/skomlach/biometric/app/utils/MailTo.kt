@@ -34,49 +34,6 @@ object MailTo {
     ): Boolean {
 
         try {
-            var emailIntent = Intent()
-            // first try
-            emailIntent = Intent(
-                Intent.ACTION_SENDTO,
-                Uri.parse("mailto:")
-            )
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
-            emailIntent.putExtra(Intent.EXTRA_TEXT, extraText)
-            emailIntent.putExtra(
-                Intent.EXTRA_SUBJECT,
-                subject
-            )
-
-            try {
-                ContextCompat.startActivity(
-                    ctx,
-                    emailIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK },
-                    null
-                )
-                return true
-            } catch (ignored: Throwable) {
-            }
-
-            // if any dont work
-            emailIntent = Intent(Intent.ACTION_SEND)
-            emailIntent.type = "message/rfc822"
-            emailIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(to))
-            emailIntent.putExtra(Intent.EXTRA_TEXT, extraText)
-            emailIntent.putExtra(
-                Intent.EXTRA_SUBJECT,
-                subject
-            )
-
-            try {
-                ContextCompat.startActivity(
-                    ctx,
-                    emailIntent.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK },
-                    null
-                )
-                return true
-            } catch (ignored: Throwable) {
-            }
-
             // or
             val builder: ShareCompat.IntentBuilder = ShareCompat.IntentBuilder(ctx)
             builder.setType("message/rfc822")
