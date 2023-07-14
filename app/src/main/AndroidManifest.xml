@@ -50,6 +50,7 @@
             android:required="false" />
 
     <application
+            android:enableOnBackInvokedCallback="true"
             android:name="dev.skomlach.biometric.app.App"
             android:allowBackup="false"
             android:allowNativeHeapPointerTagging="true"
