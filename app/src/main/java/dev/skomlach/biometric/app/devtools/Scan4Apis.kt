@@ -117,14 +117,21 @@ class Scan4Apis {
                                             "/support/"
                                         )
                                     ) {
-                                        sb.append(type).append("\n")
-                                        if (counter == 0) {
-                                            writer.write("\n-------------------------\n")
-                                            writer.write(s)
-                                            writer.write("\n")
+                                        try{
+                                            val clzName = type.substring(1, type.length - 1).replace("/", ".")
+                                            Class.forName(clzName)
+                                            sb.append(type).append("\n")
+                                            if (counter == 0) {
+                                                writer.write("\n-------------------------\n")
+                                                writer.write(s)
+                                                writer.write("\n")
+                                            }
+                                            writer.write(type + "\n")
+                                            counter++
+                                        } catch (ignore : Throwable){
+
                                         }
-                                        writer.write(type + "\n")
-                                        counter++
+
                                     }
                                 }
                             }
