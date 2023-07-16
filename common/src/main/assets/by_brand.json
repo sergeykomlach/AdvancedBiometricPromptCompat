@@ -6740,6 +6740,11 @@
    "model": "X500_US"
   },
   {
+   "device": "X700_EEA",
+   "name": "X700_EEA",
+   "model": "X700_EEA"
+  },
+  {
    "device": "X900_EEA",
    "name": "X900_EEA",
    "model": "X900_EEA"
@@ -19098,6 +19103,11 @@
   },
   {
    "device": "M0175WW_ND",
+   "name": "M8L",
+   "model": "M8L"
+  },
+  {
+   "device": "M0176",
    "name": "M8L",
    "model": "M8L"
   },
@@ -78072,6 +78082,11 @@
    "model": "E6910"
   },
   {
+   "device": "KY22M-RG100",
+   "name": "DuraForce PRO 3",
+   "model": "E7200"
+  },
+  {
    "device": "E6810",
    "name": "DuraForce PRO with Sapphire Shield",
    "model": "E6810"
@@ -116314,6 +116329,16 @@
    "model": "PCAT00"
   },
   {
+   "device": "OP56DBL1",
+   "name": "Reno10 Pro 5G",
+   "model": "CPH2525"
+  },
+  {
+   "device": "OP56DBL1",
+   "name": "Reno10 Pro 5G",
+   "model": "CPH2541"
+  },
+  {
    "device": "OP4B65L1",
    "name": "Reno2 Z",
    "model": "CPH1945"
@@ -149769,6 +149794,16 @@
    "model": "SH-52C"
   },
   {
+   "device": "Kamille",
+   "name": "AQUOS R8 pro",
+   "model": "A301SH"
+  },
+  {
+   "device": "SH-51D",
+   "name": "AQUOS R8 pro",
+   "model": "SH-51D"
+  },
+  {
    "device": "SHL25",
    "name": "AQUOS SERIE SHL25",
    "model": "SHL25"
@@ -150467,6 +150502,11 @@
    "device": "martin",
    "name": "Europe",
    "model": "SHARP 2K EU Android TV"
+  },
+  {
+   "device": "mongkok",
+   "name": "FK1",
+   "model": "AQUOS-TVX23C"
   },
   {
    "device": "SE3",
@@ -153253,6 +153293,11 @@
    "device": "SK3401",
    "name": "SK3401",
    "model": "SK3401"
+  },
+  {
+   "device": "groundhog",
+   "name": "SMART Board MX Series (V5)",
+   "model": "SMART Board MX Series (V5)"
   },
   {
    "device": "Slide_Lite",
@@ -160528,6 +160573,11 @@
    "model": "5148I"
   },
   {
+   "device": "Bora_NA_OM",
+   "name": "TCL ION V",
+   "model": "T430M"
+  },
+  {
    "device": "Bora_TMO",
    "name": "TCL ION X",
    "model": "T430W"
@@ -160766,6 +160816,11 @@
    "device": "Freyr_10_1_WiFi",
    "name": "TCL TAB 10L Gen 2",
    "model": "8492A"
+  },
+  {
+   "device": "Freyr_10_1_4G",
+   "name": "TCL TAB 10L LTE Gen 2",
+   "model": "8192A"
   },
   {
    "device": "Aquaman_10_Pro",
@@ -177086,6 +177141,11 @@
    "device": "TAB12",
    "name": "TAB12",
    "model": "L10"
+  },
+  {
+   "device": "TAB12_EEA",
+   "name": "TAB12_EEA",
+   "model": "L10"
   }
  ],
  "VBox": [
@@ -182230,6 +182290,11 @@
    "device": "PD2231",
    "name": "iQOO Neo7",
    "model": "V2231A"
+  },
+  {
+   "device": "I2217",
+   "name": "iQOO Neo7 Pro",
+   "model": "I2217"
   },
   {
    "device": "PD2238",

@@ -65,8 +65,7 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 | Honor FaceID (3D)| Android 8+ and Honor devices |Honor Magic 5 Lite|
 | Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
 | Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|  
-| Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|  
-| Vivo FaceId | Android 8+ and Vivo devices |Not tested yet|
+| Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|
 | Lava FaceId | Android (Unknown) and Lava devices |Not tested yet|
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
