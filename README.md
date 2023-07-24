@@ -71,6 +71,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+July 24 2023
+
+**Bugfixes** Fixed false positive biometric detection
+
 June 27 2023
 
 **Bugfixes** Fixes for Android 14 UpsideDownCake/SDK 34
@@ -98,14 +102,6 @@ May 10 2023
 May 1 2023
 
 **Improvement** Added Chucker to test app
-
-April 19 2023
-
-**HOTFIX!!!** Fixed device details retrieving
-
-April 5 2023
-
-**Improvement** `PingConfig` added
 
 
 ## Test app

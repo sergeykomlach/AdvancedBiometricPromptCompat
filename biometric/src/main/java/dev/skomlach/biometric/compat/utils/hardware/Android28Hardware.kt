@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.LockType
@@ -304,34 +305,33 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
         if (isAnyHardwareAvailable) {
             //legacy
-            if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
-                val biometricModule =
-                    BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
-                if (biometricModule != null && biometricModule.isHardwarePresent) return true
-            }
+            if (BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent == true)
+                return true
 
-            val packageManager = appContext.packageManager
-            for (f in biometricFeatures) {
-                if (packageManager.hasSystemFeature(f)) {
-                    if ((f.endsWith(".face") || f.contains(".face.")) &&
-                        type == BiometricType.BIOMETRIC_FACE
-                    ) return true
-                    if ((f.endsWith(".iris") || f.contains(".iris.")) &&
-                        type == BiometricType.BIOMETRIC_IRIS
-                    ) return true
-                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                        type == BiometricType.BIOMETRIC_FINGERPRINT
-                    ) return true
+            if (DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
+                val packageManager = appContext.packageManager
+                for (f in biometricFeatures) {
+                    if (packageManager.hasSystemFeature(f)) {
+                        if ((f.endsWith(".face") || f.contains(".face.")) &&
+                            type == BiometricType.BIOMETRIC_FACE
+                        ) return true
+                        if ((f.endsWith(".iris") || f.contains(".iris.")) &&
+                            type == BiometricType.BIOMETRIC_IRIS
+                        ) return true
+                        if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
+                            type == BiometricType.BIOMETRIC_FINGERPRINT
+                        ) return true
 
-                    if ((f.endsWith(".palm") || f.contains(".palm.")) &&
-                        type == BiometricType.BIOMETRIC_PALMPRINT
-                    ) return true
-                    if ((f.endsWith(".voice") || f.contains(".voice.")) &&
-                        type == BiometricType.BIOMETRIC_VOICE
-                    ) return true
-                    if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
-                        type == BiometricType.BIOMETRIC_HEARTRATE
-                    ) return true
+                        if ((f.endsWith(".palm") || f.contains(".palm.")) &&
+                            type == BiometricType.BIOMETRIC_PALMPRINT
+                        ) return true
+                        if ((f.endsWith(".voice") || f.contains(".voice.")) &&
+                            type == BiometricType.BIOMETRIC_VOICE
+                        ) return true
+                        if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
+                            type == BiometricType.BIOMETRIC_HEARTRATE
+                        ) return true
+                    }
                 }
             }
         }
@@ -346,12 +346,11 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     //https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/issues/105#issuecomment-834438785
     private fun isBiometricEnrolledForType(type: BiometricType): Boolean {
         if (isAnyBiometricEnrolled) {
-            val biometricModule =
-                BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)
-            val fingersEnrolled = biometricModule != null && biometricModule.hasEnrolled()
-            return if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
-                fingersEnrolled
-            } else {
+            //legacy
+            if (BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
+                return true
+
+            if (DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
                 if (type == BiometricType.BIOMETRIC_FACE &&
                     (LockType.isBiometricEnabledInSettings(appContext, "face") ||
                             BiometricAuthentication.getAvailableBiometricModule(type)
@@ -377,8 +376,6 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
                             BiometricAuthentication.getAvailableBiometricModule(type)
                                 ?.hasEnrolled() == true)
                 ) return true
-
-                return !fingersEnrolled && isHardwareAvailableForType(type)
             }
         }
         return false
