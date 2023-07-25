@@ -98,7 +98,6 @@
         <provider
                 android:name="dev.skomlach.biometric.compat.BiometricInitProvider"
                 android:authorities="${applicationId}.appinitprovider"
-                android:exported="false"
-                android:initOrder="900" />
+                android:exported="false"/>
     </application>
 </manifest>

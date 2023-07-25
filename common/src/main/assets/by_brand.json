@@ -27861,6 +27861,11 @@
    "model": "ODYSSEY"
   },
   {
+   "device": "L780",
+   "name": "Stellar-X5",
+   "model": "Stellar-X5"
+  },
+  {
    "device": "HS8952QC",
    "name": "TREKKER- X3",
    "model": "TREKKER-X3"
@@ -105174,6 +105179,16 @@
    "model": "moto g62 5G"
   },
   {
+   "device": "rhodei",
+   "name": "moto g62 5G",
+   "model": "moto g62 5G"
+  },
+  {
+   "device": "rhodei",
+   "name": "moto g62 5G",
+   "model": "moto g71 5G"
+  },
+  {
    "device": "corfur",
    "name": "moto g71 5G",
    "model": "moto g(50)"
@@ -160314,6 +160329,11 @@
    "model": "Smart TV"
   },
   {
+   "device": "G08",
+   "name": "G08",
+   "model": "Smart TV Pro"
+  },
+  {
    "device": "U3A_PLUS_4G",
    "name": "GO5c",
    "model": "5033E"
@@ -167950,6 +167970,11 @@
    "device": "V800",
    "name": "TD Tech V800",
    "model": "V800"
+  },
+  {
+   "device": "V900",
+   "name": "TD Tech V900",
+   "model": "V900"
   }
  ],
  "TDS": [
@@ -204104,6 +204129,11 @@
    "device": "RE58C2",
    "name": "realme C53",
    "model": "RMX3760"
+  },
+  {
+   "device": "RE58CE",
+   "name": "realme C53",
+   "model": "RMX3762"
   },
   {
    "device": "REE2ADL1",
