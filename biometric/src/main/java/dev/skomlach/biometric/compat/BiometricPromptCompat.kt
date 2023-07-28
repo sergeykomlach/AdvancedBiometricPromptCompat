@@ -832,32 +832,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return silentAuth
         }
 
-        fun enableSilentAuth(): Boolean {
-            if (!BiometricManagerCompat.isSilentAuthAvailable(biometricAuthRequest)) {
-                silentAuth = false
-            } else {
-                //update sets
-                val primary = primaryAvailableTypes.filter {
-                    !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
-                            && DevicesWithKnownBugs.hasUnderDisplayFingerprint)
-                }
-                primaryAvailableTypes.clear()
-                primaryAvailableTypes.addAll(primary)
-
-                val secondary = secondaryAvailableTypes.filter {
-                    !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
-                            && DevicesWithKnownBugs.hasUnderDisplayFingerprint)
-                }
-                secondaryAvailableTypes.clear()
-                secondaryAvailableTypes.addAll(secondary)
-
-                allAvailableTypes.clear()
-                allAvailableTypes.addAll(primaryAvailableTypes)
-                allAvailableTypes.addAll(secondaryAvailableTypes)
-
-                silentAuth = true
-            }
-            return silentAuth
+        fun enableSilentAuth() {
+            BiometricLoggerImpl.e("WARNING!!!\n" +
+                    "Keep in mind - some devices use the own built-in animations " +
+                    "(camera animation for Face/Iris) or other type of UI " +
+                    "(Fingerprint dialog and/or under-screen recognition animation)" +
+                    " and this leads to the uselessness of this function. " +
+                    "Use BiometricManagerCompat.isSilentAuthAvailable() to check")
+            silentAuth = true
         }
 
         fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {

@@ -91,12 +91,8 @@ fun Fragment.startBiometric(
                     )
                 )
             }
-            if (silentAuth && !it.enableSilentAuth()) {
-                showAlertDialog(
-                    requireActivity(),
-                    "Unable to use silent Auth",
-                )
-                return
+            if (silentAuth) {
+                it.enableSilentAuth()
             }
         }
         .build()
