@@ -109,8 +109,8 @@ private fun buildBiometricAuthPrompt(
         biometricAuthRequestData.cryptographyPurpose?.let {
             setCryptographyPurpose(it)
         }
-        if (biometricAuthRequestData.enableSilent && !this.enableSilentAuth()) {
-            throw IllegalStateException("Biometric silent auth not supported")
+        if (biometricAuthRequestData.enableSilent) {
+            enableSilentAuth()
         }
     }
     .build()
