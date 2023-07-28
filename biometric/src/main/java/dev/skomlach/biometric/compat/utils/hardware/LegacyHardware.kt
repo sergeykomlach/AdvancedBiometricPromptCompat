@@ -25,7 +25,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 
 
-class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
+open class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
     override val isHardwareAvailable: Boolean
         get() {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.isHardwareDetected

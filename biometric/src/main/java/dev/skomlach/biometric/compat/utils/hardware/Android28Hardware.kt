@@ -28,11 +28,10 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.LockType
 import java.lang.reflect.Modifier
 import java.nio.charset.Charset
@@ -46,7 +45,7 @@ import javax.crypto.KeyGenerator
 //Set of tools that tried to behave like BiometricManager API from Android 10
 @TargetApi(Build.VERSION_CODES.P)
 
-open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
+open class Android28Hardware(authRequest: BiometricAuthRequest) : LegacyHardware(authRequest) {
 
 
     private val appContext = AndroidContext.appContext
@@ -113,9 +112,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
             val keyguardManager =
                 appContext.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
             if (keyguardManager?.isDeviceSecure == true) {
-                if (BiometricAuthentication.hasEnrolled()
-                    || LockType.isBiometricEnabledInSettings(appContext)
-                ) {
+                if (LockType.isBiometricEnabledInSettings(appContext)) {
                     return true
                 }
 
@@ -183,20 +180,20 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
 
     override val isHardwareAvailable: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
+        get() = super.isHardwareAvailable || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
             biometricAuthRequest.type
         )
     override val isBiometricEnrolled: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(
+        get() = super.isBiometricEnrolled || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(
             biometricAuthRequest.type
         )
     override val isLockedOut: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(
+        get() = super.isLockedOut || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(
             biometricAuthRequest.type
         )
     override val isBiometricEnrollChanged: Boolean
         get() {
-            return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+            return super.isBiometricEnrollChanged || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 biometricEnrollChanged
             } else
                 false
@@ -204,6 +201,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     override
     fun updateBiometricEnrollChanged() {
+        super.updateBiometricEnrollChanged()
         if (isBiometricEnrollChanged) {
             try {
                 val name = "BiometricKey"
@@ -259,7 +257,6 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     private val hasAnyHardware: Boolean
         get() {
-            if (BiometricAuthentication.isHardwareDetected) return true
             val packageManager = appContext.packageManager
             for (f in biometricFeatures) {
                 if (packageManager != null && packageManager.hasSystemFeature(f)) {
@@ -303,22 +300,20 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     //OK to check in this way
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
-        if (isAnyHardwareAvailable && DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
+        if (isAnyHardwareAvailable) {
             //legacy
-            if (BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent == true)
-                return true
             val packageManager = appContext.packageManager
             for (f in biometricFeatures) {
                 if (packageManager.hasSystemFeature(f)) {
                     if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                        type == BiometricType.BIOMETRIC_FACE
-                    ) return true
+                        type == BiometricType.BIOMETRIC_FINGERPRINT
+                    ) return DeviceInfoManager.hasFingerprint(DeviceInfoManager.getAnyDeviceInfo())
                     if ((f.endsWith(".face") || f.contains(".face.")) &&
                         type == BiometricType.BIOMETRIC_FACE
-                    ) return true
+                    ) return DeviceInfoManager.hasFaceID(DeviceInfoManager.getAnyDeviceInfo())
                     if ((f.endsWith(".iris") || f.contains(".iris.")) &&
                         type == BiometricType.BIOMETRIC_IRIS
-                    ) return true
+                    ) return DeviceInfoManager.hasIrisScanner(DeviceInfoManager.getAnyDeviceInfo())
                     if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
                         type == BiometricType.BIOMETRIC_FINGERPRINT
                     ) return true
@@ -346,10 +341,7 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     //This code can produce false-positive results in some conditions
     //https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/issues/105#issuecomment-834438785
     private fun isBiometricEnrolledForType(type: BiometricType): Boolean {
-        if (isAnyBiometricEnrolled && DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
-            if (BiometricAuthentication.getAvailableBiometricModule(type)
-                    ?.hasEnrolled() == true
-            ) return true
+        if (isAnyBiometricEnrolled) {
             //legacy
             if (type == BiometricType.BIOMETRIC_FINGERPRINT &&
                 LockType.isBiometricEnabledInSettings(appContext, "fingerprint")

@@ -24,6 +24,7 @@ import android.content.Context
 import android.os.Build
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils.isAtLeastR
@@ -94,4 +95,75 @@ class Android29Hardware(authRequest: BiometricAuthRequest) : Android28Hardware(a
                 canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
             }
         }
+
+    override val isHardwareAvailable: Boolean
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else {
+            if (isAtLeastR) {
+                val result = if (!super.isHardwareAvailable)
+                    false
+                else {
+                    val canAuthenticate = checkBiometricR(biometricAuthRequest.type)
+                    canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
+                }
+                result
+            } else
+                super.isHardwareAvailable
+        }
+    override val isBiometricEnrolled: Boolean
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else {
+            if (isAtLeastR) {
+                val result = if (!super.isBiometricEnrolled)
+                    false
+                else {
+                    val canAuthenticate = checkBiometricR(biometricAuthRequest.type)
+                    canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
+                }
+                result
+            } else
+                super.isBiometricEnrolled
+        }
+
+
+    @TargetApi(30)
+    private fun checkBiometricR(type: BiometricType): Int {
+        var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+        try {
+            val authenticators = when (type) {
+                BiometricType.BIOMETRIC_FINGERPRINT -> arrayOf(
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK
+                            or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG,
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK,
+                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
+                )
+
+                else -> arrayOf(android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK)
+            }
+
+            var biometricManager: android.hardware.biometrics.BiometricManager? =
+                appContext.getSystemService(
+                    android.hardware.biometrics.BiometricManager::class.java
+                )
+
+            if (biometricManager == null) {
+                biometricManager = appContext.getSystemService(
+                    Context.BIOMETRIC_SERVICE
+                ) as android.hardware.biometrics.BiometricManager?
+            }
+            if (biometricManager != null) {
+                var canAuthenticate = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+                for (authenticator in authenticators) {
+                    canAuthenticate = biometricManager.canAuthenticate(authenticator)
+                    if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
+                        break
+                    }
+                }
+                code = canAuthenticate
+            }
+        } catch (e: Throwable) {
+            e(e)
+        } finally {
+            e("Android29Hardware - canAuthenticate=$code")
+        }
+        return code
+    }
 }
