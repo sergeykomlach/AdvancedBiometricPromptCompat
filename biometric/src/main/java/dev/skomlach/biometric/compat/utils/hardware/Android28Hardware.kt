@@ -303,37 +303,38 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
 
     //OK to check in this way
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
-        if (isAnyHardwareAvailable) {
+        if (isAnyHardwareAvailable && DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
             //legacy
             if (BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent == true)
                 return true
+            val packageManager = appContext.packageManager
+            for (f in biometricFeatures) {
+                if (packageManager.hasSystemFeature(f)) {
+                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
+                        type == BiometricType.BIOMETRIC_FACE
+                    ) return true
+                    if ((f.endsWith(".face") || f.contains(".face.")) &&
+                        type == BiometricType.BIOMETRIC_FACE
+                    ) return true
+                    if ((f.endsWith(".iris") || f.contains(".iris.")) &&
+                        type == BiometricType.BIOMETRIC_IRIS
+                    ) return true
+                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
+                        type == BiometricType.BIOMETRIC_FINGERPRINT
+                    ) return true
 
-            if (DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
-                val packageManager = appContext.packageManager
-                for (f in biometricFeatures) {
-                    if (packageManager.hasSystemFeature(f)) {
-                        if ((f.endsWith(".face") || f.contains(".face.")) &&
-                            type == BiometricType.BIOMETRIC_FACE
-                        ) return true
-                        if ((f.endsWith(".iris") || f.contains(".iris.")) &&
-                            type == BiometricType.BIOMETRIC_IRIS
-                        ) return true
-                        if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                            type == BiometricType.BIOMETRIC_FINGERPRINT
-                        ) return true
-
-                        if ((f.endsWith(".palm") || f.contains(".palm.")) &&
-                            type == BiometricType.BIOMETRIC_PALMPRINT
-                        ) return true
-                        if ((f.endsWith(".voice") || f.contains(".voice.")) &&
-                            type == BiometricType.BIOMETRIC_VOICE
-                        ) return true
-                        if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
-                            type == BiometricType.BIOMETRIC_HEARTRATE
-                        ) return true
-                    }
+                    if ((f.endsWith(".palm") || f.contains(".palm.")) &&
+                        type == BiometricType.BIOMETRIC_PALMPRINT
+                    ) return true
+                    if ((f.endsWith(".voice") || f.contains(".voice.")) &&
+                        type == BiometricType.BIOMETRIC_VOICE
+                    ) return true
+                    if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
+                        type == BiometricType.BIOMETRIC_HEARTRATE
+                    ) return true
                 }
-            }
+                }
+
         }
         return false
     }
@@ -345,38 +346,30 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardwa
     //This code can produce false-positive results in some conditions
     //https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat/issues/105#issuecomment-834438785
     private fun isBiometricEnrolledForType(type: BiometricType): Boolean {
-        if (isAnyBiometricEnrolled) {
+        if (isAnyBiometricEnrolled && DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
+            if (BiometricAuthentication.getAvailableBiometricModule(type)
+                    ?.hasEnrolled() == true
+            ) return true
             //legacy
-            if (BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled() == true)
-                return true
+            if (type == BiometricType.BIOMETRIC_FINGERPRINT &&
+                LockType.isBiometricEnabledInSettings(appContext, "fingerprint")
+            ) return true
+            if (type == BiometricType.BIOMETRIC_FACE &&
+                LockType.isBiometricEnabledInSettings(appContext, "face")
+            ) return true
+            if (type == BiometricType.BIOMETRIC_IRIS &&
+                LockType.isBiometricEnabledInSettings(appContext, "iris")
+            ) return true
+            if (type == BiometricType.BIOMETRIC_PALMPRINT &&
+                LockType.isBiometricEnabledInSettings(appContext, "palm")
+            ) return true
+            if (type == BiometricType.BIOMETRIC_VOICE &&
+                LockType.isBiometricEnabledInSettings(appContext, "voice")
+            ) return true
+            if (type == BiometricType.BIOMETRIC_HEARTRATE &&
+                LockType.isBiometricEnabledInSettings(appContext, "heartrate")
+            ) return true
 
-            if (DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
-                if (type == BiometricType.BIOMETRIC_FACE &&
-                    (LockType.isBiometricEnabledInSettings(appContext, "face") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)
-                                ?.hasEnrolled() == true)
-                ) return true
-                if (type == BiometricType.BIOMETRIC_IRIS &&
-                    (LockType.isBiometricEnabledInSettings(appContext, "iris") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)
-                                ?.hasEnrolled() == true)
-                ) return true
-                if (type == BiometricType.BIOMETRIC_PALMPRINT &&
-                    (LockType.isBiometricEnabledInSettings(appContext, "palm") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)
-                                ?.hasEnrolled() == true)
-                ) return true
-                if (type == BiometricType.BIOMETRIC_VOICE &&
-                    (LockType.isBiometricEnabledInSettings(appContext, "voice") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)
-                                ?.hasEnrolled() == true)
-                ) return true
-                if (type == BiometricType.BIOMETRIC_HEARTRATE &&
-                    (LockType.isBiometricEnabledInSettings(appContext, "heartrate") ||
-                            BiometricAuthentication.getAvailableBiometricModule(type)
-                                ?.hasEnrolled() == true)
-                ) return true
-            }
         }
         return false
     }
