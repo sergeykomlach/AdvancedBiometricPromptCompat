@@ -61,7 +61,6 @@ import dev.skomlach.common.permissionui.notification.NotificationPermissionsFrag
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
 import dev.skomlach.common.statusbar.StatusBarTools
 import org.lsposed.hiddenapibypass.HiddenApiBypass
-import java.lang.ref.WeakReference
 import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -370,13 +369,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 } else {
                     BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
                     val activityViewWatcher = try {
-                        ActivityViewWatcher(
+                        if (!builder.isSilentAuthEnabled()) ActivityViewWatcher(
                             impl.builder,
                             object : ActivityViewWatcher.ForceToCloseCallback {
                                 override fun onCloseBiometric() {
                                     cancelAuthentication()
                                 }
-                            })
+                            }) else null
                     } catch (e: Throwable) {
                         BiometricLoggerImpl.e(e)
                         null
@@ -501,13 +500,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 isOpened.set(false)
                                 if (!builder.isSilentAuthEnabled()) {
                                     activityViewWatcher?.resetListeners()
-                                }
-                                val closeAll = Runnable {
-                                    if (!builder.isSilentAuthEnabled()) {
+                                    val closeAll = Runnable {
                                         if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                             BiometricNotificationManager.dismissAll()
                                         }
-
                                         StatusBarTools.setNavBarAndStatusBarColors(
                                             builder.getContext().window,
                                             builder.getNavBarColor(),
@@ -515,12 +511,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                             builder.getStatusBarColor()
                                         )
                                     }
+                                    ExecutorHelper.post(closeAll)
+                                    val delay =
+                                        appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                                            .toLong()
+                                    ExecutorHelper.postDelayed(closeAll, delay)
                                 }
-                                ExecutorHelper.post(closeAll)
-                                val delay =
-                                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                                        .toLong()
-                                ExecutorHelper.postDelayed(closeAll, delay)
                                 appBackgroundDetector.detachListeners()
                                 authFlowInProgress.set(false)
                                 callbackOuter.onUIClosed()
@@ -699,7 +695,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     class Builder(
         private val biometricAuthRequest: BiometricAuthRequest,
-        dummy_reference: FragmentActivity
+        dummy_reference: FragmentActivity? = null
     ) {
         companion object {
             init {
@@ -709,7 +705,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
 
-        private val reference = WeakReference<FragmentActivity>(dummy_reference)
         private val allAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
             types.addAll(primaryAvailableTypes)
@@ -931,8 +926,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getContext(): FragmentActivity {
-            return reference.get() ?: (AndroidContext.activity as? FragmentActivity?)
-            ?: throw java.lang.IllegalStateException("No activity on screen")
+            return (AndroidContext.activity as? FragmentActivity?)
+                ?: throw java.lang.IllegalStateException("No activity on screen")
         }
 
         fun getCryptographyPurpose(): BiometricCryptographyPurpose? {
