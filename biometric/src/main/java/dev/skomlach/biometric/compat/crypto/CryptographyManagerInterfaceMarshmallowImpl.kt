@@ -112,6 +112,8 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 setInvalidatedByBiometricEnrollment(isUserAuthRequired)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                setUserPresenceRequired(isUserAuthRequired)
+                setUserConfirmationRequired(isUserAuthRequired)
                 setIsStrongBoxBacked(hasStrongBox())
             }
         }
