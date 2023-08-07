@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.1'
-    ext.libsMinorVersion = 90
+    ext.libsMinorVersion = 91
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -47,7 +47,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.2'
+        classpath 'com.android.tools.build:gradle:8.1.0'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:3.0.1"
         classpath "org.owasp:dependency-check-gradle:8.2.1"
