@@ -45,7 +45,7 @@ import javax.crypto.KeyGenerator
 //Set of tools that tried to behave like BiometricManager API from Android 10
 @TargetApi(Build.VERSION_CODES.P)
 
-open class Android28Hardware(authRequest: BiometricAuthRequest) : LegacyHardware(authRequest) {
+open class Android28Hardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
 
 
     private val appContext = AndroidContext.appContext
@@ -180,20 +180,20 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : LegacyHardware
 
 
     override val isHardwareAvailable: Boolean
-        get() = super.isHardwareAvailable || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
             biometricAuthRequest.type
         )
     override val isBiometricEnrolled: Boolean
-        get() = super.isBiometricEnrolled || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(
             biometricAuthRequest.type
         )
     override val isLockedOut: Boolean
-        get() = super.isLockedOut || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(
+        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(
             biometricAuthRequest.type
         )
     override val isBiometricEnrollChanged: Boolean
         get() {
-            return super.isBiometricEnrollChanged || if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+            return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 biometricEnrollChanged
             } else
                 false
@@ -201,7 +201,6 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : LegacyHardware
 
     override
     fun updateBiometricEnrollChanged() {
-        super.updateBiometricEnrollChanged()
         if (isBiometricEnrollChanged) {
             try {
                 val name = "BiometricKey"
@@ -307,26 +306,34 @@ open class Android28Hardware(authRequest: BiometricAuthRequest) : LegacyHardware
                 if (packageManager.hasSystemFeature(f)) {
                     if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
                         type == BiometricType.BIOMETRIC_FINGERPRINT
-                    ) return DeviceInfoManager.hasFingerprint(DeviceInfoManager.getAnyDeviceInfo())
+                    ) return DeviceInfoManager.hasBiometricSensors(DeviceInfoManager.getAnyDeviceInfo()) && DeviceInfoManager.hasFingerprint(
+                        DeviceInfoManager.getAnyDeviceInfo()
+                    )
                     if ((f.endsWith(".face") || f.contains(".face.")) &&
                         type == BiometricType.BIOMETRIC_FACE
-                    ) return DeviceInfoManager.hasFaceID(DeviceInfoManager.getAnyDeviceInfo())
+                    ) return DeviceInfoManager.hasBiometricSensors(DeviceInfoManager.getAnyDeviceInfo()) && DeviceInfoManager.hasFaceID(
+                        DeviceInfoManager.getAnyDeviceInfo()
+                    )
                     if ((f.endsWith(".iris") || f.contains(".iris.")) &&
                         type == BiometricType.BIOMETRIC_IRIS
-                    ) return DeviceInfoManager.hasIrisScanner(DeviceInfoManager.getAnyDeviceInfo())
-                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                        type == BiometricType.BIOMETRIC_FINGERPRINT
-                    ) return true
-
+                    ) return DeviceInfoManager.hasBiometricSensors(DeviceInfoManager.getAnyDeviceInfo()) && DeviceInfoManager.hasIrisScanner(
+                        DeviceInfoManager.getAnyDeviceInfo()
+                    )
                     if ((f.endsWith(".palm") || f.contains(".palm.")) &&
                         type == BiometricType.BIOMETRIC_PALMPRINT
-                    ) return true
+                    ) return DeviceInfoManager.hasBiometricSensors(DeviceInfoManager.getAnyDeviceInfo()) && DeviceInfoManager.hasPalmID(
+                        DeviceInfoManager.getAnyDeviceInfo()
+                    )
                     if ((f.endsWith(".voice") || f.contains(".voice.")) &&
                         type == BiometricType.BIOMETRIC_VOICE
-                    ) return true
+                    ) return DeviceInfoManager.hasBiometricSensors(DeviceInfoManager.getAnyDeviceInfo()) && DeviceInfoManager.hasVoiceID(
+                        DeviceInfoManager.getAnyDeviceInfo()
+                    )
                     if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
                         type == BiometricType.BIOMETRIC_HEARTRATE
-                    ) return true
+                    ) return DeviceInfoManager.hasBiometricSensors(DeviceInfoManager.getAnyDeviceInfo()) && DeviceInfoManager.hasHeartrateID(
+                        DeviceInfoManager.getAnyDeviceInfo()
+                    )
                 }
                 }
 

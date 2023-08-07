@@ -29,19 +29,21 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.LastUpdatedTs
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import dev.skomlach.common.translate.LocalizationHelper
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.InputStream
-import java.net.HttpURLConnection
 import java.nio.charset.Charset
-import java.security.SecureRandom
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
     private val pattern = Pattern.compile("\\((.*?)\\)+")
+
+    fun hasBiometricSensors(deviceInfo: DeviceInfo?): Boolean {
+        return hasFingerprint(deviceInfo) || hasFaceID(deviceInfo) || hasIrisScanner(deviceInfo) || hasPalmID(
+            deviceInfo
+        ) || hasVoiceID(deviceInfo) || hasHeartrateID(deviceInfo)
+    }
+
     fun hasFingerprint(deviceInfo: DeviceInfo?): Boolean {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
@@ -93,6 +95,60 @@ object DeviceInfoManager {
                 )
             ) {
                 if (s.contains("face")) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun hasVoiceID(deviceInfo: DeviceInfo?): Boolean {
+        if (deviceInfo?.sensors == null) return false
+        for (str in deviceInfo.sensors) {
+            val s = str.lowercase(Locale.ROOT)
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
+                    " auth"
+                )
+            ) {
+                if (s.contains("voice")) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun hasPalmID(deviceInfo: DeviceInfo?): Boolean {
+        if (deviceInfo?.sensors == null) return false
+        for (str in deviceInfo.sensors) {
+            val s = str.lowercase(Locale.ROOT)
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
+                    " auth"
+                )
+            ) {
+                if (s.contains("palm")) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun hasHeartrateID(deviceInfo: DeviceInfo?): Boolean {
+        if (deviceInfo?.sensors == null) return false
+        for (str in deviceInfo.sensors) {
+            val s = str.lowercase(Locale.ROOT)
+            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+                    " unlock"
+                ) || s.contains(
+                    " auth"
+                )
+            ) {
+                if (s.contains("heartrate")) {
                     return true
                 }
             }
