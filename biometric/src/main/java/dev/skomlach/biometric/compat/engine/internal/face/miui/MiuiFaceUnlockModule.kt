@@ -76,14 +76,6 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -98,16 +90,17 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return manager?.isFaceFeatureSupport == true && manager?.enrolledFaces?.isNotEmpty() == true
-        } catch (e: Throwable) {
-            e(e, name)
+            try {
+                return manager?.enrolledFaces?.isNotEmpty() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
         }
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

@@ -34,22 +34,22 @@ internal class CoroutineAuthPromptCallback(
     private val continuation: CancellableContinuation<Set<AuthenticationResult>>
 ) : BiometricPromptCompat.AuthenticationCallback() {
     override fun onFailed(reason: AuthenticationFailureReason?, dialogDescription: CharSequence?) {
-        if(!continuation.isCompleted)
-        continuation.resumeWithException(
-            AuthPromptErrorException(
-                reason,
-                dialogDescription
+        if (!continuation.isCompleted)
+            continuation.resumeWithException(
+                AuthPromptErrorException(
+                    reason,
+                    dialogDescription
+                )
             )
-        )
     }
 
     override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
-        if(!continuation.isCompleted)
-        continuation.resumeWith(Result.success(confirmed))
+        if (!continuation.isCompleted)
+            continuation.resumeWith(Result.success(confirmed))
     }
 
     override fun onCanceled() {
-        if(!continuation.isCompleted)
-        continuation.resumeWithException(AuthPromptCanceledException())
+        if (!continuation.isCompleted)
+            continuation.resumeWithException(AuthPromptCanceledException())
     }
 }

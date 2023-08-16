@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat.utils.hardware
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 
 
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
@@ -36,11 +35,11 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
         }
     override val isBiometricEnrolled: Boolean
         get() {
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.hasEnrolled()
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.hasEnrolled
             val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
                 biometricAuthRequest.type
             )
-            return biometricModule != null && biometricModule.hasEnrolled()
+            return biometricModule != null && biometricModule.hasEnrolled
         }
     override val isLockedOut: Boolean
         get() {
@@ -50,16 +49,4 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
             )
             return biometricModule != null && biometricModule.isLockOut
         }
-    override val isBiometricEnrollChanged: Boolean
-        get() {
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.isEnrollChanged()
-            val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
-                biometricAuthRequest.type
-            )
-            return biometricModule != null && biometricModule.isBiometricEnrollChanged
-        }
-
-    override fun updateBiometricEnrollChanged() {
-        (BiometricAuthentication.getAvailableBiometricModule(biometricAuthRequest.type) as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
-    }
 }

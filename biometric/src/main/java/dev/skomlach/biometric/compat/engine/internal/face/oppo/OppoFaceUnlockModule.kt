@@ -134,14 +134,6 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener?.initFinished(biometricMethod, this@OppoFaceUnlockModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -156,19 +148,17 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates() ?: false
-        } catch (e: Throwable) {
-            e(e, name)
+            try {
+                return manager?.hasEnrolledTemplates() ?: false
+            } catch (e: Throwable) {
+                e(e, name)
 
+            }
+            return false
         }
-
-        e(RuntimeException("Unable to find 'hasEnrolled' method"))
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

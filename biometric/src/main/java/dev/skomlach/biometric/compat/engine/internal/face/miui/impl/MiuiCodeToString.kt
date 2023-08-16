@@ -23,44 +23,24 @@ import android.annotation.SuppressLint
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.SystemStringsHelper
 import java.lang.reflect.Field
 
 @SuppressLint("StaticFieldLeak")
 object MiuiCodeToString {
-    private var stringFields: Array<Field>? = null
+
     private var stringArrayFields: Array<Field>? = null
 
     private val context = AndroidContext.appContext
 
     init {
         try {
-            stringFields = Class.forName("com.android.internal.R\$string").declaredFields
             stringArrayFields = Class.forName("com.android.internal.R\$array").declaredFields
         } catch (e: Throwable) {
             e(e)
         }
     }
 
-    private fun getString(s: String): String? {
-        stringFields?.let {
-            try {
-                for (field in it) {
-                    if (s == field.name) {
-                        val isAccessible = field.isAccessible
-                        return try {
-                            if (!isAccessible) field.isAccessible = true
-                            context.resources.getString(field[null] as Int)
-                        } finally {
-                            if (!isAccessible) field.isAccessible = false
-                        }
-                    }
-                }
-            } catch (e: Throwable) {
-                e(e)
-            }
-        }
-        return null
-    }
 
     private fun getStringArray(s: String): Array<String>? {
         stringArrayFields?.let {
@@ -85,22 +65,23 @@ object MiuiCodeToString {
 
     fun getErrorString(errMsg: Int, vendorCode: Int): String? {
         when (errMsg) {
-            1 -> return getString("face_error_hw_not_available")
-            2 -> return getString("face_error_unable_to_process")
-            3 -> return getString("face_error_timeout")
-            4 -> return getString("face_error_no_space")
-            5 -> return getString("face_error_canceled")
-            7 -> return getString("face_error_lockout")
+            1 -> return SystemStringsHelper.getFromSystem(context, "face_error_hw_not_available")
+            2 -> return SystemStringsHelper.getFromSystem(context, "face_error_unable_to_process")
+            3 -> return SystemStringsHelper.getFromSystem(context, "face_error_timeout")
+            4 -> return SystemStringsHelper.getFromSystem(context, "face_error_no_space")
+            5 -> return SystemStringsHelper.getFromSystem(context, "face_error_canceled")
+            7 -> return SystemStringsHelper.getFromSystem(context, "face_error_lockout")
             8 -> {
                 val msgArray = getStringArray("face_error_vendor")
                 if (msgArray != null && vendorCode < msgArray.size) {
                     return msgArray[vendorCode]
                 }
             }
-            9 -> return getString("face_error_lockout_permanent")
-            10 -> return getString("face_error_user_canceled")
-            11 -> return getString("face_error_not_enrolled")
-            12 -> return getString("face_error_hw_not_present")
+
+            9 -> return SystemStringsHelper.getFromSystem(context, "face_error_lockout_permanent")
+            10 -> return SystemStringsHelper.getFromSystem(context, "face_error_user_canceled")
+            11 -> return SystemStringsHelper.getFromSystem(context, "face_error_not_enrolled")
+            12 -> return SystemStringsHelper.getFromSystem(context, "face_error_hw_not_present")
         }
         val stringBuilder = StringBuilder()
         stringBuilder.append("Invalid error message: ")
@@ -114,27 +95,35 @@ object MiuiCodeToString {
     fun getAcquiredString(acquireInfo: Int, vendorCode: Int): String? {
         when (acquireInfo) {
             0 -> return null
-            1 -> return getString("face_acquired_insufficient")
-            2 -> return getString("face_acquired_too_bright")
-            3 -> return getString("face_acquired_too_dark")
-            4 -> return getString("face_acquired_too_close")
-            5 -> return getString("face_acquired_too_far")
-            6 -> return getString("face_acquired_too_high")
-            7 -> return getString("face_acquired_too_low")
-            8 -> return getString("face_acquired_too_right")
-            9 -> return getString("face_acquired_too_left")
-            10 -> return getString("face_acquired_poor_gaze")
-            11 -> return getString("face_acquired_not_detected")
-            12 -> return getString("face_acquired_too_much_motion")
-            13 -> return getString("face_acquired_recalibrate")
-            14 -> return getString("face_acquired_too_different")
-            15 -> return getString("face_acquired_too_similar")
-            16 -> return getString("face_acquired_pan_too_extreme")
-            17 -> return getString("face_acquired_tilt_too_extreme")
-            18 -> return getString("face_acquired_roll_too_extreme")
-            19 -> return getString("face_acquired_obscured")
+            1 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_insufficient")
+            2 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_bright")
+            3 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_dark")
+            4 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_close")
+            5 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_far")
+            6 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_high")
+            7 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_low")
+            8 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_right")
+            9 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_left")
+            10 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_poor_gaze")
+            11 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_not_detected")
+            12 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_much_motion")
+            13 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_recalibrate")
+            14 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_different")
+            15 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_too_similar")
+            16 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_pan_too_extreme")
+            17 -> return SystemStringsHelper.getFromSystem(
+                context,
+                "face_acquired_tilt_too_extreme"
+            )
+
+            18 -> return SystemStringsHelper.getFromSystem(
+                context,
+                "face_acquired_roll_too_extreme"
+            )
+
+            19 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_obscured")
             20 -> return null
-            21 -> return getString("face_acquired_sensor_dirty")
+            21 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_sensor_dirty")
             22 -> {
                 val msgArray = getStringArray("face_acquired_vendor")
                 if (msgArray != null && vendorCode < msgArray.size) {

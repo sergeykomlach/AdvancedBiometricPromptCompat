@@ -51,11 +51,6 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         listener?.initFinished(biometricMethod, this@SoterFaceUnlockModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        //No way to detect enrollments
-        return emptySet()
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -70,16 +65,17 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledBiometric() == true
-        } catch (e: Throwable) {
-            e(e, name)
+            try {
+                return manager?.isHardwareDetected == true && manager?.hasEnrolledBiometric() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
         }
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

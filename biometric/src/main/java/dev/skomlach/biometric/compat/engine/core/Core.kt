@@ -90,17 +90,18 @@ object Core {
         }
 
 
-    fun hasEnrolled(): Boolean {
-        try {
+    val hasEnrolled: Boolean
+        get() {
+            try {
 
-            for (module in reprintModuleHashMap.values) {
-                if (module.hasEnrolled()) return true
+                for (module in reprintModuleHashMap.values) {
+                    if (module.hasEnrolled) return true
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
             }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
+            return false
         }
-        return false
-    }
     /**
      * Start an authentication request.
      *
@@ -131,20 +132,6 @@ object Core {
 
                 var biometricCryptoObject: BiometricCryptoObject? = null
                 purpose?.let {
-                    if (!m.isUserAuthCanByUsedWithCrypto && m.isBiometricEnrollChanged) {
-
-                        if (purpose.purpose == BiometricCryptographyPurpose.ENCRYPT)
-                            BiometricCryptoObjectHelper.deleteCrypto("BiometricModule${module.tag()}")
-
-                        biometricCryptoObject =
-                            BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                "BiometricModule${module.tag()}",
-                                purpose,
-                                m.isUserAuthCanByUsedWithCrypto
-                            )
-
-                    } else {
-
                         try {
                             biometricCryptoObject =
                                 BiometricCryptoObjectHelper.getBiometricCryptoObject(
@@ -164,7 +151,7 @@ object Core {
                             } else throw e
                         }
                     }
-                }
+
 
                 authenticate(biometricCryptoObject, module, listener, restartPredicate)
             }
@@ -192,7 +179,7 @@ object Core {
     ) {
         try {
 
-            if (!module.isHardwarePresent || !module.hasEnrolled() || module.isLockOut) throw RuntimeException(
+            if (!module.isHardwarePresent || !module.hasEnrolled || module.isLockOut) throw RuntimeException(
                 "Module " + module.javaClass.simpleName + " not ready"
             )
             cancelAuthentication(module)

@@ -387,38 +387,34 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@AndroidFaceUnlockModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
         get() {
-
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-
+                e(e, name)
             }
 
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
+            try {
+                return manager?.hasEnrolledTemplates() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+            try {
+                return manager?.getEnrolledFaces()?.isNotEmpty() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledTemplates() == true
-        } catch (e: Throwable) {
-
+            return false
         }
-
-        return false
-    }
 
 
     @Throws(SecurityException::class)

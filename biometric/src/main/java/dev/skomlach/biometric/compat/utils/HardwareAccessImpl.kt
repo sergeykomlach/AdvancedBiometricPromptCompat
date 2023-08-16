@@ -22,11 +22,9 @@ package dev.skomlach.biometric.compat.utils
 import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.utils.hardware.Android28Hardware
-import dev.skomlach.biometric.compat.utils.hardware.Android29Hardware
+import dev.skomlach.biometric.compat.utils.hardware.BiometricPromptHardware
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
-import dev.skomlach.common.misc.ExecutorHelper
 
 
 class HardwareAccessImpl private constructor(val biometricAuthRequest: BiometricAuthRequest) {
@@ -46,36 +44,27 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         get() = hardwareInfo?.isBiometricEnrolled ?: false
     val isLockedOut: Boolean
         get() = hardwareInfo?.isLockedOut ?: false
-    val isBiometricEnrollChanged: Boolean
-        get() = hardwareInfo?.isBiometricEnrollChanged ?: false
-
-    fun updateBiometricEnrollChanged() {
-        ExecutorHelper.startOnBackground {
-            hardwareInfo?.updateBiometricEnrollChanged()
-        }
-    }
 
     init {
-        if (biometricAuthRequest.api == BiometricApi.LEGACY_API) {
-            hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
-        } else if (biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
-            if (BuildCompat.isAtLeastQ()) {
-                hardwareInfo =
-                    Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
-            } else if (BuildCompat.isAtLeastP()) {
-                hardwareInfo =
-                    Android28Hardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+        when (biometricAuthRequest.api) {
+            BiometricApi.LEGACY_API -> {
+                hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
             }
-        } else { //AUTO
-            hardwareInfo = when {
-                BuildCompat.isAtLeastQ() -> {
-                    Android29Hardware(biometricAuthRequest) //new BiometricPrompt API; Has BiometricManager to deal with hasHardware/isEnrolled/isLockedOut
-                }
-                BuildCompat.isAtLeastP() -> {
-                    Android28Hardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
-                }
-                else -> {
-                    LegacyHardware(biometricAuthRequest) //Android 4+
+
+            BiometricApi.BIOMETRIC_API -> {
+                hardwareInfo =
+                    BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+            }
+
+            else -> { //AUTO
+                hardwareInfo = when {
+                    BuildCompat.isAtLeastP() -> {
+                        BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+                    }
+
+                    else -> {
+                        LegacyHardware(biometricAuthRequest) //Android 4+
+                    }
                 }
             }
         }
@@ -83,7 +72,7 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
 
     fun lockout() {
         if (isNewBiometricApi) {
-            (hardwareInfo as Android28Hardware).lockout()
+            (hardwareInfo as BiometricPromptHardware).lockout()
         }
     }
 }

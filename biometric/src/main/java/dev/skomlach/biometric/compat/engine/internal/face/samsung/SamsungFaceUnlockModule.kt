@@ -73,14 +73,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@SamsungFaceUnlockModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -95,16 +87,17 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledFaces() == true
-        } catch (e: Throwable) {
-            e(e, name)
+            try {
+                return manager?.hasEnrolledFaces() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
         }
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

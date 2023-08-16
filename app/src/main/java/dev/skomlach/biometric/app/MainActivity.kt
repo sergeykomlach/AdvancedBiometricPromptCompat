@@ -39,9 +39,9 @@ import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.app.devtools.Scan4Apis
 import dev.skomlach.biometric.app.utils.MailTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 class MainActivity : AppCompatActivity() {
@@ -169,13 +169,12 @@ class MainActivity : AppCompatActivity() {
         LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(log: String) {
                 LogCat.setLog2ViewCallback(null)
-                if(!MailTo.startMailClient(
+                MailTo.startMailClient(
                     this@MainActivity,
                     "s.komlach@gmail.com",
                     "Advanced BiometricPromptCompat Logs",
                     log
-                ))
-                    Toast.makeText(this@MainActivity, "Unexpected error occurred :(", Toast.LENGTH_LONG).show()
+                )
             }
         })
 

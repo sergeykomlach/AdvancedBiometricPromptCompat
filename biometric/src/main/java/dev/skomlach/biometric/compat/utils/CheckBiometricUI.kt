@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.Context
 import android.os.Build
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.SystemStringsHelper
 import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -99,25 +100,7 @@ object CheckBiometricUI {
     }
 
     fun getBiometricUiPackage(context: Context): String {
-        try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name.equals("config_biometric_prompt_ui_package")) {
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = context.getString(field[null] as Int)
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        return "com.android.systemui"
+        return SystemStringsHelper.getFromSystem(context, "config_biometric_prompt_ui_package")
+            ?: "com.android.systemui"
     }
 }

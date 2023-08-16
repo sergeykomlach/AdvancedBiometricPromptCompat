@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.common.misc
+package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
 import android.app.admin.DevicePolicyManager
@@ -25,6 +25,8 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.ReflectionTools
+import dev.skomlach.common.misc.SettingsHelper
 import java.util.*
 
 @SuppressLint("PrivateApi")
@@ -99,53 +101,53 @@ object LockType {
         return isBiometricEnabledInSettings(context)
     }
 
-    fun isBiometricEnabledInSettings(context: Context, type: String): Boolean {
-        try {
-            val keyValue: MutableList<String> = ArrayList()
-            val u = Uri.parse("content://settings/secure")
-            var mCur = context
-                .contentResolver
-                .query(
-                    u, null,
-                    null,
-                    null,
-                    null
-                )
-            if (mCur != null) {
-                mCur.moveToFirst()
-                while (!mCur.isAfterLast) {
-                    val nameIndex = mCur
-                        .getColumnIndex("name")
-                    if (!mCur.isNull(nameIndex)) {
-                        val name = mCur.getString(nameIndex)
-                        if (name.isNullOrEmpty()) {
-                            mCur.moveToNext()
-                            continue
-                        }
-                        val s = name.lowercase(Locale.ROOT)
-                        if (s.contains(type)) {
-                            if (s.contains("_unl") && s.contains("_enable")) {
-                                keyValue.add(name)
-                            }
-                        }
-                    }
-                    mCur.moveToNext()
-                }
-                mCur.close()
-                mCur = null
-            }
-            for (s in keyValue) {
-                //-1 not exists, 0 - disabled
-                if (SettingsHelper.getInt(context, s, -1) > 0) {
-                    return true
-                }
-            }
-        } catch (ignored: Throwable) {
-        }
-        return false
-    }
+//    fun isBiometricEnabledInSettings(context: Context, type: String): Boolean {
+//        try {
+//            val keyValue: MutableList<String> = ArrayList()
+//            val u = Uri.parse("content://settings/secure")
+//            var mCur = context
+//                .contentResolver
+//                .query(
+//                    u, null,
+//                    null,
+//                    null,
+//                    null
+//                )
+//            if (mCur != null) {
+//                mCur.moveToFirst()
+//                while (!mCur.isAfterLast) {
+//                    val nameIndex = mCur
+//                        .getColumnIndex("name")
+//                    if (!mCur.isNull(nameIndex)) {
+//                        val name = mCur.getString(nameIndex)
+//                        if (name.isNullOrEmpty()) {
+//                            mCur.moveToNext()
+//                            continue
+//                        }
+//                        val s = name.lowercase(Locale.ROOT)
+//                        if (s.contains(type)) {
+//                            if (s.contains("_unl") && s.contains("_enable")) {
+//                                keyValue.add(name)
+//                            }
+//                        }
+//                    }
+//                    mCur.moveToNext()
+//                }
+//                mCur.close()
+//                mCur = null
+//            }
+//            for (s in keyValue) {
+//                //-1 not exists, 0 - disabled
+//                if (SettingsHelper.getInt(context, s, -1) > 0) {
+//                    return true
+//                }
+//            }
+//        } catch (ignored: Throwable) {
+//        }
+//        return false
+//    }
 
-    fun isBiometricEnabledInSettings(context: Context): Boolean {
+    private fun isBiometricEnabledInSettings(context: Context): Boolean {
         try {
             val keyValue: MutableList<String> = ArrayList()
             val u = Uri.parse("content://settings/secure")
@@ -173,6 +175,11 @@ object LockType {
                             || s.contains("face")
                             || s.contains("iris")
                             || s.contains("biometric")
+                            || s.contains("palm")
+                            || s.contains("voice")
+                            || s.contains("heartrate")
+                            || s.contains("behavior")
+
                         ) {
                             if (s.contains("_unl") && s.contains("_enable")) {
                                 keyValue.add(name)

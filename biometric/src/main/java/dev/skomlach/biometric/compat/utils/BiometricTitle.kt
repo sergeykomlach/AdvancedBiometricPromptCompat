@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.Context
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 
 object BiometricTitle {
@@ -96,50 +97,10 @@ object BiometricTitle {
     }
 
     private fun getFromSystemSubtitle(context: Context, alias: String): String? {
-        try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name.equals(alias + "_dialog_default_subtitle")) {
-                    BiometricLoggerImpl.d("BiometricTitle", field.name)
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = context.getString(field[null] as Int)
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        return null
+        return SystemStringsHelper.getFromSystem(context, alias + "_dialog_default_subtitle")
     }
 
     private fun getFromSystemTitle(context: Context, alias: String): String? {
-        try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name.equals(alias + "_dialog_default_title")) {
-                    BiometricLoggerImpl.d("BiometricTitle", field.name)
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = context.getString(field[null] as Int)
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        return null
+        return SystemStringsHelper.getFromSystem(context, alias + "_dialog_default_title")
     }
 }

@@ -57,25 +57,6 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@FlymeFingerprintModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        mFingerprintServiceFingerprintManager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
-    override fun getIds(manager: Any): List<String> {
-        val ids = ArrayList<String>()
-        mFingerprintServiceFingerprintManager?.let {
-            it.ids?.let { array ->
-                for (a in array)
-                    ids.add("$a")
-            }
-        }
-        return ids
-    }
-
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
     override var isManagerAccessible = false
@@ -95,24 +76,23 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            mFingerprintServiceFingerprintManager = FingerprintManager.open()
-            if (mFingerprintServiceFingerprintManager
-                    ?.isFingerEnable == true
-            ) {
+            try {
+                mFingerprintServiceFingerprintManager = FingerprintManager.open()
+
                 val fingerprintIds = mFingerprintServiceFingerprintManager?.ids
                 return fingerprintIds?.isNotEmpty() == true
-            }
-        } catch (e: Throwable) {
-            e(e, name)
-        } finally {
-            cancelFingerprintServiceFingerprintRequest()
-        }
 
-        return false
-    }
+            } catch (e: Throwable) {
+                e(e, name)
+            } finally {
+                cancelFingerprintServiceFingerprintRequest()
+            }
+
+            return false
+        }
 
     @Throws(SecurityException::class)
     override fun authenticate(

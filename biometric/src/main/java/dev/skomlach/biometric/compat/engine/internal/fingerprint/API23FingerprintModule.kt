@@ -70,14 +70,6 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         listener?.initFinished(biometricMethod, this@API23FingerprintModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -92,16 +84,17 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledFingerprints() == true
-        } catch (e: Throwable) {
-            e(e, name)
+            try {
+                return manager?.hasEnrolledFingerprints() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
         }
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

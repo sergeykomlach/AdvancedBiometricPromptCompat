@@ -97,14 +97,6 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        huaweiFaceManagerLegacy?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = huaweiFaceManagerLegacy != null
     override val isHardwarePresent: Boolean
@@ -118,15 +110,16 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
-        try {
-            if (huaweiFaceManagerLegacy?.isHardwareDetected == true && huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
-        } catch (e: Throwable) {
-            e(e, name)
-        }
+    override val hasEnrolled: Boolean
+        get() {
+            try {
+                if (huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
-        return false
-    }
+            return false
+        }
 
     @Throws(SecurityException::class)
     override fun authenticate(

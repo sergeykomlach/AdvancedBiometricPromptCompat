@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
-import android.content.Context
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -72,32 +71,6 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@SupportFingerprintModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        val manager = try {
-            val method = managerCompat?.javaClass?.declaredMethods?.firstOrNull {
-                it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java &&
-                        it.returnType.methods.firstOrNull { m -> m.name.equals("isHardwareDetected") } != null
-            }
-            val isAccessible = method?.isAccessible ?: true
-            if (!isAccessible)
-                method?.isAccessible = true
-            val manager = try {
-                method?.invoke(managerCompat, context)
-            } finally {
-                if (!isAccessible)
-                    method?.isAccessible = false
-            }
-            manager
-        } catch (ignore: Throwable) {
-            null
-        }
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = managerCompat != null
     override val isHardwarePresent: Boolean
@@ -112,14 +85,15 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
-        try {
-            return managerCompat?.isHardwareDetected == true && managerCompat?.hasEnrolledFingerprints() == true
-        } catch (e: Throwable) {
-            e(e, name)
+    override val hasEnrolled: Boolean
+        get() {
+            try {
+                return managerCompat?.hasEnrolledFingerprints() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+            return false
         }
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

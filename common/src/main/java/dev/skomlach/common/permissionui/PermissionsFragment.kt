@@ -19,7 +19,6 @@
 
 package dev.skomlach.common.permissionui
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -49,10 +48,11 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import java.util.*
+import java.util.Locale
 
 class PermissionsFragment : Fragment() {
     companion object {
@@ -240,19 +240,21 @@ class PermissionsFragment : Fragment() {
     private fun showPermissionDeniedDialog(permissions: List<String>) {
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-        val textStart = getString("grant_permissions_header_text")
+        val textStart =
+            SystemStringsHelper.getFromSystem(appContext, "grant_permissions_header_text")
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
         val title = try {
-            val appInfo = (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                PackageManager.ApplicationInfoFlags.of(0L)
-            ) else requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                0
-            ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty{
+            val appInfo =
+                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    PackageManager.ApplicationInfoFlags.of(0L)
+                ) else requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    0
+                ))
+            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
                 getString(appInfo.labelRes)
             }
         } catch (e: Throwable) {
@@ -285,23 +287,26 @@ class PermissionsFragment : Fragment() {
      */
     private fun showMandatoryPermissionsNeedDialog(permissions: List<String>) {
 
-        val button = getString("turn_on_magnification_settings_action")
-            ?: getString("global_action_settings")
+        val button =
+            SystemStringsHelper.getFromSystem(appContext, "turn_on_magnification_settings_action")
+                ?: SystemStringsHelper.getFromSystem(appContext, "global_action_settings")
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
-        val textStart = getString("error_message_change_not_allowed")
+        val textStart =
+            SystemStringsHelper.getFromSystem(appContext, "error_message_change_not_allowed")
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
         val title = try {
-            val appInfo = (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                PackageManager.ApplicationInfoFlags.of(0L)
-            ) else requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                0
-            ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty{
+            val appInfo =
+                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    PackageManager.ApplicationInfoFlags.of(0L)
+                ) else requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    0
+                ))
+            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
                 getString(appInfo.labelRes)
             }
         } catch (e: Throwable) {
@@ -372,31 +377,6 @@ class PermissionsFragment : Fragment() {
         return null
     }
 
-    //grant_permissions_header_text
-    //turn_on_magnification_settings_action
-    @SuppressLint("PrivateApi")
-    private fun getString(name: String): String? {
-        try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name.equals(name)) {
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = AndroidContext.appContext.getString(field[null] as Int)
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        }
-        return null
-    }
 
     private fun closeFragment() {
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()

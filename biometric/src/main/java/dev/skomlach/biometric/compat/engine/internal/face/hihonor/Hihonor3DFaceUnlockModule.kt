@@ -57,15 +57,6 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        //pass only EMUI 10.1.0 manager
-        hihonor3DFaceManager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = hihonor3DFaceManager != null
     override val isHardwarePresent: Boolean
@@ -78,15 +69,16 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
-        try {
-            return hihonor3DFaceManager?.isHardwareDetected == true && hihonor3DFaceManager?.hasEnrolledTemplates() ?: false
-        } catch (e: Throwable) {
-            e(e, name)
-        }
+    override val hasEnrolled: Boolean
+        get() {
+            try {
+                return hihonor3DFaceManager?.hasEnrolledTemplates() ?: false
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
-        return false
-    }
+            return false
+        }
 
     @Throws(SecurityException::class)
     override fun authenticate(

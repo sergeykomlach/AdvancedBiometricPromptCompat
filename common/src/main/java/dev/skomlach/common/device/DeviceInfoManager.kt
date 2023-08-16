@@ -59,7 +59,7 @@ object DeviceInfoManager {
         if (deviceInfo?.sensors == null) return false
         for (str in deviceInfo.sensors) {
             val s = str.lowercase(Locale.ROOT)
-            if (s.contains("fingerprint") && s.contains("under display")) {
+            if (s.contains("fingerprint") && (s.contains(" display") || s.contains(" screen"))) {
                 return true
             }
         }

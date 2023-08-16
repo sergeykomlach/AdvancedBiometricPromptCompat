@@ -54,7 +54,6 @@ import java.util.concurrent.TimeUnit;
 import dev.skomlach.biometric.app.devtools.internal.JavaNetHeaders;
 import dev.skomlach.biometric.app.devtools.internal.URLFilter;
 import dev.skomlach.common.contextprovider.AndroidContext;
-import dev.skomlach.common.logging.LogCat;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Dispatcher;
@@ -127,7 +126,6 @@ public final class OkHttpURLConnection extends HttpURLConnection implements Call
   public OkHttpURLConnection(URL url, OkHttpClient client) {
     super(url);
     this.client = client;
-    LogCat.INSTANCE.logError("OkHttpURLConnection.proxy - " + client.proxy());
   }
 
   public OkHttpURLConnection(URL url, OkHttpClient client, URLFilter urlFilter) {

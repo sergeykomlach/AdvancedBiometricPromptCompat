@@ -139,14 +139,6 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@SamsungIrisUnlockModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -160,15 +152,16 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledIrises() == true
-        } catch (e: Throwable) {
-            e(e, name)
-        }
+    override val hasEnrolled: Boolean
+        get() {
+            try {
+                return manager?.hasEnrolledIrises() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
 
-        return false
-    }
+            return false
+        }
 
     @Throws(SecurityException::class)
     override fun authenticate(

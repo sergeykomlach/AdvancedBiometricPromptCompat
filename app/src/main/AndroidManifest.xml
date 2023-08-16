@@ -116,6 +116,15 @@
                     android:name="com.lge.support.SPLIT_WINDOW.SUPPORT_SPLIT"
                     android:value="true" />
         </activity>
+        <provider
+                android:name="androidx.core.content.FileProvider"
+                android:authorities="dev.skomlach.biometric.fileprovider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/filepaths" />
+        </provider>
     </application>
 
 </manifest>

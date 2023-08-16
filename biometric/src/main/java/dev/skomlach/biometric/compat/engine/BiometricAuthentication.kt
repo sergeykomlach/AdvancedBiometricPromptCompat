@@ -24,9 +24,12 @@ import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.view.View
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -42,7 +45,11 @@ import dev.skomlach.biometric.compat.engine.internal.face.miui.MiuiFaceUnlockMod
 import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule
-import dev.skomlach.biometric.compat.engine.internal.fingerprint.*
+import dev.skomlach.biometric.compat.engine.internal.fingerprint.API23FingerprintModule
+import dev.skomlach.biometric.compat.engine.internal.fingerprint.FlymeFingerprintModule
+import dev.skomlach.biometric.compat.engine.internal.fingerprint.SamsungFingerprintModule
+import dev.skomlach.biometric.compat.engine.internal.fingerprint.SoterFingerprintUnlockModule
+import dev.skomlach.biometric.compat.engine.internal.fingerprint.SupportFingerprintModule
 import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -50,7 +57,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.startActivity
 import java.lang.ref.SoftReference
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -243,19 +250,14 @@ object BiometricAuthentication {
             return false
         }
 
-    fun hasEnrolled(): Boolean {
-        for (method in availableBiometrics) {
-            if (getAvailableBiometricModule(method)?.hasEnrolled() == true) return true
+    val hasEnrolled: Boolean
+        get() {
+            for (method in availableBiometrics) {
+                if (getAvailableBiometricModule(method)?.hasEnrolled == true) return true
+            }
+            return false
         }
-        return false
-    }
 
-    fun isEnrollChanged(): Boolean {
-        for (method in availableBiometrics) {
-            if (getAvailableBiometricModule(method)?.isBiometricEnrollChanged == true) return true
-        }
-        return false
-    }
 
     fun authenticate(
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
@@ -281,7 +283,7 @@ object BiometricAuthentication {
         Core.cleanModules()
         for (type in requestedMethods) {
             val biometricModule = getAvailableBiometricModule(type)
-            if (biometricModule == null || !biometricModule.hasEnrolled()) continue
+            if (biometricModule == null || !biometricModule.hasEnrolled) continue
             Core.registerModule(biometricModule)
             when (biometricModule) {
                 is SoterFaceUnlockModule -> {

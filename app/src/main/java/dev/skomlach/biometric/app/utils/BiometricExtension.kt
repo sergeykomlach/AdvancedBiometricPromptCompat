@@ -20,11 +20,15 @@
 package dev.skomlach.biometric.app.utils
 
 import android.content.Context
-import android.content.DialogInterface
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.BiometricManagerCompat
+import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -96,14 +100,6 @@ fun Fragment.startBiometric(
             }
         }
         .build()
-
-    BiometricLoggerImpl.e(
-        "CheckBiometric.isEnrollChanged -  ${
-            BiometricManagerCompat.isBiometricEnrollChanged(
-                biometricAuthRequest
-            )
-        }"
-    )
 
 
     biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {

@@ -471,6 +471,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
         fun applyProtectionInWindow(window: Window?) {
             try {
+                window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
             } catch (e: Exception) {
                 //not sure is exception can happens, but better to track at least
@@ -478,16 +479,23 @@ class BiometricPromptCompatDialog : DialogFragment() {
             }
         }
 
-        fun applyProtectionInView(view: View) {
+        fun applyProtectionInView(
+            view: View
+        ) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    ViewCompat.getImportantForAutofill(view) != View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
-                ) {
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     ViewCompat.setImportantForAutofill(
                         view,
                         View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
                     )
                 }
+
+
+                ViewCompat.setImportantForAccessibility(
+                    view,
+                    ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                )
                 //Note: View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS doesn't have affect
                 //for 3rd party password managers
                 view.accessibilityDelegate = object : View.AccessibilityDelegate() {

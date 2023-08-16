@@ -58,43 +58,6 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
-
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        mSpassFingerprint?.let {
-            managers.add(it)
-        }
-        return managers
-    }
-
-    override fun getIds(manager: Any): List<String> {
-        val ids = ArrayList<String>()
-        try {
-            mSpassFingerprint?.let {
-                it.registeredFingerprintUniqueID?.let { array ->
-                    for (i in 0 until array.size()) {
-                        //Sparsearray contains String
-                        (array.get(i) as? String)?.let { s ->
-                            ids.add(s)
-                        }
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-            mSpassFingerprint?.let {
-                it.registeredFingerprintName?.let { array ->
-                    for (i in 0 until array.size()) {
-                        //Sparsearray contains String
-                        (array.get(i) as? String)?.let { s ->
-                            ids.add(s)
-                        }
-                    }
-                }
-            }
-        }
-        return ids
-    }
-
     override val isManagerAccessible: Boolean
         get() = mSpass != null && mSpassFingerprint != null
     override val isHardwarePresent: Boolean
@@ -109,16 +72,17 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true && mSpassFingerprint?.hasRegisteredFinger() == true
-        } catch (e: Throwable) {
-            e(e, name)
+            try {
+                return mSpassFingerprint?.hasRegisteredFinger() == true
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
         }
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

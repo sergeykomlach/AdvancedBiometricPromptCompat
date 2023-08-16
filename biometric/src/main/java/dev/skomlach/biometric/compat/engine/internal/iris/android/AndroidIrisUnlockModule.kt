@@ -223,13 +223,6 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@AndroidIrisUnlockModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        val managers = HashSet<Any>()
-        manager?.let {
-            managers.add(it)
-        }
-        return managers
-    }
 
     override val isManagerAccessible: Boolean
         get() = manager != null
@@ -238,22 +231,24 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             try {
                 return manager?.isHardwareDetected == true
-            } catch (ignore: Throwable) {
-
+            } catch (e: Throwable) {
+                e(e, name)
             }
 
             return false
         }
 
-    override fun hasEnrolled(): Boolean {
+    override val hasEnrolled: Boolean
+        get() {
 
-        try {
-            return manager?.isHardwareDetected == true && manager?.hasEnrolledIrises() ?: false
-        } catch (ignore: Throwable) {
+            try {
+                return manager?.hasEnrolledIrises() ?: false
+            } catch (e: Throwable) {
+                e(e, name)
+            }
+
+            return false
         }
-
-        return false
-    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

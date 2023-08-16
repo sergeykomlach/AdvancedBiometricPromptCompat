@@ -36,9 +36,6 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@DummyBiometricModule)
     }
 
-    override fun getManagers(): Set<Any> {
-        return emptySet()
-    }
 
     //BuildConfig.DEBUG;
     override val isManagerAccessible: Boolean
@@ -46,9 +43,7 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
     override val isHardwarePresent: Boolean
         get() = true
 
-    override fun hasEnrolled(): Boolean {
-        return true
-    }
+    override val hasEnrolled: Boolean = true
 
     @Throws(SecurityException::class)
     override fun authenticate(

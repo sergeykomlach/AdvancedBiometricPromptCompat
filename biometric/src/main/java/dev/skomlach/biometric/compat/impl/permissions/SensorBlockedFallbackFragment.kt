@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.utils.activityView.ActiveWindow
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -67,17 +68,17 @@ class SensorBlockedFallbackFragment : Fragment() {
 
         fun askForCameraUnblock() {
             showFragment(
-                getString(
+                SystemStringsHelper.getFromSystem(
                     appContext,
                     "sensor_privacy_start_use_camera_notification_content_title"
                 ),
-                getString(appContext, "face_sensor_privacy_enabled")
+                SystemStringsHelper.getFromSystem(appContext, "face_sensor_privacy_enabled")
             )
         }
 
         fun askForMicUnblock() {
             showFragment(
-                getString(
+                SystemStringsHelper.getFromSystem(
                     appContext,
                     "sensor_privacy_start_use_mic_notification_content_title"
                 ), null
@@ -121,28 +122,6 @@ class SensorBlockedFallbackFragment : Fragment() {
 
         }
 
-        private fun getString(context: Context, name: String): String? {
-            try {
-                val fields = Class.forName("com.android.internal.R\$string").declaredFields
-                for (field in fields) {
-                    if (field.name.equals(name)) {
-                        val isAccessible = field.isAccessible
-                        return try {
-                            if (!isAccessible) field.isAccessible = true
-                            val s = context.getString(field[null] as Int)
-                            if (s.isEmpty())
-                                throw RuntimeException("String is empty")
-                            s
-                        } finally {
-                            if (!isAccessible) field.isAccessible = false
-                        }
-                    }
-                }
-            } catch (e: Throwable) {
-                e(e)
-            }
-            return null
-        }
     }
 
 
@@ -158,7 +137,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(
-                    getString(
+                    SystemStringsHelper.getFromSystem(
                         appContext,
                         "sensor_privacy_start_use_dialog_turn_on_button"
                     ) ?: getString(android.R.string.ok)

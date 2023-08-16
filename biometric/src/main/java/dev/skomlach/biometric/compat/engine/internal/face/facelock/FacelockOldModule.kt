@@ -32,9 +32,9 @@ import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakEnabled
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.misc.LockType.isBiometricWeakEnabled
 import java.lang.ref.WeakReference
 
 
@@ -112,11 +112,6 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         faceLockHelper?.destroy()
     }
 
-    override fun getManagers(): Set<Any> {
-        //No way to detect enrollments
-        return emptySet()
-    }
-
     // Retrieve all services that can match the given intent
     override val isHardwarePresent: Boolean
         get() {
@@ -130,13 +125,13 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
             return if (dpm?.getCameraDisabled(null) == true) {
                 false
-            } else hasEnrolled()
+            } else hasEnrolled
         }
 
-    @Throws(SecurityException::class)
-    override fun hasEnrolled(): Boolean {
-        return isBiometricWeakEnabled("com.android.facelock", context)
-    }
+    override val hasEnrolled: Boolean
+        get() {
+            return isBiometricWeakEnabled("com.android.facelock", context)
+        }
 
     @Throws(SecurityException::class)
     override fun authenticate(
