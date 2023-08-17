@@ -52,7 +52,6 @@ import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import java.util.Locale
 
 class PermissionsFragment : Fragment() {
     companion object {
@@ -239,7 +238,7 @@ class PermissionsFragment : Fragment() {
      */
     private fun showPermissionDeniedDialog(permissions: List<String>) {
         val isLeftToRight =
-            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+            TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.locale) == ViewCompat.LAYOUT_DIRECTION_LTR
         val textStart =
             SystemStringsHelper.getFromSystem(appContext, "grant_permissions_header_text")
         val textEnd = extractDescriptionsForPermissions(permissions)
@@ -291,7 +290,7 @@ class PermissionsFragment : Fragment() {
             SystemStringsHelper.getFromSystem(appContext, "turn_on_magnification_settings_action")
                 ?: SystemStringsHelper.getFromSystem(appContext, "global_action_settings")
         val isLeftToRight =
-            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+            TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.locale) == ViewCompat.LAYOUT_DIRECTION_LTR
         val textStart =
             SystemStringsHelper.getFromSystem(appContext, "error_message_change_not_allowed")
         val textEnd = extractDescriptionsForPermissions(permissions)
@@ -355,7 +354,7 @@ class PermissionsFragment : Fragment() {
     private fun extractDescriptionsForPermissions(keys: List<String>): String? {
         val permissionsList = PermissionUtils.getPermissions(keys)
         val isLeftToRight =
-            TextUtilsCompat.getLayoutDirectionFromLocale(Locale.getDefault()) == ViewCompat.LAYOUT_DIRECTION_LTR
+            TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.locale) == ViewCompat.LAYOUT_DIRECTION_LTR
         if (permissionsList.isNotEmpty()) {
             val sb = StringBuilder()
             for ((_, str) in permissionsList.keys.withIndex()) {

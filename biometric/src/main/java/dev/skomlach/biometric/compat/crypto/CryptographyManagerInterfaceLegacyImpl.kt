@@ -101,7 +101,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     @Throws(Exception::class)
     private fun getOrCreateSecretKey(name: String) {
         if (!keyExist(name)) {
-            val localeBeforeFakingEnglishLocale = Locale.getDefault()
+            val localeBeforeFakingEnglishLocale = AndroidContext.locale
             try {
 
                 /*
