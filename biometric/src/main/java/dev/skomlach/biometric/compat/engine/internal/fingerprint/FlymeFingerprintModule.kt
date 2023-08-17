@@ -68,7 +68,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 return mFingerprintServiceFingerprintManager
                     ?.isFingerEnable == true
             } catch (e: Throwable) {
-                e(e, name)
+
             } finally {
                 cancelFingerprintServiceFingerprintRequest()
             }
@@ -86,7 +86,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 return fingerprintIds?.isNotEmpty() == true
 
             } catch (e: Throwable) {
-                e(e, name)
+
             } finally {
                 cancelFingerprintServiceFingerprintRequest()
             }

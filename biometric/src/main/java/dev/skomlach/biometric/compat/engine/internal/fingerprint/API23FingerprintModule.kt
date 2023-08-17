@@ -78,7 +78,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -90,7 +90,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             try {
                 return manager?.hasEnrolledFingerprints() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

@@ -66,7 +66,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
             try {
                 return mSpass?.isFeatureEnabled(Spass.DEVICE_FINGERPRINT) == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -78,7 +78,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
             try {
                 return mSpassFingerprint?.hasRegisteredFinger() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

@@ -394,7 +394,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -405,12 +405,12 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.hasEnrolledTemplates() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
             try {
                 return manager?.getEnrolledFaces()?.isNotEmpty() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -463,6 +463,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         0
                     )
                     return
+                } catch (e: SecurityException) {
                 } catch (e: NoSuchMethodError) {
                 }
                 try {
@@ -476,6 +477,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         true
                     )
                     return
+                } catch (e: SecurityException) {
                 } catch (e: NoSuchMethodError) {
                 }
                 try {
@@ -488,6 +490,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         ExecutorHelper.handler
                     )
                     return
+                } catch (e: SecurityException) {
                 } catch (e: NoSuchMethodError) {
                 }
                 authCallTimestamp.set(System.currentTimeMillis())

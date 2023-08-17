@@ -80,7 +80,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -92,7 +92,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
             try {
                 return manager?.hasEnrolledBiometric() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

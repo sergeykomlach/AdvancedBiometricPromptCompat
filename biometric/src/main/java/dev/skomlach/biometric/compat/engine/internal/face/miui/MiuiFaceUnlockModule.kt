@@ -84,7 +84,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             try {
                 return manager?.isFaceFeatureSupport == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -96,7 +96,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             try {
                 return manager?.enrolledFaces?.isNotEmpty() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

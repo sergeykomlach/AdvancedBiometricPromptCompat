@@ -142,7 +142,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -154,7 +154,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             try {
                 return manager?.hasEnrolledTemplates() ?: false
             } catch (e: Throwable) {
-                e(e, name)
+
 
             }
             return false

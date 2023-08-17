@@ -64,7 +64,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 if (hihonor3DFaceManager?.isHardwareDetected == true) return true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
             return false
         }
@@ -74,7 +74,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 return hihonor3DFaceManager?.hasEnrolledTemplates() ?: false
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

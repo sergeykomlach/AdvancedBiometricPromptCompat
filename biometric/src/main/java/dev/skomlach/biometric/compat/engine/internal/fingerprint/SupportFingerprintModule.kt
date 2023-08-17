@@ -79,7 +79,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             try {
                 return managerCompat?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -90,7 +90,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             try {
                 return managerCompat?.hasEnrolledFingerprints() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
             return false
         }

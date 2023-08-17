@@ -81,7 +81,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -93,7 +93,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.hasEnrolledFaces() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

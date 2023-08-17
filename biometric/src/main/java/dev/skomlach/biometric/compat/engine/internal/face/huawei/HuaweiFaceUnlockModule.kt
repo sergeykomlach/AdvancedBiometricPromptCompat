@@ -104,7 +104,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 if (huaweiFaceManagerLegacy?.isHardwareDetected == true) return true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -115,7 +115,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 if (huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

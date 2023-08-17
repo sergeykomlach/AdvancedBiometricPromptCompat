@@ -146,7 +146,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.isHardwareDetected == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
@@ -157,7 +157,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 return manager?.hasEnrolledIrises() == true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false

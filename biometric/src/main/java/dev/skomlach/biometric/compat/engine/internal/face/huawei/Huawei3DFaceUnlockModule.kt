@@ -64,7 +64,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 if (huawei3DFaceManager?.isHardwareDetected == true) return true
             } catch (e: Throwable) {
-                e(e, name)
+
             }
             return false
         }
@@ -74,7 +74,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 return huawei3DFaceManager?.hasEnrolledTemplates() ?: false
             } catch (e: Throwable) {
-                e(e, name)
+
             }
 
             return false
