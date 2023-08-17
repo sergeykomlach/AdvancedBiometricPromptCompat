@@ -100,7 +100,9 @@ object CheckBiometricUI {
     }
 
     fun getBiometricUiPackage(context: Context): String {
-        return SystemStringsHelper.getFromSystem(context, "config_biometric_prompt_ui_package")
-            ?: "com.android.systemui"
+        return (SystemStringsHelper.getFromSystem(context, "config_biometric_prompt_ui_package")
+            ?: "com.android.systemui").also {
+                BiometricLoggerImpl.d("CheckBiometricUI", it)
+        }
     }
 }

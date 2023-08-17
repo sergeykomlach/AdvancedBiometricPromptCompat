@@ -19,7 +19,9 @@
 
 package dev.skomlach.biometric.compat.engine.internal
 
+import android.os.Build
 import android.os.Bundle
+import android.os.UserHandle
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -42,7 +44,17 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = true
     protected val authCallTimestamp = AtomicLong(0)
-
+    fun getUserId(): Int {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                UserHandle::class.java.methods.filter { it.name == "myUserId" }[0].invoke(null) as Int
+            } else {
+                0
+            }
+        } catch (ignore: Throwable) {
+            0
+        }
+    }
     fun lockout() {
         if (!isLockOut) {
             BiometricLockoutFix.lockout(biometricMethod.biometricType)

@@ -29,7 +29,7 @@ object SystemStringsHelper {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
                 if (field.name.equals(alias)) {
-                    LogCat.log("BiometricTitle", field.name)
+                    LogCat.log("SystemStringsHelper", field.name)
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true

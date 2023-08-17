@@ -472,7 +472,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         signalObject,
                         callback,
                         ExecutorHelper.handler,
-                        0,
+                        getUserId(),
                         true
                     )
                     return
@@ -497,7 +497,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     0,
                     callback,
                     ExecutorHelper.handler,
-                    0
+                    getUserId()
                 )
                 return
             } catch (e: Throwable) {
