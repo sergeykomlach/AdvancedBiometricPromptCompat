@@ -21,7 +21,8 @@ package dev.skomlach.biometric.compat.engine
 
 import dev.skomlach.biometric.compat.BiometricType
 
-enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
+enum class BiometricMethod(id: Int, biometricType: BiometricType) {
+    CUSTOM(0, BiometricType.BIOMETRIC_ANY),
     FINGERPRINT_API23(100, BiometricType.BIOMETRIC_FINGERPRINT),
     FINGERPRINT_SUPPORT(101, BiometricType.BIOMETRIC_FINGERPRINT),
     FINGERPRINT_SAMSUNG(102, BiometricType.BIOMETRIC_FINGERPRINT),
@@ -67,4 +68,20 @@ enum class BiometricMethod(val id: Int, val biometricType: BiometricType) {
         BiometricType.BIOMETRIC_IRIS
     ),  //https://github.com/fonix232/SCoverRE/blob/2374565740e4c7bfc653b3f05bd9be519e722e32/Reversed/framework/com/samsung/android/camera/iris/SemIrisManager.java
     DUMMY_BIOMETRIC(9999, BiometricType.BIOMETRIC_ANY);
+
+    var id: Int = id
+        private set
+    var biometricType: BiometricType = biometricType
+        private set
+
+    companion object {
+        fun createCustomModule(id: Int, biometricType: BiometricType): BiometricMethod =
+            CUSTOM.apply {
+                if (values().any {
+                        it.id == id
+                    }) throw IllegalArgumentException("This ID already used")
+                this.id = id
+                this.biometricType = biometricType
+            }
+    }
 }

@@ -67,7 +67,18 @@ object BiometricAuthentication {
 
     private var initInProgress = AtomicBoolean(false)
     private var authInProgress = AtomicBoolean(false)
+    private val customModuleHashMap = Collections
+        .synchronizedMap(HashMap<BiometricMethod, CustomModuleProvider>())
+    fun registerCustomModule(biometricMethod: BiometricMethod, provider : CustomModuleProvider) :Boolean{
+        if(customModuleHashMap.any { 
+            it.key.id == biometricMethod.id
+            }) return false
 
+        customModuleHashMap[biometricMethod] = provider
+        return true
+    }
+
+    
     @JvmOverloads
     fun init(
         globalInitListener: BiometricInitListener? = null,
@@ -121,11 +132,15 @@ object BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_HUAWEI3D)
             allMethods.add(BiometricMethod.FACE_HIHONOR3D)
         }
+        customModuleHashMap.forEach{
+            allMethods.add(it.key)
+        }
+        
         val modulesMap = HashMap<BiometricMethod, BiometricModule?>()
         //launch in BG because for init needed about 2-3 seconds
         try {
             val list: MutableList<BiometricMethod>
-            if (mlist == null || mlist.isEmpty()) list = allMethods else {
+            if (mlist.isNullOrEmpty()) list = allMethods else {
                 list = ArrayList()
                 for (method in allMethods) {
                     for (type in mlist) {
@@ -202,7 +217,10 @@ object BiometricAuthentication {
                     BiometricMethod.FACE_ANDROIDAPI -> AndroidFaceUnlockModule(initListener)
                     BiometricMethod.IRIS_SAMSUNG -> SamsungIrisUnlockModule(initListener)
                     BiometricMethod.IRIS_ANDROIDAPI -> AndroidIrisUnlockModule(initListener)
-                    else -> throw IllegalStateException("Uknowon biometric type - $method")
+                    BiometricMethod.CUSTOM -> customModuleHashMap[method]?.newCustomBiometricModule(method)?.also {
+                        initListener.initFinished(method, it)
+                    }?:throw IllegalStateException("Unknown biometric type - $method")
+                    else -> throw IllegalStateException("Unknown biometric type - $method")
                 }
             } catch (e: Throwable) {
                 e(e, "BiometricAuthentication")
