@@ -56,8 +56,7 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 | BiometricPrompt API | Android 9+ |Xiaomi POCO F1, OnePlus 8T|  
 | Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10|   
 | Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
-| Fingerprint | Android 6+ |Xiaomi POCO F1|  
-| **FaceId** | **Android UpsideDownCake** |**Emulator**|  
+| Fingerprint | Android 6+ |Xiaomi POCO F1|
 | In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| 
 | Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 | 
 | Face Unlock (aka TrustedFaces) | Android 4.1+ |Prestigio PAP3400|  
@@ -71,6 +70,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+August 18 2023
+
+**Code refactoring and Improvements** Reworked hardware detection; Removed code that produce unexpected results; New feature - devs able to add  CustomBiometricModule (like voice etc)
+
 July 24 2023
 
 **Bugfixes** Fixed false positive biometric detection
@@ -83,25 +86,7 @@ June 8 2023
 
 **Improvement** Updated to Android 14 UpsideDownCake/SDK 34
 
-May 23 2023
 
-**Improvement** Auth flow performance improved
-
-May 19 2023
-
-**Improvement** Fixed UI opening delay
-
-May 17 2023
-
-**HOTFIX!!!** old scrapper for GSMArena no longer able to parse website's HTML, so code moved to local device spec database
-
-May 10 2023
-
-**Bugfixes** Some flow fixes - DeviceInfo hangs, MissedPermission error etc
-
-May 1 2023
-
-**Improvement** Added Chucker to test app
 
 
 ## Test app
