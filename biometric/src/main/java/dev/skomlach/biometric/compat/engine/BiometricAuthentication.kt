@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.CustomBiometricModuleProvider
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -68,8 +69,8 @@ object BiometricAuthentication {
     private var initInProgress = AtomicBoolean(false)
     private var authInProgress = AtomicBoolean(false)
     private val customModuleHashMap = Collections
-        .synchronizedMap(HashMap<BiometricMethod, CustomModuleProvider>())
-    fun registerCustomModule(biometricMethod: BiometricMethod, provider : CustomModuleProvider) :Boolean{
+        .synchronizedMap(HashMap<BiometricMethod, CustomBiometricModuleProvider>())
+    fun registerCustomModule(biometricMethod: BiometricMethod, provider : CustomBiometricModuleProvider) :Boolean{
         if(customModuleHashMap.any { 
             it.key.id == biometricMethod.id
             }) return false

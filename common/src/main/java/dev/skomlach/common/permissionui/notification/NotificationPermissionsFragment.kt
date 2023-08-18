@@ -326,7 +326,11 @@ class NotificationPermissionsFragment : Fragment() {
             }
         }
     }
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        startForResult.unregister()
+        startForResultForPermissions.unregister()
+    }
     private fun closeFragment() {
         val channelId = arguments?.getString(CHANNEL_ID)
         val type = PermissionRequestController.PermissionType.values().firstOrNull {

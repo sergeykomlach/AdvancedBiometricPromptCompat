@@ -94,6 +94,12 @@ object PermissionUtils {
 
     fun hasSelfPermissions(vararg permissions: String): Boolean {
         for (permission: String in permissions) {
+            if (Utils.isAtLeastT && listOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ).contains(permission)
+            )
+                continue
             if (!isPermissionExistsInTheSystem(permission)) {
                 continue
             }

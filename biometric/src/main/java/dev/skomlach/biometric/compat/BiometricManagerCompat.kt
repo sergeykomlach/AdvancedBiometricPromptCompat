@@ -23,6 +23,7 @@ import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
@@ -34,6 +35,23 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+
+    @JvmStatic
+    fun registerCustomBiometric(
+        id: Int,
+        type: BiometricType,
+        provider: CustomBiometricModuleProvider
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+
+        return BiometricAuthentication.registerCustomModule(
+            BiometricMethod.createCustomModule(
+                id,
+                type
+            ), provider
+        )
+    }
 
     @JvmStatic
     fun isSilentAuthAvailable(

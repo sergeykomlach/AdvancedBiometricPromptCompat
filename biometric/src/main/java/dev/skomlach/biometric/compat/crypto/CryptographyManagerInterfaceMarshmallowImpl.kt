@@ -107,6 +107,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         paramsBuilder.apply {
             setBlockModes(BLOCK_MODE_CBC)
             setEncryptionPaddings(ENCRYPTION_PADDING_PKCS7)
+            setRandomizedEncryptionRequired(false)
             setUserAuthenticationRequired(isUserAuthRequired)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 setInvalidatedByBiometricEnrollment(isUserAuthRequired)

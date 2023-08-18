@@ -127,7 +127,11 @@ class PermissionsFragment : Fragment() {
                 AndroidContext.resumedActivityLiveData.observeForever(observer)
             }
         }
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        startForResult.unregister()
+        startForResultForPermissions.unregister()
+    }
     override fun onAttach(context: Context) {
         super.onAttach(context)
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
