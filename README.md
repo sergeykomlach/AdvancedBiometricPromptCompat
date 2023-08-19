@@ -79,7 +79,7 @@ July 24 2023
 **Bugfixes** Fixed false positive biometric detection
 
 June 27 2023
-
+change
 **Bugfixes** Fixes for Android 14 UpsideDownCake/SDK 34
 
 June 8 2023
@@ -220,11 +220,8 @@ b) hardware temporary locked by 3rd party app
 `fun openSettings(Activity): Boolean` - returns `true` if open the "Enroll biometric" settings
 screen for specified biometric
 
-`fun isBiometricEnrollChanged(): Boolean` - returns `true` if enrollment changed for specified
-biometric.
+`fun registerCustomBiometric(): Boolean` - returns `true` provided biometric can be registered. Useful when you need to implement non-hadrware functions like AWS VoiceID etc.
 
-**NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return
-incorrect result in many cases**
 
 `fun isSilentAuthAvailable(): Boolean` - returns `true` if silent auth available.
 
