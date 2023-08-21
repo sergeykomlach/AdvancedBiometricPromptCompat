@@ -87353,7 +87353,7 @@
    "model": "Lt6248"
   }
  ],
- "Lango Tech": [
+ "Lango": [
   {
    "device": "OPS-8195A",
    "name": "LANGO OPS8195",
@@ -103042,6 +103042,11 @@
    "device": "Kosumi",
    "name": "MobiWire Kosumi",
    "model": "Kosumi"
+  },
+  {
+   "device": "H5032U",
+   "name": "ONE",
+   "model": "ONE"
   },
   {
    "device": "Pegasus",
@@ -177529,6 +177534,11 @@
    "model": "Armor X10 Pro"
   },
   {
+   "device": "Armor_X13",
+   "name": "Armor X13",
+   "model": "Armor X13"
+  },
+  {
    "device": "Armor_X2",
    "name": "Armor X2",
    "model": "Armor_X2"
@@ -177662,6 +177672,11 @@
    "device": "Armor_9E",
    "name": "Armor_9E",
    "model": "Armor 9E"
+  },
+  {
+   "device": "Armor_X13",
+   "name": "Armor_X13",
+   "model": "Armor X13"
   },
   {
    "device": "Armor_X2",
