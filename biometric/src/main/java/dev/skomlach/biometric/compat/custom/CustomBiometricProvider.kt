@@ -17,11 +17,10 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat
+package dev.skomlach.biometric.compat.custom
 
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 
-abstract class CustomBiometricModuleProvider {
-    abstract fun newCustomBiometricModule(method: BiometricMethod): AbstractBiometricModule
+abstract class CustomBiometricProvider {
+    abstract fun newCustomBiometricModule(method: BiometricMethod): AbstractCustomBiometricManager
 }

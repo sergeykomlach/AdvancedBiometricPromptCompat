@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat
 import android.app.Activity
 import android.content.Intent
 import android.provider.Settings
+import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -40,7 +41,7 @@ object BiometricManagerCompat {
     fun registerCustomBiometric(
         id: Int,
         type: BiometricType,
-        provider: CustomBiometricModuleProvider
+        provider: CustomBiometricProvider
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false

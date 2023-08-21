@@ -30,10 +30,11 @@ import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.CustomBiometricModuleProvider
+import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.CustomBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
@@ -69,17 +70,21 @@ object BiometricAuthentication {
     private var initInProgress = AtomicBoolean(false)
     private var authInProgress = AtomicBoolean(false)
     private val customModuleHashMap = Collections
-        .synchronizedMap(HashMap<BiometricMethod, CustomBiometricModuleProvider>())
-    fun registerCustomModule(biometricMethod: BiometricMethod, provider : CustomBiometricModuleProvider) :Boolean{
-        if(customModuleHashMap.any { 
-            it.key.id == biometricMethod.id
+        .synchronizedMap(HashMap<BiometricMethod, CustomBiometricProvider>())
+
+    fun registerCustomModule(
+        biometricMethod: BiometricMethod,
+        provider: CustomBiometricProvider
+    ): Boolean {
+        if (customModuleHashMap.any {
+                it.key.id == biometricMethod.id
             }) return false
 
         customModuleHashMap[biometricMethod] = provider
         return true
     }
 
-    
+
     @JvmOverloads
     fun init(
         globalInitListener: BiometricInitListener? = null,
@@ -218,9 +223,14 @@ object BiometricAuthentication {
                     BiometricMethod.FACE_ANDROIDAPI -> AndroidFaceUnlockModule(initListener)
                     BiometricMethod.IRIS_SAMSUNG -> SamsungIrisUnlockModule(initListener)
                     BiometricMethod.IRIS_ANDROIDAPI -> AndroidIrisUnlockModule(initListener)
-                    BiometricMethod.CUSTOM -> customModuleHashMap[method]?.newCustomBiometricModule(method)?.also {
-                        initListener.initFinished(method, it)
-                    }?:throw IllegalStateException("Unknown biometric type - $method")
+                    BiometricMethod.CUSTOM ->
+                        CustomBiometricModule(
+                            method,
+                            customModuleHashMap[method]?.newCustomBiometricModule(method)
+                                ?: throw IllegalStateException("Unknown biometric type - $method"),
+                            initListener
+                        )
+
                     else -> throw IllegalStateException("Unknown biometric type - $method")
                 }
             } catch (e: Throwable) {
