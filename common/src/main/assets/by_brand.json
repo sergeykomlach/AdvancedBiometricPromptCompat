@@ -19170,6 +19170,11 @@
    "model": "Grand X"
   },
   {
+   "device": "J0150",
+   "name": "J10L",
+   "model": "J10L"
+  },
+  {
    "device": "J0110",
    "name": "J6L",
    "model": "J6L"
@@ -46054,6 +46059,11 @@
    "model": "Google Pixel Watch"
   },
   {
+   "device": "eos",
+   "name": "Pixel Watch 2",
+   "model": "Google Pixel Watch 2"
+  },
+  {
    "device": "marlin",
    "name": "Pixel XL",
    "model": "Pixel XL"
@@ -56848,6 +56858,11 @@
    "model": "Box Q"
   },
   {
+   "device": "YYJ",
+   "name": "Box R 4K Plus",
+   "model": "Box R 4K Plus"
+  },
+  {
    "device": "ICN",
    "name": "Dongle Q",
    "model": "Dongle Q"
@@ -57797,6 +57812,11 @@
    "device": "HNAGM",
    "name": "HONOR Pad X8 Lite",
    "model": "AGM-W09HN"
+  },
+  {
+   "device": "HNELN-Q",
+   "name": "HONOR Pad X9",
+   "model": "ELN-L09"
   },
   {
    "device": "HNELN-Q",
@@ -67090,6 +67110,11 @@
    "model": "HYUNDAI 2K Android TV"
   },
   {
+   "device": "lasalle",
+   "name": "HYUNDAI 2K Android TV-A",
+   "model": "HYUNDAI 2K Android TV-A"
+  },
+  {
    "device": "capitolhill",
    "name": "HYUNDAI 2K Google TV",
    "model": "HYUNDAI  2K Google TV"
@@ -67855,6 +67880,18 @@
    "device": "YUL",
    "name": "S1",
    "model": "S1"
+  }
+ ],
+ "INNOVA": [
+  {
+   "device": "lasalle",
+   "name": "INNOVA 2K Android TV",
+   "model": "INNOVA 2K Android TV"
+  },
+  {
+   "device": "kenton",
+   "name": "INNOVA 4K Android TV",
+   "model": "INNOVA 4K Android TV"
   }
  ],
  "INOI": [
@@ -75711,6 +75748,11 @@
    "model": "KONKA 2K Android TV-A"
   },
   {
+   "device": "lasalle",
+   "name": "KONKA 2K Android TV-B",
+   "model": "KONKA 2K Android TV-B"
+  },
+  {
    "device": "kenton",
    "name": "KONKA 4K Android TV",
    "model": "KONKA 4K Android TV"
@@ -75719,6 +75761,11 @@
    "device": "kenton",
    "name": "KONKA 4K Android TV-A",
    "model": "KONKA 4K Android TV-A"
+  },
+  {
+   "device": "kenton",
+   "name": "KONKA 4K Android TV-B",
+   "model": "KONKA 4K Android TV-B"
   },
   {
    "device": "keoneae",
@@ -77071,6 +77118,11 @@
    "model": "A25751P"
   },
   {
+   "device": "A2_S905X4",
+   "name": "A2S905X4",
+   "model": "A2S905X4"
+  },
+  {
    "device": "A1B_72115",
    "name": "N97_A1B_72115",
    "model": "N97_A1B_72115"
@@ -78326,6 +78378,13 @@
    "device": "K22",
    "name": "K22",
    "model": "K22"
+  }
+ ],
+ "Konchris": [
+  {
+   "device": "kenton",
+   "name": "Konchris 4K Android TV",
+   "model": "Konchris 4K Android TV"
   }
  ],
  "Konrow": [
@@ -101821,6 +101880,11 @@
   },
   {
    "device": "MobiGo2P",
+   "name": "MobiGo 2+",
+   "model": "MobiGo2P"
+  },
+  {
+   "device": "MobiGo2PQV",
    "name": "MobiGo 2+",
    "model": "MobiGo2P"
   },
@@ -135774,6 +135838,11 @@
    "device": "kenton",
    "name": "Smart TV 4K",
    "model": "Smart TV 4K"
+  },
+  {
+   "device": "kenton",
+   "name": "Smart TV 4K-A",
+   "model": "Smart TV 4K-A"
   },
   {
    "device": "kenton",
@@ -172223,6 +172292,11 @@
    "device": "T40Air",
    "name": "T40Air_EEA",
    "model": "T40Air_EEA"
+  },
+  {
+   "device": "T40Air_EEA",
+   "name": "T40Air_EEA",
+   "model": "T40 Air"
   },
   {
    "device": "T40Air_EEA",
