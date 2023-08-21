@@ -47,10 +47,19 @@ object BiometricCryptoObjectHelper {
         try {
             val cipher =
                 when (purpose.purpose) {
-                    BiometricCryptographyPurpose.ENCRYPT -> managerInterface.getInitializedCipherForEncryption(
-                        name,
-                        isUserAuthRequired
-                    )
+                    BiometricCryptographyPurpose.ENCRYPT -> try {
+                        managerInterface.getInitializedCipherForEncryption(
+                            name,
+                            isUserAuthRequired
+                        )
+                    } catch (e: Throwable) {
+                        managerInterface.deleteKey(name)
+                        managerInterface.getInitializedCipherForEncryption(
+                            name,
+                            isUserAuthRequired
+                        )
+                    }
+
                     BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
                         name,
                         isUserAuthRequired,
