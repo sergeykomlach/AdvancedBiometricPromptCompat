@@ -22,6 +22,8 @@ package dev.skomlach.biometric.compat.crypto
 import javax.crypto.Cipher
 
 interface CryptographyManagerInterface {
+    val version : String
+        get() = "v1"
 
     fun getInitializedCipherForEncryption(keyName: String, isUserAuthRequired: Boolean): Cipher
 

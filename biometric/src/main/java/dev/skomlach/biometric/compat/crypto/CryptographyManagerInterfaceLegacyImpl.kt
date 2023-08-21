@@ -40,6 +40,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
         get() = "publicKey"
     private val TYPE_RSA: String
         get() = "RSA"
+    private val KEY_NAME = "CryptographyManagerInterfaceLegacyImpl-$version"
 
     private val context = AndroidContext.appContext
     override fun deleteKey(keyName: String) {
@@ -56,8 +57,8 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
         isUserAuthRequired: Boolean
     ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey("CryptographyManagerInterfaceLegacyImpl.$keyName")
-        val keys = getPublicKeys("CryptographyManagerInterfaceLegacyImpl.$keyName")
+        getOrCreateSecretKey("$KEY_NAME.$keyName")
+        val keys = getPublicKeys("$KEY_NAME.$keyName")
         for (key in keys) {
             try {
                 key?.let {
@@ -79,8 +80,8 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
         initializationVector: ByteArray?
     ): Cipher {
         val cipher = getCipher()
-        getOrCreateSecretKey("CryptographyManagerInterfaceLegacyImpl.$keyName")
-        val keys = getPrivateKeys("CryptographyManagerInterfaceLegacyImpl.$keyName")
+        getOrCreateSecretKey("$KEY_NAME.$keyName")
+        val keys = getPrivateKeys("$KEY_NAME.$keyName")
         for (key in keys) {
             try {
                 key?.let {

@@ -53,10 +53,12 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         get() = "AndroidKeyStore"
     private val context = AndroidContext.appContext
 
+    private val KEY_NAME = "CryptographyManagerInterfaceKitkatImpl-$version"
+
     override fun deleteKey(keyName: String) {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
         keyStore.load(null) // Keystore must be loaded before it can be accessed
-        keyStore.deleteEntry("CryptographyManagerInterfaceKitkatImpl.$keyName")
+        keyStore.deleteEntry("$KEY_NAME.$keyName")
         val sharedPreferences =
             SharedPreferenceProvider.getPreferences(
                 "$KEYSTORE_FALLBACK_NAME-$keyName"
@@ -71,8 +73,8 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     ): Cipher {
         try {
             val cipher = getCipher()
-            getOrCreateSecretKey("CryptographyManagerInterfaceKitkatImpl.$keyName")
-            val keys = getPublicKeys("CryptographyManagerInterfaceKitkatImpl.$keyName")
+            getOrCreateSecretKey("$KEY_NAME.$keyName")
+            val keys = getPublicKeys("$KEY_NAME.$keyName")
             for (key in keys) {
                 try {
                     key?.let {
@@ -88,7 +90,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
                 e,
-                "KeyName=CryptographyManagerInterfaceKitkatImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+                "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
             )
             throw e
         }
@@ -102,8 +104,8 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     ): Cipher {
         try {
             val cipher = getCipher()
-            getOrCreateSecretKey("CryptographyManagerInterfaceKitkatImpl.$keyName")
-            val keys = getPrivateKeys("CryptographyManagerInterfaceKitkatImpl.$keyName")
+            getOrCreateSecretKey("$KEY_NAME.$keyName")
+            val keys = getPrivateKeys("$KEY_NAME.$keyName")
             for (key in keys) {
                 try {
                     key?.let {
@@ -117,7 +119,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
                 e,
-                "KeyName=CryptographyManagerInterfaceKitkatImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+                "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
             )
             throw e
         }

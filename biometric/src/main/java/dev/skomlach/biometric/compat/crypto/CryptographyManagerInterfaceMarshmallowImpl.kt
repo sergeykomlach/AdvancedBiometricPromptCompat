@@ -35,6 +35,7 @@ import javax.crypto.spec.IvParameterSpec
 class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface {
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
+    private val KEY_NAME = "CryptographyManagerInterfaceMarshmallowImpl-$version"
     private val context = AndroidContext.appContext
     override fun getInitializedCipherForEncryption(
         keyName: String,
@@ -43,7 +44,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         return try {
             val cipher = getCipher()
             val secretKey = getOrCreateSecretKey(
-                "CryptographyManagerInterfaceMarshmallowImpl.$keyName",
+                "$KEY_NAME.$keyName",
                 isUserAuthRequired
             )
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
@@ -51,7 +52,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
                 e,
-                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+                "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
             )
             throw e
         }
@@ -67,7 +68,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
             val cipher = getCipher()
             val secretKey = getOrCreateSecretKey(
-                "CryptographyManagerInterfaceMarshmallowImpl.$keyName",
+                "$KEY_NAME.$keyName",
                 isUserAuthRequired
             )
             cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(initializationVector))
@@ -75,7 +76,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
                 e,
-                "KeyName=CryptographyManagerInterfaceMarshmallowImpl.$keyName; isUserAuthRequired=$isUserAuthRequired"
+                "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
             )
             throw e
         }
@@ -84,7 +85,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     override fun deleteKey(keyName: String) {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
         keyStore.load(null) // Keystore must be loaded before it can be accessed
-        keyStore.deleteEntry("CryptographyManagerInterfaceMarshmallowImpl.$keyName")
+        keyStore.deleteEntry("$KEY_NAME.$keyName")
 
     }
 
@@ -113,8 +114,8 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 setInvalidatedByBiometricEnrollment(isUserAuthRequired)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                setUserPresenceRequired(false)
-                setUserConfirmationRequired(isUserAuthRequired)
+                setUserPresenceRequired(false)//TRUE produce error during initialization
+                setUserConfirmationRequired(false)//TRUE produce error during encoding
                 setIsStrongBoxBacked(hasStrongBox())
             }
         }
