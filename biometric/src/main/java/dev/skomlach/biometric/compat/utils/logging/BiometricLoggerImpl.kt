@@ -35,11 +35,13 @@ object BiometricLoggerImpl {
 
 
     fun e(vararg msgs: Any?) {
-        val m = mutableListOf(*msgs).also {
-            it.add(0, "BiometricLogging")
-            it.add(1, method)
+        externalLogger?.let { logger ->
+            val m = mutableListOf(*msgs).also {
+                it.add(0, "BiometricLogging")
+                it.add(1, method)
+            }
+            logger.logError(*m.toTypedArray())
         }
-        externalLogger?.logError(*m.toTypedArray())
         if (DEBUG) Log.e("BiometricLogging", listOf(*msgs).toString())
     }
 
@@ -49,21 +51,25 @@ object BiometricLoggerImpl {
 
 
     fun e(e: Throwable?, vararg msgs: Any?) {
-        val m = mutableListOf(*msgs).also {
-            it.add(0, "BiometricLogging")
-            it.add(1, method)
+        externalLogger?.let { logger ->
+            val m = mutableListOf(*msgs).also {
+                it.add(0, "BiometricLogging")
+                it.add(1, method)
+            }
+            logger.logException(e, *m.toTypedArray())
         }
-        externalLogger?.logException(e, *m.toTypedArray())
         if (DEBUG) Log.e("BiometricLogging", listOf(*msgs).toString(), e)
     }
 
 
     fun d(vararg msgs: Any?) {
-        val m = mutableListOf(*msgs).also {
-            it.add(0, "BiometricLogging")
-            it.add(1, method)
+        externalLogger?.let { logger ->
+            val m = mutableListOf(*msgs).also {
+                it.add(0, "BiometricLogging")
+                it.add(1, method)
+            }
+            logger.log(*m.toTypedArray())
         }
-        externalLogger?.log(*m.toTypedArray())
         if (DEBUG) Log.d("BiometricLogging", listOf(*msgs).toString())
     }
 
