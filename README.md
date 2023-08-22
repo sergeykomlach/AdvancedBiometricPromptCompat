@@ -70,6 +70,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+August 22 2023
+
+**Bugfixes** PR included with ANR fix
+
 August 18 2023
 
 **Code refactoring and Improvements** Reworked hardware detection; Removed code that produce unexpected results; New feature - devs able to add  CustomBiometricModule (like voice etc)
