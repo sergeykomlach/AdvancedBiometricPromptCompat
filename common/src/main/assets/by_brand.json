@@ -6437,6 +6437,11 @@
    "model": "ATV R2"
   },
   {
+   "device": "R3",
+   "name": "R3",
+   "model": "R3"
+  },
+  {
    "device": "R4",
    "name": "R4",
    "model": "R4"
@@ -9126,32 +9131,32 @@
   },
   {
    "device": "SH4-1",
-   "name": "Myco 4 Cellular Wi-Fi",
+   "name": "Ascom Myco 4",
    "model": "Myco 4 Cellular Wi-Fi"
   },
   {
    "device": "SH4-1",
-   "name": "Myco 4 Cellular Wi-Fi EEA",
+   "name": "Ascom Myco 4",
    "model": "Myco 4 Cellular Wi-Fi EEA"
   },
   {
    "device": "SH4-2",
-   "name": "Myco 4 Slim",
+   "name": "Ascom Myco 4",
    "model": "Myco 4 Slim"
   },
   {
    "device": "SH4-2",
-   "name": "Myco 4 Slim EEA",
+   "name": "Ascom Myco 4",
    "model": "Myco 4 Slim EEA"
   },
   {
    "device": "SH4-2",
-   "name": "Myco 4 Wi-Fi",
+   "name": "Ascom Myco 4",
    "model": "Myco 4 Wi-Fi"
   },
   {
    "device": "SH4-2",
-   "name": "Myco 4 Wi-Fi EEA",
+   "name": "Ascom Myco 4",
    "model": "Myco 4 Wi-Fi EEA"
   }
  ],
@@ -9278,6 +9283,11 @@
    "device": "R9",
    "name": "ASPERA R9",
    "model": "ASPERA_R9"
+  },
+  {
+   "device": "ASPERA_R10",
+   "name": "ASPERA_R10",
+   "model": "ASPERA_R10"
   },
   {
    "device": "Aspera_Swift",
@@ -15973,6 +15983,11 @@
    "model": "T55"
   },
   {
+   "device": "TEY1A",
+   "name": "TEY1A",
+   "model": "TEY1A"
+  },
+  {
    "device": "laoshan",
    "name": "laoshan_BenQ",
    "model": "BENQANDROIDTV"
@@ -17835,6 +17850,11 @@
   {
    "device": "hongkong",
    "name": "BLAUPUNKT",
+   "model": "4K SMART TV"
+  },
+  {
+   "device": "hongkong",
+   "name": "BLAUPUNKT",
    "model": "BLAUPUNKT GOOGLE TV 4K"
   },
   {
@@ -17951,6 +17971,11 @@
    "device": "keoneae",
    "name": "Blaupunkt 4K Google TV",
    "model": "Blaupunkt 4K Google TV"
+  },
+  {
+   "device": "bandra",
+   "name": "Blaupunkt Google TV",
+   "model": "Blaupunkt Google TV"
   },
   {
    "device": "Blaupunkt_SL_01",
@@ -20552,6 +20577,16 @@
    "model": "BSTAR+"
   },
   {
+   "device": "R3",
+   "name": "R3",
+   "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
+  },
+  {
    "device": "R4_GTV",
    "name": "R4_GTV",
    "model": "R4G"
@@ -21233,6 +21268,11 @@
    "device": "R3",
    "name": "R3",
    "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
   }
  ],
  "CG Mobile": [
@@ -26118,6 +26158,11 @@
    "model": "Plume L5 Pro"
   },
   {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
+  },
+  {
    "device": "SP530",
    "name": "SP530",
    "model": "Griffe T2"
@@ -26375,6 +26420,11 @@
    "device": "yeongdeungpo",
    "name": "Continental Edison",
    "model": "B UHD Android TV"
+  },
+  {
+   "device": "kenton",
+   "name": "ContinentalEdison 4K Android TV",
+   "model": "ContinentalEdison 4K Android TV"
   },
   {
    "device": "bangbae",
@@ -28434,6 +28484,11 @@
    "model": "KINGKONG 7"
   },
   {
+   "device": "KINGKONG_8",
+   "name": "KINGKONG 8",
+   "model": "KINGKONG 8"
+  },
+  {
    "device": "KINGKONG_9",
    "name": "KINGKONG 9",
    "model": "KINGKONG 9"
@@ -28512,6 +28567,11 @@
    "device": "NOTE_30",
    "name": "NOTE 30",
    "model": "NOTE 30"
+  },
+  {
+   "device": "NOTE_40",
+   "name": "NOTE 40",
+   "model": "NOTE 40"
   },
   {
    "device": "NOTE_50",
@@ -36434,6 +36494,11 @@
  ],
  "Element": [
   {
+   "device": "hongkong",
+   "name": "ELEMENT",
+   "model": "4K SMART TV"
+  },
+  {
    "device": "bruno",
    "name": "Element",
    "model": "Element2KAndroidTV"
@@ -37598,6 +37663,11 @@
    "device": "R3",
    "name": "R3",
    "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
   },
   {
    "device": "ST7001",
@@ -41203,6 +41273,13 @@
    "device": "fbx6lcv2",
    "name": "Mini 4K",
    "model": "Freebox Player Mini v2"
+  }
+ ],
+ "Freemobile": [
+  {
+   "device": "FS500",
+   "name": "FS500",
+   "model": "FS500"
   }
  ],
  "Freetel": [
@@ -46464,6 +46541,11 @@
    "model": "GRUNKEL SMART TV"
   },
   {
+   "device": "marina",
+   "name": "GRUNKEL SMART TV",
+   "model": "GRUNKEL SMART TV"
+  },
+  {
    "device": "tamachi",
    "name": "Spain",
    "model": "GRUNKEL FHD Android TV"
@@ -51297,6 +51379,11 @@
  ],
  "Haier": [
   {
+   "device": "umeda",
+   "name": "2K Haier TV",
+   "model": "2K Haier TV"
+  },
+  {
    "device": "A-TT00",
    "name": "A-TT00",
    "model": "A-TT00"
@@ -55171,6 +55258,11 @@
    "device": "Hisense",
    "name": "Hisense U605",
    "model": "Hisense U605"
+  },
+  {
+   "device": "HLTE109E",
+   "name": "Hisense U70 Pro",
+   "model": "Hisense U70 Pro"
   },
   {
    "device": "HLTE100E_11",
@@ -73736,6 +73828,11 @@
    "model": "itel S665LN"
   },
   {
+   "device": "itel-S681LN",
+   "name": "itel S23+",
+   "model": "itel S681LN"
+  },
+  {
    "device": "itel-S32LTE",
    "name": "itel S32LTE",
    "model": "itel S32LTE"
@@ -74461,6 +74558,11 @@
    "device": "tennoji",
    "name": "MTC",
    "model": "JVCUS 2K Google TV"
+  },
+  {
+   "device": "R3",
+   "name": "R3",
+   "model": "R3"
   },
   {
    "device": "R4",
@@ -76153,6 +76255,11 @@
    "device": "zhongshan",
    "name": "COL",
    "model": "43FCOL"
+  },
+  {
+   "device": "stanford",
+   "name": "CONTINUUS",
+   "model": "SMART TV"
   },
   {
    "device": "hongkong",
@@ -90216,6 +90323,11 @@
    "model": "Lenovo A300t"
   },
   {
+   "device": "A301LV",
+   "name": "A301LV",
+   "model": "A301LV"
+  },
+  {
    "device": "A305e",
    "name": "A305E",
    "model": "LNV-Lenovo A305e"
@@ -91276,6 +91388,11 @@
    "model": "LIFETAB_E7312"
   },
   {
+   "device": "TB320FC",
+   "name": "Legion Tab Y700",
+   "model": "TB320FC"
+  },
+  {
    "device": "halo",
    "name": "Legion Y70",
    "model": "Lenovo L71091"
@@ -91891,6 +92008,11 @@
    "model": "TB570FU"
   },
   {
+   "device": "TB570ZU",
+   "name": "Lenovo Tab Extreme",
+   "model": "TB570ZU"
+  },
+  {
    "device": "X6C6F",
    "name": "Lenovo Tab K10",
    "model": "Lenovo TB-X6C6F"
@@ -92004,6 +92126,11 @@
    "device": "TB-X505X",
    "name": "Lenovo Tab M10 (HD)",
    "model": "Lenovo TB-X505X"
+  },
+  {
+   "device": "TB360ZU",
+   "name": "Lenovo Tab M10 5G",
+   "model": "TB360ZU"
   },
   {
    "device": "X606F",
@@ -92176,6 +92303,16 @@
    "model": "Lenovo TB-8506X"
   },
   {
+   "device": "TB301FU",
+   "name": "Lenovo Tab M8 (4th Gen) 2024",
+   "model": "TB301FU"
+  },
+  {
+   "device": "TB301XU",
+   "name": "Lenovo Tab M8 (4th Gen) 2024",
+   "model": "TB301XU"
+  },
+  {
    "device": "TB300FU",
    "name": "Lenovo Tab M8 (4th gen)",
    "model": "TB300FU"
@@ -92259,6 +92396,11 @@
    "device": "TB132FU",
    "name": "Lenovo Tab P11 Pro (2nd Gen)",
    "model": "TB132FU"
+  },
+  {
+   "device": "TB370FU",
+   "name": "Lenovo Tab P12",
+   "model": "TB370FU"
   },
   {
    "device": "Q706F",
@@ -92926,6 +93068,16 @@
    "model": "Lenovo TB3-X70I"
   },
   {
+   "device": "TB360ZJ",
+   "name": "TB360ZJ",
+   "model": "TB360ZJ"
+  },
+  {
+   "device": "TB360ZU",
+   "name": "TB360ZU",
+   "model": "TB360ZU"
+  },
+  {
    "device": "kunlun2",
    "name": "TBD",
    "model": "Lenovo L38111"
@@ -93366,6 +93518,11 @@
    "model": "XT2261-2"
   },
   {
+   "device": "TB371FC",
+   "name": "xiaoxin pad Pro 12.7",
+   "model": "TB371FC"
+  },
+  {
    "device": "TB128FU",
    "name": "启天K10 Pro",
    "model": "TB128FU"
@@ -93406,6 +93563,11 @@
    "model": "Lenovo TB-Q706F"
   },
   {
+   "device": "TB370FU",
+   "name": "小新Pad Pro 12.7 (天玑版）",
+   "model": "TB370FU"
+  },
+  {
    "device": "J716F",
    "name": "小新Pad Pro 2021",
    "model": "Lenovo TB-J716F"
@@ -93421,6 +93583,11 @@
    "model": "TB138FC"
   },
   {
+   "device": "TB372FC",
+   "name": "小新学习平板",
+   "model": "TB372FC"
+  },
+  {
    "device": "TB-8804F",
    "name": "小新平板",
    "model": "Lenovo TB-8804F"
@@ -93434,6 +93601,11 @@
    "device": "TB570FU",
    "name": "拯救者平板Y900",
    "model": "TB570FU"
+  },
+  {
+   "device": "TB570ZU",
+   "name": "拯救者平板Y900",
+   "model": "TB570ZU"
   },
   {
    "device": "moba",
@@ -93474,6 +93646,11 @@
    "device": "TB230XC",
    "name": "联想平板电脑 启天K11 Gen2",
    "model": "TB230XC"
+  },
+  {
+   "device": "TB240FC",
+   "name": "联想平板电脑 启天K12",
+   "model": "TB240FC"
   },
   {
    "device": "TB-X607Z",
@@ -102894,6 +103071,11 @@
    "model": "Ahiga"
   },
   {
+   "device": "H5032U",
+   "name": "Airtel Imagine",
+   "model": "Airtel Imagine"
+  },
+  {
    "device": "E55",
    "name": "Altice E55",
    "model": "E55"
@@ -111854,6 +112036,11 @@
  ],
  "NobleSkiodo": [
   {
+   "device": "umeda",
+   "name": "2K NSTV",
+   "model": "2K NSTV"
+  },
+  {
    "device": "ikebukuro",
    "name": "32VRCHG5SP",
    "model": "AI PONT"
@@ -113651,6 +113838,11 @@
    "model": "OK 4K Android TV"
   },
   {
+   "device": "kaitak",
+   "name": "OK",
+   "model": "OK Google TV"
+  },
+  {
    "device": "shinagawa",
    "name": "OK 2K TV",
    "model": "OK 2K TV"
@@ -115096,6 +115288,11 @@
    "device": "Oneplus_Dosa_IN",
    "name": "Oneplus_Dosa_IN",
    "model": "Oneplus_Dosa_IN"
+  },
+  {
+   "device": "OP5927",
+   "name": "PHP110",
+   "model": "PHP110"
   },
   {
    "device": "OnePlus",
@@ -117911,6 +118108,16 @@
    "model": "PCAT00"
   },
   {
+   "device": "OP5705L1",
+   "name": "Reno10 5G",
+   "model": "CPH2531"
+  },
+  {
+   "device": "OP56DBL1",
+   "name": "Reno10 Pro 5G",
+   "model": "A302OP"
+  },
+  {
    "device": "OP56DBL1",
    "name": "Reno10 Pro 5G",
    "model": "CPH2525"
@@ -117919,6 +118126,11 @@
    "device": "OP56DBL1",
    "name": "Reno10 Pro 5G",
    "model": "CPH2541"
+  },
+  {
+   "device": "OP56D3L1",
+   "name": "Reno10 Pro+ 5G",
+   "model": "CPH2521"
   },
   {
    "device": "OP4B65L1",
@@ -121667,6 +121879,11 @@
    "model": "SMLK2A"
   },
   {
+   "device": "SPU-A05-SWG",
+   "name": "SPU-A05-SWG",
+   "model": "SPU-A05-SWG"
+  },
+  {
    "device": "K1",
    "name": "SV-ME1000",
    "model": "Panasonic SV-ME1000"
@@ -121750,6 +121967,11 @@
    "device": "TAB-A05",
    "name": "TAB-A05-SA",
    "model": "TAB-A05"
+  },
+  {
+   "device": "TAB-A05-SA2",
+   "name": "TAB-A05-SA2",
+   "model": "TAB-A05-SA2"
   },
   {
    "device": "Panasonic_848",
@@ -130432,6 +130654,13 @@
    "model": "R8"
   }
  ],
+ "ROWA": [
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
+  }
+ ],
  "RSEA": [
   {
    "device": "RSE_E1",
@@ -132222,6 +132451,11 @@
    "device": "yunluo",
    "name": "Redmi Pad",
    "model": "22081283G"
+  },
+  {
+   "device": "xun",
+   "name": "Redmi Pad SE",
+   "model": "23073RPBFG"
   },
   {
    "device": "tarzan",
@@ -134336,6 +134570,11 @@
  ],
  "SPC": [
   {
+   "device": "Discovery_Pro",
+   "name": "Discovery Pro",
+   "model": "Discovery Pro"
+  },
+  {
    "device": "martin",
    "name": "EU、UK、AP",
    "model": "SPC Android TV"
@@ -134752,6 +134991,16 @@
    "device": "R2",
    "name": "Android TV",
    "model": "ATV R2"
+  },
+  {
+   "device": "R3",
+   "name": "R3",
+   "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
   }
  ],
  "SPURT": [
@@ -135734,6 +135983,11 @@
    "device": "anaheim",
    "name": "SWTV-22HK-4K NF",
    "model": "SWTV-22HK-4K NF"
+  },
+  {
+   "device": "anaheim",
+   "name": "SWTV-22NA-4K",
+   "model": "SWTV-22NA-4K"
   },
   {
    "device": "umeda",
@@ -150000,6 +150254,16 @@
    "model": "SM-F721W"
   },
   {
+   "device": "SC-54D",
+   "name": "Galaxy Z Flip5",
+   "model": "SC-54D"
+  },
+  {
+   "device": "SCG23",
+   "name": "Galaxy Z Flip5",
+   "model": "SCG23"
+  },
+  {
    "device": "b5q",
    "name": "Galaxy Z Flip5",
    "model": "SM-F7310"
@@ -150143,6 +150407,16 @@
    "device": "q4q",
    "name": "Galaxy Z Fold4",
    "model": "SM-F936W"
+  },
+  {
+   "device": "SC-55D",
+   "name": "Galaxy Z Fold5",
+   "model": "SC-55D"
+  },
+  {
+   "device": "SCG22",
+   "name": "Galaxy Z Fold5",
+   "model": "SCG22"
   },
   {
    "device": "q5q",
@@ -150537,6 +150811,11 @@
    "model": "Apollo Premium2K TV"
   },
   {
+   "device": "marina",
+   "name": "Apollo Premium4K TV",
+   "model": "Apollo Premium4K TV"
+  },
+  {
    "device": "ETAB_M9021G",
    "name": "ETAB M9021G",
    "model": "ETAB_M9021G"
@@ -150575,11 +150854,6 @@
    "device": "Nitro",
    "name": "Nitro",
    "model": "Nitro"
-  },
-  {
-   "device": "marina",
-   "name": "North American",
-   "model": "Apollo Premium4K TV"
   },
   {
    "device": "sunnyvale",
@@ -154022,6 +154296,11 @@
    "device": "R3",
    "name": "R3",
    "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
   },
   {
    "device": "sunnyvale",
@@ -161500,6 +161779,11 @@
    "model": "S501"
   },
   {
+   "device": "SYMTAB_80",
+   "name": "SYMTAB 80",
+   "model": "SYMTAB_80"
+  },
+  {
    "device": "SYMTAB25",
    "name": "SYMTAB25",
    "model": "SYMTAB25"
@@ -162777,6 +163061,11 @@
    "device": "Encore_Spectrum",
    "name": "TCL 40 XE 5G",
    "model": "T609V"
+  },
+  {
+   "device": "Encore_Visible",
+   "name": "TCL 40 XE 5G",
+   "model": "T609B"
   },
   {
    "device": "Rio",
@@ -170240,6 +170529,11 @@
    "device": "R2",
    "name": "Android TV",
    "model": "ATV R2"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
   }
  ],
  "THEHAM": [
@@ -177994,6 +178288,11 @@
    "model": "Ulefone Tab A7"
   },
   {
+   "device": "GQ3286",
+   "name": "Tab A8",
+   "model": "Tab A8"
+  },
+  {
    "device": "Tab_A8",
    "name": "Tab A8",
    "model": "Tab A8"
@@ -182583,6 +182882,16 @@
    "device": "ikebukuro",
    "name": "32VRCHG5SP",
    "model": "AI PONT"
+  },
+  {
+   "device": "R3",
+   "name": "R3",
+   "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
   }
  ],
  "Vision": [
@@ -183046,6 +183355,11 @@
    "device": "2135",
    "name": "T1x",
    "model": "V2143"
+  },
+  {
+   "device": "V2237",
+   "name": "T2",
+   "model": "V2320"
   },
   {
    "device": "V2222",
@@ -186496,11 +186810,6 @@
    "device": "HD60",
    "name": "HD60",
    "model": "HD60"
-  },
-  {
-   "device": "HD60L",
-   "name": "HD60L",
-   "model": "HD60L"
   },
   {
    "device": "HD60i",
@@ -203770,6 +204079,18 @@
    "model": "Tab N7a"
   }
  ],
+ "elactron": [
+  {
+   "device": "R3",
+   "name": "R3",
+   "model": "R3"
+  },
+  {
+   "device": "R4",
+   "name": "R4",
+   "model": "R4"
+  }
+ ],
  "elevn": [
   {
    "device": "elevn_eTab",
@@ -205778,6 +206099,18 @@
    "device": "Polar3",
    "name": "Polar3_EEA",
    "model": "Polar3"
+  }
+ ],
+ "jAC-EG": [
+  {
+   "device": "beaudry",
+   "name": "43JB822",
+   "model": "jAC AndroidTV"
+  },
+  {
+   "device": "barking",
+   "name": "55JB832",
+   "model": "jAC AndroidTV"
   }
  ],
  "jetfon": [
