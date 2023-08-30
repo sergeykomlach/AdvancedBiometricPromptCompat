@@ -70,6 +70,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+August 30 2023
+
+**Bugfixes** Minor fixes related to R8
+
 August 22 2023
 
 **Bugfixes** PR included with ANR fix
@@ -395,6 +399,24 @@ access using any known technic.
 
 Anyway, research and testing are required for each case, so feel free to create issues or contact
 directly with me.
+
+
+## R8 warnings
+
+For RELEASE builds you can get in the console warnings like below:
+```
+AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
+AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
+AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
+AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
+AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
+AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
+```
+
+This warnings - just an information that classes from **Samsung_pass-v1.2.6.jar** and **Samsung_sdk-v1.0.0.jar** compiled with Class File Version **50**, when recent Gradle expect Class File Version **51**
+
+Library still works properly, so, no worries
+
 
 ## Some docs
 

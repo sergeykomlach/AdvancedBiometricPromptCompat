@@ -26,7 +26,7 @@ kotlin {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.appcompat:appcompat:1.6.1"
-    implementation "androidx.window:window:1.2.0-beta01"
+    implementation "androidx.window:window:1.2.0-alpha02"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'com.google.guava:guava:32.0.0-android'
     implementation 'com.jaredrummler:android-device-names:2.1.0'

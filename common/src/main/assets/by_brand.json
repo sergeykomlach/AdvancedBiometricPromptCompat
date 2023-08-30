@@ -13099,6 +13099,11 @@
    "model": "PlatinumTAB10_4G_V3"
   },
   {
+   "device": "PlatinumTAB11_4G",
+   "name": "PlatinumTAB11_4G",
+   "model": "PlatinumTAB11_4G"
+  },
+  {
    "device": "PlatinumTAB8_4G",
    "name": "PlatinumTAB8_4G",
    "model": "PlatinumTAB8_4G"
@@ -21107,6 +21112,16 @@
    "device": "marina",
    "name": "Korea",
    "model": "DWsummus 4K SMART TV"
+  },
+  {
+   "device": "marina",
+   "name": "MAXWELL SMART TV",
+   "model": "MAXWELL SMART TV"
+  },
+  {
+   "device": "nagata",
+   "name": "MAXWELL SMART TV",
+   "model": "MAXWELL SMART TV"
   },
   {
    "device": "yeongdeungpo",
@@ -78458,6 +78473,11 @@
    "model": "Kogan G5"
   },
   {
+   "device": "nagata",
+   "name": "Kogan G5",
+   "model": "Kogan G5"
+  },
+  {
    "device": "hanyang",
    "name": "Kogan SmarterTV",
    "model": "Kogan SmarterTV"
@@ -101866,6 +101886,11 @@
    "device": "MF3D2211",
    "name": "MF3D2211",
    "model": "MF3D2211"
+  },
+  {
+   "device": "beaudry",
+   "name": "TV3223HDA11SMARTG",
+   "model": "Miramage AndroidTV"
   }
  ],
  "Mito": [
@@ -106472,6 +106497,16 @@
    "device": "penangf",
    "name": "moto g13",
    "model": "penangf"
+  },
+  {
+   "device": "cancun",
+   "name": "moto g14",
+   "model": "cancun"
+  },
+  {
+   "device": "cancun",
+   "name": "moto g14",
+   "model": "moto g14"
   },
   {
    "device": "xpeng",
@@ -116263,6 +116298,11 @@
    "model": "PFUM10"
   },
   {
+   "device": "OP56E8L1",
+   "name": "A98 5G",
+   "model": "CPH2529"
+  },
+  {
    "device": "OP46F3",
    "name": "A9x",
    "model": "PCEM00"
@@ -120485,6 +120525,11 @@
    "device": "kenton",
    "name": "PROTON 4K Android",
    "model": "PROTON 4K Android"
+  },
+  {
+   "device": "keoneae",
+   "name": "PROTON 4K Google TV",
+   "model": "PROTON 4K Google TV"
   }
  ],
  "PS_Mobile": [
@@ -129292,6 +129337,16 @@
    "device": "QT22101B",
    "name": "QT22101B",
    "model": "QT22101B"
+  },
+  {
+   "device": "marina",
+   "name": "Qilive SMART TV",
+   "model": "Qilive SMART TV"
+  },
+  {
+   "device": "nagata",
+   "name": "Qilive SMART TV",
+   "model": "Qilive SMART TV"
   },
   {
    "device": "W55",
@@ -163158,6 +163213,11 @@
    "model": "T430M"
   },
   {
+   "device": "Bora_NA_OM",
+   "name": "TCL ION X",
+   "model": "T430WS"
+  },
+  {
    "device": "Bora_TMO",
    "name": "TCL ION X",
    "model": "T430W"
@@ -178996,6 +179056,11 @@
   {
    "device": "G5_Mecha",
    "name": "G5 Mecha EEA",
+   "model": "RP08"
+  },
+  {
+   "device": "G5_Mecha",
+   "name": "G5 Mecha RU",
    "model": "RP08"
   },
   {
@@ -207019,6 +207084,16 @@
    "device": "RE879AL1",
    "name": "realme GT Neo2 5G",
    "model": "RMX3370"
+  },
+  {
+   "device": "RE5C33",
+   "name": "realme GT Neo5",
+   "model": "RMX3820"
+  },
+  {
+   "device": "RE5C33",
+   "name": "realme GT Neo5 240W",
+   "model": "RMX3823"
   },
   {
    "device": "REE2B2L1",
