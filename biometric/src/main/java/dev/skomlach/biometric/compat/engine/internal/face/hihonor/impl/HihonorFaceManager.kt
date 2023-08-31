@@ -19,8 +19,10 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl
 
+import android.view.Surface
+
 abstract class HihonorFaceManager {
-    abstract fun authenticate(authenticatorCallback: AuthenticatorCallback?)
+    abstract fun authenticate(authenticatorCallback: AuthenticatorCallback?, surface: Surface?)
     abstract fun cancel(): Int
     abstract val version: Int
     abstract val isHardwareDetected: Boolean

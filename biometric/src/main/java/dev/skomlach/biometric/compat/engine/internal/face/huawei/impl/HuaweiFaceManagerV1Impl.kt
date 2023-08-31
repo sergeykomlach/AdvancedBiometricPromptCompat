@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
+import android.view.Surface
 import com.huawei.facerecognition.FaceRecognizeManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -38,7 +39,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
         HuaweiFaceRecognizeManager.createInstance()
     }
 
-    override fun authenticate(callback: AuthenticatorCallback?) {
+    override fun authenticate(callback: AuthenticatorCallback?,surface: Surface?) {
         val reqID = REQ_ID
         val type = TYPE_AUTH
         val frManager: HuaweiFaceRecognizeManager? =
@@ -67,7 +68,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
                 return
             }
             d(TAG, "authenicating... ")
-            HuaweiFaceRecognizeManager.fRManager?.authenticate(reqID, type, null)
+            HuaweiFaceRecognizeManager.fRManager?.authenticate(reqID, type, surface)
         }
     }
 

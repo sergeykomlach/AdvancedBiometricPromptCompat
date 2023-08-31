@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl
 
+import android.view.Surface
 import com.hihonor.android.facerecognition.FaceRecognizeManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -38,7 +39,7 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
         HihonorFaceRecognizeManager.createInstance()
     }
 
-    override fun authenticate(callback: AuthenticatorCallback?) {
+    override fun authenticate(callback: AuthenticatorCallback?, surface: Surface?) {
         val reqID = REQ_ID
         val type = TYPE_AUTH
         val frManager: HihonorFaceRecognizeManager? =
@@ -67,7 +68,7 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
                 return
             }
             d(TAG, "authenicating... ")
-            HihonorFaceRecognizeManager.fRManager?.authenticate(reqID, type, null)
+            HihonorFaceRecognizeManager.fRManager?.authenticate(reqID, type, surface)
         }
     }
 

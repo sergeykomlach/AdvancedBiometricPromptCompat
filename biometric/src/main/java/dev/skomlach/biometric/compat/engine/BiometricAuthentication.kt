@@ -24,6 +24,7 @@ import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.SurfaceView
 import android.view.View
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
@@ -245,7 +246,6 @@ object BiometricAuthentication {
             val biometricMethodListInternal = HashSet<BiometricType?>()
             val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
             for (method in moduleHashMap.keys) {
-                e("Module:$method")
                 biometricMethodListInternal.add(method.biometricType)
             }
             return ArrayList(biometricMethodListInternal)
@@ -255,7 +255,6 @@ object BiometricAuthentication {
             val biometricMethodListInternal = HashSet<BiometricMethod>()
             val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
             for (method in moduleHashMap.keys) {
-                e("Module:$method")
                 biometricMethodListInternal.add(method)
             }
             return ArrayList(biometricMethodListInternal)
@@ -290,7 +289,7 @@ object BiometricAuthentication {
 
     fun authenticate(
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
-        targetView: View?,
+        targetView: SurfaceView?,
         method: BiometricType,
         listener: BiometricAuthenticationListener,
         bundle: Bundle?
@@ -300,7 +299,7 @@ object BiometricAuthentication {
 
     fun authenticate(
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
-        targetView: View?,
+        targetView: SurfaceView?,
         requestedMethods: List<BiometricType?>,
         listener: BiometricAuthenticationListener,
         bundle: Bundle?
@@ -320,6 +319,18 @@ object BiometricAuthentication {
                 }
                 is SoterFingerprintUnlockModule -> {
                     biometricModule.bundle = bundle
+                }
+                is HuaweiFaceUnlockModule -> {
+                    biometricModule.setCallerView(targetView)
+                }
+                is HihonorFaceUnlockModule -> {
+                    biometricModule.setCallerView(targetView)
+                }
+                is SamsungFaceUnlockModule -> {
+                    biometricModule.setCallerView(targetView)
+                }
+                is SamsungIrisUnlockModule -> {
+                    biometricModule.setCallerView(targetView)
                 }
                 is FacelockOldModule -> {
                     biometricModule.setCallerView(targetView)

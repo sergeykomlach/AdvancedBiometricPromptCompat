@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.samsung
 
 import android.annotation.SuppressLint
+import android.view.View
 import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -33,6 +34,7 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import java.lang.ref.WeakReference
 
 
 class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
@@ -60,7 +62,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
     }
 
     private var manager: SemBioFaceManager? = null
-
+    private var viewWeakReference = WeakReference<View?>(null)
     init {
         manager = try {
             SemBioFaceManager.getInstance(context)
@@ -98,7 +100,10 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             return false
         }
-
+    fun setCallerView(targetView: View?) {
+        d("$name.setCallerView: $targetView")
+        viewWeakReference = WeakReference(targetView)
+    }
     @Throws(SecurityException::class)
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
@@ -144,7 +149,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     0,
                     callback,
                     ExecutorHelper.handler,
-                    null
+                    viewWeakReference.get()?.apply { this.visibility = View.VISIBLE }
                 )
                 return
             } catch (e: Throwable) {

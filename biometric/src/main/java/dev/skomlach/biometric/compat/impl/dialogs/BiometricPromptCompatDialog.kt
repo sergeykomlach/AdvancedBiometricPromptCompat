@@ -26,10 +26,12 @@ import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.view.View.MeasureSpec
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.annotation.LayoutRes
 import androidx.annotation.RequiresApi
@@ -77,7 +79,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
         private set
     var fingerprintIcon: FingerprintIconView? = null
         private set
-    var authPreview: View? = null
+    var authPreview: SurfaceView? = null
         private set
     var rootView: View? = null
         private set
@@ -210,7 +212,14 @@ class BiometricPromptCompatDialog : DialogFragment() {
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
-
+        authPreview?.visibility = View.INVISIBLE
+        authPreview?.layoutParams?.let {
+            val params = it as FrameLayout.LayoutParams
+            val view = rootView?.findViewById<FrameLayout>(R.id.auth_content_container)
+            view?.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED)
+            params.height = view?.measuredHeight ?: params.height
+            authPreview?.layoutParams = params
+        }
         rootView?.setOnClickListener(null)
 
         return containerView

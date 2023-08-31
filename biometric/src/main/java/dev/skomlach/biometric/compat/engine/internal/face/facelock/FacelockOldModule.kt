@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.LockType.isBiometricWeakEnabled
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
 
 
@@ -220,6 +221,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    ExecutorHelper.postDelayed({authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate) }, 2000)
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -235,7 +237,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         }
 
         fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?): Void? {
-            d("$name.onAuthenticationError: $helpMsgId-$helpString")
+            d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             return null
         }
 

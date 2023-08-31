@@ -19,6 +19,8 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.hihonor
 
+import android.view.SurfaceView
+import android.view.View
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -35,6 +37,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFa
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import java.lang.ref.WeakReference
 import java.util.concurrent.TimeUnit
 
 
@@ -42,7 +45,7 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_HIHONOR) {
     //EMUI 10.1.0
     private var hihonorFaceManagerLegacy: HihonorFaceManager? = null
-
+    private var viewWeakReference = WeakReference<SurfaceView?>(null)
     init {
         ExecutorHelper.post {
             try {
@@ -120,7 +123,10 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
 
             return false
         }
-
+    fun setCallerView(targetView: SurfaceView?) {
+        d("$name.setCallerView: $targetView")
+        viewWeakReference = WeakReference(targetView)
+    }
     @Throws(SecurityException::class)
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
@@ -147,7 +153,7 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
                 }
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 authCallTimestamp.set(System.currentTimeMillis())
-                it.authenticate(callback)
+                it.authenticate(callback, viewWeakReference.get()?.apply { this.visibility = View.VISIBLE }?.holder?.surface)
                 return
             }
 
