@@ -46,6 +46,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
     private val isOpened = AtomicBoolean(false)
     private val autoCancel = Runnable {
+        cancelAuth()
         cancelAuthentication()
     }
 
