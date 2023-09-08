@@ -60,7 +60,8 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/Theme.MyApplication">
+            android:theme="@style/Theme.MyApplication"
+            android:localeConfig="@xml/locales_config">
         <!--
       https://android-developers.googleblog.com/2018/11/get-your-app-ready-for-foldable-phones.html
       https://developer.samsung.com/galaxy/foldable

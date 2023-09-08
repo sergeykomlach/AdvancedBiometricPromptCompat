@@ -116,12 +116,12 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
     fun attachListeners() {
         detachListeners()
         try {
-            impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+            impl.builder.getActivity().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
                 fragmentLifecycleCallbacks
             )
         } catch (ignore: Throwable) {
         }
-        impl.builder.getContext().supportFragmentManager.registerFragmentLifecycleCallbacks(
+        impl.builder.getActivity().supportFragmentManager.registerFragmentLifecycleCallbacks(
             fragmentLifecycleCallbacks,
             false
         )
@@ -137,7 +137,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         stopWatcher?.run()
         stopWatcher = null
         try {
-            impl.builder.getContext().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+            impl.builder.getActivity().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
                 fragmentLifecycleCallbacks
             )
         } catch (ignore: Throwable) {

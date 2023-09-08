@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.Looper
@@ -282,7 +283,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
-        if (WideGamutBug.unsupportedColorMode(builder.getContext())) {
+        if (WideGamutBug.unsupportedColorMode(builder.getActivity())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
@@ -354,7 +355,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val checkPermissions = {
             PermissionsFragment.askForPermissions(
-                impl.builder.getContext(),
+                impl.builder.getActivity(),
                 usedPermissions
             ) {
                 if (usedPermissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(
@@ -456,7 +457,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         BiometricNotificationManager.showNotification(builder)
                                     }
                                     StatusBarTools.setNavBarAndStatusBarColors(
-                                        builder.getContext().window,
+                                        builder.getActivity().window,
                                         DialogMainColor.getColor(
                                             builder.getContext(),
                                             DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
@@ -485,7 +486,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                             BiometricNotificationManager.dismissAll()
                                         }
                                         StatusBarTools.setNavBarAndStatusBarColors(
-                                            builder.getContext().window,
+                                            builder.getActivity().window,
                                             builder.getNavBarColor(),
                                             builder.getDividerColor(),
                                             builder.getStatusBarColor()
@@ -780,7 +781,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var autoVerifyCryptoAfterSuccess = false
 
         init {
-            getContext().let { context ->
+            getActivity().let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     this.colorNavBar = context.window.navigationBarColor
                     this.colorStatusBar = context.window.statusBarColor
@@ -894,11 +895,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return HashSet<BiometricType>(allAvailableTypes)
         }
 
-        fun getContext(): FragmentActivity {
+        fun getActivity(): FragmentActivity {
             return (AndroidContext.activity as? FragmentActivity?)
                 ?: throw java.lang.IllegalStateException("No activity on screen")
         }
-
+        fun getContext(): Context {
+            return AndroidContext.appContext
+        }
         fun getCryptographyPurpose(): BiometricCryptographyPurpose? {
             return biometricCryptographyPurpose
         }

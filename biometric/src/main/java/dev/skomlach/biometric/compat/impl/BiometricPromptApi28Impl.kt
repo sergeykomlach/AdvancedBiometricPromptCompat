@@ -225,7 +225,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         promptInfoBuilder.setConfirmationRequired(false)
         biometricPromptInfo = promptInfoBuilder.build()
         biometricPrompt = BiometricPrompt(
-            builder.getContext(),
+            builder.getActivity(),
             ExecutorHelper.executor, authCallback
         )
         isFingerprint.set(
@@ -408,7 +408,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         biometricFragment.set(
                             m.invoke(
                                 null,
-                                builder.getContext().supportFragmentManager
+                                builder.getActivity().supportFragmentManager
                             ) as BiometricFragment?
                         )
                     } finally {

@@ -259,7 +259,7 @@ class BiometricPromptCompatDialogImpl(
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
 
         dialog.show(
-            compatBuilder.getContext().supportFragmentManager,
+            compatBuilder.getActivity().supportFragmentManager,
             BiometricPromptCompatDialog.TAG
         )
     }
@@ -274,7 +274,7 @@ class BiometricPromptCompatDialogImpl(
             dialog.dismiss()
         }
         val viewModel: DialogViewModel =
-            ViewModelProvider(compatBuilder.getContext())[DialogViewModel::class.java]
+            ViewModelProvider(compatBuilder.getActivity())[DialogViewModel::class.java]
         viewModel.dismissDialog()
     }
 
