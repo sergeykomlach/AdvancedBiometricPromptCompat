@@ -110,7 +110,7 @@ private fun buildBiometricAuthPrompt(
             setCryptographyPurpose(it)
         }
         if (biometricAuthRequestData.enableSilent) {
-            enableSilentAuth()
+            enableSilentAuth(biometricAuthRequestData.authWindow)
         }
     }
     .build()
