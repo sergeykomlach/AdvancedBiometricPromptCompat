@@ -738,6 +738,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         private var silentAuth = false
+        private var authWindowSec = 30
 
         private var dialogTitle: CharSequence? = null
             get() {
@@ -810,14 +811,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return silentAuth
         }
 
-        fun enableSilentAuth() {
-            BiometricLoggerImpl.e("WARNING!!!\n" +
-                    "Keep in mind - some devices use the own built-in animations " +
-                    "(camera animation for Face/Iris) or other type of UI " +
-                    "(Fingerprint dialog and/or under-screen recognition animation)" +
-                    " and this leads to the uselessness of this function. " +
-                    "Use BiometricManagerCompat.isSilentAuthAvailable() to check")
-            silentAuth = true
+        fun getAuthWindow(): Int {
+            return authWindowSec
+        }
+
+        fun enableSilentAuth(authWindowSec: Int = 30) {
+            if (authWindowSec <= 0) throw IllegalArgumentException("AuthWindow cann't be less then 0")
+            BiometricLoggerImpl.e(
+                "WARNING!!!\n" +
+                        "Keep in mind - some devices use the own built-in animations " +
+                        "(camera animation for Face/Iris) or other type of UI " +
+                        "(Fingerprint dialog and/or under-screen recognition animation)" +
+                        " and this leads to the uselessness of this function. " +
+                        "Use BiometricManagerCompat.isSilentAuthAvailable() to check"
+            )
+            this.authWindowSec = authWindowSec
+            this.silentAuth = true
         }
 
         fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {

@@ -31,6 +31,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Builder) :
@@ -101,7 +102,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             return
         isOpened.set(true)
         callback?.onUIOpened()
-        ExecutorHelper.postDelayed(autoCancel, 15_000L)
+        ExecutorHelper.postDelayed(autoCancel, TimeUnit.SECONDS.toMillis(builder.getAuthWindow().toLong()))
     }
 
     override fun onUiClosed() {
