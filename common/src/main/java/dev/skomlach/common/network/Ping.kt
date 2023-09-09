@@ -21,7 +21,7 @@ package dev.skomlach.common.network
 import android.text.TextUtils
 import androidx.annotation.WorkerThread
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.contextprovider.AndroidContext.locale
+import dev.skomlach.common.contextprovider.AndroidContext.systemLocale
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import java.io.ByteArrayOutputStream
@@ -70,7 +70,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     private fun isWebUrl(u: String): Boolean {
         var url = u
         if (TextUtils.isEmpty(url)) return false
-        url = url.lowercase(locale)
+        url = url.lowercase(systemLocale)
         //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
         val slash = url.indexOf("/")
         if (slash > 0 && slash < url.indexOf("?")) {

@@ -135,7 +135,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private fun getOrCreateSecretKey(name: String) {
 
         if (!keyExist(name)) {
-            val localeBeforeFakingEnglishLocale = AndroidContext.locale
+            val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
             try {
 
                 /*
@@ -231,7 +231,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private fun getPrivateKeys(name: String): List<PrivateKey?> {
         val list = ArrayList<PrivateKey?>()
 
-        val localeBeforeFakingEnglishLocale = AndroidContext.locale
+        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         try {
 
             /*
@@ -258,7 +258,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
     private fun getPublicKeys(name: String): List<PublicKey?> {
         val list = ArrayList<PublicKey?>()
-        val localeBeforeFakingEnglishLocale = AndroidContext.locale
+        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         try {
 
             /*
