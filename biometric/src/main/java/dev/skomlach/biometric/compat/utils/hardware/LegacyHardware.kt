@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils.hardware
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 
 
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
@@ -49,4 +50,23 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
             )
             return biometricModule != null && biometricModule.isLockOut
         }
+    override val isBiometricEnrollChanged: Boolean
+        get() {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.isEnrollChanged()
+            val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
+                biometricAuthRequest.type
+            )
+            return biometricModule != null && biometricModule.isBiometricEnrollChanged
+        }
+
+    override fun updateBiometricEnrollChanged() {
+        if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+            BiometricAuthentication.updateBiometricEnrollChanged()
+            return
+        }
+        val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
+            biometricAuthRequest.type
+        )
+        (biometricModule as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
+    }
 }

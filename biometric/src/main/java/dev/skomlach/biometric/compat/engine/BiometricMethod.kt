@@ -47,6 +47,7 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
     FACE_MIUI(207, BiometricType.BIOMETRIC_FACE),
 
     FACEUNLOCK_LAVA(209, BiometricType.BIOMETRIC_FACE),
+
     //same that Huawei
     FACE_HIHONOR3D(
         210,

@@ -54,7 +54,9 @@ import dev.skomlach.common.themes.monet.toArgb
 
 class BiometricPromptCompatDialog : DialogFragment() {
     companion object {
-        const val TAG = "dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl"
+        const val TAG =
+            "dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl"
+
         fun getFragment(isInscreenLayout: Boolean): BiometricPromptCompatDialog {
             val fragment = BiometricPromptCompatDialog()
             fragment.arguments = Bundle().apply {
@@ -188,7 +190,11 @@ class BiometricPromptCompatDialog : DialogFragment() {
             override fun onViewAttachedToWindow(v: View) {
                 try {
                     @Suppress("DEPRECATION")
-                    BroadcastTools.registerGlobalBroadcastIntent(v.context, wallpaperChangedReceiver, IntentFilter(Intent.ACTION_WALLPAPER_CHANGED))
+                    BroadcastTools.registerGlobalBroadcastIntent(
+                        v.context,
+                        wallpaperChangedReceiver,
+                        IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
+                    )
                     updateMonetColorsInternal(v.context ?: return)
                 } catch (e: Throwable) {
                     e(e, "setupMonet")
@@ -197,7 +203,10 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
             override fun onViewDetachedFromWindow(v: View) {
                 try {
-                    BroadcastTools.unregisterGlobalBroadcastIntent(v.context, wallpaperChangedReceiver)
+                    BroadcastTools.unregisterGlobalBroadcastIntent(
+                        v.context,
+                        wallpaperChangedReceiver
+                    )
                 } catch (e: Throwable) {
                     e(e, "setupMonet")
                 }

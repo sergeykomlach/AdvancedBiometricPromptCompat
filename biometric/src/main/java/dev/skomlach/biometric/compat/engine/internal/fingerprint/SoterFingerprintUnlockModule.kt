@@ -72,6 +72,11 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         listener?.initFinished(biometricMethod, this@SoterFingerprintUnlockModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return emptySet()
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -172,26 +177,34 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
             when (errMsgId) {
                 FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 FINGERPRINT_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
+
                 FINGERPRINT_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FINGERPRINT_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 FINGERPRINT_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                     listener?.onCanceled(tag())

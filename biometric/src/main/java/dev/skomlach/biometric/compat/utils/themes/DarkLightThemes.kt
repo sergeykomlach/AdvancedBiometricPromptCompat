@@ -57,9 +57,11 @@ object DarkLightThemes {
             DarkThemeCheckResult.DARK -> {
                 UiModeManager.MODE_NIGHT_YES
             }
+
             DarkThemeCheckResult.LIGHT -> {
                 UiModeManager.MODE_NIGHT_NO
             }
+
             else -> {
                 AndroidContext.configuration?.let { config ->
                     if ((config.uiMode and

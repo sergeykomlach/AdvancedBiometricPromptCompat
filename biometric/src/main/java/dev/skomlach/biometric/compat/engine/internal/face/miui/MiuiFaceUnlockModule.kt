@@ -76,6 +76,14 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -167,26 +175,34 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             when (errMsgId) {
                 11 -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 12 -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
+
                 1 -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 9 -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 2 -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 4 -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 3 -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 7 -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@MiuiFaceUnlockModule)
                     listener?.onCanceled(tag())

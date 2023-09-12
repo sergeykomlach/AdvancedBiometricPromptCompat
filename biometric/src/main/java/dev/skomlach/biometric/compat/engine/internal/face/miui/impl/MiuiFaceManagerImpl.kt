@@ -200,6 +200,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         reply?.writeNoException()
                         true
                     }
+
                     202 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
                         mHandler.obtainMessage(
@@ -211,6 +212,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         reply?.writeNoException()
                         true
                     }
+
                     203 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
                         readLong = data.readLong()
@@ -223,6 +225,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         reply?.writeNoException()
                         true
                     }
+
                     204 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
                         readLong = data.readLong()
@@ -230,6 +233,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         reply?.writeNoException()
                         true
                     }
+
                     205 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
                         mHandler.obtainMessage(
@@ -241,6 +245,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         reply?.writeNoException()
                         true
                     }
+
                     206 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
                         val devId2 = data.readLong()
@@ -254,12 +259,14 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         reply?.writeNoException()
                         true
                     }
+
                     207 -> {
                         data.enforceInterface(RECEIVER_DESCRIPTOR)
                         isFaceUnlockInited = data.readInt() == 1
                         reply?.writeNoException()
                         true
                     }
+
                     else -> super.onTransact(code, data, reply, flags)
                 }
             } else {
@@ -1016,7 +1023,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
         service: IBinder?,
         groupId: Int,
         packName: String
-    ): List<Miuiface?>? {
+    ): List<Miuiface?> {
         val request = Parcel.obtain()
         val reply = Parcel.obtain()
         request.writeInterfaceToken(SERVICE_DESCRIPTOR)
@@ -1316,26 +1323,32 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                         sendEnrollResult(msg.obj as Miuiface, msg.arg1)
                         return
                     }
+
                     202 -> {
                         sendAcquiredResult(msg.obj as Long, msg.arg1, msg.arg2)
                         return
                     }
+
                     203 -> {
                         sendAuthenticatedSucceeded(msg.obj as Miuiface, msg.arg1)
                         return
                     }
+
                     204 -> {
                         sendAuthenticatedFailed()
                         return
                     }
+
                     205 -> {
                         sendErrorResult((msg.obj as Long).toLong(), msg.arg1, msg.arg2)
                         return
                     }
+
                     206 -> {
                         sendRemovedResult(msg.obj as Miuiface, msg.arg1)
                         return
                     }
+
                     else -> return
                 }
             }

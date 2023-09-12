@@ -29,6 +29,7 @@ import java.lang.reflect.Modifier
 
 object DevicesWithKnownBugs {
     private val appContext = AndroidContext.appContext
+
     //Users reports that on LG devices have a bug with wrong/missing BiometricUI
     //After digging I found that it seems like system BiometricPrompt simply missing on this device
     //https://lg-firmwares.com/models-list/

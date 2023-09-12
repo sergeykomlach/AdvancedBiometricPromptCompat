@@ -97,6 +97,14 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        huaweiFaceManagerLegacy?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = huaweiFaceManagerLegacy != null
     override val isHardwarePresent: Boolean
@@ -183,10 +191,12 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
                     listener?.onCanceled(tag())

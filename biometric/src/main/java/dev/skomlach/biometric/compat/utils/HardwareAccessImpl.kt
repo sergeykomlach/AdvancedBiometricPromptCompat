@@ -35,6 +35,13 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         }
     }
 
+    val isBiometricEnrollChanged: Boolean
+        get() = hardwareInfo?.isBiometricEnrollChanged ?: false
+
+    fun updateBiometricEnrollChanged() {
+        hardwareInfo?.updateBiometricEnrollChanged()
+    }
+
     private var hardwareInfo: HardwareInfo? = null
     val isNewBiometricApi: Boolean
         get() = hardwareInfo !is LegacyHardware

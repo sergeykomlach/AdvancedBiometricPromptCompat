@@ -413,6 +413,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     }
 
                                     BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
+                                    if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                                            .updateBiometricEnrollChanged()
+                                    } else {
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.BIOMETRIC_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
+                                        )
+                                            .updateBiometricEnrollChanged()
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.LEGACY_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
+                                        )
+                                            .updateBiometricEnrollChanged()
+                                    }
                                     callbackOuter.onSucceeded(confirmed.toSet())
                                 } finally {
                                     onUIClosed()

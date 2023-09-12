@@ -70,6 +70,14 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         listener?.initFinished(biometricMethod, this@API23FingerprintModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -169,26 +177,34 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             when (errMsgId) {
                 FingerprintManager.FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 FingerprintManager.FINGERPRINT_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
+
                 FingerprintManager.FINGERPRINT_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FingerprintManager.FINGERPRINT_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 FingerprintManager.FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FingerprintManager.FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 FingerprintManager.FINGERPRINT_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 FingerprintManager.FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@API23FingerprintModule)
                     listener?.onCanceled(tag())

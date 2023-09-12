@@ -108,6 +108,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
                         delay
                     )//delay for case when system fragment closed and fallback shown
                 }
+
                 else -> {}
             }
         }

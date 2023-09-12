@@ -27,6 +27,7 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
 
+
 object DialogMainColor {
     @ColorInt
     fun getColor(context: Context, isNightMode: Boolean): Int {

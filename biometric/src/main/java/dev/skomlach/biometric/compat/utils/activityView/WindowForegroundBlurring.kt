@@ -359,30 +359,37 @@ class WindowForegroundBlurring(
                             type,
                             biometrics_layout.findViewById<View>(R.id.face)?.tag as IconStates
                         )
+
                         BiometricType.BIOMETRIC_IRIS -> setIconState(
                             type,
                             biometrics_layout.findViewById<View>(R.id.iris)?.tag as IconStates
                         )
+
                         BiometricType.BIOMETRIC_HEARTRATE -> setIconState(
                             type,
                             biometrics_layout.findViewById<View>(R.id.heartrate)?.tag as IconStates
                         )
+
                         BiometricType.BIOMETRIC_VOICE -> setIconState(
                             type,
                             biometrics_layout.findViewById<View>(R.id.voice)?.tag as IconStates
                         )
+
                         BiometricType.BIOMETRIC_PALMPRINT -> setIconState(
                             type,
                             biometrics_layout.findViewById<View>(R.id.palm)?.tag as IconStates
                         )
+
                         BiometricType.BIOMETRIC_BEHAVIOR -> setIconState(
                             type,
                             biometrics_layout.findViewById<View>(R.id.typing)?.tag as IconStates
                         )
+
                         BiometricType.BIOMETRIC_FINGERPRINT -> setIconState(
                             type,
                             biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates
                         )
+
                         else -> {
                             //no-op
                         }
@@ -429,6 +436,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     BiometricType.BIOMETRIC_IRIS -> {
                         biometrics_layout.findViewById<View>(R.id.iris)?.tag = iconStates
                         ImageViewCompat.setImageTintList(
@@ -436,6 +444,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     BiometricType.BIOMETRIC_HEARTRATE -> {
                         biometrics_layout.findViewById<View>(R.id.heartrate)?.tag = iconStates
                         ImageViewCompat.setImageTintList(
@@ -443,6 +452,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     BiometricType.BIOMETRIC_VOICE -> {
                         biometrics_layout.findViewById<View>(R.id.voice)?.tag = iconStates
                         ImageViewCompat.setImageTintList(
@@ -450,6 +460,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     BiometricType.BIOMETRIC_PALMPRINT -> {
                         biometrics_layout.findViewById<View>(R.id.palm)?.tag = iconStates
                         ImageViewCompat.setImageTintList(
@@ -457,6 +468,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     BiometricType.BIOMETRIC_BEHAVIOR -> {
                         biometrics_layout.findViewById<View>(R.id.typing)?.tag = iconStates
                         ImageViewCompat.setImageTintList(
@@ -464,6 +476,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     BiometricType.BIOMETRIC_FINGERPRINT -> {
                         biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag = iconStates
                         ImageViewCompat.setImageTintList(
@@ -471,6 +484,7 @@ class WindowForegroundBlurring(
                             ColorStateList.valueOf(color)
                         )
                     }
+
                     else -> {
                         //no-op
                     }

@@ -39,7 +39,11 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
                     filter.addAction(Intent.ACTION_USER_PRESENT)
                     filter.addAction(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
                     filter.addAction(Intent.ACTION_USER_UNLOCKED)
-                    BroadcastTools.registerGlobalBroadcastIntent(appContext, DeviceUnlockedReceiver(), filter)
+                    BroadcastTools.registerGlobalBroadcastIntent(
+                        appContext,
+                        DeviceUnlockedReceiver(),
+                        filter
+                    )
                 } catch (e: Throwable) {
                     e(e)
                 }

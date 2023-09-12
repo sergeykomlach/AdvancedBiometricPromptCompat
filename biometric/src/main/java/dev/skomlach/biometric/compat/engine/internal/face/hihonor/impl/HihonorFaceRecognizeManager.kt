@@ -109,6 +109,7 @@ class HihonorFaceRecognizeManager {
                         .apply()
                     return HIHONOR_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
+
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HIHONOR_FACE_AUTHENTICATOR_SUCCESS
                 FaceRecognizeManager.FaceErrorCode.CANCELED -> HIHONOR_FACE_AUTH_ERROR_CANCEL
                 FaceRecognizeManager.FaceErrorCode.TIMEOUT -> HIHONOR_FACE_AUTH_ERROR_TIMEOUT

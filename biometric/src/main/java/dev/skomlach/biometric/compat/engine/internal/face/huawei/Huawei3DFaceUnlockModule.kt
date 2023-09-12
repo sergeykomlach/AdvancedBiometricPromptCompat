@@ -57,6 +57,15 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        //pass only EMUI 10.1.0 manager
+        huawei3DFaceManager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = huawei3DFaceManager != null
     override val isHardwarePresent: Boolean
@@ -157,10 +166,12 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
 
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTH_ERROR_LOCKED -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
                     listener?.onCanceled(tag())

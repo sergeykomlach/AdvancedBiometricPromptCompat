@@ -34,6 +34,7 @@ import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.CustomBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
@@ -138,10 +139,10 @@ object BiometricAuthentication {
             allMethods.add(BiometricMethod.FACE_HUAWEI3D)
             allMethods.add(BiometricMethod.FACE_HIHONOR3D)
         }
-        customModuleHashMap.forEach{
+        customModuleHashMap.forEach {
             allMethods.add(it.key)
         }
-        
+
         val modulesMap = HashMap<BiometricMethod, BiometricModule?>()
         //launch in BG because for init needed about 2-3 seconds
         try {
@@ -205,13 +206,16 @@ object BiometricAuthentication {
                     BiometricMethod.FINGERPRINT_SUPPORT -> SupportFingerprintModule(
                         initListener
                     )
+
                     BiometricMethod.FINGERPRINT_SAMSUNG -> SamsungFingerprintModule(
                         initListener
                     )
+
                     BiometricMethod.FINGERPRINT_FLYME -> FlymeFingerprintModule(initListener)
                     BiometricMethod.FINGERPRINT_SOTERAPI -> SoterFingerprintUnlockModule(
                         initListener
                     )
+
                     BiometricMethod.FACE_HUAWEI -> HuaweiFaceUnlockModule(initListener)
                     BiometricMethod.FACE_HUAWEI3D -> Huawei3DFaceUnlockModule(initListener)
                     BiometricMethod.FACE_HIHONOR -> HihonorFaceUnlockModule(initListener)
@@ -238,6 +242,20 @@ object BiometricAuthentication {
                 initListener.initFinished(method, biometricModule)
             }
         }
+    }
+
+    fun updateBiometricEnrollChanged() {
+        for (method in availableBiometrics) {
+            val biometricModule = getAvailableBiometricModule(method)
+            (biometricModule as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
+        }
+    }
+
+    fun isEnrollChanged(): Boolean {
+        for (method in availableBiometrics) {
+            if (getAvailableBiometricModule(method)?.isBiometricEnrollChanged == true) return true
+        }
+        return false
     }
 
     val availableBiometrics: List<BiometricType?>

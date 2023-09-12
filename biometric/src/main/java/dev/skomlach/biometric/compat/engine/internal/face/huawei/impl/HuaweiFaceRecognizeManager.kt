@@ -109,6 +109,7 @@ class HuaweiFaceRecognizeManager {
                         .apply()
                     return HUAWEI_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
+
                 FaceRecognizeManager.FaceErrorCode.SUCCESS -> HUAWEI_FACE_AUTHENTICATOR_SUCCESS
                 FaceRecognizeManager.FaceErrorCode.CANCELED -> HUAWEI_FACE_AUTH_ERROR_CANCEL
                 FaceRecognizeManager.FaceErrorCode.TIMEOUT -> HUAWEI_FACE_AUTH_ERROR_TIMEOUT

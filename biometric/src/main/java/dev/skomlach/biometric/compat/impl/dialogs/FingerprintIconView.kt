@@ -224,6 +224,7 @@ class FingerprintIconView @JvmOverloads constructor(
                     }
                     0
                 }
+
                 State.ON -> {
                     if (animate) {
                         if (currentState == State.OFF) {
@@ -234,6 +235,7 @@ class FingerprintIconView @JvmOverloads constructor(
                     }
                     R.drawable.fingerprint_fingerprint
                 }
+
                 State.ERROR -> {
                     if (animate) {
                         if (currentState == State.ON) {
@@ -244,6 +246,7 @@ class FingerprintIconView @JvmOverloads constructor(
                     }
                     R.drawable.fingerprint_error
                 }
+
                 else -> throw IllegalArgumentException("Unknown state: $newState")
             }
         }

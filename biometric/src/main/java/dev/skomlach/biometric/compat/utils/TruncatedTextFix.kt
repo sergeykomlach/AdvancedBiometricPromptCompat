@@ -64,7 +64,8 @@ object TruncatedTextFix {
         builder: BiometricPromptCompat.Builder,
         onTruncateChecked: OnTruncateChecked
     ) {
-        val config = AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
+        val config =
+            AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
         val cache =
             truncatedText ?: getTruncatedText(config).also {
                 truncatedText = it
@@ -107,7 +108,8 @@ object TruncatedTextFix {
                 }
             }
             if (totalCount == changedCount) {
-                builder.setTitle(title).setSubtitle(subtitle).setDescription(description).setNegativeButtonText(negativeButton)
+                builder.setTitle(title).setSubtitle(subtitle).setDescription(description)
+                    .setNegativeButtonText(negativeButton)
                 onTruncateChecked.onDone()
                 return
             }

@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
+import android.content.Context
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -69,6 +70,32 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             null
         }
         listener?.initFinished(biometricMethod, this@SupportFingerprintModule)
+    }
+
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        val manager = try {
+            val method = managerCompat?.javaClass?.declaredMethods?.firstOrNull {
+                it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java &&
+                        it.returnType.methods.firstOrNull { m -> m.name.equals("isHardwareDetected") } != null
+            }
+            val isAccessible = method?.isAccessible ?: true
+            if (!isAccessible)
+                method?.isAccessible = true
+            val manager = try {
+                method?.invoke(managerCompat, context)
+            } finally {
+                if (!isAccessible)
+                    method?.isAccessible = false
+            }
+            manager
+        } catch (ignore: Throwable) {
+            null
+        }
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
     }
 
     override val isManagerAccessible: Boolean
@@ -169,26 +196,34 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             when (errMsgId) {
                 FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 FINGERPRINT_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
+
                 FINGERPRINT_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FINGERPRINT_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 FINGERPRINT_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@SupportFingerprintModule)
                     listener?.onCanceled(tag())

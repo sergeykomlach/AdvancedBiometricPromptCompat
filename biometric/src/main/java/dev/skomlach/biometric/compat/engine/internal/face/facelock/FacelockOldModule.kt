@@ -112,6 +112,11 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         faceLockHelper?.destroy()
     }
 
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return emptySet()
+    }
+
     // Retrieve all services that can match the given intent
     override val isHardwarePresent: Boolean
         get() {
@@ -197,12 +202,16 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
             when (errMsgId) {
                 FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
+
                 FaceLockHelper.FACELOCK_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 FaceLockHelper.FACELOCK_NO_FACE_FOUND -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FaceLockHelper.FACELOCK_NOT_SETUP -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 FaceLockHelper.FACELOCK_CANNT_START, FaceLockHelper.FACELOCK_UNABLE_TO_BIND, FaceLockHelper.FACELOCK_API_NOT_FOUND -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 

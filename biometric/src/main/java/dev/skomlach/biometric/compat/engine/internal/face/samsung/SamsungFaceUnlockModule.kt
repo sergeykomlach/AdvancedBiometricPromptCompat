@@ -73,6 +73,14 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@SamsungFaceUnlockModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -178,14 +186,18 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                     listener?.onCanceled(tag())
