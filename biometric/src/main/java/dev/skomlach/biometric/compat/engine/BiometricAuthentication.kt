@@ -247,6 +247,7 @@ object BiometricAuthentication {
     fun updateBiometricEnrollChanged() {
         for (method in availableBiometrics) {
             val biometricModule = getAvailableBiometricModule(method)
+            if (biometricModule?.isBiometricEnrollChanged == true)
             (biometricModule as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
         }
     }

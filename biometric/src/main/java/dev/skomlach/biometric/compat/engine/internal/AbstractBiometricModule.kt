@@ -97,9 +97,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         }
 
     fun updateBiometricEnrollChanged() {
-        if (isBiometricEnrollChanged) {
             preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
-        }
     }
 
     open fun getIds(manager: Any): List<String> {
