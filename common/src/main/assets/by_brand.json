@@ -2135,6 +2135,11 @@
    "model": "ATAB1021E"
   },
   {
+   "device": "ATAB1024E",
+   "name": "ATAB1024E",
+   "model": "ATAB1024E"
+  },
+  {
    "device": "ATAB1422E",
    "name": "ATAB1422E",
    "model": "ATAB1422E"
@@ -15601,6 +15606,11 @@
    "device": "BeLeno_Neod_8",
    "name": "BeLeno_Neod_8",
    "model": "BeLeno_Neod_8"
+  },
+  {
+   "device": "BeLeno_Turbo_101",
+   "name": "BeLeno_Turbo_101",
+   "model": "BeLeno_Turbo_101"
   }
  ],
  "Becrypt": [
@@ -18981,6 +18991,11 @@
   },
   {
    "device": "G0850_IW",
+   "name": "G53",
+   "model": "G53"
+  },
+  {
+   "device": "G0851",
    "name": "G53",
    "model": "G53"
   },
@@ -24703,6 +24718,11 @@
    "model": "RK25WO"
   },
   {
+   "device": "RK26",
+   "name": "RK26",
+   "model": "RK26"
+  },
+  {
    "device": "RK95",
    "name": "RK95",
    "model": "RK95"
@@ -25612,6 +25632,16 @@
    "device": "zhongshan",
    "name": "COMPAQ",
    "model": "SMART TV"
+  },
+  {
+   "device": "marina",
+   "name": "COMPAQ SMART TV",
+   "model": "COMPAQ SMART TV"
+  },
+  {
+   "device": "nagata",
+   "name": "COMPAQ SMART TV",
+   "model": "COMPAQ SMART TV"
   },
   {
    "device": "fireball",
@@ -33796,6 +33826,11 @@
    "model": "T5S"
   },
   {
+   "device": "RK1",
+   "name": "U10",
+   "model": "U10"
+  },
+  {
    "device": "M23H",
    "name": "V MAX",
    "model": "V Max"
@@ -36414,6 +36449,11 @@
  ],
  "Ehlel": [
   {
+   "device": "Ehlel_Defender_D23",
+   "name": "Defender",
+   "model": "Defender D23"
+  },
+  {
    "device": "Ehlel-C7PRO",
    "name": "Ehlel C7 PRO",
    "model": "Ehlel C7 PRO"
@@ -37035,6 +37075,11 @@
   }
  ],
  "Emporia": [
+  {
+   "device": "E5mini",
+   "name": "E5mini",
+   "model": "E5mini"
+  },
   {
    "device": "E6",
    "name": "E6_EEA",
@@ -39630,6 +39675,11 @@
    "device": "FP2",
    "name": "FP2",
    "model": "FP2"
+  },
+  {
+   "device": "FP5",
+   "name": "Fairphone 5 5G",
+   "model": "FP5"
   },
   {
    "device": "FP3",
@@ -46675,6 +46725,11 @@
    "model": "A770_XL7"
   },
   {
+   "device": "Delta_14",
+   "name": "Delta_14",
+   "model": "Delta_14"
+  },
+  {
    "device": "Gtel_Infinity_8s",
    "name": "Gtel Infinity 8s",
    "model": "Gtel Infinity 8s"
@@ -47086,6 +47141,11 @@
    "device": "lakeside",
    "name": "Google TV",
    "model": "4K US Google TV"
+  },
+  {
+   "device": "nagai",
+   "name": "Google TV",
+   "model": "2K PA Google TV"
   },
   {
    "device": "nagai",
@@ -55367,6 +55427,11 @@
   {
    "device": "HLTE106E_02",
    "name": "Hisense U964",
+   "model": "Hisense U607"
+  },
+  {
+   "device": "HLTE106E_02",
+   "name": "Hisense U964",
    "model": "Hisense U964"
   },
   {
@@ -57646,6 +57711,11 @@
   {
    "device": "EDA10A",
    "name": "EDA10A",
+   "model": "EDA10A"
+  },
+  {
+   "device": "EDA10A",
+   "name": "EDA10A-1",
    "model": "EDA10A"
   },
   {
@@ -68523,6 +68593,11 @@
    "model": "TE082M2"
   },
   {
+   "device": "TE083M3",
+   "name": "TE083M3",
+   "model": "TE083"
+  },
+  {
    "device": "Aquaman_10_Smart_WIFI",
    "name": "TE101N1",
    "model": "TE101"
@@ -69407,6 +69482,11 @@
    "device": "Infinix_X510",
    "name": "HOT 2",
    "model": "Infinix X510"
+  },
+  {
+   "device": "Infinix-X6825",
+   "name": "HOT 20 PLAY",
+   "model": "Infinix X6825"
   },
   {
    "device": "Infinix-X6827",
@@ -72753,6 +72833,11 @@
    "model": "itel A663L"
   },
   {
+   "device": "itel-A663L",
+   "name": "A05s",
+   "model": "itel A663L"
+  },
+  {
    "device": "itel-A663LC",
    "name": "A05s",
    "model": "itel A663LC"
@@ -75753,18 +75838,8 @@
    "model": "DX-A400"
   },
   {
-   "device": "DX-A400",
-   "name": "DX-A400_",
-   "model": "DX-A400"
-  },
-  {
    "device": "DX-A600",
    "name": "DX-A600",
-   "model": "DX-A600"
-  },
-  {
-   "device": "DX-A600",
-   "name": "DX-A600_",
    "model": "DX-A600"
   }
  ],
@@ -76276,6 +76351,11 @@
   }
  ],
  "KTCtv": [
+  {
+   "device": "stanford",
+   "name": "ADSUN",
+   "model": "2K SMART TV"
+  },
   {
    "device": "stanford",
    "name": "AP",
@@ -88032,6 +88112,11 @@
    "device": "X120C",
    "name": "X120C",
    "model": "X120C"
+  },
+  {
+   "device": "X1S",
+   "name": "X1S",
+   "model": "X1S"
   },
   {
    "device": "X230",
@@ -102887,6 +102972,11 @@
    "model": "VX19"
   },
   {
+   "device": "RX17",
+   "name": "Z3",
+   "model": "Z3"
+  },
+  {
    "device": "ZEN",
    "name": "ZEN",
    "model": "ZEN"
@@ -103416,6 +103506,11 @@
    "device": "Smart_N12",
    "name": "Smart N12",
    "model": "SmartN12"
+  },
+  {
+   "device": "Smart_P24",
+   "name": "Smart P24",
+   "model": "Smart_P24"
   },
   {
    "device": "Smart_T23",
@@ -108063,6 +108158,11 @@
   },
   {
    "device": "ML_SO0P_M7_WIFI",
+   "name": "M7 WIFI",
+   "model": "M7_WIFI"
+  },
+  {
+   "device": "ML_SO0R_M7_WIFI",
    "name": "M7 WIFI",
    "model": "M7_WIFI"
   },
@@ -115387,6 +115487,11 @@
    "model": "DN2103"
   },
   {
+   "device": "OP59BCL1",
+   "name": "OnePlus Pad",
+   "model": "OPD2203"
+  },
+  {
    "device": "OnePlus2",
    "name": "OnePlus2",
    "model": "ONE A2003"
@@ -117263,6 +117368,11 @@
    "device": "OP5225",
    "name": "OPPO Pad Air",
    "model": "OPD2102"
+  },
+  {
+   "device": "OP564B",
+   "name": "OPPO Reno10 Pro+ 5G",
+   "model": "PHU110"
   },
   {
    "device": "OP4F2BL1",
@@ -120316,6 +120426,11 @@
   }
  ],
  "PLDT": [
+  {
+   "device": "DS8942-KPP",
+   "name": "PLDT-GMB8260",
+   "model": "PLDT-GMB8260"
+  },
   {
    "device": "Smart_Page_8_Pro",
    "name": "Smart Page 8 Pro",
@@ -132645,6 +132760,11 @@
    "device": "xun",
    "name": "Redmi Pad SE",
    "model": "23073RPBFG"
+  },
+  {
+   "device": "xun",
+   "name": "Redmi Pad SE",
+   "model": "23073RPBFL"
   },
   {
    "device": "tarzan",
@@ -156832,6 +156952,11 @@
    "model": "BRAVIA VU31"
   },
   {
+   "device": "BRAVIA_VU31_4K",
+   "name": "BRAVIA_VU31",
+   "model": "BRAVIA VU31"
+  },
+  {
    "device": "WT19a",
    "name": "Ericsson Live with Walkman",
    "model": "WT19a"
@@ -160040,6 +160165,11 @@
    "device": "S9",
    "name": "S9",
    "model": "S9"
+  },
+  {
+   "device": "Neo_8",
+   "name": "Sparx",
+   "model": "Neo 8"
   },
   {
    "device": "Neo_7",
@@ -163367,6 +163497,11 @@
    "device": "Cruze",
    "name": "TCL 30E",
    "model": "6127I"
+  },
+  {
+   "device": "Ladybird_Pro",
+   "name": "TCL 40 NXTPAPER",
+   "model": "T612B"
   },
   {
    "device": "Firefly",
@@ -172360,6 +172495,11 @@
    "model": "Techpad_Kids_7"
   },
   {
+   "device": "X11",
+   "name": "X11",
+   "model": "X11"
+  },
+  {
    "device": "X6",
    "name": "X6",
    "model": "X6"
@@ -179515,6 +179655,11 @@
    "model": "MP33"
   },
   {
+   "device": "UMIDIGI_A15",
+   "name": "UMIDIGI A15 RU",
+   "model": "MP33"
+  },
+  {
    "device": "UMIDIGI_A15C",
    "name": "UMIDIGI A15C",
    "model": "MP34"
@@ -180446,6 +180591,13 @@
    "device": "VZ-30",
    "name": "VZ-30",
    "model": "VZ-30"
+  }
+ ],
+ "VILLAON": [
+  {
+   "device": "V20",
+   "name": "V20",
+   "model": "V20"
   }
  ],
  "VIMOQ": [
@@ -185236,6 +185388,11 @@
    "device": "1902D",
    "name": "Y17",
    "model": "vivo 1902"
+  },
+  {
+   "device": "V2310",
+   "name": "Y17s",
+   "model": "V2310"
   },
   {
    "device": "Y21",
@@ -190375,6 +190532,11 @@
    "model": "Nano6"
   },
   {
+   "device": "T2",
+   "name": "T2",
+   "model": "T2"
+  },
+  {
    "device": "Tech-A1",
    "name": "Tech-A1",
    "model": "Tech A1"
@@ -192160,6 +192322,11 @@
    "model": "MiTV-MOSR1"
   },
   {
+   "device": "irobot",
+   "name": "MiTV",
+   "model": "MiTV-MOSR4"
+  },
+  {
    "device": "machuca",
    "name": "MiTV",
    "model": "MiTV-MSSP3"
@@ -192195,9 +192362,19 @@
    "model": "MiTV-MOOR0"
   },
   {
+   "device": "venom",
+   "name": "MiTV",
+   "model": "MiTV-MOOR6"
+  },
+  {
    "device": "volver",
    "name": "MiTV",
    "model": "MiTV-MSSP2"
+  },
+  {
+   "device": "watchmen",
+   "name": "MiTV",
+   "model": "MiTV-AXFR2"
   },
   {
    "device": "entrapment",
@@ -207831,6 +208008,11 @@
    "device": "rephone",
    "name": "rephone",
    "model": "2000_000170_00"
+  },
+  {
+   "device": "rephone5G",
+   "name": "rephone5G",
+   "model": "2000_000176_00"
   }
  ],
  "robi": [

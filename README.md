@@ -70,6 +70,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+September 16 2023
+
+**Improvement** BiometricManagerCompat - isBiometricEnrollChanged and resetBiometricEnrollChanged; Also resetBiometricEnrollChanged called after successful biometric authorization 
+
 
 September 8 2023
 
