@@ -100,6 +100,14 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        hihonorFaceManagerLegacy?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = hihonorFaceManagerLegacy != null
     override val isHardwarePresent: Boolean
@@ -189,10 +197,12 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
 
                 HihonorFaceRecognizeManager.HIHONOR_FACE_AUTH_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 HihonorFaceRecognizeManager.HIHONOR_FACE_AUTH_ERROR_LOCKED -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@HihonorFaceUnlockModule)
                     listener?.onCanceled(tag())

@@ -6,7 +6,7 @@ Note: Keep module in Java to keep compatibility with OEM/AOSP API's
 */
 android {
 //    compileSdkPreview compileSDK
-    compileSdkVersion compileSDK
+    compileSdk compileSDK
     defaultConfig {
         minSdkVersion minSDK
         //targetSdkPreview targetSDK

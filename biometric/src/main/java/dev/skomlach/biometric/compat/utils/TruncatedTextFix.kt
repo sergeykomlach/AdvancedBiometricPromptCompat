@@ -64,7 +64,8 @@ object TruncatedTextFix {
         builder: BiometricPromptCompat.Builder,
         onTruncateChecked: OnTruncateChecked
     ) {
-        val config = AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
+        val config =
+            AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
         val cache =
             truncatedText ?: getTruncatedText(config).also {
                 truncatedText = it
@@ -107,12 +108,13 @@ object TruncatedTextFix {
                 }
             }
             if (totalCount == changedCount) {
-                builder.setTitle(title).setSubtitle(subtitle).setDescription(description).setNegativeButtonText(negativeButton)
+                builder.setTitle(title).setSubtitle(subtitle).setDescription(description)
+                    .setNegativeButtonText(negativeButton)
                 onTruncateChecked.onDone()
                 return
             }
         }
-        val windowView = builder.getContext().findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
+        val windowView = builder.getActivity().findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
         val layout = LayoutInflater.from(builder.getContext())
             .inflate(R.layout.biometric_prompt_dialog_content, null).apply {
                 this.visibility = View.INVISIBLE

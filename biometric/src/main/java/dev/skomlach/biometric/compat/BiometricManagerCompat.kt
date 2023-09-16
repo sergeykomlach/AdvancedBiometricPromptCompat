@@ -38,6 +38,70 @@ object BiometricManagerCompat {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
     @JvmStatic
+    fun resetBiometricEnrollChanged(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ) {
+        if (api.api != BiometricApi.AUTO) {
+            HardwareAccessImpl.getInstance(api)
+                .updateBiometricEnrollChanged()
+        } else {
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            )
+                .updateBiometricEnrollChanged()
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            )
+                .updateBiometricEnrollChanged()
+        }
+
+        isBiometricEnrollChanged(api)
+    }
+
+    @JvmStatic
+    fun isBiometricEnrollChanged(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+        BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")
+        if (!BiometricPromptCompat.isInitialized) {
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
+        }
+        val result = if (api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isBiometricEnrollChanged
+        else
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isBiometricEnrollChanged
+        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricEnrollChanged for $api return $result")
+        preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
+            .apply()
+        return result
+    }
+
+    @JvmStatic
     fun registerCustomBiometric(
         id: Int,
         type: BiometricType,
@@ -205,6 +269,7 @@ object BiometricManagerCompat {
         }
         return false
     }
+
     @JvmStatic
     fun isBiometricAvailable(
         api: BiometricAuthRequest = BiometricAuthRequest(

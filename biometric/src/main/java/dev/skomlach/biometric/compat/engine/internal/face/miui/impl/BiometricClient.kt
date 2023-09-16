@@ -820,18 +820,22 @@ class BiometricClient {
                     handle_startService()
                     return
                 }
+
                 5001 -> {
                     handle_releaseService()
                     return
                 }
+
                 5002 -> {
                     handle_getServiceVersion(msg.arg1)
                     return
                 }
+
                 5003 -> {
                     handle_sendService(msg.obj as Message)
                     return
                 }
+
                 else -> return
             }
         }

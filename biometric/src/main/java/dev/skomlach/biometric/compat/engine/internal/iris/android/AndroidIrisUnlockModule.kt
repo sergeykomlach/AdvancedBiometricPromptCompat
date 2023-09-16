@@ -223,6 +223,13 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@AndroidIrisUnlockModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
 
     override val isManagerAccessible: Boolean
         get() = manager != null
@@ -362,22 +369,28 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             when (errMsgId) {
                 IRIS_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 IRIS_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 IRIS_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 IRIS_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 IRIS_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 IRIS_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@AndroidIrisUnlockModule)
                     listener?.onCanceled(tag())

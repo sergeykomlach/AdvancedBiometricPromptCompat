@@ -51,6 +51,11 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         listener?.initFinished(biometricMethod, this@SoterFaceUnlockModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return emptySet()
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -157,10 +162,12 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@SoterFaceUnlockModule)
                     listener?.onCanceled(tag())

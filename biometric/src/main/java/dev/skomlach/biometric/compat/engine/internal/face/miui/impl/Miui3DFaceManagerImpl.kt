@@ -373,6 +373,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                     enrollmentCallback2.onEnrollmentHelp(2, null)
                                 }
                             }
+
                             21 -> if (BiometricConnect.DEBUG_LOG) {
                                 str = LOG_TAG
                                 stringBuilder = StringBuilder()
@@ -382,8 +383,10 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                 stringBuilder.append(arg2)
                                 d(str, stringBuilder.toString())
                             }
+
                             22 -> {
                             }
+
                             23 -> d(LOG_TAG, "MSG_CB_EVENT_IR_CAM_CLOSED")
                             24 -> {
                                 enrollmentCallback2 = mEnrollmentCallback
@@ -392,6 +395,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                     cancelEnrollment()
                                 }
                             }
+
                             else -> when (event) {
                                 30 -> {
                                     str2 = LOG_TAG
@@ -414,6 +418,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                         }
                                     }
                                 }
+
                                 31 -> {
                                     enrollmentCallback2 = mEnrollmentCallback
                                     if (enrollmentCallback2 != null) {
@@ -425,6 +430,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                         d(str, stringBuilder.toString())
                                     }
                                 }
+
                                 32 -> {
                                     str = LOG_TAG
                                     stringBuilder2 = StringBuilder()
@@ -436,6 +442,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                         enrollmentCallback2.onEnrollmentHelp(arg1, null)
                                     }
                                 }
+
                                 else -> {
                                     val authenticationCallback: IMiuiFaceManager.AuthenticationCallback?
                                     when (event) {
@@ -453,6 +460,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                                 cancelAuthentication()
                                             }
                                         }
+
                                         41 -> {
                                             authenticationCallback = mAuthenticationCallback
                                             if (authenticationCallback != null) {
@@ -462,6 +470,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                                 )
                                             }
                                         }
+
                                         42 -> {
                                             authenticationCallback = mAuthenticationCallback
                                             if (authenticationCallback != null) {
@@ -471,6 +480,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                                                 )
                                             }
                                         }
+
                                         43 -> {
                                             val removalCallback = mRemovalCallback
                                             if (removalCallback != null) {
@@ -561,7 +571,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         get() = false
     override val managerVersion: Int
         get() = 1
-    override val vendorInfo: String?
+    override val vendorInfo: String
         get() = "3D Structure Light"
 
     private fun handlerDatabase(bundle: Bundle) {
@@ -886,7 +896,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
         }
     }
 
-    override val enrolledFaces: List<Miuiface?>?
+    override val enrolledFaces: List<Miuiface?>
         get() {
             val res: MutableList<Miuiface?> = ArrayList<Miuiface?>()
             e(LOG_TAG, " xiaomi getEnrolledFaces!")

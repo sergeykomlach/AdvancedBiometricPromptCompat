@@ -57,6 +57,25 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@FlymeFingerprintModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        mFingerprintServiceFingerprintManager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
+    override fun getIds(manager: Any): List<String> {
+        val ids = ArrayList<String>()
+        mFingerprintServiceFingerprintManager?.let {
+            it.ids?.let { array ->
+                for (a in array)
+                    ids.add("$a")
+            }
+        }
+        return ids
+    }
+
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
     override var isManagerAccessible = false

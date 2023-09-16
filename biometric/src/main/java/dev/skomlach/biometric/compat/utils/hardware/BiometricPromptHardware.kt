@@ -22,6 +22,9 @@ package dev.skomlach.biometric.compat.utils.hardware
 import android.annotation.TargetApi
 import android.content.pm.PackageManager
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
+import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
@@ -31,7 +34,12 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.Modifier
+import java.security.InvalidKeyException
+import java.security.KeyStore
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 
 @TargetApi(Build.VERSION_CODES.P)
 
@@ -242,5 +250,93 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 return !probablyFingerprintLabel.isNullOrEmpty() || !probablyOtherLabel.isNullOrEmpty()
         }
         return false
+    }
+
+    override val isBiometricEnrollChanged: Boolean
+        get() {
+            return EnrollCheckHelper.isChanged()
+        }
+
+    override
+    fun updateBiometricEnrollChanged() {
+        try {
+            if (EnrollCheckHelper.isChanged()) {
+                val keyStore = KeyStore.getInstance("AndroidKeyStore")
+                keyStore.load(null)
+                if (keyStore.containsAlias(EnrollCheckHelper.KEY_NAME))
+                    keyStore.deleteEntry(EnrollCheckHelper.KEY_NAME)
+            }
+        } catch (e: Throwable) {
+            e(e)
+        }
+
+    }
+
+    private object EnrollCheckHelper {
+        const val KEY_NAME = "BiometricEnrollChanged.test"
+
+        private fun generateSecretKey(keyGenParameterSpec: KeyGenParameterSpec): SecretKey {
+            val keyGenerator = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore"
+            )
+            keyGenerator.init(keyGenParameterSpec)
+            return keyGenerator.generateKey()
+        }
+
+        private fun getSecretKey(): SecretKey? {
+            val keyStore = KeyStore.getInstance("AndroidKeyStore")
+            // Before the keystore can be accessed, it must be loaded.
+            keyStore.load(null)
+            return if (keyStore.containsAlias(KEY_NAME))
+                keyStore.getKey(KEY_NAME, null) as SecretKey
+            else null
+        }
+
+        private fun getCipher(): Cipher {
+            return Cipher.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES + "/"
+                        + KeyProperties.BLOCK_MODE_CBC + "/"
+                        + KeyProperties.ENCRYPTION_PADDING_PKCS7
+            )
+        }
+
+        fun isChanged(): Boolean {
+            try {
+                val cipher: Cipher = getCipher()
+                var secretKey = getSecretKey()
+                if (secretKey == null) {
+                    secretKey = generateSecretKey(
+                        KeyGenParameterSpec.Builder(
+                            KEY_NAME,
+                            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                        )
+                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                            .setRandomizedEncryptionRequired(false)
+                            .apply {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                                    setUserPresenceRequired(false)
+                                    setUserConfirmationRequired(false)
+                                    setIsStrongBoxBacked(false)
+                                }
+                                setInvalidatedByBiometricEnrollment(true)
+                                setUserAuthenticationRequired(true)
+                            }
+                            .build()
+                    )
+                }
+                try {
+                    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+                } catch (e: KeyPermanentlyInvalidatedException) {
+                    return true
+                } catch (e: InvalidKeyException) {
+                    e(e)
+                }
+            } catch (e: Throwable) {
+                e(e)
+            }
+            return false
+
+        }
     }
 }

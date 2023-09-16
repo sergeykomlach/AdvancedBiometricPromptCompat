@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,6 +27,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Looper
+import androidx.core.app.LocaleManagerCompat
 import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
@@ -223,7 +224,13 @@ object AndroidContext {
         }
     }
 
-    val locale: Locale
+    val systemLocale: Locale
+        get() {
+            val listCompat = LocaleManagerCompat.getSystemLocales(appContext)
+            val l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
+            return l ?: Locale.getDefault()
+        }
+    val appLocale: Locale
         get() {
             val listCompat = ConfigurationCompat.getLocales(
                 configuration ?: return Locale.getDefault()

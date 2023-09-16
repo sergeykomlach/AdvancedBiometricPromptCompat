@@ -71,6 +71,11 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
         faceLockHelper?.setFaceUnlockCallback(null)
     }
 
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return emptySet()
+    }
+
     // Retrieve all services that can match the given intent
     override val isHardwarePresent: Boolean
         get() {

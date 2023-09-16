@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +42,7 @@ object NetworkApi {
     fun isWebUrl(u: String): Boolean {
         var url = u
         if (TextUtils.isEmpty(url)) return false
-        url = url.lowercase(AndroidContext.locale)
+        url = url.lowercase(AndroidContext.systemLocale)
         //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
         val slash = url.indexOf("/")
         if (slash > 0 && slash < url.indexOf("?")) {

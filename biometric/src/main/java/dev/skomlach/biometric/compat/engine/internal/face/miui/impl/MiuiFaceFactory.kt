@@ -43,9 +43,11 @@ object MiuiFaceFactory {
             "ursa" != Build.DEVICE -> {
                 TYPE_2D
             }
+
             MiuiFaceManagerImpl.getInstance()?.hasEnrolledFaces() != 0 -> {
                 TYPE_2D
             }
+
             else -> {
                 TYPE_3D
             }

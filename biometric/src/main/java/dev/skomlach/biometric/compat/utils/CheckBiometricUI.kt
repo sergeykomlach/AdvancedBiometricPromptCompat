@@ -36,10 +36,10 @@ object CheckBiometricUI {
             apks.add(applicationInfo.publicSourceDir)
             if (Build.VERSION.SDK_INT >= 21) {
                 if (applicationInfo.splitSourceDirs != null) {
-                    apks.addAll(listOf(*applicationInfo.splitSourceDirs?: emptyArray()))
+                    apks.addAll(listOf(*applicationInfo.splitSourceDirs ?: emptyArray()))
                 }
                 if (applicationInfo.splitPublicSourceDirs != null) {
-                    apks.addAll(listOf(*applicationInfo.splitPublicSourceDirs?: emptyArray()))
+                    apks.addAll(listOf(*applicationInfo.splitPublicSourceDirs ?: emptyArray()))
                 }
             }
         } catch (e: Throwable) {
@@ -102,7 +102,7 @@ object CheckBiometricUI {
     fun getBiometricUiPackage(context: Context): String {
         return (SystemStringsHelper.getFromSystem(context, "config_biometric_prompt_ui_package")
             ?: "com.android.systemui").also {
-                BiometricLoggerImpl.d("CheckBiometricUI", it)
+            BiometricLoggerImpl.d("CheckBiometricUI", it)
         }
     }
 }

@@ -109,10 +109,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     when (errorCode) {
                         BiometricPrompt.ERROR_NO_BIOMETRICS -> failureReason =
                             AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                         BiometricPrompt.ERROR_HW_NOT_PRESENT -> failureReason =
                             AuthenticationFailureReason.NO_HARDWARE
+
                         BiometricPrompt.ERROR_HW_UNAVAILABLE -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                         BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
                             for (t in builder.getPrimaryAvailableTypes()) {
                                 BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
@@ -121,17 +124,22 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             }
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         }
+
                         BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                         BiometricPrompt.ERROR_NO_SPACE -> failureReason =
                             AuthenticationFailureReason.SENSOR_FAILED
+
                         BiometricPrompt.ERROR_TIMEOUT -> failureReason =
                             AuthenticationFailureReason.TIMEOUT
+
                         BiometricPrompt.ERROR_LOCKOUT -> {
                             HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
                                 .lockout()
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
                         }
+
                         else -> {
                             cancelAuth()
                             cancelAuthentication()
@@ -205,7 +213,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         buttonTextColor = it
                     }
             }
-            (builder.getNegativeButtonText()?:builder.getContext().getString(android.R.string.cancel)).let {
+            (builder.getNegativeButtonText() ?: builder.getContext()
+                .getString(android.R.string.cancel)).let {
                 if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
                     getFixedString(
                         it, color = buttonTextColor
@@ -225,7 +234,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         promptInfoBuilder.setConfirmationRequired(false)
         biometricPromptInfo = promptInfoBuilder.build()
         biometricPrompt = BiometricPrompt(
-            builder.getContext(),
+            builder.getActivity(),
             ExecutorHelper.executor, authCallback
         )
         isFingerprint.set(
@@ -289,6 +298,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
 
     }
+
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
         val shortDelayMillis =
@@ -408,7 +418,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         biometricFragment.set(
                             m.invoke(
                                 null,
-                                builder.getContext().supportFragmentManager
+                                builder.getActivity().supportFragmentManager
                             ) as BiometricFragment?
                         )
                     } finally {

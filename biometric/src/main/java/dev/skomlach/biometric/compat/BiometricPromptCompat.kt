@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Build
 import android.os.Looper
@@ -282,7 +283,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
-        if (WideGamutBug.unsupportedColorMode(builder.getContext())) {
+        if (WideGamutBug.unsupportedColorMode(builder.getActivity())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
@@ -354,7 +355,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         val checkPermissions = {
             PermissionsFragment.askForPermissions(
-                impl.builder.getContext(),
+                impl.builder.getActivity(),
                 usedPermissions
             ) {
                 if (usedPermissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(
@@ -412,6 +413,25 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     }
 
                                     BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
+                                    if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                                            .updateBiometricEnrollChanged()
+                                    } else {
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.BIOMETRIC_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
+                                        )
+                                            .updateBiometricEnrollChanged()
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.LEGACY_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
+                                        )
+                                            .updateBiometricEnrollChanged()
+                                    }
                                     callbackOuter.onSucceeded(confirmed.toSet())
                                 } finally {
                                     onUIClosed()
@@ -456,7 +476,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         BiometricNotificationManager.showNotification(builder)
                                     }
                                     StatusBarTools.setNavBarAndStatusBarColors(
-                                        builder.getContext().window,
+                                        builder.getActivity().window,
                                         DialogMainColor.getColor(
                                             builder.getContext(),
                                             DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext())
@@ -485,7 +505,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                             BiometricNotificationManager.dismissAll()
                                         }
                                         StatusBarTools.setNavBarAndStatusBarColors(
-                                            builder.getContext().window,
+                                            builder.getActivity().window,
                                             builder.getNavBarColor(),
                                             builder.getDividerColor(),
                                             builder.getStatusBarColor()
@@ -738,6 +758,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         private var silentAuth = false
+        private var authWindowSec = 30
 
         private var dialogTitle: CharSequence? = null
             get() {
@@ -779,7 +800,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var autoVerifyCryptoAfterSuccess = false
 
         init {
-            getContext().let { context ->
+            getActivity().let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     this.colorNavBar = context.window.navigationBarColor
                     this.colorStatusBar = context.window.statusBarColor
@@ -810,14 +831,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return silentAuth
         }
 
-        fun enableSilentAuth() {
-            BiometricLoggerImpl.e("WARNING!!!\n" +
-                    "Keep in mind - some devices use the own built-in animations " +
-                    "(camera animation for Face/Iris) or other type of UI " +
-                    "(Fingerprint dialog and/or under-screen recognition animation)" +
-                    " and this leads to the uselessness of this function. " +
-                    "Use BiometricManagerCompat.isSilentAuthAvailable() to check")
-            silentAuth = true
+        fun getAuthWindow(): Int {
+            return authWindowSec
+        }
+
+        fun enableSilentAuth(authWindowSec: Int = 30) {
+            if (authWindowSec <= 0) throw IllegalArgumentException("AuthWindow cann't be less then 0")
+            BiometricLoggerImpl.e(
+                "WARNING!!!\n" +
+                        "Keep in mind - some devices use the own built-in animations " +
+                        "(camera animation for Face/Iris) or other type of UI " +
+                        "(Fingerprint dialog and/or under-screen recognition animation)" +
+                        " and this leads to the uselessness of this function. " +
+                        "Use BiometricManagerCompat.isSilentAuthAvailable() to check"
+            )
+            this.authWindowSec = authWindowSec
+            this.silentAuth = true
         }
 
         fun shouldAutoVerifyCryptoAfterSuccess(): Boolean {
@@ -885,11 +914,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return HashSet<BiometricType>(allAvailableTypes)
         }
 
-        fun getContext(): FragmentActivity {
+        fun getActivity(): FragmentActivity {
             return (AndroidContext.activity as? FragmentActivity?)
                 ?: throw java.lang.IllegalStateException("No activity on screen")
         }
-
+        fun getContext(): Context {
+            return AndroidContext.appContext
+        }
         fun getCryptographyPurpose(): BiometricCryptographyPurpose? {
             return biometricCryptographyPurpose
         }

@@ -30,7 +30,11 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricManagerCompat
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
 import dev.skomlach.biometric.compat.utils.BiometricTitle
@@ -109,7 +113,8 @@ class BiometricPromptCompatDialogImpl(
             }
 
             dialog.negativeButton?.text =
-                (compatBuilder.getNegativeButtonText()?:compatBuilder.getContext().getString(android.R.string.cancel))
+                (compatBuilder.getNegativeButtonText() ?: compatBuilder.getContext()
+                    .getString(android.R.string.cancel))
             dialog.negativeButton?.setOnClickListener {
                 dismissDialog()
                 authCallback?.cancelAuth()
@@ -260,7 +265,7 @@ class BiometricPromptCompatDialogImpl(
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
 
         dialog.show(
-            compatBuilder.getContext().supportFragmentManager,
+            compatBuilder.getActivity().supportFragmentManager,
             BiometricPromptCompatDialog.TAG
         )
     }
@@ -275,7 +280,7 @@ class BiometricPromptCompatDialogImpl(
             dialog.dismiss()
         }
         val viewModel: DialogViewModel =
-            ViewModelProvider(compatBuilder.getContext())[DialogViewModel::class.java]
+            ViewModelProvider(compatBuilder.getActivity())[DialogViewModel::class.java]
         viewModel.dismissDialog()
     }
 

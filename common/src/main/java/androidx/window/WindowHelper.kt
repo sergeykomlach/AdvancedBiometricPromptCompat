@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import android.graphics.Rect
 import androidx.window.layout.WindowMetricsCalculator
 
 object WindowHelper {
-    //NOTE!! Date: 16/11/2021
+    //NOTE!! Date: 16/11/2022
     //Keep this code up-to-date manually
     //Latest codebase
     //implementation "androidx.window:window:1.0.0-beta03"

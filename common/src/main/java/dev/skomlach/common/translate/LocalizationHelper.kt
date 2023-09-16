@@ -56,9 +56,9 @@ object LocalizationHelper {
     fun prefetch(context: Context, vararg formatArgs: Any?) {
         formatArgs.toList().forEach {
             if (it is String)
-                invoke(it, Locale.US, AndroidContext.locale)
+                invoke(it, Locale.US, AndroidContext.systemLocale)
             else if (it is Int) {
-                val localeBeforeFakingEnglishLocale = AndroidContext.locale
+                val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
                 invoke(context.resources.apply {
                     val config = this.configuration
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -67,7 +67,7 @@ object LocalizationHelper {
                         @Suppress("DEPRECATION")
                         config.locale = Locale.US
                     }
-                }.getString(it), Locale.US, AndroidContext.locale)
+                }.getString(it), Locale.US, AndroidContext.systemLocale)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                     context.resources.configuration.setLocale(localeBeforeFakingEnglishLocale)
@@ -80,7 +80,7 @@ object LocalizationHelper {
     }
 
     fun getLocalizedString(context: Context, @StringRes resId: Int): String {
-        val localeBeforeFakingEnglishLocale = AndroidContext.locale
+        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -105,7 +105,7 @@ object LocalizationHelper {
         @StringRes resId: Int,
         vararg formatArgs: Any?
     ): String {
-        val localeBeforeFakingEnglishLocale = AndroidContext.locale
+        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -127,13 +127,13 @@ object LocalizationHelper {
     }
 
     fun getLocalizedString(str: String): String {
-        return read(Locale.US, AndroidContext.locale, str) ?: str
+        return read(Locale.US, AndroidContext.systemLocale, str) ?: str
     }
 
     fun getLocalizedString(raw: String, vararg formatArgs: Any?): String {
         return try {
             String.format(
-                read(Locale.US, AndroidContext.locale, raw) ?: raw,
+                read(Locale.US, AndroidContext.systemLocale, raw) ?: raw,
                 *formatArgs
             )
         } catch (e: Throwable){
@@ -147,7 +147,7 @@ object LocalizationHelper {
         @StringRes resId: Int
     ): Boolean {
         val localeBeforeFakingEnglishLocale =
-            AndroidContext.locale
+            AndroidContext.systemLocale
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -163,7 +163,7 @@ object LocalizationHelper {
             @Suppress("DEPRECATION")
             context.resources.configuration.locale = localeBeforeFakingEnglishLocale
         }
-        return (Locale.US.language == AndroidContext.locale.language) || getLocalizedString(str) != str
+        return (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(str) != str
     }
 
     fun hasTranslation(
@@ -172,7 +172,7 @@ object LocalizationHelper {
         vararg formatArgs: Any?
     ): Boolean {
         val localeBeforeFakingEnglishLocale =
-            AndroidContext.locale
+            AndroidContext.systemLocale
         val str = context.resources.apply {
             val config = this.configuration
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -192,12 +192,12 @@ object LocalizationHelper {
     }
 
     fun hasTranslation(str: String): Boolean {
-        return (Locale.US.language == AndroidContext.locale.language) || getLocalizedString(str) != str
+        return (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(str) != str
     }
 
     fun hasTranslation(str: String, vararg formatArgs: Any?): Boolean {
         return try{
-            (Locale.US.language == AndroidContext.locale.language) || getLocalizedString(
+            (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(
                 str,
                 *formatArgs
             ) != String.format(str, *formatArgs)
@@ -348,17 +348,17 @@ object LocalizationHelper {
         urlConnection.requestMethod = "GET"
         urlConnection.setRequestProperty(
             "Content-Language",
-            "${lang.language.lowercase(AndroidContext.locale)}-${
+            "${lang.language.lowercase(AndroidContext.systemLocale)}-${
                 lang.country.uppercase(
-                    AndroidContext.locale
+                    AndroidContext.systemLocale
                 )
             }"
         )
         urlConnection.setRequestProperty(
             "Accept-Language",
-            "${lang.language.lowercase(AndroidContext.locale)}-${
+            "${lang.language.lowercase(AndroidContext.systemLocale)}-${
                 lang.country.uppercase(
-                    AndroidContext.locale
+                    AndroidContext.systemLocale
                 )
             }"
         )

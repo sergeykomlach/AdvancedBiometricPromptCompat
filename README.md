@@ -70,6 +70,17 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+September 16 2023
+
+**Improvement** BiometricManagerCompat - isBiometricEnrollChanged and resetBiometricEnrollChanged; Also resetBiometricEnrollChanged called after successful biometric authorization 
+
+
+September 8 2023
+
+**Bugfixes** Fixed autoCancel behavior for "silent mode" - now dev able to set "auth window" timeout; Default is 30 sec
+
+**Improvement** Android 14 per-app language support fixed
+
 August 30 2023
 
 **Bugfixes** Minor fixes related to R8

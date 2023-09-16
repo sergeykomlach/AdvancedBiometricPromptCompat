@@ -387,6 +387,14 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         listener?.initFinished(biometricMethod, this@AndroidFaceUnlockModule)
     }
 
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        manager?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -530,26 +538,34 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             when (errMsgId) {
                 FACE_ERROR_NOT_ENROLLED -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 FACE_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
+
                 FACE_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FACE_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 FACE_ERROR_UNABLE_TO_PROCESS, FACE_ERROR_SECURITY_UPDATE_REQUIRED -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@AndroidFaceUnlockModule)
                     listener?.onCanceled(tag())

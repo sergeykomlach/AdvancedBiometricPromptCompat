@@ -58,6 +58,43 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = false
+
+    override fun getManagers(): Set<Any> {
+        val managers = HashSet<Any>()
+        mSpassFingerprint?.let {
+            managers.add(it)
+        }
+        return managers
+    }
+
+    override fun getIds(manager: Any): List<String> {
+        val ids = ArrayList<String>()
+        try {
+            mSpassFingerprint?.let {
+                it.registeredFingerprintUniqueID?.let { array ->
+                    for (i in 0 until array.size()) {
+                        //Sparsearray contains String
+                        (array.get(i) as? String)?.let { s ->
+                            ids.add(s)
+                        }
+                    }
+                }
+            }
+        } catch (e: Throwable) {
+            mSpassFingerprint?.let {
+                it.registeredFingerprintName?.let { array ->
+                    for (i in 0 until array.size()) {
+                        //Sparsearray contains String
+                        (array.get(i) as? String)?.let { s ->
+                            ids.add(s)
+                        }
+                    }
+                }
+            }
+        }
+        return ids
+    }
+
     override val isManagerAccessible: Boolean
         get() = mSpass != null && mSpassFingerprint != null
     override val isHardwarePresent: Boolean
@@ -117,17 +154,22 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                 )
                                 return
                             }
+
                             SpassFingerprint.STATUS_QUALITY_FAILED, SpassFingerprint.STATUS_SENSOR_FAILED -> fail(
                                 AuthenticationFailureReason.SENSOR_FAILED
                             )
+
                             SpassFingerprint.STATUS_AUTHENTIFICATION_FAILED -> fail(
                                 AuthenticationFailureReason.AUTHENTICATION_FAILED
                             )
+
                             SpassFingerprint.STATUS_TIMEOUT_FAILED -> fail(
                                 AuthenticationFailureReason.TIMEOUT
                             )
+
                             SpassFingerprint.STATUS_USER_CANCELLED -> {
                             }
+
                             else -> fail(AuthenticationFailureReason.UNKNOWN)
                         }
                     }

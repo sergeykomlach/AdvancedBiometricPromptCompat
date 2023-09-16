@@ -132,25 +132,25 @@ object Core {
 
                 var biometricCryptoObject: BiometricCryptoObject? = null
                 purpose?.let {
-                        try {
+                    try {
+                        biometricCryptoObject =
+                            BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                                "BiometricModule${module.tag()}",
+                                purpose,
+                                m.isUserAuthCanByUsedWithCrypto
+                            )
+                    } catch (e: BiometricCryptoException) {
+                        if (purpose.purpose == BiometricCryptographyPurpose.ENCRYPT) {
+                            BiometricCryptoObjectHelper.deleteCrypto("BiometricModule${module.tag()}")
                             biometricCryptoObject =
                                 BiometricCryptoObjectHelper.getBiometricCryptoObject(
                                     "BiometricModule${module.tag()}",
                                     purpose,
                                     m.isUserAuthCanByUsedWithCrypto
                                 )
-                        } catch (e: BiometricCryptoException) {
-                            if (purpose.purpose == BiometricCryptographyPurpose.ENCRYPT) {
-                                BiometricCryptoObjectHelper.deleteCrypto("BiometricModule${module.tag()}")
-                                biometricCryptoObject =
-                                    BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                        "BiometricModule${module.tag()}",
-                                        purpose,
-                                        m.isUserAuthCanByUsedWithCrypto
-                                    )
-                            } else throw e
-                        }
+                        } else throw e
                     }
+                }
 
 
                 authenticate(biometricCryptoObject, module, listener, restartPredicate)

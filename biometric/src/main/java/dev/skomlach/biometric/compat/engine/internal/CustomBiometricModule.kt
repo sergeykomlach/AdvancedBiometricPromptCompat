@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal
 
-import android.annotation.SuppressLint
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -43,12 +42,22 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class CustomBiometricModule constructor(private val method: BiometricMethod, private val manager: AbstractCustomBiometricManager?, private val listener: BiometricInitListener?) :
+class CustomBiometricModule constructor(
+    private val method: BiometricMethod,
+    private val manager: AbstractCustomBiometricManager?,
+    private val listener: BiometricInitListener?
+) :
     AbstractBiometricModule(method) {
 
     init {
         listener?.initFinished(biometricMethod, this@CustomBiometricModule)
     }
+
+    override fun getManagers(): Set<Any> {
+        //No way to detect enrollments
+        return manager?.getManagers() ?: emptySet()
+    }
+
     override val isManagerAccessible: Boolean
         get() = manager != null
     override val isHardwarePresent: Boolean
@@ -148,26 +157,34 @@ class CustomBiometricModule constructor(private val method: BiometricMethod, pri
             when (errMsgId) {
                 CUSTOM_BIOMETRIC_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
+
                 CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
+
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 CUSTOM_BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
+
                 CUSTOM_BIOMETRIC_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
+
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
+
                 else -> {
                     Core.cancelAuthentication(this@CustomBiometricModule)
                     listener?.onCanceled(tag())

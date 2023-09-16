@@ -125,9 +125,11 @@ object ActiveWindow {
                 is Application -> {
                     return null
                 }
+
                 is Activity -> {
                     return context
                 }
+
                 is ContextWrapper -> {
                     val baseContext = context.baseContext
                     // Prevent Stack Overflow.
@@ -136,6 +138,7 @@ object ActiveWindow {
                     }
                     baseContext
                 }
+
                 else -> {
                     return null
                 }
