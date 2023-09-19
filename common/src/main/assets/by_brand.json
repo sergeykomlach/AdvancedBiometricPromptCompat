@@ -1727,6 +1727,11 @@
    "device": "K749B",
    "name": "K749B",
    "model": "K749B"
+  },
+  {
+   "device": "K750",
+   "name": "K750",
+   "model": "K750"
   }
  ],
  "Aamra WE": [
@@ -2113,6 +2118,11 @@
    "device": "ACTAB821_A",
    "name": "ACTAB821_A",
    "model": "ACTAB821_A"
+  },
+  {
+   "device": "ACTABKID",
+   "name": "ACTABKID",
+   "model": "ACTABKID"
   },
   {
    "device": "C8n",
@@ -3808,6 +3818,11 @@
    "device": "SP5735",
    "name": "SP5735",
    "model": "SP5735"
+  },
+  {
+   "device": "SP5736",
+   "name": "SP5736",
+   "model": "SP5736"
   },
   {
    "device": "SP5760",
@@ -35690,6 +35705,11 @@
    "model": "CHOTT0102"
   },
   {
+   "device": "CHSTB02",
+   "name": "CHSTB02",
+   "model": "CHSTB02"
+  },
+  {
    "device": "DV8519",
    "name": "SDOTT0202",
    "model": "SDOTT0202"
@@ -39516,6 +39536,11 @@
    "device": "A5Pro",
    "name": "A5Pro",
    "model": "A5Pro"
+  },
+  {
+   "device": "FOXXD_C65",
+   "name": "FOXXD C65",
+   "model": "FOXXD C65"
   },
   {
    "device": "L590A",
@@ -46863,6 +46888,13 @@
    "device": "SmartEdu",
    "name": "T432",
    "model": "T432"
+  }
+ ],
+ "HANKOOK_CREA": [
+  {
+   "device": "HANKOOK_CREA_RK3588",
+   "name": "HANKOOK_CREA_IFPD",
+   "model": "CREA_86135_Series"
   }
  ],
  "HANYEAL": [
@@ -55003,6 +55035,11 @@
    "device": "HLTE235E_20",
    "name": "Hisense E60 Lite",
    "model": "Hisense E60 Lite"
+  },
+  {
+   "device": "HLTE262E",
+   "name": "Hisense E70",
+   "model": "Hisense E70"
   },
   {
    "device": "HS8937QC",
@@ -67342,6 +67379,11 @@
    "model": "HYUNDAI 4K Google TV"
   },
   {
+   "device": "nagata",
+   "name": "HYUNDAI SMART 2K TV",
+   "model": "Hyundai 2K Smart TV"
+  },
+  {
    "device": "SW6H",
    "name": "HYUNDAI SMART TV",
    "model": "HYUNDAI SMART TV"
@@ -67390,6 +67432,11 @@
    "device": "shinjuku",
    "name": "Hyundai 2K TV",
    "model": "Hyundai 2K TV"
+  },
+  {
+   "device": "marina",
+   "name": "Hyundai 4K Smart TV",
+   "model": "Hyundai 4K Smart TV"
   },
   {
    "device": "HT1G50L",
@@ -74116,6 +74163,11 @@
    "device": "itel-A510W",
    "name": "itel-A510W",
    "model": "itel A510W"
+  },
+  {
+   "device": "itel-IKP-31",
+   "name": "itel-IKP-31",
+   "model": "IKP-31"
   },
   {
    "device": "itel-L5007S",
@@ -106841,6 +106893,16 @@
    "model": "moto g53y 5G"
   },
   {
+   "device": "cancunf",
+   "name": "moto g54 5G",
+   "model": "moto g54 5G"
+  },
+  {
+   "device": "cancunf",
+   "name": "moto g54 5G",
+   "model": "moto g73 5G"
+  },
+  {
    "device": "jeter",
    "name": "moto g6 play",
    "model": "Moto G Play"
@@ -133519,6 +133581,13 @@
    "model": "NovaTab_R10"
   }
  ],
+ "RoadQuest": [
+  {
+   "device": "RQ-G",
+   "name": "RQ-G",
+   "model": "RQ-G"
+  }
+ ],
  "RockTek": [
   {
    "device": "RTBox",
@@ -153369,6 +153438,11 @@
    "device": "sandiego",
    "name": "FV1",
    "model": "AQUOS-TVT23A"
+  },
+  {
+   "device": "sandiego",
+   "name": "FV1",
+   "model": "AQUOS-TVU23A"
   },
   {
    "device": "sandiego",
@@ -183486,6 +183560,11 @@
  ],
  "Vision Technology": [
   {
+   "device": "nagata",
+   "name": "2K SMART TV",
+   "model": "2K SMART TV"
+  },
+  {
    "device": "R1",
    "name": "Android TV",
    "model": "ATV R1"
@@ -207641,19 +207720,19 @@
    "model": "RMX3370"
   },
   {
+   "device": "REE2B2L1",
+   "name": "realme GT3 240W",
+   "model": "RMX3709"
+  },
+  {
    "device": "RE5C33",
-   "name": "realme GT Neo5",
+   "name": "realme GT5",
    "model": "RMX3820"
   },
   {
    "device": "RE5C33",
-   "name": "realme GT Neo5 240W",
+   "name": "realme GT5 240W",
    "model": "RMX3823"
-  },
-  {
-   "device": "REE2B2L1",
-   "name": "realme GT3 240W",
-   "model": "RMX3709"
   },
   {
    "device": "RMX2117L1",
