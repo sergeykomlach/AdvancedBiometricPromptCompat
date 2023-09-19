@@ -157,6 +157,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
                 val keyPair =
                     keyPairGenerator.generateKeyPair()//SK: Exception on some devices here; It seems like device-specific KeyStore issue
+                storeKeyPairInFallback(name, keyPair)
             } catch (e: IllegalStateException) {
                 //SK: As a fallback - generate simple RSA keypair and store keys in EncryptedSharedPreferences
                 //NOTE: do not use getAlgorithmParameterSpec() - Keys cann't be stored in this case

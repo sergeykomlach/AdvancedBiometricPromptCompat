@@ -815,9 +815,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             //Known issue: at least "OnePlus 9" call onSuccess when "Cancel" button clicked,
             //so checking the crypto is only the way to check real reason - it's Canceled or Success
-            autoVerifyCryptoAfterSuccess = true
-            biometricCryptographyPurpose =
-                BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
+
+            //Due to limitations, applicable only for Fingerprint
+            if (BiometricManagerCompat.isBiometricAvailable(BiometricAuthRequest(type = BiometricType.BIOMETRIC_FINGERPRINT))) {
+                autoVerifyCryptoAfterSuccess = true
+                biometricCryptographyPurpose =
+                    BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
+            }
         }
 
         constructor(dummy_reference: FragmentActivity) : this(
