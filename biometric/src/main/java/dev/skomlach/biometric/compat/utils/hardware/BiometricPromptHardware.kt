@@ -112,20 +112,28 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
     private val isAnyHardwareAvailable: Boolean
         get() {
-            val canAuthenticate = canAuthenticate
-            return if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS || canAuthenticate == BiometricManager.BIOMETRIC_STATUS_UNKNOWN) {
-                true
-            } else {
-                canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
+            return when (canAuthenticate) {
+                BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false //really no sensors
+                BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> false //security patch required due to vulnerabilities
+                BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> false //Some incompatibility issue
+                BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
+                BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
+                BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> true //sensor Ok, just biometric data missing
+                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable
+                else -> false
             }
         }
     private val isAnyBiometricEnrolled: Boolean
         get() {
-            val canAuthenticate = canAuthenticate
-            return if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS || canAuthenticate == BiometricManager.BIOMETRIC_STATUS_UNKNOWN) {
-                true
-            } else {
-                canAuthenticate != BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED && canAuthenticate != BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED
+            return when (canAuthenticate) {
+                BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false //really no sensors and enrolled data
+                BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> false //security patch required due to vulnerabilities
+                BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> false //Some incompatibility issue
+                BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
+                BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
+                BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> false //no biometric
+                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable; biometric most probably be exists
+                else -> false
             }
         }
     override val isHardwareAvailable: Boolean
@@ -158,6 +166,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     private val isAnyLockedOut: Boolean
         get() {
+            if (canAuthenticate == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE) return true
             for (type in BiometricType.values()) {
                 if (BiometricLockoutFix.isLockOut(type))
                     return true
