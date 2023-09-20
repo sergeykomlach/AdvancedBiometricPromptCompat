@@ -817,7 +817,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             //so checking the crypto is only the way to check real reason - it's Canceled or Success
 
             //Due to limitations, applicable only for Fingerprint
-            if (BiometricManagerCompat.isBiometricAvailable(BiometricAuthRequest(type = BiometricType.BIOMETRIC_FINGERPRINT))) {
+            if (deviceInfo?.model?.startsWith("OnePlus 9", ignoreCase = true) == true &&
+                BiometricManagerCompat.isBiometricAvailable(BiometricAuthRequest(type = BiometricType.BIOMETRIC_FINGERPRINT))
+            ) {
                 autoVerifyCryptoAfterSuccess = true
                 biometricCryptographyPurpose =
                     BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
