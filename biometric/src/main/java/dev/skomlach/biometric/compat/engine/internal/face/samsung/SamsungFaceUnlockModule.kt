@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.engine.internal.face.samsung
 
 import android.annotation.SuppressLint
 import android.view.View
+import android.widget.Toast
 import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -33,6 +34,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
 
@@ -184,6 +186,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
+            AndroidContext.activity?.let {
+                it.runOnUiThread {
+                    Toast.makeText(it, "Error: $errMsgId-$errString", Toast.LENGTH_LONG).show()
+                }
+            }
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE, FACE_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE, FACE_ERROR_CAMERA_FAILURE -> failureReason =
@@ -236,6 +243,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
+            AndroidContext.activity?.let {
+                it.runOnUiThread {
+                    Toast.makeText(it, "Help: $helpMsgId-$helpString", Toast.LENGTH_LONG).show()
+                }
+            }
             listener?.onHelp(helpString)
         }
 
@@ -244,6 +256,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
+            AndroidContext.activity?.let {
+                it.runOnUiThread {
+                    Toast.makeText(it, "Succeeded: $result", Toast.LENGTH_LONG).show()
+                }
+            }
             errorTs = tmp
             listener?.onSuccess(
                 tag(),
@@ -261,7 +278,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-
+            AndroidContext.activity?.let {
+                it.runOnUiThread {
+                    Toast.makeText(it, "Failed", Toast.LENGTH_LONG).show()
+                }
+            }
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
