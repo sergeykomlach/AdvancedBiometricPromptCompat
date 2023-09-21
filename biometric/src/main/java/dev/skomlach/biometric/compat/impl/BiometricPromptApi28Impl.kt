@@ -113,7 +113,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         BiometricPrompt.ERROR_HW_NOT_PRESENT -> failureReason =
                             AuthenticationFailureReason.NO_HARDWARE
 
-                        BiometricPrompt.ERROR_HW_UNAVAILABLE -> failureReason =
+                        BiometricPrompt.ERROR_HW_UNAVAILABLE, BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED, BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> failureReason =
                             AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                         BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
@@ -126,7 +126,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
 
                         BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> failureReason =
-                            AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                            AuthenticationFailureReason.SENSOR_FAILED
 
                         BiometricPrompt.ERROR_NO_SPACE -> failureReason =
                             AuthenticationFailureReason.SENSOR_FAILED
@@ -138,6 +138,12 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
                                 .lockout()
                             failureReason = AuthenticationFailureReason.LOCKED_OUT
+                        }
+
+                        BiometricPrompt.ERROR_CANCELED, BiometricPrompt.ERROR_USER_CANCELED, BiometricPrompt.ERROR_NEGATIVE_BUTTON -> {
+                            cancelAuth()
+                            cancelAuthentication()
+                            return@Runnable
                         }
 
                         else -> {

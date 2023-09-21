@@ -113,6 +113,11 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: BiometricManagerCompat.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -120,11 +125,6 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -192,7 +192,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 }
 
                 FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -203,6 +203,12 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                FINGERPRINT_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

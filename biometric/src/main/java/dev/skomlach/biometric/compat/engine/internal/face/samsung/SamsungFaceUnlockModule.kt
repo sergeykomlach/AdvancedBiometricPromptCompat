@@ -122,6 +122,12 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
                 val callback: SemBioFaceManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -129,12 +135,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
-
 
                 // Occasionally, an NPE will bubble up out of SemBioSomeManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -186,11 +186,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE -> failureReason =
+                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE, FACE_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE, FACE_ERROR_CAMERA_FAILURE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -201,6 +201,12 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                FACE_ERROR_CANCELED -> {
+                    Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

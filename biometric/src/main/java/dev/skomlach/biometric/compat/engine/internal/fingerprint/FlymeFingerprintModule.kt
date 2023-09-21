@@ -147,6 +147,10 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 }
 
                 override fun onNoMatch() {
+                    val tmp = System.currentTimeMillis()
+                    if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
+                        return
+                    errorTs = tmp
                     fail(AuthenticationFailureReason.AUTHENTICATION_FAILED)
                 }
 

@@ -92,6 +92,11 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: BiometricManagerCompat.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -99,11 +104,6 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -158,7 +158,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
@@ -166,6 +166,12 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_CANCELED -> {
+                    Core.cancelAuthentication(this@SoterFaceUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

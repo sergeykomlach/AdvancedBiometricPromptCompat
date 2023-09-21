@@ -435,6 +435,11 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback =
                     FaceManagerAuthCallback(
                         biometricCryptoObject,
@@ -442,11 +447,6 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         cancellationSignal,
                         listener
                     )
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
-
                 // Occasionally, an NPE will bubble up out of SemBioSomeManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
                     if (biometricCryptoObject.cipher != null)
@@ -539,10 +539,10 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 FACE_ERROR_NOT_ENROLLED -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 
-                FACE_ERROR_HW_NOT_PRESENT -> failureReason =
+                FACE_ERROR_HW_NOT_PRESENT, FACE_ERROR_SECURITY_UPDATE_REQUIRED -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
 
-                FACE_ERROR_HW_UNAVAILABLE -> failureReason =
+                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_NO_DEVICE_CREDENTIAL -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 FACE_ERROR_LOCKOUT_PERMANENT -> {
@@ -552,8 +552,11 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
 
-                FACE_ERROR_UNABLE_TO_PROCESS, FACE_ERROR_SECURITY_UPDATE_REQUIRED -> failureReason =
+                FACE_ERROR_SECURITY_UPDATE_REQUIRED -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
+                FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -564,6 +567,22 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@AndroidFaceUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
+                }
+
+                FACE_ERROR_RE_ENROLL -> {
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
+                    return
                 }
 
                 else -> {

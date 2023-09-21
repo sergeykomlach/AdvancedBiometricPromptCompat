@@ -114,6 +114,11 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
                 val callback: FingerprintManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -122,10 +127,6 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                         listener
                     )
 
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val crypto = if (biometricCryptoObject == null) null else {
                     if (biometricCryptoObject.cipher != null)
                         FingerprintManager.CryptoObject(biometricCryptoObject.cipher)
@@ -192,7 +193,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 }
 
                 FingerprintManager.FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 FingerprintManager.FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -203,6 +204,12 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 FingerprintManager.FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                FingerprintManager.FINGERPRINT_ERROR_CANCELED, FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@API23FingerprintModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

@@ -45,11 +45,10 @@ import java.util.zip.ZipOutputStream
 
 
 object MailTo {
-    private val BUFFER = 1024 * 1024
+    private val BUFFER = 1024 * 1024 * 8
 
     private fun zip(_files: Array<String>, zipFileName: File) {
         try {
-            var origin: BufferedInputStream? = null
             zipFileName.delete()
             zipFileName.createNewFile()
             val dest = FileOutputStream(zipFileName)
@@ -58,20 +57,27 @@ object MailTo {
                     dest
                 )
             )
-            val data = ByteArray(BUFFER)
             for (i in _files.indices) {
-                val fi = FileInputStream(_files[i])
-                origin = BufferedInputStream(fi, BUFFER)
-                val entry = ZipEntry(_files[i].substring(_files[i].lastIndexOf("/") + 1))
+                val file = File(_files[i])
+
+                val fi = FileInputStream(file)
+                val origin = BufferedInputStream(fi, BUFFER)
+                val entry = ZipEntry(file.name)
                 out.putNextEntry(entry)
                 var count: Int
+                val data = ByteArray(BUFFER)
                 while (origin.read(data, 0, BUFFER).also { count = it } != -1) {
                     out.write(data, 0, count)
                 }
                 origin.close()
+                fi.close()
+
             }
+            out.flush()
             out.close()
+            dest.close()
         } catch (e: Exception) {
+            zipFileName.delete()
             e.printStackTrace()
         }
     }
