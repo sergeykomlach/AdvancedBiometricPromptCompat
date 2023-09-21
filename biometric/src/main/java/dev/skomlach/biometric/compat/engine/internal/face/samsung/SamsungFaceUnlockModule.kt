@@ -60,6 +60,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         const val FACE_ERROR_TEMPLATE_CORRUPTED = 1004
         const val FACE_ERROR_TIMEOUT = 3
         const val FACE_ERROR_UNABLE_TO_PROCESS = 2
+        const val FACE_ERROR_FACE_NOT_RECOGNIZED = 1006
         const val FACE_OK = 0
     }
 
@@ -215,6 +216,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     listener?.onCanceled(tag())
                     return
                 }
+
+                FACE_ERROR_FACE_NOT_RECOGNIZED ->
+                    failureReason =
+                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+
 
                 else -> {
                     //no-op
