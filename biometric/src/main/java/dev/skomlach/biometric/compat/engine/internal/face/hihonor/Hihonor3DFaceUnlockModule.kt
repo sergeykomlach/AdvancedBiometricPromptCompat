@@ -173,9 +173,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

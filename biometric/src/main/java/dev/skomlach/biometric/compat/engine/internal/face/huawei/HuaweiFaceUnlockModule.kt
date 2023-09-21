@@ -204,9 +204,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@HuaweiFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

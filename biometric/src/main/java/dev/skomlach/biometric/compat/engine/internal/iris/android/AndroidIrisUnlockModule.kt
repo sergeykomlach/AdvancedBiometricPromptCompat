@@ -399,9 +399,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@AndroidIrisUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

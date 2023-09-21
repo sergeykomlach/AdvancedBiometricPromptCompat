@@ -175,9 +175,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@SoterFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

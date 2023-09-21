@@ -217,9 +217,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 else -> {
-                    Core.cancelAuthentication(this@FacelockOldModule)
-                    listener?.onCanceled(tag())
-                    return null
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {
