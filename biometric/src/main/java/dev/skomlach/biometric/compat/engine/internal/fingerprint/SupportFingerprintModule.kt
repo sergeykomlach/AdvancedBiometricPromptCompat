@@ -132,6 +132,10 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         managerCompat?.let {
             try {
+
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: FingerprintManagerCompat.AuthenticationCallback =
                     AuthCallbackCompat(
                         biometricCryptoObject,
@@ -139,10 +143,6 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         cancellationSignal,
                         listener
                     )
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
-
                 val crypto = if (biometricCryptoObject == null) null else {
                     if (biometricCryptoObject.cipher != null)
                         FingerprintManagerCompat.CryptoObject(biometricCryptoObject.cipher)
@@ -211,7 +211,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 }
 
                 FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -222,6 +222,12 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 FINGERPRINT_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                FINGERPRINT_ERROR_CANCELED, FINGERPRINT_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@SupportFingerprintModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

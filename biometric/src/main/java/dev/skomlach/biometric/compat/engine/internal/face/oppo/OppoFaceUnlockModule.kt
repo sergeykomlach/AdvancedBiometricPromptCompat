@@ -178,6 +178,11 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: OppoMirrorFaceManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -185,11 +190,6 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of SomeManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -245,7 +245,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 FACE_ERROR_HW_NOT_PRESENT -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
 
-                FACE_ERROR_HW_UNAVAILABLE -> failureReason =
+                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 FACE_ERROR_LOCKOUT_PERMANENT -> {
@@ -264,6 +264,12 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 FACE_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

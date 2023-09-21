@@ -31,6 +31,7 @@ import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Compa
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_SPACE
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
+import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_USER_CANCELED
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -93,6 +94,11 @@ class CustomBiometricModule constructor(
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: AbstractCustomBiometricManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -100,11 +106,6 @@ class CustomBiometricModule constructor(
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -172,7 +173,7 @@ class CustomBiometricModule constructor(
                 }
 
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 CUSTOM_BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -183,6 +184,12 @@ class CustomBiometricModule constructor(
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                CUSTOM_BIOMETRIC_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@CustomBiometricModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

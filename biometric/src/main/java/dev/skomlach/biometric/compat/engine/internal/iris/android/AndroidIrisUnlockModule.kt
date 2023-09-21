@@ -267,6 +267,12 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
                 val callback: IrisManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -274,11 +280,6 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of IrisManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -378,7 +379,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 IRIS_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 IRIS_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -389,6 +390,12 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 IRIS_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                IRIS_ERROR_CANCELED, IRIS_ERROR_USER_CANCELED -> {
+                    Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
                 }
 
                 else -> {

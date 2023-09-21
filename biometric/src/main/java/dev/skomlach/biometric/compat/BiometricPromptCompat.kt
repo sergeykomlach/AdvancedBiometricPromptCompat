@@ -498,6 +498,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                             if (isOpened.get()) {
                                 isOpened.set(false)
+                                BiometricAuthentication.cancelAuthentication()//cancel previews and reinit for next usage
                                 if (!builder.isSilentAuthEnabled()) {
                                     activityViewWatcher?.resetListeners()
                                     val closeAll = Runnable {

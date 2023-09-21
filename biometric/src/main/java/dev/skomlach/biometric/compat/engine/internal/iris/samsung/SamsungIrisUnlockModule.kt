@@ -181,6 +181,11 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: SemIrisManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -188,11 +193,6 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         cancellationSignal,
                         listener
                     )
-
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 // Occasionally, an NPE will bubble up out of SemIrisManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
@@ -243,23 +243,56 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
-//                IRIS_ERROR_NO_EYE_DETECTED -> failureReason =
-//                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED // AUTHENTICATION_FAILED
+                IRIS_ERROR_NO_EYE_DETECTED -> failureReason =
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+
                 IRIS_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 IRIS_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                    AuthenticationFailureReason.SENSOR_FAILED
 
                 IRIS_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
 
-                IRIS_ERROR_TIMEOUT -> failureReason =
+                IRIS_ERROR_TIMEOUT, IRIS_ERROR_EYE_SAFETY_TIMEOUT, IRIS_ERROR_PROXIMITY_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
 
                 IRIS_ERROR_LOCKOUT -> {
                     lockout()
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
+                }
+
+                IRIS_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE,
+                IRIS_ERROR_IDENTIFY_FAILURE_SERVICE_FAILURE,
+                IRIS_ERROR_IDENTIFY_FAILURE_SYSTEM_FAILURE,
+                IRIS_ERROR_OPEN_IR_CAMERA_FAIL,
+                IRIS_ERROR_DEVICE_NEED_RECAL //????
+                -> failureReason =
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
+                IRIS_ERROR_CANCELED -> {
+                    Core.cancelAuthentication(this@SamsungIrisUnlockModule)
+                    listener?.onCanceled(tag())
+                    return
+                }
+
+                IRIS_ERROR_NEED_TO_RETRY, IRIS_ERROR_IDENTIFY_FAILURE_SENSOR_CHANGED -> {
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
+                    return
+                }
+
+                IRIS_ERROR_EVICTED, IRIS_ERROR_EVICTED_DUE_TO_VIDEO_CALL -> failureReason =
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+
+                IRIS_ERROR_AUTH_VIEW_SIZE, IRIS_ERROR_AUTH_WINDOW_TOKEN, IRIS_ERROR_START_IR_CAMERA_PREVIEW_FAIL -> {
+                    //no-op
+                    return
                 }
 
                 else -> {
