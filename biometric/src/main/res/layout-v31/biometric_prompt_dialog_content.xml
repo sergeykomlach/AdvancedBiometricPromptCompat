@@ -19,6 +19,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/dialogContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -105,6 +106,8 @@
                         android:id="@+id/fingerprint_icon"
                         android:layout_width="@dimen/fingerprint_icon_size_compat"
                         android:layout_height="@dimen/fingerprint_icon_size_compat"
+                        tools:srcCompat="@drawable/bio_ic_fingerprint"
+                        tools:tint="@color/material_blue_500"
                         />
 
                 <androidx.appcompat.widget.AppCompatTextView

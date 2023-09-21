@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.utils.activityView
 
 import android.annotation.SuppressLint
 import android.content.ContextWrapper
-import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.RenderEffect
@@ -34,7 +33,6 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.core.view.ViewCompat
-import androidx.core.widget.ImageViewCompat
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.utils.DialogMainColor
@@ -431,58 +429,37 @@ class WindowForegroundBlurring(
                 when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         biometrics_layout.findViewById<View>(R.id.face)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.face),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.face).setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         biometrics_layout.findViewById<View>(R.id.iris)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.iris),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.iris).setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_HEARTRATE -> {
                         biometrics_layout.findViewById<View>(R.id.heartrate)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.heartrate),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.heartrate).setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_VOICE -> {
                         biometrics_layout.findViewById<View>(R.id.voice)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.voice),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.voice).setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_PALMPRINT -> {
                         biometrics_layout.findViewById<View>(R.id.palm)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.palm),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.palm).setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_BEHAVIOR -> {
                         biometrics_layout.findViewById<View>(R.id.typing)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.typing),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.typing).setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_FINGERPRINT -> {
                         biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag = iconStates
-                        ImageViewCompat.setImageTintList(
-                            biometrics_layout.findViewById<ImageView>(R.id.fingerprint),
-                            ColorStateList.valueOf(color)
-                        )
+                        biometrics_layout.findViewById<ImageView>(R.id.fingerprint).setColorFilter(color)
                     }
 
                     else -> {

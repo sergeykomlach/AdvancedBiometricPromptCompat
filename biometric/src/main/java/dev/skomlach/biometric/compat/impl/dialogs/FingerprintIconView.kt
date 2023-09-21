@@ -25,7 +25,9 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.ColorFilter
 import android.graphics.ImageDecoder
+import android.graphics.PorterDuff
 import android.graphics.drawable.*
 import android.os.Build
 import android.util.AttributeSet
@@ -70,14 +72,11 @@ class FingerprintIconView @JvmOverloads constructor(
     private fun setTint(state: State) {
         if (state == State.ON) {
             color?.let {
-                ImageViewCompat.setImageTintList(
-                    this,
-                    ColorStateList.valueOf(it)
-                )
+                setColorFilter(color?:return)
                 return
             }
         }
-        ImageViewCompat.setImageTintList(this, null)
+        setColorFilter(0)
     }
 
     fun setState(state: State, animate: Boolean, type: BiometricType) {
