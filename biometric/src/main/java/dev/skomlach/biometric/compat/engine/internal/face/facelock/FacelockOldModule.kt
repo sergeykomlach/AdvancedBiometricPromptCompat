@@ -22,13 +22,14 @@ package dev.skomlach.biometric.compat.engine.internal.face.facelock
 import android.app.admin.DevicePolicyManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.view.View
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -43,7 +44,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACELOCK) {
     private var faceLockHelper: FaceLockHelper? = null
     private var facelockProxyListener: ProxyListener? = null
-    private var viewWeakReference = WeakReference<View?>(null)
+    private var viewWeakReference = WeakReference<SurfaceView?>(null)
     override var isManagerAccessible = false
 
 
@@ -74,8 +75,44 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     listener = null
                     faceLockHelper?.stopFaceLock()
                 } else {
-                    d(name + ".authorize: " + viewWeakReference.get())
-                    faceLockHelper?.startFaceLockWithUi(viewWeakReference.get())
+                    try {
+                        d(name + ".authorize: " + viewWeakReference.get())
+                        viewWeakReference.get()?.let { view ->
+                            if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                                authCallTimestamp.set(System.currentTimeMillis())
+                                faceLockHelper?.startFaceLockWithUi(view)
+                                return
+                            } else {
+                                view.holder.addCallback(object : SurfaceHolder.Callback {
+                                    override fun surfaceCreated(p0: SurfaceHolder) {
+                                        authCallTimestamp.set(System.currentTimeMillis())
+                                        faceLockHelper?.startFaceLockWithUi(view)
+                                    }
+
+                                    override fun surfaceChanged(
+                                        p0: SurfaceHolder,
+                                        p1: Int,
+                                        p2: Int,
+                                        p3: Int
+                                    ) {
+
+                                    }
+
+                                    override fun surfaceDestroyed(p0: SurfaceHolder) {
+
+                                    }
+                                })
+                                view.visibility = View.VISIBLE
+                            }
+
+                        } ?: kotlin.run {
+                            authCallTimestamp.set(System.currentTimeMillis())
+                            faceLockHelper?.startFaceLockWithUi(null)
+                        }
+
+                    } catch (e: Throwable) {
+                        e("$name.FaceIdInterface.onConnected", e)
+                    }
                 }
             }
 
@@ -170,14 +207,13 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         )
     }
 
-    fun setCallerView(targetView: View?) {
+    fun setCallerView(targetView: SurfaceView?) {
         d("$name.setCallerView: $targetView")
         viewWeakReference = WeakReference(targetView)
     }
 
     private fun authorize(proxyListener: ProxyListener) {
         facelockProxyListener = proxyListener
-        authCallTimestamp.set(System.currentTimeMillis())
         faceLockHelper?.stopFaceLock()
         faceLockHelper?.initFacelock()
     }

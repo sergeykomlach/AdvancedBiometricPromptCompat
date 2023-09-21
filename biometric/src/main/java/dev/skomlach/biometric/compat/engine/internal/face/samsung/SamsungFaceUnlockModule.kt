@@ -20,6 +20,8 @@
 package dev.skomlach.biometric.compat.engine.internal.face.samsung
 
 import android.annotation.SuppressLint
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.view.View
 import android.widget.Toast
 import androidx.core.os.CancellationSignal
@@ -65,7 +67,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
     }
 
     private var manager: SemBioFaceManager? = null
-    private var viewWeakReference = WeakReference<View?>(null)
+    private var viewWeakReference = WeakReference<SurfaceView?>(null)
     init {
         manager = try {
             SemBioFaceManager.getInstance(context)
@@ -111,7 +113,8 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             return false
         }
-    fun setCallerView(targetView: View?) {
+
+    fun setCallerView(targetView: SurfaceView?) {
         d("$name.setCallerView: $targetView")
         viewWeakReference = WeakReference(targetView)
     }
@@ -153,15 +156,58 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 d("$name.authenticate:  Crypto=$crypto")
-                authCallTimestamp.set(System.currentTimeMillis())
-                it.authenticate(
-                    crypto,
-                    signalObject,
-                    0,
-                    callback,
-                    ExecutorHelper.handler,
-                    viewWeakReference.get()?.apply { this.visibility = View.VISIBLE }
-                )
+                viewWeakReference.get()?.let { view ->
+                    if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                        authCallTimestamp.set(System.currentTimeMillis())
+                        it.authenticate(
+                            crypto,
+                            signalObject,
+                            0,
+                            callback,
+                            ExecutorHelper.handler,
+                            view
+                        )
+                        return
+                    } else {
+                        view.holder.addCallback(object : SurfaceHolder.Callback {
+                            override fun surfaceCreated(p0: SurfaceHolder) {
+                                authCallTimestamp.set(System.currentTimeMillis())
+                                it.authenticate(
+                                    crypto,
+                                    signalObject,
+                                    0,
+                                    callback,
+                                    ExecutorHelper.handler,
+                                    view
+                                )
+                            }
+
+                            override fun surfaceChanged(
+                                p0: SurfaceHolder,
+                                p1: Int,
+                                p2: Int,
+                                p3: Int
+                            ) {
+
+                            }
+
+                            override fun surfaceDestroyed(p0: SurfaceHolder) {
+
+                            }
+                        })
+                        view.visibility = View.VISIBLE
+                    }
+                } ?: run {
+                    authCallTimestamp.set(System.currentTimeMillis())
+                    it.authenticate(
+                        crypto,
+                        signalObject,
+                        0,
+                        callback,
+                        ExecutorHelper.handler,
+                        null
+                    )
+                }
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
@@ -187,11 +233,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Error: $errMsgId-$errString", Toast.LENGTH_LONG).show()
-                }
-            }
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE, FACE_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE, FACE_ERROR_CAMERA_FAILURE -> failureReason =
@@ -249,11 +290,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Help: $helpMsgId-$helpString", Toast.LENGTH_LONG).show()
-                }
-            }
             listener?.onHelp(helpString)
         }
 
@@ -262,11 +298,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Succeeded: $result", Toast.LENGTH_LONG).show()
-                }
-            }
             errorTs = tmp
             listener?.onSuccess(
                 tag(),

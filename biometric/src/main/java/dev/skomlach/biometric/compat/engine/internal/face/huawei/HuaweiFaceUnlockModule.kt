@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
+import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import androidx.core.os.CancellationSignal
@@ -26,7 +27,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -160,8 +160,37 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                     it.cancel()
                 }
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
-                authCallTimestamp.set(System.currentTimeMillis())
-                it.authenticate(callback, viewWeakReference.get()?.apply { this.visibility = View.VISIBLE }?.holder?.surface)
+                viewWeakReference.get()?.let { view ->
+                    if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                        authCallTimestamp.set(System.currentTimeMillis())
+                        it.authenticate(callback, view.holder.surface)
+                        return
+                    } else {
+                        view.holder.addCallback(object : SurfaceHolder.Callback {
+                            override fun surfaceCreated(p0: SurfaceHolder) {
+                                authCallTimestamp.set(System.currentTimeMillis())
+                                it.authenticate(callback, view.holder.surface)
+                            }
+
+                            override fun surfaceChanged(
+                                p0: SurfaceHolder,
+                                p1: Int,
+                                p2: Int,
+                                p3: Int
+                            ) {
+
+                            }
+
+                            override fun surfaceDestroyed(p0: SurfaceHolder) {
+                            }
+                        })
+                        view.visibility = View.VISIBLE
+                    }
+
+                } ?: kotlin.run {
+                    authCallTimestamp.set(System.currentTimeMillis())
+                    it.authenticate(callback, null)
+                }
                 return
             }
 

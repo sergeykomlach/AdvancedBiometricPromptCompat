@@ -20,6 +20,8 @@
 package dev.skomlach.biometric.compat.engine.internal.iris.samsung
 
 import android.annotation.SuppressLint
+import android.view.SurfaceHolder
+import android.view.SurfaceView
 import android.view.View
 import android.widget.Toast
 import androidx.core.os.CancellationSignal
@@ -128,7 +130,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     }
 
     private var manager: SemIrisManager? = null
-    private var viewWeakReference = WeakReference<View?>(null)
+    private var viewWeakReference = WeakReference<SurfaceView?>(null)
     init {
 
         manager = try {
@@ -174,7 +176,8 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             return false
         }
-    fun setCallerView(targetView: View?) {
+
+    fun setCallerView(targetView: SurfaceView?) {
         d("$name.setCallerView: $targetView")
         viewWeakReference = WeakReference(targetView)
     }
@@ -214,15 +217,59 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         null
                 }
                 d("$name.authenticate:  Crypto=$crypto")
-                authCallTimestamp.set(System.currentTimeMillis())
-                it.authenticate(
-                    crypto,
-                    signalObject,
-                    0,
-                    callback,
-                    ExecutorHelper.handler,
-                    viewWeakReference.get()?.apply { this.visibility = View.VISIBLE }
-                )
+                viewWeakReference.get()?.let { view ->
+                    if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                        authCallTimestamp.set(System.currentTimeMillis())
+                        it.authenticate(
+                            crypto,
+                            signalObject,
+                            0,
+                            callback,
+                            ExecutorHelper.handler,
+                            view
+                        )
+                        return
+                    } else {
+                        view.holder.addCallback(object : SurfaceHolder.Callback {
+                            override fun surfaceCreated(p0: SurfaceHolder) {
+                                authCallTimestamp.set(System.currentTimeMillis())
+                                it.authenticate(
+                                    crypto,
+                                    signalObject,
+                                    0,
+                                    callback,
+                                    ExecutorHelper.handler,
+                                    view
+                                )
+                            }
+
+                            override fun surfaceChanged(
+                                p0: SurfaceHolder,
+                                p1: Int,
+                                p2: Int,
+                                p3: Int
+                            ) {
+
+                            }
+
+                            override fun surfaceDestroyed(p0: SurfaceHolder) {
+
+                            }
+                        })
+                        view.visibility = View.VISIBLE
+                    }
+                } ?: run {
+                    authCallTimestamp.set(System.currentTimeMillis())
+                    it.authenticate(
+                        crypto,
+                        signalObject,
+                        0,
+                        callback,
+                        ExecutorHelper.handler,
+                        null
+                    )
+                }
+
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")

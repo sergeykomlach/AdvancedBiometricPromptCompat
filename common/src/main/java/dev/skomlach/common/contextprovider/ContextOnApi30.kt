@@ -40,7 +40,7 @@ private fun getDisplayContext(context: Context): Context {
     try {
         if (isAtLeastR && context.display != null)
             return context
-    } catch (ignore: Exception) {
+    } catch (ignore: Throwable) {
     }
 
     try {
@@ -50,7 +50,7 @@ private fun getDisplayContext(context: Context): Context {
                 context.createDisplayContext(d)//LOL - if you use AccessibilityService - warning anyway happens here :)
             return ctx ?: context
         }
-    } catch (ignore: Exception) {
+    } catch (ignore: Throwable) {
     }
     //give up, lets use at least original Context
 

@@ -221,7 +221,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
         negativeButton = rootView?.findViewById(android.R.id.button1)
         fingerprintIcon = rootView?.findViewById(R.id.fingerprint_icon)
         authPreview = rootView?.findViewById(R.id.auth_preview)
-        authPreview?.visibility = View.INVISIBLE
         authPreview?.layoutParams?.let {
             val params = it as FrameLayout.LayoutParams
             val view = rootView?.findViewById<FrameLayout>(R.id.auth_content_container)
