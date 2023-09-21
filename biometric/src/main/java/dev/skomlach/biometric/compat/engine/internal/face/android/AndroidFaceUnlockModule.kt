@@ -142,6 +142,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
          */
         var FACE_ERROR_SECURITY_UPDATE_REQUIRED = 15
 
+        var FACE_ERROR_NO_FACE_DETECTED = 1006
         /**
          * Authentication cannot proceed because re-enrollment is required.
          */
@@ -536,13 +537,16 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
+                FACE_ERROR_NO_FACE_DETECTED -> failureReason =
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+
                 FACE_ERROR_NOT_ENROLLED -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 
                 FACE_ERROR_HW_NOT_PRESENT, FACE_ERROR_SECURITY_UPDATE_REQUIRED -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
 
-                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_NO_DEVICE_CREDENTIAL -> failureReason =
+                FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_NO_DEVICE_CREDENTIAL, FACE_ERROR_RE_ENROLL -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 FACE_ERROR_LOCKOUT_PERMANENT -> {
@@ -551,9 +555,6 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     )
                     failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                 }
-
-                FACE_ERROR_SECURITY_UPDATE_REQUIRED -> failureReason =
-                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -575,20 +576,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     return
                 }
 
-                FACE_ERROR_RE_ENROLL -> {
-                    authenticate(
-                        biometricCryptoObject,
-                        cancellationSignal,
-                        listener,
-                        restartPredicate
-                    )
-                    return
-                }
-
-                else -> {
+                FACE_ERROR_UNKNOWN, FACE_ERROR_VENDOR, FACE_ERROR_VENDOR_BASE-> {
                     Core.cancelAuthentication(this@AndroidFaceUnlockModule)
                     listener?.onCanceled(tag())
                     return
+                }
+                else -> {
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

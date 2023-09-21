@@ -213,9 +213,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@API23FingerprintModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

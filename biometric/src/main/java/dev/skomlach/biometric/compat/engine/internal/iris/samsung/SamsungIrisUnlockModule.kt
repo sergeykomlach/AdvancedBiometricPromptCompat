@@ -296,9 +296,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@SamsungIrisUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

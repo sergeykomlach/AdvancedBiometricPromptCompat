@@ -173,9 +173,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

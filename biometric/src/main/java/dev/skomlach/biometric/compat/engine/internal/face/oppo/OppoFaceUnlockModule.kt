@@ -273,9 +273,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@OppoFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
+                    //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {

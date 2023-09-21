@@ -193,9 +193,7 @@ class CustomBiometricModule constructor(
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@CustomBiometricModule)
-                    listener?.onCanceled(tag())
-                    return
+                   //no-op
                 }
             }
             if (restartCauseTimeout(failureReason)) {
