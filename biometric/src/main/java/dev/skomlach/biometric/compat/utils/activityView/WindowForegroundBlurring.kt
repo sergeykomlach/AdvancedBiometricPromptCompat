@@ -322,7 +322,7 @@ class WindowForegroundBlurring(
                         }"
                     )
                     defaultColor =
-                        palette?.getDominantColor(defColor)?.let { color ->
+                        palette?.getVibrantColor(defColor)?.let { color ->
                             isDark = ColorUtil.isDark(color)
                             DialogMainColor.getColor(context, isDark)
                         } ?: defColor

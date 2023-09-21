@@ -17,7 +17,7 @@
   ~   limitations under the License.
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Theme.BiometricPromptDialog" parent="@android:style/Theme.DeviceDefault">
         <item name="android:windowMinWidthMajor">75%</item>
@@ -33,18 +33,22 @@
         <item name="android:windowExitAnimation">@anim/move_out</item>
         <item name="android:windowTitleStyle">@style/DialogTitle</item>
         <item name="android:windowIsFloating">true</item>
+        <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
     </style>
 
     <style name="DialogTitle" parent="@android:style/TextAppearance.DialogWindowTitle">
         <item name="android:visibility">gone</item>
+        <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
     </style>
 
     <style name="DialogContent">
         <item name="android:layout_width">wrap_content</item>
+        <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
     </style>
 
     <style name="DialogAnimation">
         <item name="android:windowEnterAnimation">@anim/move_in</item>
         <item name="android:windowExitAnimation">@anim/move_out</item>
+        <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
     </style>
 </resources>

@@ -27,6 +27,7 @@
         android:orientation="vertical"
         android:padding="4dp"
         android:tag="light_theme"
+        android:forceDarkAllowed="false"
         >
 
     <LinearLayout

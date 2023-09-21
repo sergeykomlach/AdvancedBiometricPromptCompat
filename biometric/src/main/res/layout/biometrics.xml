@@ -7,6 +7,7 @@
         android:gravity="center"
         android:padding="8dp"
         android:visibility="gone"
+        android:forceDarkAllowed="false"
         >
 
     <LinearLayout

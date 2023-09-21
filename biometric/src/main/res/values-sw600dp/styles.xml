@@ -21,5 +21,6 @@
 
     <style name="DialogContent">
         <item name="android:layout_width">@dimen/dialog_width</item>
+        <item name="android:forceDarkAllowed">false</item>
     </style>
 </resources>

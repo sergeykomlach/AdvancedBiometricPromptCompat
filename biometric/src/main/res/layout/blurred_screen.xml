@@ -22,7 +22,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:weightSum="2"
-
+        android:forceDarkAllowed="false"
         >
 
     <LinearLayout
