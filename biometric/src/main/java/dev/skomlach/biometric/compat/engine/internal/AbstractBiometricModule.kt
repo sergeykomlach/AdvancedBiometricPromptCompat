@@ -23,6 +23,7 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.UserHandle
+import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -45,6 +46,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     private var firstTimeout: Long? = null
     private val tag: Int = biometricMethod.id
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
+    protected var originalCancellationSignal: CancellationSignal? = null
     val name: String
         get() = javaClass.simpleName
     val context = AndroidContext.appContext

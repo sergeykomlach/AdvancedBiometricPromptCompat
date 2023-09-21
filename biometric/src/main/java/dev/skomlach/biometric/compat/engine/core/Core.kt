@@ -41,7 +41,6 @@ object Core {
     private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
     fun cleanModules() {
         try {
-
             reprintModuleHashMap.clear()
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

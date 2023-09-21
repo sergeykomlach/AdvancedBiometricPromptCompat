@@ -19,13 +19,13 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei
 
+import androidx.core.os.CancellationSignal
 import com.huawei.facerecognition.FaceManager
 import com.huawei.facerecognition.HwFaceManagerFactory
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -92,18 +92,45 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
     @Throws(SecurityException::class)
     override fun authenticate(
         biometricCryptoObject: BiometricCryptoObject?,
-        cancellationSignal: androidx.core.os.CancellationSignal?,
+        cancellationSignal: CancellationSignal?,
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        try {
-            d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
-            // Why getCancellationSignalObject returns an Object is unexplained
-            val signalObject =
-                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+        huawei3DFaceManager?.let {
+            try {
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
-            huawei3DFaceManager?.let {
+                this.originalCancellationSignal = cancellationSignal
+                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                return
+            } catch (e: Throwable) {
+                e(e, "$name: authenticate failed unexpectedly")
+            }
+        }
+        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        return
+    }
+
+    private fun authenticateInternal(
+        biometricCryptoObject: BiometricCryptoObject?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
+        huawei3DFaceManager?.let {
+            try {
+                val cancellationSignal = CancellationSignal()
+                originalCancellationSignal?.setOnCancelListener {
+                    if (!cancellationSignal.isCanceled)
+                        cancellationSignal.cancel()
+                }
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 val crypto = if (biometricCryptoObject == null) null else {
                     if (biometricCryptoObject.cipher != null)
@@ -133,9 +160,9 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                     ExecutorHelper.handler
                 )
                 return
+            } catch (e: Throwable) {
+                e(e, "$name: authenticate failed unexpectedly")
             }
-        } catch (e: Throwable) {
-            e(e, "$name: authenticate failed unexpectedly")
         }
         listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
     }
@@ -177,7 +204,10 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
+                cancellationSignal?.cancel()
+                ExecutorHelper.postDelayed({
+                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason

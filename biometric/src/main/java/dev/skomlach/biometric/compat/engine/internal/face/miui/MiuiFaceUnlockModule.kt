@@ -25,7 +25,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -117,9 +116,42 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
+        manager?.let {
+            try {
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
+                this.originalCancellationSignal = cancellationSignal
+                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                return
+            } catch (e: Throwable) {
+                e(e, "$name: authenticate failed unexpectedly")
+            }
+        }
+        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        return
+    }
+
+    private fun authenticateInternal(
+        biometricCryptoObject: BiometricCryptoObject?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+                val cancellationSignal = CancellationSignal()
+                originalCancellationSignal?.setOnCancelListener {
+                    if (!cancellationSignal.isCanceled)
+                        cancellationSignal.cancel()
+                }
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
                 val callback: IMiuiFaceManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
@@ -128,10 +160,6 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         listener
                     )
 
-                // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 if (!it.isFaceUnlockInited)
                     it.preInitAuthen()
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
@@ -208,7 +236,10 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
+                cancellationSignal?.cancel()
+                ExecutorHelper.postDelayed({
+                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason

@@ -89,13 +89,40 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         listener: AuthenticationListener?,
         restartPredicate: RestartPredicate?
     ) {
-        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
-
                 // Why getCancellationSignalObject returns an Object is unexplained
                 val signalObject =
                     (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+
+                this.originalCancellationSignal = cancellationSignal
+                authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                return
+            } catch (e: Throwable) {
+                e(e, "$name: authenticate failed unexpectedly")
+            }
+        }
+        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        return
+    }
+
+    private fun authenticateInternal(
+        biometricCryptoObject: BiometricCryptoObject?,
+        listener: AuthenticationListener?,
+        restartPredicate: RestartPredicate?
+    ) {
+        d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
+        manager?.let {
+            try {
+                val cancellationSignal = CancellationSignal()
+                originalCancellationSignal?.setOnCancelListener {
+                    if (!cancellationSignal.isCanceled)
+                        cancellationSignal.cancel()
+                }
+                // Why getCancellationSignalObject returns an Object is unexplained
+                val signalObject =
+                    (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                         ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: BiometricManagerCompat.AuthenticationCallback =
                     AuthCallback(
@@ -179,7 +206,10 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
+                cancellationSignal?.cancel()
+                ExecutorHelper.postDelayed({
+                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
