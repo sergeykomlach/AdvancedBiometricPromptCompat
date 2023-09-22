@@ -253,8 +253,6 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 }
 
                 FINGERPRINT_ERROR_CANCELED, FINGERPRINT_ERROR_USER_CANCELED -> {
-                    Core.cancelAuthentication(this@SupportFingerprintModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

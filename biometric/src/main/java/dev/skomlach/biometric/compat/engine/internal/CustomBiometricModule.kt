@@ -213,9 +213,7 @@ class CustomBiometricModule constructor(
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
 
-                CUSTOM_BIOMETRIC_ERROR_USER_CANCELED -> {
-                    Core.cancelAuthentication(this@CustomBiometricModule)
-                    listener?.onCanceled(tag())
+                CUSTOM_BIOMETRIC_ERROR_USER_CANCELED, CUSTOM_BIOMETRIC_ERROR_USER_CANCELED -> {
                     return
                 }
 

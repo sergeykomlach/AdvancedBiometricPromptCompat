@@ -233,8 +233,6 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 }
 
                 FINGERPRINT_ERROR_USER_CANCELED, FINGERPRINT_ERROR_CANCELED -> {
-                    Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

@@ -234,8 +234,6 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 }
 
                 FingerprintManager.FINGERPRINT_ERROR_CANCELED, FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED -> {
-                    Core.cancelAuthentication(this@API23FingerprintModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

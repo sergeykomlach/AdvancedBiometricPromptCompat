@@ -281,8 +281,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 FACE_ERROR_CANCELED -> {
-                    Core.cancelAuthentication(this@SamsungFaceUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

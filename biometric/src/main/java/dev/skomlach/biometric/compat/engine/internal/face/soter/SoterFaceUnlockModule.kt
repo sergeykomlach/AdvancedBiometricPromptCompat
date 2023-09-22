@@ -196,8 +196,6 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 }
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_CANCELED -> {
-                    Core.cancelAuthentication(this@SoterFaceUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

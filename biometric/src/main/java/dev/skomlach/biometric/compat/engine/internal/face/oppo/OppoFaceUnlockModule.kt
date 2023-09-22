@@ -294,8 +294,6 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
 
                 FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
-                    Core.cancelAuthentication(this@OppoFaceUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

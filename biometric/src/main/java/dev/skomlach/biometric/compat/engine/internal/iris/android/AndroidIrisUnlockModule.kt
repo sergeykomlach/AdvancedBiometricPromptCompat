@@ -420,8 +420,6 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 IRIS_ERROR_CANCELED, IRIS_ERROR_USER_CANCELED -> {
-                    Core.cancelAuthentication(this@AndroidIrisUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

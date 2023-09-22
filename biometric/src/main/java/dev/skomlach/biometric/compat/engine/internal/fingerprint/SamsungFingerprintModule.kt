@@ -169,8 +169,6 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                             )
 
                             SpassFingerprint.STATUS_USER_CANCELLED, SpassFingerprint.STATUS_BUTTON_PRESSED, SpassFingerprint.STATUS_USER_CANCELLED_BY_TOUCH_OUTSIDE -> {
-                                Core.cancelAuthentication(this@SamsungFingerprintModule)
-                                listener?.onCanceled(tag())
                                 return
                             }
 

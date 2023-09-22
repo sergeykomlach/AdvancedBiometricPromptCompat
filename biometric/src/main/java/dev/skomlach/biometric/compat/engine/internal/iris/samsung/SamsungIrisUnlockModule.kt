@@ -360,8 +360,6 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 IRIS_ERROR_CANCELED -> {
-                    Core.cancelAuthentication(this@SamsungIrisUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 

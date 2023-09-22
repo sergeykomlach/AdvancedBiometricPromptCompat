@@ -600,16 +600,9 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
-                    Core.cancelAuthentication(this@AndroidFaceUnlockModule)
-                    listener?.onCanceled(tag())
                     return
                 }
 
-                FACE_ERROR_UNKNOWN, FACE_ERROR_VENDOR, FACE_ERROR_VENDOR_BASE-> {
-                    Core.cancelAuthentication(this@AndroidFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                    return
-                }
                 else -> {
                     //no-op
                 }
