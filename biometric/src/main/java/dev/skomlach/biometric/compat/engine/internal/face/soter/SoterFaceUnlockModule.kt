@@ -206,7 +206,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, skipTimeout.toLong())
+                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -232,7 +232,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         cancellationSignal?.cancel()
                         ExecutorHelper.postDelayed({
                             authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, skipTimeout.toLong())
+                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
                     }
                 }
         }

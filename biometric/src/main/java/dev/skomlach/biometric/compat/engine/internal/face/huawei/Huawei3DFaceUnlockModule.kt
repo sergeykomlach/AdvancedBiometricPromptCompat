@@ -207,7 +207,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, skipTimeout.toLong())
+                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -233,7 +233,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                         cancellationSignal?.cancel()
                         ExecutorHelper.postDelayed({
                             authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, skipTimeout.toLong())
+                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
                     }
                 }
         }

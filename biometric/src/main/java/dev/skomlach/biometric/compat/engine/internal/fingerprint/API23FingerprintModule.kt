@@ -244,7 +244,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, skipTimeout.toLong())
+                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -270,7 +270,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                         cancellationSignal?.cancel()
                         ExecutorHelper.postDelayed({
                             authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, skipTimeout.toLong())
+                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
                     }
                 }
         }

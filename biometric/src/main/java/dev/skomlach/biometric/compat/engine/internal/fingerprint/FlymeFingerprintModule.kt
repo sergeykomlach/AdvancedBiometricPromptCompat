@@ -166,7 +166,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                 listener,
                                 restartPredicate
                             )
-                        }, skipTimeout.toLong())
+                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
                     } else
                         if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                                 failureReason
@@ -197,7 +197,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                         listener,
                                         restartPredicate
                                     )
-                                }, skipTimeout.toLong())
+                                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
                             }
                         }
                 }
