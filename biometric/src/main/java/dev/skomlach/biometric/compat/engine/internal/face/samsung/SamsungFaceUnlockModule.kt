@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -287,15 +286,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 FACE_ERROR_FACE_NOT_RECOGNIZED -> {
                     failureReason =
                         AuthenticationFailureReason.AUTHENTICATION_FAILED
-                    listener?.onFailure(failureReason, tag())
-                    cancellationSignal?.cancel()
-                    ExecutorHelper.postDelayed({
-                        authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                    }, skipTimeout.toLong())
-                    return
                 }
-
-
                 else -> {
                     //no-op
                 }
@@ -311,6 +302,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    cancellationSignal?.cancel()
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -321,6 +313,16 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        cancellationSignal?.cancel()
+                        ExecutorHelper.postDelayed({
+                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                        }, skipTimeout.toLong())
+                    }
                 }
         }
 

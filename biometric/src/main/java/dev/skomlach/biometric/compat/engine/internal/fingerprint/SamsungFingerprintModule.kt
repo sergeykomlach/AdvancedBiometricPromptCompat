@@ -27,12 +27,12 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
 
 
 class SamsungFingerprintModule(listener: BiometricInitListener?) :
@@ -178,16 +178,24 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
 
                     private fun fail(reason: AuthenticationFailureReason) {
                         var failureReason: AuthenticationFailureReason? = reason
+
                         if (restartCauseTimeout(failureReason)) {
-                            authenticate(
-                                biometricCryptoObject,
-                                cancellationSignal,
-                                listener,
-                                restartPredicate
-                            )
+                            cancelFingerprintRequest()
+                            ExecutorHelper.postDelayed({
+                                authenticate(
+                                    biometricCryptoObject,
+                                    cancellationSignal,
+                                    listener,
+                                    restartPredicate
+                                )
+                            }, skipTimeout.toLong())
                         } else
-                            if (restartPredicate?.invoke(failureReason) == true) {
+                            if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                                    failureReason
+                                ) == true
+                            ) {
                                 listener?.onFailure(failureReason, tag())
+                                cancelFingerprintRequest()
                             } else {
                                 if (mutableListOf(
                                         AuthenticationFailureReason.SENSOR_FAILED,
@@ -198,6 +206,21 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                                 }
                                 listener?.onFailure(failureReason, tag())
+                                if (mutableListOf(
+                                        AuthenticationFailureReason.SENSOR_FAILED,
+                                        AuthenticationFailureReason.AUTHENTICATION_FAILED
+                                    ).contains(failureReason)
+                                ) {
+                                    cancelFingerprintRequest()
+                                    ExecutorHelper.postDelayed({
+                                        authenticate(
+                                            biometricCryptoObject,
+                                            cancellationSignal,
+                                            listener,
+                                            restartPredicate
+                                        )
+                                    }, skipTimeout.toLong())
+                                }
                             }
                     }
 

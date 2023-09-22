@@ -339,21 +339,21 @@ object BiometricAuthentication {
                 is SoterFingerprintUnlockModule -> {
                     biometricModule.bundle = bundle
                 }
-                is HuaweiFaceUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is HihonorFaceUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is SamsungFaceUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is SamsungIrisUnlockModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
-                is FacelockOldModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
+//                is HuaweiFaceUnlockModule -> {
+//                    biometricModule.setCallerView(targetView)
+//                }
+//                is HihonorFaceUnlockModule -> {
+//                    biometricModule.setCallerView(targetView)
+//                }
+//                is SamsungFaceUnlockModule -> {
+//                    biometricModule.setCallerView(targetView)
+//                }
+//                is SamsungIrisUnlockModule -> {
+//                    biometricModule.setCallerView(targetView)
+//                }
+//                is FacelockOldModule -> {
+//                    biometricModule.setCallerView(targetView)
+//                }
             }
             hashMap[biometricModule.tag()] = type
             isAtLeastOneFired = true

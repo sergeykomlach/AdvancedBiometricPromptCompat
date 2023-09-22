@@ -246,6 +246,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    cancellationSignal?.cancel()
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -256,7 +257,16 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    if (manager?.isReleased == false) manager?.release()
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        cancellationSignal?.cancel()
+                        ExecutorHelper.postDelayed({
+                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                        }, skipTimeout.toLong())
+                    }
                 }
         }
 

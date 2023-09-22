@@ -263,7 +263,8 @@ class BiometricPromptCompatDialogImpl(
 
     fun showDialog() {
         require(!dialog.isShowing) { "BiometricPromptGenericImpl. has been started." }
-
+        if(compatBuilder.getActivity().supportFragmentManager.findFragmentByTag(BiometricPromptCompatDialog.TAG) != null)
+            return
         dialog.show(
             compatBuilder.getActivity().supportFragmentManager,
             BiometricPromptCompatDialog.TAG

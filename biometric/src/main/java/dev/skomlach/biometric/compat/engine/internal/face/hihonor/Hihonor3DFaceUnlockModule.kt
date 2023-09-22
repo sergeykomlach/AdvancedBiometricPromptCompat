@@ -216,6 +216,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    cancellationSignal?.cancel()
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -226,6 +227,16 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        cancellationSignal?.cancel()
+                        ExecutorHelper.postDelayed({
+                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                        }, skipTimeout.toLong())
+                    }
                 }
         }
 

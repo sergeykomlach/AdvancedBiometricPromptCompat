@@ -32,6 +32,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
 
 
 class FlymeFingerprintModule(listener: BiometricInitListener?) :
@@ -157,15 +158,22 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                 private fun fail(reason: AuthenticationFailureReason) {
                     var failureReason: AuthenticationFailureReason? = reason
                     if (restartCauseTimeout(failureReason)) {
-                        authenticate(
-                            biometricCryptoObject,
-                            cancellationSignal,
-                            listener,
-                            restartPredicate
-                        )
+                        cancelFingerprintServiceFingerprintRequest()
+                        ExecutorHelper.postDelayed({
+                            authenticate(
+                                biometricCryptoObject,
+                                cancellationSignal,
+                                listener,
+                                restartPredicate
+                            )
+                        }, skipTimeout.toLong())
                     } else
-                        if (restartPredicate?.invoke(failureReason) == true) {
+                        if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                                failureReason
+                            ) == true
+                        ) {
                             listener?.onFailure(failureReason, tag())
+                            cancelFingerprintServiceFingerprintRequest()
                         } else {
                             if (mutableListOf(
                                     AuthenticationFailureReason.SENSOR_FAILED,
@@ -176,7 +184,21 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT
                             }
                             listener?.onFailure(failureReason, tag())
-                            cancelFingerprintServiceFingerprintRequest()
+                            if (mutableListOf(
+                                    AuthenticationFailureReason.SENSOR_FAILED,
+                                    AuthenticationFailureReason.AUTHENTICATION_FAILED
+                                ).contains(failureReason)
+                            ) {
+                                cancelFingerprintServiceFingerprintRequest()
+                                ExecutorHelper.postDelayed({
+                                    authenticate(
+                                        biometricCryptoObject,
+                                        cancellationSignal,
+                                        listener,
+                                        restartPredicate
+                                    )
+                                }, skipTimeout.toLong())
+                            }
                         }
                 }
             }

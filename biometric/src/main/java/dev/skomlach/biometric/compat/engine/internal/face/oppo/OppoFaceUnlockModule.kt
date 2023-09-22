@@ -28,7 +28,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -307,8 +306,12 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
                 }, skipTimeout.toLong())
             } else
-                if (restartPredicate?.invoke(failureReason) == true) {
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
+                        failureReason
+                    ) == true
+                ) {
                     listener?.onFailure(failureReason, tag())
+                    cancellationSignal?.cancel()
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -319,6 +322,16 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        cancellationSignal?.cancel()
+                        ExecutorHelper.postDelayed({
+                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                        }, skipTimeout.toLong())
+                    }
                 }
         }
 

@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.LockType
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.misc.ExecutorHelper
 
 
 class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
@@ -155,13 +156,30 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
 
             if (restartCauseTimeout(failureReason)) {
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
+                stopAuth()
+                ExecutorHelper.postDelayed({
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
+                }, skipTimeout.toLong())
             } else
-                if (restartPredicate?.invoke(
+                if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    stopAuth()
+                    ExecutorHelper.postDelayed({
+                        authenticate(
+                            biometricCryptoObject,
+                            cancellationSignal,
+                            listener,
+                            restartPredicate
+                        )
+                    }, 2000)
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -172,6 +190,21 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        stopAuth()
+                        ExecutorHelper.postDelayed({
+                            authenticate(
+                                biometricCryptoObject,
+                                cancellationSignal,
+                                listener,
+                                restartPredicate
+                            )
+                        }, skipTimeout.toLong())
+                    }
                 }
             return null
         }

@@ -257,13 +257,22 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 }
             }
             if (restartCauseTimeout(failureReason)) {
-                authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate)
+                stopAuth()
+                ExecutorHelper.postDelayed({
+                    authenticate(
+                        biometricCryptoObject,
+                        cancellationSignal,
+                        listener,
+                        restartPredicate
+                    )
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    stopAuth()
                     ExecutorHelper.postDelayed({authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate) }, 2000)
                 } else {
                     if (mutableListOf(
@@ -275,6 +284,21 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    if (mutableListOf(
+                            AuthenticationFailureReason.SENSOR_FAILED,
+                            AuthenticationFailureReason.AUTHENTICATION_FAILED
+                        ).contains(failureReason)
+                    ) {
+                        stopAuth()
+                        ExecutorHelper.postDelayed({
+                            authenticate(
+                                biometricCryptoObject,
+                                cancellationSignal,
+                                listener,
+                                restartPredicate
+                            )
+                        }, skipTimeout.toLong())
+                    }
                 }
             return null
         }
