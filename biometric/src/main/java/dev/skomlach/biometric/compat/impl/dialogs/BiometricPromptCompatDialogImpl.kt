@@ -82,6 +82,9 @@ class BiometricPromptCompatDialogImpl(
                 authCallback?.stopAuth()
             }
             authCallback?.onUiClosed()
+            compatBuilder.getActivity().supportFragmentManager.findFragmentByTag(BiometricPromptCompatDialog.TAG)?.let {
+                compatBuilder.getActivity().supportFragmentManager.beginTransaction().remove(it).commitNow()
+            }
         }
         dialog.setOnCancelListener {
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. canceled.")
@@ -262,7 +265,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun showDialog() {
-        if(dialog.isShowing)
+        if(compatBuilder.getActivity().supportFragmentManager.findFragmentByTag(BiometricPromptCompatDialog.TAG) != null)
             return
         dialog.show(
             compatBuilder.getActivity().supportFragmentManager,

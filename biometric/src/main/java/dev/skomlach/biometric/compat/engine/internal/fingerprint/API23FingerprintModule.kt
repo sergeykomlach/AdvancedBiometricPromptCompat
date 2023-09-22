@@ -244,7 +244,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -252,6 +252,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 ) {
                     listener?.onFailure(failureReason, tag())
                     cancellationSignal?.cancel()
+                    ExecutorHelper.postDelayed({
+                        authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                    }, skipTimeout.toLong())
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -262,16 +265,6 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
-                        cancellationSignal?.cancel()
-                        ExecutorHelper.postDelayed({
-                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
-                    }
                 }
         }
 

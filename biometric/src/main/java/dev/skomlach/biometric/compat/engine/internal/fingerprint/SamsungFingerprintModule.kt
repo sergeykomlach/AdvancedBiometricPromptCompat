@@ -188,7 +188,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                     listener,
                                     restartPredicate
                                 )
-                            }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
+                            }, skipTimeout.toLong())
                         } else
                             if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                                     failureReason
@@ -196,6 +196,14 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                             ) {
                                 listener?.onFailure(failureReason, tag())
                                 cancelFingerprintRequest()
+                                ExecutorHelper.postDelayed({
+                                    authenticate(
+                                        biometricCryptoObject,
+                                        cancellationSignal,
+                                        listener,
+                                        restartPredicate
+                                    )
+                                }, skipTimeout.toLong())
                             } else {
                                 if (mutableListOf(
                                         AuthenticationFailureReason.SENSOR_FAILED,
@@ -206,21 +214,6 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                                 }
                                 listener?.onFailure(failureReason, tag())
-                                if (mutableListOf(
-                                        AuthenticationFailureReason.SENSOR_FAILED,
-                                        AuthenticationFailureReason.AUTHENTICATION_FAILED
-                                    ).contains(failureReason)
-                                ) {
-                                    cancelFingerprintRequest()
-                                    ExecutorHelper.postDelayed({
-                                        authenticate(
-                                            biometricCryptoObject,
-                                            cancellationSignal,
-                                            listener,
-                                            restartPredicate
-                                        )
-                                    }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
-                                }
                             }
                     }
 

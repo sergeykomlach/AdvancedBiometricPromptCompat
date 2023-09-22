@@ -295,7 +295,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -303,6 +303,9 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 ) {
                     listener?.onFailure(failureReason, tag())
                     cancellationSignal?.cancel()
+                    ExecutorHelper.postDelayed({
+                        authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                    }, skipTimeout.toLong())
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -313,16 +316,6 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
-                        cancellationSignal?.cancel()
-                        ExecutorHelper.postDelayed({
-                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
-                    }
                 }
         }
 
@@ -353,14 +346,13 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Failed", Toast.LENGTH_LONG).show()
-                }
-            }
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
+                cancellationSignal?.cancel()
+                ExecutorHelper.postDelayed({
+                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                }, skipTimeout.toLong())
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

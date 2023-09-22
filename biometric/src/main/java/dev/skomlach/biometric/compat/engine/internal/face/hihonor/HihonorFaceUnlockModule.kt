@@ -272,7 +272,7 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -280,6 +280,9 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
                 ) {
                     listener?.onFailure(failureReason, tag())
                     cancellationSignal?.cancel()
+                    ExecutorHelper.postDelayed({
+                        authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                    }, skipTimeout.toLong())
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -290,16 +293,6 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
-                        cancellationSignal?.cancel()
-                        ExecutorHelper.postDelayed({
-                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
-                    }
                 }
         }
 
@@ -333,6 +326,10 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
+                cancellationSignal?.cancel()
+                ExecutorHelper.postDelayed({
+                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                }, skipTimeout.toLong())
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,

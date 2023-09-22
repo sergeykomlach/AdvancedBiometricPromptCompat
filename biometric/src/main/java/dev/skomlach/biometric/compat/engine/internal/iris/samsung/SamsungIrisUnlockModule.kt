@@ -323,11 +323,6 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "$errMsgId-$errString", Toast.LENGTH_LONG).show()
-                }
-            }
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (errMsgId) {
                 IRIS_ERROR_NO_EYE_DETECTED -> failureReason =
@@ -366,7 +361,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
                         authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                    }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
+                    }, skipTimeout.toLong())
                     return
                 }
 
@@ -386,7 +381,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
+                }, skipTimeout.toLong())
             } else
                 if (failureReason == AuthenticationFailureReason.TIMEOUT || restartPredicate?.invoke(
                         failureReason
@@ -394,6 +389,9 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 ) {
                     listener?.onFailure(failureReason, tag())
                     cancellationSignal?.cancel()
+                    ExecutorHelper.postDelayed({
+                        authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                    }, skipTimeout.toLong())
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -404,26 +402,11 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
-                        cancellationSignal?.cancel()
-                        ExecutorHelper.postDelayed({
-                            authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                        }, context.resources.getInteger(android.R.integer.config_longAnimTime).toLong())
-                    }
                 }
         }
 
         override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Help $helpMsgId-$helpString", Toast.LENGTH_LONG).show()
-                }
-            }
             listener?.onHelp(helpString)
         }
 
@@ -433,11 +416,6 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Succeeded $result", Toast.LENGTH_LONG).show()
-                }
-            }
 
             listener?.onSuccess(
                 tag(),
@@ -455,14 +433,13 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-            AndroidContext.activity?.let {
-                it.runOnUiThread {
-                    Toast.makeText(it, "Failed", Toast.LENGTH_LONG).show()
-                }
-            }
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
+                cancellationSignal?.cancel()
+                ExecutorHelper.postDelayed({
+                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
+                }, skipTimeout.toLong())
             } else {
                 if (mutableListOf(
                         AuthenticationFailureReason.SENSOR_FAILED,
