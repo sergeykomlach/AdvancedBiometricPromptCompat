@@ -147,9 +147,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
 
                         else -> {
-                            cancelAuth()
-                            cancelAuthentication()
-                            return@Runnable
+                           //no-op
                         }
                     }
                     if (restartPredicate.invoke(failureReason)) {
