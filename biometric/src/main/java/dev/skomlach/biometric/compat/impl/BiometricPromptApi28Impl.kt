@@ -316,44 +316,44 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (!isNativeBiometricWorkaroundRequired) {
                     BiometricAuthentication.authenticate(
                         builder.getCryptographyPurpose(),
-                        null,
+                        dialog?.authPreview,
                         secondary,
                         fmAuthCallback,
                         BundleBuilder.create(builder)
                     )
                 } else {
-                    BiometricAuthentication.authenticate(
-                        builder.getCryptographyPurpose(),
-                        null,
-                        secondary,
-                        object : BiometricAuthenticationListener {
-                            override fun onSuccess(module: AuthenticationResult?) {
-                                checkAuthResultForSecondary(
-                                    module,
-                                    AuthResult.AuthResultState.SUCCESS
-                                )
-                            }
-
-                            override fun onHelp(msg: CharSequence?) {
-
-                            }
-
-                            override fun onFailure(
-                                failureReason: AuthenticationFailureReason?,
-                                module: BiometricType?
-                            ) {
-                                checkAuthResultForSecondary(
-                                    AuthenticationResult(confirmed = module),
-                                    AuthResult.AuthResultState.FATAL_ERROR,
-                                    failureReason
-                                )
-                            }
-
-
-                            override fun onCanceled(module: BiometricType?) {}
-                        },
-                        BundleBuilder.create(builder)
-                    )
+//                    BiometricAuthentication.authenticate(
+//                        builder.getCryptographyPurpose(),
+//                        dialog?.authPreview,
+//                        secondary,
+//                        object : BiometricAuthenticationListener {
+//                            override fun onSuccess(module: AuthenticationResult?) {
+//                                checkAuthResultForSecondary(
+//                                    module,
+//                                    AuthResult.AuthResultState.SUCCESS
+//                                )
+//                            }
+//
+//                            override fun onHelp(msg: CharSequence?) {
+//
+//                            }
+//
+//                            override fun onFailure(
+//                                failureReason: AuthenticationFailureReason?,
+//                                module: BiometricType?
+//                            ) {
+//                                checkAuthResultForSecondary(
+//                                    AuthenticationResult(confirmed = module),
+//                                    AuthResult.AuthResultState.FATAL_ERROR,
+//                                    failureReason
+//                                )
+//                            }
+//
+//
+//                            override fun onCanceled(module: BiometricType?) {}
+//                        },
+//                        BundleBuilder.create(builder)
+//                    )
 
                     ExecutorHelper.postDelayed(finalTask, 1500)
                 }
