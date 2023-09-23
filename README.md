@@ -70,6 +70,11 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+September 22 2023
+
+**Improvement** Samsung Face/Iris recognition fixed; Some other bugfixes
+
+
 September 16 2023
 
 **Improvement** BiometricManagerCompat - isBiometricEnrollChanged and resetBiometricEnrollChanged; Also resetBiometricEnrollChanged called after successful biometric authorization 
@@ -96,16 +101,6 @@ August 18 2023
 July 24 2023
 
 **Bugfixes** Fixed false positive biometric detection
-
-June 27 2023
-change
-**Bugfixes** Fixes for Android 14 UpsideDownCake/SDK 34
-
-June 8 2023
-
-**Improvement** Updated to Android 14 UpsideDownCake/SDK 34
-
-
 
 
 ## Test app

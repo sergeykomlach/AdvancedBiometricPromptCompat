@@ -30,7 +30,7 @@ dependencies {
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'com.google.guava:guava:32.0.0-android'
     implementation 'com.jaredrummler:android-device-names:2.1.0'
-    implementation 'com.google.code.gson:gson:1.+'
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 afterEvaluate {
