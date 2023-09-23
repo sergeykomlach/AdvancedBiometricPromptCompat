@@ -1186,6 +1186,11 @@
    "model": "9020A"
   },
   {
+   "device": "U380AA",
+   "name": "AT&T Calypso® 4",
+   "model": "U380AA"
+  },
+  {
    "device": "v350u",
    "name": "AT&T Maestro™ Plus",
    "model": "V350U"
@@ -2168,6 +2173,11 @@
    "device": "ATAB821E",
    "name": "ATAB821E",
    "model": "ATAB821E"
+  },
+  {
+   "device": "ATABKD1024K",
+   "name": "ATABKD1024K",
+   "model": "ATABKD1024K"
   },
   {
    "device": "ATL1021EA",
@@ -19330,6 +19340,16 @@
    "model": "M10L"
   },
   {
+   "device": "M0223",
+   "name": "M10L PLUS",
+   "model": "M10L PLUS"
+  },
+  {
+   "device": "M0223_EX",
+   "name": "M10L PLUS",
+   "model": "M10L PLUS"
+  },
+  {
    "device": "M0223_ND",
    "name": "M10L PLUS",
    "model": "M10L PLUS"
@@ -28108,6 +28128,11 @@
    "model": "SL100EA"
   },
   {
+   "device": "U380AC",
+   "name": "Cricket Debut S2™",
+   "model": "U380AC"
+  },
+  {
    "device": "EC211001",
    "name": "Cricket® Dream 5G",
    "model": "EC211001"
@@ -34701,6 +34726,13 @@
    "device": "Y88X__PLUS",
    "name": "Y88X__PLUS",
    "model": "Y88X__PLUS"
+  }
+ ],
+ "DreamMaker": [
+  {
+   "device": "DPLAY",
+   "name": "DreamMaker",
+   "model": "DPLAY"
   }
  ],
  "Dreamax": [
@@ -45694,6 +45726,13 @@
    "model": "X6"
   }
  ],
+ "Go3 Baltics": [
+  {
+   "device": "HP44H",
+   "name": "Skyworth",
+   "model": "Go3 BOX"
+  }
+ ],
  "GoClever": [
   {
    "device": "INSIGNIA_550i",
@@ -47239,6 +47278,11 @@
    "device": "VE0319",
    "name": "VE0319",
    "model": "VE0319"
+  },
+  {
+   "device": "X10",
+   "name": "X10",
+   "model": "X10"
   }
  ],
  "HOMII": [
@@ -67399,6 +67443,21 @@
    "model": "HY-BDL163G-001"
   },
   {
+   "device": "HY65PB1401NA",
+   "name": "HyLine_Plus",
+   "model": "65PB1"
+  },
+  {
+   "device": "HY65PB1401NA",
+   "name": "HyLine_Plus_2",
+   "model": "65PB1"
+  },
+  {
+   "device": "HY65PA1401NA",
+   "name": "HyLine_Pro_X",
+   "model": "65PA1"
+  },
+  {
    "device": "HyTab_Plus_10LC2",
    "name": "HyTab_Plus_10LC2",
    "model": "HyTab Plus 10LC2"
@@ -67988,6 +68047,11 @@
    "device": "B1_Pro",
    "name": "B1 Pro",
    "model": "B1 Pro"
+  },
+  {
+   "device": "B2_Ultra",
+   "name": "B2 Ultra",
+   "model": "B2 Ultra"
   }
  ],
  "IKALL": [
@@ -117432,6 +117496,11 @@
    "model": "OPD2102"
   },
   {
+   "device": "OP5655",
+   "name": "OPPO Reno10 5G",
+   "model": "PHW110"
+  },
+  {
    "device": "OP564B",
    "name": "OPPO Reno10 Pro+ 5G",
    "model": "PHU110"
@@ -117515,6 +117584,11 @@
    "device": "OP5335L1",
    "name": "OPPO Reno8 Pro 5G",
    "model": "CPH2357"
+  },
+  {
+   "device": "OP5709L1",
+   "name": "OPPO Reno8 T",
+   "model": "CPH2481"
   },
   {
    "device": "OP5601",
@@ -118993,6 +119067,11 @@
    "device": "Rise_55",
    "name": "Orange",
    "model": "Orange Rise 55"
+  },
+  {
+   "device": "m393vsb_osp",
+   "name": "Orange ES VSB3918",
+   "model": "Orange ES VSB3918"
   },
   {
    "device": "Neva_leaf",
@@ -120779,6 +120858,11 @@
  ],
  "PRISMPLUS": [
   {
+   "device": "anaheim",
+   "name": "4K Smart TV Plus",
+   "model": "4K Smart TV Plus"
+  },
+  {
    "device": "umeda",
    "name": "PrismPlus 2KA",
    "model": "PrismPlus 2KA"
@@ -120957,6 +121041,11 @@
    "device": "SILVERSTONE-T11",
    "name": "SILVERSTONE-T11",
    "model": "BL.9UEEP.209"
+  },
+  {
+   "device": "SILVERSTONE-T18",
+   "name": "SILVERSTONE-T18",
+   "model": "BL.9UEEP.210"
   },
   {
    "device": "T1000",
@@ -133584,7 +133673,7 @@
  "RoadQuest": [
   {
    "device": "RQ-G",
-   "name": "RQ-G",
+   "name": "RoadQuest",
    "model": "RQ-G"
   }
  ],
@@ -137205,6 +137294,26 @@
    "device": "a05m",
    "name": "Galaxy A05",
    "model": "SM-A055M"
+  },
+  {
+   "device": "a05s",
+   "name": "Galaxy A05s",
+   "model": "SM-A057F"
+  },
+  {
+   "device": "a05s",
+   "name": "Galaxy A05s",
+   "model": "SM-A057G"
+  },
+  {
+   "device": "a05s",
+   "name": "Galaxy A05s",
+   "model": "SM-E145F"
+  },
+  {
+   "device": "a05s",
+   "name": "Galaxy A05s",
+   "model": "SM-M145F"
   },
   {
    "device": "a10",
@@ -145567,6 +145676,31 @@
    "model": "SM-S911W"
   },
   {
+   "device": "r11q",
+   "name": "Galaxy S23 FE",
+   "model": "SM-S7110"
+  },
+  {
+   "device": "r11q",
+   "name": "Galaxy S23 FE",
+   "model": "SM-S711U"
+  },
+  {
+   "device": "r11q",
+   "name": "Galaxy S23 FE",
+   "model": "SM-S711U1"
+  },
+  {
+   "device": "r11q",
+   "name": "Galaxy S23 FE",
+   "model": "SM-S711W"
+  },
+  {
+   "device": "r11s",
+   "name": "Galaxy S23 FE",
+   "model": "SM-S711B"
+  },
+  {
    "device": "SC-52D",
    "name": "Galaxy S23 Ultra",
    "model": "SC-52D"
@@ -148142,6 +148276,26 @@
    "model": "SM-X200"
   },
   {
+   "device": "gta9",
+   "name": "Galaxy Tab A9",
+   "model": "SM-X115"
+  },
+  {
+   "device": "gta9",
+   "name": "Galaxy Tab A9",
+   "model": "SM-X115N"
+  },
+  {
+   "device": "gta9",
+   "name": "Galaxy Tab A9",
+   "model": "SM-X117"
+  },
+  {
+   "device": "gta9wifi",
+   "name": "Galaxy Tab A9",
+   "model": "SM-X110"
+  },
+  {
    "device": "rubenslte",
    "name": "Galaxy Tab Active",
    "model": "SM-T365"
@@ -149052,6 +149206,11 @@
    "model": "SM-X716N"
   },
   {
+   "device": "gts9fewifi",
+   "name": "Galaxy Tab S9 FE",
+   "model": "SM-X510"
+  },
+  {
    "device": "gts9fe",
    "name": "Galaxy Tab S9 FE 5G",
    "model": "SM-X516B"
@@ -149070,6 +149229,11 @@
    "device": "gts9fe",
    "name": "Galaxy Tab S9 FE 5G",
    "model": "SM-X518U"
+  },
+  {
+   "device": "gts9fepwifi",
+   "name": "Galaxy Tab S9 FE+",
+   "model": "SM-X610"
   },
   {
    "device": "gts9fep",
@@ -157614,6 +157778,21 @@
    "device": "XQ-CQ72",
    "name": "Xperia 5 IV",
    "model": "XQ-CQ72"
+  },
+  {
+   "device": "SO-53D",
+   "name": "Xperia 5 V",
+   "model": "SO-53D"
+  },
+  {
+   "device": "SOG12",
+   "name": "Xperia 5 V",
+   "model": "SOG12"
+  },
+  {
+   "device": "XQ-DE44",
+   "name": "Xperia 5 V",
+   "model": "XQ-DE44"
   },
   {
    "device": "XQ-DE54",
@@ -183355,6 +183534,11 @@
    "model": "ViewPad7x"
   },
   {
+   "device": "IFP8652-2",
+   "name": "IFP8652-2",
+   "model": "IFP8652-2"
+  },
+  {
    "device": "Q5",
    "name": "Q5",
    "model": "Viewphone Q5"
@@ -207370,6 +207554,11 @@
    "model": "RMX3636"
   },
   {
+   "device": "RE5C6CL1",
+   "name": "realme 11 5G",
+   "model": "RMX3780"
+  },
+  {
    "device": "RE58B8L1",
    "name": "realme 11 Pro 5G",
    "model": "RMX3771"
@@ -207378,6 +207567,11 @@
    "device": "RE58B6L1",
    "name": "realme 11 Pro+ 5G",
    "model": "RMX3741"
+  },
+  {
+   "device": "RE5C6CL1",
+   "name": "realme 11x 5G",
+   "model": "RMX3785"
   },
   {
    "device": "SW6H",
@@ -207740,6 +207934,16 @@
    "model": "RMX2117"
   },
   {
+   "device": "RE5C6EL1",
+   "name": "realme Pad 2",
+   "model": "RMP2204"
+  },
+  {
+   "device": "RE5C70L1",
+   "name": "realme Pad 2",
+   "model": "RMP2205"
+  },
+  {
    "device": "RE5496",
    "name": "realme Pad X",
    "model": "RMP2108"
@@ -207938,6 +208142,11 @@
    "device": "RE58B1L1",
    "name": "realme narzo 60 5G",
    "model": "RMX3750"
+  },
+  {
+   "device": "RE5C6CL1",
+   "name": "realme narzo 60x 5G",
+   "model": "RMX3782"
   },
   {
    "device": "RE58C6",

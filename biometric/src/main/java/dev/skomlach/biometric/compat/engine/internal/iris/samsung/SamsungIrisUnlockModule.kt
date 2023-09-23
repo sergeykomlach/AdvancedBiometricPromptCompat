@@ -28,6 +28,7 @@ import androidx.core.os.CancellationSignal
 import com.samsung.android.camera.iris.SemIrisManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -369,11 +370,25 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 IRIS_ERROR_AUTH_VIEW_SIZE, IRIS_ERROR_AUTH_WINDOW_TOKEN, IRIS_ERROR_START_IR_CAMERA_PREVIEW_FAIL -> {
+                    if(BuildConfig.DEBUG) {
+                        AndroidContext.activity?.let {
+                            it.runOnUiThread {
+                                Toast.makeText(it, "$errMsgId-$errString", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
                     //no-op
                     return
                 }
 
                 else -> {
+                    if(BuildConfig.DEBUG) {
+                        AndroidContext.activity?.let {
+                            it.runOnUiThread {
+                                Toast.makeText(it, "$errMsgId-$errString", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
                     //no-op
                 }
             }

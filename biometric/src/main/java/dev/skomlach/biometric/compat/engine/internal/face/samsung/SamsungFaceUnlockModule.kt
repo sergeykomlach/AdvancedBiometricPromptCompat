@@ -28,6 +28,7 @@ import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -288,6 +289,13 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         AuthenticationFailureReason.AUTHENTICATION_FAILED
                 }
                 else -> {
+                    if(BuildConfig.DEBUG) {
+                        AndroidContext.activity?.let {
+                            it.runOnUiThread {
+                                Toast.makeText(it, "$errMsgId-$errString", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
                     //no-op
                 }
             }
