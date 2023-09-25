@@ -149,7 +149,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             biometricAuthRequest.type
         )
 
-    fun lockout() {
+    override fun lockout() {
         if (!isLockedOut) {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 for (type in BiometricType.values()) {

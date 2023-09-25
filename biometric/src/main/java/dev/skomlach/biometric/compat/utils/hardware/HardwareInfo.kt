@@ -26,4 +26,5 @@ interface HardwareInfo {
     val isLockedOut: Boolean
     val isBiometricEnrollChanged: Boolean
     fun updateBiometricEnrollChanged()
+    fun lockout()
 }

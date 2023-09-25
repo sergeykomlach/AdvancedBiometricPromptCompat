@@ -23,6 +23,7 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 
 
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
@@ -44,11 +45,17 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
         }
     override val isLockedOut: Boolean
         get() {
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) return BiometricAuthentication.isLockOut
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                for (type in BiometricType.values()) {
+                    if (BiometricLockoutFix.isLockOut(type))
+                        return true
+                }
+                return BiometricAuthentication.isLockOut
+            }
             val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
                 biometricAuthRequest.type
             )
-            return biometricModule != null && biometricModule.isLockOut
+            return biometricModule?.isLockOut == false && !BiometricLockoutFix.isLockOut(biometricAuthRequest.type)
         }
     override val isBiometricEnrollChanged: Boolean
         get() {
@@ -68,5 +75,24 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
             biometricAuthRequest.type
         )
         (biometricModule as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
+    }
+
+    override fun lockout() {
+        if (!isLockedOut) {
+            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+                for (type in BiometricType.values()) {
+                    if (type == BiometricType.BIOMETRIC_ANY)
+                        continue
+                    val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
+                        type
+                    )
+
+                    if (biometricModule?.isHardwarePresent == true && biometricModule.hasEnrolled) {
+                        BiometricLockoutFix.lockout(type)
+                    }
+                }
+            } else
+                BiometricLockoutFix.lockout(biometricAuthRequest.type)
+        }
     }
 }

@@ -78,8 +78,6 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
     }
 
     fun lockout() {
-        if (isNewBiometricApi) {
-            (hardwareInfo as BiometricPromptHardware).lockout()
-        }
+        hardwareInfo?.lockout()
     }
 }

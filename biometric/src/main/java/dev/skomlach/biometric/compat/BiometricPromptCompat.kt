@@ -500,7 +500,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 isOpened.set(false)
                                 BiometricAuthentication.cancelAuthentication()//cancel previews and reinit for next usage
                                 if (!builder.isSilentAuthEnabled()) {
-                                    activityViewWatcher?.resetListeners()
                                     val closeAll = Runnable {
                                         if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                             BiometricNotificationManager.dismissAll()
@@ -511,6 +510,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                             builder.getDividerColor(),
                                             builder.getStatusBarColor()
                                         )
+                                        activityViewWatcher?.resetListeners()
+                                        appBackgroundDetector.detachListeners()
                                     }
                                     ExecutorHelper.post(closeAll)
                                     val delay =
@@ -518,7 +519,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                             .toLong()
                                     ExecutorHelper.postDelayed(closeAll, delay)
                                 }
-                                appBackgroundDetector.detachListeners()
                                 authFlowInProgress.set(false)
                                 callbackOuter.onUIClosed()
                             }
