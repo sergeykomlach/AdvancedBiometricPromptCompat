@@ -141,13 +141,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
 
                         BiometricPrompt.ERROR_CANCELED, BiometricPrompt.ERROR_USER_CANCELED, BiometricPrompt.ERROR_NEGATIVE_BUTTON -> {
-                            cancelAuth()
                             cancelAuthentication()
+                            cancelAuth()
                             return@Runnable
                         }
 
                         else -> {
-                           //no-op
+                            cancelAuthentication()
+                            callback?.onFailed(failureReason)
+                            return@Runnable
                         }
                     }
                     if (restartPredicate.invoke(failureReason)) {

@@ -175,21 +175,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() - pending")
                     pendingTasks.add(execute)
                 } else {
-                    BiometricLoggerImpl.d("BiometricPromptCompat.init()")
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
                     isBiometricInit.set(false)
                     initInProgress.set(true)
                     pendingTasks.add(execute)
-                    NotificationPermissionsFragment.preloadTranslations()
+                    startBiometricInit()
                     ExecutorHelper.startOnBackground {
                         DeviceInfoManager.getDeviceInfo(object :
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
                                 deviceInfo = info
-                                ExecutorHelper.post{startBiometricInit()}
                             }
                         })
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
+                    NotificationPermissionsFragment.preloadTranslations()
                 }
             }
         }
@@ -222,7 +222,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         NotificationPermissionsFragment.preloadTranslations()
     }
 
-    private val appContext = AndroidContext.appContext
+
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
@@ -394,7 +394,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
                                     if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
                                         if (CryptographyManager.encryptData(
-                                                appContext.packageName.toByteArray(
+                                                AndroidContext.appContext.packageName.toByteArray(
                                                     Charset.forName("UTF-8")
                                                 ), confirmed
                                             ) == null
@@ -515,7 +515,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     }
                                     ExecutorHelper.post(closeAll)
                                     val delay =
-                                        appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
                                             .toLong()
                                     ExecutorHelper.postDelayed(closeAll, delay)
                                 }
@@ -703,8 +703,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         companion object {
             init {
                 //lazy init
-                val initialized = isInitialized
-                BiometricLoggerImpl.d("isInitialized - $initialized")
+                init()
             }
         }
 

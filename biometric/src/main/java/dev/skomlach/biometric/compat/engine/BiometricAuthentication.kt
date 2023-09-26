@@ -25,7 +25,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceView
-import android.view.View
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -74,6 +73,50 @@ object BiometricAuthentication {
     private val customModuleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, CustomBiometricProvider>())
 
+    private val allMethods = ArrayList<BiometricMethod>().apply {
+
+        //any API
+        this.add(BiometricMethod.DUMMY_BIOMETRIC)
+        this.add(BiometricMethod.FACELOCK)
+        this.add(BiometricMethod.FACEUNLOCK_LAVA)
+
+        //Samsung Pass on Kitkat-Marshmallow (4.4/5.x/6.x), then deprecated
+        if (Build.VERSION.SDK_INT in 19..23) {
+            this.add(BiometricMethod.FINGERPRINT_SAMSUNG)
+        }
+        //Meizu - Lollipop (5.0-5.1),then deprecated
+        if (Build.VERSION.SDK_INT in 21..22) {
+            this.add(BiometricMethod.FINGERPRINT_FLYME)
+        }
+        //Fingerprint API - Marshmallow (6.0)
+        if (Build.VERSION.SDK_INT >= 23) {
+            this.add(BiometricMethod.FINGERPRINT_SOTERAPI)
+            this.add(BiometricMethod.FINGERPRINT_API23)
+            this.add(BiometricMethod.FINGERPRINT_SUPPORT)
+        }
+        //Miui and Samsung Face/Iris - Nougat (7.0)
+        if (Build.VERSION.SDK_INT >= 24) {
+            this.add(BiometricMethod.FACE_SOTERAPI)
+            this.add(BiometricMethod.FACE_SAMSUNG)
+            this.add(BiometricMethod.IRIS_SAMSUNG)
+            this.add(BiometricMethod.FACE_MIUI)
+        }
+        //Vivo and Huawei Face - Oreo (8.0)
+        if (Build.VERSION.SDK_INT >= 26) {
+            this.add(BiometricMethod.FACE_HUAWEI)
+            this.add(BiometricMethod.FACE_HIHONOR)
+        }
+        //Android biometric - Pie (9.0)
+        if (Build.VERSION.SDK_INT >= 28) {
+            this.add(BiometricMethod.FACE_ANDROIDAPI)
+            this.add(BiometricMethod.IRIS_ANDROIDAPI)
+        }
+        if (Build.VERSION.SDK_INT >= 29) {
+            this.add(BiometricMethod.FACE_HUAWEI3D)
+            this.add(BiometricMethod.FACE_HIHONOR3D)
+        }
+    }
+
     fun registerCustomModule(
         biometricMethod: BiometricMethod,
         provider: CustomBiometricProvider
@@ -98,59 +141,17 @@ object BiometricAuthentication {
         val ts = System.currentTimeMillis()
         e("BiometricAuthentication.init() - started")
         //main thread required
-        val allMethods = ArrayList<BiometricMethod>()
-
-        //any API
-        allMethods.add(BiometricMethod.DUMMY_BIOMETRIC)
-        allMethods.add(BiometricMethod.FACELOCK)
-        allMethods.add(BiometricMethod.FACEUNLOCK_LAVA)
-
-        //Samsung Pass on Kitkat-Marshmallow (4.4/5.x/6.x), then deprecated
-        if (Build.VERSION.SDK_INT in 19..23) {
-            allMethods.add(BiometricMethod.FINGERPRINT_SAMSUNG)
+        val allMethodsCopy = allMethods.toMutableList()
+        customModuleHashMap.toMutableMap().forEach {
+            allMethodsCopy.add(it.key)
         }
-        //Meizu - Lollipop (5.0-5.1),then deprecated
-        if (Build.VERSION.SDK_INT in 21..22) {
-            allMethods.add(BiometricMethod.FINGERPRINT_FLYME)
-        }
-        //Fingerprint API - Marshmallow (6.0)
-        if (Build.VERSION.SDK_INT >= 23) {
-            allMethods.add(BiometricMethod.FINGERPRINT_SOTERAPI)
-            allMethods.add(BiometricMethod.FINGERPRINT_API23)
-            allMethods.add(BiometricMethod.FINGERPRINT_SUPPORT)
-        }
-        //Miui and Samsung Face/Iris - Nougat (7.0)
-        if (Build.VERSION.SDK_INT >= 24) {
-            allMethods.add(BiometricMethod.FACE_SOTERAPI)
-            allMethods.add(BiometricMethod.FACE_SAMSUNG)
-            allMethods.add(BiometricMethod.IRIS_SAMSUNG)
-            allMethods.add(BiometricMethod.FACE_MIUI)
-        }
-        //Vivo and Huawei Face - Oreo (8.0)
-        if (Build.VERSION.SDK_INT >= 26) {
-            allMethods.add(BiometricMethod.FACE_HUAWEI)
-            allMethods.add(BiometricMethod.FACE_HIHONOR)
-        }
-        //Android biometric - Pie (9.0)
-        if (Build.VERSION.SDK_INT >= 28) {
-            allMethods.add(BiometricMethod.FACE_ANDROIDAPI)
-            allMethods.add(BiometricMethod.IRIS_ANDROIDAPI)
-        }
-        if (Build.VERSION.SDK_INT >= 29) {
-            allMethods.add(BiometricMethod.FACE_HUAWEI3D)
-            allMethods.add(BiometricMethod.FACE_HIHONOR3D)
-        }
-        customModuleHashMap.forEach {
-            allMethods.add(it.key)
-        }
-
         val modulesMap = HashMap<BiometricMethod, BiometricModule?>()
         //launch in BG because for init needed about 2-3 seconds
         try {
             val list: MutableList<BiometricMethod>
-            if (mlist.isNullOrEmpty()) list = allMethods else {
+            if (mlist.isNullOrEmpty()) list = allMethodsCopy else {
                 list = ArrayList()
-                for (method in allMethods) {
+                for (method in allMethodsCopy) {
                     for (type in mlist) {
                         if (method.biometricType == type) {
                             list.add(method)
@@ -164,11 +165,7 @@ object BiometricAuthentication {
                     val moduleReady =
                         module != null && module.isManagerAccessible && module.isHardwarePresent
                     val remains = counter.decrementAndGet()
-                    d(
-                        "BiometricAuthentication" + ("BiometricInitListener.initListener: '" + method
-                                + "' hasManager: " + (module != null && module.isManagerAccessible) +
-                                " hasHardware: " + (module != null && module.isHardwarePresent) + " remains: " + remains)
-                    )
+
                     if (moduleReady) {
                         modulesMap[method] = module
                     }

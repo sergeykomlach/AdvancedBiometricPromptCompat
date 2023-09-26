@@ -28,6 +28,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -419,11 +420,17 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 IRIS_ERROR_CANCELED, IRIS_ERROR_USER_CANCELED -> {
+                    if(cancellationSignal?.isCanceled == false){
+                        Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                        listener?.onCanceled(tag())
+                    }
                     return
                 }
 
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {

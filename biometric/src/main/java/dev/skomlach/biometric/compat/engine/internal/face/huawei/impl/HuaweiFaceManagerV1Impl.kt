@@ -107,7 +107,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
 
     override fun getEnrolledTemplates(): IntArray? {
         return try {
-            HuaweiFaceRecognizeManager.fRManager?.enrolledFaceIDs
+            HuaweiFaceRecognizeManager.fRManager?.getEnrolledFaceIDs()
         } catch (ignore: Throwable) {
             null
         }

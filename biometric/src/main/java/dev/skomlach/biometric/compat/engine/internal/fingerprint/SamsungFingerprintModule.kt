@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -169,6 +170,8 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                             )
 
                             SpassFingerprint.STATUS_USER_CANCELLED, SpassFingerprint.STATUS_BUTTON_PRESSED, SpassFingerprint.STATUS_USER_CANCELLED_BY_TOUCH_OUTSIDE -> {
+                                Core.cancelAuthentication(this@SamsungFingerprintModule)
+                                listener?.onCanceled(tag())
                                 return
                             }
 

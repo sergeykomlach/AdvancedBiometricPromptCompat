@@ -77,8 +77,9 @@ class IrisManager {
      * @return list of current iris items
      * @hide
      */
-    val enrolledIrises: List<Iris>?
-        get() = null
+    fun getEnrolledIrises(): List<Iris>? {
+        return null
+    }
 
     /**
      * Determine if there is at least one iris enrolled.

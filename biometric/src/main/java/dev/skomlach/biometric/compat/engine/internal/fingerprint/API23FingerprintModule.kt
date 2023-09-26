@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -233,11 +234,17 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 }
 
                 FingerprintManager.FINGERPRINT_ERROR_CANCELED, FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED -> {
+                    if(cancellationSignal?.isCanceled == false){
+                        Core.cancelAuthentication(this@API23FingerprintModule)
+                        listener?.onCanceled(tag())
+                    }
                     return
                 }
 
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@API23FingerprintModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {

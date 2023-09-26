@@ -36,19 +36,20 @@ import dev.skomlach.common.translate.LocalizationHelper
 class NotificationPermissionsFragment : Fragment() {
     companion object {
         private const val TAG = "NotificationPermissionsFragment"
-        private val appContext = AndroidContext.appContext
         private const val PERMISSION_KEY = "permissions_type"
         private const val CHANNEL_ID = "channelId"
         private const val INTENT_KEY = "notification_intent_key"
         fun preloadTranslations() {
-            LocalizationHelper.prefetch(
-                AndroidContext.appContext,
-                R.string.biometriccompat_channel_id,
-                R.string.biometriccompat_request_perm,
-                R.string.biometriccompat_allow_notifications_perm,
-                R.string.biometriccompat_allow_notifications_channel_perm,
-                R.string.biometriccompat_permissions_request_failed
-            )
+            ExecutorHelper.startOnBackground {
+                LocalizationHelper.prefetch(
+                    AndroidContext.appContext,
+                    R.string.biometriccompat_channel_id,
+                    R.string.biometriccompat_request_perm,
+                    R.string.biometriccompat_allow_notifications_perm,
+                    R.string.biometriccompat_allow_notifications_channel_perm,
+                    R.string.biometriccompat_permissions_request_failed
+                )
+            }
         }
 
         fun askForPermissions(
@@ -66,11 +67,11 @@ class NotificationPermissionsFragment : Fragment() {
             bundle.putString(PERMISSION_KEY, type.name)
             bundle.putString(CHANNEL_ID, channelId)
             fragment.arguments = bundle
-            registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
+            registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
                     if (callback != null) ExecutorHelper.post(callback)
                     try {
-                        unregisterGlobalBroadcastIntent(appContext, this)
+                        unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -345,7 +346,7 @@ class NotificationPermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             LogCat.logException(e)
         } finally {
-            BroadcastTools.sendGlobalBroadcastIntent(appContext, Intent(INTENT_KEY))
+            BroadcastTools.sendGlobalBroadcastIntent(AndroidContext.appContext, Intent(INTENT_KEY))
         }
     }
 

@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -253,7 +254,9 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@FacelockOldModule)
+                    listener?.onFailure(failureReason, tag())
+                    return null
                 }
             }
             if (restartCauseTimeout(failureReason)) {

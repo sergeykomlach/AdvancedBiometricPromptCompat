@@ -214,11 +214,17 @@ class CustomBiometricModule constructor(
                 }
 
                 CUSTOM_BIOMETRIC_ERROR_USER_CANCELED, CUSTOM_BIOMETRIC_ERROR_USER_CANCELED -> {
+                    if(cancellationSignal?.isCanceled == false){
+                        Core.cancelAuthentication(this@CustomBiometricModule)
+                        listener?.onCanceled(tag())
+                    }
                     return
                 }
 
                 else -> {
-                   //no-op
+                    Core.cancelAuthentication(this@CustomBiometricModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {

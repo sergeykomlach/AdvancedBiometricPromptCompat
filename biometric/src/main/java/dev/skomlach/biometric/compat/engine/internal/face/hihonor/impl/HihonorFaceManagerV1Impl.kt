@@ -107,7 +107,7 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
 
     override fun getEnrolledTemplates(): IntArray? {
         return try {
-            HihonorFaceRecognizeManager.fRManager?.enrolledFaceIDs
+            HihonorFaceRecognizeManager.fRManager?.getEnrolledFaceIDs()
         } catch (ignore: Throwable) {
             null
         }

@@ -49,8 +49,9 @@ class OppoMirrorFaceManager {
         return null
     }
 
-    val enrolledFaces: List<Face>?
-        get() = getEnrolledFaces(0)
+    fun getEnrolledFaces(): List<Face>?{
+        return null
+    }
 
     fun hasEnrolledTemplates(): Boolean {
         return false

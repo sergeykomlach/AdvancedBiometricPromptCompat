@@ -99,7 +99,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         }
 
     fun updateBiometricEnrollChanged() {
-            preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
+        preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
     }
 
     open fun getIds(manager: Any): List<String> {
@@ -117,6 +117,14 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
             try {
                 method?.invoke(manager)?.let { result ->
                     when (result) {
+                        is List<*> -> {
+                            for (i in result) {
+                                i?.let {
+                                    ids.add(getUniqueId(it))
+                                }
+                            }
+                        }
+
                         is Collection<*> -> {
                             for (i in result) {
                                 i?.let {
@@ -211,6 +219,9 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                 it.name.endsWith(
                     "id",
                     ignoreCase = true
+                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty() || it.name.endsWith(
+                    "name",
+                    ignoreCase = true
                 ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()
             }
             if (fields.isNotEmpty()) {
@@ -220,6 +231,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                     if (!isAccessible)
                         f.isAccessible = true
                     try {
+                        f.invoke(result) ?: continue
                         stringBuilder.append("; ").append(f.name).append("=")
                             .append(f.invoke(result))
                     } finally {

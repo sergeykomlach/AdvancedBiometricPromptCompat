@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -202,7 +203,9 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                 }
 
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {

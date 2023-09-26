@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -354,6 +355,10 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 IRIS_ERROR_CANCELED -> {
+                    if(cancellationSignal?.isCanceled == false){
+                        Core.cancelAuthentication(this@SamsungIrisUnlockModule)
+                        listener?.onCanceled(tag())
+                    }
                     return
                 }
 
@@ -374,7 +379,9 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@SamsungIrisUnlockModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {

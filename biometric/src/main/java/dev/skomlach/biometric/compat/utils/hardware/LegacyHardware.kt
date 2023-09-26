@@ -51,11 +51,14 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                         return true
                 }
                 return BiometricAuthentication.isLockOut
+            } else {
+                if(BiometricLockoutFix.isLockOut(biometricAuthRequest.type))
+                    return true
+                val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
+                    biometricAuthRequest.type
+                )
+                return biometricModule != null && biometricModule.isLockOut
             }
-            val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
-                biometricAuthRequest.type
-            )
-            return biometricModule?.isLockOut == false && !BiometricLockoutFix.isLockOut(biometricAuthRequest.type)
         }
     override val isBiometricEnrollChanged: Boolean
         get() {

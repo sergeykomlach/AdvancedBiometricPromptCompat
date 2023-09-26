@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -280,6 +281,10 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 FACE_ERROR_CANCELED -> {
+                    if(cancellationSignal?.isCanceled == false){
+                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                        listener?.onCanceled(tag())
+                    }
                     return
                 }
 
@@ -288,7 +293,9 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         AuthenticationFailureReason.AUTHENTICATION_FAILED
                 }
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {

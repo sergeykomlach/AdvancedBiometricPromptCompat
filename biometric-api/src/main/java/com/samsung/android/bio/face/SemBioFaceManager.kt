@@ -53,8 +53,9 @@ object SemBioFaceManager {
     ) {
     }
 
-    val enrolledFaces: List<Face>?
-        get() = null
+    fun getEnrolledFaces(): List<Face>?  {
+        return null
+    }
 
     fun getEnrolledFaces(i: Int): List<Face>? {
         return null

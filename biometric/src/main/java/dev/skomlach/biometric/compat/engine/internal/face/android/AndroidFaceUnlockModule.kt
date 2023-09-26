@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -599,11 +600,17 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
+                    if(cancellationSignal?.isCanceled == false){
+                        Core.cancelAuthentication(this@AndroidFaceUnlockModule)
+                        listener?.onCanceled(tag())
+                    }
                     return
                 }
 
                 else -> {
-                    //no-op
+                    Core.cancelAuthentication(this@AndroidFaceUnlockModule)
+                    listener?.onFailure(failureReason, tag())
+                    return
                 }
             }
             if (restartCauseTimeout(failureReason)) {
