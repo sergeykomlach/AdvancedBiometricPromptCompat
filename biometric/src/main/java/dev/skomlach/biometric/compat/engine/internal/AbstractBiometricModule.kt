@@ -170,7 +170,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         return ids.filterNotNull()
     }
 
-    private fun getHashes(): Set<String> {
+    fun getHashes(): Set<String> {
         val hashes = HashSet<String>()
         getManagers().let {
             val ids = ArrayList<String>()
