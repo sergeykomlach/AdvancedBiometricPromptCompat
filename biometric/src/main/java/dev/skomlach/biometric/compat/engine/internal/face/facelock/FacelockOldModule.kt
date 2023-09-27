@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -229,7 +229,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         private var errorTs = System.currentTimeMillis()
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
-
+        private var selfCanceled = false
         fun onAuthenticationError(errMsgId: Int, errString: CharSequence?): Void? {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
@@ -254,12 +254,19 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 else -> {
-                    Core.cancelAuthentication(this@FacelockOldModule)
-                    listener?.onFailure(failureReason, tag())
+                    if (!selfCanceled) {
+                        listener?.onFailure(failureReason, tag())
+                        ExecutorHelper.postDelayed({
+                            selfCanceled = true
+                            Core.cancelAuthentication(this@FacelockOldModule)
+                            listener?.onCanceled(tag())
+                        }, 2000)
+                    }
                     return null
                 }
             }
             if (restartCauseTimeout(failureReason)) {
+                selfCanceled = true
                 stopAuth()
                 ExecutorHelper.postDelayed({
                     authenticate(
@@ -275,8 +282,16 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    selfCanceled = true
                     stopAuth()
-                    ExecutorHelper.postDelayed({authenticate(biometricCryptoObject, cancellationSignal, listener, restartPredicate) }, 2000)
+                    ExecutorHelper.postDelayed({
+                        authenticate(
+                            biometricCryptoObject,
+                            cancellationSignal,
+                            listener,
+                            restartPredicate
+                        )
+                    }, 2000)
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -287,6 +302,11 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    ExecutorHelper.postDelayed({
+                        selfCanceled = true
+                        Core.cancelAuthentication(this@FacelockOldModule)
+                        listener?.onCanceled(tag())
+                    }, 2000)
                 }
             return null
         }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,14 +20,11 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.ColorFilter
 import android.graphics.ImageDecoder
-import android.graphics.PorterDuff
 import android.graphics.drawable.*
 import android.os.Build
 import android.util.AttributeSet
@@ -38,7 +35,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
-import androidx.core.widget.ImageViewCompat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -72,7 +68,7 @@ class FingerprintIconView @JvmOverloads constructor(
     private fun setTint(state: State) {
         if (state == State.ON) {
             color?.let {
-                setColorFilter(color?:return)
+                setColorFilter(color ?: return)
                 return
             }
         }

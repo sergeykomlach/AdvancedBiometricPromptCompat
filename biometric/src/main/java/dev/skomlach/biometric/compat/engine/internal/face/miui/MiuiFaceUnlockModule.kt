@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -191,7 +191,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private var errorTs = System.currentTimeMillis()
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
-
+        private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
@@ -233,12 +233,19 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@MiuiFaceUnlockModule)
-                    listener?.onFailure(failureReason, tag())
+                    if (!selfCanceled) {
+                        listener?.onFailure(failureReason, tag())
+                        ExecutorHelper.postDelayed({
+                            selfCanceled = true
+                            Core.cancelAuthentication(this@MiuiFaceUnlockModule)
+                            listener?.onCanceled(tag())
+                        }, 2000)
+                    }
                     return
                 }
             }
             if (restartCauseTimeout(failureReason)) {
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -249,6 +256,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
                         authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -263,6 +271,11 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    ExecutorHelper.postDelayed({
+                        selfCanceled = true
+                        Core.cancelAuthentication(this@MiuiFaceUnlockModule)
+                        listener?.onCanceled(tag())
+                    }, 2000)
                 }
         }
 

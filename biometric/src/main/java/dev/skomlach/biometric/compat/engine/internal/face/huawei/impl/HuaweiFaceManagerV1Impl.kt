@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +39,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
         HuaweiFaceRecognizeManager.createInstance()
     }
 
-    override fun authenticate(callback: AuthenticatorCallback?,surface: Surface?) {
+    override fun authenticate(callback: AuthenticatorCallback?, surface: Surface?) {
         val reqID = REQ_ID
         val type = TYPE_AUTH
         val frManager: HuaweiFaceRecognizeManager? =

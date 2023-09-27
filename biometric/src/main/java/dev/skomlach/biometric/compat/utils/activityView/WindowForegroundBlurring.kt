@@ -439,7 +439,8 @@ class WindowForegroundBlurring(
 
                     BiometricType.BIOMETRIC_HEARTRATE -> {
                         biometrics_layout.findViewById<View>(R.id.heartrate)?.tag = iconStates
-                        biometrics_layout.findViewById<ImageView>(R.id.heartrate).setColorFilter(color)
+                        biometrics_layout.findViewById<ImageView>(R.id.heartrate)
+                            .setColorFilter(color)
                     }
 
                     BiometricType.BIOMETRIC_VOICE -> {
@@ -459,7 +460,8 @@ class WindowForegroundBlurring(
 
                     BiometricType.BIOMETRIC_FINGERPRINT -> {
                         biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag = iconStates
-                        biometrics_layout.findViewById<ImageView>(R.id.fingerprint).setColorFilter(color)
+                        biometrics_layout.findViewById<ImageView>(R.id.fingerprint)
+                            .setColorFilter(color)
                     }
 
                     else -> {

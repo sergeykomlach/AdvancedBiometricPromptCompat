@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +52,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                 }
                 return BiometricAuthentication.isLockOut
             } else {
-                if(BiometricLockoutFix.isLockOut(biometricAuthRequest.type))
+                if (BiometricLockoutFix.isLockOut(biometricAuthRequest.type))
                     return true
                 val biometricModule = BiometricAuthentication.getAvailableBiometricModule(
                     biometricAuthRequest.type

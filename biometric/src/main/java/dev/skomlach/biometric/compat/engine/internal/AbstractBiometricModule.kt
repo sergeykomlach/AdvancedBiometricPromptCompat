@@ -1,21 +1,21 @@
 /*
-*  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
-*  All rights reserved.
-*
-*   Licensed under the Apache License, Version 2.0 (the "License");
-*   you may not use this file except in compliance with the License.
-*   You may obtain a copy of the License at
-*
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-*   Unless required by applicable law or agreed to in writing, software
-*   distributed under the License is distributed on an "AS IS" BASIS,
-*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*   See the License for the specific language governing permissions and
-*   limitations under the License.
-*/
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  All rights reserved.
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ */
 
 package dev.skomlach.biometric.compat.engine.internal
 
@@ -167,7 +167,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                     if (!isAccessible)
                         method?.isAccessible = false
                 }
-                if(ids.filterNotNull().isNotEmpty()) return ids.filterNotNull()
+                if (ids.filterNotNull().isNotEmpty()) return ids.filterNotNull()
             }
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
@@ -239,22 +239,23 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                         ignoreCase = true
                     ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
                 })
-            }
+            }.toSet()
 
-                for (f in methods) {
-                    val isAccessible = f.isAccessible
+            for (f in methods) {
+                val isAccessible = f.isAccessible
+                if (!isAccessible)
+                    f.isAccessible = true
+                try {
+                    f.invoke(result) ?: continue
+                    if (stringBuilder.isEmpty())
+                        stringBuilder.append(result.javaClass.simpleName).append("; ")
+                    stringBuilder.append(f.name).append("=")
+                        .append(f.invoke(result)).append("; ")
+                } finally {
                     if (!isAccessible)
-                        f.isAccessible = true
-                    try {
-                        f.invoke(result) ?: continue
-                        stringBuilder.append(f.name).append("=")
-                            .append(f.invoke(result)).append("; ")
-                    } finally {
-                        if (!isAccessible)
-                            f.isAccessible = false
-                    }
+                        f.isAccessible = false
                 }
-
+            }
             val s = stringBuilder.toString().trim()
             if (s.isNotEmpty())
                 return s

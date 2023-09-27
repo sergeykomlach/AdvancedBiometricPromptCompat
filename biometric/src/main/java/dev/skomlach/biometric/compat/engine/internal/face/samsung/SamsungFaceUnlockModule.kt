@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,6 @@ import android.annotation.SuppressLint
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import android.widget.Toast
 import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -36,7 +35,6 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
 
@@ -254,7 +252,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private var errorTs = System.currentTimeMillis()
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
-
+        private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
@@ -281,7 +279,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 FACE_ERROR_CANCELED -> {
-                    if(cancellationSignal?.isCanceled == false){
+                    if (!selfCanceled) {
                         Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                         listener?.onCanceled(tag())
                     }
@@ -292,13 +290,21 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason =
                         AuthenticationFailureReason.AUTHENTICATION_FAILED
                 }
+
                 else -> {
-                    Core.cancelAuthentication(this@SamsungFaceUnlockModule)
-                    listener?.onFailure(failureReason, tag())
+                    if (!selfCanceled) {
+                        listener?.onFailure(failureReason, tag())
+                        ExecutorHelper.postDelayed({
+                            selfCanceled = true
+                            Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                            listener?.onCanceled(tag())
+                        }, 2000)
+                    }
                     return
                 }
             }
             if (restartCauseTimeout(failureReason)) {
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -309,6 +315,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
                         authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -323,6 +330,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    ExecutorHelper.postDelayed({
+                        selfCanceled = true
+                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                        listener?.onCanceled(tag())
+                    }, 2000)
                 }
         }
 
@@ -356,6 +368,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -370,6 +383,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
+                ExecutorHelper.postDelayed({
+                    selfCanceled = true
+                    Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                    listener?.onCanceled(tag())
+                }, 2000)
             }
         }
     }

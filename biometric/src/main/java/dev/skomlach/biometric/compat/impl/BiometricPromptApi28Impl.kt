@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -86,13 +86,25 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                     return
                 errorTs = tmp
-                ExecutorHelper.post {
-                    dialog?.onFailure(false)
-                    for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
-                        IconStateHelper.errorType(module)
-                    }
 
+                val failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
+                if (restartPredicate.invoke(failureReason)) {
+                    if (callback != null) {
+                        ExecutorHelper.post {
+                            dialog?.onFailure(false)
+                            for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                                IconStateHelper.errorType(module)
+                            }
+                        }
+                    }
+                } else {
+                    checkAuthResultForPrimary(
+                        AuthResult.AuthResultState.FATAL_ERROR,
+                        null,
+                        failureReason
+                    )
                 }
+
 
             }
 
@@ -141,14 +153,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
 
                         BiometricPrompt.ERROR_CANCELED, BiometricPrompt.ERROR_USER_CANCELED, BiometricPrompt.ERROR_NEGATIVE_BUTTON -> {
-                            cancelAuthentication()
                             cancelAuth()
+                            cancelAuthentication()
                             return@Runnable
                         }
 
                         else -> {
-                            cancelAuthentication()
                             callback?.onFailed(failureReason)
+                            ExecutorHelper.postDelayed({
+                                cancelAuth()
+                                cancelAuthentication()
+                            }, 2000)
                             return@Runnable
                         }
                     }
@@ -459,9 +474,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun cancelAuth() {
-        e("BiometricPromptApi28Impl.cancelAuth():")
         val success =
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+        e("BiometricPromptApi28Impl.cancelAuth(): $success")
         if (success != null)
             return
         callback?.onCanceled()

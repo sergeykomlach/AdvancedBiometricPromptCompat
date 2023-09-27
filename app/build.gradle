@@ -76,6 +76,7 @@ dependencies {
     implementation 'androidx.navigation:navigation-ui-ktx:2.7.3'
     implementation 'org.smali:dexlib2:2.5.2'
 
+    implementation 'com.google.iot.cbor:cbor:0.01.02'
     //DevTools
     //ANR's
     implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -257,7 +257,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private var errorTs = System.currentTimeMillis()
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
-
+        private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
@@ -294,7 +294,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
 
                 FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
-                    if(cancellationSignal?.isCanceled == false){
+                    if (!selfCanceled) {
                         Core.cancelAuthentication(this@OppoFaceUnlockModule)
                         listener?.onCanceled(tag())
                     }
@@ -302,12 +302,19 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@OppoFaceUnlockModule)
-                    listener?.onFailure(failureReason, tag())
+                    if (!selfCanceled) {
+                        listener?.onFailure(failureReason, tag())
+                        ExecutorHelper.postDelayed({
+                            selfCanceled = true
+                            Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                            listener?.onCanceled(tag())
+                        }, 2000)
+                    }
                     return
                 }
             }
             if (restartCauseTimeout(failureReason)) {
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -318,6 +325,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
                         authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -332,6 +340,11 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    ExecutorHelper.postDelayed({
+                        selfCanceled = true
+                        Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                        listener?.onCanceled(tag())
+                    }, 2000)
                 }
         }
 
@@ -366,6 +379,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -380,6 +394,11 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
+                ExecutorHelper.postDelayed({
+                    selfCanceled = true
+                    Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                    listener?.onCanceled(tag())
+                }, 2000)
             }
         }
     }

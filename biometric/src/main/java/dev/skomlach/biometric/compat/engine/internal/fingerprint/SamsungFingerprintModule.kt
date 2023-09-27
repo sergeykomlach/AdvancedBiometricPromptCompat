@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +27,6 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
-import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -139,6 +138,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                     private val skipTimeout =
                         context.resources.getInteger(android.R.integer.config_shortAnimTime)
 
+                    private var selfCanceled = false
                     override fun onFinished(status: Int) {
                         val tmp = System.currentTimeMillis()
                         if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
@@ -170,8 +170,11 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                             )
 
                             SpassFingerprint.STATUS_USER_CANCELLED, SpassFingerprint.STATUS_BUTTON_PRESSED, SpassFingerprint.STATUS_USER_CANCELLED_BY_TOUCH_OUTSIDE -> {
-                                Core.cancelAuthentication(this@SamsungFingerprintModule)
-                                listener?.onCanceled(tag())
+                                if (!selfCanceled) {
+                                    selfCanceled = true
+                                    cancelFingerprintRequest()
+                                    listener?.onCanceled(tag())
+                                }
                                 return
                             }
 
@@ -183,6 +186,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                         var failureReason: AuthenticationFailureReason? = reason
 
                         if (restartCauseTimeout(failureReason)) {
+                            selfCanceled = true
                             cancelFingerprintRequest()
                             ExecutorHelper.postDelayed({
                                 authenticate(
@@ -198,6 +202,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                 ) == true
                             ) {
                                 listener?.onFailure(failureReason, tag())
+                                selfCanceled = true
                                 cancelFingerprintRequest()
                                 ExecutorHelper.postDelayed({
                                     authenticate(
@@ -217,6 +222,11 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                                 }
                                 listener?.onFailure(failureReason, tag())
+                                ExecutorHelper.postDelayed({
+                                    selfCanceled = true
+                                    cancelFingerprintRequest()
+                                    listener?.onCanceled(tag())
+                                }, 2000)
                             }
                     }
 

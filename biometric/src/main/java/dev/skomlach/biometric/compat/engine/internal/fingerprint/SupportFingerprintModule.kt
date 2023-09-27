@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -213,7 +213,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         private var errorTs = System.currentTimeMillis()
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
-
+        private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
@@ -253,7 +253,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 }
 
                 FINGERPRINT_ERROR_CANCELED, FINGERPRINT_ERROR_USER_CANCELED -> {
-                    if(cancellationSignal?.isCanceled == false){
+                    if (!selfCanceled) {
                         Core.cancelAuthentication(this@SupportFingerprintModule)
                         listener?.onCanceled(tag())
                     }
@@ -261,12 +261,19 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 }
 
                 else -> {
-                    Core.cancelAuthentication(this@SupportFingerprintModule)
-                    listener?.onFailure(failureReason, tag())
+                    if (!selfCanceled) {
+                        listener?.onFailure(failureReason, tag())
+                        ExecutorHelper.postDelayed({
+                            selfCanceled = true
+                            Core.cancelAuthentication(this@SupportFingerprintModule)
+                            listener?.onCanceled(tag())
+                        }, 2000)
+                    }
                     return
                 }
             }
             if (restartCauseTimeout(failureReason)) {
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -277,6 +284,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                     ) == true
                 ) {
                     listener?.onFailure(failureReason, tag())
+                    selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
                         authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -291,6 +299,11 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
+                    ExecutorHelper.postDelayed({
+                        selfCanceled = true
+                        Core.cancelAuthentication(this@SupportFingerprintModule)
+                        listener?.onCanceled(tag())
+                    }, 2000)
                 }
         }
 
@@ -324,6 +337,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
             if (restartPredicate?.invoke(failureReason) == true) {
                 listener?.onFailure(failureReason, tag())
+                selfCanceled = true
                 cancellationSignal?.cancel()
                 ExecutorHelper.postDelayed({
                     authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -338,6 +352,11 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
+                ExecutorHelper.postDelayed({
+                    selfCanceled = true
+                    Core.cancelAuthentication(this@SupportFingerprintModule)
+                    listener?.onCanceled(tag())
+                }, 2000)
             }
         }
     }

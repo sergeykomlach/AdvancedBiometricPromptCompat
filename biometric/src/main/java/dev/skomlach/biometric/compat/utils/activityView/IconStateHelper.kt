@@ -20,7 +20,7 @@ package dev.skomlach.biometric.compat.utils.activityView
 
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.common.misc.ExecutorHelper
-import java.util.*
+import java.util.Collections
 
 object IconStateHelper {
     private val iconsTasks = Collections.synchronizedMap(HashMap<BiometricType?, Runnable>())
