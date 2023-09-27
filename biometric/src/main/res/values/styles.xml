@@ -28,9 +28,7 @@
         <item name="android:windowBackground">@color/transparent</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.5</item>
-        <item name="android:windowAnimationStyle">@style/DialogAnimation</item>
-        <item name="android:windowEnterAnimation">@anim/move_in</item>
-        <item name="android:windowExitAnimation">@anim/move_out</item>
+
         <item name="android:windowTitleStyle">@style/DialogTitle</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
@@ -46,9 +44,4 @@
         <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
     </style>
 
-    <style name="DialogAnimation">
-        <item name="android:windowEnterAnimation">@anim/move_in</item>
-        <item name="android:windowExitAnimation">@anim/move_out</item>
-        <item name="android:forceDarkAllowed" tools:ignore="NewApi">false</item>
-    </style>
 </resources>

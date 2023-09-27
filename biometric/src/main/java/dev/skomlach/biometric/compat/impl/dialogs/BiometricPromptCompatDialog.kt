@@ -30,6 +30,7 @@ import android.view.View.MeasureSpec
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -274,6 +275,12 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 wlp.gravity = Gravity.BOTTOM
                 w.attributes = wlp
                 ScreenProtection().applyProtectionInWindow(w)
+                (w.decorView as ViewGroup?)
+                    ?.getChildAt(0)?.startAnimation(
+                        AnimationUtils.loadAnimation(
+                            w.context, R.anim.move_in
+                        )
+                    )
             }
             it.setOnCancelListener(cancelDialogInterface)
             it.setOnDismissListener(dismissDialogInterface)
