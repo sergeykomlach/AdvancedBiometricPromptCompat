@@ -254,8 +254,8 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
                 FINGERPRINT_ERROR_CANCELED, FINGERPRINT_ERROR_USER_CANCELED -> {
                     if (!selfCanceled) {
-                        Core.cancelAuthentication(this@SupportFingerprintModule)
                         listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@SupportFingerprintModule)
                     }
                     return
                 }
@@ -263,11 +263,14 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@SupportFingerprintModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@SupportFingerprintModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -299,11 +302,14 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@SupportFingerprintModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@SupportFingerprintModule)
+                        }
+                    }
                 }
         }
 
@@ -352,11 +358,14 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@SupportFingerprintModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@SupportFingerprintModule)
+                    }
+                }
             }
         }
     }

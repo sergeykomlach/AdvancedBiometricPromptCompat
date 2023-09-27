@@ -205,11 +205,13 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -241,11 +243,13 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -294,11 +298,13 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@Hihonor3DFaceUnlockModule)
+                    }
+                }
             }
         }
     }

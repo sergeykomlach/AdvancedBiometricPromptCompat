@@ -74,6 +74,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         AtomicReference<BiometricFragment?>(null)
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
+
     val authCallback: BiometricPrompt.AuthenticationCallback =
         object : BiometricPrompt.AuthenticationCallback() {
             private var errorTs = System.currentTimeMillis()
@@ -160,10 +161,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                         else -> {
                             callback?.onFailed(failureReason)
-                            ExecutorHelper.postDelayed({
+                            postCancelTask({
                                 cancelAuth()
                                 cancelAuthentication()
-                            }, 2000)
+                            })
                             return@Runnable
                         }
                     }
@@ -198,6 +199,22 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
         }
     private val isFingerprint = AtomicBoolean(false)
+    private var cancelTask: Runnable? = null
+
+    @Throws(Throwable::class)
+    fun finalize() {
+        cancelTask?.let {
+            ExecutorHelper.removeCallbacks(it)
+        }
+    }
+
+    fun postCancelTask(runnable: Runnable?) {
+        cancelTask?.let {
+            ExecutorHelper.removeCallbacks(it)
+        }
+        cancelTask = runnable
+        ExecutorHelper.postDelayed(runnable ?: return, 2000)
+    }
 
     init {
         val promptInfoBuilder = PromptInfo.Builder()

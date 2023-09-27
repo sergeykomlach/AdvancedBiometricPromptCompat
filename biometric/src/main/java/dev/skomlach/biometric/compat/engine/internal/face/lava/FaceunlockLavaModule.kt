@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -181,7 +182,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
                             listener,
                             restartPredicate
                         )
-                    }, 2000)
+                    }, 1000)
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -192,11 +193,13 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        stopAuth()
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                        }
+                        Core.cancelAuthentication(this@FaceunlockLavaModule)
+                    }
                 }
             return null
         }

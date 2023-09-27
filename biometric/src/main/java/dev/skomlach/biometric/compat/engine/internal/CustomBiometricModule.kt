@@ -220,11 +220,13 @@ class CustomBiometricModule constructor(
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@CustomBiometricModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@CustomBiometricModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -256,11 +258,13 @@ class CustomBiometricModule constructor(
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@CustomBiometricModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@CustomBiometricModule)
+                        }
+                    }
                 }
         }
 
@@ -309,11 +313,13 @@ class CustomBiometricModule constructor(
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@CustomBiometricModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@CustomBiometricModule)
+                    }
+                }
             }
         }
     }

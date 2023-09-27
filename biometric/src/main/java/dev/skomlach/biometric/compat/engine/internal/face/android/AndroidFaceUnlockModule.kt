@@ -602,8 +602,8 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
                     if (!selfCanceled) {
-                        Core.cancelAuthentication(this@AndroidFaceUnlockModule)
                         listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@AndroidFaceUnlockModule)
                     }
                     return
                 }
@@ -611,11 +611,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@AndroidFaceUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@AndroidFaceUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -647,11 +649,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@AndroidFaceUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@AndroidFaceUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -700,11 +704,13 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@AndroidFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@AndroidFaceUnlockModule)
+                    }
+                }
             }
         }
     }

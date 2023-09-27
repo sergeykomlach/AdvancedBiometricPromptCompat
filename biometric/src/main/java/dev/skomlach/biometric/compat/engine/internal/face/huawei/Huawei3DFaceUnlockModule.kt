@@ -204,11 +204,13 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -240,11 +242,13 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -293,11 +297,13 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
+                    }
+                }
             }
         }
     }

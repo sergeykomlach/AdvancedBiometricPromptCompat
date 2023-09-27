@@ -256,11 +256,13 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@FacelockOldModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@FacelockOldModule)
+                            }
+                        }
                     }
                     return null
                 }
@@ -291,7 +293,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                             listener,
                             restartPredicate
                         )
-                    }, 2000)
+                    }, 1000)
                 } else {
                     if (mutableListOf(
                             AuthenticationFailureReason.SENSOR_FAILED,
@@ -302,11 +304,13 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@FacelockOldModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@FacelockOldModule)
+                        }
+                    }
                 }
             return null
         }

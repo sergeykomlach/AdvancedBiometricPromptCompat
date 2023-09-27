@@ -280,8 +280,8 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 FACE_ERROR_CANCELED -> {
                     if (!selfCanceled) {
-                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                         listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                     }
                     return
                 }
@@ -294,11 +294,13 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@SamsungFaceUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -330,11 +332,13 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -383,11 +387,13 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@SamsungFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
+                    }
+                }
             }
         }
     }

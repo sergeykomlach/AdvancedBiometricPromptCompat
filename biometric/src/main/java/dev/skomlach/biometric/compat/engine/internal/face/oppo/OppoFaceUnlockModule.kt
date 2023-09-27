@@ -295,8 +295,8 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
                 FACE_ERROR_CANCELED, FACE_ERROR_NEGATIVE_BUTTON, FACE_ERROR_USER_CANCELED -> {
                     if (!selfCanceled) {
-                        Core.cancelAuthentication(this@OppoFaceUnlockModule)
                         listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@OppoFaceUnlockModule)
                     }
                     return
                 }
@@ -304,11 +304,13 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@OppoFaceUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -340,11 +342,13 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@OppoFaceUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -394,11 +398,13 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@OppoFaceUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@OppoFaceUnlockModule)
+                    }
+                }
             }
         }
     }

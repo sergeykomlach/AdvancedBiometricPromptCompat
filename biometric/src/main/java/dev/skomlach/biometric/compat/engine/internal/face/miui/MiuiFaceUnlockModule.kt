@@ -235,11 +235,13 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@MiuiFaceUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@MiuiFaceUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -271,11 +273,13 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@MiuiFaceUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@MiuiFaceUnlockModule)
+                        }
+                    }
                 }
         }
 

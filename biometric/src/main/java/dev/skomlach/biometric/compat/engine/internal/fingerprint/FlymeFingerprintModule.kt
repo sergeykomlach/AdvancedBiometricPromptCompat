@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -192,10 +193,12 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT
                             }
                             listener?.onFailure(failureReason, tag())
-                            ExecutorHelper.postDelayed({
-                                cancelFingerprintServiceFingerprintRequest()
-                                listener?.onCanceled(tag())
-                            }, 2000)
+                            postCancelTask {
+                                if (cancellationSignal?.isCanceled == false) {
+                                    listener?.onCanceled(tag())
+                                    Core.cancelAuthentication(this@FlymeFingerprintModule)
+                                }
+                            }
                         }
                 }
             }

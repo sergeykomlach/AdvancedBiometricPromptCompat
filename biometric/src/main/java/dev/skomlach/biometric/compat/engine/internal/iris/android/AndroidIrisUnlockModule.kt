@@ -421,8 +421,8 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 IRIS_ERROR_CANCELED, IRIS_ERROR_USER_CANCELED -> {
                     if (!selfCanceled) {
-                        Core.cancelAuthentication(this@AndroidIrisUnlockModule)
                         listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@AndroidIrisUnlockModule)
                     }
                     return
                 }
@@ -430,11 +430,14 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@AndroidIrisUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -466,11 +469,14 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@AndroidIrisUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -519,11 +525,14 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@AndroidIrisUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                    }
+                }
             }
         }
     }

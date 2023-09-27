@@ -234,8 +234,8 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
                 FINGERPRINT_ERROR_USER_CANCELED, FINGERPRINT_ERROR_CANCELED -> {
                     if (!selfCanceled) {
-                        Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                         listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                     }
                     return
                 }
@@ -243,11 +243,14 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 else -> {
                     if (!selfCanceled) {
                         listener?.onFailure(failureReason, tag())
-                        ExecutorHelper.postDelayed({
-                            selfCanceled = true
-                            Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
-                            listener?.onCanceled(tag())
-                        }, 2000)
+                        postCancelTask {
+
+                            if (cancellationSignal?.isCanceled == false) {
+                                selfCanceled = true
+                                listener?.onCanceled(tag())
+                                Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
+                            }
+                        }
                     }
                     return
                 }
@@ -279,11 +282,14 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(failureReason, tag())
-                    ExecutorHelper.postDelayed({
-                        selfCanceled = true
-                        Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
-                        listener?.onCanceled(tag())
-                    }, 2000)
+                    postCancelTask {
+
+                        if (cancellationSignal?.isCanceled == false) {
+                            selfCanceled = true
+                            listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
+                        }
+                    }
                 }
         }
 
@@ -332,11 +338,14 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
                 listener?.onFailure(failureReason, tag())
-                ExecutorHelper.postDelayed({
-                    selfCanceled = true
-                    Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
-                    listener?.onCanceled(tag())
-                }, 2000)
+                postCancelTask {
+
+                    if (cancellationSignal?.isCanceled == false) {
+                        selfCanceled = true
+                        listener?.onCanceled(tag())
+                        Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
+                    }
+                }
             }
         }
     }

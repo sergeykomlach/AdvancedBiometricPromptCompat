@@ -30,6 +30,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.HexUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
@@ -54,6 +55,24 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     override val isUserAuthCanByUsedWithCrypto: Boolean
         get() = true
     protected val authCallTimestamp = AtomicLong(0)
+
+    private var cancelTask: Runnable? = null
+
+    @Throws(Throwable::class)
+    fun finalize() {
+        cancelTask?.let {
+            ExecutorHelper.removeCallbacks(it)
+        }
+    }
+
+    fun postCancelTask(runnable: Runnable?) {
+        cancelTask?.let {
+            ExecutorHelper.removeCallbacks(it)
+        }
+        cancelTask = runnable
+        ExecutorHelper.postDelayed(runnable ?: return, 2000)
+    }
+
     fun getUserId(): Int {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
