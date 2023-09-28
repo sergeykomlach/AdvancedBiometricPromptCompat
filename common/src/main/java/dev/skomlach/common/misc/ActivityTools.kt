@@ -25,15 +25,13 @@ import android.os.Build
 import android.view.View
 import android.view.Window
 
-fun isActivityFinished(context: Context?): Boolean {
+fun isActivityFinished(context: Activity?): Boolean {
     if (context == null) return true
-    return if (context is Activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            context.isDestroyed || context.isFinishing
-        } else {
-            context.isFinishing
-        }
-    } else false
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        context.isDestroyed || context.isFinishing
+    } else {
+        context.isFinishing
+    }
 }
 
 fun hasWindowFocus(w: Activity?): Boolean {

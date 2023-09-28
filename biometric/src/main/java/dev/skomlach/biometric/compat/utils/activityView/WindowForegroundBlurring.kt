@@ -33,6 +33,10 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.core.view.ViewCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.*
 import dev.skomlach.biometric.compat.utils.DialogMainColor
@@ -84,7 +88,6 @@ class WindowForegroundBlurring(
 
         override fun onViewDetachedFromWindow(v: View) {
             BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
-            resetListeners()
             forceToCloseCallback.onCloseBiometric()
         }
     }
@@ -206,6 +209,14 @@ class WindowForegroundBlurring(
 
             updateBackground()
             IconStateHelper.registerListener(this)
+            parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
+                LifecycleEventObserver {
+                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                    if(event == Lifecycle.Event.ON_DESTROY){
+                        forceToCloseCallback.onCloseBiometric()
+                    }
+                }
+            })
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {

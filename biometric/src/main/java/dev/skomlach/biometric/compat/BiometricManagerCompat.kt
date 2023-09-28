@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.provider.Settings
 import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
@@ -31,6 +32,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 object BiometricManagerCompat {
@@ -312,6 +314,12 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
+        //Some device not support BiometricAuth in landscape mode
+        //Example: OnePlus 8T (Android 13), Samsung A22 (Android 11)
+        if (!MultiWindowSupport.isTablet() &&
+            MultiWindowSupport.get().screenOrientation == Configuration.ORIENTATION_LANDSCAPE)
+            return true
+
         var result = false
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)

@@ -36,9 +36,7 @@ class ActivityViewWatcher(
             activeView.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup,
             object : ForceToCloseCallback {
                 override fun onCloseBiometric() {
-                    for (back in backgroundBlurs) {
-                        back.resetListeners()
-                    }
+                    resetListeners()
                     forceToCloseCallback.onCloseBiometric()
                 }
             })
