@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.1.1" type="baseline" client="gradle" dependencies="false" name="AGP (8.1.1)" variant="all" version="8.1.1">
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="            sharedPreferences.clear().commit()"
+        errorLine2="                                      ~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/device/DeviceInfoManager.kt"
+            line="263"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        editor?.commit()"
+        errorLine2="                ~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/SecurePreferences.kt"
+            line="458"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        updatedEditor?.commit()"
+        errorLine2="                       ~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/SecurePreferences.kt"
+            line="475"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 23 (current min is 16): `android.Manifest.permission#PACKAGE_USAGE_STATS`"
+        errorLine1="        Manifest.permission.PACKAGE_USAGE_STATS,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="376"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 23 (current min is 16): `android.Manifest.permission#USE_FINGERPRINT`"
+        errorLine1="        Manifest.permission.USE_FINGERPRINT,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="388"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 20 (current min is 16): `android.Manifest.permission#BODY_SENSORS`"
+        errorLine1="        Manifest.permission.BODY_SENSORS,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="389"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.Manifest.permission#READ_PHONE_NUMBERS`"
+        errorLine1="        Manifest.permission.READ_PHONE_NUMBERS,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="398"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 23 (current min is 16): `android.Manifest.permission#REQUEST_INSTALL_PACKAGES`"
+        errorLine1="        Manifest.permission.REQUEST_INSTALL_PACKAGES,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="399"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.Manifest.permission#INSTANT_APP_FOREGROUND_SERVICE`"
+        errorLine1="        Manifest.permission.INSTANT_APP_FOREGROUND_SERVICE,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="401"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.Manifest.permission#ANSWER_PHONE_CALLS`"
+        errorLine1="        Manifest.permission.ANSWER_PHONE_CALLS,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="402"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.Manifest.permission#REQUEST_DELETE_PACKAGES`"
+        errorLine1="        Manifest.permission.REQUEST_DELETE_PACKAGES,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="405"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 28 (current min is 16): `android.Manifest.permission#ACCEPT_HANDOVER`"
+        errorLine1="        Manifest.permission.ACCEPT_HANDOVER,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="407"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 28 (current min is 16): `android.Manifest.permission#FOREGROUND_SERVICE`"
+        errorLine1="        Manifest.permission.FOREGROUND_SERVICE,"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissions/AppOpCompatConstants.kt"
+            line="409"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.provider.Settings#ACTION_APP_NOTIFICATION_SETTINGS`"
+        errorLine1="                    launchIntent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissionui/notification/NotificationPermissionsFragment.kt"
+            line="200"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.provider.Settings#ACTION_APP_NOTIFICATION_SETTINGS`"
+        errorLine1="                    launchIntent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissionui/notification/NotificationPermissionsFragment.kt"
+            line="200"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.provider.Settings#ACTION_APP_NOTIFICATION_SETTINGS`"
+        errorLine1="                    launchIntent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissionui/notification/NotificationPermissionsFragment.kt"
+            line="287"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="InlinedApi"
+        message="Field requires API level 26 (current min is 16): `android.provider.Settings#ACTION_APP_NOTIFICATION_SETTINGS`"
+        errorLine1="                    launchIntent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS"
+        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissionui/notification/NotificationPermissionsFragment.kt"
+            line="287"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="InternalInsetResource"
+        message="Using internal inset dimension resource `status_bar_height` is not supported"
+        errorLine1="                activity.resources.getIdentifier(&quot;status_bar_height&quot;, &quot;dimen&quot;, &quot;android&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="239"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="KotlinNullnessAnnotation"
+        message="Do not use `@Nullable` in Kotlin; the nullability is already implied by the Kotlin type `T?` ending with `?`"
+        errorLine1="    override fun setValue(@Nullable t: T?) {"
+        errorLine2="                          ~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SingleLiveEvent.kt"
+            line="59"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="                    Class.forName(&quot;android.app.ActivityThread&quot;)"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/contextprovider/AndroidContext.kt"
+            line="110"
+            column="21"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="                        Class.forName(&quot;android.app.AppGlobals&quot;)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/contextprovider/AndroidContext.kt"
+            line="115"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val meizuFlags = WindowManager.LayoutParams::class.java.getDeclaredField(&quot;meizuFlags&quot;)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/statusbar/HelperTool.kt"
+            line="110"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val layoutParams = Class.forName(&quot;android.view.MiuiWindowManager\$LayoutParams&quot;)"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/statusbar/StatusBarIconsDarkMode.kt"
+            line="52"
+            column="32"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val SystemProperties = cl.loadClass(&quot;android.os.SystemProperties&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemPropertiesProxy.kt"
+            line="42"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val SystemProperties = cl.loadClass(&quot;android.os.SystemProperties&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemPropertiesProxy.kt"
+            line="74"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val SystemProperties = cl.loadClass(&quot;android.os.SystemProperties&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemPropertiesProxy.kt"
+            line="111"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val SystemProperties = cl.loadClass(&quot;android.os.SystemProperties&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemPropertiesProxy.kt"
+            line="148"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val SystemProperties = cl.loadClass(&quot;android.os.SystemProperties&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemPropertiesProxy.kt"
+            line="190"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val SystemProperties = Class.forName(&quot;android.os.SystemProperties&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemPropertiesProxy.kt"
+            line="224"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="PrivateApi"
+        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
+        errorLine1="            val fields = Class.forName(&quot;com.android.internal.R\$string&quot;).declaredFields"
+        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/SystemStringsHelper.kt"
+            line="29"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="AppBundleLocaleChanges"
+        message="Found dynamic locale changes, but did not find corresponding Play Core library calls for downloading languages and splitting by language is not disabled in the `bundle` configuration"
+        errorLine1="                        config.setLocale(Locale.US)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/translate/LocalizationHelper.kt"
+            line="65"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="QueryPermissionsNeeded"
+        message="Consider adding a `&lt;queries>` declaration to your manifest when calling this \&#xA;method; see https://g.co/dev/packagevisibility for details"
+        errorLine1="        val pkgAppsList = pm?.queryIntentActivities(intent, 0) ?: emptyList()"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/permissionui/notification/NotificationPermissionsFragment.kt"
+            line="381"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="QueryPermissionsNeeded"
+        message="Consider adding a `&lt;queries>` declaration to your manifest when calling this \&#xA;method; see https://g.co/dev/packagevisibility for details"
+        errorLine1="        val pkgAppsList = pm.queryIntentActivities(intent, 0)"
+        errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/misc/Utils.kt"
+            line="59"
+            column="30"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="                resources.getIdentifier("
+        errorLine2="                          ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="171"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="                resources.getIdentifier("
+        errorLine2="                          ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="177"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="                resources.getIdentifier("
+        errorLine2="                          ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="196"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="                resources.getIdentifier("
+        errorLine2="                          ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="202"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="        val id = resources.getIdentifier(&quot;config_showNavigationBar&quot;, &quot;bool&quot;, &quot;android&quot;)"
+        errorLine2="                           ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="228"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="DiscouragedApi"
+        message="Use of this function is discouraged because resource reflection makes it harder to perform build optimizations and compile-time verification of code. It is much more efficient to retrieve resources by identifier (e.g. `R.foo.bar`) than by name (e.g. `getIdentifier(&quot;bar&quot;, &quot;foo&quot;, null)`)."
+        errorLine1="                activity.resources.getIdentifier(&quot;status_bar_height&quot;, &quot;dimen&quot;, &quot;android&quot;)"
+        errorLine2="                                   ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/multiwindow/MultiWindowSupport.kt"
+            line="239"
+            column="36"/>
+    </issue>
+
+    <issue
+        id="HardwareIds"
+        message="Using `SERIAL` to get device identifiers is not recommended"
+        errorLine1="                Build.SERIAL"
+        errorLine2="                      ~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/Utils.kt"
+            line="97"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; SDK_INT is never &lt; 16"
+        errorLine1="            if (Build.VERSION.SDK_INT &lt; VERSION_CODE_JELLY_BEAN || Build.VERSION.SDK_INT > VERSION_CODE_JELLY_BEAN_MR2) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/AesCbcWithIntegrity.kt"
+            line="673"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; SDK_INT is always >= 11"
+        errorLine1="    @TargetApi(Build.VERSION_CODES.HONEYCOMB)"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/SecurePreferences.kt"
+            line="362"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; SDK_INT is always >= 11"
+        errorLine1="        @TargetApi(Build.VERSION_CODES.HONEYCOMB)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/SecurePreferences.kt"
+            line="574"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; SDK_INT is always >= 9"
+        errorLine1="        @TargetApi(Build.VERSION_CODES.GINGERBREAD)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/SecurePreferences.kt"
+            line="638"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="Unnecessary; SDK_INT is always >= 16"
+        errorLine1="            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/dev/skomlach/common/storage/SecurePreferences.kt"
+            line="640"
+            column="17"/>
+    </issue>
+
+</issues>

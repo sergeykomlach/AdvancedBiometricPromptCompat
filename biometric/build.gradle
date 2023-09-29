@@ -3,6 +3,9 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 //    compileSdkPreview compileSDK
     compileSdk compileSDK
     defaultConfig {

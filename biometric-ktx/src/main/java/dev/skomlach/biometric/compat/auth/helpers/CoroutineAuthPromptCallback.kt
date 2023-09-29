@@ -44,6 +44,7 @@ internal class CoroutineAuthPromptCallback(
     }
 
     override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
+        super.onSucceeded(confirmed)
         if (!continuation.isCompleted)
             continuation.resumeWith(Result.success(confirmed))
     }

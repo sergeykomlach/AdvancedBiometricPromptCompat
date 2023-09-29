@@ -2,6 +2,9 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 //    compileSdkPreview compileSDK
     compileSdk compileSDK
     defaultConfig {

@@ -5,6 +5,9 @@ apply plugin: 'kotlin-android'
 Note: Keep module in Java to keep compatibility with OEM/AOSP API's
 */
 android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 //    compileSdkPreview compileSDK
     compileSdk compileSDK
     defaultConfig {

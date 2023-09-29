@@ -22,6 +22,9 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 //    compileSdkPreview compileSDK
     compileSdk compileSDK
     defaultConfig {
