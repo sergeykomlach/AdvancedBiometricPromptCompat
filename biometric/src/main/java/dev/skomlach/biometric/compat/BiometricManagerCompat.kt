@@ -317,7 +317,7 @@ object BiometricManagerCompat {
         //Some device not support BiometricAuth in landscape mode
         //Example: OnePlus 8T (Android 13), Samsung A22 (Android 11)
         if (!MultiWindowSupport.isTablet() &&
-            MultiWindowSupport.get().screenOrientation == Configuration.ORIENTATION_LANDSCAPE)
+            MultiWindowSupport.get().screenOrientation != Configuration.ORIENTATION_PORTRAIT)
             return true
 
         var result = false

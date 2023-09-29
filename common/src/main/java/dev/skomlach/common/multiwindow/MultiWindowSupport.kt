@@ -38,13 +38,13 @@ class MultiWindowSupport private constructor() {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
         @SuppressLint("StaticFieldLeak")
-        private val instance  = MultiWindowSupport()
-        fun get() : MultiWindowSupport{
+        private val instance = MultiWindowSupport()
+        fun get(): MultiWindowSupport {
             return instance
         }
-        @SuppressLint("StaticFieldLeak")
-        val ctx = AndroidContext.appContext
+
         fun isTablet(): Boolean {
+            val ctx = AndroidContext.activity ?: AndroidContext.appContext
             val resources = ctx.resources
             val configuration = AndroidContext.configuration ?: resources.configuration
             val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

@@ -735,12 +735,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         api,
                         type
                     )
-                    if (BiometricManagerCompat.isBiometricAvailable(request)) {
+                    if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
+                if (BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
             }
             types
@@ -756,12 +756,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricApi.LEGACY_API,
                             type
                         )
-                        if (BiometricManagerCompat.isBiometricAvailable(request)) {
+                        if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
+                    if (BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest))
                         types.add(biometricAuthRequest.type)
                 }
                 types.removeAll(primaryAvailableTypes)
