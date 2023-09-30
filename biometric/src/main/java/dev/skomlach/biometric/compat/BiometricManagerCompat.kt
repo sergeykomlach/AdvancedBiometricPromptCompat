@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
+import android.content.res.Resources
 import android.provider.Settings
 import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
@@ -317,7 +318,9 @@ object BiometricManagerCompat {
         //Some device not support BiometricAuth in landscape mode
         //Example: OnePlus 8T (Android 13), Samsung A22 (Android 11)
         if (!MultiWindowSupport.isTablet() &&
-            MultiWindowSupport.get().screenOrientation != Configuration.ORIENTATION_PORTRAIT)
+            (MultiWindowSupport.get().screenOrientation != Configuration.ORIENTATION_PORTRAIT || Resources.getSystem().configuration.orientation != Configuration.ORIENTATION_PORTRAIT) && //landscape
+            MultiWindowSupport.get().isInMultiWindow
+        )//split screen
             return true
 
         var result = false
