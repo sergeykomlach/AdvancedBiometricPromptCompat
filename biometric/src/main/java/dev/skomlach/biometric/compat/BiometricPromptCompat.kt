@@ -297,6 +297,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val startTime = System.currentTimeMillis()
         var timeout = false
         ExecutorHelper.startOnBackground {
+            try {
+                Thread.sleep(200)
+            } catch (ignore: InterruptedException) {
+            }
             while (!builder.isTruncateChecked() || !isInitialized) {
                 timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
                 if (timeout) {
