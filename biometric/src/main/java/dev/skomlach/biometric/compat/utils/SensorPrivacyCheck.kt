@@ -78,7 +78,7 @@ object SensorPrivacyCheck {
             }
             while (!isDone.get() && System.currentTimeMillis() - ts <= delay) {
                 try {
-                    Thread.sleep(20)
+                    Thread.sleep(10)
                 } catch (ignore: InterruptedException) {
                 }
             }
