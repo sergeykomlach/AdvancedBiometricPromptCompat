@@ -23,7 +23,9 @@ import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.os.Build
 import android.provider.Settings
+import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -34,11 +36,61 @@ import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.multiwindow.MultiWindowSupport
+import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+
+    @JvmStatic
+    fun getUsedPermissions(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): List<String> {
+
+        val permission: MutableSet<String> = java.util.HashSet()
+
+        if (Build.VERSION.SDK_INT >= 28) {
+            permission.add("android.permission.USE_BIOMETRIC")
+        }
+
+        val biometricMethodList: MutableList<BiometricMethod> = ArrayList()
+        for (m in BiometricAuthentication.availableBiometricMethods) {
+            if (api.type == BiometricType.BIOMETRIC_ANY || api.type == m.biometricType) {
+                biometricMethodList.add(m)
+            }
+        }
+        for (method in biometricMethodList) {
+            when (method) {
+                BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
+                BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
+                BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
+                BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
+                BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D, BiometricMethod.FACE_SOTERAPI -> permission.add(
+                    "android.permission.USE_FACERECOGNITION"
+                )
+
+                BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add("android.permission.CAMERA")
+                BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
+                BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
+                BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
+                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
+                    "android.permission.USE_FINGERPRINT"
+                )
+
+                BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
+                BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
+                else -> {
+                    //no-op
+                }
+            }
+        }
+
+        return ArrayList(permission)
+    }
 
     @JvmStatic
     fun resetBiometricEnrollChanged(
@@ -315,6 +367,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
+
         //Some device not support BiometricAuth in landscape mode
         //Example: OnePlus 8T (Android 13), Samsung A22 (Android 11)
         if (!MultiWindowSupport.isTablet() &&
@@ -447,6 +500,19 @@ object BiometricManagerCompat {
         BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return ${result || cameraInUse}")
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
         return result || cameraInUse
+    }
+
+    @JvmStatic
+    fun requestPermissions(
+        activity: FragmentActivity,
+        usedPermissions: List<String>,
+        onComplete: Runnable? = null
+    ) {
+        PermissionsFragment.askForPermissions(
+            activity,
+            usedPermissions,
+            onComplete
+        )
     }
 
     @JvmStatic

@@ -74,13 +74,29 @@ object DevicesWithKnownBugs {
             return checkForVendor("OnePlus", ignoreCase = true)
         }
     val isMissedBiometricUI: Boolean
-        get() = (checkForVendor("LG", ignoreCase = false) &&
-                listOf(*lgWithMissedBiometricUI).any { knownModel ->
-                    Build.MODEL.contains(
-                        knownModel,
-                        ignoreCase = true
+        get() {
+            val ts = "isMissedBiometricUI-${LastUpdatedTs.timestamp}"
+            var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+                .getString(ts, null)
+            if (cached == null) {
+                val value =
+                    (checkForVendor("LG", ignoreCase = false) &&
+                            listOf(*lgWithMissedBiometricUI).any { knownModel ->
+                                Build.MODEL.contains(
+                                    knownModel,
+                                    ignoreCase = true
+                                )
+                            }) || isOnePlusWithBiometricBug || !CheckBiometricUI.hasExists(
+                        appContext
                     )
-                }) || isOnePlusWithBiometricBug || !CheckBiometricUI.hasExists(appContext)
+                cached = "$value"
+                SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
+                    .putString(ts, cached).apply()
+            }
+
+            return cached == "true"
+        }
+
 
     val hasUnderDisplayFingerprint: Boolean
         get() {
@@ -101,6 +117,22 @@ object DevicesWithKnownBugs {
         }
 
     private fun checkForVendor(vendor: String, ignoreCase: Boolean): Boolean {
+        val ts = "checkForVendor-$vendor-${LastUpdatedTs.timestamp}"
+        var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+            .getString(ts, null)
+        if (cached == null) {
+            val value =
+                checkVendor(vendor, ignoreCase)
+            cached = "$value"
+            SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
+                .putString(ts, cached).apply()
+        }
+
+        return cached == "true"
+
+    }
+
+    private fun checkVendor(vendor: String, ignoreCase: Boolean) : Boolean {
         val allFields = Build::class.java.fields
         for (f in allFields) try {
             if (!Modifier.isPrivate(f.modifiers) && f.type == String::class.java) {
