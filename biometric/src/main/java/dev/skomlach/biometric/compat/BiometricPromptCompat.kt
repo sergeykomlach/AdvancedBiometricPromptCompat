@@ -191,6 +191,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     NotificationPermissionsFragment.preloadTranslations()
+                    if(DevicesWithKnownBugs.isHideDialogInstantly){
+                        BiometricLoggerImpl.d("BiometricPromptCompat.done() for ${AndroidContext.appContext.packageName}")
+                    }
                 }
             }
         }

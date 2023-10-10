@@ -22,17 +22,8 @@ package dev.skomlach.common.misc
 import android.os.Handler
 import android.os.Looper
 import dev.skomlach.common.logging.LogCat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.util.Collections
-import java.util.WeakHashMap
 import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 object ExecutorHelper {
@@ -40,69 +31,32 @@ object ExecutorHelper {
 
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
-
-    val backgroundExecutor: ExecutorService = Executors.newCachedThreadPool()
-    private val tasksInMain = Collections.synchronizedMap(WeakHashMap<Runnable, Job>())
-
-    private fun addTaskSafely(task: Runnable, job: Job) {
-
-        try {
-            tasksInMain[task] = job
-        } catch (e: Throwable) {
-            LogCat.logException(e, "addTaskSafely")
-        }
-
-    }
-
-    private fun removeTaskSafely(task: Runnable) {
-        try {
-            tasksInMain.remove(task)
-        } catch (e: Throwable) {
-            LogCat.logException(e, "removeTaskSafely")
-        }
-
-    }
+    val backgroundExecutor: Executor = Executors.newCachedThreadPool()
 
     fun startOnBackground(task: Runnable, delay: Long) {
-        val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
-            delay(delay)
+        backgroundExecutor.execute {
+            Thread.sleep(delay)
             task.run()
         }
-        addTaskSafely(task, job)
     }
 
     fun startOnBackground(task: Runnable) {
-        val job = GlobalScope.launch(backgroundExecutor.asCoroutineDispatcher()) {
+        backgroundExecutor.execute {
             task.run()
         }
-        addTaskSafely(task, job)
     }
 
     fun postDelayed(task: Runnable, delay: Long) {
-
-        val job = GlobalScope.launch(Dispatchers.Main) {
-            delay(delay)
-            task.run()
-            removeTaskSafely(task)
-        }
-        addTaskSafely(task, job)
+        handler.postDelayed(task, delay)
     }
 
     fun post(task: Runnable) {
-
-        val job = GlobalScope.launch(Dispatchers.Main) {
-            task.run()
-            removeTaskSafely(task)
-        }
-        addTaskSafely(task, job)
-
-
+        handler.post(task)
     }
 
     fun removeCallbacks(task: Runnable) {
         try {
-            tasksInMain[task]?.cancel()
-            tasksInMain.remove(task)
+            handler.removeCallbacks(task)
         } catch (e: Throwable) {
             LogCat.logException(e, "removeCallbacks")
         }
