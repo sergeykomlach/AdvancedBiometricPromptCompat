@@ -446,7 +446,7 @@ Apache License 2.0
 
 ## Contact author
 
-Telegram: [@SergeyKomlach](https://t.me/SergeyKomlach)
+Telegram: [@SergeyKomlach](https://t.me/SerghiiKomlach)
 
 Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 
