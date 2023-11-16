@@ -44,10 +44,13 @@ private var cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>().apply {
 fun Fragment.startBiometric(
     biometricAuthRequest: BiometricAuthRequest,
     silentAuth: Boolean,
-    crypto: Boolean
+    crypto: Boolean,
+    allowCredentials: Boolean
 ) {
 
-    if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)) {
+    val credentialsAllowed = allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable(requireContext())
+
+    if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !credentialsAllowed) {
         if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
             showAlertDialog(
                 requireActivity(),
@@ -84,8 +87,10 @@ fun Fragment.startBiometric(
     )
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setNegativeButtonText("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more").apply {
+            setNegativeButtonText("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+            setDeviceCredentialFallbackAllowed(credentialsAllowed)
+        }
         .also {
             if (crypto) {
                 it.setCryptographyPurpose(

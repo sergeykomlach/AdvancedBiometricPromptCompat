@@ -159,17 +159,17 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
     // Retrieve all services that can match the given intent
     override val isHardwarePresent: Boolean
         get() {
-            // Retrieve all services that can match the given intent
-            if (faceLockHelper?.faceUnlockAvailable() == false) return false
             val pm = context.packageManager
             if (!pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
                 return false
             }
             val dpm =
                 context.getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?
-            return if (dpm?.getCameraDisabled(null) == true) {
-                false
-            } else hasEnrolled
+            if (dpm?.getCameraDisabled(null) == true)
+                return false
+
+            // Retrieve all services that can match the given intent
+            return faceLockHelper?.faceUnlockAvailable() == true
         }
 
     override val hasEnrolled: Boolean

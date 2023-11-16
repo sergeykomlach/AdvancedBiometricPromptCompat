@@ -63,8 +63,70 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     IBiometricPromptImpl, AuthCallback {
     private val isOpened = AtomicBoolean(false)
     private val authCallTimestamp = AtomicLong(0)
-    private val biometricPromptInfo: PromptInfo
-    private val biometricPrompt: BiometricPrompt
+    private val biometricPromptInfo: PromptInfo by lazy {
+        val promptInfoBuilder = PromptInfo.Builder()
+        builder.getTitle()?.let {
+            promptInfoBuilder.setTitle(it)
+        }
+
+        builder.getSubtitle()?.let {
+            promptInfoBuilder.setSubtitle(it)
+        }
+
+        builder.getDescription()?.let {
+            promptInfoBuilder.setDescription(it)
+        }
+
+
+        val systemInScreenDialogMustBeUsed =
+            isFingerprint.get() && DevicesWithKnownBugs.isHideDialogInstantly
+        if (!systemInScreenDialogMustBeUsed && !builder.isDeviceCredentialFallbackAllowed()) {
+            var buttonTextColor: Int =
+                ContextCompat.getColor(
+                    builder.getContext(),
+                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+                )
+
+            if (Utils.isAtLeastS) {
+                val monetColors = SystemColorScheme()
+                if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
+                    monetColors.accent2[100]?.toArgb()?.let {
+                        buttonTextColor = it
+                    }
+                else
+                    monetColors.neutral2[500]?.toArgb()?.let {
+                        buttonTextColor = it
+                    }
+            }
+            (builder.getNegativeButtonText() ?: builder.getContext()
+                .getString(android.R.string.cancel)).let {
+                if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
+                    getFixedString(
+                        it, color = buttonTextColor
+                    )
+                )
+            }
+        }
+
+        promptInfoBuilder.setDeviceCredentialAllowed(builder.isDeviceCredentialFallbackAllowed())
+        val deviceCredentials =
+            if (builder.isDeviceCredentialFallbackAllowed()) BiometricManager.Authenticators.DEVICE_CREDENTIAL else 0
+        promptInfoBuilder.setAllowedAuthenticators(
+            if (builder.getCryptographyPurpose() != null)
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or deviceCredentials
+            else
+                (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG or deviceCredentials)
+        )
+
+        promptInfoBuilder.setConfirmationRequired(false)
+        promptInfoBuilder.build()
+    }
+    private val biometricPrompt: BiometricPrompt by lazy {
+        BiometricPrompt(
+            builder.getActivity(),
+            ExecutorHelper.executor, authCallback
+        )
+    }
     private var restartPredicate = defaultPredicate()
     private var dialog: BiometricPromptCompatDialogImpl? = null
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
@@ -217,64 +279,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     init {
-        val promptInfoBuilder = PromptInfo.Builder()
-        builder.getTitle()?.let {
-            promptInfoBuilder.setTitle(it)
-        }
-
-        builder.getSubtitle()?.let {
-            promptInfoBuilder.setSubtitle(it)
-        }
-
-        builder.getDescription()?.let {
-            promptInfoBuilder.setDescription(it)
-        }
-
-
-        val systemInScreenDialogMustBeUsed =
-            isFingerprint.get() && DevicesWithKnownBugs.isHideDialogInstantly
-        if (!systemInScreenDialogMustBeUsed) {
-            var buttonTextColor: Int =
-                ContextCompat.getColor(
-                    builder.getContext(),
-                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
-                )
-
-            if (Utils.isAtLeastS) {
-                val monetColors = SystemColorScheme()
-                if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
-                    monetColors.accent2[100]?.toArgb()?.let {
-                        buttonTextColor = it
-                    }
-                else
-                    monetColors.neutral2[500]?.toArgb()?.let {
-                        buttonTextColor = it
-                    }
-            }
-            (builder.getNegativeButtonText() ?: builder.getContext()
-                .getString(android.R.string.cancel)).let {
-                if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
-                    getFixedString(
-                        it, color = buttonTextColor
-                    )
-                )
-            }
-        }
-
-        promptInfoBuilder.setDeviceCredentialAllowed(false)
-        promptInfoBuilder.setAllowedAuthenticators(
-            if (builder.getCryptographyPurpose() != null)
-                BiometricManager.Authenticators.BIOMETRIC_STRONG
-            else
-                (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        )
-
-        promptInfoBuilder.setConfirmationRequired(false)
-        biometricPromptInfo = promptInfoBuilder.build()
-        biometricPrompt = BiometricPrompt(
-            builder.getActivity(),
-            ExecutorHelper.executor, authCallback
-        )
         isFingerprint.set(
             builder.getPrimaryAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
         )
@@ -549,19 +553,28 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val crypto = if (cryptoObject == null) null else {
             BiometricCryptoObject(cryptoObject.signature, cryptoObject.cipher, cryptoObject.mac)
         }
-        for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
-            authFinished[module] =
-                AuthResult(authResult, AuthenticationResult(module, crypto), failureReason)
+        if (builder.isDeviceCredentialFallbackAllowed()) {
+            authFinished[BiometricType.BIOMETRIC_ANY] =
+                AuthResult(
+                    authResult,
+                    AuthenticationResult(BiometricType.BIOMETRIC_ANY, crypto),
+                    failureReason
+                )
             added = true
-            ExecutorHelper.post {
-                BiometricNotificationManager.dismiss(module)
-                if (AuthResult.AuthResultState.SUCCESS == authResult) {
-                    IconStateHelper.successType(module)
-                } else
-                    IconStateHelper.errorType(module)
-            }
+        } else
+            for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                authFinished[module] =
+                    AuthResult(authResult, AuthenticationResult(module, crypto), failureReason)
+                added = true
+                ExecutorHelper.post {
+                    BiometricNotificationManager.dismiss(module)
+                    if (AuthResult.AuthResultState.SUCCESS == authResult) {
+                        IconStateHelper.successType(module)
+                    } else
+                        IconStateHelper.errorType(module)
+                }
 
-        }
+            }
         dialog?.authFinishedCopy = authFinished
         d("BiometricPromptApi28Impl.checkAuthResultForPrimary():2222222222")
         if (added && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && AuthResult.AuthResultState.SUCCESS == authResult) {

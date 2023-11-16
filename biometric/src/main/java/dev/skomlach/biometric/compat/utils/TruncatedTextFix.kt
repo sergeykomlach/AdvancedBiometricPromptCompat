@@ -128,97 +128,101 @@ object TruncatedTextFix {
                         y = Int.MAX_VALUE.toFloat()
                     })
             }
-
-        val rootView: View? = layout?.findViewById(R.id.dialogContent)
-        val title: TextView? = rootView?.findViewById(R.id.title)
-        val subtitle: TextView? = rootView?.findViewById(R.id.subtitle)
-        val description: TextView? = rootView?.findViewById(R.id.description)
-        val negativeButton: Button? = rootView?.findViewById(android.R.id.button1)
-        val action = {
-            windowView.removeView(layout)
-            setTruncatedText(config, TruncatedText(map).also {
-                truncatedText = it
-            })
-            onTruncateChecked.onDone()
-        }
-        val counter = AtomicInteger(4)
-
-        if (map.contains(builder.getTitle())) {
-            builder.setTitle(map[builder.getTitle()])
-            if (counter.decrementAndGet() == 0) {
-                action.invoke()
+        val authPreview: SurfaceView? = layout?.findViewById(R.id.auth_preview)
+        try {
+            val rootView: View? = layout?.findViewById(R.id.dialogContent)
+            val title: TextView? = rootView?.findViewById(R.id.title)
+            val subtitle: TextView? = rootView?.findViewById(R.id.subtitle)
+            val description: TextView? = rootView?.findViewById(R.id.description)
+            val negativeButton: Button? = rootView?.findViewById(android.R.id.button1)
+            val action = {
+                windowView.removeView(layout)
+                setTruncatedText(config, TruncatedText(map).also {
+                    truncatedText = it
+                })
+                onTruncateChecked.onDone()
             }
-        } else
-            getMaxStringForCurrentConfig(builder.getTitle(), title, { str ->
-                builder.getTitle()?.let {
-                    map.put(it.toString(), str)
-                }
-                builder.setTitle(str)
+            val counter = AtomicInteger(4)
+
+            if (map.contains(builder.getTitle())) {
+                builder.setTitle(map[builder.getTitle()])
                 if (counter.decrementAndGet() == 0) {
                     action.invoke()
                 }
-            }, TITLE_SHIFT)
+            } else
+                getMaxStringForCurrentConfig(builder.getTitle(), title, { str ->
+                    builder.getTitle()?.let {
+                        map.put(it.toString(), str)
+                    }
+                    builder.setTitle(str)
+                    if (counter.decrementAndGet() == 0) {
+                        action.invoke()
+                    }
+                }, TITLE_SHIFT)
 
-        if (map.contains(builder.getSubtitle())) {
-            builder.setSubtitle(map[builder.getSubtitle()])
-            if (counter.decrementAndGet() == 0) {
-                action.invoke()
-            }
-        } else
-            getMaxStringForCurrentConfig(
-                builder.getSubtitle(),
-                subtitle,
-                { str ->
-                    builder.getSubtitle()?.let {
-                        map.put(it.toString(), str)
-                    }
-                    builder.setSubtitle(str)
-                    if (counter.decrementAndGet() == 0) {
-                        action.invoke()
-                    }
-                },
-                SUBTITLE_SHIFT
-            )
-        if (map.contains(builder.getDescription())) {
-            builder.setDescription(map[builder.getDescription()])
-            if (counter.decrementAndGet() == 0) {
-                action.invoke()
-            }
-        } else
-            getMaxStringForCurrentConfig(
-                builder.getDescription(),
-                description,
-                { str ->
-                    builder.getDescription()?.let {
-                        map.put(it.toString(), str)
-                    }
-                    builder.setDescription(str)
-                    if (counter.decrementAndGet() == 0) {
-                        action.invoke()
-                    }
-                },
-                DESCRIPTION_SHIFT
-            )
-        if (map.contains(builder.getNegativeButtonText())) {
-            builder.setNegativeButtonText(map[builder.getNegativeButtonText()])
-            if (counter.decrementAndGet() == 0) {
-                action.invoke()
-            }
-        } else
-            getMaxStringForCurrentConfig(
-                builder.getNegativeButtonText(),
-                negativeButton,
-                { str ->
-                    builder.getNegativeButtonText()?.let {
-                        map.put(it.toString(), str)
-                    }
-                    builder.setNegativeButtonText(str)
-                    if (counter.decrementAndGet() == 0) {
-                        action.invoke()
-                    }
-                },
-                NEGATIVE_BUTTON_SHIFT
-            )
+            if (map.contains(builder.getSubtitle())) {
+                builder.setSubtitle(map[builder.getSubtitle()])
+                if (counter.decrementAndGet() == 0) {
+                    action.invoke()
+                }
+            } else
+                getMaxStringForCurrentConfig(
+                    builder.getSubtitle(),
+                    subtitle,
+                    { str ->
+                        builder.getSubtitle()?.let {
+                            map.put(it.toString(), str)
+                        }
+                        builder.setSubtitle(str)
+                        if (counter.decrementAndGet() == 0) {
+                            action.invoke()
+                        }
+                    },
+                    SUBTITLE_SHIFT
+                )
+            if (map.contains(builder.getDescription())) {
+                builder.setDescription(map[builder.getDescription()])
+                if (counter.decrementAndGet() == 0) {
+                    action.invoke()
+                }
+            } else
+                getMaxStringForCurrentConfig(
+                    builder.getDescription(),
+                    description,
+                    { str ->
+                        builder.getDescription()?.let {
+                            map.put(it.toString(), str)
+                        }
+                        builder.setDescription(str)
+                        if (counter.decrementAndGet() == 0) {
+                            action.invoke()
+                        }
+                    },
+                    DESCRIPTION_SHIFT
+                )
+            if (map.contains(builder.getNegativeButtonText())) {
+                builder.setNegativeButtonText(map[builder.getNegativeButtonText()])
+                if (counter.decrementAndGet() == 0) {
+                    action.invoke()
+                }
+            } else
+                getMaxStringForCurrentConfig(
+                    builder.getNegativeButtonText(),
+                    negativeButton,
+                    { str ->
+                        builder.getNegativeButtonText()?.let {
+                            map.put(it.toString(), str)
+                        }
+                        builder.setNegativeButtonText(str)
+                        if (counter.decrementAndGet() == 0) {
+                            action.invoke()
+                        }
+                    },
+                    NEGATIVE_BUTTON_SHIFT
+                )
+        } finally {
+            authPreview?.holder?.surface?.release()
+        }
     }
 
     private fun getMaxStringForCurrentConfig(

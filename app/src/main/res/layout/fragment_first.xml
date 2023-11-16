@@ -62,12 +62,19 @@
             android:layout_below="@+id/checkboxSilent"
             android:text="Crypto (Data Encryption)"
             />
+    <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/allowDeviceCredentials"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/checkboxCrypto"
+            android:text="Allow device credentials"
+            />
     <LinearLayout
             android:id="@+id/buttons_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@+id/buttons"
-            android:layout_below="@+id/checkboxCrypto"
+            android:layout_below="@+id/allowDeviceCredentials"
             android:orientation="vertical"
             />
 

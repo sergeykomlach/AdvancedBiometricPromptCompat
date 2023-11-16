@@ -20,7 +20,10 @@
 package dev.skomlach.biometric.compat
 
 import android.app.Activity
+import android.app.KeyguardManager
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
@@ -42,6 +45,22 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+
+    @JvmStatic
+    fun isDeviceSecureAvailable(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
+        val keyguardManager =
+            context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+            return keyguardManager?.isKeyguardSecure == true
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)) {
+                keyguardManager?.isDeviceSecure == true
+            } else false
+        } else {
+            return keyguardManager?.isDeviceSecure == true
+        }
+    }
 
     @JvmStatic
     fun getUsedPermissions(

@@ -57,7 +57,7 @@ class PermissionsFragment : Fragment() {
     companion object {
         private val appContext = AndroidContext.appContext
         private const val LIST_KEY = "permissions_list"
-        private const val INTENT_KEY = "intent_key"
+        private const val INTENT_KEY = "PermissionsFragment.intent_key"
         fun askForPermissions(
             activity: FragmentActivity,
             permissions: List<String>,

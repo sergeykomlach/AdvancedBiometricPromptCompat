@@ -50,7 +50,7 @@ class NotificationPermissionsFragment : Fragment() {
         private const val TAG = "NotificationPermissionsFragment"
         private const val PERMISSION_KEY = "permissions_type"
         private const val CHANNEL_ID = "channelId"
-        private const val INTENT_KEY = "notification_intent_key"
+        private const val INTENT_KEY = "NotificationPermissionsFragment.intent_key"
         fun preloadTranslations() {
             ExecutorHelper.startOnBackground {
                 LocalizationHelper.prefetch(

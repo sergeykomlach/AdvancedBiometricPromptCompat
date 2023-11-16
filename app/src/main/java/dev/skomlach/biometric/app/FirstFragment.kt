@@ -113,11 +113,17 @@ class FirstFragment : Fragment() {
         binding?.checkboxCrypto?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("crypto", false)
+        binding?.allowDeviceCredentials?.isChecked =
+            SharedPreferenceProvider.getPreferences("app_settings")
+                .getBoolean("allowDeviceCredentials", false)
         binding?.checkboxCrypto?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("crypto", isChecked).apply()
         }
-
+        binding?.allowDeviceCredentials?.setOnCheckedChangeListener { buttonView, isChecked ->
+            SharedPreferenceProvider.getPreferences("app_settings").edit()
+                .putBoolean("allowDeviceCredentials", isChecked).apply()
+        }
         binding?.checkboxSilent?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
                 .getBoolean("silent", false)
@@ -158,7 +164,9 @@ class FirstFragment : Fragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("silent", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("crypto", false)
+                        .getBoolean("crypto", false),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("allowDeviceCredentials", false)
                 )
             }
             buttonsList?.addView(container)

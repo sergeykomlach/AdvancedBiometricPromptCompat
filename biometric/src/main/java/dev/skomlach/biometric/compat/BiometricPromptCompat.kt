@@ -31,10 +31,6 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
@@ -44,6 +40,7 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
+import dev.skomlach.biometric.compat.impl.credentials.CredentialsRequestFragment
 import dev.skomlach.biometric.compat.utils.*
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
@@ -58,7 +55,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
-import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
 import dev.skomlach.common.statusbar.StatusBarTools
@@ -310,7 +306,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             }
             val checkHardware = checkHardware()
-            if (checkHardware != AuthenticationFailureReason.UNKNOWN) {
+            val fallbackToDeviceCredentials =
+                checkHardware != AuthenticationFailureReason.UNKNOWN && builder.isDeviceCredentialFallbackAllowed()
+            if (checkHardware != AuthenticationFailureReason.UNKNOWN && !builder.isDeviceCredentialFallbackAllowed()) {
                 ExecutorHelper.post {
                     callbackOuter.onFailed(
                         checkHardware,
@@ -325,7 +323,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR, null)
                     authFlowInProgress.set(false)
                 } else
-                    startAuth(callbackOuter)
+                    startAuth(callbackOuter, fallbackToDeviceCredentials)
             }
         }
     }
@@ -354,7 +352,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         } else return AuthenticationFailureReason.UNKNOWN
     }
 
-    private fun startAuth(callbackOuter: AuthenticationCallback) {
+    private fun startAuth(
+        callbackOuter: AuthenticationCallback,
+        fallbackToDeviceCredentials: Boolean
+    ) {
         if (isActivityFinished(builder.getActivity())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
             callbackOuter.onCanceled()
@@ -539,7 +540,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     }
                 }
-                authenticateInternal(callback)
+                authenticateInternal(callback, fallbackToDeviceCredentials)
             }
         }
         if (!builder.isSilentAuthEnabled()) {
@@ -562,7 +563,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
 
-    private fun authenticateInternal(callback: AuthenticationCallback) {
+    private fun authenticateInternal(
+        callback: AuthenticationCallback,
+        fallbackToDeviceCredentials: Boolean
+    ) {
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
         if (isActivityFinished(builder.getActivity())) {
             BiometricLoggerImpl.e("Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed")
@@ -576,11 +580,28 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callback.updateTimestamp()
             val s = "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
             BiometricLoggerImpl.e("BiometricPromptCompat $s")
-            impl.authenticate(callback)
+            if (!fallbackToDeviceCredentials) {
+                impl.authenticate(callback)
+            } else {
+                if (builder.getCryptographyPurpose() != null) {
+                    callback.onFailed(AuthenticationFailureReason.CRYPTO_ERROR, null)
+                    return
+                }
+                appBackgroundDetector.detachListeners()
+                if (impl is BiometricPromptApi28Impl)//BiometricPrompt deal with credentials natively
+                    impl.authenticate(callback)
+                else {
+                    CredentialsRequestFragment.showFragment(builder.getActivity()) {
+                        if (it) {
+                            callback.onSucceeded(mutableSetOf(AuthenticationResult(BiometricType.BIOMETRIC_ANY)))
+                        } else
+                            callback.onCanceled()
+                    }
+                    callback.onUIOpened()
+                }
+            }
         } catch (ignore: IllegalStateException) {
-            appBackgroundDetector.detachListeners()
             callback.onFailed(AuthenticationFailureReason.INTERNAL_ERROR, null)
-            authFlowInProgress.set(false)
         }
     }
 
@@ -755,6 +776,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private val currentActivity = WeakReference<Activity>(AndroidContext.activity)
 
+        private var isDeviceCredentialFallbackAllowed: Boolean = false
         init {
             getActivity().let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -840,6 +862,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
 
+        fun isDeviceCredentialFallbackAllowed(): Boolean {
+            return allAvailableTypes.isEmpty() && isDeviceCredentialFallbackAllowed
+        }
+
         fun isBackgroundBiometricIconsEnabled(): Boolean {
             return backgroundBiometricIconsEnabled
         }
@@ -849,6 +875,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun isTruncateChecked(): Boolean {
+            if (isDeviceCredentialFallbackAllowed()) return true
             if (isTruncateChecked == null) {
                 isTruncateChecked = false
                 ExecutorHelper.post {
@@ -900,6 +927,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         ): Builder {
             autoVerifyCryptoAfterSuccess = false
             this.biometricCryptographyPurpose = biometricCryptographyPurpose
+            return this
+        }
+
+        fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
+            this.isDeviceCredentialFallbackAllowed = enabled
             return this
         }
 

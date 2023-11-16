@@ -86,6 +86,16 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             }
 
         }
+        view.findViewById<CheckBox>(R.id.allowDeviceCredentials)?.let {
+            it.isChecked =
+                SharedPreferenceProvider.getPreferences("app_settings")
+                    .getBoolean("allowDeviceCredentials", false)
+            it.setOnCheckedChangeListener { buttonView, isChecked ->
+                SharedPreferenceProvider.getPreferences("app_settings").edit()
+                    .putBoolean("allowDeviceCredentials", isChecked).apply()
+            }
+
+        }
         view.findViewById<CheckBox>(R.id.checkboxSilent)?.let {
             it.isChecked =
                 SharedPreferenceProvider.getPreferences("app_settings")
@@ -115,7 +125,9 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("silent", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("crypto", false)
+                        .getBoolean("crypto", false),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("allowDeviceCredentials", false)
                 )
             }
             buttonsList.addView(container)

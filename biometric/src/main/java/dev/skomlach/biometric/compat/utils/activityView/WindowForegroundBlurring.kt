@@ -366,37 +366,37 @@ class WindowForegroundBlurring(
                     when (type) {
                         BiometricType.BIOMETRIC_FACE -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.face)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.face)?.tag as IconStates?
                         )
 
                         BiometricType.BIOMETRIC_IRIS -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.iris)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.iris)?.tag as IconStates?
                         )
 
                         BiometricType.BIOMETRIC_HEARTRATE -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.heartrate)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.heartrate)?.tag as IconStates?
                         )
 
                         BiometricType.BIOMETRIC_VOICE -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.voice)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.voice)?.tag as IconStates?
                         )
 
                         BiometricType.BIOMETRIC_PALMPRINT -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.palm)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.palm)?.tag as IconStates?
                         )
 
                         BiometricType.BIOMETRIC_BEHAVIOR -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.typing)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.typing)?.tag as IconStates?
                         )
 
                         BiometricType.BIOMETRIC_FINGERPRINT -> setIconState(
                             type,
-                            biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates
+                            biometrics_layout.findViewById<View>(R.id.fingerprint)?.tag as IconStates?
                         )
 
                         else -> {
@@ -425,11 +425,11 @@ class WindowForegroundBlurring(
         setIconState(type, IconStates.WAITING)
     }
 
-    private fun setIconState(type: BiometricType?, iconStates: IconStates) {
+    private fun setIconState(type: BiometricType?, iconStates: IconStates?) {
         BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
         try {
             biometricsLayout?.let { biometrics_layout ->
-                val color = when (iconStates) {
+                val color = if (iconStates == null) defaultColor else when (iconStates) {
                     IconStates.WAITING -> defaultColor
                     IconStates.ERROR -> Color.RED
                     IconStates.SUCCESS -> Color.GREEN

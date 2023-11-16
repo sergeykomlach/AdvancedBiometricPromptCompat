@@ -42,7 +42,7 @@ object BroadcastTools {
     fun registerGlobalBroadcastIntent(
         context: Context,
         broadcastReceiver: BroadcastReceiver?,
-        filter: IntentFilter
+        filter: IntentFilter, flags : Int = ContextCompat.RECEIVER_EXPORTED
     ) {
         val actionsIterator = filter.actionsIterator()
         while (actionsIterator.hasNext()) {
@@ -51,7 +51,7 @@ object BroadcastTools {
                 logError("BroadcastTools: You tried to register custom global BroadcastReceiver. Make sure that action `$action` contains package-specific name")
             }
         }
-        ContextCompat.registerReceiver(context, broadcastReceiver, filter, ContextCompat.RECEIVER_EXPORTED)
+        ContextCompat.registerReceiver(context, broadcastReceiver, filter, flags)
     }
 
 
