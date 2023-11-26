@@ -70,6 +70,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+November 26 2023
+
+**Improvement** DeviceCredentials fallback used if enabled and device do not have biometric at the moment
+
 September 22 2023
 
 **Improvement** Samsung Face/Iris recognition fixed; Some other bugfixes
@@ -85,23 +89,6 @@ September 8 2023
 **Bugfixes** Fixed autoCancel behavior for "silent mode" - now dev able to set "auth window" timeout; Default is 30 sec
 
 **Improvement** Android 14 per-app language support fixed
-
-August 30 2023
-
-**Bugfixes** Minor fixes related to R8
-
-August 22 2023
-
-**Bugfixes** PR included with ANR fix
-
-August 18 2023
-
-**Code refactoring and Improvements** Reworked hardware detection; Removed code that produce unexpected results; New feature - devs able to add  CustomBiometricModule (like voice etc)
-
-July 24 2023
-
-**Bugfixes** Fixed false positive biometric detection
-
 
 ## Test app
 

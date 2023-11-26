@@ -109,6 +109,7 @@ private fun buildBiometricAuthPrompt(
         biometricAuthRequestData.cryptographyPurpose?.let {
             setCryptographyPurpose(it)
         }
+        setDeviceCredentialFallbackAllowed(biometricAuthRequestData.allowDeviceCredentialsFallback)
         if (biometricAuthRequestData.enableSilent) {
             enableSilentAuth(biometricAuthRequestData.authWindow)
         }

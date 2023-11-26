@@ -28,6 +28,7 @@ data class BiometricAuthRequestData(
     val description: String? = null,
     val negativeButton: String? = null,
     val enableSilent: Boolean = false,
+    val allowDeviceCredentialsFallback: Boolean = false,
     val authWindow: Int = 30,
     val biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(),
     val cryptographyPurpose: BiometricCryptographyPurpose? = null
