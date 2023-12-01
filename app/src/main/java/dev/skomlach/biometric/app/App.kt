@@ -83,7 +83,7 @@ class App : MultiDexApplication() {
     }
 
     private fun checkForDeviceInfo() {
-        if (BiometricPromptCompat.isInitialized) {
+        if (BiometricPromptCompat.isInitialized && BiometricPromptCompat.deviceInfo != null) {
             authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
             for (listener in onInitListeners) {
                 listener.onFinished()

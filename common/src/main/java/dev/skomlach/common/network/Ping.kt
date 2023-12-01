@@ -18,18 +18,18 @@
  */
 package dev.skomlach.common.network
 
-import android.text.TextUtils
 import androidx.annotation.WorkerThread
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.systemLocale
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.translate.LocalizationHelper
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
+import java.security.SecureRandom
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -69,7 +69,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
 
     private fun isWebUrl(u: String): Boolean {
         var url = u
-        if (TextUtils.isEmpty(url)) return false
+        if (url.isEmpty()) return false
         url = url.lowercase(systemLocale)
         //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
         val slash = url.indexOf("/")
@@ -98,6 +98,11 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 )
                 urlConnection.instanceFollowRedirects = true
                 urlConnection.requestMethod = "GET"
+                urlConnection.setRequestProperty(
+                    "User-Agent", LocalizationHelper.agents[SecureRandom().nextInt(
+                        LocalizationHelper.agents.size
+                    )]
+                )
                 urlConnection.connect()
                 val responseCode = urlConnection.responseCode
                 val byteArrayOutputStream = ByteArrayOutputStream()
@@ -125,14 +130,21 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 val data = byteArrayOutputStream.toByteArray()
                 byteArrayOutputStream.close()
                 urlConnection.disconnect()
-                val html = String(data)
+                val html = String(data).ifEmpty {
+                    throw IOException("Unable to read data from stream")
+                }
                 if (!verifyHTML(uri.toString(), html)) {
-                    throw IOException("Unable to connect to $host")
+                    throw IllegalStateException("HTML data do not matched with $host")
                 }
                 connectionStateListener.setState(true)
                 return
+            } catch (e: IllegalStateException) {
+                LogCat.logException(e, "Ping")
+                connectionStateListener.setState(false)
+                return
             } catch (e: Throwable) {
-
+                LogCat.logException(e, "Ping")
+                //retry
             } finally {
                 if (urlConnection != null) {
                     try {
@@ -143,7 +155,8 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
             }
         }
-        connectionStateListener.setState(false)
+        //fallback to the current newtork state; Can be false positive
+        connectionStateListener.setState(connectionStateListener.isConnectionDetected())
     }
 
     @Throws(Exception::class)
@@ -167,6 +180,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             m = patternMeta.matcher(html)
             while (m.find()) {
                 val meta = m.group(1)
+                if (isOriginFromMeta(meta)) return true
                 val url = getUrlFromMeta(meta)
                 if (url != null) {
                     checkUrls(originalUrl, url)
@@ -182,6 +196,12 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         val attributes = parseHtmlTagAttributes(meta)
         val relValue = attributes["property"]
         return if ("og:url".equals(relValue, ignoreCase = true)) attributes["content"] else null
+    }
+
+    private fun isOriginFromMeta(meta: String): Boolean {
+        val attributes = parseHtmlTagAttributes(meta)
+        val relValue = attributes["content"]?.lowercase()
+        return relValue == "origin"
     }
 
     private fun getUrlFromRel(rel: String): String? {
@@ -213,13 +233,13 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
 
         //Some providers show "dummy" page, lets compare with target URL
         if (!matchesUrl(original, target)) {
-            throw IOException("Unable to connect to $original")
+            throw IllegalStateException("HTML data do not matched with $original")
         }
     }
 
     private fun getScheme(url: String): String {
         try {
-            if (TextUtils.isEmpty(url)) return ""
+            if (url.isEmpty()) return ""
             return if (!isWebUrl(url)) "" else URI(url).scheme
         } catch (e: Exception) {
         }
@@ -231,18 +251,18 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         //SpLog.log("matchesUrl: '"+url1 +"' & '"+url2+"'");
         var url1 = link1 ?: ""
         var url2 = link2 ?: ""
-        if (TextUtils.isEmpty(url1)) return false
-        if (TextUtils.isEmpty(url2)) return false
+        if (url1.isEmpty()) return false
+        if (url2.isEmpty()) return false
         try {
             url1 = url1.lowercase(Locale.ROOT)
             url2 = url2.lowercase(Locale.ROOT)
-            val schm2 = getScheme(url2)
-            if (TextUtils.isEmpty(schm2)) {
+            val scheme2 = getScheme(url2)
+            if (scheme2.isEmpty()) {
                 url2 =
                     if (url2.contains("://")) "http" + url2.substring(url2.indexOf("://")) else "http://$url2"
             }
-            val schm1 = getScheme(url1)
-            if (TextUtils.isEmpty(schm1)) {
+            val scheme1 = getScheme(url1)
+            if (scheme1.isEmpty()) {
                 url1 =
                     if (url1.contains("://")) "http" + url1.substring(url1.indexOf("://")) else "http://$url1"
             }

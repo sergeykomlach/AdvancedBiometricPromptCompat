@@ -53,6 +53,51 @@ object LocalizationHelper {
         "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
     )
 
+    fun fetchFromWeb(url: String): String? {
+        try {
+            val urlConnection =
+                NetworkApi.createConnection(
+                    url,
+                    TimeUnit.SECONDS.toMillis(30).toInt()
+                )
+
+            urlConnection.requestMethod = "GET"
+            urlConnection.setRequestProperty("Content-Language", "en-US")
+            urlConnection.setRequestProperty("Accept-Language", "en-US")
+            urlConnection.setRequestProperty(
+                "User-Agent",
+                LocalizationHelper.agents[SecureRandom().nextInt(LocalizationHelper.agents.size)]
+            )
+            urlConnection.connect()
+            val responseCode = urlConnection.responseCode
+            val byteArrayOutputStream = ByteArrayOutputStream()
+            val inputStream: InputStream
+
+            //if any 2XX response code
+            if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                inputStream = urlConnection.inputStream
+            } else {
+                //Redirect happen
+                if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
+                    var target = urlConnection.getHeaderField("Location")
+                    if (target != null && !NetworkApi.isWebUrl(target)) {
+                        target = "https://$target"
+                    }
+                    return fetchFromWeb(target)
+                }
+                inputStream = urlConnection.inputStream ?: urlConnection.errorStream
+            }
+            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+            inputStream.close()
+            val data = byteArrayOutputStream.toByteArray()
+            byteArrayOutputStream.close()
+            urlConnection.disconnect()
+            return String(data, Charset.forName("UTF-8"))
+        } catch (e: Throwable) {
+            LogCat.logException(e, "LocalizationHelper")
+        }
+        return null
+    }
     fun prefetch(context: Context, vararg formatArgs: Any?) {
         formatArgs.toList().forEach {
             if (it is String)
@@ -136,7 +181,7 @@ object LocalizationHelper {
                 read(Locale.US, AndroidContext.systemLocale, raw) ?: raw,
                 *formatArgs
             )
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             LogCat.logException(e, "LocalizationHelper")
             raw
         }
@@ -196,12 +241,12 @@ object LocalizationHelper {
     }
 
     fun hasTranslation(str: String, vararg formatArgs: Any?): Boolean {
-        return try{
+        return try {
             (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(
                 str,
                 *formatArgs
             ) != String.format(str, *formatArgs)
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             LogCat.logException(e, "LocalizationHelper")
             false
         }

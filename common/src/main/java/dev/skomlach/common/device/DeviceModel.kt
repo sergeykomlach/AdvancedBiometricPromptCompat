@@ -24,20 +24,21 @@ import androidx.annotation.WorkerThread
 import com.jaredrummler.android.device.DeviceName
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemPropertiesProxy
+import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
-import dev.skomlach.common.translate.LocalizationHelper.agents
+import dev.skomlach.common.storage.SharedPreferenceProvider
+import dev.skomlach.common.translate.LocalizationHelper
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.InputStream
-import java.net.HttpURLConnection
 import java.nio.charset.Charset
-import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 object DeviceModel {
-
+    private val loadingInProgress = AtomicBoolean(false)
     var brand = (Build.BRAND ?: "").replace("  ", " ")
         private set
     val model = (Build.MODEL ?: "").replace("  ", " ")
@@ -185,34 +186,84 @@ object DeviceModel {
     //tools
     //https://github.com/androidtrackers/certified-android-devices/
     private fun getJSON(): String? {
+        var reload = false
         try {
-            val file = File(appContext.cacheDir, "by_brand.json")
+            try {
+                val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
+                if (file.parentFile?.exists() == false) {
+                    file.parentFile?.mkdirs()
+                }
+                file.also {
+                    if (it.exists()) {
+                        if (Math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
+                                30
+                            )
+                        ) {
+                            reload = true
+                        }
+                        return it.readText(
+                            Charset.forName("UTF-8")
+                        )
+                    } else {
+                        reload = true
+                    }
+                }
+            } catch (e: Throwable) {
+                LogCat.logException(e)
+            }
+            try {
+                val inputStream =
+                    AndroidContext.appContext.assets.open("by_brand.json")
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+                inputStream.close()
+                byteArrayOutputStream.close()
+                val data = byteArrayOutputStream.toByteArray()
+                return String(data, Charset.forName("UTF-8")).also { data ->
+                    saveToCache(data)
+                }
+            } catch (e: Throwable) {
+                reload = true
+                LogCat.logException(e)
+            }
+            return null
+        } finally {
+            if (reload && !loadingInProgress.get()) {
+                loadingInProgress.set(true)
+                ExecutorHelper.startOnBackground {
+                    val sharedPreferences =
+                        SharedPreferenceProvider.getPreferences("BiometricCompat_DeviceInfo")
+                    if (Connection.isConnection && !sharedPreferences.getBoolean("strictMatch", false))
+                        try {
+                            val data =
+                                LocalizationHelper.fetchFromWeb("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
+                            saveToCache(data ?: return@startOnBackground)
+                        } catch (e: Throwable) {
+                            LogCat.logException(e)
+                        } finally {
+                            loadingInProgress.set(false)
+                        }
+                }
+            }
+        }
+    }
+
+    private fun saveToCache(data: String) {
+        try {
+            val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
             if (file.parentFile?.exists() == false) {
                 file.parentFile?.mkdirs()
             }
             file.also {
-                if (it.exists()) {
-                    return it.readText(
-                        Charset.forName("UTF-8")
-                    )
-                }
+                it.delete()
+                it.writeText(
+                    data,
+                    Charset.forName("UTF-8")
+                )
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
-        try {
-            val inputStream =
-                appContext.assets.open("by_brand.json")
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-            inputStream.close()
-            byteArrayOutputStream.close()
-            val data = byteArrayOutputStream.toByteArray()
-            return String(data, Charset.forName("UTF-8"))
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        }
-        return null
     }
 
     @WorkerThread

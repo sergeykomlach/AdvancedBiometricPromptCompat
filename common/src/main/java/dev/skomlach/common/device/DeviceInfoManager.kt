@@ -26,17 +26,23 @@ import com.google.gson.Gson
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceModel.getNames
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.LastUpdatedTs
+import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
+import dev.skomlach.common.translate.LocalizationHelper
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.Math.abs
 import java.nio.charset.Charset
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
     private val pattern = Pattern.compile("\\((.*?)\\)+")
+    private val loadingInProgress = AtomicBoolean(false)
 
     fun hasBiometricSensors(deviceInfo: DeviceInfo?): Boolean {
         return hasFingerprint(deviceInfo) || hasFaceID(deviceInfo) || hasIrisScanner(deviceInfo) || hasPalmID(
@@ -178,7 +184,7 @@ object DeviceInfoManager {
                 deviceInfo = loadDeviceInfo(first, second, DeviceModel.brand, DeviceModel.device)
                 if (!deviceInfo?.sensors.isNullOrEmpty()) {
                     LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                    setCachedDeviceInfo(deviceInfo ?: continue)
+                    setCachedDeviceInfo(deviceInfo ?: continue, true)
                     onDeviceInfoListener.onReady(deviceInfo)
                     return
                 } else {
@@ -187,7 +193,7 @@ object DeviceInfoManager {
             }
         }
         onDeviceInfoListener.onReady(getAnyDeviceInfo().also {
-            setCachedDeviceInfo(it)
+            setCachedDeviceInfo(it, false)
         })
     }
 
@@ -196,12 +202,12 @@ object DeviceInfoManager {
         get() {
             if (field == null) {
                 val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
-                if (sharedPreferences.getBoolean("checked-${LastUpdatedTs.timestamp}", false)) {
+                if (sharedPreferences.getBoolean("checked", false)) {
                     val model =
-                        sharedPreferences.getString("model-${LastUpdatedTs.timestamp}", null)
+                        sharedPreferences.getString("model", null)
                             ?: return null
                     val sensors =
-                        sharedPreferences.getStringSet("sensors-${LastUpdatedTs.timestamp}", null)
+                        sharedPreferences.getStringSet("sensors", null)
                             ?: HashSet<String>()
                     field = DeviceInfo(model, sensors)
                 }
@@ -212,35 +218,6 @@ object DeviceInfoManager {
     fun getAnyDeviceInfo(): DeviceInfo {
         cachedDeviceInfo?.let {
             return it
-        }
-        try {
-            val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
-            if (sharedPreferences.getBoolean(sharedPreferences.all.keys.firstOrNull {
-                    it.startsWith(
-                        "checked-"
-                    )
-                } ?: "", false)) {
-                val model =
-                    sharedPreferences.getString(sharedPreferences.all.keys.firstOrNull {
-                        it.startsWith(
-                            "model-"
-                        )
-                    }
-                        ?: Build.MODEL, null) ?: ""
-                val sensors =
-                    sharedPreferences.getStringSet(sharedPreferences.all.keys.firstOrNull {
-                        it.startsWith(
-                            "sensors-"
-                        )
-                    } ?: "", null)
-                        ?: HashSet<String>()
-                DeviceInfo(model, sensors).also {
-                    LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
-                    cachedDeviceInfo = it
-                }
-            }
-        } catch (e :Throwable){
-            LogCat.logException(e, "DeviceInfoManager")
         }
         val names = getNames()
         return if (names.isNotEmpty())
@@ -255,16 +232,17 @@ object DeviceInfoManager {
             }
     }
 
-    private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {
+    private fun setCachedDeviceInfo(deviceInfo: DeviceInfo, strictMatch: Boolean) {
         cachedDeviceInfo = deviceInfo
         try {
             val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
                 .edit()
             sharedPreferences.clear().commit()
             sharedPreferences
-                .putStringSet("sensors-${LastUpdatedTs.timestamp}", deviceInfo.sensors)
-                .putString("model-${LastUpdatedTs.timestamp}", deviceInfo.model)
-                .putBoolean("checked-${LastUpdatedTs.timestamp}", true)
+                .putStringSet("sensors", deviceInfo.sensors)
+                .putString("model", deviceInfo.model)
+                .putBoolean("checked", true)
+                .putBoolean("strictMatch", strictMatch)
                 .apply()
         } catch (e: Throwable) {
             LogCat.logException(e)
@@ -274,7 +252,7 @@ object DeviceInfoManager {
     private fun loadDeviceInfo(
         modelReadableName: String,
         model: String,
-        brand : String,
+        brand: String,
         codeName: String
     ): DeviceInfo? {
         try {
@@ -296,7 +274,7 @@ object DeviceInfoManager {
     private fun findDeviceInfo(
         devicesList: Array<DeviceSpec>,
         model: String,
-        brand : String,
+        brand: String,
         codeName: String
     ): DeviceInfo? {
         LogCat.log("DeviceInfoManager: findDeviceInfo(${devicesList.size}, $model, $brand, $codeName)")
@@ -308,7 +286,11 @@ object DeviceInfoManager {
                 ) == true
             ) capitalize(it.name) else capitalize(it.brand) + " " + capitalize(it.name)
 
-            if (it.name.equals(model, ignoreCase = true) || (brand.contains(it.brand.toString(), ignoreCase = true) && it.codename == codeName)) {
+            if (it.name.equals(model, ignoreCase = true) || (brand.contains(
+                    it.brand.toString(),
+                    ignoreCase = true
+                ) && it.codename == codeName)
+            ) {
                 LogCat.log("DeviceInfoManager: $it")
                 return DeviceInfo(m, getSensors(it))
             } else if (firstFound == null) {
@@ -356,35 +338,86 @@ object DeviceInfoManager {
     //tools
     //https://github.com/nowrom/devices/
     private fun getJSON(): String? {
+        var reload = false
+        try {
+            try {
+                val file = File(AndroidContext.appContext.cacheDir, "devices.json")
+                if (file.parentFile?.exists() == false) {
+                    file.parentFile?.mkdirs()
+                }
+                file.also {
+                    if (it.exists()) {
+                        if (abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
+                                30
+                            )
+                        ) {
+                            reload = true
+                        }
+                        return it.readText(
+                            Charset.forName("UTF-8")
+                        )
+                    } else {
+                        reload = true
+                    }
+                }
+            } catch (e: Throwable) {
+                LogCat.logException(e)
+            }
+            try {
+                val inputStream =
+                    AndroidContext.appContext.assets.open("devices.json")
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+                inputStream.close()
+                byteArrayOutputStream.close()
+                val data = byteArrayOutputStream.toByteArray()
+                return String(data, Charset.forName("UTF-8")).also { data ->
+                    saveToCache(data)
+                }
+            } catch (e: Throwable) {
+                reload = true
+                LogCat.logException(e)
+            }
+            return null
+        } finally {
+            if (reload && !loadingInProgress.get()) {
+                loadingInProgress.set(true)
+                ExecutorHelper.startOnBackground {
+                    val sharedPreferences =
+                        getPreferences("BiometricCompat_DeviceInfo")
+                    if (Connection.isConnection && !sharedPreferences.getBoolean("strictMatch", false))
+                        try {
+                            val data =
+                                LocalizationHelper.fetchFromWeb("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
+                            saveToCache(data ?: return@startOnBackground)
+                        } catch (e: Throwable) {
+                            LogCat.logException(e)
+                        } finally {
+                            loadingInProgress.set(false)
+                        }
+                }
+            }
+        }
+    }
+
+    private fun saveToCache(data: String) {
         try {
             val file = File(AndroidContext.appContext.cacheDir, "devices.json")
             if (file.parentFile?.exists() == false) {
                 file.parentFile?.mkdirs()
             }
             file.also {
-                if (it.exists()) {
-                    return it.readText(
-                        Charset.forName("UTF-8")
-                    )
-                }
+                it.delete()
+                it.writeText(
+                    data,
+                    Charset.forName("UTF-8")
+                )
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
-        try {
-            val inputStream =
-                AndroidContext.appContext.assets.open("devices.json")
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-            inputStream.close()
-            byteArrayOutputStream.close()
-            val data = byteArrayOutputStream.toByteArray()
-            return String(data, Charset.forName("UTF-8"))
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        }
-        return null
     }
+
     interface OnDeviceInfoListener {
         fun onReady(deviceInfo: DeviceInfo?)
     }
