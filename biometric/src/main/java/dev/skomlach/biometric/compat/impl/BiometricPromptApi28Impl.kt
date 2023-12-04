@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl
 
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.os.Build
 import android.text.Spannable
@@ -396,6 +397,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     }
 
+    @SuppressLint("RestrictedApi")
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
         try {
 
