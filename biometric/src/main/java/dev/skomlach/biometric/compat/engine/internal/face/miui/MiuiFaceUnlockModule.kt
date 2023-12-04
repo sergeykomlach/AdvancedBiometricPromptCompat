@@ -188,20 +188,20 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : IMiuiFaceManager.AuthenticationCallback() {
-        private var errorTs = System.currentTimeMillis()
+        private var errorTs = 0L
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
 
             //See IMiuiFaceManagerImpl.getMessageInfo()
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 11 -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 

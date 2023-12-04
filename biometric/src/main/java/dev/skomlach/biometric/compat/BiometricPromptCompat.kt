@@ -306,9 +306,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             }
             val checkHardware = checkHardware()
-            val fallbackToDeviceCredentials =
-                checkHardware != AuthenticationFailureReason.UNKNOWN && builder.isDeviceCredentialFallbackAllowed()
-            if (checkHardware != AuthenticationFailureReason.UNKNOWN && !builder.isDeviceCredentialFallbackAllowed()) {
+            val interruptAuth = when (checkHardware) {
+                AuthenticationFailureReason.UNKNOWN -> false
+                AuthenticationFailureReason.LOCKED_OUT, AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> {
+                    !builder.isDeviceCredentialFallbackAllowed()
+                }
+
+                else -> true
+            }
+
+            if (interruptAuth) {
                 ExecutorHelper.post {
                     callbackOuter.onFailed(
                         checkHardware,
@@ -323,7 +330,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR, null)
                     authFlowInProgress.set(false)
                 } else
-                    startAuth(callbackOuter, fallbackToDeviceCredentials)
+                    startAuth(callbackOuter, builder.isDeviceCredentialFallbackAllowed())
             }
         }
     }
@@ -591,7 +598,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (impl is BiometricPromptApi28Impl)//BiometricPrompt deal with credentials natively
                     impl.authenticate(callback)
                 else {
-                    CredentialsRequestFragment.showFragment(builder.getActivity()) {
+                    CredentialsRequestFragment.showFragment(
+                        builder.getActivity(),
+                        builder.getTitle(),
+                        builder.getDescription()
+                    ) {
                         if (it) {
                             callback.onSucceeded(mutableSetOf(AuthenticationResult(BiometricType.BIOMETRIC_ANY)))
                         } else
@@ -875,7 +886,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun isTruncateChecked(): Boolean {
-            if (isDeviceCredentialFallbackAllowed()) return true
             if (isTruncateChecked == null) {
                 isTruncateChecked = false
                 ExecutorHelper.post {

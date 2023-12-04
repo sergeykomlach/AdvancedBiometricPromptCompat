@@ -24,7 +24,7 @@ import android.view.View
 import android.view.Window
 import android.view.WindowManager
 import androidx.core.view.WindowCompat
-import java.util.*
+import java.util.Locale
 
 
 object StatusBarIconsDarkMode {

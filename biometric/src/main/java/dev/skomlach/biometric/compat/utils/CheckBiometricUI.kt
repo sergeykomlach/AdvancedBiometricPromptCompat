@@ -68,6 +68,42 @@ object CheckBiometricUI {
             zipEntries.sortWith { o1, o2 -> o1.name.compareTo(o2.name) }
             for (zip in zipEntries) {
                 if (zip.name.contains("layout", true) &&
+                    (zip.name.contains("biometric", true) || zip.name.contains("fingerprint") ||
+                            zip.name.contains("face", true) || zip.name.contains("iris"))
+                ) {
+                    BiometricLoggerImpl.d("Resource in APK ${zip.name}")
+                    return true
+                }
+            }
+        } finally {
+            try {
+                zipFile?.close()
+            } catch (ignore: IOException) {
+            }
+        }
+        return false
+    }
+
+    @Throws(Exception::class)
+    private fun checkApkForRear(
+        fileZip: String
+    ): Boolean {
+
+        var zipFile: ZipFile? = null
+        try {
+            zipFile = ZipFile(fileZip)
+            val entries = zipFile.entries()
+            val zipEntries: MutableList<ZipEntry> = ArrayList()
+
+            // iterate through all the entries
+            while (entries.hasMoreElements()) {
+
+                // get the zip entry
+                zipEntries.add(entries.nextElement())
+            }
+            zipEntries.sortWith { o1, o2 -> o1.name.compareTo(o2.name) }
+            for (zip in zipEntries) {
+                if (zip.name.contains("rear", true) &&
                     (zip.name.contains("biometric", true) || zip.name.contains("fingerprint"))
                 ) {
                     BiometricLoggerImpl.d("Resource in APK ${zip.name}")
@@ -79,6 +115,22 @@ object CheckBiometricUI {
                 zipFile?.close()
             } catch (ignore: IOException) {
             }
+        }
+        return false
+    }
+
+    fun hasSomethingRearSensor(context: Context): Boolean {
+        try {
+            val apks = getAPKs(context, getBiometricUiPackage(context))
+            if (apks.isEmpty())
+                return true
+
+            for (f in apks) {
+                if (checkApk(f))
+                    return true
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
         }
         return false
     }

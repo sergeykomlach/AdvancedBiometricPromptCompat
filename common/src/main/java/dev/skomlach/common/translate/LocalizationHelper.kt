@@ -36,7 +36,7 @@ import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.security.SecureRandom
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 object LocalizationHelper {
@@ -98,6 +98,7 @@ object LocalizationHelper {
         }
         return null
     }
+
     fun prefetch(context: Context, vararg formatArgs: Any?) {
         formatArgs.toList().forEach {
             if (it is String)
@@ -208,7 +209,9 @@ object LocalizationHelper {
             @Suppress("DEPRECATION")
             context.resources.configuration.locale = localeBeforeFakingEnglishLocale
         }
-        return (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(str) != str
+        return (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(
+            str
+        ) != str
     }
 
     fun hasTranslation(
@@ -237,7 +240,9 @@ object LocalizationHelper {
     }
 
     fun hasTranslation(str: String): Boolean {
-        return (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(str) != str
+        return (Locale.US.language == AndroidContext.systemLocale.language) || getLocalizedString(
+            str
+        ) != str
     }
 
     fun hasTranslation(str: String, vararg formatArgs: Any?): Boolean {

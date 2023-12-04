@@ -91,6 +91,7 @@ interface IOplusFaceManager : IInterface {
                     parcel2?.writeString(IOplusFaceManager.interfaceDescriptor)
                     true
                 }
+
                 else -> when (i) {
                     1 -> {
                         val readInt = parcel.readInt()
@@ -100,12 +101,14 @@ interface IOplusFaceManager : IInterface {
                         parcel2?.writeLong(lockoutAttemptDeadline)
                         true
                     }
+
                     2 -> {
                         val failedAttempts = failedAttempts
                         parcel2?.writeNoException()
                         parcel2?.writeInt(failedAttempts)
                         true
                     }
+
                     3 -> {
                         val readInt2 = parcel.readInt()
                         val readInt3 = parcel.readInt()
@@ -116,17 +119,20 @@ interface IOplusFaceManager : IInterface {
                         parcel2?.writeInt(sendFaceCmd)
                         true
                     }
+
                     4 -> {
                         resetFaceDaemon()
                         parcel2?.writeNoException()
                         true
                     }
+
                     5 -> {
                         val faceProcessMemory = faceProcessMemory
                         parcel2?.writeNoException()
                         parcel2?.writeInt(faceProcessMemory)
                         true
                     }
+
                     6 -> {
                         val asInterface =
                             IFaceCommandCallback.Stub.asInterface(parcel.readStrongBinder())
@@ -136,6 +142,7 @@ interface IOplusFaceManager : IInterface {
                         parcel2?.writeInt(regsiterFaceCmdCallback)
                         true
                     }
+
                     7 -> {
                         val asInterface2 =
                             IFaceCommandCallback.Stub.asInterface(parcel.readStrongBinder())
@@ -145,6 +152,7 @@ interface IOplusFaceManager : IInterface {
                         parcel2?.writeInt(unregsiterFaceCmdCallback)
                         true
                     }
+
                     else -> super.onTransact(i, parcel, parcel2, i2)
                 }
             }

@@ -58,11 +58,9 @@ fun Fragment.startBiometric(
 
                 )
         else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
-            val result =
-                BiometricManagerCompat.openSettings(requireActivity(), biometricAuthRequest)
             showAlertDialog(
                 requireActivity(),
-                "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTrying to open system settings - $result",
+                "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
             )
         } else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
             showAlertDialog(
@@ -159,7 +157,29 @@ fun Fragment.startBiometric(
         override fun onFailed(reason: AuthenticationFailureReason?, msg: CharSequence?) {
             BiometricLoggerImpl.e("CheckBiometric.onFailed() - $reason")
             try {
-                showAlertDialog(requireActivity(), "Failure: $reason")
+                when (reason) {
+                    AuthenticationFailureReason.NO_HARDWARE -> showAlertDialog(
+                        requireActivity(),
+                        "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                    )
+
+                    AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED -> showAlertDialog(
+                        requireActivity(),
+                        "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                    )
+
+                    AuthenticationFailureReason.LOCKED_OUT -> showAlertDialog(
+                        requireActivity(),
+                        "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
+                    )
+
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> showAlertDialog(
+                        requireActivity(),
+                        "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                    )
+
+                    else -> showAlertDialog(requireActivity(), "Failure: $reason")
+                }
             } catch (ignore: Throwable) {
                 Toast.makeText(AndroidContext.appContext, "Failure: $reason", Toast.LENGTH_SHORT)
                     .show()

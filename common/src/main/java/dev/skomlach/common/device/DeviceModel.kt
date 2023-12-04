@@ -233,7 +233,11 @@ object DeviceModel {
                 ExecutorHelper.startOnBackground {
                     val sharedPreferences =
                         SharedPreferenceProvider.getPreferences("BiometricCompat_DeviceInfo")
-                    if (Connection.isConnection && !sharedPreferences.getBoolean("strictMatch", false))
+                    if (Connection.isConnection && !sharedPreferences.getBoolean(
+                            "strictMatch",
+                            false
+                        )
+                    )
                         try {
                             val data =
                                 LocalizationHelper.fetchFromWeb("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")

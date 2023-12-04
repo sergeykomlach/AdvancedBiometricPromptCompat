@@ -249,18 +249,18 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : SemBioFaceManager.AuthenticationCallback() {
-        private var errorTs = System.currentTimeMillis()
+        private var errorTs = 0L
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE, FACE_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE, FACE_ERROR_CAMERA_FAILURE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
@@ -365,36 +365,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
-                return
-            errorTs = tmp
-            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
-                selfCanceled = true
-                cancellationSignal?.cancel()
-                ExecutorHelper.postDelayed({
-                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, skipTimeout.toLong())
-            } else {
-                if (mutableListOf(
-                        AuthenticationFailureReason.SENSOR_FAILED,
-                        AuthenticationFailureReason.AUTHENTICATION_FAILED
-                    ).contains(failureReason)
-                ) {
-                    lockout()
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                }
-                listener?.onFailure(failureReason, tag())
-                postCancelTask {
-                    if (cancellationSignal?.isCanceled == false) {
-                        selfCanceled = true
-                        listener?.onCanceled(tag())
-                        Core.cancelAuthentication(this@SamsungFaceUnlockModule)
-                    }
-                }
-            }
+
         }
     }
 

@@ -135,18 +135,21 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
             try {
                 cancelFingerprintRequest()
                 val callback = object : SpassFingerprint.IdentifyListener {
-                    private var errorTs = System.currentTimeMillis()
+                    private var errorTs = 0L
                     private val skipTimeout =
                         context.resources.getInteger(android.R.integer.config_shortAnimTime)
 
                     private var selfCanceled = false
                     override fun onFinished(status: Int) {
                         val tmp = System.currentTimeMillis()
-                        if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
+                        if (tmp - errorTs <= skipTimeout)
                             return
                         errorTs = tmp
                         when (status) {
                             SpassFingerprint.STATUS_AUTHENTIFICATION_SUCCESS, SpassFingerprint.STATUS_AUTHENTIFICATION_PASSWORD_SUCCESS -> {
+                                if (tmp - authCallTimestamp.get() <= skipTimeout) {
+                                    return
+                                }
                                 listener?.onSuccess(
                                     tag(),
                                     BiometricCryptoObject(

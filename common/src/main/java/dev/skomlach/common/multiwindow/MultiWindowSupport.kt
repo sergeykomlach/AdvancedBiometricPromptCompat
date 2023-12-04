@@ -37,6 +37,7 @@ import dev.skomlach.common.misc.isActivityFinished
 class MultiWindowSupport private constructor() {
     companion object {
         private val realScreenSize = LruCache<Configuration, Point>(1)
+
         @SuppressLint("StaticFieldLeak")
         private val instance = MultiWindowSupport()
         fun get(): MultiWindowSupport {

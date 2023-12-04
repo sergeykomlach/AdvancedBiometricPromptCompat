@@ -23,9 +23,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.os.BuildCompat
 import dalvik.system.PathClassLoader
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat.log
 import dev.skomlach.common.logging.LogCat.logException
-import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.Modifier
 import java.util.*
 

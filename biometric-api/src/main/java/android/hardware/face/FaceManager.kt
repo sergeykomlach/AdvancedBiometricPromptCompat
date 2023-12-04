@@ -46,6 +46,7 @@ class FaceManager {
     ) {
         throw IllegalArgumentException("Must supply an authentication callback")
     }
+
     fun authenticate(
         crypto: android.hardware.biometrics.CryptoObject?,
         cancel: CancellationSignal?,

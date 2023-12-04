@@ -148,14 +148,15 @@ class NotificationPermissionsFragment : Fragment() {
     private val generalNotification = {
         val activity = requireActivity()
         val title = try {
-            val appInfo = (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                PackageManager.ApplicationInfoFlags.of(0L)
-            ) else requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                0
-            ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty{
+            val appInfo =
+                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    PackageManager.ApplicationInfoFlags.of(0L)
+                ) else requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    0
+                ))
+            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
                 getString(appInfo.labelRes)
             }
         } catch (e: Throwable) {
@@ -231,14 +232,15 @@ class NotificationPermissionsFragment : Fragment() {
         val activity = requireActivity()
 
         val title = try {
-            val appInfo = (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                PackageManager.ApplicationInfoFlags.of(0L)
-            ) else requireActivity().packageManager.getApplicationInfo(
-                requireActivity().application.packageName,
-                0
-            ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty{
+            val appInfo =
+                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    PackageManager.ApplicationInfoFlags.of(0L)
+                ) else requireActivity().packageManager.getApplicationInfo(
+                    requireActivity().application.packageName,
+                    0
+                ))
+            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
                 getString(appInfo.labelRes)
             }
         } catch (e: Throwable) {
@@ -328,10 +330,12 @@ class NotificationPermissionsFragment : Fragment() {
                     return
                 }
             }
+
             PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> {
                 channelNotification.invoke()
                 return
             }
+
             else -> {
                 ExecutorHelper.postDelayed({
                     closeFragment()
@@ -339,11 +343,13 @@ class NotificationPermissionsFragment : Fragment() {
             }
         }
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         startForResult.unregister()
         startForResultForPermissions.unregister()
     }
+
     private fun closeFragment() {
         val channelId = arguments?.getString(CHANNEL_ID)
         val type = PermissionRequestController.PermissionType.values().firstOrNull {

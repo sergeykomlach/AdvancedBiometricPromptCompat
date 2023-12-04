@@ -20,7 +20,6 @@
 package dev.skomlach.common.misc
 
 import android.app.Activity
-import android.content.Context
 import android.os.Build
 import android.view.View
 import android.view.Window

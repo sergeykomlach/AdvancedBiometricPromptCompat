@@ -49,7 +49,7 @@ class OppoMirrorFaceManager {
         return null
     }
 
-    fun getEnrolledFaces(): List<Face>?{
+    fun getEnrolledFaces(): List<Face>? {
         return null
     }
 

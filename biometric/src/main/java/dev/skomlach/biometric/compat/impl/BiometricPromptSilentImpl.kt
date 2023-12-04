@@ -27,7 +27,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
-import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper
@@ -165,10 +165,9 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                         result
                     }.toSet())
                 } else if (error != null) {
-                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
+                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                         callback?.onFailed(error.failureReason)
                     } else {
-                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).lockout()
                         ExecutorHelper.postDelayed({
                             callback?.onFailed(error.failureReason)
                         }, 2000)

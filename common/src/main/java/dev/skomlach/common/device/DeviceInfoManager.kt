@@ -385,7 +385,11 @@ object DeviceInfoManager {
                 ExecutorHelper.startOnBackground {
                     val sharedPreferences =
                         getPreferences("BiometricCompat_DeviceInfo")
-                    if (Connection.isConnection && !sharedPreferences.getBoolean("strictMatch", false))
+                    if (Connection.isConnection && !sharedPreferences.getBoolean(
+                            "strictMatch",
+                            false
+                        )
+                    )
                         try {
                             val data =
                                 LocalizationHelper.fetchFromWeb("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")

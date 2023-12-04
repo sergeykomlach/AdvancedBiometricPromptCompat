@@ -34,6 +34,7 @@ class FaceAuthenticateOptions {
         const val AUTHENTICATE_REASON_UDFPS_POINTER_DOWN = 10
         const val AUTHENTICATE_REASON_UNKNOWN = 0
     }
+
     constructor(a: Int, b: Int, c: Int, d: Int, e: Int, g: String?, i: String?) {}
     private constructor(parcel: Parcel?) {}
 

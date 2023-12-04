@@ -69,18 +69,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             promptInfoBuilder.setTitle(it)
         }
 
-        builder.getSubtitle()?.let {
-            promptInfoBuilder.setSubtitle(it)
-        }
+        if (!builder.isDeviceCredentialFallbackAllowed())
+            builder.getSubtitle()?.let {
+                promptInfoBuilder.setSubtitle(it)
+            }
 
         builder.getDescription()?.let {
             promptInfoBuilder.setDescription(it)
         }
 
 
-        val systemInScreenDialogMustBeUsed =
-            isFingerprint.get() && DevicesWithKnownBugs.isHideDialogInstantly
-        if (!systemInScreenDialogMustBeUsed && !builder.isDeviceCredentialFallbackAllowed()) {
+
+        if (!builder.isDeviceCredentialFallbackAllowed()) {
             var buttonTextColor: Int =
                 ContextCompat.getColor(
                     builder.getContext(),
@@ -139,57 +139,47 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     val authCallback: BiometricPrompt.AuthenticationCallback =
         object : BiometricPrompt.AuthenticationCallback() {
-            private var errorTs = System.currentTimeMillis()
+            private var errorTs = 0L
             private val skipTimeout =
                 builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
 
             override fun onAuthenticationFailed() {
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
-                val tmp = System.currentTimeMillis()
-                if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
-                    return
-                errorTs = tmp
-
-                val failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
-                if (restartPredicate.invoke(failureReason)) {
-                    if (callback != null) {
-                        ExecutorHelper.post {
-                            dialog?.onFailure(false)
-                            for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
-                                IconStateHelper.errorType(module)
-                            }
+                if (callback != null) {
+                    ExecutorHelper.post {
+                        dialog?.onFailure(false)
+                        for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                            IconStateHelper.errorType(module)
                         }
                     }
-                } else {
-                    checkAuthResultForPrimary(
-                        AuthResult.AuthResultState.FATAL_ERROR,
-                        null,
-                        failureReason
-                    )
                 }
-
-
             }
 
             override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                 d("BiometricPromptApi28Impl.onAuthenticationError: $errorCode $errString")
                 val tmp = System.currentTimeMillis()
-                if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
+                if (tmp - errorTs <= skipTimeout)
                     return
                 errorTs = tmp
                 //...present normal failed screen...
 
                 ExecutorHelper.post(Runnable {
                     var failureReason = AuthenticationFailureReason.UNKNOWN
-                    when (errorCode) {
-                        BiometricPrompt.ERROR_NO_BIOMETRICS -> failureReason =
-                            AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                    when (if (errorCode < 1000) errorCode else errorCode % 1000) {
+                        BiometricPrompt.ERROR_NO_BIOMETRICS -> {
+                            failureReason =
+                                AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                        }
 
-                        BiometricPrompt.ERROR_HW_NOT_PRESENT -> failureReason =
-                            AuthenticationFailureReason.NO_HARDWARE
+                        BiometricPrompt.ERROR_HW_NOT_PRESENT -> {
+                            failureReason =
+                                AuthenticationFailureReason.NO_HARDWARE
+                        }
 
-                        BiometricPrompt.ERROR_HW_UNAVAILABLE, BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED, BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> failureReason =
-                            AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                        BiometricPrompt.ERROR_HW_UNAVAILABLE, BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED, BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> {
+                            failureReason =
+                                AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+                        }
 
                         BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
                             for (t in builder.getPrimaryAvailableTypes()) {
@@ -200,14 +190,20 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             failureReason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE
                         }
 
-                        BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> failureReason =
-                            AuthenticationFailureReason.SENSOR_FAILED
+                        BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> {
+                            failureReason =
+                                AuthenticationFailureReason.SENSOR_FAILED
+                        }
 
-                        BiometricPrompt.ERROR_NO_SPACE -> failureReason =
-                            AuthenticationFailureReason.SENSOR_FAILED
+                        BiometricPrompt.ERROR_NO_SPACE -> {
+                            failureReason =
+                                AuthenticationFailureReason.SENSOR_FAILED
+                        }
 
-                        BiometricPrompt.ERROR_TIMEOUT -> failureReason =
-                            AuthenticationFailureReason.TIMEOUT
+                        BiometricPrompt.ERROR_TIMEOUT -> {
+                            failureReason =
+                                AuthenticationFailureReason.TIMEOUT
+                        }
 
                         BiometricPrompt.ERROR_LOCKOUT -> {
                             HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
@@ -223,10 +219,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                         else -> {
                             callback?.onFailed(failureReason)
-                            postCancelTask({
+                            postCancelTask {
                                 cancelAuth()
                                 cancelAuthentication()
-                            })
+                            }
                             return@Runnable
                         }
                     }
@@ -613,14 +609,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         result
                     }.toSet())
                 } else if (error != null) {
-                    if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
+                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                        e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
+                        callback?.onFailed(error.failureReason)
+                    } else {
                         ExecutorHelper.postDelayed({
                             e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
                             callback?.onFailed(error.failureReason)
                         }, 2000)
-                    } else {
-                        e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
-                        callback?.onFailed(error.failureReason)
                     }
                 }
                 cancelAuthentication()
@@ -728,11 +724,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         result
                     }.toSet())
                 } else if (error != null) {
-                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT) {
+                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                         e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                         callback?.onFailed(error.failureReason)
                     } else {
-                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).lockout()
                         ExecutorHelper.postDelayed({
                             e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                             callback?.onFailed(error.failureReason)

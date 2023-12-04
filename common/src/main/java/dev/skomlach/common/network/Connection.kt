@@ -29,7 +29,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 

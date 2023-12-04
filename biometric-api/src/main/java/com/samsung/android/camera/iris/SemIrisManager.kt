@@ -77,6 +77,7 @@ object SemIrisManager {
 
     val enrolledIrisUniqueID: SparseArray<*>?
         get() = null
+
     fun getEnrolledIrises(): List<Iris>? {
         return null
     }

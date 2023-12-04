@@ -61,7 +61,7 @@ object NetworkApi {
                 connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
             else
                 connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-        } catch (ignore :Throwable){
+        } catch (ignore: Throwable) {
             true
         }
     }

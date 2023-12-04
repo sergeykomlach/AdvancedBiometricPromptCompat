@@ -27,6 +27,7 @@ import android.content.Context.KEYGUARD_SERVICE
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -43,23 +44,28 @@ class CredentialsRequestFragment : Fragment() {
     companion object {
         private val appContext = AndroidContext.appContext
         private const val INTENT_KEY = "CredentialsRequestFragment.intent_key"
-        private const val INTENT_KEY2 = "CredentialsRequestFragment.intent_key2"
 
         fun showFragment(
             activity: FragmentActivity,
+            title: CharSequence?,
+            description: CharSequence?,
             validator: (Boolean) -> Unit?,
         ) {
             val tag = "${CredentialsRequestFragment::class.java.name}"
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                 return
             val fragment = CredentialsRequestFragment()
+            fragment.arguments = Bundle().apply {
+                this.putCharSequence("title", title)
+                this.putCharSequence("description", description)
+            }
             BroadcastTools.registerGlobalBroadcastIntent(
                 appContext,
                 object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
                         ExecutorHelper.post {
                             val result = intent.getBooleanExtra("success", false)
-                            LogCat.log("CredentialsRequestFragment", result)
+                            LogCat.logError("CredentialsRequestFragment", result)
                             validator.invoke(result)
                         }
                         try {
@@ -123,13 +129,17 @@ class CredentialsRequestFragment : Fragment() {
         try {
             //Create an intent to open device screen lock screen to authenticate
             //Pass the Screen Lock screen Title and Description
+            val title = arguments?.getCharSequence("title")
+                ?: resources.getString(androidx.biometric.R.string.use_screen_lock_label)
+            val description = arguments?.getCharSequence("description")
+                ?: resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
             val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 //Get the instance of KeyGuardManager
                 val keyguardManager =
                     requireActivity().getSystemService(KEYGUARD_SERVICE) as KeyguardManager?
                 keyguardManager?.createConfirmDeviceCredentialIntent(
-                    resources.getString(androidx.biometric.R.string.use_screen_lock_label),
-                    resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
+                    title,
+                    description
                 )
             } else {
                 null

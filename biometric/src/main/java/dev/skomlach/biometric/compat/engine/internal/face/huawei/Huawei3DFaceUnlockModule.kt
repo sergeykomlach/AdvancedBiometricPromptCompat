@@ -174,7 +174,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
     ) : FaceManager.AuthenticationCallback() {
-        private var errorTs = System.currentTimeMillis()
+        private var errorTs = 0L
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
 
@@ -182,11 +182,11 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
+            if (tmp - errorTs <= skipTimeout)
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 
@@ -275,36 +275,6 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            val tmp = System.currentTimeMillis()
-            if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
-                return
-            errorTs = tmp
-            var failureReason = AuthenticationFailureReason.AUTHENTICATION_FAILED
-            if (restartPredicate?.invoke(failureReason) == true) {
-                listener?.onFailure(failureReason, tag())
-                selfCanceled = true
-                cancellationSignal?.cancel()
-                ExecutorHelper.postDelayed({
-                    authenticateInternal(biometricCryptoObject, listener, restartPredicate)
-                }, skipTimeout.toLong())
-            } else {
-                if (mutableListOf(
-                        AuthenticationFailureReason.SENSOR_FAILED,
-                        AuthenticationFailureReason.AUTHENTICATION_FAILED
-                    ).contains(failureReason)
-                ) {
-                    lockout()
-                    failureReason = AuthenticationFailureReason.LOCKED_OUT
-                }
-                listener?.onFailure(failureReason, tag())
-                postCancelTask {
-                    if (cancellationSignal?.isCanceled == false) {
-                        selfCanceled = true
-                        listener?.onCanceled(tag())
-                        Core.cancelAuthentication(this@Huawei3DFaceUnlockModule)
-                    }
-                }
-            }
         }
     }
 }

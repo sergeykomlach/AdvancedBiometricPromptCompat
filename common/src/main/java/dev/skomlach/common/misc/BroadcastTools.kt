@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.skomlach.common.logging.LogCat.logError
 
 object BroadcastTools {
@@ -33,22 +34,24 @@ object BroadcastTools {
     fun sendGlobalBroadcastIntent(context: Context, intent: Intent) {
         val action = intent.action
         if (!action.isNullOrEmpty() && !action.startsWith(androidIntentAction)) {
-            logError("BroadcastTools: You tried to send custom global BroadcastIntent. Make sure that action `$action` contains package-specific name")
-        }
-        context.sendBroadcast(intent)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        } else
+            context.sendBroadcast(intent)
     }
 
 
     fun registerGlobalBroadcastIntent(
         context: Context,
         broadcastReceiver: BroadcastReceiver?,
-        filter: IntentFilter, flags : Int = ContextCompat.RECEIVER_EXPORTED
+        filter: IntentFilter, flags: Int = ContextCompat.RECEIVER_EXPORTED
     ) {
         val actionsIterator = filter.actionsIterator()
         while (actionsIterator.hasNext()) {
             val action = actionsIterator.next()
             if (!action.isNullOrEmpty() && !action.startsWith(androidIntentAction)) {
-                logError("BroadcastTools: You tried to register custom global BroadcastReceiver. Make sure that action `$action` contains package-specific name")
+                LocalBroadcastManager.getInstance(context)
+                    .registerReceiver(broadcastReceiver!!, filter)
+                return
             }
         }
         ContextCompat.registerReceiver(context, broadcastReceiver, filter, flags)
@@ -56,6 +59,10 @@ object BroadcastTools {
 
 
     fun unregisterGlobalBroadcastIntent(context: Context, broadcastReceiver: BroadcastReceiver?) {
-        context.unregisterReceiver(broadcastReceiver)
+        try {
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(broadcastReceiver!!)
+        } catch (e: Throwable) {
+            context.unregisterReceiver(broadcastReceiver)
+        }
     }
 }

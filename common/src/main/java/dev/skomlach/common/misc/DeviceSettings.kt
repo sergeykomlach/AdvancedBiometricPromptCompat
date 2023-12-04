@@ -74,23 +74,27 @@ object DeviceSettings {
                                             Base64.DEFAULT
                                         )
                                     )
-                                    Cursor.FIELD_TYPE_FLOAT  -> LogCat.log(
+
+                                    Cursor.FIELD_TYPE_FLOAT -> LogCat.log(
                                         "SystemSettings: $sub - $name:" + mCur.getFloat(
                                             valueIndex
                                         )
                                     )
-                                    Cursor.FIELD_TYPE_INTEGER  -> LogCat.log(
+
+                                    Cursor.FIELD_TYPE_INTEGER -> LogCat.log(
                                         "SystemSettings: $sub - $name:" + mCur.getInt(
                                             valueIndex
                                         )
                                     )
-                                    Cursor.FIELD_TYPE_NULL  -> LogCat.log("SystemSettings: $sub - $name:NULL")
-                                    Cursor.FIELD_TYPE_STRING  -> LogCat.log(
+
+                                    Cursor.FIELD_TYPE_NULL -> LogCat.log("SystemSettings: $sub - $name:NULL")
+                                    Cursor.FIELD_TYPE_STRING -> LogCat.log(
                                         "SystemSettings: $sub - $name:" + mCur.getString(
                                             valueIndex
                                         )
                                     )
-                                    else  -> LogCat.log("SystemSettings: $sub - $name: unknown type - $type")
+
+                                    else -> LogCat.log("SystemSettings: $sub - $name: unknown type - $type")
                                 }
                             }
                         } catch (e: Throwable) {

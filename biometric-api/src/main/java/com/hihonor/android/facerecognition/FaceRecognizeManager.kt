@@ -57,7 +57,8 @@ class FaceRecognizeManager(context: Context?, callback: FaceRecognizeCallback?) 
 
     val angleDim: Int
         get() = 0
-    fun getEnrolledFaceIDs(): IntArray?{
+
+    fun getEnrolledFaceIDs(): IntArray? {
         return null
     }
 

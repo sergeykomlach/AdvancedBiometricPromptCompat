@@ -50,7 +50,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         private val atomicBoolean = AtomicInteger(0)
         private val dismissTask = Runnable {
             if (atomicBoolean.get() <= 0) {
-                BiometricLoggerImpl.e("AppBackgroundDetector.dismissTask")
+                BiometricLoggerImpl.e("fragmentLifecycleCallbacks.AppBackgroundDetector.dismissTask")
                 callback.invoke()
             }
         }
@@ -92,7 +92,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
 
     private val lifecycleEventObserver: LifecycleEventObserver = object : LifecycleEventObserver {
         private val dismissTask = Runnable {
-            BiometricLoggerImpl.e("AppBackgroundDetector.dismissTask")
+            BiometricLoggerImpl.e("lifecycleEventObserver.AppBackgroundDetector.dismissTask")
             callback.invoke()
         }
 
