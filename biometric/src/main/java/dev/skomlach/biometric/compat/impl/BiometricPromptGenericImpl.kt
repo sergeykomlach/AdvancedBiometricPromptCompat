@@ -128,8 +128,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     ) {
         if (!isOpened.get())
             return
-        ExecutorHelper.post {
-            if (authResult == AuthResult.AuthResultState.SUCCESS) {
+
+        if (authResult == AuthResult.AuthResultState.SUCCESS) {
                 if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
                     Vibro.start()
                 }
@@ -138,7 +138,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
                 IconStateHelper.errorType(module?.confirmed)
             }
-        }
+
         //non fatal
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
@@ -166,8 +166,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
-            ExecutorHelper.post {
-                if (success != null) {
+
+            if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
@@ -193,7 +193,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     }
                 }
                 cancelAuthentication()
-            }
+
         }
     }
 

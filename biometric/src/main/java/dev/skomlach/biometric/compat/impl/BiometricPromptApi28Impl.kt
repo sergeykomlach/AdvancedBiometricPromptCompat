@@ -578,13 +578,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 authFinished[module] =
                     AuthResult(authResult, AuthenticationResult(module, crypto), failureReason)
                 added = true
-                ExecutorHelper.post {
-                    BiometricNotificationManager.dismiss(module)
+
+                BiometricNotificationManager.dismiss(module)
                     if (AuthResult.AuthResultState.SUCCESS == authResult) {
                         IconStateHelper.successType(module)
                     } else
                         IconStateHelper.errorType(module)
-                }
+
 
             }
         dialog?.authFinishedCopy = authFinished
@@ -607,8 +607,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
         ) {
-            ExecutorHelper.post {
-                if (success != null) {
+            if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
@@ -636,7 +635,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                 }
                 cancelAuthentication()
-            }
+
         } else if (allList.isNotEmpty()) {
             if (dialog == null) {
                 dialog =
@@ -683,8 +682,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         if (!isOpened.get())
             return
         d("BiometricPromptApi28Impl.checkAuthResultForSecondary():")
-        ExecutorHelper.post {
-            if (authResult == AuthResult.AuthResultState.SUCCESS) {
+
+        if (authResult == AuthResult.AuthResultState.SUCCESS) {
                 if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
                     Vibro.start()
                 }
@@ -693,7 +692,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
                 IconStateHelper.errorType(module?.confirmed)
             }
-        }
+
         //non fatal
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
@@ -721,9 +720,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
-            ExecutorHelper.post {
 
-                if (success != null) {
+
+            if (success != null) {
                     val onlySuccess = authFinished.filter {
                         it.value.authResultState == AuthResult.AuthResultState.SUCCESS
                     }
@@ -751,7 +750,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                 }
                 cancelAuthentication()
-            }
+
         }
     }
 

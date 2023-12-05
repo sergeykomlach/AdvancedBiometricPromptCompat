@@ -748,7 +748,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val api =
                 if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.values()) {
+                for (type in BiometricType.entries) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = BiometricAuthRequest(
@@ -769,7 +769,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val types = HashSet<BiometricType>()
             if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
                 if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                    for (type in BiometricType.values()) {
+                    for (type in BiometricType.entries) {
                         if (type == BiometricType.BIOMETRIC_ANY)
                             continue
                         val request = BiometricAuthRequest(
