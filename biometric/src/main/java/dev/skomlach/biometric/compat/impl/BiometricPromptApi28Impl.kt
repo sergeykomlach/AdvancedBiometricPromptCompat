@@ -65,64 +65,63 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     IBiometricPromptImpl, AuthCallback {
     private val isOpened = AtomicBoolean(false)
     private val authCallTimestamp = AtomicLong(0)
-    private val biometricPromptInfo: PromptInfo by lazy {
-        val promptInfoBuilder = PromptInfo.Builder()
-        builder.getTitle()?.let {
-            promptInfoBuilder.setTitle(it)
-        }
-
-        if (!builder.isDeviceCredentialFallbackAllowed())
-            builder.getSubtitle()?.let {
-                promptInfoBuilder.setSubtitle(it)
+    private val biometricPromptInfo: PromptInfo
+        get() {
+            val promptInfoBuilder = PromptInfo.Builder()
+            builder.getTitle()?.let {
+                promptInfoBuilder.setTitle(it)
             }
 
-        builder.getDescription()?.let {
-            promptInfoBuilder.setDescription(it)
-        }
-
-
-
-        if (!builder.isDeviceCredentialFallbackAllowed()) {
-            var buttonTextColor: Int =
-                ContextCompat.getColor(
-                    builder.getContext(),
-                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
-                )
-
-            if (Utils.isAtLeastS) {
-                val monetColors = SystemColorScheme()
-                if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
-                    monetColors.accent2[100]?.toArgb()?.let {
-                        buttonTextColor = it
-                    }
-                else
-                    monetColors.neutral2[500]?.toArgb()?.let {
-                        buttonTextColor = it
-                    }
+            builder.getDescription()?.let {
+                promptInfoBuilder.setDescription(it)
             }
-            (builder.getNegativeButtonText() ?: builder.getContext()
-                .getString(android.R.string.cancel)).let {
-                if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
-                    getFixedString(
-                        it, color = buttonTextColor
+
+            if (!builder.forceDeviceCredential()) {
+                builder.getSubtitle()?.let {
+                    promptInfoBuilder.setSubtitle(it)
+                }
+                var buttonTextColor: Int =
+                    ContextCompat.getColor(
+                        builder.getContext(),
+                        if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
                     )
-                )
+
+                if (Utils.isAtLeastS) {
+                    val monetColors = SystemColorScheme()
+                    if (DarkLightThemes.isNightModeCompatWithInscreen(builder.getContext()))
+                        monetColors.accent2[100]?.toArgb()?.let {
+                            buttonTextColor = it
+                        }
+                    else
+                        monetColors.neutral2[500]?.toArgb()?.let {
+                            buttonTextColor = it
+                        }
+                }
+                (builder.getNegativeButtonText() ?: builder.getContext()
+                    .getString(android.R.string.cancel)).let {
+                    if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
+                        getFixedString(
+                            it, color = buttonTextColor
+                        )
+                    )
+                }
             }
+
+            promptInfoBuilder.setDeviceCredentialAllowed(builder.forceDeviceCredential())
+
+            promptInfoBuilder.setAllowedAuthenticators(
+                if (builder.forceDeviceCredential())
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                else
+                    if (builder.getCryptographyPurpose() != null)
+                        BiometricManager.Authenticators.BIOMETRIC_STRONG
+                    else
+                        (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            )
+
+            promptInfoBuilder.setConfirmationRequired(false)
+            return promptInfoBuilder.build()
         }
-
-        promptInfoBuilder.setDeviceCredentialAllowed(builder.isDeviceCredentialFallbackAllowed())
-        val deviceCredentials =
-            if (builder.isDeviceCredentialFallbackAllowed()) BiometricManager.Authenticators.DEVICE_CREDENTIAL else 0
-        promptInfoBuilder.setAllowedAuthenticators(
-            if (builder.getCryptographyPurpose() != null)
-                BiometricManager.Authenticators.BIOMETRIC_STRONG or deviceCredentials
-            else
-                (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG or deviceCredentials)
-        )
-
-        promptInfoBuilder.setConfirmationRequired(false)
-        promptInfoBuilder.build()
-    }
     private val biometricPrompt: BiometricPrompt? by lazy {
         val activity = builder.getActivity()
         if (activity == null) null
@@ -259,7 +258,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     return
                 errorTs = tmp
 
-                if (builder.isDeviceCredentialFallbackAllowed()) {
+                if (biometricPromptInfo.isDeviceCredentialAllowed) {
                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                     BiometricLockoutFix.reset()
                 }
@@ -565,7 +564,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val crypto = if (cryptoObject == null) null else {
             BiometricCryptoObject(cryptoObject.signature, cryptoObject.cipher, cryptoObject.mac)
         }
-        if (builder.isDeviceCredentialFallbackAllowed()) {
+        if (biometricPromptInfo.isDeviceCredentialAllowed) {
             authFinished[BiometricType.BIOMETRIC_ANY] =
                 AuthResult(
                     authResult,
@@ -623,18 +622,21 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
                         result
                     }.toSet())
+                cancelAuthentication()
                 } else if (error != null) {
                     if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                         e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
                         callback?.onFailed(error.failureReason)
+                        cancelAuthentication()
                     } else {
                         ExecutorHelper.postDelayed({
                             e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
                             callback?.onFailed(error.failureReason)
+                            cancelAuthentication()
                         }, 2000)
                     }
                 }
-                cancelAuthentication()
+
 
         } else if (allList.isNotEmpty()) {
             if (dialog == null) {
@@ -738,18 +740,21 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         }
                         result
                     }.toSet())
+                cancelAuthentication()
                 } else if (error != null) {
                     if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                         e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                         callback?.onFailed(error.failureReason)
+                        cancelAuthentication()
                     } else {
                         ExecutorHelper.postDelayed({
                             e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                             callback?.onFailed(error.failureReason)
+                            cancelAuthentication()
                         }, 2000)
                     }
                 }
-                cancelAuthentication()
+
 
         }
     }

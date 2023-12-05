@@ -233,6 +233,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
 
         fun onAuthenticationFailed(): Void? {
             d("$name.onAuthenticationFailed")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
             return null
         }
     }

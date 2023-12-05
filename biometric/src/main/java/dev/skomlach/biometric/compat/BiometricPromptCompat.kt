@@ -311,7 +311,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val checkHardware = checkHardware()
             val interruptAuth = when (checkHardware) {
                 AuthenticationFailureReason.UNKNOWN -> false
-                else -> !builder.isDeviceCredentialFallbackAllowed()
+                AuthenticationFailureReason.LOCKED_OUT, AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> !builder.forceDeviceCredentials()
+                else -> true
             }
 
             if (interruptAuth) {
@@ -329,7 +330,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callbackOuter.onFailed(AuthenticationFailureReason.NOT_INITIALIZED_ERROR, null)
                     authFlowInProgress.set(false)
                 } else
-                    startAuth(callbackOuter, builder.isDeviceCredentialFallbackAllowed())
+                    startAuth(callbackOuter)
             }
         }
     }
@@ -359,8 +360,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun startAuth(
-        callbackOuter: AuthenticationCallback,
-        fallbackToDeviceCredentials: Boolean
+        callbackOuter: AuthenticationCallback
     ) {
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
@@ -481,19 +481,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             dialogDescription: CharSequence?
                         ) {
                             if (isOpened.get()) {
-                                if (fallbackToDeviceCredentials &&
+                                if (builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential() &&
                                     (reason == AuthenticationFailureReason.LOCKED_OUT || reason == AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
                                 ) {
+                                    builder.setForceDeviceCredentials(true)
                                     ExecutorHelper.postDelayed(
                                         {
-                                            startAuth(callbackOuter, true)
+                                            authenticateInternal(this)
                                         },
                                         AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
                                             .toLong()
                                     )
                                     return
                                 }
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason $fallbackToDeviceCredentials")
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
                                 try {
                                     callbackOuter.onFailed(reason, dialogDescription)
                                 } finally {
@@ -577,7 +578,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             }
                         }
                     }
-                    authenticateInternal(callback, fallbackToDeviceCredentials)
+                    authenticateInternal(callback)
                 }
             }
         }
@@ -602,8 +603,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
 
     private fun authenticateInternal(
-        callback: AuthenticationCallback,
-        fallbackToDeviceCredentials: Boolean
+        callback: AuthenticationCallback
     ) {
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal()")
         if (builder.getActivity() == null) {
@@ -622,7 +622,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             callback.updateTimestamp()
             val s = "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
             BiometricLoggerImpl.e("BiometricPromptCompat $s")
-            if (!fallbackToDeviceCredentials) {
+            if (!builder.forceDeviceCredential()) {
                 impl.authenticate(callback)
             } else {
                 if (builder.getCryptographyPurpose() != null) {
@@ -834,7 +834,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             ?: throw java.lang.IllegalStateException("No activity on screen"))
 
         private var isDeviceCredentialFallbackAllowed: Boolean = false
-
+        private var forceDeviceCredential: Boolean = isDeviceCredentialFallbackAllowed
         init {
             getActivity()?.let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -919,9 +919,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return dividerColor
         }
 
+        fun forceDeviceCredential(): Boolean {
+            return forceDeviceCredential
+        }
 
         fun isDeviceCredentialFallbackAllowed(): Boolean {
             return isDeviceCredentialFallbackAllowed
+        }
+
+        fun forceDeviceCredentials(): Boolean {
+            return forceDeviceCredential
         }
 
         fun isBackgroundBiometricIconsEnabled(): Boolean {
@@ -995,8 +1002,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return this
         }
 
+        fun setForceDeviceCredentials(enabled: Boolean): Builder {
+            this.forceDeviceCredential = enabled
+            return this
+        }
+
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
             this.isDeviceCredentialFallbackAllowed = enabled
+            this.forceDeviceCredential =
+                enabled && !BiometricManagerCompat.isBiometricReadyForUsage()
             return this
         }
 

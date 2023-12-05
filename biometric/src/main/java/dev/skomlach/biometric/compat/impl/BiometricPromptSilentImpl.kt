@@ -164,16 +164,19 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                         }
                         result
                     }.toSet())
+                  cancelAuthentication()
                 } else if (error != null) {
                     if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                         callback?.onFailed(error.failureReason)
+                        cancelAuthentication()
                     } else {
                         ExecutorHelper.postDelayed({
                             callback?.onFailed(error.failureReason)
+                            cancelAuthentication()
                         }, 2000)
                     }
                 }
-                cancelAuthentication()
+
 
         }
     }

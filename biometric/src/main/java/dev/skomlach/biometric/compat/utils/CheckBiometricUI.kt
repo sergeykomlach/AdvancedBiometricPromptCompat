@@ -103,7 +103,7 @@ object CheckBiometricUI {
             }
             zipEntries.sortWith { o1, o2 -> o1.name.compareTo(o2.name) }
             for (zip in zipEntries) {
-                if (zip.name.contains("rear", true) &&
+                if ((zip.name.contains("rear", true) || zip.name.contains("front", true)) &&
                     (zip.name.contains("biometric", true) || zip.name.contains("fingerprint"))
                 ) {
                     BiometricLoggerImpl.d("Resource in APK ${zip.name}")
@@ -126,7 +126,7 @@ object CheckBiometricUI {
                 return true
 
             for (f in apks) {
-                if (checkApk(f))
+                if (checkApkForRear(f))
                     return true
             }
         } catch (e: Throwable) {

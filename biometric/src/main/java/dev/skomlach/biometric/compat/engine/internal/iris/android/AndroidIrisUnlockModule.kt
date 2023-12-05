@@ -503,6 +503,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
         }
     }
 

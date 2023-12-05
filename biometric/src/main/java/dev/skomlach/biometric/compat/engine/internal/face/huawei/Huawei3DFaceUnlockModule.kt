@@ -275,6 +275,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
         }
     }
 }

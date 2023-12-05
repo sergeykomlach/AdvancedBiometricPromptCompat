@@ -278,6 +278,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
         }
     }
 

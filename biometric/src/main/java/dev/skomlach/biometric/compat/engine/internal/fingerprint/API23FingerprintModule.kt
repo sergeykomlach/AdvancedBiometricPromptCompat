@@ -318,6 +318,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
+            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
         }
     }
 
