@@ -1,11 +1,12 @@
 package dev.skomlach.common.permissionui.notification
 
+import android.app.Activity
 import android.content.Context
 import dev.skomlach.common.permissions.PermissionUtils
 
 object NotificationPermissionsHelper {
     fun checkNotificationPermissions(
-        context: Context, channelId: String, runnableOk: Runnable, runnableFailed: Runnable? = null
+        context: Activity?, channelId: String, runnableOk: Runnable, runnableFailed: Runnable? = null
     ) {
         if (!PermissionUtils.isAllowedNotificationsPermission) {
             PermissionRequestController.askNotificationsPermission(context, {
@@ -24,7 +25,7 @@ object NotificationPermissionsHelper {
     }
 
     private fun checkNotificationChannelPermissions(
-        context: Context, channelId: String, runnableOk: Runnable, runnableFailed: Runnable?
+        context: Activity?, channelId: String, runnableOk: Runnable, runnableFailed: Runnable?
     ) {
         if (!PermissionUtils.isAllowedNotificationsChannelPermission(channelId)) {
             PermissionRequestController.askNotificationsChannelsPermission(context,

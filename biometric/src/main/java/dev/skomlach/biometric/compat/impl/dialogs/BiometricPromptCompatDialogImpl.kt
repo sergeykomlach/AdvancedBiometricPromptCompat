@@ -82,11 +82,11 @@ class BiometricPromptCompatDialogImpl(
                 authCallback?.stopAuth()
             }
             authCallback?.onUiClosed()
-            compatBuilder.getActivity().supportFragmentManager.findFragmentByTag(
+            compatBuilder.getActivity()?.supportFragmentManager?.findFragmentByTag(
                 BiometricPromptCompatDialog.TAG
             )?.let {
-                compatBuilder.getActivity().supportFragmentManager.beginTransaction().remove(it)
-                    .commitNow()
+                compatBuilder.getActivity()?.supportFragmentManager?.beginTransaction()?.remove(it)
+                    ?.commitNow()
             }
         }
         dialog.setOnCancelListener {
@@ -268,13 +268,13 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun showDialog() {
-        if (compatBuilder.getActivity().supportFragmentManager.findFragmentByTag(
+        if (compatBuilder.getActivity()?.supportFragmentManager?.findFragmentByTag(
                 BiometricPromptCompatDialog.TAG
             ) != null
         )
             return
         dialog.show(
-            compatBuilder.getActivity().supportFragmentManager,
+            compatBuilder.getActivity()?.supportFragmentManager ?: return,
             BiometricPromptCompatDialog.TAG
         )
     }
@@ -289,7 +289,7 @@ class BiometricPromptCompatDialogImpl(
             dialog.dismiss()
         }
         val viewModel: DialogViewModel =
-            ViewModelProvider(compatBuilder.getActivity())[DialogViewModel::class.java]
+            ViewModelProvider(compatBuilder.getActivity() ?: return)[DialogViewModel::class.java]
         viewModel.dismissDialog()
     }
 

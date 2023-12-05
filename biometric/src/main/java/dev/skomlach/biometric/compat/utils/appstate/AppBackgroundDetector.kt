@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils.appstate
 
+import android.annotation.SuppressLint
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -55,6 +56,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
             }
         }
 
+        @SuppressLint("RestrictedApi")
         override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
             if (f is androidx.biometric.BiometricFragment ||
                 f is androidx.biometric.FingerprintDialogFragment ||
@@ -68,6 +70,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
             }
         }
 
+        @SuppressLint("RestrictedApi")
         override fun onFragmentPaused(fm: FragmentManager, f: Fragment) {
             if (f is androidx.biometric.BiometricFragment ||
                 f is androidx.biometric.FingerprintDialogFragment ||
@@ -117,16 +120,18 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
     fun attachListeners() {
         detachListeners()
         try {
-            impl.builder.getActivity().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+            impl.builder.getActivity()?.supportFragmentManager?.unregisterFragmentLifecycleCallbacks(
                 fragmentLifecycleCallbacks
             )
         } catch (ignore: Throwable) {
         }
-        impl.builder.getActivity().supportFragmentManager.registerFragmentLifecycleCallbacks(
-            fragmentLifecycleCallbacks,
-            false
-        )
-
+        try {
+            impl.builder.getActivity()?.supportFragmentManager?.registerFragmentLifecycleCallbacks(
+                fragmentLifecycleCallbacks,
+                false
+            )
+        } catch (ignore: Throwable) {
+        }
         try {
             ProcessLifecycleOwner.get().lifecycle.addObserver(lifecycleEventObserver)
         } catch (ignore: Throwable) {
@@ -138,7 +143,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         stopWatcher?.run()
         stopWatcher = null
         try {
-            impl.builder.getActivity().supportFragmentManager.unregisterFragmentLifecycleCallbacks(
+            impl.builder.getActivity()?.supportFragmentManager?.unregisterFragmentLifecycleCallbacks(
                 fragmentLifecycleCallbacks
             )
         } catch (ignore: Throwable) {

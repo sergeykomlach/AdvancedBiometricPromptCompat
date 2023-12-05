@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.permissionui.notification
 
+import android.app.Activity
 import android.content.Context
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -30,7 +31,7 @@ object PermissionRequestController {
         GENERAL_PERMISSION, CHANNEL_PERMISSION
     }
 
-    fun askNotificationsPermission(context: Context, okResult: Runnable, failResult: Runnable) {
+    fun askNotificationsPermission(context: Activity?, okResult: Runnable, failResult: Runnable) {
         LogCat.log("PermissionRequestController", "askNotificationsPermission from $context")
         startActivityAndWait(
             context,
@@ -42,7 +43,7 @@ object PermissionRequestController {
     }
 
     fun askNotificationsChannelsPermission(
-        context: Context,
+        context: Activity?,
         channelId: String?,
         okResult: Runnable,
         failResult: Runnable
@@ -65,7 +66,7 @@ object PermissionRequestController {
 
 
     private fun startActivityAndWait(
-        context: Context,
+        activity: Activity?,
         type: PermissionType,
         channelId: String?,
         permissionGrantedCallback: PermissionGrantedCallback,
@@ -79,7 +80,7 @@ object PermissionRequestController {
             else
                 failResult.run()
         }
-        AndroidContext.activity?.apply {
+        activity?.apply {
             if (this !is FragmentActivity) {
                 callback.run()
                 return

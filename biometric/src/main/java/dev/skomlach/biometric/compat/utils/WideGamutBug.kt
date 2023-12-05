@@ -30,10 +30,10 @@ object WideGamutBug {
             "https://www.reddit.com/r/redditsync/comments/9ta7df/updated_my_oneplus_6_recently_opening_images/\n" +
             "On OnePlus 6T stop working Fingerprint Sensor O_o"
 
-    fun unsupportedColorMode(activity: FragmentActivity): Boolean {
+    fun unsupportedColorMode(activity: FragmentActivity?): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (activity.window.colorMode == ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT ||
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && activity.window.isWideColorGamut)
+            if (activity?.window?.colorMode == ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && activity?.window?.isWideColorGamut == true)
             ) {
                 BiometricLoggerImpl.e(error)
                 return true

@@ -64,6 +64,11 @@ object TruncatedTextFix {
         builder: BiometricPromptCompat.Builder,
         onTruncateChecked: OnTruncateChecked
     ) {
+        val activity = builder.getActivity()
+        if (activity == null) {
+            onTruncateChecked.onDone()
+            return
+        }
         val config =
             AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
         val cache =
@@ -114,7 +119,7 @@ object TruncatedTextFix {
                 return
             }
         }
-        val windowView = builder.getActivity().findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
+        val windowView = activity.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
         val layout = LayoutInflater.from(builder.getContext())
             .inflate(R.layout.biometric_prompt_dialog_content, null).apply {
                 this.visibility = View.INVISIBLE

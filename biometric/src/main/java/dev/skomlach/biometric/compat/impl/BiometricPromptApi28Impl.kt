@@ -41,6 +41,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
@@ -122,11 +123,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         promptInfoBuilder.setConfirmationRequired(false)
         promptInfoBuilder.build()
     }
-    private val biometricPrompt: BiometricPrompt by lazy {
-        BiometricPrompt(
-            builder.getActivity(),
-            ExecutorHelper.executor, authCallback
-        )
+    private val biometricPrompt: BiometricPrompt? by lazy {
+        val activity = builder.getActivity()
+        if (activity == null) null
+        else
+            BiometricPrompt(
+                activity,
+                ExecutorHelper.executor, authCallback
+            )
     }
     private var restartPredicate = defaultPredicate()
     private var dialog: BiometricPromptCompatDialogImpl? = null
@@ -254,6 +258,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                     return
                 errorTs = tmp
+
+                if (builder.isDeviceCredentialFallbackAllowed()) {
+                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                    BiometricLockoutFix.reset()
+                }
                 checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
             }
         }
@@ -340,12 +349,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
+        val prompt = biometricPrompt
+        if (prompt == null) {
+            callback?.onCanceled()
+            return
+        }
         val shortDelayMillis =
             builder.getContext().resources.getInteger(android.R.integer.config_shortAnimTime)
                 .toLong()
         val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
         onUiOpened()
-        showSystemUi(biometricPrompt)
+        showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
             ExecutorHelper.postDelayed({
                 if (!isNativeBiometricWorkaroundRequired) {
@@ -458,7 +472,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         biometricFragment.set(
                             m.invoke(
                                 null,
-                                builder.getActivity().supportFragmentManager
+                                builder.getActivity()?.supportFragmentManager
                             ) as BiometricFragment?
                         )
                     } finally {
@@ -487,7 +501,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         biometricFragment.get()?.let {
             CancellationHelper.forceCancel(it)
         } ?: run {
-            biometricPrompt.cancelAuthentication()
+            biometricPrompt?.cancelAuthentication()
         }
         biometricFragment.set(null)
     }

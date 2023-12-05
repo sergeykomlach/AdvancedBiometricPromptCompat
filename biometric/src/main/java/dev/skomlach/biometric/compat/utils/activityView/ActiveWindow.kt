@@ -82,7 +82,7 @@ object ActiveWindow {
         throw IllegalStateException("Unable to find Active Window to attach")
     }
 
-    fun getActiveWindows(activity: FragmentActivity): List<View> {
+    fun getActiveWindows(activity: FragmentActivity?): List<View> {
         val screens = mutableListOf<View>()
         val list = viewRoots
         for (i in list.indices) {
@@ -93,7 +93,7 @@ object ActiveWindow {
                 if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
                     continue
                 }
-                if (!viewBelongActivity(view, activity))
+                if (activity == null || !viewBelongActivity(view, activity))
                     continue
                 screens.add(view)
             } catch (e: Throwable) {

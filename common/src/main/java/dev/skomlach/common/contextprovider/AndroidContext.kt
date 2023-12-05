@@ -32,6 +32,7 @@ import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.isActivityFinished
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.lang.ref.Reference
@@ -45,10 +46,10 @@ object AndroidContext {
     private val _resumedActivityLiveData = MutableLiveData<Activity?>()
     val resumedActivityLiveData = _resumedActivityLiveData
     private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
-    private val activityRelay = AtomicReference<Reference<Activity?>?>(null)
+    private val activityRelay = Collections.synchronizedSet(HashSet<Reference<Activity?>>())
     val activity: Activity?
         get() = try {
-            activityRelay.get()?.get()
+            activityRelay.last { !isActivityFinished(it.get()) }.get()
         } catch (e: Throwable) {
             null
         }
@@ -138,13 +139,13 @@ object AndroidContext {
                                 "AndroidContext",
                                 "onConfigurationChanged ${activity.resources.configuration}"
                             )
-                            activityRelay.set(SoftReference(activity))
+                            activityRelay.add(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
-                            activityRelay.set(SoftReference(activity))
+                            activityRelay.add(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
                             _resumedActivityLiveData.postValue(activity)
                         }
@@ -171,9 +172,6 @@ object AndroidContext {
                         }
 
                         override fun onActivityDestroyed(activity: Activity) {
-                            if (activity == AndroidContext.activity) {
-                                activityRelay.set(null)
-                            }
                         }
                     })
                 }

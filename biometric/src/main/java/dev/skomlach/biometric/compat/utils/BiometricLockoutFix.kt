@@ -28,11 +28,22 @@ import java.util.concurrent.locks.ReentrantLock
 
 object BiometricLockoutFix {
     //LockOut behavior emulated, because for example Meizu API allow to enroll fingerprint unlimited times
-    const val TS_PREF = "timestamp_"
+    private const val TS_PREF = "timestamp_"
     private val timeout = TimeUnit.SECONDS.toMillis(31)
     private val preferences: SharedPreferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_Storage")
     private val lock = ReentrantLock()
+    fun reset() {
+        try {
+            lock.runCatching { this.lock() }
+            preferences.edit().clear().apply()
+        } finally {
+            lock.runCatching {
+                this.unlock()
+            }
+        }
+    }
+
     fun lockout(biometricType: BiometricType) {
         try {
             lock.runCatching { this.lock() }

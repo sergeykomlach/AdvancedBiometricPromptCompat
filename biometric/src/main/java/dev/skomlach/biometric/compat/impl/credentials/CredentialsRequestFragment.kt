@@ -34,6 +34,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
+import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
@@ -66,6 +68,10 @@ class CredentialsRequestFragment : Fragment() {
                         ExecutorHelper.post {
                             val result = intent.getBooleanExtra("success", false)
                             LogCat.logError("CredentialsRequestFragment", result)
+                            if (result) {
+                                BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                                BiometricLockoutFix.reset()
+                            }
                             validator.invoke(result)
                         }
                         try {
