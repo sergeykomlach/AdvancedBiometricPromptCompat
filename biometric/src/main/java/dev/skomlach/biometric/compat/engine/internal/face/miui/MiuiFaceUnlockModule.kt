@@ -49,9 +49,8 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             manager = MiuiFaceFactory.getFaceManager(MiuiFaceFactory.TYPE_3D)
             if (manager?.isFaceFeatureSupport == false) {
                 throw RuntimeException("Miui 3DFace not supported")
-            }
-            manager?.isFaceFeatureSupport
-            manager?.enrolledFaces
+            } else
+                d("Miui 3DFace supported")
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)
@@ -59,9 +58,8 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 manager = MiuiFaceFactory.getFaceManager(MiuiFaceFactory.TYPE_2D)
                 if (manager?.isFaceFeatureSupport == false) {
                     throw RuntimeException("Miui 2DFace not supported")
-                }
-                manager?.isFaceFeatureSupport
-                manager?.enrolledFaces
+                } else
+                    d("Miui 2DFace supported")
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -102,7 +100,8 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         get() {
 
             try {
-                return manager?.enrolledFaces?.isNotEmpty() == true
+                return (manager?.hasEnrolledFaces()
+                    ?: IMiuiFaceManager.TEMPLATE_NONE) == IMiuiFaceManager.TEMPLATE_VALIDATE
             } catch (e: Throwable) {
 
             }
