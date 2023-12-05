@@ -182,6 +182,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 deviceInfo = info
                             }
                         })
+                        BiometricLoggerImpl.d("BiometricPromptCompat ${DevicesWithKnownBugs.isMissedBiometricUI}")
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     NotificationPermissionsFragment.preloadTranslations()
@@ -224,22 +225,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
-                    if (builder.getBiometricAuthRequest().api == BiometricApi.AUTO && HardwareAccessImpl.getInstance(
+                    (builder.getBiometricAuthRequest().api == BiometricApi.AUTO && HardwareAccessImpl.getInstance(
                             builder.getBiometricAuthRequest()
                         ).isNewBiometricApi
-                    ) {
-                        var found = false
-                        for (v in builder.getPrimaryAvailableTypes()) {
-                            val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
-                            if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
-                                found = true
-                                break
-                            }
-                        }
-                        found
-                    } else {
-                        false
-                    }
+                    )
         BiometricLoggerImpl.d(
             "BiometricPromptCompat.IBiometricPromptImpl - " +
                     "$isBiometricPrompt"
@@ -308,22 +297,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 } catch (ignore: InterruptedException) {
                 }
             }
-            val checkHardware = checkHardware()
-            val interruptAuth = when (checkHardware) {
-                AuthenticationFailureReason.UNKNOWN -> false
-                AuthenticationFailureReason.LOCKED_OUT, AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> !builder.forceDeviceCredentials()
-                else -> true
-            }
-
-            if (interruptAuth) {
-                ExecutorHelper.post {
-                    callbackOuter.onFailed(
-                        checkHardware,
-                        null
-                    )
-                    authFlowInProgress.set(false)
+            if(builder.getAllAvailableTypes().isEmpty()) {
+                val checkHardware = checkHardware()
+                val interruptAuth = when (checkHardware) {
+                    AuthenticationFailureReason.UNKNOWN -> false
+                    AuthenticationFailureReason.LOCKED_OUT, AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> !builder.forceDeviceCredentials()
+                    else -> true
                 }
-                return@startOnBackground
+                if (interruptAuth) {
+                    ExecutorHelper.post {
+                        callbackOuter.onFailed(
+                            checkHardware,
+                            null
+                        )
+                        authFlowInProgress.set(false)
+                    }
+                    return@startOnBackground
+                }
             }
             ExecutorHelper.post {
                 if (timeout) {
