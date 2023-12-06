@@ -130,14 +130,14 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             return
 
         if (authResult == AuthResult.AuthResultState.SUCCESS) {
-                if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
-                    Vibro.start()
-                }
-                IconStateHelper.successType(module?.confirmed)
-            } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
-                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
-                IconStateHelper.errorType(module?.confirmed)
+            if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
+                Vibro.start()
             }
+            IconStateHelper.successType(module?.confirmed)
+        } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
+            IconStateHelper.errorType(module?.confirmed)
+        }
 
         //non fatal
         if (mutableListOf(
@@ -168,33 +168,33 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         ) {
 
             if (success != null) {
-                    val onlySuccess = authFinished.filter {
-                        it.value.authResultState == AuthResult.AuthResultState.SUCCESS
-                    }
-                    val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
+                val onlySuccess = authFinished.filter {
+                    it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                }
+                val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
 
-                    callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result: AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r ->
-                            result = AuthenticationResult(
-                                r.confirmed,
-                                if (fixCryptoObjects) null else r.cryptoObject
-                            )
-                        }
-                        result
-                    }.toSet())
-                  cancelAuthentication()
-                } else if (error != null) {
-                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
+                    var result: AuthenticationResult? = null
+                    onlySuccess[it]?.successData?.let { r ->
+                        result = AuthenticationResult(
+                            r.confirmed,
+                            if (fixCryptoObjects) null else r.cryptoObject
+                        )
+                    }
+                    result
+                }.toSet())
+                cancelAuthentication()
+            } else if (error != null) {
+                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
+                    callback?.onFailed(error.failureReason)
+                    cancelAuthentication()
+                } else {
+                    ExecutorHelper.postDelayed({
                         callback?.onFailed(error.failureReason)
                         cancelAuthentication()
-                    } else {
-                        ExecutorHelper.postDelayed({
-                            callback?.onFailed(error.failureReason)
-                            cancelAuthentication()
-                        }, 2000)
-                    }
+                    }, 2000)
                 }
+            }
 
 
         }

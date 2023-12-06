@@ -226,9 +226,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
                     (builder.getBiometricAuthRequest().api == BiometricApi.AUTO && HardwareAccessImpl.getInstance(
-                            builder.getBiometricAuthRequest()
-                        ).isNewBiometricApi
-                    )
+                        builder.getBiometricAuthRequest()
+                    ).isNewBiometricApi
+                            )
         BiometricLoggerImpl.d(
             "BiometricPromptCompat.IBiometricPromptImpl - " +
                     "$isBiometricPrompt"
@@ -297,7 +297,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 } catch (ignore: InterruptedException) {
                 }
             }
-            if(builder.getAllAvailableTypes().isEmpty()) {
+            if (builder.getAllAvailableTypes().isEmpty()) {
                 val checkHardware = checkHardware()
                 val interruptAuth = when (checkHardware) {
                     AuthenticationFailureReason.UNKNOWN -> false
@@ -738,7 +738,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val api =
                 if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.entries) {
+                for (type in BiometricType.values()) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = BiometricAuthRequest(
@@ -759,7 +759,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val types = HashSet<BiometricType>()
             if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
                 if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                    for (type in BiometricType.entries) {
+                    for (type in BiometricType.values()) {
                         if (type == BiometricType.BIOMETRIC_ANY)
                             continue
                         val request = BiometricAuthRequest(
@@ -825,6 +825,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = isDeviceCredentialFallbackAllowed
+
         init {
             getActivity()?.let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

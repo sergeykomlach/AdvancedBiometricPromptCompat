@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,6 @@ import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 
-@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 object Connection {
 
     private val appContext = AndroidContext.appContext

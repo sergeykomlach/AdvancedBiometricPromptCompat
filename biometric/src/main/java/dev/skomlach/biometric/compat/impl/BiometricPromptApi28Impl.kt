@@ -579,10 +579,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 added = true
 
                 BiometricNotificationManager.dismiss(module)
-                    if (AuthResult.AuthResultState.SUCCESS == authResult) {
-                        IconStateHelper.successType(module)
-                    } else
-                        IconStateHelper.errorType(module)
+                if (AuthResult.AuthResultState.SUCCESS == authResult) {
+                    IconStateHelper.successType(module)
+                } else
+                    IconStateHelper.errorType(module)
 
 
             }
@@ -607,35 +607,35 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
         ) {
             if (success != null) {
-                    val onlySuccess = authFinished.filter {
-                        it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                val onlySuccess = authFinished.filter {
+                    it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                }
+                val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
+                d("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onSucceeded")
+                callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
+                    var result: AuthenticationResult? = null
+                    onlySuccess[it]?.successData?.let { r ->
+                        result = AuthenticationResult(
+                            r.confirmed,
+                            if (fixCryptoObjects) null else r.cryptoObject
+                        )
                     }
-                    val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
-                    d("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onSucceeded")
-                    callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result: AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r ->
-                            result = AuthenticationResult(
-                                r.confirmed,
-                                if (fixCryptoObjects) null else r.cryptoObject
-                            )
-                        }
-                        result
-                    }.toSet())
+                    result
+                }.toSet())
                 cancelAuthentication()
-                } else if (error != null) {
-                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+            } else if (error != null) {
+                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                    e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
+                    callback?.onFailed(error.failureReason)
+                    cancelAuthentication()
+                } else {
+                    ExecutorHelper.postDelayed({
                         e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
                         callback?.onFailed(error.failureReason)
                         cancelAuthentication()
-                    } else {
-                        ExecutorHelper.postDelayed({
-                            e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
-                            callback?.onFailed(error.failureReason)
-                            cancelAuthentication()
-                        }, 2000)
-                    }
+                    }, 2000)
                 }
+            }
 
 
         } else if (allList.isNotEmpty()) {
@@ -686,14 +686,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         d("BiometricPromptApi28Impl.checkAuthResultForSecondary():")
 
         if (authResult == AuthResult.AuthResultState.SUCCESS) {
-                if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
-                    Vibro.start()
-                }
-                IconStateHelper.successType(module?.confirmed)
-            } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
-                dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
-                IconStateHelper.errorType(module?.confirmed)
+            if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
+                Vibro.start()
             }
+            IconStateHelper.successType(module?.confirmed)
+        } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
+            IconStateHelper.errorType(module?.confirmed)
+        }
 
         //non fatal
         if (mutableListOf(
@@ -725,35 +725,35 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
 
             if (success != null) {
-                    val onlySuccess = authFinished.filter {
-                        it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                val onlySuccess = authFinished.filter {
+                    it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                }
+                val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
+                d("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onSucceeded")
+                callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
+                    var result: AuthenticationResult? = null
+                    onlySuccess[it]?.successData?.let { r ->
+                        result = AuthenticationResult(
+                            r.confirmed,
+                            if (fixCryptoObjects) null else r.cryptoObject
+                        )
                     }
-                    val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
-                    d("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onSucceeded")
-                    callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result: AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r ->
-                            result = AuthenticationResult(
-                                r.confirmed,
-                                if (fixCryptoObjects) null else r.cryptoObject
-                            )
-                        }
-                        result
-                    }.toSet())
+                    result
+                }.toSet())
                 cancelAuthentication()
-                } else if (error != null) {
-                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+            } else if (error != null) {
+                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                    e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
+                    callback?.onFailed(error.failureReason)
+                    cancelAuthentication()
+                } else {
+                    ExecutorHelper.postDelayed({
                         e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                         callback?.onFailed(error.failureReason)
                         cancelAuthentication()
-                    } else {
-                        ExecutorHelper.postDelayed({
-                            e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
-                            callback?.onFailed(error.failureReason)
-                            cancelAuthentication()
-                        }, 2000)
-                    }
+                    }, 2000)
                 }
+            }
 
 
         }

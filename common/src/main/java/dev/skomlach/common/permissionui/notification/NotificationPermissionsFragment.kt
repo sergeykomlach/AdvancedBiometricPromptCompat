@@ -314,6 +314,12 @@ class NotificationPermissionsFragment : Fragment() {
         alert.show()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        startForResult.unregister()
+        startForResultForPermissions.unregister()
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         val type = PermissionRequestController.PermissionType.values().firstOrNull {
@@ -342,12 +348,6 @@ class NotificationPermissionsFragment : Fragment() {
                 }, 250)
             }
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        startForResult.unregister()
-        startForResultForPermissions.unregister()
     }
 
     private fun closeFragment() {

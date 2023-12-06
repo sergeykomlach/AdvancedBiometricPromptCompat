@@ -19,13 +19,8 @@
 
 package dev.skomlach.common.network
 
-import android.content.Context
-import android.net.ConnectivityManager
 import android.net.TrafficStats
-import android.os.Build
-import android.text.TextUtils
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -41,7 +36,7 @@ import javax.net.ssl.HttpsURLConnection
 object NetworkApi {
     fun isWebUrl(u: String): Boolean {
         var url = u
-        if (TextUtils.isEmpty(url)) return false
+        if (url.isEmpty()) return false
         url = url.lowercase(AndroidContext.systemLocale)
         //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
         val slash = url.indexOf("/")
@@ -54,16 +49,7 @@ object NetworkApi {
     }
 
     fun hasInternet(): Boolean {
-        return try {
-            val connectivityManager: ConnectivityManager? =
-                appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-            else
-                connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-        } catch (ignore: Throwable) {
-            true
-        }
+        return Connection.isConnection
     }
 
     @Throws(Exception::class)

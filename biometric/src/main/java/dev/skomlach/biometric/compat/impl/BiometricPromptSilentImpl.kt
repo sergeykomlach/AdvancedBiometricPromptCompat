@@ -149,33 +149,33 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         ) {
 
             if (success != null) {
-                    val onlySuccess = authFinished.filter {
-                        it.value.authResultState == AuthResult.AuthResultState.SUCCESS
-                    }
-                    val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
+                val onlySuccess = authFinished.filter {
+                    it.value.authResultState == AuthResult.AuthResultState.SUCCESS
+                }
+                val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
 
-                    callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                        var result: AuthenticationResult? = null
-                        onlySuccess[it]?.successData?.let { r ->
-                            result = AuthenticationResult(
-                                r.confirmed,
-                                if (fixCryptoObjects) null else r.cryptoObject
-                            )
-                        }
-                        result
-                    }.toSet())
-                  cancelAuthentication()
-                } else if (error != null) {
-                    if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
+                    var result: AuthenticationResult? = null
+                    onlySuccess[it]?.successData?.let { r ->
+                        result = AuthenticationResult(
+                            r.confirmed,
+                            if (fixCryptoObjects) null else r.cryptoObject
+                        )
+                    }
+                    result
+                }.toSet())
+                cancelAuthentication()
+            } else if (error != null) {
+                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                    callback?.onFailed(error.failureReason)
+                    cancelAuthentication()
+                } else {
+                    ExecutorHelper.postDelayed({
                         callback?.onFailed(error.failureReason)
                         cancelAuthentication()
-                    } else {
-                        ExecutorHelper.postDelayed({
-                            callback?.onFailed(error.failureReason)
-                            cancelAuthentication()
-                        }, 2000)
-                    }
+                    }, 2000)
                 }
+            }
 
 
         }

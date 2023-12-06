@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package  dev.skomlach.common.themes.monet.colors
+package dev.skomlach.common.themes.monet.colors
 
 interface Color {
     // All colors should have a conversion path to linear sRGB

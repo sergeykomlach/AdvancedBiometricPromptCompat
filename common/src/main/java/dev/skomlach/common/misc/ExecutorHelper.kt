@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,6 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 object ExecutorHelper {
-
-
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
     val backgroundExecutor: Executor = Executors.newCachedThreadPool()

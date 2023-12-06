@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,11 @@ package dev.skomlach.biometric.compat.crypto
 import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties.*
+import android.security.keystore.KeyProperties.BLOCK_MODE_CBC
+import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7
+import android.security.keystore.KeyProperties.KEY_ALGORITHM_AES
+import android.security.keystore.KeyProperties.PURPOSE_DECRYPT
+import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext

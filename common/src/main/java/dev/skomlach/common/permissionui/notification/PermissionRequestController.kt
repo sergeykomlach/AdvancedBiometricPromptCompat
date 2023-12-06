@@ -20,9 +20,7 @@
 package dev.skomlach.common.permissionui.notification
 
 import android.app.Activity
-import android.content.Context
 import androidx.fragment.app.FragmentActivity
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.permissions.PermissionUtils
 

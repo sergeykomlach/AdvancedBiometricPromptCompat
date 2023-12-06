@@ -66,7 +66,7 @@ object LocalizationHelper {
             urlConnection.setRequestProperty("Accept-Language", "en-US")
             urlConnection.setRequestProperty(
                 "User-Agent",
-                LocalizationHelper.agents[SecureRandom().nextInt(LocalizationHelper.agents.size)]
+                agents[SecureRandom().nextInt(agents.size)]
             )
             urlConnection.connect()
             val responseCode = urlConnection.responseCode

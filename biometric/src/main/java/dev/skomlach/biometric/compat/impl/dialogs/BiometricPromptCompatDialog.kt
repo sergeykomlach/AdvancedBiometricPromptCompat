@@ -21,12 +21,23 @@ package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.app.Dialog
 import android.app.UiModeManager
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
-import android.view.*
+import android.view.ContextThemeWrapper
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.SurfaceView
+import android.view.View
 import android.view.View.MeasureSpec
+import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider

@@ -197,8 +197,8 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag())
+                            Core.cancelAuthentication(this@FaceunlockLavaModule)
                         }
-                        Core.cancelAuthentication(this@FaceunlockLavaModule)
                     }
                 }
             return null

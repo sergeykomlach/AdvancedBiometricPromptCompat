@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,12 +34,14 @@ object LogCat {
 
 
     fun logError(vararg msgs: Any?) {
-        val m = mutableListOf(*msgs).also {
-            it.add(0, "LogCat")
-            it.add(1, method)
+        if (DEBUG) {
+            val m = mutableListOf(*msgs).also {
+                it.add(0, "LogCat")
+                it.add(1, method)
+            }
+            externalLogger?.logError(*m.toTypedArray())
+            if (DEBUG) Log.e("LogCat", listOf(*msgs).toString())
         }
-        externalLogger?.logError(*m.toTypedArray())
-        if (DEBUG) Log.e("LogCat", listOf(*msgs).toString())
     }
 
     fun logException(e: Throwable) {
@@ -48,22 +50,26 @@ object LogCat {
 
 
     fun logException(e: Throwable?, vararg msgs: Any?) {
-        val m = mutableListOf(*msgs).also {
-            it.add(0, "LogCat")
-            it.add(1, method)
+        if (DEBUG) {
+            val m = mutableListOf(*msgs).also {
+                it.add(0, "LogCat")
+                it.add(1, method)
+            }
+            externalLogger?.logException(e, *m.toTypedArray())
+            Log.e("LogCat", listOf(*msgs).toString(), e)
         }
-        externalLogger?.logException(e, *m.toTypedArray())
-        if (DEBUG) Log.e("LogCat", listOf(*msgs).toString(), e)
     }
 
 
     fun log(vararg msgs: Any?) {
-        val m = mutableListOf(*msgs).also {
-            it.add(0, "LogCat")
-            it.add(1, method)
+        if (DEBUG) {
+            val m = mutableListOf(*msgs).also {
+                it.add(0, "LogCat")
+                it.add(1, method)
+            }
+            externalLogger?.log(*m.toTypedArray())
+            Log.d("LogCat", listOf(*msgs).toString())
         }
-        externalLogger?.log(*m.toTypedArray())
-        if (DEBUG) Log.d("LogCat", listOf(*msgs).toString())
     }
 
     interface ExternalLogger {

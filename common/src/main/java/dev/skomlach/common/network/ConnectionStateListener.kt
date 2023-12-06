@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,6 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import java.util.concurrent.atomic.AtomicBoolean
 
-@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 class ConnectionStateListener {
 
     private val isConnectionOk = AtomicBoolean(false)

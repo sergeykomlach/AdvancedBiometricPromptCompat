@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project: https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +34,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
-@Deprecated("This functional no longer used in Biometric-Common library and will be removed soon")
 internal class Ping(private val connectionStateListener: ConnectionStateListener) {
     private val patternMeta =
         Pattern.compile("<meta(.*?)>") //compile RegEx to extract all <meta/> tags
@@ -197,13 +196,11 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         val relValue = attributes["property"]
         return if ("og:url".equals(relValue, ignoreCase = true)) attributes["content"] else null
     }
-
     private fun isOriginFromMeta(meta: String): Boolean {
         val attributes = parseHtmlTagAttributes(meta)
         val relValue = attributes["content"]?.lowercase()
         return relValue == "origin"
     }
-
     private fun getUrlFromRel(rel: String): String? {
         val attributes = parseHtmlTagAttributes(rel)
         val relValue = attributes["rel"]

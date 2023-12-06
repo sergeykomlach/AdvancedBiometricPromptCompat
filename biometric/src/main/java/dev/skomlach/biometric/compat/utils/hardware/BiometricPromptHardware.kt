@@ -186,19 +186,19 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 if (packageManager.hasSystemFeature(f)) {
                     if ((f.endsWith(".face") || f.contains(".face.")) &&
                         type == BiometricType.BIOMETRIC_FACE
-                    ) return true
+                    ) return !biometricIsServiceBased("face")
                     if ((f.endsWith(".iris") || f.contains(".iris.")) &&
                         type == BiometricType.BIOMETRIC_IRIS
-                    ) return true
+                    ) return !biometricIsServiceBased("iris")
                     if ((f.endsWith(".palm") || f.contains(".palm.")) &&
                         type == BiometricType.BIOMETRIC_PALMPRINT
-                    ) return true
+                    ) return !biometricIsServiceBased("palm")
                     if ((f.endsWith(".voice") || f.contains(".voice.")) &&
                         type == BiometricType.BIOMETRIC_VOICE
-                    ) return true
+                    ) return !biometricIsServiceBased("voice")
                     if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
                         type == BiometricType.BIOMETRIC_HEARTRATE
-                    ) return true
+                    ) return !biometricIsServiceBased("heartrate")
                 }
             }
 
@@ -206,6 +206,29 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         return false
     }
 
+    private fun biometricIsServiceBased(string: String): Boolean {
+        //SK: should work properly with system apps
+        try {
+            val packages = appContext.packageManager.getInstalledPackages(0)
+            packages.forEach { pi ->
+                val s = pi.packageName.lowercase()
+                if (s.contains(string) &&
+                    (s.contains(string + "id") ||
+                            s.contains("scanner") ||
+                            s.contains("recognition") ||
+                            s.contains("lock") ||
+                            s.contains("auth")
+                            )
+                ) {
+                    e("biometricIsServiceBased ${pi.packageName}")
+                    return true
+                }
+            }
+        } catch (e: Throwable) {
+            e("BiometricPromptHardware", e)
+        }
+        return false
+    }
 
     //More or less ok this one
     private fun isLockedOutForType(type: BiometricType): Boolean =

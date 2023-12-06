@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package  dev.skomlach.common.themes.monet.colors
+package dev.skomlach.common.themes.monet.colors
 
 import kotlin.math.pow
 
