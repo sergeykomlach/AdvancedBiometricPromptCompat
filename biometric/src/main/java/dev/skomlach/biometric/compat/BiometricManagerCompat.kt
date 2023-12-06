@@ -386,15 +386,6 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-
-        //Some device not support BiometricAuth in landscape mode
-        //Example: OnePlus 8T (Android 13), Samsung A22 (Android 11)
-        if (!MultiWindowSupport.isTablet() &&
-            (MultiWindowSupport.get().screenOrientation != Configuration.ORIENTATION_PORTRAIT || Resources.getSystem().configuration.orientation != Configuration.ORIENTATION_PORTRAIT) && //landscape
-            MultiWindowSupport.get().isInMultiWindow
-        )//split screen
-            return true
-
         var result = false
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
