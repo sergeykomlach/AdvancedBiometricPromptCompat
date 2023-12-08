@@ -21,12 +21,30 @@ package dev.skomlach.common.contextprovider
 
 import android.content.Context
 import android.os.Build
+import android.provider.Settings
 import android.view.Display
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.hardware.display.DisplayManagerCompat
 import dev.skomlach.common.misc.Utils.isAtLeastR
 
+fun Context.animationsEnabled(): Boolean =
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) true else
+        !(Settings.Global.getFloat(
+            contentResolver,
+            Settings.Global.ANIMATOR_DURATION_SCALE,
+            1.0f
+        ) == 0f
+                && Settings.Global.getFloat(
+            contentResolver,
+            Settings.Global.TRANSITION_ANIMATION_SCALE,
+            1.0f
+        ) == 0f
+                && Settings.Global.getFloat(
+            contentResolver,
+            Settings.Global.WINDOW_ANIMATION_SCALE,
+            1.0f
+        ) == 0f)
 
 fun Context.getFixedContext(): Context {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {

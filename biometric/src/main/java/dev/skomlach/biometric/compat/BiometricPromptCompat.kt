@@ -225,10 +225,22 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
-                    (builder.getBiometricAuthRequest().api == BiometricApi.AUTO && HardwareAccessImpl.getInstance(
-                        builder.getBiometricAuthRequest()
-                    ).isNewBiometricApi
-                            )
+                    if (builder.getBiometricAuthRequest().api == BiometricApi.AUTO && HardwareAccessImpl.getInstance(
+                            builder.getBiometricAuthRequest()
+                        ).isNewBiometricApi
+                    ) {
+                        var found = false
+                        for (v in builder.getPrimaryAvailableTypes()) {
+                            val request = BiometricAuthRequest(BiometricApi.BIOMETRIC_API, v)
+                            if (BiometricManagerCompat.isBiometricReadyForUsage(request)) {
+                                found = true
+                                break
+                            }
+                        }
+                        found
+                    } else {
+                        false
+                    }
         BiometricLoggerImpl.d(
             "BiometricPromptCompat.IBiometricPromptImpl - " +
                     "$isBiometricPrompt"
