@@ -55,7 +55,7 @@ object ActiveWindow {
         }
     }
 
-    fun getActiveWindow(list: List<View>): View {
+    fun getActiveWindow(list: List<View>): View? {
         var topView: View? = null
         for (i in list.indices) {
             val view = list[i]
@@ -75,11 +75,8 @@ object ActiveWindow {
                 e(e, "ActiveWindow.getActiveView")
             }
         }
-        if (topView != null) {
-            e("ActiveWindow.getActiveView-$topView")
-            return topView
-        }
-        throw IllegalStateException("Unable to find Active Window to attach")
+        e("ActiveWindow.getActiveView-$topView")
+        return topView
     }
 
     fun getActiveWindows(activity: FragmentActivity?): List<View> {

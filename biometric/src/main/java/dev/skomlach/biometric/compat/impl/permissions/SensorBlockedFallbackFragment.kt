@@ -55,7 +55,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                     val windowDoNotLoseFocus = try {
                         ActiveWindow.getActiveWindow(
                             ActiveWindow.getActiveWindows(activity).toMutableList()
-                        ).hasWindowFocus()
+                        )?.hasWindowFocus() == true
                     } catch (e: Throwable) {
                         false
                     }
@@ -99,7 +99,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                         val windowDoNotLoseFocus = try {
                             ActiveWindow.getActiveWindow(
                                 ActiveWindow.getActiveWindows(activity).toMutableList()
-                            ).hasWindowFocus()
+                            )?.hasWindowFocus() == true
                         } catch (e: Throwable) {
                             false
                         }

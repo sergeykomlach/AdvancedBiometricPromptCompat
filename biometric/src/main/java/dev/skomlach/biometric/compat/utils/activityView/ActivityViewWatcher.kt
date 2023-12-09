@@ -30,7 +30,7 @@ class ActivityViewWatcher(
 ) {
     private val views = ActiveWindow.getActiveWindows(compatBuilder.getActivity()).toMutableList()
     private val activeView = ActiveWindow.getActiveWindow(views)
-    private val windowForegroundBlurring =
+    private val windowForegroundBlurring : WindowForegroundBlurring? = if(activeView == null) null else
         WindowForegroundBlurring(
             compatBuilder,
             activeView.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup,
@@ -55,7 +55,7 @@ class ActivityViewWatcher(
         for (back in backgroundBlurs) {
             back.setupListeners()
         }
-        windowForegroundBlurring.setupListeners()
+        windowForegroundBlurring?.setupListeners()
 
     }
 
@@ -64,7 +64,7 @@ class ActivityViewWatcher(
         for (back in backgroundBlurs) {
             back.resetListeners()
         }
-        windowForegroundBlurring.resetListeners()
+        windowForegroundBlurring?.resetListeners()
 
     }
 
