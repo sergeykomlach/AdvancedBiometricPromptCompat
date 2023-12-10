@@ -115,8 +115,8 @@ class WindowForegroundBlurring(
                 contentView = v
             }
         }
-        ExecutorHelper.post {
-            @SuppressLint("ClickableViewAccessibility")
+
+        @SuppressLint("ClickableViewAccessibility")
             v = LayoutInflater.from(ContextWrapper(context))
                 .inflate(R.layout.blurred_screen, null, false).apply {
                     tag = tag
@@ -140,7 +140,7 @@ class WindowForegroundBlurring(
                     } else
                         ViewCompat.setBackground(this, ColorDrawable(Color.TRANSPARENT))
                 }
-        }
+
     }
 
     private fun updateBackground() {
@@ -222,7 +222,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners - $v")
 
     }
 
@@ -426,7 +426,7 @@ class WindowForegroundBlurring(
     }
 
     private fun setIconState(type: BiometricType?, iconStates: IconStates?) {
-        BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
+//        BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
         try {
             biometricsLayout?.let { biometrics_layout ->
                 val color = if (iconStates == null) defaultColor else when (iconStates) {
