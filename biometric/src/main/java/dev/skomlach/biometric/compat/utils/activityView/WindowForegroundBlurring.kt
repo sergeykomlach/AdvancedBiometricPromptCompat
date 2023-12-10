@@ -222,7 +222,7 @@ class WindowForegroundBlurring(
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners - $v")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
 
     }
 
@@ -426,7 +426,7 @@ class WindowForegroundBlurring(
     }
 
     private fun setIconState(type: BiometricType?, iconStates: IconStates?) {
-//        BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
+        BiometricLoggerImpl.d("${this.javaClass.name}.setIconState $type=$iconStates")
         try {
             biometricsLayout?.let { biometrics_layout ->
                 val color = if (iconStates == null) defaultColor else when (iconStates) {
