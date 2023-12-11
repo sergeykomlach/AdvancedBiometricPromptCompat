@@ -19186,6 +19186,11 @@
    "model": "C6L Max"
   },
   {
+   "device": "C0210",
+   "name": "C6L MAX",
+   "model": "C6L Max"
+  },
+  {
    "device": "C090P",
    "name": "C6x",
    "model": "C6x"
@@ -23868,6 +23873,11 @@
   }
  ],
  "Cello": [
+  {
+   "device": "sadang",
+   "name": "Cello",
+   "model": "cello 4K Android TV"
+  },
   {
    "device": "sadang",
    "name": "Cello",
@@ -56545,6 +56555,11 @@
   {
    "device": "HS7731ESP",
    "name": "Hisense U605",
+   "model": "HWCD101E"
+  },
+  {
+   "device": "HS7731ESP",
+   "name": "Hisense U605",
    "model": "Hisense M50 Lite"
   },
   {
@@ -58058,6 +58073,11 @@
    "model": "Hisense E76mini"
   },
   {
+   "device": "hirano",
+   "name": "emeishan",
+   "model": "SmartTV"
+  },
+  {
    "device": "hamamatsucho",
    "name": "fushan_2",
    "model": "HiSmart TV"
@@ -59153,6 +59173,16 @@
   }
  ],
  "Honor": [
+  {
+   "device": "HNMAA",
+   "name": "HONOR 100",
+   "model": "MAA-AN00"
+  },
+  {
+   "device": "HNMAP",
+   "name": "HONOR 100 Pro",
+   "model": "MAA-AN10"
+  },
   {
    "device": "HNNTH",
    "name": "HONOR 50",
@@ -75373,6 +75403,11 @@
    "device": "itel-A666L",
    "name": "itel P55",
    "model": "itel A666L"
+  },
+  {
+   "device": "itel-A666LN",
+   "name": "itel P55",
+   "model": "itel A666LN"
   },
   {
    "device": "itel-P661N",
@@ -94251,6 +94286,11 @@
    "model": "TB330FU"
   },
   {
+   "device": "TB330XU",
+   "name": "Lenovo Tab M11",
+   "model": "TB330XU"
+  },
+  {
    "device": "7305F",
    "name": "Lenovo Tab M7",
    "model": "Lenovo TB-7305F"
@@ -109445,6 +109485,11 @@
    "model": "motorola razr 40 ultra"
   },
   {
+   "device": "lynkco",
+   "name": "motorola razr 40s",
+   "model": "motorola razr 40s"
+  },
+  {
    "device": "smith",
    "name": "motorola razr 5G",
    "model": "motorola razr 5G"
@@ -113246,6 +113291,16 @@
   }
  ],
  "Nautilus": [
+  {
+   "device": "belford",
+   "name": "Digital Experience",
+   "model": "Infotainment-system"
+  },
+  {
+   "device": "belford",
+   "name": "Digital Experience",
+   "model": "SYNC"
+  },
   {
    "device": "nftm_lar",
    "name": "NFTM-LAR",
@@ -135737,6 +135792,11 @@
    "model": "S19 Max Pro S"
   },
   {
+   "device": "S19MaxProSEdge",
+   "name": "S19 Max Pro S Edge",
+   "model": "S19 Max Pro S Edge"
+  },
+  {
    "device": "S19_Max_Pro_S_Zoom",
    "name": "S19 Max Pro S Zoom",
    "model": "S19 Max Pro S Zoom"
@@ -148356,6 +148416,11 @@
    "model": "SM-S711B"
   },
   {
+   "device": "r11s",
+   "name": "Galaxy S23 FE",
+   "model": "SM-S711N"
+  },
+  {
    "device": "SC-52D",
    "name": "Galaxy S23 Ultra",
    "model": "SC-52D"
@@ -153628,6 +153693,11 @@
   {
    "device": "b5q",
    "name": "Galaxy Z Flip5",
+   "model": "SM-F731Q"
+  },
+  {
+   "device": "b5q",
+   "name": "Galaxy Z Flip5",
    "model": "SM-F731U"
   },
   {
@@ -153779,6 +153849,11 @@
    "device": "q5q",
    "name": "Galaxy Z Fold5",
    "model": "SM-F946N"
+  },
+  {
+   "device": "q5q",
+   "name": "Galaxy Z Fold5",
+   "model": "SM-F946Q"
   },
   {
    "device": "q5q",
@@ -178541,6 +178616,16 @@
    "model": "TECNO Mobile BG6"
   },
   {
+   "device": "TECNO-Mobile-KJ5n",
+   "name": "TECNO Mobile SPARK 20",
+   "model": "TECNO Mobile KJ5n"
+  },
+  {
+   "device": "TECNO-Mobile-BG7n",
+   "name": "TECNO Mobile SPARK 20C",
+   "model": "TECNO Mobile BG7n"
+  },
+  {
    "device": "TECNO-Mobile-KI5q",
    "name": "TECNO SPARK 10",
    "model": "TECNO Mobile KI5q"
@@ -185056,6 +185141,13 @@
    "model": "VeidooT30_EEA"
   }
  ],
+ "Veld": [
+  {
+   "device": "Veld_Board",
+   "name": "Veld Board",
+   "model": "SXX01G"
+  }
+ ],
  "Venso": [
   {
    "device": "CX-508",
@@ -188799,6 +188891,11 @@
    "model": "V2324A"
   },
   {
+   "device": "V2309",
+   "name": "X100 Pro",
+   "model": "V2309"
+  },
+  {
    "device": "X5",
    "name": "X5",
    "model": "vivo X5"
@@ -189422,6 +189519,11 @@
    "device": "PD2304",
    "name": "iQOO 11S",
    "model": "V2304A"
+  },
+  {
+   "device": "I2220",
+   "name": "iQOO 12",
+   "model": "I2220"
   },
   {
    "device": "PD2307",
@@ -211171,6 +211273,11 @@
    "model": "MID8016"
   },
   {
+   "device": "PM82T",
+   "name": "PM82T",
+   "model": "PM82T"
+  },
+  {
    "device": "YOC",
    "name": "onn. 4K Streaming Box",
    "model": "onn. 4K Streaming Box"
@@ -211787,6 +211894,11 @@
    "device": "RE5C33",
    "name": "realme GT5 240W",
    "model": "RMX3823"
+  },
+  {
+   "device": "RE5C37",
+   "name": "realme GT5 Pro",
+   "model": "RMX3888"
   },
   {
    "device": "RMX2117L1",

@@ -180,19 +180,12 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         val keySize = 2048
         val subject = X500Principal("CN=${name}")
         val serialNumber = BigInteger.valueOf(1337)
-        val validityStartCalendar = Calendar.getInstance()
-        val validityEndCalendar = Calendar.getInstance()
-        validityEndCalendar.add(Calendar.YEAR, 1000)
-        val validityStartDate = validityStartCalendar.time
-        val validityEndDate = validityEndCalendar.time
         //SK: See https://doridori.github.io/android-security-the-forgetful-keystore/
         return KeyPairGeneratorSpec.Builder(context)
             .setAlias(name)
             .setKeySize(keySize)
             .setSubject(subject)
             .setSerialNumber(serialNumber)
-            .setStartDate(validityStartDate)
-            .setEndDate(validityEndDate)
             .build()
 
     }
