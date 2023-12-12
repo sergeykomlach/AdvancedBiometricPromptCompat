@@ -4356,6 +4356,11 @@
    "device": "hsw4026atl",
    "name": "XStream Smart Box",
    "model": "hsw4026atl"
+  },
+  {
+   "device": "VIP7220SIAI",
+   "name": "Xstream4_AR",
+   "model": "Xstream4_AR"
   }
  ],
  "Aiuto": [
@@ -6738,6 +6743,13 @@
    "device": "TBX10",
    "name": "TBX10",
    "model": "TBX10"
+  }
+ ],
+ "AngelTech": [
+  {
+   "device": "P80",
+   "name": "P80",
+   "model": "P80"
   }
  ],
  "Antel": [
@@ -16349,6 +16361,11 @@
    "model": "RM8604"
   },
   {
+   "device": "RP6504",
+   "name": "RP6504",
+   "model": "RP6504"
+  },
+  {
    "device": "RP7504",
    "name": "RP7504",
    "model": "RP7504"
@@ -19409,6 +19426,11 @@
    "device": "G0790UU",
    "name": "G40",
    "model": "G40"
+  },
+  {
+   "device": "G0950",
+   "name": "G43",
+   "model": "G43"
   },
   {
    "device": "G0090",
@@ -40253,6 +40275,11 @@
    "model": "D106_EEA"
   },
   {
+   "device": "D118_EEA",
+   "name": "D118_EEA",
+   "model": "D118_EEA"
+  },
+  {
    "device": "K104",
    "name": "K104",
    "model": "K104"
@@ -47132,6 +47159,11 @@
    "device": "corsola_cheets",
    "name": "Mediatek MT8186 Chromebook",
    "model": "corsola"
+  },
+  {
+   "device": "staryu_cheets",
+   "name": "Mediatek MT8186 Tablet",
+   "model": "staryu"
   },
   {
    "device": "asurada_cheets",
@@ -71791,6 +71823,11 @@
    "model": "Infinix X612B"
   },
   {
+   "device": "Infinix-X6525B",
+   "name": "SMRAT 8 PRO",
+   "model": "Infinix X6525B"
+  },
+  {
    "device": "INFINIX_X511",
    "name": "SURF 2",
    "model": "Infinix X511"
@@ -76341,6 +76378,13 @@
    "device": "mountbaker",
    "name": "JAM",
    "model": "2K SMART TV"
+  }
+ ],
+ "Jambo_Technology": [
+  {
+   "device": "JP1",
+   "name": "JamboPhone",
+   "model": "JP1"
   }
  ],
  "Janam": [
@@ -94131,16 +94175,6 @@
    "model": "Lenovo TB-X6E6N"
   },
   {
-   "device": "J606F",
-   "name": "Lenovo Tab K11",
-   "model": "Lenovo TB-J606F"
-  },
-  {
-   "device": "J606N",
-   "name": "Lenovo Tab K11",
-   "model": "Lenovo TB-J606N"
-  },
-  {
    "device": "TB-8506F",
    "name": "Lenovo Tab K8",
    "model": "Lenovo TB-8506F"
@@ -94524,6 +94558,16 @@
    "device": "PB-6505Y",
    "name": "Lenovo Tab V7",
    "model": "Lenovo PB-6505Y"
+  },
+  {
+   "device": "J606F",
+   "name": "Lenovo Tab m11",
+   "model": "Lenovo TB-J606F"
+  },
+  {
+   "device": "J606N",
+   "name": "Lenovo Tab m11",
+   "model": "Lenovo TB-J606N"
   },
   {
    "device": "A101LV",
@@ -95714,6 +95758,11 @@
    "device": "TB330FU",
    "name": "联想平板电脑 启天K10c",
    "model": "TB330FU"
+  },
+  {
+   "device": "TB330XC",
+   "name": "联想平板电脑 启天K10c",
+   "model": "TB330XC"
   },
   {
    "device": "TB230FC",
@@ -107845,6 +107894,11 @@
    "model": "motorola one"
   },
   {
+   "device": "hayward",
+   "name": "MotorolaTV",
+   "model": "MotorolaTV"
+  },
+  {
    "device": "XT389",
    "name": "Motosmart",
    "model": "XT389"
@@ -112081,6 +112135,11 @@
    "device": "LAVIETab102K1",
    "name": "LAVIE Tab 102K1",
    "model": "LAVIE Tab 102K1"
+  },
+  {
+   "device": "LAVIETab9QHD1",
+   "name": "LAVIE Tab 9QHD1",
+   "model": "LAVIE Tab 9QHD1"
   },
   {
    "device": "PC-TE410JAW",
@@ -123043,6 +123102,11 @@
    "model": "22127PC95I"
   },
   {
+   "device": "gale",
+   "name": "POCO C65",
+   "model": "2310FPCA4I"
+  },
+  {
    "device": "gust",
    "name": "POCO C65",
    "model": "2310FPCA4G"
@@ -123156,6 +123220,11 @@
    "device": "rosemary",
    "name": "POCO M5s",
    "model": "2207117BPG"
+  },
+  {
+   "device": "sky",
+   "name": "POCO M6 Pro 5G",
+   "model": "23076PC4BI"
   },
   {
    "device": "phoenixin",
@@ -134733,6 +134802,21 @@
    "model": "23106RN0DA"
   },
   {
+   "device": "gale",
+   "name": "Redmi 13C",
+   "model": "2311DRN14I"
+  },
+  {
+   "device": "gust",
+   "name": "Redmi 13C",
+   "model": "23108RN04Y"
+  },
+  {
+   "device": "air",
+   "name": "Redmi 13C 5G",
+   "model": "23124RN87I"
+  },
+  {
    "device": "cereus",
    "name": "Redmi 6",
    "model": "Redmi 6"
@@ -135359,12 +135443,12 @@
   },
   {
    "device": "garnet",
-   "name": "Redmi Note 13 Pro",
+   "name": "Redmi Note 13 Pro 5G",
    "model": "2312CRAD3C"
   },
   {
    "device": "garnet",
-   "name": "Redmi Note 13 Pro",
+   "name": "Redmi Note 13 Pro 5G",
    "model": "2312DRA50C"
   },
   {
@@ -187511,11 +187595,6 @@
    "model": "I2012"
   },
   {
-   "device": "2017",
-   "name": "I2017",
-   "model": "I2017"
-  },
-  {
    "device": "I2127",
    "name": "I2127",
    "model": "I2127"
@@ -187841,11 +187920,6 @@
    "model": "V1950A"
   },
   {
-   "device": "PD1955",
-   "name": "V1955A",
-   "model": "V1955A"
-  },
-  {
    "device": "PD1962",
    "name": "V1962A",
    "model": "V1962A"
@@ -187956,19 +188030,9 @@
    "model": "V2024"
   },
   {
-   "device": "PD2024",
-   "name": "V2024A",
-   "model": "V2024A"
-  },
-  {
    "device": "2025",
    "name": "V2025",
    "model": "V2025"
-  },
-  {
-   "device": "PD2024",
-   "name": "V2025A",
-   "model": "V2025A"
   },
   {
    "device": "2026",
@@ -188557,11 +188621,6 @@
   },
   {
    "device": "PD2136",
-   "name": "V2136A",
-   "model": "V2136A"
-  },
-  {
-   "device": "PD2136",
    "name": "V2136GA",
    "model": "V2136GA"
   },
@@ -188836,6 +188895,11 @@
    "model": "vivo V3"
   },
   {
+   "device": "V2317",
+   "name": "V30 Lite",
+   "model": "V2314"
+  },
+  {
    "device": "V3Lite",
    "name": "V3Lite",
    "model": "vivo V3Lite"
@@ -188879,6 +188943,11 @@
    "device": "1851",
    "name": "V9 Pro",
    "model": "vivo 1851"
+  },
+  {
+   "device": "PD2256",
+   "name": "X Flip",
+   "model": "V2256A"
   },
   {
    "device": "PD2309",
@@ -189111,6 +189180,11 @@
    "model": "vivo Y11"
   },
   {
+   "device": "PD2317",
+   "name": "Y12",
+   "model": "V2317A"
+  },
+  {
    "device": "Y15",
    "name": "Y15",
    "model": "vivo Y15"
@@ -189271,6 +189345,11 @@
    "model": "V2236A"
   },
   {
+   "device": "PD2317",
+   "name": "Y33t",
+   "model": "V2317A"
+  },
+  {
    "device": "PD1502L",
    "name": "Y35",
    "model": "vivo Y35"
@@ -189379,6 +189458,11 @@
    "device": "PD2164",
    "name": "Y55s",
    "model": "V2164A"
+  },
+  {
+   "device": "PD2279",
+   "name": "Y55t",
+   "model": "V2279A"
   },
   {
    "device": "V2225",
@@ -189534,6 +189618,31 @@
    "device": "PD2329",
    "name": "iQOO 12 Pro",
    "model": "V2329A"
+  },
+  {
+   "device": "PD1955",
+   "name": "iQOO 3",
+   "model": "V1955A"
+  },
+  {
+   "device": "PD2024",
+   "name": "iQOO 5",
+   "model": "V2024A"
+  },
+  {
+   "device": "PD2024",
+   "name": "iQOO 5 Pro",
+   "model": "V2025A"
+  },
+  {
+   "device": "PD2136",
+   "name": "iQOO 8",
+   "model": "V2136A"
+  },
+  {
+   "device": "2017",
+   "name": "iQOO 8 Legend",
+   "model": "I2017"
   },
   {
    "device": "2022",
@@ -190066,6 +190175,11 @@
    "model": "V2207A"
   },
   {
+   "device": "PD2190",
+   "name": "vivo S15e",
+   "model": "V2190A"
+  },
+  {
    "device": "PD2244",
    "name": "vivo S16",
    "model": "V2244A"
@@ -190089,11 +190203,6 @@
    "device": "PD2199",
    "name": "vivo T2",
    "model": "V2199GA"
-  },
-  {
-   "device": "PD2256",
-   "name": "vivo X Flip",
-   "model": "V2256A"
   },
   {
    "device": "PD2178",
@@ -202782,6 +202891,11 @@
    "device": "NX709J-UN",
    "name": "REDMAGIC 7Pro",
    "model": "NX709J"
+  },
+  {
+   "device": "NX769J",
+   "name": "REDMAGIC 9 Pro",
+   "model": "NX769J"
   },
   {
    "device": "mooncake",
