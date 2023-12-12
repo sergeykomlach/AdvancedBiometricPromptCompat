@@ -58,6 +58,32 @@ class PermissionsFragment : Fragment() {
         private val appContext = AndroidContext.appContext
         private const val LIST_KEY = "permissions_list"
         private const val INTENT_KEY = "PermissionsFragment.intent_key"
+
+        fun extractDescriptionsForPermissions(keys: List<String>): String? {
+            val permissionsList = PermissionUtils.getPermissions(keys)
+            val isLeftToRight =
+                TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR
+            if (permissionsList.isNotEmpty()) {
+                val sb = StringBuilder()
+                for ((_, str) in permissionsList.keys.withIndex()) {
+                    val permName = permissionsList[str]
+                    if (!permName.isNullOrEmpty()) {
+                        if (permissionsList.size > 1) {
+                            if (isLeftToRight)
+                                sb.append("- $permName\n")
+                            else
+                                sb.append("\n$permName -")
+                        } else {
+                            sb.append("$permName")
+                        }
+                    }
+                }
+                // Ask for all permissions
+                return sb.toString().trim()
+            }
+            return null
+        }
+
         fun askForPermissions(
             activity: FragmentActivity,
             permissions: List<String>,
@@ -355,31 +381,6 @@ class PermissionsFragment : Fragment() {
                 }
             }
         }.show()
-    }
-
-    private fun extractDescriptionsForPermissions(keys: List<String>): String? {
-        val permissionsList = PermissionUtils.getPermissions(keys)
-        val isLeftToRight =
-            TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR
-        if (permissionsList.isNotEmpty()) {
-            val sb = StringBuilder()
-            for ((_, str) in permissionsList.keys.withIndex()) {
-                val permName = permissionsList[str]
-                if (!permName.isNullOrEmpty()) {
-                    if (permissionsList.size > 1) {
-                        if (isLeftToRight)
-                            sb.append("- $permName\n")
-                        else
-                            sb.append("\n$permName -")
-                    } else {
-                        sb.append("$permName")
-                    }
-                }
-            }
-            // Ask for all permissions
-            return sb.toString().trim()
-        }
-        return null
     }
 
 
