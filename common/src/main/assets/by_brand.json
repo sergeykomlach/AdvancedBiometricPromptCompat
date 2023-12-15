@@ -6406,6 +6406,11 @@
    "model": "STARACTIVE"
   },
   {
+   "device": "DIW377AUSA",
+   "name": "Stream V2",
+   "model": "Stream"
+  },
+  {
    "device": "T10",
    "name": "T10",
    "model": "T10"
@@ -21359,6 +21364,13 @@
    "model": "M8047IU"
   }
  ],
+ "Brisanet": [
+  {
+   "device": "IMTM4000RA",
+   "name": "brisaboxTV",
+   "model": "IMTM4000RA"
+  }
+ ],
  "Britania": [
   {
    "device": "sunnyvale",
@@ -26367,6 +26379,11 @@
    "device": "QTab8_LTE",
    "name": "QTab8_LTE",
    "model": "QTab8_LTE"
+  },
+  {
+   "device": "Qtab",
+   "name": "QTabPro",
+   "model": "QTabPro"
   },
   {
    "device": "Qtab10",
@@ -40565,6 +40582,11 @@
    "device": "hongkong",
    "name": "FPD",
    "model": "EcoTV Pro D"
+  },
+  {
+   "device": "lavender",
+   "name": "FPD",
+   "model": "EcoTV Plus D"
   }
  ],
  "FPT Telecom": [
@@ -59333,6 +59355,11 @@
   {
    "device": "HNELN-Q",
    "name": "HONOR Pad X9",
+   "model": "ELN-L03"
+  },
+  {
+   "device": "HNELN-Q",
+   "name": "HONOR Pad X9",
    "model": "ELN-L09"
   },
   {
@@ -59479,6 +59506,21 @@
    "device": "HNRBN-Q",
    "name": "HONOR X8a 5G",
    "model": "RBN-NX3"
+  },
+  {
+   "device": "HNLLY-Q",
+   "name": "HONOR X8b",
+   "model": "LLY-LX1"
+  },
+  {
+   "device": "HNLLY-Q",
+   "name": "HONOR X8b",
+   "model": "LLY-LX2"
+  },
+  {
+   "device": "HNLLY-Q",
+   "name": "HONOR X8b",
+   "model": "LLY-LX3"
   },
   {
    "device": "HNANY-Q1",
@@ -78468,6 +78510,11 @@
    "device": "mountbaker",
    "name": "VOXELECTRONICS",
    "model": "2K SMART TV"
+  },
+  {
+   "device": "lavender",
+   "name": "WYBOR",
+   "model": "4K SMART TV"
   },
   {
    "device": "hongkong",
@@ -109129,6 +109176,16 @@
    "model": "moto g82 5G"
   },
   {
+   "device": "bangkk",
+   "name": "moto g84 5G",
+   "model": "moto g53 5G"
+  },
+  {
+   "device": "bangkk",
+   "name": "moto g84 5G",
+   "model": "moto g84 5G"
+  },
+  {
    "device": "robusta",
    "name": "moto p30",
    "model": "XT1943-1"
@@ -109307,6 +109364,16 @@
    "device": "lyriq",
    "name": "motorola edge 40",
    "model": "motorola edge 40"
+  },
+  {
+   "device": "manaus",
+   "name": "motorola edge 40 neo",
+   "model": "motorola edge (2022)"
+  },
+  {
+   "device": "manaus",
+   "name": "motorola edge 40 neo",
+   "model": "motorola edge 40 neo"
   },
   {
    "device": "rtwo",
@@ -136384,6 +136451,11 @@
    "model": "NovaTab_R10"
   },
   {
+   "device": "NovaTab_R10s",
+   "name": "NovaTab_R10s",
+   "model": "R10s"
+  },
+  {
    "device": "S1",
    "name": "S1",
    "model": "S1"
@@ -140097,11 +140169,6 @@
   {
    "device": "a05s",
    "name": "Galaxy A05s",
-   "model": "SM-E145F"
-  },
-  {
-   "device": "a05s",
-   "name": "Galaxy A05s",
    "model": "SM-M145F"
   },
   {
@@ -140383,6 +140450,56 @@
    "device": "a14xm",
    "name": "Galaxy A14 5G",
    "model": "SM-S146VL"
+  },
+  {
+   "device": "a15",
+   "name": "Galaxy A15",
+   "model": "SM-A155F"
+  },
+  {
+   "device": "a15",
+   "name": "Galaxy A15",
+   "model": "SM-A155M"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A1560"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A156B"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A156E"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A156M"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A156U"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A156U1"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-A156W"
+  },
+  {
+   "device": "a15x",
+   "name": "Galaxy A15 5G",
+   "model": "SM-S156V"
   },
   {
    "device": "a2corelte",
@@ -143158,6 +143275,11 @@
    "device": "m13",
    "name": "Galaxy F13",
    "model": "SM-E135F"
+  },
+  {
+   "device": "a05s",
+   "name": "Galaxy F14",
+   "model": "SM-E145F"
   },
   {
    "device": "m14x",
@@ -174330,6 +174452,11 @@
    "model": "BeNeLux\""
   },
   {
+   "device": "ONT2HD",
+   "name": "ON T2 HD",
+   "model": "ONT2HD"
+  },
+  {
    "device": "UPT24K",
    "name": "UPT24K",
    "model": "UPT24K"
@@ -182891,6 +183018,11 @@
    "model": "MT09"
   },
   {
+   "device": "Active_T1",
+   "name": "Active T1 EEA",
+   "model": "MT09"
+  },
+  {
    "device": "BISON",
    "name": "BISON",
    "model": "BISON"
@@ -187595,6 +187727,11 @@
    "model": "I2012"
   },
   {
+   "device": "2017",
+   "name": "I2017",
+   "model": "I2017"
+  },
+  {
    "device": "I2127",
    "name": "I2127",
    "model": "I2127"
@@ -187920,6 +188057,11 @@
    "model": "V1950A"
   },
   {
+   "device": "PD1955",
+   "name": "V1955A",
+   "model": "V1955A"
+  },
+  {
    "device": "PD1962",
    "name": "V1962A",
    "model": "V1962A"
@@ -188030,9 +188172,19 @@
    "model": "V2024"
   },
   {
+   "device": "PD2024",
+   "name": "V2024A",
+   "model": "V2024A"
+  },
+  {
    "device": "2025",
    "name": "V2025",
    "model": "V2025"
+  },
+  {
+   "device": "PD2024",
+   "name": "V2025A",
+   "model": "V2025A"
   },
   {
    "device": "2026",
@@ -188618,6 +188770,11 @@
    "device": "PD2133",
    "name": "V2135A",
    "model": "V2135A"
+  },
+  {
+   "device": "PD2136",
+   "name": "V2136A",
+   "model": "V2136A"
   },
   {
    "device": "PD2136",
@@ -189620,31 +189777,6 @@
    "model": "V2329A"
   },
   {
-   "device": "PD1955",
-   "name": "iQOO 3",
-   "model": "V1955A"
-  },
-  {
-   "device": "PD2024",
-   "name": "iQOO 5",
-   "model": "V2024A"
-  },
-  {
-   "device": "PD2024",
-   "name": "iQOO 5 Pro",
-   "model": "V2025A"
-  },
-  {
-   "device": "PD2136",
-   "name": "iQOO 8",
-   "model": "V2136A"
-  },
-  {
-   "device": "2017",
-   "name": "iQOO 8 Legend",
-   "model": "I2017"
-  },
-  {
    "device": "2022",
    "name": "iQOO 9 Pro",
    "model": "I2022"
@@ -189715,9 +189847,19 @@
    "model": "V2302A"
   },
   {
+   "device": "PD2338",
+   "name": "iQOO Neo9",
+   "model": "V2338A"
+  },
+  {
    "device": "DPD2307",
    "name": "iQOO Pad",
    "model": "iPA2375"
+  },
+  {
+   "device": "DPD2305",
+   "name": "iQOO Pad Air",
+   "model": "iPA2451"
   },
   {
    "device": "2018",
