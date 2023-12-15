@@ -579,35 +579,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 !PermissionUtils.hasSelfPermissions(it)
             }
             if (nonGrantedPermissions.isNotEmpty()) {
-                builder.getActivity()?.let {
-                    BiometricManagerCompat.requestPermissions(
-                        it, nonGrantedPermissions
-                    ) {
-                        if (usedPermissions.any { s -> !PermissionUtils.hasSelfPermissions(s) }) {
-                            callbackOuter.onFailed(
-                                AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                                PermissionsFragment.extractDescriptionsForPermissions(
-                                    usedPermissions.filter { s ->
-                                        !PermissionUtils.hasSelfPermissions(s)
-                                    })
-                            )
-                            authFlowInProgress.set(false)
-                        } else {
-                            authTask.invoke()
-                        }
-                    }
-                } ?: run {
-                    callbackOuter.onFailed(
-                        AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                        PermissionsFragment.extractDescriptionsForPermissions(usedPermissions.filter { s ->
-                            !PermissionUtils.hasSelfPermissions(s)
-                        })
-                    )
-                    authFlowInProgress.set(false)
-
-                }
-
-
+                callbackOuter.onFailed(
+                    AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                    PermissionsFragment.extractDescriptionsForPermissions(usedPermissions.filter { s ->
+                        !PermissionUtils.hasSelfPermissions(s)
+                    })
+                )
+                authFlowInProgress.set(false)
             } else {
                 authTask.invoke()
             }
