@@ -394,21 +394,23 @@ object BiometricAuthentication {
 
     fun cancelAuthentication() {
         if (authInProgress.get()) {
-            d("BiometricAuthentication.cancelAuthentication")
-            for (method in availableBiometrics) {
-                val biometricModule = getAvailableBiometricModule(method)
-                if (biometricModule is FacelockOldModule) {
-                    biometricModule.stopAuth()
-                }
-                if (biometricModule is FaceunlockLavaModule) {
-                    biometricModule.stopAuth()
-                }
-            }
-            Core.cancelAuthentication()
-
-            init(null, availableBiometrics.filterNotNull())
-
             authInProgress.set(false)
+            d("BiometricAuthentication.cancelAuthentication")
+            ExecutorHelper.startOnBackground {
+                for (method in availableBiometrics) {
+                    val biometricModule = getAvailableBiometricModule(method)
+                    if (biometricModule is FacelockOldModule) {
+                        biometricModule.stopAuth()
+                    }
+                    if (biometricModule is FaceunlockLavaModule) {
+                        biometricModule.stopAuth()
+                    }
+                }
+                Core.cancelAuthentication()
+
+                init(null, availableBiometrics.filterNotNull())
+            }
+
         }
     }
 

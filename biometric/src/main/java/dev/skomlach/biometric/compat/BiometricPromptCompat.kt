@@ -381,7 +381,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        BiometricLoggerImpl.d("BiometricPromptCompat. start PermissionsFragment.askForPermissions")
         val authTask = {
             if (builder.getActivity() == null) {
                 BiometricLoggerImpl.e(
@@ -508,11 +507,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
                             BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             if (!builder.isSilentAuthEnabled()) {
-                                if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
-                                    BiometricNotificationManager.showNotification(
-                                        builder
-                                    )
-                                }
+                                activityViewWatcher?.setupListeners()
                                 builder.getActivity()?.let {
                                     StatusBarTools.setNavBarAndStatusBarColors(
                                         it.window,
@@ -531,44 +526,35 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         builder.getStatusBarColor()
                                     )
                                 }
-
-
-
-                                activityViewWatcher?.setupListeners()
+                                if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
+                                    BiometricNotificationManager.showNotification(
+                                        builder
+                                    )
+                                }
                             }
                             callbackOuter.onUIOpened()
                         }
                     }
 
                     override fun onUIClosed() {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                         if (isOpened.get()) {
                             isOpened.set(false)
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                             BiometricAuthentication.cancelAuthentication()//cancel previews and reinit for next usage
                             if (!builder.isSilentAuthEnabled()) {
-                                val closeAll = Runnable {
-                                    if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
-                                        BiometricNotificationManager.dismissAll()
-                                    }
-                                    builder.getActivity()?.let {
-                                        StatusBarTools.setNavBarAndStatusBarColors(
-                                            it.window,
-                                            builder.getNavBarColor(),
-                                            builder.getDividerColor(),
-                                            builder.getStatusBarColor()
-                                        )
-                                    }
-
-                                    activityViewWatcher?.resetListeners()
-                                    appBackgroundDetector.detachListeners()
-                                }
-                                ExecutorHelper.post(closeAll)
-                                val delay =
-                                    AndroidContext.appContext.resources.getInteger(
-                                        android.R.integer.config_longAnimTime
+                                activityViewWatcher?.resetListeners()
+                                appBackgroundDetector.detachListeners()
+                                builder.getActivity()?.let {
+                                    StatusBarTools.setNavBarAndStatusBarColors(
+                                        it.window,
+                                        builder.getNavBarColor(),
+                                        builder.getDividerColor(),
+                                        builder.getStatusBarColor()
                                     )
-                                        .toLong()
-                                ExecutorHelper.postDelayed(closeAll, delay)
+                                }
+                                if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
+                                    BiometricNotificationManager.dismissAll()
+                                }
                             }
                             authFlowInProgress.set(false)
                             callbackOuter.onUIClosed()
