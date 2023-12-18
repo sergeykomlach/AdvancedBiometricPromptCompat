@@ -320,7 +320,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ExecutorHelper.post {
                         callbackOuter.onFailed(
                             checkHardware,
-                            null
+                            if(checkHardware ==  AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR)
+                                BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest()).filter {
+                                    !PermissionUtils.hasSelfPermissions(it)
+                                }.joinToString(", ")  else null
                         )
                         authFlowInProgress.set(false)
                     }
