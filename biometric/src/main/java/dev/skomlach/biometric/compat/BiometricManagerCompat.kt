@@ -89,16 +89,12 @@ object BiometricManagerCompat {
 
                 BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D,
                 BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D,
-                BiometricMethod.FACE_SOTERAPI -> permission.add(
-                    "android.permission.USE_FACERECOGNITION"
-                )
+                BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
 
                 BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
                 BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
                 BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
-                    "android.permission.USE_FINGERPRINT"
-                )
+                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add("android.permission.USE_FINGERPRINT")
 
                 BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
                 BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
