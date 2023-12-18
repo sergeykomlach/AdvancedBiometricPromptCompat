@@ -587,7 +587,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
             }
         dialog?.authFinishedCopy = authFinished
-        d("BiometricPromptApi28Impl.checkAuthResultForPrimary():2222222222")
+        d("BiometricPromptApi28Impl.checkAuthResultForPrimary():")
         if (added && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && AuthResult.AuthResultState.SUCCESS == authResult) {
             Vibro.start()
         }
