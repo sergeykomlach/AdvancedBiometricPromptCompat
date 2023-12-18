@@ -341,16 +341,6 @@ object BiometricManagerCompat {
     }
 
     @JvmStatic
-    fun isBiometricAvailable(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api)
-    }
-
-    @JvmStatic
     fun isBiometricReadyForUsage(
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
@@ -358,7 +348,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) && hasEnrolled(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && PermissionUtils.hasSelfPermissions(getUsedPermissions(api))
     }
 
     @JvmStatic
@@ -369,7 +359,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && PermissionUtils.hasSelfPermissions(getUsedPermissions(api))
     }
 
     @JvmStatic
@@ -420,7 +410,7 @@ object BiometricManagerCompat {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
         }
-        val result = PermissionUtils.hasSelfPermissions(getUsedPermissions(api)) && if (api.api != BiometricApi.AUTO)
+        val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isHardwareAvailable
         else
             HardwareAccessImpl.getInstance(
