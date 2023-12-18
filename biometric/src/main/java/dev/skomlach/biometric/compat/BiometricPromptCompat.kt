@@ -54,7 +54,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
-import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
 import dev.skomlach.common.statusbar.StatusBarTools
@@ -339,6 +338,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
+        if(!PermissionUtils.hasSelfPermissions(BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest()))){
+            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - missed permissions")
+            return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
+        } else
         if (!BiometricManagerCompat.isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
@@ -572,24 +575,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 authenticateInternal(callback)
             }
         }
-        val checkPermissions = {
-            val usedPermissions =
-                BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())
-            val nonGrantedPermissions = usedPermissions.filter {
-                !PermissionUtils.hasSelfPermissions(it)
-            }
-            if (nonGrantedPermissions.isNotEmpty()) {
-                callbackOuter.onFailed(
-                    AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                    PermissionsFragment.extractDescriptionsForPermissions(usedPermissions.filter { s ->
-                        !PermissionUtils.hasSelfPermissions(s)
-                    })
-                )
-                authFlowInProgress.set(false)
-            } else {
-                authTask.invoke()
-            }
-        }
         if (!builder.isSilentAuthEnabled()) {
             if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                 BiometricNotificationManager.initNotificationsPreferences()
@@ -597,16 +582,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     builder.getActivity(),
                     BiometricNotificationManager.CHANNEL_ID,
                     {
-                        checkPermissions.invoke()
+                        authTask.invoke()
                     },
                     {
                         //continue anyway
-                        checkPermissions.invoke()
+                        authTask.invoke()
                     })
                 return
             }
         }
-        checkPermissions.invoke()
+        authTask.invoke()
     }
 
 

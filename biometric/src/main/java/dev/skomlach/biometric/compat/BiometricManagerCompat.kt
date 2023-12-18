@@ -24,8 +24,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.os.Build
 import android.provider.Settings
 import androidx.fragment.app.FragmentActivity
@@ -38,7 +36,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.Utils
-import dev.skomlach.common.multiwindow.MultiWindowSupport
+import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
@@ -426,7 +424,7 @@ object BiometricManagerCompat {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
         }
-        val result = if (api.api != BiometricApi.AUTO)
+        val result = PermissionUtils.hasSelfPermissions(getUsedPermissions(api)) && if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isHardwareAvailable
         else
             HardwareAccessImpl.getInstance(
