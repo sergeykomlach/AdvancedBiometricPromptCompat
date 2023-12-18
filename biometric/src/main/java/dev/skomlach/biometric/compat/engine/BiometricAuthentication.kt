@@ -321,6 +321,17 @@ object BiometricAuthentication {
         bundle: Bundle?
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) return
+        if(initInProgress.get()){
+            ExecutorHelper.startOnBackground{
+                while (initInProgress.get()){
+                    Thread.sleep(50)
+                }
+                ExecutorHelper.post{
+                    authenticate(biometricCryptographyPurpose, targetView, requestedMethods, listener, bundle)
+                }
+            }
+            return
+        }
         d("BiometricAuthentication.authenticate")
         var isAtLeastOneFired = false
         val hashMap = HashMap<Int, BiometricType?>()
