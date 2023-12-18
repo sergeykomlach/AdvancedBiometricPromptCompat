@@ -521,7 +521,7 @@ object BiometricManagerCompat {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
 
-        if (!isHardwareDetected(api) || isLockOut(api) || isBiometricSensorPermanentlyLocked(api))//Enroll cann't be started till access blocked
+        if (!isBiometricReadyForEnroll(api))//Enroll cann't be started till access blocked
             return false
 
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInitialized && BiometricAuthentication.openSettings(
