@@ -339,7 +339,15 @@ object BiometricManagerCompat {
         }
         return false
     }
-
+    @JvmStatic
+    fun isBiometricAvailable(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        return isHardwareDetected(api) && hasEnrolled(api) && PermissionUtils.hasSelfPermissions(getUsedPermissions(api))
+    }
     @JvmStatic
     fun isBiometricReadyForUsage(
         api: BiometricAuthRequest = BiometricAuthRequest(

@@ -848,8 +848,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             //Due to limitations, applicable only for Fingerprint
             if (deviceInfo?.model?.startsWith("OnePlus 9", ignoreCase = true) == true &&
-                BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest(type = BiometricType.BIOMETRIC_FINGERPRINT)) &&
-                BiometricManagerCompat.hasEnrolled(BiometricAuthRequest(type = BiometricType.BIOMETRIC_FINGERPRINT))
+                BiometricManagerCompat.isBiometricAvailable(BiometricAuthRequest(type = BiometricType.BIOMETRIC_FINGERPRINT))
             ) {
                 autoVerifyCryptoAfterSuccess = true
                 biometricCryptographyPurpose =
