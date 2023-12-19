@@ -60,6 +60,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.startActivity
 import java.lang.ref.SoftReference
+import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -322,12 +323,13 @@ object BiometricAuthentication {
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) return
         if(initInProgress.get()){
+            val reference = WeakReference(targetView)
             ExecutorHelper.startOnBackground{
                 while (initInProgress.get()){
-                    Thread.sleep(50)
+                    Thread.sleep(10)
                 }
                 ExecutorHelper.post{
-                    authenticate(biometricCryptographyPurpose, targetView, requestedMethods, listener, bundle)
+                    authenticate(biometricCryptographyPurpose, reference.get(), requestedMethods, listener, bundle)
                 }
             }
             return
