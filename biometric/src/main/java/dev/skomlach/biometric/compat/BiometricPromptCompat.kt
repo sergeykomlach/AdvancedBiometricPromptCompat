@@ -261,6 +261,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
     private var startTs = 0L
     fun authenticate(callbackOuter: AuthenticationCallback) {
+        BiometricLoggerImpl.d("BiometricPromptCompat.authenticate() stage1")
         startTs = System.currentTimeMillis()
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled()
@@ -286,7 +287,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        BiometricLoggerImpl.d("BiometricPromptCompat.authenticate()")
+        BiometricLoggerImpl.d("BiometricPromptCompat.authenticate() stage2")
         if (WideGamutBug.unsupportedColorMode(builder.getActivity())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
             callbackOuter.onFailed(
@@ -507,7 +508,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
                             BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             if (!builder.isSilentAuthEnabled()) {
-                                activityViewWatcher?.setupListeners()
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage0")
+                                ExecutorHelper.post{ activityViewWatcher?.setupListeners() }
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage1")
                                 builder.getActivity()?.let {
                                     StatusBarTools.setNavBarAndStatusBarColors(
                                         it.window,
@@ -526,12 +529,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         builder.getStatusBarColor()
                                     )
                                 }
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage2")
                                 if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
                                     BiometricNotificationManager.showNotification(
                                         builder
                                     )
                                 }
+                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage3")
                             }
+                            BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
                             callbackOuter.onUIOpened()
                         }
                     }
@@ -557,6 +563,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 }
                             }
                             authFlowInProgress.set(false)
+                            BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                             callbackOuter.onUIClosed()
                         }
                     }

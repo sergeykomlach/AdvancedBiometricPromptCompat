@@ -413,7 +413,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     @SuppressLint("RestrictedApi")
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
         try {
-
+            d("BiometricPromptApi28Impl.showSystemUi()")
             var biometricCryptoObject: BiometricCryptoObject? = null
             builder.getCryptographyPurpose()?.let {
                 try {
@@ -445,7 +445,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 else
                     null
 
-            d("BiometricPromptCompat.authenticate:  Crypto=$crpObject")
+            d("BiometricPromptApi28Impl.authenticate:  Crypto=$crpObject")
             if (crpObject != null) {
                 try {
                     authCallTimestamp.set(System.currentTimeMillis())

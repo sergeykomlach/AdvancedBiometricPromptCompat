@@ -331,9 +331,9 @@ class WindowForegroundBlurring(
                         }"
                     )
                     defaultColor =
-                        palette?.getVibrantColor(defColor)?.let { color ->
+                        palette?.getDominantColor(defColor)?.let { color ->
                             isDark = ColorUtil.isDark(color)
-                            DialogMainColor.getColor(context, isDark)
+                            DialogMainColor.getColor(context, !isDark)
                         } ?: defColor
                     BiometricLoggerImpl.d(
                         "${this.javaClass.name}.updateDefaultColor#2 isDark - ${
