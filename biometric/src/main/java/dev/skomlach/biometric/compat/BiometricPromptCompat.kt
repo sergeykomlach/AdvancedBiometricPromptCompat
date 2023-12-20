@@ -414,48 +414,50 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             val confirmed = result.toMutableSet()
                             try {
                                 BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded1 = $confirmed")
-                                //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
-                                if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
-                                    if (CryptographyManager.encryptData(
-                                            AndroidContext.appContext.packageName.toByteArray(
-                                                Charset.forName("UTF-8")
-                                            ), confirmed
-                                        ) == null
-                                    ) {
-                                        onCanceled()
-                                        return
-                                    } else {
-                                        val filtered = confirmed.map {
-                                            AuthenticationResult(it.confirmed)
-                                        }
-                                        confirmed.apply {
-                                            clear()
-                                            confirmed.addAll(filtered)
+                                ExecutorHelper.post {
+                                    //Fix for devices that call onAuthenticationSucceeded() without enrolled biometric
+                                    if (builder.shouldAutoVerifyCryptoAfterSuccess()) {
+                                        if (CryptographyManager.encryptData(
+                                                AndroidContext.appContext.packageName.toByteArray(
+                                                    Charset.forName("UTF-8")
+                                                ), confirmed
+                                            ) == null
+                                        ) {
+                                            onCanceled()
+                                            return@post
+                                        } else {
+                                            val filtered = confirmed.map {
+                                                AuthenticationResult(it.confirmed)
+                                            }
+                                            confirmed.apply {
+                                                clear()
+                                                confirmed.addAll(filtered)
+                                            }
                                         }
                                     }
-                                }
 
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
-                                if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
-                                    HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
-                                        .updateBiometricEnrollChanged()
-                                } else {
-                                    HardwareAccessImpl.getInstance(
-                                        BiometricAuthRequest(
-                                            BiometricApi.BIOMETRIC_API,
-                                            builder.getBiometricAuthRequest().type
+                                    BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onSucceeded2 = $confirmed")
+                                    if (builder.getBiometricAuthRequest().api != BiometricApi.AUTO) {
+                                        HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest())
+                                            .updateBiometricEnrollChanged()
+                                    } else {
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.BIOMETRIC_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
                                         )
-                                    )
-                                        .updateBiometricEnrollChanged()
-                                    HardwareAccessImpl.getInstance(
-                                        BiometricAuthRequest(
-                                            BiometricApi.LEGACY_API,
-                                            builder.getBiometricAuthRequest().type
+                                            .updateBiometricEnrollChanged()
+                                        HardwareAccessImpl.getInstance(
+                                            BiometricAuthRequest(
+                                                BiometricApi.LEGACY_API,
+                                                builder.getBiometricAuthRequest().type
+                                            )
                                         )
-                                    )
-                                        .updateBiometricEnrollChanged()
+                                            .updateBiometricEnrollChanged()
+                                    }
+                                    callbackOuter.onSucceeded(confirmed.toSet())
                                 }
-                                callbackOuter.onSucceeded(confirmed.toSet())
                             } finally {
                                 onUIClosed()
                             }
@@ -466,7 +468,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (isOpened.get()) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
                             try {
-                                callbackOuter.onCanceled()
+                                ExecutorHelper.post { callbackOuter.onCanceled() }
                             } finally {
                                 onUIClosed()
                             }
@@ -493,7 +495,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             }
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
                             try {
-                                callbackOuter.onFailed(reason, dialogDescription)
+                                ExecutorHelper.post { callbackOuter.onFailed(reason, dialogDescription) }
                             } finally {
                                 onUIClosed()
                             }
@@ -507,38 +509,37 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             val s =
                                 "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
                             BiometricLoggerImpl.d("BiometricPromptCompat $s")
-                            if (!builder.isSilentAuthEnabled()) {
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage0")
-                                ExecutorHelper.post{ activityViewWatcher?.setupListeners() }
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage1")
-                                builder.getActivity()?.let {
-                                    StatusBarTools.setNavBarAndStatusBarColors(
-                                        it.window,
-                                        DialogMainColor.getColor(
-                                            builder.getContext(),
-                                            DarkLightThemes.isNightModeCompatWithInscreen(
-                                                builder.getContext()
-                                            )
-                                        ),
-                                        DialogMainColor.getColor(
-                                            builder.getContext(),
-                                            !DarkLightThemes.isNightModeCompatWithInscreen(
-                                                builder.getContext()
-                                            )
-                                        ),
-                                        builder.getStatusBarColor()
-                                    )
+                            ExecutorHelper.post {
+                                if (!builder.isSilentAuthEnabled()) {
+                                    ExecutorHelper.post { activityViewWatcher?.setupListeners() }
+                                    builder.getActivity()?.let {
+                                        StatusBarTools.setNavBarAndStatusBarColors(
+                                            it.window,
+                                            DialogMainColor.getColor(
+                                                builder.getContext(),
+                                                DarkLightThemes.isNightModeCompatWithInscreen(
+                                                    builder.getContext()
+                                                )
+                                            ),
+                                            DialogMainColor.getColor(
+                                                builder.getContext(),
+                                                !DarkLightThemes.isNightModeCompatWithInscreen(
+                                                    builder.getContext()
+                                                )
+                                            ),
+                                            builder.getStatusBarColor()
+                                        )
+                                    }
+                                    if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
+                                        BiometricNotificationManager.showNotification(
+                                            builder
+                                        )
+                                    }
+
                                 }
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage2")
-                                if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
-                                    BiometricNotificationManager.showNotification(
-                                        builder
-                                    )
-                                }
-                                BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened stage3")
                             }
-                            BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
-                            callbackOuter.onUIOpened()
+
+                            ExecutorHelper.post{  callbackOuter.onUIOpened() }
                         }
                     }
 
@@ -546,25 +547,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (isOpened.get()) {
                             isOpened.set(false)
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
-                            BiometricAuthentication.cancelAuthentication()//cancel previews and reinit for next usage
-                            if (!builder.isSilentAuthEnabled()) {
-                                activityViewWatcher?.resetListeners()
-                                appBackgroundDetector.detachListeners()
-                                builder.getActivity()?.let {
-                                    StatusBarTools.setNavBarAndStatusBarColors(
-                                        it.window,
-                                        builder.getNavBarColor(),
-                                        builder.getDividerColor(),
-                                        builder.getStatusBarColor()
-                                    )
+                            ExecutorHelper.post {
+                                BiometricAuthentication.cancelAuthentication()//cancel previews and reinit for next usage
+                                if (!builder.isSilentAuthEnabled()) {
+                                    ExecutorHelper.post { activityViewWatcher?.resetListeners() }
+                                    appBackgroundDetector.detachListeners()
+                                    builder.getActivity()?.let {
+                                        StatusBarTools.setNavBarAndStatusBarColors(
+                                            it.window,
+                                            builder.getNavBarColor(),
+                                            builder.getDividerColor(),
+                                            builder.getStatusBarColor()
+                                        )
+                                    }
+                                    if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
+                                        BiometricNotificationManager.dismissAll()
+                                    }
                                 }
-                                if (DevicesWithKnownBugs.hasUnderDisplayFingerprint && builder.isNotificationEnabled()) {
-                                    BiometricNotificationManager.dismissAll()
-                                }
+                                authFlowInProgress.set(false)
                             }
-                            authFlowInProgress.set(false)
-                            BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
-                            callbackOuter.onUIClosed()
+                            ExecutorHelper.post{  callbackOuter.onUIClosed() }
                         }
                     }
                 }
