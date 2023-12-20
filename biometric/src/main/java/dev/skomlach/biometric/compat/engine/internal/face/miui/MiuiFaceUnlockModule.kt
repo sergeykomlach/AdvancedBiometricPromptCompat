@@ -56,31 +56,6 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 e(e, name)
             manager = null
         }
-
-        if(manager == null)
-        try {
-            manager = MiuiFaceFactory.getFaceManager(MiuiFaceFactory.TYPE_3D)
-            if (manager?.isFaceFeatureSupport == false) {
-                throw RuntimeException("Miui 3DFace not supported")
-            } else
-                d("Miui 3DFace supported")
-        } catch (e: Throwable) {
-            if (DEBUG_MANAGERS)
-                e(e, name)
-
-        }
-        if(manager == null)
-        try {
-            manager = MiuiFaceFactory.getFaceManager(MiuiFaceFactory.TYPE_2D)
-            if (manager?.isFaceFeatureSupport == false) {
-                throw RuntimeException("Miui 2DFace not supported")
-            } else
-                d("Miui 2DFace supported")
-        } catch (e: Throwable) {
-            if (DEBUG_MANAGERS)
-                e(e, name)
-            manager = null
-        }
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
 
