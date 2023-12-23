@@ -24,16 +24,28 @@
         tools:context="dev.skomlach.biometric.app.FirstFragment"
         >
 
-    <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/text"
+    <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerInParent="true"
-            android:gravity="center"
-            />
+            android:layout_height="match_parent"
+            android:layout_above="@+id/buttons"
+            >
 
-    <androidx.appcompat.widget.AppCompatCheckBox
+        <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+
+            <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    />
+
+            <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/checkboxFullscreen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,15 +81,16 @@
             android:layout_below="@+id/checkboxCrypto"
             android:text="Allow device credentials"
             />
-    <LinearLayout
-            android:id="@+id/buttons_list"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/buttons"
-            android:layout_below="@+id/allowDeviceCredentials"
-            android:orientation="vertical"
-            />
 
+            <LinearLayout
+                    android:id="@+id/buttons_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/allowDeviceCredentials"
+                    android:orientation="vertical"
+                    />
+        </RelativeLayout>
+    </ScrollView>
     <LinearLayout
             android:id="@+id/buttons"
             android:layout_width="match_parent"
