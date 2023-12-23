@@ -53,7 +53,6 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
-import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
 import dev.skomlach.common.statusbar.StatusBarTools
@@ -321,10 +320,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ExecutorHelper.post {
                         callbackOuter.onFailed(
                             checkHardware,
-                            if(checkHardware ==  AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR)
-                                BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest()).filter {
-                                    !PermissionUtils.hasSelfPermissions(it)
-                                }.joinToString(", ")  else null
+                            null
                         )
                         authFlowInProgress.set(false)
                     }
@@ -342,17 +338,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
-        if(!PermissionUtils.hasSelfPermissions(BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest()))){
+        if (!BiometricManagerCompat.hasPermissionsGranted(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - missed permissions")
             return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
         } else
-        if (!BiometricManagerCompat.isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
-            return AuthenticationFailureReason.NO_HARDWARE
-        } else if (!BiometricManagerCompat.hasEnrolled(impl.builder.getBiometricAuthRequest())) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
-            return AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-        } else if (BiometricManagerCompat.isLockOut(
+            if (!BiometricManagerCompat.isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - isHardwareDetected")
+                return AuthenticationFailureReason.NO_HARDWARE
+            } else if (!BiometricManagerCompat.hasEnrolled(impl.builder.getBiometricAuthRequest())) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - hasEnrolled")
+                return AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+            } else if (BiometricManagerCompat.isLockOut(
                 impl.builder.getBiometricAuthRequest(),
                 false
             )

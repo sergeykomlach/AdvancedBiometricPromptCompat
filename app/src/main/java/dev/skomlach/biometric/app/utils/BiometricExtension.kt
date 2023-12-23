@@ -51,6 +51,13 @@ fun Fragment.startBiometric(
     val credentialsAllowed = allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable(requireContext())
 
     if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !credentialsAllowed) {
+        if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))
+            showAlertDialog(
+                requireActivity(),
+                "No permissions for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+
+                )
+        else
         if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
             showAlertDialog(
                 requireActivity(),
@@ -72,6 +79,12 @@ fun Fragment.startBiometric(
                 requireActivity(),
                 "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
             )
+        else{
+            showAlertDialog(
+                requireActivity(),
+                "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            )
+        }
 
 
         return
@@ -188,12 +201,12 @@ fun Fragment.startBiometric(
 
         override fun onUIOpened() {
             BiometricLoggerImpl.e("CheckBiometric.onUIOpened()")
-//            Toast.makeText(AndroidContext.appContext, "onUIOpened", Toast.LENGTH_SHORT).show()
+            Toast.makeText(AndroidContext.appContext, "onUIOpened", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIClosed() {
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
-//            Toast.makeText(AndroidContext.appContext, "onUIClosed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(AndroidContext.appContext, "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
     Toast.makeText(
@@ -224,9 +237,7 @@ data class CryptoTest(
             if (other.vector == null) return false
             if (!vector.contentEquals(other.vector)) return false
         } else if (other.vector != null) return false
-        if (type != other.type) return false
-
-        return true
+        return type == other.type
     }
 
     override fun hashCode(): Int {

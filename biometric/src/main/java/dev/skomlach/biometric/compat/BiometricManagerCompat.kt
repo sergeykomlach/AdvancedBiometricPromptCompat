@@ -61,7 +61,30 @@ object BiometricManagerCompat {
     }
 
     @JvmStatic
-    fun getUsedPermissions(
+    fun hasPermissionsGranted(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        var granted = false
+        val list = getUsedPermissions(api)
+        if (api.type == BiometricType.BIOMETRIC_ANY) {
+
+            list.forEach {
+                if (PermissionUtils.hasSelfPermissions(it)) {
+                    granted = true
+                }
+            }
+        } else {
+            granted = PermissionUtils.hasSelfPermissions(list)
+        }
+
+        return granted
+    }
+
+    @JvmStatic
+    private fun getUsedPermissions(
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
@@ -346,7 +369,7 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api) && PermissionUtils.hasSelfPermissions(getUsedPermissions(api))
+        return isHardwareDetected(api) && hasEnrolled(api) && hasPermissionsGranted(api)
     }
     @JvmStatic
     fun isBiometricReadyForUsage(
@@ -356,7 +379,9 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) && hasEnrolled(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && PermissionUtils.hasSelfPermissions(getUsedPermissions(api))
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && hasPermissionsGranted(
+            api
+        )
     }
 
     @JvmStatic
@@ -367,7 +392,9 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && PermissionUtils.hasSelfPermissions(getUsedPermissions(api))
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && hasPermissionsGranted(
+            api
+        )
     }
 
     @JvmStatic
