@@ -313,8 +313,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 val checkHardware = checkHardware()
                 val interruptAuth = when (checkHardware) {
                     AuthenticationFailureReason.UNKNOWN -> false
-                    AuthenticationFailureReason.LOCKED_OUT, AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> !builder.forceDeviceCredentials()
-                    else -> true
+                    else -> !builder.forceDeviceCredential()
                 }
                 if (interruptAuth) {
                     ExecutorHelper.post {
@@ -476,9 +475,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         dialogDescription: CharSequence?
                     ) {
                         if (isOpened.get()) {
-                            if (builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential() &&
-                                (reason == AuthenticationFailureReason.LOCKED_OUT || reason == AuthenticationFailureReason.HARDWARE_UNAVAILABLE)
-                            ) {
+                            if (builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential()) {
                                 builder.setForceDeviceCredentials(true)
                                 ExecutorHelper.postDelayed(
                                     {
@@ -915,9 +912,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return isDeviceCredentialFallbackAllowed
         }
 
-        fun forceDeviceCredentials(): Boolean {
-            return forceDeviceCredential
-        }
 
         fun isBackgroundBiometricIconsEnabled(): Boolean {
             return backgroundBiometricIconsEnabled
@@ -998,7 +992,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
             this.isDeviceCredentialFallbackAllowed = enabled
             this.forceDeviceCredential =
-                enabled && !BiometricManagerCompat.isBiometricReadyForUsage()
+                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)
             return this
         }
 

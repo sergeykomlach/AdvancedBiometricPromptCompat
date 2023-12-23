@@ -70,7 +70,15 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
-December 33 2023
+December 23 2023
+
+**Bugfixes** Fixed issue with non-granted permissions on some devices (Honor 8)
+
+December 20 2023
+
+**Bugfixes** Performance fixed; Icon tinting color detection fixed
+
+December 3 2023
 
 **Bugfixes** 
 

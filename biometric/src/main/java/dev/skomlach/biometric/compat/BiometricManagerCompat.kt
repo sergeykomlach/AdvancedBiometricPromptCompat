@@ -110,8 +110,8 @@ object BiometricManagerCompat {
                 BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
                 BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
 
-                BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D,
-                BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D,
+                BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add("com.hihonor.permission.USE_FACERECOGNITION")
+                BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D -> permission.add("com.huawei.permission.USE_FACERECOGNITION")
                 BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
 
                 BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
