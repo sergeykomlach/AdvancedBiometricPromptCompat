@@ -21719,6 +21719,11 @@
    "model": "Aiplus4K"
   },
   {
+   "device": "nagata",
+   "name": "Dreamstar 2K SMART TV",
+   "model": "Dreamstar 2K SMART TV"
+  },
+  {
    "device": "marina",
    "name": "EXPRESS",
    "model": "Apollo Premium4K TV"
@@ -21772,6 +21777,11 @@
    "device": "yeongdeungpo",
    "name": "Mexico",
    "model": "AiPlus4K"
+  },
+  {
+   "device": "nagata",
+   "name": "Newal 2K SMART TV",
+   "model": "Newal 2K SMART TV"
   },
   {
    "device": "marina",
@@ -39920,6 +39930,16 @@
    "device": "martin",
    "name": "EU、UK、AP",
    "model": "FandU Android TV"
+  },
+  {
+   "device": "nagata",
+   "name": "FU 2K SMART TV",
+   "model": "FU 2K SMART TV"
+  },
+  {
+   "device": "marina",
+   "name": "Greece",
+   "model": "FU 4K SMART TV"
   },
   {
    "device": "tamachi",
@@ -69570,6 +69590,11 @@
  ],
  "INFINITON": [
   {
+   "device": "nagata",
+   "name": "INFINITON 2K SMART TV",
+   "model": "INFINITON 2K Smart TV"
+  },
+  {
    "device": "bruno",
    "name": "Infiniton",
    "model": "Infiniton2KAndroidTV"
@@ -80536,6 +80561,11 @@
   }
  ],
  "Kolin": [
+  {
+   "device": "hongkong",
+   "name": "KOLIN",
+   "model": "4K SMART TV"
+  },
   {
    "device": "longshan",
    "name": "Smart TV",
@@ -178479,6 +178509,11 @@
    "device": "TECNO-KI7",
    "name": "TECNO SPARK 10 Pro",
    "model": "TECNO KI7"
+  },
+  {
+   "device": "TECNO-KI7s",
+   "name": "TECNO SPARK 10 Pro",
+   "model": "TECNO KI7s"
   },
   {
    "device": "TECNO-KI5k",
