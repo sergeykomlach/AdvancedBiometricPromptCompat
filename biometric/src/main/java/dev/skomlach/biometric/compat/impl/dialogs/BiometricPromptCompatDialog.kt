@@ -290,7 +290,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 }?.measuredHeight ?: WindowManager.LayoutParams.WRAP_CONTENT
                 wlp.gravity = Gravity.BOTTOM
                 w.attributes = wlp
-                ScreenProtection().applyProtectionInWindow(w)
                 (w.decorView as ViewGroup?)
                     ?.getChildAt(0)?.startAnimation(
                         AnimationUtils.loadAnimation(
@@ -500,110 +499,5 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
     fun setWindowFocusChangedListener(listener: WindowFocusChangedListener?) {
         focusListener = listener
-    }
-
-    private inner class ScreenProtection {
-        //disable next features:
-
-        //Screenshots
-        //Accessibility Services
-        //Android Oreo autofill in the app
-
-        fun applyProtectionInWindow(window: Window?) {
-            try {
-                window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-                applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
-            } catch (e: Exception) {
-                //not sure is exception can happens, but better to track at least
-                e(e, "ActivityContextProvider")
-            }
-        }
-
-        fun applyProtectionInView(
-            view: View
-        ) {
-            try {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    ViewCompat.setImportantForAutofill(
-                        view,
-                        View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
-                    )
-                }
-
-
-                ViewCompat.setImportantForAccessibility(
-                    view,
-                    ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-                )
-                //Note: View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS doesn't have affect
-                //for 3rd party password managers
-                view.accessibilityDelegate = object : View.AccessibilityDelegate() {
-                    override fun sendAccessibilityEvent(host: View, eventType: Int) {
-                    }
-
-                    override fun performAccessibilityAction(
-                        host: View,
-                        action: Int,
-                        args: Bundle?
-                    ): Boolean {
-                        return false
-                    }
-
-                    override fun sendAccessibilityEventUnchecked(
-                        host: View,
-                        event: AccessibilityEvent
-                    ) {
-                    }
-
-                    override fun dispatchPopulateAccessibilityEvent(
-                        host: View,
-                        event: AccessibilityEvent
-                    ): Boolean {
-                        return false
-                    }
-
-                    override fun onPopulateAccessibilityEvent(
-                        host: View,
-                        event: AccessibilityEvent
-                    ) {
-                    }
-
-                    override fun onInitializeAccessibilityEvent(
-                        host: View,
-                        event: AccessibilityEvent
-                    ) {
-                    }
-
-                    override fun onInitializeAccessibilityNodeInfo(
-                        host: View,
-                        info: AccessibilityNodeInfo
-                    ) {
-                    }
-
-                    override fun addExtraDataToAccessibilityNodeInfo(
-                        host: View,
-                        info: AccessibilityNodeInfo, extraDataKey: String,
-                        arguments: Bundle?
-                    ) {
-                    }
-
-                    override fun onRequestSendAccessibilityEvent(
-                        host: ViewGroup, child: View,
-                        event: AccessibilityEvent
-                    ): Boolean {
-                        return false
-                    }
-
-                    override fun getAccessibilityNodeProvider(host: View): AccessibilityNodeProvider? {
-                        return null
-                    }
-                }
-            } catch (e: Exception) {
-                //not sure is exception can happens, but better to track at least
-                e(e, e.message)
-            }
-        }
-
     }
 }
