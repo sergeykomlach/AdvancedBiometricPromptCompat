@@ -51,6 +51,7 @@ import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.HookDetection
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
@@ -65,6 +66,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
+        private var reference = AtomicBoolean(false)
         var API_ENABLED = true
             private set
 
@@ -160,7 +162,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 return
             if (Looper.getMainLooper().thread !== Thread.currentThread())
                 throw IllegalThreadStateException("Main Thread required")
-
+            HookDetection.detect(object : HookDetection.HookDetectionListener{
+                override fun onDetected(flag: Boolean) {
+                    reference.set(flag)
+                }
+            })
             if (isInitialized) {
                 BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
                 execute?.let { ExecutorHelper.post(it) }
@@ -686,7 +692,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @Throws(BiometricAuthException::class)
         open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             val tmp = System.currentTimeMillis()
-            if (tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException("Biometric flow hooking detected")
+            if (reference.get() || tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException("Biometric flow hooking detected")
         }
 
         @MainThread
@@ -820,6 +826,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var forceDeviceCredential: Boolean = isDeviceCredentialFallbackAllowed
 
         init {
+            HookDetection.detect(object : HookDetection.HookDetectionListener{
+                override fun onDetected(flag: Boolean) {
+                    reference.set(flag)
+                }
+            })
             getActivity()?.let { context ->
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     this.colorNavBar = context.window.navigationBarColor

@@ -23,6 +23,7 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.ExecutorHelper
 
 class BiometricInitProvider : ContentProvider() {
 
@@ -30,7 +31,11 @@ class BiometricInitProvider : ContentProvider() {
         try {
             BiometricPromptCompat.init()
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e("BiometricInitProvider", e)
+            ExecutorHelper.post{
+                try {
+                    BiometricPromptCompat.init()
+                } catch (e: Throwable) {}
+            }
         }
 
         return false
