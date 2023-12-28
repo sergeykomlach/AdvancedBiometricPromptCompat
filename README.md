@@ -70,6 +70,10 @@ Latest supported Android OS version: **Android 14 UpsideDownCake**
 
 
 ## Recent changes (last 3 month)
+December 28 2023
+
+**Improvement** Frida/Substrate/Another hooking detection improved; "Naive" detection for harmful "Chameleon"-like (biometric auth bypass) technique added
+
 December 23 2023
 
 **Bugfixes** Fixed issue with non-granted permissions on some devices (Honor 8)
