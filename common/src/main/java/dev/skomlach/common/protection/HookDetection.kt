@@ -17,7 +17,7 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.common.misc
+package dev.skomlach.common.protection
 
 import dev.skomlach.common.logging.LogCat
 import kotlinx.coroutines.Dispatchers

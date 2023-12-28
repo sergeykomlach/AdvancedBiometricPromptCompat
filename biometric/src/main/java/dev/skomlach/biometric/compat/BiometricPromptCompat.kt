@@ -51,11 +51,12 @@ import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.HookDetection
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
+import dev.skomlach.common.protection.A11yDetection
+import dev.skomlach.common.protection.HookDetection
 import dev.skomlach.common.statusbar.StatusBarTools
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.nio.charset.Charset
@@ -1002,7 +1003,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
             this.isDeviceCredentialFallbackAllowed = enabled
             this.forceDeviceCredential =
-                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)
+                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && A11yDetection.shouldTrustA11y(getContext())
             return this
         }
 
