@@ -907,6 +907,11 @@
    "device": "PD470",
    "name": "PD470",
    "model": "PD470"
+  },
+  {
+   "device": "PD602",
+   "name": "PD602",
+   "model": "PD602"
   }
  ],
  "ANAM": [
@@ -10250,67 +10255,62 @@
   },
   {
    "device": "ASUS_I005_1",
-   "name": "ROG Phone 5",
+   "name": "ROG Phone 5 series",
    "model": "ASUS_I005D"
   },
   {
    "device": "ASUS_I005_1",
-   "name": "ROG Phone 5",
+   "name": "ROG Phone 5 series",
    "model": "ASUS_I005DA"
   },
   {
    "device": "ASUS_I005_1",
-   "name": "ROG Phone 5",
+   "name": "ROG Phone 5 series",
    "model": "ASUS_I005DB"
   },
   {
    "device": "ASUS_I005_1",
-   "name": "ROG Phone 5",
+   "name": "ROG Phone 5 series",
    "model": "ZS673KS"
   },
   {
    "device": "ASUS_I005_1",
-   "name": "ROG Phone 5",
+   "name": "ROG Phone 5 series",
    "model": "ZS676KS"
   },
   {
    "device": "ASUS_AI2201",
-   "name": "ROG Phone 6 (AI2201)",
+   "name": "ROG Phone 6 series",
    "model": "ASUS_AI2201_A"
   },
   {
    "device": "ASUS_AI2201",
-   "name": "ROG Phone 6 (AI2201)",
+   "name": "ROG Phone 6 series",
    "model": "ASUS_AI2201_B"
   },
   {
    "device": "ASUS_AI2201",
-   "name": "ROG Phone 6 (AI2201)",
+   "name": "ROG Phone 6 series",
    "model": "ASUS_AI2201_C"
   },
   {
    "device": "ASUS_AI2201",
-   "name": "ROG Phone 6 (AI2201)",
+   "name": "ROG Phone 6 series",
    "model": "ASUS_AI2201_D"
   },
   {
    "device": "ASUS_AI2203",
-   "name": "ROG Phone 6D Ultimate",
-   "model": "ASUS_AI2203_B"
-  },
-  {
-   "device": "ASUS_AI2203",
-   "name": "ROG Phone 6D Ultimate",
+   "name": "ROG Phone 6D series",
    "model": "ASUS_AI2203_D"
   },
   {
    "device": "ASUS_AI2205",
-   "name": "ROG Phone 7 (AI2205)",
+   "name": "ROG Phone 7 series",
    "model": "ASUS_AI2205_A"
   },
   {
    "device": "ASUS_AI2205",
-   "name": "ROG Phone 7 (AI2205)",
+   "name": "ROG Phone 7 series",
    "model": "ASUS_AI2205_C"
   },
   {
@@ -10332,6 +10332,11 @@
    "device": "ASUS_I001_1",
    "name": "ROG Phone II",
    "model": "ZS660KL"
+  },
+  {
+   "device": "ASUS_AI2203",
+   "name": "ROG6 天玑系列",
+   "model": "ASUS_AI2203_B"
   },
   {
    "device": "RTC-tablet",
@@ -11605,18 +11610,23 @@
   },
   {
    "device": "ASUS_AI2302",
-   "name": "Zenfone 10 (AI2302)",
+   "name": "Zenfone 10",
    "model": "ASUS_AI2302"
   },
   {
    "device": "ASUS_I006D",
-   "name": "Zenfone 8 / ASUS 8Z",
+   "name": "Zenfone 8",
    "model": "ASUS_I006D"
   },
   {
    "device": "ASUS_I006D",
-   "name": "Zenfone 8 / ASUS 8Z",
+   "name": "Zenfone 8",
    "model": "ZS590KS"
+  },
+  {
+   "device": "ASUS_I006D",
+   "name": "Zenfone 8 / ASUS 8z",
+   "model": "ASUS_I006D"
   },
   {
    "device": "ASUS_I004D",
@@ -16155,6 +16165,11 @@
    "device": "kunyang",
    "name": "Beko UHD Android TV",
    "model": "Beko Android UHD TV"
+  },
+  {
+   "device": "martin",
+   "name": "Turkey",
+   "model": "Beko Android TV"
   }
  ],
  "Bell Canada": [
@@ -19641,6 +19656,11 @@
    "device": "G0771",
    "name": "G73",
    "model": "G73"
+  },
+  {
+   "device": "G0930",
+   "name": "G73L",
+   "model": "G73L"
   },
   {
    "device": "G0160LL",
@@ -47797,6 +47817,11 @@
    "device": "GTB801",
    "name": "TC69CA2",
    "model": "GTB 801"
+  },
+  {
+   "device": "martin",
+   "name": "Turkey",
+   "model": "Grundig Android TV"
   }
  ],
  "Grunhelm": [
@@ -52827,6 +52852,16 @@
    "model": "CANDY Android TV DVB2K"
   },
   {
+   "device": "daan",
+   "name": "CANDY Android TV FF Pro",
+   "model": "CANDY Android TV FF Pro"
+  },
+  {
+   "device": "daan",
+   "name": "CANDY Android TV PRO",
+   "model": "CANDY Android TV PRO"
+  },
+  {
    "device": "jordan",
    "name": "CANDY MatrixTV BE",
    "model": "CANDY MatrixTV BE"
@@ -56714,6 +56749,11 @@
    "model": "Hisense U70 Pro"
   },
   {
+   "device": "HLTE109E_03",
+   "name": "Hisense U70 Pro",
+   "model": "Hisense U70 Pro"
+  },
+  {
    "device": "HLTE100E_11",
    "name": "Hisense U963",
    "model": "Hisense U963"
@@ -58437,6 +58477,11 @@
    "device": "YQB",
    "name": "Global",
    "model": "Dongle R 4K"
+  },
+  {
+   "device": "YYZ",
+   "name": "Kickpi",
+   "model": "KP1"
   },
   {
    "device": "HND",
@@ -78715,6 +78760,13 @@
    "model": "KPad_U4_EEA"
   }
  ],
+ "KYODO-TV": [
+  {
+   "device": "KARAxKARA",
+   "name": "KARAxKARA",
+   "model": "KARAxKARA"
+  }
+ ],
  "KZG (Ke Zhi Guang)": [
   {
    "device": "Dream_one",
@@ -80431,6 +80483,11 @@
    "device": "SMARTWAY_F1",
    "name": "SMARTWAY_F1",
    "model": "SMARTWAY_F1"
+  },
+  {
+   "device": "nagata",
+   "name": "SOUTH AMERICA",
+   "model": "KODAK 2K TV"
   },
   {
    "device": "SP4",
@@ -97909,6 +97966,11 @@
    "model": "M3SL10"
   },
   {
+   "device": "M3SL20K",
+   "name": "M3SL20K",
+   "model": "M3SL20K"
+  },
+  {
    "device": "M3SM15N",
    "name": "M3SM15N",
    "model": "M3SM15N"
@@ -112354,6 +112416,11 @@
    "device": "LAVIETab11QHD2",
    "name": "LAVIE Tab T11",
    "model": "LAVIE Tab 11QHD2"
+  },
+  {
+   "device": "LAVIETab143K1",
+   "name": "LAVIE Tab T14",
+   "model": "LAVIE Tab 143K1"
   },
   {
    "device": "LAVIETabT1212QHD1",
@@ -137226,6 +137293,11 @@
    "model": "Schneider 2K Android TV"
   },
   {
+   "device": "barking",
+   "name": "GMS55A1G",
+   "model": "SCHNEIDER AndroidTV"
+  },
+  {
    "device": "bangbae",
    "name": "SCHNEIDER",
    "model": "SCHNEIDER 4K Android TV"
@@ -151503,6 +151575,31 @@
    "model": "SM-T638U"
   },
   {
+   "device": "gtactive5wifi",
+   "name": "Galaxy Tab Active5",
+   "model": "SM-X300"
+  },
+  {
+   "device": "gtactive5",
+   "name": "Galaxy Tab Active5 5G",
+   "model": "SM-X306B"
+  },
+  {
+   "device": "gtactive5",
+   "name": "Galaxy Tab Active5 5G",
+   "model": "SM-X306N"
+  },
+  {
+   "device": "gtactive5",
+   "name": "Galaxy Tab Active5 5G",
+   "model": "SM-X308B"
+  },
+  {
+   "device": "gtactive5",
+   "name": "Galaxy Tab Active5 5G",
+   "model": "SM-X308U"
+  },
+  {
    "device": "gtaxladwifikx",
    "name": "Galaxy Tab Advanced2",
    "model": "SM-T583"
@@ -156785,6 +156882,11 @@
    "model": "AQUOS-TVX23C"
   },
   {
+   "device": "sandiego",
+   "name": "FQ",
+   "model": "AQUOS-TVE23A"
+  },
+  {
    "device": "SE3",
    "name": "FS8014",
    "model": "FS8014"
@@ -159805,6 +159907,11 @@
    "device": "guandu",
    "name": "Aiplus4K",
    "model": "Aiplus4K"
+  },
+  {
+   "device": "nagata",
+   "name": "Contex TV",
+   "model": "Contex TV"
   },
   {
    "device": "martin",
@@ -163806,6 +163913,16 @@
    "device": "Neo_7_Pro",
    "name": "Sparx Neo 7 Pro",
    "model": "Sparx Neo 7 Pro"
+  },
+  {
+   "device": "Neo_8_Plus",
+   "name": "Sparx Neo 8 Plus",
+   "model": "Sparx Neo 8 Plus"
+  },
+  {
+   "device": "Neo_8_Pro",
+   "name": "Sparx Neo 8 Pro",
+   "model": "Sparx Neo 8 Pro"
   }
  ],
  "Spark": [
@@ -178301,6 +178418,11 @@
    "model": "TECNO K9"
   },
   {
+   "device": "TECNO-Mobile-KJ6",
+   "name": "TECNO Mobile SPARK 20 Pro",
+   "model": "TECNO Mobile KJ6"
+  },
+  {
    "device": "TECNO-Mobile-KG6k",
    "name": "TECNO Mobile SPARK 8",
    "model": "TECNO Mobile KG6k"
@@ -178539,6 +178661,11 @@
    "device": "TECNO-KJ6",
    "name": "TECNO SPARK 20 Pro",
    "model": "TECNO KJ6"
+  },
+  {
+   "device": "TECNO-KJ7",
+   "name": "TECNO SPARK 20 Pro+",
+   "model": "TECNO KJ7"
   },
   {
    "device": "TECNO-BG7",
@@ -183057,6 +183184,11 @@
    "device": "A13_Tab_EEA",
    "name": "A13_Tab_EEA",
    "model": "MT07"
+  },
+  {
+   "device": "A15T",
+   "name": "A15T",
+   "model": "PA2310GBB"
   },
   {
    "device": "A3",
