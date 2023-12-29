@@ -123571,6 +123571,11 @@
    "device": "POS",
    "name": "ACT",
    "model": "pCloud"
+  },
+  {
+   "device": "POS",
+   "name": "PMGLRR99",
+   "model": "pCloud"
   }
  ],
  "POSSAFE": [
@@ -137171,6 +137176,11 @@
    "device": "STS600",
    "name": "STS600",
    "model": "STS600"
+  },
+  {
+   "device": "STS601",
+   "name": "STS601",
+   "model": "STS601"
   }
  ],
  "SAKAISIO": [
@@ -174911,6 +174921,13 @@
    "model": "EOS Pro"
   }
  ],
+ "TIANYU": [
+  {
+   "device": "S40",
+   "name": "S4",
+   "model": "S40"
+  }
+ ],
  "TIGO": [
   {
    "device": "uiw4054mil",
@@ -181531,6 +181548,26 @@
   }
  ],
  "True": [
+  {
+   "device": "Tablet",
+   "name": "20721400",
+   "model": "20721400"
+  },
+  {
+   "device": "Tablet",
+   "name": "20725300",
+   "model": "20725300"
+  },
+  {
+   "device": "Tablet",
+   "name": "20726600",
+   "model": "20726600"
+  },
+  {
+   "device": "Tablet",
+   "name": "20728200",
+   "model": "20728200"
+  },
   {
    "device": "Alpha_5G",
    "name": "Alpha_5G",
