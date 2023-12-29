@@ -324,8 +324,16 @@ class WindowForegroundBlurring(
         BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor")
         try {
             val rect = Rect()
-            biometricsLayout?.getWindowVisibleDisplayFrame(rect)
-            Palette.from(Bitmap.createBitmap(bm, rect.left, rect.top, rect.width(), rect.height())).generate { palette ->
+            biometricsLayout?.getGlobalVisibleRect(rect)
+
+            val newBm = Bitmap.createBitmap(bm,
+                rect.left,
+                rect.top,
+                rect.width(),
+                rect.height()
+            )
+            BiometricLoggerImpl.d("${this.javaClass.name}.updateDefaultColor $rect")
+            Palette.from(newBm).generate { palette ->
                 try {
                     var isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
                     val defColor =
