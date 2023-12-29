@@ -64,6 +64,6 @@ object A11yDetection {
                 e.message, e
             )
         }
-        return false
+        return true
     }
 }
