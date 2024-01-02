@@ -68,12 +68,13 @@ enum class InstallerID(private val text: String) {
     companion object {
         fun verifyInstallerId(context: Context, packageName: String): Boolean {
             val validInstallers = ArrayList<String>()
-            val installer =
+            val installer = try {
                 if (Utils.isAtLeastR)
                     context.packageManager.getInstallSourceInfo(packageName).installingPackageName.toString()
                         .ifEmpty { context.packageManager.getInstallerPackageName(packageName) }
                 else
                     context.packageManager.getInstallerPackageName(packageName)
+            } catch (e :Throwable){ null }
             for (id in InstallerID.values()) {
                 validInstallers.addAll(id.toIDs())
             }
@@ -82,12 +83,13 @@ enum class InstallerID(private val text: String) {
 
         fun getInstallerId(context: Context, packageName: String): String? {
             val validInstallers = ArrayList<String>()
-            val installer =
+            val installer = try {
                 if (Utils.isAtLeastR)
                     context.packageManager.getInstallSourceInfo(packageName).installingPackageName.toString()
                         .ifEmpty { context.packageManager.getInstallerPackageName(packageName) }
                 else
                     context.packageManager.getInstallerPackageName(packageName)
+            } catch (e :Throwable){ null }
             for (id in InstallerID.values()) {
                 validInstallers.addAll(id.toIDs())
             }

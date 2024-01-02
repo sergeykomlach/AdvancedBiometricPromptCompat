@@ -1003,7 +1003,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
             this.isDeviceCredentialFallbackAllowed = enabled
             this.forceDeviceCredential =
-                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && A11yDetection.shouldTrustA11y(getContext())
+                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && A11yDetection.shouldWeTrustA11y(getContext())
             return this
         }
 
