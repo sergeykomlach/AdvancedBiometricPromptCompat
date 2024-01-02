@@ -5526,6 +5526,11 @@
    "model": "V10_Viper"
   },
   {
+   "device": "V10_Viper_Lite",
+   "name": "V10 Viper Lite",
+   "model": "V10_Viper_Lite"
+  },
+  {
    "device": "V2_Viper",
    "name": "V2 Viper",
    "model": "V2_Viper"
@@ -27204,6 +27209,11 @@
  ],
  "Continental Edison": [
   {
+   "device": "cottongreen",
+   "name": "CDI SMART TV",
+   "model": "CDI SMART TV"
+  },
+  {
    "device": "marina",
    "name": "CDI SMART TV",
    "model": "CDI SMART TV"
@@ -36985,6 +36995,11 @@
  ],
  "ESOL": [
   {
+   "device": "rk3588_t",
+   "name": "CCBEK",
+   "model": "CCBEK"
+  },
+  {
    "device": "Interactive_White_Board",
    "name": "HCB_5186",
    "model": "HCB_5186"
@@ -40726,6 +40741,18 @@
    "device": "FPT_X50",
    "name": "X50",
    "model": "FPT X50"
+  }
+ ],
+ "FUEGO": [
+  {
+   "device": "nagata",
+   "name": "FUEGO 2K SMART TV",
+   "model": "FUEGO 2K SMART TV"
+  },
+  {
+   "device": "marina",
+   "name": "FUEGO 4K SMART TV",
+   "model": "FUEGO 4K SMART TV"
   }
  ],
  "FUNKER": [
@@ -91881,6 +91908,13 @@
    "model": "X65)\""
   }
  ],
+ "Legamaster": [
+  {
+   "device": "ETX",
+   "name": "EVOLVE2",
+   "model": "ETX"
+  }
+ ],
  "LegendComfortable": [
   {
    "device": "SEP011037",
@@ -102300,6 +102334,11 @@
    "device": "meizu21",
    "name": "meizu 21",
    "model": "MEIZU 21"
+  },
+  {
+   "device": "meizu21Pro",
+   "name": "meizu 21 PRO",
+   "model": "MEIZU 21 Pro"
   },
   {
    "device": "meizuC9",
@@ -116304,6 +116343,11 @@
    "device": "T1001LA",
    "name": "Tab 10",
    "model": "T1001L"
+  },
+  {
+   "device": "T1005LAV1",
+   "name": "Tab 10 Plus",
+   "model": "T1005L"
   },
   {
    "device": "N5005LA",
@@ -137895,6 +137939,11 @@
    "device": "komodo",
    "name": "AM60 series",
    "model": "AM60 series"
+  },
+  {
+   "device": "komodo",
+   "name": "AM60 series",
+   "model": "SMART AM60"
   },
   {
    "device": "komodo",
@@ -174924,7 +174973,7 @@
  "TIANYU": [
   {
    "device": "S40",
-   "name": "S4",
+   "name": "S40",
    "model": "S40"
   }
  ],
@@ -190182,6 +190231,11 @@
    "model": "V2338A"
   },
   {
+   "device": "PD2339",
+   "name": "iQOO Neo9 Pro",
+   "model": "V2339A"
+  },
+  {
    "device": "DPD2307",
    "name": "iQOO Pad",
    "model": "iPA2375"
@@ -190810,6 +190864,11 @@
    "device": "PD1635",
    "name": "vivo X9s Plus",
    "model": "vivo X9s Plus"
+  },
+  {
+   "device": "PD2312",
+   "name": "vivo Y100i长续航版",
+   "model": "V2312BA"
   },
   {
    "device": "Y11",
@@ -200712,6 +200771,11 @@
    "model": "Blade A3 2019-T"
   },
   {
+   "device": "Z3101T",
+   "name": "Blade A3 SE",
+   "model": "Blade A3 SE"
+  },
+  {
    "device": "Z3052T",
    "name": "Blade A30",
    "model": "Blade A30"
@@ -206357,6 +206421,11 @@
    "model": "ZTE Blade A33s"
   },
   {
+   "device": "P963F94",
+   "name": "ZTE Blade A34",
+   "model": "ZTE Blade A34"
+  },
+  {
    "device": "P963F94_A",
    "name": "ZTE Blade A34",
    "model": "ZTE Blade A34"
@@ -206547,6 +206616,11 @@
    "model": "ZTE A7050"
   },
   {
+   "device": "P606F07",
+   "name": "ZTE Blade A73",
+   "model": "ZTE 7060"
+  },
+  {
    "device": "P662F02",
    "name": "ZTE Blade A7s",
    "model": "ZTE Blade A7s"
@@ -206675,6 +206749,11 @@
    "device": "P606F05",
    "name": "ZTE Blade V41 Smart",
    "model": "ZTE A7050"
+  },
+  {
+   "device": "P606F08",
+   "name": "ZTE Blade V50 Design",
+   "model": "ZTE 8050"
   },
   {
    "device": "P720F03",
