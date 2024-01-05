@@ -4639,6 +4639,11 @@
    "model": "AKAI 4K SMART TV"
   },
   {
+   "device": "umeda",
+   "name": "AKAI SMART TV",
+   "model": "AKAI  SMART TV"
+  },
+  {
    "device": "FZ101",
    "name": "FZ101",
    "model": "FZ101"
@@ -10305,7 +10310,7 @@
   },
   {
    "device": "ASUS_AI2203",
-   "name": "ROG Phone 6D series",
+   "name": "ROG Phone 6D Ultimate",
    "model": "ASUS_AI2203_D"
   },
   {
@@ -31906,6 +31911,11 @@
    "device": "SW6H",
    "name": "DAWLANCE GSMART 4KTV",
    "model": "DAWLANCE GSMART 4KTV"
+  },
+  {
+   "device": "anaheim",
+   "name": "DAWLANCE GSMART 4KTV",
+   "model": "DAWLANCE GSMART 4KTV"
   }
  ],
  "DayMark": [
@@ -47676,6 +47686,11 @@
    "device": "pioneer",
    "name": "4K Smart TV",
    "model": "4K SA Smart TV"
+  },
+  {
+   "device": "umeda",
+   "name": "GREEN HOUSE 2K SMART",
+   "model": "GREEN HOUSE 2K SMART"
   },
   {
    "device": "SW6H",
@@ -75023,6 +75038,11 @@
    "model": "itel L6502"
   },
   {
+   "device": "umeda",
+   "name": "WOW TV",
+   "model": "WOW TV"
+  },
+  {
    "device": "itel_it1355",
    "name": "it1355",
    "model": "itel it1355"
@@ -76443,6 +76463,11 @@
    "device": "SW6H",
    "name": "JVC 4K Smart TV NZ",
    "model": "JVC 4K Smart TV NZ"
+  },
+  {
+   "device": "anaheim",
+   "name": "JVC 4K Smart TV Plus",
+   "model": "JVC 4K Smart TV Plus"
   },
   {
    "device": "Cunda",
@@ -96641,6 +96666,11 @@
    "model": "L55B"
   },
   {
+   "device": "L55S",
+   "name": "L55S",
+   "model": "LOGIC_L55S"
+  },
+  {
    "device": "L55SCLARO",
    "name": "L55SCLARO",
    "model": "L55SCLARO"
@@ -99933,6 +99963,11 @@
    "device": "SW6H",
    "name": "MarQ 4K SMART TV",
    "model": "MarQ 4K SMART TV"
+  },
+  {
+   "device": "umeda",
+   "name": "MarQ SMART TV",
+   "model": "MarQ SMART TV"
   },
   {
    "device": "GIONEE_MAX",
@@ -107177,6 +107212,11 @@
    "device": "zhongshan",
    "name": "MOTOROLA",
    "model": "Smart UHD TV"
+  },
+  {
+   "device": "umeda",
+   "name": "MOTOROLA SMART TV",
+   "model": "MOTOROLA SMART TV"
   },
   {
    "device": "umts_primus",
@@ -121055,11 +121095,6 @@
    "model": "CPH1917"
   },
   {
-   "device": "OP5ABFL1",
-   "name": "Reno 10",
-   "model": "CPH2599"
-  },
-  {
    "device": "OP4847L1",
    "name": "Reno 10x Room",
    "model": "CPH1921"
@@ -121093,6 +121128,11 @@
    "device": "OP46C3",
    "name": "Reno 10倍变焦版",
    "model": "PCCT00"
+  },
+  {
+   "device": "OP5ABFL1",
+   "name": "Reno 11",
+   "model": "CPH2599"
   },
   {
    "device": "OP4B83L1",
@@ -123618,7 +123658,7 @@
   },
   {
    "device": "POS",
-   "name": "PMGLRR99",
+   "name": "MINT",
    "model": "pCloud"
   }
  ],
@@ -123966,6 +124006,11 @@
    "device": "SW6H",
    "name": "4KTV-3SUF",
    "model": "4KTV-3SUF"
+  },
+  {
+   "device": "anaheim",
+   "name": "4KTV-4SUH",
+   "model": "4KTV-4SUH"
   },
   {
    "device": "mst918_4k2k",
@@ -125877,6 +125922,13 @@
    "model": "PENTA_73AAQ1"
   }
  ],
+ "Pepperl_Fuchs": [
+  {
+   "device": "Smart-Ex03",
+   "name": "Smart Ex-03",
+   "model": "Smart-Ex03"
+  }
+ ],
  "Performance": [
   {
    "device": "T7",
@@ -126001,6 +126053,11 @@
    "device": "stanford",
    "name": "Philco",
    "model": "PHILCO SMART"
+  },
+  {
+   "device": "anaheim",
+   "name": "Philco Smart Plus TV",
+   "model": "Philco Smart Plus TV"
   },
   {
    "device": "sunnyvale",
@@ -139556,6 +139613,11 @@
   },
   {
    "device": "anaheim",
+   "name": "SWTV-22COL-4K",
+   "model": "SWTV-22COL-4K"
+  },
+  {
+   "device": "anaheim",
    "name": "SWTV-22HK-4K NF",
    "model": "SWTV-22HK-4K NF"
   },
@@ -139583,6 +139645,11 @@
    "device": "anaheim",
    "name": "SWTV-22TGS-4K",
    "model": "SWTV-22TGS-4K"
+  },
+  {
+   "device": "anaheim",
+   "name": "SWTV-22TW-4K",
+   "model": "SWTV-22TW-4K"
   },
   {
    "device": "SW3_ATV",
@@ -140707,6 +140774,11 @@
    "device": "a15",
    "name": "Galaxy A15",
    "model": "SM-A155M"
+  },
+  {
+   "device": "a15",
+   "name": "Galaxy A15",
+   "model": "SM-A155N"
   },
   {
    "device": "a15x",
@@ -156731,6 +156803,11 @@
    "model": "SH-06G"
   },
   {
+   "device": "umeda",
+   "name": "AQUOS-TVL23B",
+   "model": "AQUOS-TVL23B"
+  },
+  {
    "device": "kaleido_sprout",
    "name": "Android One S1",
    "model": "S1"
@@ -157571,6 +157648,11 @@
    "model": "SHARP 2K SMART TV"
   },
   {
+   "device": "umeda",
+   "name": "SHARP 2K TV",
+   "model": "SHARP 2K TV"
+  },
+  {
    "device": "SJ3",
    "name": "SHARP A2 Lite",
    "model": "FS8026"
@@ -158392,6 +158474,11 @@
    "device": "SW6H",
    "name": "Singer 4K GSMART TV",
    "model": "Singer 4K GSMART TV"
+  },
+  {
+   "device": "anaheim",
+   "name": "Singer 4K GSMART TV FF",
+   "model": "Singer 4K GSMART TV FF"
   },
   {
    "device": "kunyang",
@@ -175351,6 +175438,11 @@
    "model": "TORNADO 2K SMART TV"
   },
   {
+   "device": "umeda",
+   "name": "TORNADO 2K SMART TV",
+   "model": "TORNADO 2K SMART TV"
+  },
+  {
    "device": "SW6H",
    "name": "TORNADO 4K SmartTV",
    "model": "TORNADO 4K SmartTV"
@@ -187765,6 +187857,11 @@
    "model": "VISION GSMART 4KTV FF"
   },
   {
+   "device": "anaheim",
+   "name": "VISION GSMART 4KTV FF",
+   "model": "VISION GSMART 4KTV FF"
+  },
+  {
    "device": "SW4H",
    "name": "VISION SMART TV",
    "model": "VISION SMART TV"
@@ -188079,6 +188176,11 @@
    "device": "1609",
    "name": "1609",
    "model": "vivo 1609"
+  },
+  {
+   "device": "PD2318",
+   "name": "G2",
+   "model": "V2318A"
   },
   {
    "device": "I1928",
@@ -193112,6 +193214,11 @@
   },
   {
    "device": "SW6H",
+   "name": "WALTON GSMART 4KTV FF",
+   "model": "WALTON GSMART 4KTV FF"
+  },
+  {
+   "device": "anaheim",
    "name": "WALTON GSMART 4KTV FF",
    "model": "WALTON GSMART 4KTV FF"
   },
@@ -212012,6 +212119,13 @@
    "device": "PTAB_P8",
    "name": "PTAB_P8",
    "model": "PTAB_P8"
+  }
+ ],
+ "prowise": [
+  {
+   "device": "ifpd",
+   "name": "Prowise Touchscreen Ultra",
+   "model": "prowise"
   }
  ],
  "qunyiCO": [
