@@ -800,7 +800,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private lateinit var multiWindowSupport: MultiWindowSupport
 
-        private var notificationEnabled = true
+        private var notificationEnabled = false
 
         private var backgroundBiometricIconsEnabled = true
 
