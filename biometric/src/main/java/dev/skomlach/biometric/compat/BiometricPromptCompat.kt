@@ -163,7 +163,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 return
             if (Looper.getMainLooper().thread !== Thread.currentThread())
                 throw IllegalThreadStateException("Main Thread required")
-            HookDetection.detect(object : HookDetection.HookDetectionListener{
+            HookDetection.detect(object : HookDetection.HookDetectionListener {
                 override fun onDetected(flag: Boolean) {
                     reference.set(flag)
                 }
@@ -192,7 +192,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     NotificationPermissionsFragment.preloadTranslations()
-                    if(DevicesWithKnownBugs.isHideDialogInstantly){
+                    if (DevicesWithKnownBugs.isHideDialogInstantly) {
                         BiometricLoggerImpl.d("BiometricPromptCompat.done() for ${AndroidContext.appContext.packageName}")
                     }
                 }
@@ -510,9 +510,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
                             BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             ExecutorHelper.post { callbackOuter.onUIOpened() }
-                            ExecutorHelper.post {
-                                if (!builder.isSilentAuthEnabled()) {
-                                    ExecutorHelper.post { activityViewWatcher?.setupListeners() }
+                            if (!builder.isSilentAuthEnabled()) {
+                                ExecutorHelper.post { activityViewWatcher?.setupListeners() }
+                                ExecutorHelper.post {
                                     builder.getActivity()?.let {
                                         StatusBarTools.setNavBarAndStatusBarColors(
                                             it.window,
@@ -546,12 +546,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (isOpened.get()) {
                             isOpened.set(false)
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
-                            ExecutorHelper.post { callbackOuter.onUIClosed() }
+                            ExecutorHelper.post {
+                                callbackOuter.onUIClosed()
+                                authFlowInProgress.set(false)
+                            }
                             ExecutorHelper.post {
                                 BiometricAuthentication.cancelAuthentication()//cancel previews and reinit for next usage
-                                if (!builder.isSilentAuthEnabled()) {
-                                    ExecutorHelper.post { activityViewWatcher?.resetListeners() }
-                                    appBackgroundDetector.detachListeners()
+                            }
+                            if (!builder.isSilentAuthEnabled()) {
+                                ExecutorHelper.post { activityViewWatcher?.resetListeners() }
+                                ExecutorHelper.post {
                                     builder.getActivity()?.let {
                                         StatusBarTools.setNavBarAndStatusBarColors(
                                             it.window,
@@ -564,8 +568,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         BiometricNotificationManager.dismissAll()
                                     }
                                 }
-                                authFlowInProgress.set(false)
                             }
+                            ExecutorHelper.post { appBackgroundDetector.detachListeners() }
                         }
                     }
                 }
@@ -685,15 +689,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private val skipTimeout =
             AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
         private val authCallTimeStamp = AtomicLong(System.currentTimeMillis())
-        internal fun updateTimestamp(){
+        internal fun updateTimestamp() {
             authCallTimeStamp.set(System.currentTimeMillis())
         }
+
         @MainThread
         @CallSuper
         @Throws(BiometricAuthException::class)
         open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             val tmp = System.currentTimeMillis()
-            if (reference.get() || tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException("Biometric flow hooking detected")
+            if (reference.get() || tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException(
+                "Biometric flow hooking detected"
+            )
         }
 
         @MainThread
@@ -827,7 +834,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var forceDeviceCredential: Boolean = isDeviceCredentialFallbackAllowed
 
         init {
-            HookDetection.detect(object : HookDetection.HookDetectionListener{
+            HookDetection.detect(object : HookDetection.HookDetectionListener {
                 override fun onDetected(flag: Boolean) {
                     reference.set(flag)
                 }
@@ -1003,7 +1010,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
             this.isDeviceCredentialFallbackAllowed = enabled
             this.forceDeviceCredential =
-                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && A11yDetection.shouldWeTrustA11y(getContext())
+                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && A11yDetection.shouldWeTrustA11y(
+                    getContext()
+                )
             return this
         }
 
@@ -1056,6 +1065,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             negativeButtonText = text
             return this
         }
+
         @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!! Not actual deprecated")
         fun setNegativeButtonText(@StringRes res: Int): Builder {
             negativeButtonText = getContext().getString(res)

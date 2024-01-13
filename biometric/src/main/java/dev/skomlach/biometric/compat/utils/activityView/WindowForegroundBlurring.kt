@@ -123,7 +123,7 @@ class WindowForegroundBlurring(
         @SuppressLint("ClickableViewAccessibility")
         v = LayoutInflater.from(ContextWrapper(context))
             .inflate(R.layout.blurred_screen, null, false).apply {
-                tag = tag
+                tag = this@WindowForegroundBlurring.javaClass.name
                 alpha = 1f
                 biometricsLayout = findViewById(R.id.biometrics_layout)
                 updateBiometricIconsLayout()
@@ -235,13 +235,19 @@ class WindowForegroundBlurring(
     fun resetListeners() {
         if (!isAttached) return
         isAttached = false
-
+        try {
+            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
+            parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        }
         try {
             v?.let {
                 parentView.removeView(it)
             }
-            parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
-            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
+            parentView.findViewWithTag<View?>(this@WindowForegroundBlurring.javaClass.name)?.let {
+                parentView.removeView(it)
+            }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         } finally {

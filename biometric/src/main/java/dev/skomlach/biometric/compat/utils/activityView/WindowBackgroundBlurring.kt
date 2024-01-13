@@ -116,7 +116,7 @@ class WindowBackgroundBlurring(
             } ?: run {
                 v = LayoutInflater.from(ContextWrapper(parentView.context))
                     .inflate(R.layout.blurred_screen, null, false).apply {
-                        tag = tag
+                        tag = this@WindowBackgroundBlurring.javaClass.name
                         alpha = 1f
                         biometricsLayout = findViewById(R.id.biometrics_layout)
                         isFocusable = true
@@ -150,35 +150,46 @@ class WindowBackgroundBlurring(
 
     fun setupListeners() {
         if (isAttached) return
+        isAttached = true
         try {
-            isAttached = true
             updateBackground()
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
-            BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+        BiometricLoggerImpl.d("${this.javaClass.name}.setupListeners")
+
     }
 
     fun resetListeners() {
         if (!isAttached) return
+        isAttached = false
         try {
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
-
-            if (Utils.isAtLeastS) {
-                contentView?.setRenderEffect(null)
-            }
-            v?.let {
-                parentView.removeView(it)
-            }
-            BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
-            isAttached = false
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-
+        try {
+            v?.let {
+                parentView.removeView(it)
+            }
+            parentView.findViewWithTag<View?>(this@WindowBackgroundBlurring.javaClass.name)?.let {
+                parentView.removeView(it)
+            }
+        } catch (e: Throwable) {
+            BiometricLoggerImpl.e(e)
+        } finally {
+            try {
+                if (Utils.isAtLeastS) {
+                    contentView?.setRenderEffect(null)
+                }
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
+        }
+        BiometricLoggerImpl.d("${this.javaClass.name}.resetListeners")
     }
 
 }
