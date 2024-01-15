@@ -43,7 +43,7 @@ class WindowBackgroundBlurring(
     private var contentView: ViewGroup? = null
     private var v: View? = null
     private var renderEffect: RenderEffect? = null
-    private var isAttached = false
+    private var isBlurViewAttachedToHost = false
     private var drawingInProgress = false
     private var biometricsLayout: View? = null
 
@@ -73,7 +73,7 @@ class WindowBackgroundBlurring(
     }
 
     private fun updateBackground() {
-        if (!isAttached || drawingInProgress)
+        if (!isBlurViewAttachedToHost || drawingInProgress)
             return
         BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
@@ -96,7 +96,7 @@ class WindowBackgroundBlurring(
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setDrawable(bm: Bitmap?) {
-        if (!isAttached || drawingInProgress)
+        if (!isBlurViewAttachedToHost || drawingInProgress)
             return
         BiometricLoggerImpl.d("${this.javaClass.name}.setDrawable")
         drawingInProgress = true
@@ -149,8 +149,8 @@ class WindowBackgroundBlurring(
     }
 
     fun setupListeners() {
-        if (isAttached) return
-        isAttached = true
+        if (isBlurViewAttachedToHost) return
+        isBlurViewAttachedToHost = true
         try {
             updateBackground()
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
@@ -163,8 +163,8 @@ class WindowBackgroundBlurring(
     }
 
     fun resetListeners() {
-        if (!isAttached) return
-        isAttached = false
+        if (!isBlurViewAttachedToHost) return
+        isBlurViewAttachedToHost = false
         try {
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)

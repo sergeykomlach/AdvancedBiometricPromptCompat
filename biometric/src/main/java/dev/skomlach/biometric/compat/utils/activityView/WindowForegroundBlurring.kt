@@ -62,7 +62,7 @@ class WindowForegroundBlurring(
     private var renderEffect: RenderEffect? = null
 
     @Volatile
-    private var isAttached = false
+    private var isBlurViewAttachedToHost = false
     private var drawingInProgress = AtomicBoolean(false)
     private var biometricsLayout: View? = null
     private var defaultColor = Color.TRANSPARENT
@@ -73,7 +73,7 @@ class WindowForegroundBlurring(
             val typesList = (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
                 compatBuilder.getAllAvailableTypes()
             ) else emptyList())
-            return if(!isAttached){
+            return if(!isBlurViewAttachedToHost){
                 typesList
             } else
                 typesList.filter {
@@ -149,7 +149,7 @@ class WindowForegroundBlurring(
     }
 
     private fun updateBackground() {
-        if (!isAttached)
+        if (!isBlurViewAttachedToHost)
             return
         if (!drawingInProgress.get()) {
             drawingInProgress.set(true)
@@ -164,7 +164,7 @@ class WindowForegroundBlurring(
                                 originalBitmap: Bitmap,
                                 blurredBitmap: Bitmap?
                             ) {
-                                if (!isAttached)
+                                if (!isBlurViewAttachedToHost)
                                     return
                                 setDrawable(blurredBitmap)
                                 updateDefaultColor(originalBitmap)
@@ -204,8 +204,8 @@ class WindowForegroundBlurring(
     }
 
     fun setupListeners() {
-        if (isAttached) return
-        isAttached = true
+        if (isBlurViewAttachedToHost) return
+        isBlurViewAttachedToHost = true
         try {
             v?.apply {
                 parentView.addView(this)
@@ -233,8 +233,8 @@ class WindowForegroundBlurring(
     }
 
     fun resetListeners() {
-        if (!isAttached) return
-        isAttached = false
+        if (!isBlurViewAttachedToHost) return
+        isBlurViewAttachedToHost = false
         try {
             parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
