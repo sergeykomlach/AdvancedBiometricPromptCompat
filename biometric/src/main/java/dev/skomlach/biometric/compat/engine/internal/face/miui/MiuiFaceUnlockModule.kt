@@ -295,7 +295,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
             //NOTE: unlike other API's, MIUI call this one only for TIMEOUT
-            listener?.onFailure(AuthenticationFailureReason.TIMEOUT, tag())
+            onAuthenticationError(3, null)
         }
     }
 

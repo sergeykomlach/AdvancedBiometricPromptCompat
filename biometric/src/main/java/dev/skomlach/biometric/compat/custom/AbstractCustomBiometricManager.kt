@@ -64,9 +64,9 @@ abstract class AbstractCustomBiometricManager {
     }
 
     abstract class AuthenticationCallback {
-        open fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {}
-        open fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {}
-        open fun onAuthenticationSucceeded(result: AuthenticationResult) {}
+        open fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {}
+        open fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {}
+        open fun onAuthenticationSucceeded(result: AuthenticationResult?) {}
         open fun onAuthenticationFailed() {}
         open fun onAuthenticationCancelled() {}
     }

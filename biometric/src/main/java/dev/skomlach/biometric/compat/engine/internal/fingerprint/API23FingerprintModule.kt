@@ -195,7 +195,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
         @Deprecated("Deprecated in Java")
-        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
+        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -293,14 +293,14 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         }
 
         @Deprecated("Deprecated in Java")
-        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
+        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             listener?.onHelp(helpString)
         }
 
         @Deprecated("Deprecated in Java")
-        override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+        override fun onAuthenticationSucceeded(result: FingerprintManager.AuthenticationResult?) {
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
@@ -308,9 +308,9 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
-                    result.cryptoObject?.signature,
-                    result.cryptoObject?.cipher,
-                    result.cryptoObject?.mac
+                    result?.cryptoObject?.signature,
+                    result?.cryptoObject?.cipher,
+                    result?.cryptoObject?.mac
                 )
             )
         }

@@ -44,7 +44,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         var DEBUG_MANAGERS = false
     }
 
-    private var firstTimeout: Long? = null
+
     private val tag: Int = biometricMethod.id
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
     protected var originalCancellationSignal: CancellationSignal? = null
@@ -298,22 +298,6 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     }
 
     fun restartCauseTimeout(reason: AuthenticationFailureReason?): Boolean {
-        if (reason == AuthenticationFailureReason.TIMEOUT) {
-            val current = System.currentTimeMillis()
-            return if (firstTimeout == null) {
-                firstTimeout = current
-                true
-            } else {
-                val safeTimeout =
-                    current - (firstTimeout ?: return false) <= TimeUnit.SECONDS.toMillis(30)
-                if (!safeTimeout) {
-                    firstTimeout = null
-                }
-                safeTimeout
-            }
-        }
-
-        firstTimeout = null
-        return false
+        return reason == AuthenticationFailureReason.TIMEOUT
     }
 }

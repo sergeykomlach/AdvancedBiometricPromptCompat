@@ -174,7 +174,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
 
         private var selfCanceled = false
-        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
+        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -255,13 +255,13 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 }
         }
 
-        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
+        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             listener?.onHelp(helpString)
         }
 
-        override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult) {
-            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
+        override fun onAuthenticationSucceeded(result: BiometricManagerCompat.AuthenticationResult?) {
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
@@ -269,9 +269,9 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
-                    result.cryptoObject?.signature,
-                    result.cryptoObject?.cipher,
-                    result.cryptoObject?.mac
+                    result?.cryptoObject?.signature,
+                    result?.cryptoObject?.cipher,
+                    result?.cryptoObject?.mac
                 )
             )
         }
