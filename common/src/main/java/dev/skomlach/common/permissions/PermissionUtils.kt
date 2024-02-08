@@ -94,7 +94,9 @@ object PermissionUtils {
 
     fun hasSelfPermissions(vararg permissions: String): Boolean {
         for (permission: String in permissions) {
-            if (Utils.isAtLeastT && listOf(
+            //Starting from Android 11 app able to RW files/dirs in filesystem without asking permissions
+            //But the app can manage only own files in this case
+            if (Utils.isAtLeastR && listOf(
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 ).contains(permission)
