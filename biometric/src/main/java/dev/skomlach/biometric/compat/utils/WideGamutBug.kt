@@ -31,12 +31,14 @@ object WideGamutBug {
             "On OnePlus 6T stop working Fingerprint Sensor O_o"
 
     fun unsupportedColorMode(activity: FragmentActivity?): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (activity?.window?.colorMode == ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT ||
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && activity?.window?.isWideColorGamut == true)
-            ) {
-                BiometricLoggerImpl.e(error)
-                return true
+        if(DevicesWithKnownBugs.isOnePlus && DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (activity?.window?.colorMode == ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT ||
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 && activity?.window?.isWideColorGamut == true)
+                ) {
+                    BiometricLoggerImpl.e(error)
+                    return true
+                }
             }
         }
         return false

@@ -152,7 +152,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (callback != null) {
                     ExecutorHelper.post {
                         dialog?.onFailure(false)
-                        for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                        for (module in builder.getPrimaryAvailableTypes()) {
                             IconStateHelper.errorType(module)
                         }
                     }
@@ -236,7 +236,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 dialog?.onFailure(
                                     failureReason == AuthenticationFailureReason.LOCKED_OUT
                                 )
-                                for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+                                for (module in builder.getPrimaryAvailableTypes()) {
                                     IconStateHelper.errorType(module)
                                 }
                             }
@@ -577,7 +577,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 )
             added = true
         } else
-            for (module in (if (isNativeBiometricWorkaroundRequired) builder.getAllAvailableTypes() else builder.getPrimaryAvailableTypes())) {
+            for (module in builder.getPrimaryAvailableTypes()) {
                 authFinished[module] =
                     AuthResult(authResult, AuthenticationResult(module, crypto), failureReason)
                 added = true

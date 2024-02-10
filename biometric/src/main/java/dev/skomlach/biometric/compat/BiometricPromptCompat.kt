@@ -294,7 +294,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate() stage2")
-        if (WideGamutBug.unsupportedColorMode(builder.getActivity())) {
+        if (builder.getAllAvailableTypes().any {
+                it == BiometricType.BIOMETRIC_FINGERPRINT
+            } && WideGamutBug.unsupportedColorMode(builder.getActivity())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
             callbackOuter.onFailed(
                 AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
@@ -490,7 +492,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                                 return
                             }
-                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason")
+                            BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason dialogDescription=$dialogDescription")
 
                             ExecutorHelper.post {
                                 callbackOuter.onFailed(
