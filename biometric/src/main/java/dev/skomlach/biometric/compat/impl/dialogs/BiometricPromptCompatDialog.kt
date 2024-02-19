@@ -55,6 +55,7 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -274,6 +275,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 NIGHT_MODE
             this.setCanceledOnTouchOutside(true)
             this.setOnShowListener(onShowDialogInterface)
+            ScreenProtection.applyProtectionInWindow(window)
         }
     }
 
