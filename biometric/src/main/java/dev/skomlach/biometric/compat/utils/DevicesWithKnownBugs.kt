@@ -107,7 +107,7 @@ object DevicesWithKnownBugs {
                 val value =
                     DeviceInfoManager.hasUnderDisplayFingerprint(
                         BiometricPromptCompat.deviceInfo ?: return false
-                    ) || CheckBiometricUI.hasSomethingRearSensor(appContext)
+                    ) || CheckBiometricUI.hasSomethingFrontSensor(appContext)
                 cached = "$value"
                 SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
                     .putString(ts, cached).apply()

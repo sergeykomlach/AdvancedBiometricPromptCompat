@@ -103,7 +103,7 @@ object CheckBiometricUI {
             }
             zipEntries.sortWith { o1, o2 -> o1.name.compareTo(o2.name) }
             for (zip in zipEntries) {
-                if ((zip.name.contains("rear", true) || zip.name.contains("front", true)) &&
+                if (zip.name.contains("front", true) &&
                     (zip.name.contains("biometric", true) || zip.name.contains("fingerprint"))
                 ) {
                     BiometricLoggerImpl.d("Resource in APK ${zip.name}")
@@ -119,7 +119,7 @@ object CheckBiometricUI {
         return false
     }
 
-    fun hasSomethingRearSensor(context: Context): Boolean {
+    fun hasSomethingFrontSensor(context: Context): Boolean {
         try {
             val apks = getAPKs(context, getBiometricUiPackage(context))
             if (apks.isEmpty())

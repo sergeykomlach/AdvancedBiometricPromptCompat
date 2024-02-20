@@ -55,10 +55,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
-        d("BiometricPromptGenericImpl.authenticate():")
         this.authFinished.clear()
         this.callback = callback
         val doNotShowDialog = isFingerprint.get() && isHideDialogInstantly
+        d("BiometricPromptGenericImpl.authenticate(): doNotShowDialog=$doNotShowDialog")
         onUiOpened()
         if (!doNotShowDialog) {
             dialog = BiometricPromptCompatDialogImpl(
