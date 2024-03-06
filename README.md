@@ -1,4 +1,10 @@
 Advanced BiometricPromptCompat
+
+<p align="center">  
+  <img src="https://raw.githubusercontent.com/Salat-Cx65/AdvancedBiometricPromptCompat/main/current_logo.jpg" alt="Advanced BiometricPromptCompat Logo" width="500px"  />  
+
+</p>
+
 ====  
 
 [Help/Discussing chat](https://t.me/advancedbiometric)
