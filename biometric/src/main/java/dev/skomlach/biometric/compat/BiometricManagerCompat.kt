@@ -67,24 +67,24 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        var granted = false
+
         val list = getUsedPermissions(api)
         if (api.type == BiometricType.BIOMETRIC_ANY) {
 
             list.forEach {
-                if (PermissionUtils.hasSelfPermissions(it)) {
-                    granted = true
+                if (PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
+                    return true
                 }
             }
         } else {
-            granted = PermissionUtils.hasSelfPermissions(list)
+            return PermissionUtils.INSTANCE.hasSelfPermissions(list)
         }
 
-        return granted
+        return false
     }
 
     @JvmStatic
-    private fun getUsedPermissions(
+    fun getUsedPermissions(
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
@@ -117,7 +117,9 @@ object BiometricManagerCompat {
                 BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
                 BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
                 BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add("android.permission.USE_FINGERPRINT")
+                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
+                    "android.permission.USE_FINGERPRINT"
+                )
 
                 BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
                 BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
@@ -223,7 +225,7 @@ object BiometricManagerCompat {
             val api =
                 if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.values()) {
+                for (type in BiometricType.entries) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = BiometricAuthRequest(
@@ -244,7 +246,7 @@ object BiometricManagerCompat {
             val types = java.util.HashSet<BiometricType>()
             if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
                 if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                    for (type in BiometricType.values()) {
+                    for (type in BiometricType.entries) {
                         if (type == BiometricType.BIOMETRIC_ANY)
                             continue
                         val request = BiometricAuthRequest(
@@ -291,13 +293,13 @@ object BiometricManagerCompat {
             return SensorPrivacyCheck.isCameraBlocked()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
             val types = HashSet<BiometricType>()
-            for (type in BiometricType.values()) {
+            for (type in BiometricType.entries) {
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
                     val request = BiometricAuthRequest(
                         BiometricApi.BIOMETRIC_API,
                         type
                     )
-                    if (isHardwareDetected(request)) {
+                    if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
@@ -306,7 +308,7 @@ object BiometricManagerCompat {
                         BiometricApi.LEGACY_API,
                         type
                     )
-                    if (isHardwareDetected(request)) {
+                    if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
@@ -335,13 +337,13 @@ object BiometricManagerCompat {
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
             val types = HashSet<BiometricType>()
 
-            for (type in BiometricType.values()) {
+            for (type in BiometricType.entries) {
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
                     val request = BiometricAuthRequest(
                         BiometricApi.BIOMETRIC_API,
                         type
                     )
-                    if (isHardwareDetected(request)) {
+                    if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
@@ -350,7 +352,7 @@ object BiometricManagerCompat {
                         BiometricApi.LEGACY_API,
                         type
                     )
-                    if (isHardwareDetected(request)) {
+                    if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
@@ -369,7 +371,7 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api) && hasPermissionsGranted(api)
+        return isHardwareDetected(api) && hasEnrolled(api)
     }
     @JvmStatic
     fun isBiometricReadyForUsage(
@@ -378,10 +380,8 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && hasPermissionsGranted(
-            api
-        )
+        return isBiometricAvailable(api) &&
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
 
     @JvmStatic
@@ -392,9 +392,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && hasPermissionsGranted(
-            api
-        )
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
 
     @JvmStatic
@@ -413,12 +411,12 @@ object BiometricManagerCompat {
         else {
             var total = 0
             var counted = 0
-            for (s in BiometricType.values()) {
+            for (s in BiometricType.entries) {
                 val v = BiometricAuthRequest(
                     BiometricApi.AUTO,
                     s
                 )
-                if (isHardwareDetected(v) && hasEnrolled(v)) {
+                if (isBiometricAvailable(v)) {
                     total++
                     if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
                         counted++
