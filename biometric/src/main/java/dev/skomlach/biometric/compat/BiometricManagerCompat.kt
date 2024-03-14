@@ -69,18 +69,17 @@ object BiometricManagerCompat {
     ): Boolean {
 
         val list = getUsedPermissions(api)
-        if (api.type == BiometricType.BIOMETRIC_ANY) {
-
+        if(list.isEmpty()) return true
+        return if (api.type == BiometricType.BIOMETRIC_ANY) {
             list.forEach {
-                if (PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
-                    return true
+                if (!PermissionUtils.hasSelfPermissions(it)) {
+                    return false
                 }
             }
+            true
         } else {
-            return PermissionUtils.INSTANCE.hasSelfPermissions(list)
+            PermissionUtils.hasSelfPermissions(list)
         }
-
-        return false
     }
 
     @JvmStatic
@@ -371,7 +370,7 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api)
+        return isHardwareDetected(api) && hasEnrolled(api) && hasPermissionsGranted(api)
     }
     @JvmStatic
     fun isBiometricReadyForUsage(
@@ -392,7 +391,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && hasPermissionsGranted(api)
     }
 
     @JvmStatic
