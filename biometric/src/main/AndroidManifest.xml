@@ -75,7 +75,6 @@
     <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
 
     <uses-permission android:name="com.soter.permission.ACCESS_SOTER_KEYSTORE" />
-    <uses-sdk tools:overrideLibrary="com.huawei.security.localauthentication" />
     <application
             tools:ignore="UnusedAttribute">
         <uses-library

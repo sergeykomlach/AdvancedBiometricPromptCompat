@@ -19,17 +19,17 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '1.9.0'
-    ext.minSDK = 16
+    ext.kotlin_version = '1.9.22'
+    ext.minSDK = 19
 //    ext.compileSDK = "UpsideDownCake"
 //    ext.targetSDK = "UpsideDownCake"
     ext.compileSDK = 34
-    ext.targetSDK = 34
+    ext.targetSDK = 30
     ext.javaVersion = JavaVersion.VERSION_11
 
 
     ext.libsMajorVersion = '2.2'
-    ext.libsMinorVersion = 26
+    ext.libsMinorVersion = 27
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -47,14 +47,14 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.2.2'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:3.0.1"
         classpath "org.owasp:dependency-check-gradle:8.2.1"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
-        classpath 'com.google.gms:google-services:4.4.0'
+        classpath 'com.google.gms:google-services:4.4.1'
         classpath 'de.undercouch:gradle-download-task:4.1.1'
     }
 }

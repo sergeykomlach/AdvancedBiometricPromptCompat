@@ -75,25 +75,13 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 
 
 ## Recent changes (last 3 month)
-February 19 2024
+March 15 2024
 
 **Bugfixes**
 
-December 28 2023
+February 19 2024
 
-**Improvement** Frida/Substrate/Another hooking detection improved; "Naive" detection for harmful "Chameleon"-like (biometric auth bypass) technique added
-
-December 23 2023
-
-**Bugfixes** Fixed issue with non-granted permissions on some devices (Honor 8)
-
-December 20 2023
-
-**Bugfixes** Performance fixed; Icon tinting color detection fixed
-
-December 3 2023
-
-**Bugfixes** 
+**Bugfixes**
 
 ## Test app
 
