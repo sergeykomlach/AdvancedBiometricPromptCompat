@@ -52,13 +52,13 @@ fun Fragment.startBiometric(
         allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable()
 
     if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !credentialsAllowed) {
-        if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))
-            showAlertDialog(
-                requireActivity(),
-                "No permissions for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-
-                )
-        else
+//        if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))
+//            showAlertDialog(
+//                requireActivity(),
+//                "No permissions for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+//
+//                )
+//        else
             if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
                 showAlertDialog(
                     requireActivity(),

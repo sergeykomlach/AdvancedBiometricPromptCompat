@@ -372,7 +372,7 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api) && hasPermissionsGranted(api)
+        return isHardwareDetected(api) && hasEnrolled(api)
     }
     @JvmStatic
     fun isBiometricReadyForUsage(
@@ -393,7 +393,7 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api) && hasPermissionsGranted(api)
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
     }
 
     @JvmStatic
