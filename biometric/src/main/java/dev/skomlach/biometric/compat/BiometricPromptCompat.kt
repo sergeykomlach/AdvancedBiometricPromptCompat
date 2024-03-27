@@ -871,7 +871,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private val currentActivity = activity ?: (AndroidContext.activity as? FragmentActivity
             ?: throw java.lang.IllegalStateException("No activity on screen"))
 
-        private var isDeviceCredentialFallbackAllowed: Boolean = false
+        private var isDeviceCredentialFallbackAllowed: Boolean = BiometricManagerCompat.isDeviceSecureAvailable()
         private var forceDeviceCredential: Boolean = false
 
         init {
@@ -1054,14 +1054,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setForceDeviceCredentials(enabled: Boolean): Builder {
-            this.forceDeviceCredential = enabled
+            if(BiometricManagerCompat.isDeviceSecureAvailable() && this.isDeviceCredentialFallbackAllowed) {
+                this.forceDeviceCredential = enabled
+            }
             return this
         }
 
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
+            if(BiometricManagerCompat.isDeviceSecureAvailable()){
             this.isDeviceCredentialFallbackAllowed = enabled
             this.forceDeviceCredential =
                 enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)
+            } else{
+                BiometricLoggerImpl.e(
+                    "BiometricPromptCompat.setDeviceCredentialFallbackAllowed",
+                    IllegalStateException("isDeviceCredentialFallbackAllowed cann't be enabled")
+                )
+            }
             return this
         }
 

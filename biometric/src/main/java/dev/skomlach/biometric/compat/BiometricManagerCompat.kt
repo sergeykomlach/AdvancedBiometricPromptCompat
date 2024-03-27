@@ -46,7 +46,8 @@ object BiometricManagerCompat {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
     @JvmStatic
-    fun isDeviceSecureAvailable(context: Context): Boolean {
+    fun isDeviceSecureAvailable(): Boolean {
+        val context = AndroidContext.appContext
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
         val keyguardManager =
             context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?

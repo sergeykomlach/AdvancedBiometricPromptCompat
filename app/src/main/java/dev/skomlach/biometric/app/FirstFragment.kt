@@ -34,6 +34,7 @@ import com.readystatesoftware.chuck.Chuck
 import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -115,7 +116,7 @@ class FirstFragment : Fragment() {
                 .getBoolean("crypto", false)
         binding?.allowDeviceCredentials?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
-                .getBoolean("allowDeviceCredentials", true)
+                .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
         binding?.checkboxCrypto?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("crypto", isChecked).apply()
@@ -166,7 +167,7 @@ class FirstFragment : Fragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("crypto", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("allowDeviceCredentials", true)
+                        .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
                 )
             }
             buttonsList?.addView(container)

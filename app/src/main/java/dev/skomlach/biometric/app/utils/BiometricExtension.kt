@@ -49,7 +49,7 @@ fun Fragment.startBiometric(
 ) {
 
     val credentialsAllowed =
-        allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable(requireContext())
+        allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable()
 
     if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !credentialsAllowed) {
         if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))

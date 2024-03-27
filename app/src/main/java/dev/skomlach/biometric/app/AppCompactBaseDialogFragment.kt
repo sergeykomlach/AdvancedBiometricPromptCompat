@@ -31,6 +31,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import dev.skomlach.biometric.app.utils.startBiometric
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -94,7 +95,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         view.findViewById<CheckBox>(R.id.allowDeviceCredentials)?.let {
             it.isChecked =
                 SharedPreferenceProvider.getPreferences("app_settings")
-                    .getBoolean("allowDeviceCredentials", true)
+                    .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
             it.setOnCheckedChangeListener { buttonView, isChecked ->
                 SharedPreferenceProvider.getPreferences("app_settings").edit()
                     .putBoolean("allowDeviceCredentials", isChecked).apply()
@@ -132,7 +133,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("crypto", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("allowDeviceCredentials", true)
+                        .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
                 )
             }
             buttonsList.addView(container)
