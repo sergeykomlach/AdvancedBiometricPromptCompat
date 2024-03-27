@@ -48,7 +48,8 @@ fun Fragment.startBiometric(
     allowCredentials: Boolean
 ) {
 
-    val credentialsAllowed = allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable(requireContext())
+    val credentialsAllowed =
+        allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable(requireContext())
 
     if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !credentialsAllowed) {
         if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))
@@ -58,33 +59,33 @@ fun Fragment.startBiometric(
 
                 )
         else
-        if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
-            showAlertDialog(
-                requireActivity(),
-                "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
+                showAlertDialog(
+                    requireActivity(),
+                    "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
 
+                    )
+            else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
+                showAlertDialog(
+                    requireActivity(),
+                    "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
                 )
-        else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
-            showAlertDialog(
-                requireActivity(),
-                "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-            )
-        } else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
-            showAlertDialog(
-                requireActivity(),
-                "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
-            )
-        else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-            showAlertDialog(
-                requireActivity(),
-                "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-            )
-        else{
-            showAlertDialog(
-                requireActivity(),
-                "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-            )
-        }
+            } else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
+                showAlertDialog(
+                    requireActivity(),
+                    "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
+                )
+            else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
+                showAlertDialog(
+                    requireActivity(),
+                    "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                )
+            else {
+                showAlertDialog(
+                    requireActivity(),
+                    "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                )
+            }
 
 
         return
@@ -98,7 +99,8 @@ fun Fragment.startBiometric(
     )
         .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more").apply {
+        .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .apply {
             setNegativeButtonText("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
             setDeviceCredentialFallbackAllowed(credentialsAllowed)
         }
@@ -106,7 +108,8 @@ fun Fragment.startBiometric(
             if (crypto) {
                 it.setCryptographyPurpose(
                     BiometricCryptographyPurpose(
-                        cryptoTests[biometricAuthRequest]?.type?:BiometricCryptographyPurpose.ENCRYPT,
+                        cryptoTests[biometricAuthRequest]?.type
+                            ?: BiometricCryptographyPurpose.ENCRYPT,
                         cryptoTests[biometricAuthRequest]?.vector
                     )
                 )
@@ -133,7 +136,11 @@ fun Fragment.startBiometric(
                             Charset.forName("UTF-8")
                         )
                     }"
-                    cryptoTests[biometricAuthRequest] = CryptoTest(it.data, it.initializationVector, BiometricCryptographyPurpose.DECRYPT)
+                    cryptoTests[biometricAuthRequest] = CryptoTest(
+                        it.data,
+                        it.initializationVector,
+                        BiometricCryptographyPurpose.DECRYPT
+                    )
                 }
 
             } else {
@@ -224,7 +231,7 @@ private fun showAlertDialog(context: Context, msg: String) {
 data class CryptoTest(
     val byteArray: ByteArray,
     val vector: ByteArray? = null,
-    val type : Int = BiometricCryptographyPurpose.ENCRYPT,
+    val type: Int = BiometricCryptographyPurpose.ENCRYPT,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

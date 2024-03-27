@@ -117,8 +117,9 @@ class Scan4Apis {
                                             "/support/"
                                         )
                                     ) {
-                                        try{
-                                            val clzName = type.substring(1, type.length - 1).replace("/", ".")
+                                        try {
+                                            val clzName =
+                                                type.substring(1, type.length - 1).replace("/", ".")
                                             Class.forName(clzName)
                                             sb.append(type).append("\n")
                                             if (counter == 0) {
@@ -128,7 +129,7 @@ class Scan4Apis {
                                             }
                                             writer.write(type + "\n")
                                             counter++
-                                        } catch (ignore : Throwable){
+                                        } catch (ignore: Throwable) {
 
                                         }
 

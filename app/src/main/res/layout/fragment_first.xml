@@ -46,41 +46,44 @@
                     />
 
             <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/checkboxFullscreen"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/text"
-            android:text="Fullscreen"
-            />
+                    android:id="@+id/checkboxFullscreen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/text"
+                    android:text="Fullscreen"
+                    />
 
-    <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/checkboxWindowSecure"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/checkboxFullscreen"
-            android:text="Window Secured"
-            />
-    <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/checkboxSilent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/checkboxWindowSecure"
-            android:text="Silent Auth (No UI)"
-            />
-    <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/checkboxCrypto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/checkboxSilent"
-            android:text="Crypto (Data Encryption)"
-            />
-    <androidx.appcompat.widget.AppCompatCheckBox
-            android:id="@+id/allowDeviceCredentials"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/checkboxCrypto"
-            android:text="Allow device credentials"
-            />
+            <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/checkboxWindowSecure"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/checkboxFullscreen"
+                    android:text="Window Secured"
+                    />
+
+            <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/checkboxSilent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/checkboxWindowSecure"
+                    android:text="Silent Auth (No UI)"
+                    />
+
+            <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/checkboxCrypto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/checkboxSilent"
+                    android:text="Crypto (Data Encryption)"
+                    />
+
+            <androidx.appcompat.widget.AppCompatCheckBox
+                    android:id="@+id/allowDeviceCredentials"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/checkboxCrypto"
+                    android:text="Allow device credentials"
+                    />
 
             <LinearLayout
                     android:id="@+id/buttons_list"
@@ -91,6 +94,7 @@
                     />
         </RelativeLayout>
     </ScrollView>
+
     <LinearLayout
             android:id="@+id/buttons"
             android:layout_width="match_parent"
@@ -104,42 +108,43 @@
 
 
         <Button
-                android:layout_weight="1"
                 android:id="@+id/button_second"
-                android:textSize="12sp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_margin="2dp"
+                android:layout_weight="1"
                 android:text="@string/dialog"
+                android:textSize="12sp"
                 />
 
         <Button
-                android:layout_weight="1"
                 android:id="@+id/button_first"
-                android:textSize="12sp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_margin="2dp"
+                android:layout_weight="1"
                 android:text="@string/send_logs"
+                android:textSize="12sp"
                 />
 
         <Button
-                android:layout_weight="1"
                 android:id="@+id/button_third"
-                android:textSize="12sp"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_margin="2dp"
-                android:text="@string/leak_canary_display_activity_label"
-                />
-        <Button
                 android:layout_weight="1"
-                android:id="@+id/button_forth"
+                android:text="@string/leak_canary_display_activity_label"
                 android:textSize="12sp"
+                />
+
+        <Button
+                android:id="@+id/button_forth"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_margin="2dp"
+                android:layout_weight="1"
                 android:text="@string/chuck_name"
+                android:textSize="12sp"
                 />
     </LinearLayout>
 

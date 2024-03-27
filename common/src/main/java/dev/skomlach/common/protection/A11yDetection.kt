@@ -83,47 +83,10 @@ object A11yDetection {
 
             list.forEach {
                 if ("${it.resolveInfo.serviceInfo.packageName}/${it.resolveInfo.serviceInfo.name}" == componentName.flattenToString()) {
-
-                    val isAccessibilityTool = try {
-                        AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool")
+                    return AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool")
                             .apply {
                                 this.isAccessible = true
                             }.invoke(it) as Boolean
-                    } catch (e: Throwable) {
-                        LogCat.logError(
-                            "A11yDetection",
-                            e.message, e
-                        )
-                        try {
-                            val ctx = context.createPackageContext(
-                                componentName.packageName,
-                                Context.CONTEXT_INCLUDE_CODE or Context.CONTEXT_IGNORE_SECURITY
-                            )
-                            val res =
-                                try {
-                                    it.resolveInfo.serviceInfo.metaData.getInt("android.accessibilityservice")
-                                        .also { i -> if (i == 0) throw IllegalAccessException() }
-                                } catch (e: Throwable) {
-                                    LogCat.logError(
-                                        "A11yDetection",
-                                        e.message, e
-                                    )
-                                    ctx.packageManager.getServiceInfo(
-                                        componentName,
-                                        PackageManager.GET_META_DATA
-                                    ).metaData.getInt("android.accessibilityservice")
-                                        .also { i -> if (i == 0) throw IllegalAccessException() }
-                                }
-                            AssetsChecker(ctx.resources).isAccessibilityTool(res)
-                        } catch (e: Throwable) {
-                            LogCat.logError(
-                                "A11yDetection",
-                                e.message, e
-                            )
-                            false
-                        }
-                    }
-                    if (isAccessibilityTool) return true
                 }
             }
         } catch (e: Throwable) {
@@ -132,23 +95,35 @@ object A11yDetection {
                 e.message, e
             )
         }
-
-//        try {
-//            val ctx = context.createPackageContext(componentName.packageName,
-//                Context.CONTEXT_INCLUDE_CODE or Context.CONTEXT_IGNORE_SECURITY)
-//            val pi = ctx.packageManager.getPackageInfo(componentName.packageName, PackageManager.GET_SERVICES or PackageManager.GET_META_DATA)
-//            pi.services?.forEach {
-//                if ("${it.packageName}/${it.name}" == componentName.flattenToString()) {
-//                    val res = it.metaData.getInt("android.accessibilityservice")
-//                    return AssetsChecker(ctx.resources).isAccessibilityTool(res)
-//                }
-//            }
-//        } catch (e: Throwable) {
-//            LogCat.logError(
-//                "A11yDetection",
-//                e.message, e
-//            )
-//        }
+        try {
+            val ctx = context.createPackageContext(
+                componentName.packageName,
+                Context.CONTEXT_INCLUDE_CODE or Context.CONTEXT_IGNORE_SECURITY
+            )
+            val pi = ctx.packageManager.getPackageInfo(
+                componentName.packageName,
+                PackageManager.GET_SERVICES or PackageManager.GET_META_DATA
+            )
+            pi.services?.forEach {
+                if ("${it.packageName}/${it.name}" == componentName.flattenToString()) {
+                    val res = it.metaData.getInt("android.accessibilityservice")
+                        .also { i -> if (i == 0) throw IllegalAccessException() }
+                    return AssetsChecker(ctx.resources).isAccessibilityTool(res)
+                }
+            }
+        } catch (e: PackageManager.NameNotFoundException) {
+            //No permissions
+            LogCat.log(
+                "A11yDetection",
+                e.message
+            )
+            return true
+        } catch (e: Throwable) {
+            LogCat.logError(
+                "A11yDetection",
+                e.message, e
+            )
+        }
         return false
     }
 

@@ -78,7 +78,7 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
     companion object {
         fun createCustomModule(id: Int, biometricType: BiometricType): BiometricMethod =
             CUSTOM.apply {
-                if (values().any {
+                if (entries.any {
                         it.id == id
                     }) throw IllegalArgumentException("This ID already used")
                 this.id = id

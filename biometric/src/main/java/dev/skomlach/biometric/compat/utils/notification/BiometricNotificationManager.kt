@@ -136,7 +136,7 @@ object BiometricNotificationManager {
         }
 
         try {
-            for (type in BiometricType.values()) {
+            for (type in BiometricType.entries) {
                 try {
                     notificationCompat.cancel(type.hashCode())
                 } catch (e: Throwable) {

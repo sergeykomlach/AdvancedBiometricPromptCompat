@@ -322,7 +322,7 @@ class NotificationPermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        val type = PermissionRequestController.PermissionType.values().firstOrNull {
+        val type = PermissionRequestController.PermissionType.entries.firstOrNull {
             it.name == arguments?.getString(PERMISSION_KEY)
         }
 
@@ -352,7 +352,7 @@ class NotificationPermissionsFragment : Fragment() {
 
     private fun closeFragment() {
         val channelId = arguments?.getString(CHANNEL_ID)
-        val type = PermissionRequestController.PermissionType.values().firstOrNull {
+        val type = PermissionRequestController.PermissionType.entries.firstOrNull {
             it.name == arguments?.getString(PERMISSION_KEY)
         }
         val tag = "${NotificationPermissionsFragment::class.java.name}-${type?.name}-$channelId"

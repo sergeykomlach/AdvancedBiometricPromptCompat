@@ -46,7 +46,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
     override val isLockedOut: Boolean
         get() {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.values()) {
+                for (type in BiometricType.entries) {
                     if (BiometricLockoutFix.isLockOut(type))
                         return true
                 }
@@ -83,7 +83,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
     override fun lockout() {
         if (!isLockedOut) {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.values()) {
+                for (type in BiometricType.entries) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val biometricModule = BiometricAuthentication.getAvailableBiometricModule(

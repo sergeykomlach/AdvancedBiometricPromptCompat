@@ -144,7 +144,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         val success =
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
-        if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
+        if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
 

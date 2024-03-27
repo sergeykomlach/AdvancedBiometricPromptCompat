@@ -83,7 +83,7 @@
         <receiver
                 android:name="dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver"
                 android:enabled="true"
-                android:exported="false">
+                android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

@@ -37,14 +37,17 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
     private var stopWatcher: Runnable? = null
     private val homeWatcher = HomeWatcher(object : HomeWatcher.OnHomePressedListener {
         override fun onHomePressed() {
+            if (stopWatcher != null)
             callback.invoke()
         }
 
         override fun onRecentAppPressed() {
+            if (stopWatcher != null)
             callback.invoke()
         }
 
         override fun onPowerPressed() {
+            if (stopWatcher != null)
             callback.invoke()
         }
     })
@@ -54,6 +57,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         private val dismissTask = Runnable {
             if (atomicBoolean.get() <= 0) {
                 BiometricLoggerImpl.e("fragmentLifecycleCallbacks.AppBackgroundDetector.dismissTask")
+                if (stopWatcher != null)
                 callback.invoke()
             }
         }
@@ -106,6 +110,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
     private val lifecycleEventObserver: LifecycleEventObserver = object : LifecycleEventObserver {
         private val dismissTask = Runnable {
             BiometricLoggerImpl.e("lifecycleEventObserver.AppBackgroundDetector.dismissTask")
+            if (stopWatcher != null)
             callback.invoke()
         }
 

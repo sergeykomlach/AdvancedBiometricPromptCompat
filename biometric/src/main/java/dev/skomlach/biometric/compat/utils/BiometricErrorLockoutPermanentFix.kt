@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.utils
 
 import android.content.SharedPreferences
+import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.util.concurrent.locks.ReentrantLock
@@ -33,7 +34,10 @@ object BiometricErrorLockoutPermanentFix {
     fun setBiometricSensorPermanentlyLocked(type: BiometricType) {
         try {
             lock.runCatching { this.lock() }
-            sharedPreferences.edit().putBoolean(TS_PREF + "-" + type.name, false).apply()
+            sharedPreferences.edit()
+                .putBoolean(TS_PREF + "-" + type.name, false)
+                .putLong(TS_PREF + "-" + type.name + "-uptime", SystemClock.uptimeMillis())
+                .apply()
         } finally {
             lock.runCatching {
                 this.unlock()
@@ -41,6 +45,25 @@ object BiometricErrorLockoutPermanentFix {
         }
     }
 
+    fun isRebootDetected(): Boolean {
+        try {
+            lock.runCatching { this.lock() }
+            val keys = sharedPreferences.all.keys.filter {
+                it.contains("-uptime")
+            }
+            var uptimeChanged = false
+            val uptime = SystemClock.uptimeMillis()
+            keys.forEach {
+                val memorizedUptime = sharedPreferences.getLong(it, uptime)
+                uptimeChanged = uptimeChanged || uptime > memorizedUptime
+            }
+            return uptimeChanged
+        } finally {
+            lock.runCatching {
+                this.unlock()
+            }
+        }
+    }
     fun resetBiometricSensorPermanentlyLocked() {
         try {
             lock.runCatching { this.lock() }
@@ -50,9 +73,12 @@ object BiometricErrorLockoutPermanentFix {
                 this.unlock()
             }
         }
+        BiometricLockoutFix.reset()
     }
 
     fun isBiometricSensorPermanentlyLocked(type: BiometricType): Boolean {
+        if (isRebootDetected())
+            resetBiometricSensorPermanentlyLocked()
         try {
             lock.runCatching { this.lock() }
 

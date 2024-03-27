@@ -36,7 +36,6 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import java.lang.reflect.Modifier
 import java.security.InvalidKeyException
 import java.security.KeyStore
-import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -152,7 +151,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     override fun lockout() {
         if (!isLockedOut) {
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.values()) {
+                for (type in BiometricType.entries) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     if (isHardwareAvailableForType(type) && isBiometricEnrolledForType(type)) {
@@ -167,7 +166,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     private val isAnyLockedOut: Boolean
         get() {
             if (canAuthenticate == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE) return true
-            for (type in BiometricType.values()) {
+            for (type in BiometricType.entries) {
                 if (BiometricLockoutFix.isLockOut(type))
                     return true
             }

@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
@@ -53,10 +54,10 @@ object BiometricManagerCompat {
             return keyguardManager?.isKeyguardSecure == true
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)) {
-                keyguardManager?.isDeviceSecure == true
-            } else false
+                keyguardManager?.isDeviceSecure == true || keyguardManager?.isKeyguardSecure == true
+            } else keyguardManager?.isKeyguardSecure == true
         } else {
-            return keyguardManager?.isDeviceSecure == true
+            return keyguardManager?.isDeviceSecure == true || keyguardManager?.isKeyguardSecure == true
         }
     }
 
@@ -404,6 +405,9 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
+        //See method comments
+        if(!isBiometricAppEnabled())
+            return true
         var result = false
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
@@ -570,5 +574,17 @@ object BiometricManagerCompat {
             )
         }
         return false
+    }
+
+    //Special case for Pixel 7 and probable others -
+    //user need to enable "Identity verification in apps" feature in device settings
+    private fun isBiometricAppEnabled(): Boolean{
+        return try {
+            val biometricAppEnabled: Int =
+                Settings.Secure.getInt(AndroidContext.appContext.contentResolver, "biometric_app_enabled", 1)
+            biometricAppEnabled == 1
+        } catch (e: Throwable) {
+            true
+        }
     }
 }

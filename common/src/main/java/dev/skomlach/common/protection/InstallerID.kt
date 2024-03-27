@@ -77,7 +77,7 @@ enum class InstallerID(private val text: String) {
             } catch (e :Throwable){
                 return true //unable to get InstallerPackageName
             }
-            for (id in InstallerID.values()) {
+            for (id in InstallerID.entries) {
                 validInstallers.addAll(id.toIDs())
             }
             return installer != null && validInstallers.contains(installer)

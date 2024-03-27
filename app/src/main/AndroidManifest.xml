@@ -50,18 +50,18 @@
             android:required="false" />
 
     <application
-            android:enableOnBackInvokedCallback="true"
             android:name="dev.skomlach.biometric.app.App"
             android:allowBackup="false"
             android:allowNativeHeapPointerTagging="true"
             android:banner="@mipmap/ic_launcher"
+            android:enableOnBackInvokedCallback="true"
             android:fullBackupContent="false"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
+            android:localeConfig="@xml/locales_config"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/Theme.MyApplication"
-            android:localeConfig="@xml/locales_config">
+            android:theme="@style/Theme.MyApplication">
         <!--
       https://android-developers.googleblog.com/2018/11/get-your-app-ready-for-foldable-phones.html
       https://developer.samsung.com/galaxy/foldable

@@ -46,43 +46,46 @@ fun Context.animationsEnabled(): Boolean =
             1.0f
         ) == 0f)
 
-fun Context.getFixedContext(): Context {
+fun Context.getFixedContext(type: Int = WindowManager.LayoutParams.TYPE_APPLICATION): Context {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-        getWindowContext(getDisplayContext(this))
-    } else getWindowContext(this)
+        getDisplayContext(this, type)
+    } else getWindowContext(this, type)
 }
 
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-private fun getDisplayContext(context: Context): Context {
+private fun getDisplayContext(context: Context, type: Int): Context {
     //check if context already has display
     try {
-        if (isAtLeastR && context.display != null)
-            return context
-    } catch (ignore: Throwable) {
+        if (isAtLeastR) {
+            context.display?.let { d ->
+                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    context.createWindowContext(d, type, null)
+                } else context.createDisplayContext(d).createWindowContext(type, null)
+            }
+        }
+    } catch (e: Throwable) {
+        e.printStackTrace()
     }
-
     try {
         val dm = DisplayManagerCompat.getInstance(context)
         dm.getDisplay(Display.DEFAULT_DISPLAY)?.let { d ->
-            val ctx =
-                context.createDisplayContext(d)//LOL - if you use AccessibilityService - warning anyway happens here :)
-            return ctx ?: context
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                context.createWindowContext(d, type, null)
+            } else context.createDisplayContext(d).createWindowContext(type, null)
         }
-    } catch (ignore: Throwable) {
+    } catch (e: Throwable) {
+        e.printStackTrace()
     }
     //give up, lets use at least original Context
-
-    return context
+    return getWindowContext(context, type)
 }
 
-private fun getWindowContext(context: Context): Context {
+private fun getWindowContext(context: Context, type: Int): Context {
     if (isAtLeastR) {
         try {
-            return context.createWindowContext(
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                null
-            )//for now - fail always for 3rd party apps
-        } catch (ignore: Exception) {
+            return context.createWindowContext(type, null)//for now - fail always for 3rd party apps
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
         //give up, lets use at least original Context
     }

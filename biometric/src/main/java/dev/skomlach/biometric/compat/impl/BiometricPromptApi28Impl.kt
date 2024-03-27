@@ -41,7 +41,6 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.Vibro
@@ -107,8 +106,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }
             }
 
-            promptInfoBuilder.setDeviceCredentialAllowed(builder.forceDeviceCredential())
 
+            if (isAtLeastR)
             promptInfoBuilder.setAllowedAuthenticators(
                 if (builder.forceDeviceCredential())
                     BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -118,6 +117,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     else
                         (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
             )
+            else
+                promptInfoBuilder.setDeviceCredentialAllowed(builder.forceDeviceCredential())
 
             promptInfoBuilder.setConfirmationRequired(false)
             return promptInfoBuilder.build()
@@ -258,9 +259,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     return
                 errorTs = tmp
 
-                if (biometricPromptInfo.isDeviceCredentialAllowed) {
+                if (biometricPromptInfo.isDeviceCredentialAllowed || (biometricPromptInfo.allowedAuthenticators and BiometricManager.Authenticators.DEVICE_CREDENTIAL) != 0) {
                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                    BiometricLockoutFix.reset()
                 }
                 checkAuthResultForPrimary(AuthResult.AuthResultState.SUCCESS, result.cryptoObject)
             }
@@ -568,7 +568,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val crypto = if (cryptoObject == null) null else {
             BiometricCryptoObject(cryptoObject.signature, cryptoObject.cipher, cryptoObject.mac)
         }
-        if (biometricPromptInfo.isDeviceCredentialAllowed) {
+        if (biometricPromptInfo.isDeviceCredentialAllowed || (biometricPromptInfo.allowedAuthenticators and BiometricManager.Authenticators.DEVICE_CREDENTIAL) != 0) {
             authFinished[BiometricType.BIOMETRIC_ANY] =
                 AuthResult(
                     authResult,
@@ -607,7 +607,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val success =
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("BiometricPromptApi28Impl.checkAuthResultForPrimary.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
-        if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
+        if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
         ) {
             if (success != null) {
@@ -628,17 +628,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null) {
-                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
-                    e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
-                    callback?.onFailed(error.failureReason)
-                    cancelAuthentication()
-                } else {
-                    ExecutorHelper.postDelayed({
-                        e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
-                        callback?.onFailed(error.failureReason)
-                        cancelAuthentication()
-                    }, 2000)
-                }
+                e("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onFailed")
+                callback?.onFailed(error.failureReason)
+                cancelAuthentication()
             }
 
 
@@ -723,7 +715,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
 
         d("BiometricPromptApi28Impl.checkAuthResultForSecondary.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
-        if (((success != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
+        if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
 

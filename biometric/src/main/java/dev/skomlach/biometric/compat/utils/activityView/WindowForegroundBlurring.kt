@@ -39,7 +39,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricManagerCompat
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
@@ -390,7 +394,7 @@ class WindowForegroundBlurring(
         try {
             biometricsLayout?.let { bmLayout ->
 
-                for (type in BiometricType.values()) {
+                for (type in BiometricType.entries) {
                     when (type) {
                         BiometricType.BIOMETRIC_FACE -> setIconState(
                             type,

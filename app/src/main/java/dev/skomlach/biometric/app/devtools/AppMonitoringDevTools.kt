@@ -44,6 +44,7 @@ class AppMonitoringDevTools(val app: Application) {
     private val FILE_SIZE_LIMIT = 524288
 
     private var oldURLStreamHandlerFactory: URLStreamHandlerFactory? = null
+
     init {
         try {
             oldURLStreamHandlerFactory = URL::class.java.declaredFields.firstOrNull {

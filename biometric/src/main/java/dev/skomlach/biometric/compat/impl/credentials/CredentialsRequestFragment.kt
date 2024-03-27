@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl.credentials
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
@@ -35,7 +36,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
-import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
@@ -70,7 +70,6 @@ class CredentialsRequestFragment : Fragment() {
                             LogCat.logError("CredentialsRequestFragment", result)
                             if (result) {
                                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                                BiometricLockoutFix.reset()
                             }
                             validator.invoke(result)
                         }
@@ -129,6 +128,7 @@ class CredentialsRequestFragment : Fragment() {
     }
 
 
+    @SuppressLint("PrivateResource")
     override fun onAttach(context: Context) {
         LogCat.log("CredentialsRequestFragment", "onAttach")
         super.onAttach(context)
