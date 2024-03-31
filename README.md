@@ -75,6 +75,10 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 
 
 ## Recent changes (last 3 month)
+March 31 2024
+
+**Bugfixes** Major update with bugfixes
+
 March 15 2024
 
 **Bugfixes**
