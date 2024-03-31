@@ -32,6 +32,7 @@ import android.os.Looper
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.View
+import android.view.ViewDebug
 import android.view.ViewTreeObserver
 import android.view.Window
 import androidx.annotation.RequiresApi
@@ -48,6 +49,17 @@ import java.lang.reflect.Method
 
 @SuppressLint("RestrictedApi")
 object BlurUtil {
+    private var m: Method? = try {
+        ViewDebug::class.java.getDeclaredMethod(
+            "performViewCapture",
+            View::class.java,
+            Boolean::class.javaPrimitiveType
+        ).apply {
+            isAccessible = true
+        }
+    } catch (ignore: Throwable) {
+        null
+    }
     interface OnPublishListener {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
     }
@@ -75,30 +87,156 @@ object BlurUtil {
     }
 
     fun takeScreenshot(view: View, listener: onScreenshotListener) {
-        view.getActivity()?.window?.let {
-            takeScreenshot(it, listener)
-        } ?: run {
-            GlobalScope.launch(Dispatchers.Main) {
-                val bm = view.captureToBitmap()
-                bm.addListener({
-                    listener.invoke(bm.get())
-                }, ExecutorHelper.executor)
+        ExecutorHelper.startOnBackground {
+            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
+            val isBlackBerryBug = (Build.BRAND.equals(
+                "Blackberry",
+                ignoreCase = true
+            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
+                    && try {
+                val f =
+                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+                val isAccessible = f?.isAccessible ?: true
+                var result = false
+                try {
+                    f?.isAccessible = true
+                    result = f?.get(view) == null
+                } finally {
+                    if (!isAccessible)
+                        f?.isAccessible = false
+                }
+                result
+            } catch (ignore: Throwable) {
+                false
             }
+            if (!isBlackBerryBug) {
+                m?.let { method ->
+                    val startMs = System.currentTimeMillis()
+                    try {
+                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                            try {
+                                LogCat.log("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
+                                ExecutorHelper.post {
+                                    listener.invoke(
+                                        bm.copy(Bitmap.Config.ARGB_4444, false)
+                                    )
+                                }
+                            } catch (e: Throwable) {
+                                LogCat.logException(e)
+                            }
+                        }
+                    } catch (ignore: Throwable) {
+                        ExecutorHelper.post {
+                            listener.invoke(
+                                fallbackViewCapture(view) ?: return@post
+                            )
+                        }
+                    }
+                    return@startOnBackground
+                }
+            }
+            ExecutorHelper.post { listener.invoke(fallbackViewCapture(view) ?: return@post) }
         }
 
     }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
-        view.getActivity()?.window?.let {
-            takeScreenshotAndBlur(it, listener)
-        } ?: run {
-            GlobalScope.launch(Dispatchers.Main) {
-                val bm = view.captureToBitmap()
-                bm.addListener({
-                    blur(view.context, bm.get(), listener)
-                }, ExecutorHelper.executor)
+        ExecutorHelper.startOnBackground {
+            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
+            val isBlackBerryBug = (Build.BRAND.equals(
+                "Blackberry",
+                ignoreCase = true
+            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
+                    && try {
+                val f =
+                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+                val isAccessible = f?.isAccessible ?: true
+                var result = false
+                try {
+                    f?.isAccessible = true
+                    result = f?.get(view) == null
+                } finally {
+                    if (!isAccessible)
+                        f?.isAccessible = false
+                }
+                result
+            } catch (ignore: Throwable) {
+                false
+            }
+            if (!isBlackBerryBug) {
+                m?.let { method ->
+                    val startMs = System.currentTimeMillis()
+                    try {
+                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                            try {
+                                LogCat.log("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
+                                blur(
+                                    view.context,
+                                    bm.copy(Bitmap.Config.ARGB_4444, false),
+                                    listener
+                                )
+                            } catch (e: Throwable) {
+                                LogCat.logException(e)
+                            }
+                        }
+                    } catch (ignore: Throwable) {
+                        blur(
+                            view.context,
+                            fallbackViewCapture(view) ?: return@startOnBackground,
+                            listener
+                        )
+                    }
+                    return@startOnBackground
+                }
+            }
+
+            blur(view.context, fallbackViewCapture(view) ?: return@startOnBackground, listener)
+        }
+
+    }
+
+    private fun fallbackViewCapture(view: View): Bitmap? {
+        val startMs = System.currentTimeMillis()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                val bm =
+                    Bitmap.createBitmap(
+                        view.measuredWidth,
+                        view.measuredHeight,
+                        Bitmap.Config.ARGB_4444
+                    )
+                val canvas = Canvas(bm)
+                view.draw(canvas)
+                LogCat.log("BlurUtil.takeScreenshot#2 time - ${System.currentTimeMillis() - startMs} ms")
+
+                return bm
+            } catch (e: Throwable) {
+                LogCat.logException(e)
             }
         }
+
+        try {
+            val old = view.isDrawingCacheEnabled
+            if (!old) {
+                view.isDrawingCacheEnabled = true
+                view.buildDrawingCache()//WARNING: may produce exceptions in draw()
+            }
+            try {
+                view.drawingCache?.let {
+                    val bm = Bitmap.createBitmap(it)
+                    LogCat.log("BlurUtil.takeScreenshot#3 time - ${System.currentTimeMillis() - startMs} ms")
+                    return bm
+                }
+            } finally {
+                if (!old) {
+                    view.destroyDrawingCache()
+                    view.isDrawingCacheEnabled = false
+                }
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+        return null
     }
 
     private fun blur(context: Context, bkg: Bitmap, listener: OnPublishListener) {
