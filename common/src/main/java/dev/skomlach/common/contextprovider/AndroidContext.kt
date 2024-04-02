@@ -45,8 +45,9 @@ import java.util.concurrent.locks.ReentrantLock
 object AndroidContext {
     private val _resumedActivityLiveData = MutableLiveData<Activity?>()
     val resumedActivityLiveData = _resumedActivityLiveData
-    private val configurationRelay = MutableLiveData<Reference<Configuration?>?>(null)
-    val configurationLiveData = configurationRelay
+    private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
+    private val configurationMutableLiveData = MutableLiveData<Reference<Configuration?>?>(null)
+    val configurationLiveData = configurationMutableLiveData
     private val activityRelay = Collections.synchronizedSet(HashSet<Reference<Activity?>>())
     val activity: Activity?
         get() = try {
@@ -56,15 +57,11 @@ object AndroidContext {
         }
     private val lock = ReentrantLock()
     private var appRef = AtomicReference<Reference<Application?>?>(null)
-    private fun getContextRef(): Context? = try {
-        appRef.get()?.get()
-    } catch (e: Throwable) {
-        null
-    }
+    private fun getContextRef(): Context? = appRef.get()?.get()
 
     var configuration: Configuration? = null
         get() {
-            return configurationRelay.value?.get()
+            return configurationRelay.get()?.get()
         }
         private set
 
@@ -121,11 +118,13 @@ object AndroidContext {
                         null
                     }
                 })?.also {
-                    configurationRelay.postValue(SoftReference(it.resources.configuration))
+                    configurationRelay.set(SoftReference(it.resources.configuration))
+                    configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
                     it.registerComponentCallbacks(object : ComponentCallbacks {
                         override fun onConfigurationChanged(newConfig: Configuration) {
                             LogCat.logError("AndroidContext", "onConfigurationChanged $newConfig")
-                            configurationRelay.postValue(SoftReference(newConfig))
+                            configurationRelay.set(SoftReference(newConfig))
+                            configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
                         }
 
                         override fun onLowMemory() {}
@@ -141,13 +140,15 @@ object AndroidContext {
                                 "onConfigurationChanged ${activity.resources.configuration}"
                             )
                             activityRelay.add(SoftReference(activity))
-                            configurationRelay.postValue(SoftReference(activity.resources.configuration))
+                            configurationRelay.set(SoftReference(activity.resources.configuration))
+                            configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
                             activityRelay.add(SoftReference(activity))
-                            configurationRelay.postValue(SoftReference(activity.resources.configuration))
+                            configurationRelay.set(SoftReference(activity.resources.configuration))
+                            configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
                             _resumedActivityLiveData.postValue(activity)
                         }
 
