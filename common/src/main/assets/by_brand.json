@@ -1167,6 +1167,13 @@
    "model": "HT10"
   }
  ],
+ "ARGUEST": [
+  {
+   "device": "kunyang",
+   "name": "Arguest Android UHD TV",
+   "model": "Arguest Android UHD TV"
+  }
+ ],
  "ARMADILOS": [
   {
    "device": "Listo22",
@@ -2387,6 +2394,11 @@
    "model": "C01"
   },
   {
+   "device": "Acer_Iconia_T10-21M",
+   "name": "Acer Iconia T10-21M",
+   "model": "Acer_Iconia_T10-21M"
+  },
+  {
    "device": "AcerO10T4129L",
    "name": "Acer One 10 T4-129L",
    "model": "Acer One 10 T4-129L"
@@ -3220,6 +3232,11 @@
    "device": "da2",
    "name": "N3-2200",
    "model": "N3-2200"
+  },
+  {
+   "device": "P11",
+   "name": "P11",
+   "model": "P11-11"
   },
   {
    "device": "picasso",
@@ -4471,6 +4488,11 @@
    "device": "A8_LTE",
    "name": "A8_LTE",
    "model": "A8_LTE"
+  },
+  {
+   "device": "hongkong",
+   "name": "AIWA",
+   "model": "AIWA 4K GOOGLE TV"
   },
   {
    "device": "lavender",
@@ -37690,6 +37712,11 @@
    "model": "FRC1-ESTL"
   },
   {
+   "device": "SEI800ESTL",
+   "name": "FRC1-Eastlink",
+   "model": "FRC1-Eastlink"
+  },
+  {
    "device": "SEI800MDCOM",
    "name": "FRC1-MDCOM",
    "model": "FRC1-MDCOM"
@@ -47972,6 +47999,11 @@
    "device": "nami_cheets",
    "name": "Intel Kaby Lake U Chromebook",
    "model": "nami"
+  },
+  {
+   "device": "rex_cheets",
+   "name": "Intel Meteorlake-U Chromebook",
+   "model": "rex"
   },
   {
    "device": "volteer_cheets",
@@ -72059,11 +72091,6 @@
    "model": "AI PONT"
   },
   {
-   "device": "kualakai",
-   "name": "APAC",
-   "model": "Infinix Google TV"
-  },
-  {
    "device": "Infinix-X6739",
    "name": "GT 10 Pro",
    "model": "Infinix X6739"
@@ -72397,6 +72424,11 @@
    "device": "Infinix-X5511-13M",
    "name": "Hot 4 Pro",
    "model": "Infinix HOT 4 Pro"
+  },
+  {
+   "device": "kualakai",
+   "name": "Infinix Google TV",
+   "model": "Infinix Google TV"
   },
   {
    "device": "Infinix-X657B",
@@ -78928,6 +78960,11 @@
    "model": "HK 4K Google TV-C"
   },
   {
+   "device": "keoneae",
+   "name": "HK 4K Google TV-D",
+   "model": "HK 4K Google TV-D"
+  },
+  {
    "device": "bandra",
    "name": "HK Google TV-A",
    "model": "HK Google TV-A"
@@ -79587,6 +79624,11 @@
   {
    "device": "hongkong",
    "name": "IMMER",
+   "model": "4K SMART TV"
+  },
+  {
+   "device": "hongkong",
+   "name": "INNO-HIT",
    "model": "4K SMART TV"
   },
   {
@@ -98044,6 +98086,11 @@
    "model": "LOGIC L68"
   },
   {
+   "device": "L68_Ultra",
+   "name": "L68 Ultra",
+   "model": "L68_Ultra"
+  },
+  {
    "device": "LOGIC_L50T",
    "name": "LOGIC L50T",
    "model": "LOGIC L50T"
@@ -106115,6 +106162,13 @@
    "model": "VisioTab 10"
   }
  ],
+ "Mobicel": [
+  {
+   "device": "P5",
+   "name": "P5",
+   "model": "P5"
+  }
+ ],
  "Mobicell": [
   {
    "device": "4U",
@@ -111935,6 +111989,11 @@
   }
  ],
  "Mtek": [
+  {
+   "device": "hongkong",
+   "name": "MTEK",
+   "model": "4K SMART TV"
+  },
   {
    "device": "lavender",
    "name": "MTEK",
@@ -159244,6 +159303,11 @@
    "model": "SHG09"
   },
   {
+   "device": "ZKO",
+   "name": "BASIO active2",
+   "model": "SHG12"
+  },
+  {
    "device": "SHV36",
    "name": "BASIO2 SHV36",
    "model": "SHV36"
@@ -167379,6 +167443,11 @@
    "device": "YYT",
    "name": "SRT41",
    "model": "4K Google TV Stick"
+  },
+  {
+   "device": "ZRH",
+   "name": "SRT420",
+   "model": "4K Hybrid STB"
   },
   {
    "device": "longshan",
@@ -195622,6 +195691,11 @@
    "device": "NEXG_N25",
    "name": "NEXG_N25",
    "model": "NEXG N25"
+  },
+  {
+   "device": "ORBIT_Y12",
+   "name": "ORBIT Y12",
+   "model": "ORBIT Y12"
   },
   {
    "device": "ORBIT_Y70",
