@@ -49,6 +49,7 @@ import java.lang.reflect.Method
 
 @SuppressLint("RestrictedApi")
 object BlurUtil {
+    private const val TAG = "BlurUtil"
     private var m: Method? = try {
         ViewDebug::class.java.getDeclaredMethod(
             "performViewCapture",
@@ -490,7 +491,12 @@ object BlurUtil {
             else -> {
                 val window = getActivity()?.window
                 if (window != null) {
-                    generateBitmapFromPixelCopy(window, destBitmap, bitmapFuture)
+                    try {
+                        generateBitmapFromPixelCopy(window, destBitmap, bitmapFuture)
+                    }catch (e: IllegalArgumentException){ //Window doesn't have a backing surface
+                        LogCat.logError(TAG, "generateBitmap:",e)
+                        generateBitmapFromDraw(destBitmap, bitmapFuture) // fall back
+                    }
                 } else {
                     LogCat.log(
                         "View.captureToImage",
@@ -537,7 +543,7 @@ object BlurUtil {
         bitmapFuture.set(destBitmap)
     }
 
-    private fun View.getActivity(): Activity? {
+    fun View.getActivity(): Activity? {
         fun Context.getActivity(): Activity? {
             return when (this) {
                 is Activity -> this
