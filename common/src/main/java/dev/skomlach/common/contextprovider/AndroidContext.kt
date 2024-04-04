@@ -24,7 +24,7 @@ import android.app.Activity
 import android.app.Application
 import android.content.ComponentCallbacks
 import android.content.Context
-import android.content.res.Configuration
+import android.content.res.*
 import android.os.Bundle
 import android.os.Looper
 import androidx.core.app.LocaleManagerCompat
@@ -46,7 +46,7 @@ object AndroidContext {
     private val _resumedActivityLiveData = MutableLiveData<Activity?>()
     val resumedActivityLiveData = _resumedActivityLiveData
     private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
-    private val configurationMutableLiveData = MutableLiveData<Reference<Configuration?>?>(null)
+    private val configurationMutableLiveData = MutableLiveData<Unit>(null)
     val configurationLiveData = configurationMutableLiveData
     private val activityRelay = Collections.synchronizedSet(HashSet<Reference<Activity?>>())
     val activity: Activity?
@@ -59,9 +59,14 @@ object AndroidContext {
     private var appRef = AtomicReference<Reference<Application?>?>(null)
     private fun getContextRef(): Context? = appRef.get()?.get()
 
-    var configuration: Configuration? = null
+    var appConfiguration: Configuration? = null
         get() {
-            return configurationRelay.get()?.get()
+            return configurationRelay.get()?.get()?: appContext.resources.configuration
+        }
+        private set
+    var systemConfiguration: Configuration? = null
+        get() {
+            return Resources.getSystem().configuration
         }
         private set
 
@@ -119,12 +124,12 @@ object AndroidContext {
                     }
                 })?.also {
                     configurationRelay.set(SoftReference(it.resources.configuration))
-                    configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
+                    configurationMutableLiveData.postValue(Unit)
                     it.registerComponentCallbacks(object : ComponentCallbacks {
                         override fun onConfigurationChanged(newConfig: Configuration) {
                             LogCat.logError("AndroidContext", "onConfigurationChanged $newConfig")
                             configurationRelay.set(SoftReference(newConfig))
-                            configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
+                            configurationMutableLiveData.postValue(Unit)
                         }
 
                         override fun onLowMemory() {}
@@ -141,14 +146,14 @@ object AndroidContext {
                             )
                             activityRelay.add(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
-                            configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
+                            configurationMutableLiveData.postValue(Unit)
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
                             activityRelay.add(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
-                            configurationMutableLiveData.postValue(SoftReference(it.resources.configuration))
+                            configurationMutableLiveData.postValue(Unit)
                             _resumedActivityLiveData.postValue(activity)
                         }
 
@@ -232,7 +237,7 @@ object AndroidContext {
     val appLocale: Locale
         get() {
             val listCompat = ConfigurationCompat.getLocales(
-                configuration ?: return Locale.getDefault()
+                appConfiguration ?: return Locale.getDefault()
             )
             val l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
             return l ?: Locale.getDefault()

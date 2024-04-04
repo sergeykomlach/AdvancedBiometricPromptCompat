@@ -70,7 +70,7 @@ object TruncatedTextFix {
             return
         }
         val config =
-            AndroidContext.configuration ?: AndroidContext.appContext.resources.configuration
+            AndroidContext.appConfiguration ?: AndroidContext.appContext.resources.configuration
         val cache =
             truncatedText ?: getTruncatedText(config).also {
                 truncatedText = it

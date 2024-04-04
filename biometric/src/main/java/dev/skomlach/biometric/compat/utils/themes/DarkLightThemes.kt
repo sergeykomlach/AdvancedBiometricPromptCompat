@@ -63,13 +63,6 @@ object DarkLightThemes {
             }
 
             else -> {
-                AndroidContext.configuration?.let { config ->
-                    if ((config.uiMode and
-                                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) ||
-                        (Utils.isAtLeastR && config.isNightModeActive)
-                    )
-                        return UiModeManager.MODE_NIGHT_YES
-                }
                 Resources.getSystem().configuration?.let { config ->
                     if ((config.uiMode and
                                 Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) ||

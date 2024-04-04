@@ -47,7 +47,7 @@ class MultiWindowSupport private constructor() {
         fun isTablet(): Boolean {
             val ctx = AndroidContext.activity ?: AndroidContext.appContext
             val resources = ctx.resources
-            val configuration = AndroidContext.configuration ?: resources.configuration
+            val configuration = AndroidContext.appConfiguration ?: resources.configuration
             val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 ctx.createConfigurationContext(configuration).resources
             } else {
