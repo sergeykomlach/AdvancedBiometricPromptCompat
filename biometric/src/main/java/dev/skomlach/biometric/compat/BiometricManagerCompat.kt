@@ -24,6 +24,7 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.os.Build
 import android.provider.Settings
 import androidx.fragment.app.FragmentActivity
@@ -406,9 +407,6 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        //See method comments
-        if(!isBiometricAppEnabled())
-            return true
         var result = false
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
@@ -474,6 +472,8 @@ object BiometricManagerCompat {
         )
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
+            return false
+        if(!isBiometricAppEnabled())
             return false
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
@@ -558,9 +558,6 @@ object BiometricManagerCompat {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
 
-        if (!isBiometricReadyForEnroll(api))//Enroll cann't be started till access blocked
-            return false
-
         if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInitialized && BiometricAuthentication.openSettings(
                 activity,
                 api.type
@@ -576,16 +573,34 @@ object BiometricManagerCompat {
         }
         return false
     }
-
-    //Special case for Pixel 7 and probable others -
+    //Special case for Pixel and probable others -
     //user need to enable "Identity verification in apps" feature in device settings
-    private fun isBiometricAppEnabled(): Boolean{
-        return try {
-            val biometricAppEnabled: Int =
-                Settings.Secure.getInt(AndroidContext.appContext.contentResolver, "biometric_app_enabled", 1)
-            biometricAppEnabled == 1
-        } catch (e: Throwable) {
-            true
+    //NOTE: On newer AOS14 builds this case already handled properly
+    fun isBiometricAppEnabled(): Boolean {
+        val contentResolver = AndroidContext.appContext.contentResolver
+        val c: Cursor? =
+            contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)
+        while (c?.moveToNext() == true) {
+            val key = c.getString(1)?.lowercase()
+            if (key?.equals("biometric_app_enabled") == true || //old one
+                (key?.contains("biometric_") == true && key.contains("_enable"))
+            ) {
+                val value = try {
+                    val biometricAppEnabled: Int =
+                        Settings.Secure.getInt(contentResolver, key, 1)
+                    biometricAppEnabled == 1
+                } catch (e: Throwable) {
+                    true
+                }
+                if (!value) {
+                    c.close()
+                    return false
+                }
+            }
         }
+        c?.close()
+        return true
+
     }
+
 }

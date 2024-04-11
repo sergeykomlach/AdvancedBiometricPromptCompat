@@ -125,7 +125,7 @@ class WindowForegroundBlurring(
         }
 
         @SuppressLint("ClickableViewAccessibility")
-        v = LayoutInflater.from(ContextWrapper(context))
+        v = LayoutInflater.from(parentView.context)
             .inflate(R.layout.blurred_screen, null, false).apply {
                 tag = this@WindowForegroundBlurring.javaClass.name
                 alpha = 1f

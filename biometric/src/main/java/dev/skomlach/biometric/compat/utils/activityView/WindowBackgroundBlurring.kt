@@ -114,7 +114,7 @@ class WindowBackgroundBlurring(
                 } else
                     ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
             } ?: run {
-                v = LayoutInflater.from(ContextWrapper(parentView.context))
+                v = LayoutInflater.from(parentView.context)
                     .inflate(R.layout.blurred_screen, null, false).apply {
                         tag = this@WindowBackgroundBlurring.javaClass.name
                         alpha = 1f

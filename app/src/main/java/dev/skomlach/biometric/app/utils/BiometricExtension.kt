@@ -59,7 +59,7 @@ fun Fragment.startBiometric(
 //
 //                )
 //        else
-            if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
+            if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest) || !BiometricManagerCompat.isBiometricAppEnabled())
                 showAlertDialog(
                     requireActivity(),
                     "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",

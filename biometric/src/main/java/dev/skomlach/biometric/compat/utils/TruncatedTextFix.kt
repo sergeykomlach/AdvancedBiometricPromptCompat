@@ -120,7 +120,7 @@ object TruncatedTextFix {
             }
         }
         val windowView = activity.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup
-        val layout = LayoutInflater.from(builder.getContext())
+        val layout = LayoutInflater.from(windowView.context)
             .inflate(R.layout.biometric_prompt_dialog_content, null).apply {
                 this.visibility = View.INVISIBLE
                 windowView.addView(
