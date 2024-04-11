@@ -45,7 +45,16 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+    @JvmStatic
+    fun shouldFallbackToDeviceCredentials(api: BiometricAuthRequest = BiometricAuthRequest(
+        BiometricApi.AUTO,
+        BiometricType.BIOMETRIC_ANY
+    )): Boolean {
+        if(isBiometricReadyForUsage(api) || isBiometricReadyForEnroll(api))
+            return false
 
+        return isBiometricAvailable(api) && isDeviceSecureAvailable()
+    }
     @JvmStatic
     fun isDeviceSecureAvailable(): Boolean {
         val context = AndroidContext.appContext
