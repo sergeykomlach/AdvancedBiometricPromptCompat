@@ -236,6 +236,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
 
     private val oldDescription = builder.getDescription()
+    private val oldIsBiometricReadyForUsage = BiometricManagerCompat.isBiometricReadyForUsage()
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
@@ -504,6 +505,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         dialogDescription: CharSequence?
                     ) {
                         if (isOpened.get()) {
+                            //Lock/Permanent Lock
+                            if (System.currentTimeMillis() - startTs <= AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                                && (oldIsBiometricReadyForUsage != BiometricManagerCompat.isBiometricReadyForUsage())
+                                && builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential()) {
+                                BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed restart auth with credentials")
+                                builder.setForceDeviceCredentials(true)
+                                ExecutorHelper.postDelayed(
+                                    {
+                                        authenticateInternal(this)
+                                    },
+                                    AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                                        .toLong()
+                                )
+                                return
+                            }
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onFailed=$reason dialogDescription=$dialogDescription")
 
                             ExecutorHelper.post {
@@ -730,7 +746,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         //Solution to prevent Frida hooking
         //See https://fi5t.xyz/posts/biometric-underauthentication/
         private val skipTimeout =
-            AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+            AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
         private val authCallTimeStamp = AtomicLong(System.currentTimeMillis())
         internal fun updateTimestamp() {
             authCallTimeStamp.set(System.currentTimeMillis())
@@ -973,11 +989,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun forceDeviceCredential(): Boolean {
-            return forceDeviceCredential
+            return isDeviceCredentialFallbackAllowed() && forceDeviceCredential
         }
 
         fun isDeviceCredentialFallbackAllowed(): Boolean {
-            return isDeviceCredentialFallbackAllowed
+            return isDeviceCredentialFallbackAllowed && BiometricManagerCompat.isDeviceSecureAvailable()
         }
 
 
@@ -1053,23 +1069,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setForceDeviceCredentials(enabled: Boolean): Builder {
-            if(BiometricManagerCompat.isDeviceSecureAvailable() && this.isDeviceCredentialFallbackAllowed) {
+            if(this.isDeviceCredentialFallbackAllowed) {
                 this.forceDeviceCredential = enabled
             }
             return this
         }
 
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
-            if(BiometricManagerCompat.isDeviceSecureAvailable()){
-                this.isDeviceCredentialFallbackAllowed = enabled
-                this.forceDeviceCredential =
-                    enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)
-            } else{
-                BiometricLoggerImpl.e(
-                    "BiometricPromptCompat.setDeviceCredentialFallbackAllowed",
-                    IllegalStateException("isDeviceCredentialFallbackAllowed cann't be enabled")
-                )
-            }
+            this.isDeviceCredentialFallbackAllowed = enabled
+            this.forceDeviceCredential =
+                enabled && !BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest)
             return this
         }
 

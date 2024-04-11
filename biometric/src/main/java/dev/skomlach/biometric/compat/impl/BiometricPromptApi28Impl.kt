@@ -55,6 +55,7 @@ import dev.skomlach.common.misc.Utils.isAtLeastR
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 
@@ -141,7 +142,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         AtomicReference<BiometricFragment?>(null)
     private val fmAuthCallback: BiometricAuthenticationListener =
         BiometricAuthenticationCallbackImpl()
-
+    private val failureCounter = AtomicInteger(0)
     private val authCallback: BiometricPrompt.AuthenticationCallback =
         object : BiometricPrompt.AuthenticationCallback() {
             private var errorTs = 0L
@@ -152,6 +153,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
                 if (callback != null) {
                     ExecutorHelper.post {
+                        failureCounter.incrementAndGet()
                         dialog?.onFailure(false)
                         for (module in builder.getPrimaryAvailableTypes()) {
                             IconStateHelper.errorType(module)
@@ -234,6 +236,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
                             ExecutorHelper.post {
+                                failureCounter.incrementAndGet()
                                 dialog?.onFailure(
                                     failureReason == AuthenticationFailureReason.LOCKED_OUT
                                 )
@@ -687,6 +690,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
             IconStateHelper.successType(module?.confirmed)
         } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            failureCounter.incrementAndGet()
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
             IconStateHelper.errorType(module?.confirmed)
         }
@@ -739,7 +743,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 cancelAuth()
 
             } else if (error != null) {
-                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                     e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                     callback?.onFailed(error.failureReason)
                     cancelAuth()

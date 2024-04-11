@@ -48,10 +48,8 @@ fun Fragment.startBiometric(
     allowCredentials: Boolean
 ) {
 
-    val credentialsAllowed =
-        allowCredentials && BiometricManagerCompat.isDeviceSecureAvailable()
 
-    if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !credentialsAllowed) {
+    if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !allowCredentials) {
 //        if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))
 //            showAlertDialog(
 //                requireActivity(),
@@ -102,7 +100,7 @@ fun Fragment.startBiometric(
         .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
         .apply {
             setNegativeButtonText("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-            setDeviceCredentialFallbackAllowed(credentialsAllowed)
+            setDeviceCredentialFallbackAllowed(allowCredentials)
         }
         .also {
             if (crypto) {

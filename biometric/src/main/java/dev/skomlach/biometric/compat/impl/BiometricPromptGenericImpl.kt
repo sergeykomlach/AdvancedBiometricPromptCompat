@@ -33,9 +33,11 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInst
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
@@ -47,7 +49,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
     private val isOpened = AtomicBoolean(false)
-
+    private val failureCounter = AtomicInteger(0)
     init {
         isFingerprint.set(
             builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
@@ -135,6 +137,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             }
             IconStateHelper.successType(module?.confirmed)
         } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            failureCounter.incrementAndGet()
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
             IconStateHelper.errorType(module?.confirmed)
         }
@@ -185,7 +188,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null) {
-                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
+                e("checkAuthResult.authFinished - ${failureCounter.get()}")
+                if (failureCounter.get() == 1 ||  error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
                     callback?.onFailed(error.failureReason)
                     cancelAuthentication()
                 } else {

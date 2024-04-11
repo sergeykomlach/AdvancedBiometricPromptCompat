@@ -28,11 +28,14 @@ import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
+import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
@@ -43,7 +46,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     private val isFingerprint = AtomicBoolean(false)
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
-
+    private val failureCounter = AtomicInteger(0)
     private val isOpened = AtomicBoolean(false)
     private val autoCancel = Runnable {
         cancelAuth()
@@ -121,6 +124,9 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     ) {
         if (!isOpened.get())
             return
+        if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            failureCounter.incrementAndGet()
+        }
         //non fatal
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
@@ -166,7 +172,8 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null) {
-                if (error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                BiometricLoggerImpl.e("checkAuthResult.authFinished - ${failureCounter.get()}")
+                if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                     callback?.onFailed(error.failureReason)
                     cancelAuthentication()
                 } else {
