@@ -30,6 +30,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.protection.A11yDetection
 
 object ScreenProtection {
     //disable next features:
@@ -52,6 +53,8 @@ object ScreenProtection {
         view: View
     ) {
         try {
+            if(A11yDetection.hasWhiteListedService(view.context))
+                return
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 ViewCompat.setImportantForAutofill(

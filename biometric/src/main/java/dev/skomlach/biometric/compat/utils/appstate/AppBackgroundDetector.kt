@@ -75,10 +75,10 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
                 atomicBoolean.incrementAndGet()
                 try {
                     ScreenProtection.applyProtectionInView(f.requireView())
-                    if(f is DialogFragment){
+                    if (f is DialogFragment) {
                         ScreenProtection.applyProtectionInWindow(f.dialog?.window)
                     }
-                } catch (e :Throwable){
+                } catch (e: Throwable) {
 
                 }
             }

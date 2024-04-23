@@ -19,7 +19,6 @@
 
 package dev.skomlach.common.contextprovider
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.ComponentCallbacks
@@ -41,17 +40,23 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 
-@SuppressLint("StaticFieldLeak")
+
 object AndroidContext {
-    private val _resumedActivityLiveData = MutableLiveData<Activity?>()
-    val resumedActivityLiveData = _resumedActivityLiveData
+    private val _resumedActivityLiveData = MutableLiveData<Reference<Activity?>>()
+    val resumedActivityLiveData = MutableLiveData<Activity?>()
     private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
     private val configurationMutableLiveData = MutableLiveData<Unit>(null)
     val configurationLiveData = configurationMutableLiveData
-    private val activityRelay = Collections.synchronizedSet(HashSet<Reference<Activity?>>())
+
+    init {
+        _resumedActivityLiveData.observeForever {
+            resumedActivityLiveData.postValue(it.get())
+        }
+    }
+
     val activity: Activity?
         get() = try {
-            activityRelay.last { !isActivityFinished(it.get()) }.get()
+            _resumedActivityLiveData.value?.get()
         } catch (e: Throwable) {
             null
         }
@@ -61,7 +66,7 @@ object AndroidContext {
 
     var appConfiguration: Configuration? = null
         get() {
-            return configurationRelay.get()?.get()?: appContext.resources.configuration
+            return configurationRelay.get()?.get() ?: appContext.resources.configuration
         }
         private set
     var systemConfiguration: Configuration? = null
@@ -144,17 +149,15 @@ object AndroidContext {
                                 "AndroidContext",
                                 "onConfigurationChanged ${activity.resources.configuration}"
                             )
-                            activityRelay.add(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
                             configurationMutableLiveData.postValue(Unit)
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
-                            activityRelay.add(SoftReference(activity))
                             configurationRelay.set(SoftReference(activity.resources.configuration))
                             configurationMutableLiveData.postValue(Unit)
-                            _resumedActivityLiveData.postValue(activity)
+                            _resumedActivityLiveData.postValue(SoftReference(activity))
                         }
 
                         override fun onActivityPaused(activity: Activity) {
@@ -163,7 +166,7 @@ object AndroidContext {
                                     "AndroidContext", "Another activity already resumed"
                                 )
                             } else {
-                                _resumedActivityLiveData.postValue(null)
+                                _resumedActivityLiveData.postValue(SoftReference(null))
                             }
                             LogCat.logError(
                                 "AndroidContext",

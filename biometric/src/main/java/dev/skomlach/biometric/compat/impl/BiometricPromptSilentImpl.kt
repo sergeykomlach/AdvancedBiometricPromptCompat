@@ -172,7 +172,6 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null) {
-                BiometricLoggerImpl.e("checkAuthResult.authFinished - ${failureCounter.get()}")
                 if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                     callback?.onFailed(error.failureReason)
                     cancelAuthentication()

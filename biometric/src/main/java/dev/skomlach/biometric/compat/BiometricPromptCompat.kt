@@ -168,7 +168,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             if (BiometricErrorLockoutPermanentFix.isRebootDetected())
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-
+            reference.set(false)
             HookDetection.detect(object : HookDetection.HookDetectionListener {
                 override fun onDetected(flag: Boolean) {
                     reference.set(flag)
@@ -757,7 +757,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         @Throws(BiometricAuthException::class)
         open fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             val tmp = System.currentTimeMillis()
-            if (reference.get() || tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException(
+            if (reference.get() && tmp - authCallTimeStamp.get() <= skipTimeout) throw BiometricAuthException(
                 "Biometric flow hooking detected"
             )
         }
@@ -899,6 +899,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (BiometricErrorLockoutPermanentFix.isRebootDetected())
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
 
+            reference.set(false)
             HookDetection.detect(object : HookDetection.HookDetectionListener {
                 override fun onDetected(flag: Boolean) {
                     reference.set(flag)

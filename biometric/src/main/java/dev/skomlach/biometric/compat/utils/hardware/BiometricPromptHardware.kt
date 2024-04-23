@@ -204,7 +204,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
         return false
     }
-
     //More or less ok this one
     private fun isLockedOutForType(type: BiometricType): Boolean =
         BiometricLockoutFix.isLockOut(type)

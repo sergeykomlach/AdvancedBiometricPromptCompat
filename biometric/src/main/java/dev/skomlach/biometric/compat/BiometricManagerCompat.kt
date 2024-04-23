@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
@@ -585,12 +586,13 @@ object BiometricManagerCompat {
     //Special case for Pixel and probable others -
     //user need to enable "Identity verification in apps" feature in device settings
     //NOTE: On newer AOS14 builds this case already handled properly
+    @SuppressLint("Range")
     fun isBiometricAppEnabled(): Boolean {
         val contentResolver = AndroidContext.appContext.contentResolver
         val c: Cursor? =
             contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)
         while (c?.moveToNext() == true) {
-            val key = c.getString(1)?.lowercase()
+            val key = c.getString(c.getColumnIndex(Settings.System.NAME))?.lowercase()
             if (key?.equals("biometric_app_enabled") == true || //old one
                 (key?.contains("biometric_") == true && key.contains("_enable"))
             ) {

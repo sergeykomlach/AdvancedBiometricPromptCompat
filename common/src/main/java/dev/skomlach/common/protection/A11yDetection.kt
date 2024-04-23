@@ -36,6 +36,51 @@ import java.io.IOException
 import java.io.StringReader
 
 object A11yDetection {
+    private val talkBackPackages = listOf( "com.google.android.marvin.talkback", "com.android.talkback")
+    fun hasWhiteListedService(cnt: Context) : Boolean{
+        try {
+            val accessibilityEnabled =
+                Settings.Secure.getInt(cnt.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
+            val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
+
+            if (accessibilityEnabled == 1) {
+                val settingValue = Settings.Secure.getString(
+                    cnt.contentResolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                ) ?: return false
+                mStringColonSplitter.setString(settingValue)
+                val list = mutableListOf<ComponentName?>()
+                while (mStringColonSplitter.hasNext()) {
+                    val accessibilityService = mStringColonSplitter.next()
+                    list.add(ComponentName.unflattenFromString(accessibilityService))
+                }
+                LogCat.log(
+                    "A11yDetection",
+                    list
+                )
+
+                return list.filterNotNull().any {
+                    talkBackPackages.contains(it.packageName)
+                }.also {
+                    LogCat.logError(
+                        "A11yDetection",
+                        "hasWhiteListedService=$it"
+                    )
+                }
+            }
+        } catch (e: Throwable) {
+            LogCat.logError(
+                "A11yDetection",
+                e.message, e
+            )
+        }
+        return false.also {
+            LogCat.logError(
+                "A11yDetection",
+                "hasWhiteListedService=$it"
+            )
+        }
+    }
     //isAccessibilityTool
     fun shouldWeTrustA11y(cnt: Context): Boolean {
         try {
@@ -47,7 +92,7 @@ object A11yDetection {
                 val settingValue = Settings.Secure.getString(
                     cnt.contentResolver,
                     Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                ) ?: return false
+                ) ?: return true
                 mStringColonSplitter.setString(settingValue)
                 val list = mutableListOf<ComponentName?>()
                 while (mStringColonSplitter.hasNext()) {
