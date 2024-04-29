@@ -321,6 +321,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     e(e)
                 }
             } catch (e: Throwable) {
+                if(e.message?.contains("User changed or deleted their auth credentials") == true)
+                    return true
                 e(e)
             }
             return false
