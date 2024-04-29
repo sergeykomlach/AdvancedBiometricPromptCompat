@@ -335,6 +335,7 @@ class WindowForegroundBlurring(
             val rect = Rect()
             biometricsLayout?.getGlobalVisibleRect(rect)
 
+            if(rect.isEmpty) return
             val newBm = Bitmap.createBitmap(bm,
                 rect.left,
                 rect.top,
