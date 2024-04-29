@@ -275,7 +275,7 @@ object PermissionUtils {
             val notificationManager = appContext.getSystemService(
                 NotificationManager::class.java
             )
-            val notificationChannel = notificationManager.getNotificationChannel(channelId)
+            val notificationChannel = notificationManager.getNotificationChannel(channelId)?:return true
 
             return if (VERSION.SDK_INT >= 28) {
                 logError(
