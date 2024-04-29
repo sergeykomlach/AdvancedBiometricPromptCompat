@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Looper
@@ -52,6 +53,7 @@ import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
@@ -236,6 +238,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
 
     private val oldDescription = builder.getDescription()
+    private val oldTitle = builder.getTitle()
     private val oldIsBiometricReadyForUsage = BiometricManagerCompat.isBiometricReadyForUsage()
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
@@ -429,6 +432,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             if (builder.isDeviceCredentialFallbackAllowed() && builder.forceDeviceCredential()) {
                                 BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")
                                 builder.setForceDeviceCredentials(false)
+                                builder.setTitle(oldTitle)
                                 builder.setDescription(oldDescription)
                                 ExecutorHelper.postDelayed(
                                     {
@@ -658,6 +662,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     return
                 }
                 val secureScreenDialog = {
+                    val title = try {
+                        val appInfo =
+                            (if (Utils.isAtLeastT) AndroidContext.appContext.packageManager.getApplicationInfo(
+                                AndroidContext.appInstance?.packageName ?: "",
+                                PackageManager.ApplicationInfoFlags.of(0L)
+                            ) else AndroidContext.appContext.packageManager.getApplicationInfo(
+                                AndroidContext.appInstance?.packageName ?: "",
+                                0
+                            ))
+                        AndroidContext.appContext.packageManager.getApplicationLabel(appInfo)
+                            .ifEmpty {
+                                AndroidContext.appContext.getString(appInfo.labelRes)
+                            }
+                    } catch (e: Throwable) {
+                        oldTitle
+                    }
+                    builder.setTitle(title)
                     builder.setDescription(
                         LocalizationHelper.getLocalizedString(
                             builder.getActivity() ?: builder.getContext(),

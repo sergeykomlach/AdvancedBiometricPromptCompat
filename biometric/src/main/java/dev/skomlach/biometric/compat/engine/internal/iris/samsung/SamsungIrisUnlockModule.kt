@@ -247,27 +247,53 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 viewWeakReference.get()?.let { view ->
                     if (view.visibility == View.VISIBLE || view.holder.isCreating) {
                         authCallTimestamp.set(System.currentTimeMillis())
-                        it.authenticate(
-                            crypto,
-                            signalObject,
-                            0,
-                            callback,
-                            ExecutorHelper.handler,
-                            view
-                        )
+                        try {
+                            it.authenticate(
+                                crypto,
+                                signalObject,
+                                0,
+                                callback,
+                                ExecutorHelper.handler,
+                                getUserId(),
+                                bundle,
+                                view
+                            )
+                        } catch (e: Throwable) {
+                            it.authenticate(
+                                crypto,
+                                signalObject,
+                                0,
+                                callback,
+                                ExecutorHelper.handler,
+                                view
+                            )
+                        }
                         return
                     } else {
                         view.holder.addCallback(object : SurfaceHolder.Callback {
                             override fun surfaceCreated(p0: SurfaceHolder) {
                                 authCallTimestamp.set(System.currentTimeMillis())
-                                it.authenticate(
-                                    crypto,
-                                    signalObject,
-                                    0,
-                                    callback,
-                                    ExecutorHelper.handler,
-                                    view
-                                )
+                                try {
+                                    it.authenticate(
+                                        crypto,
+                                        signalObject,
+                                        0,
+                                        callback,
+                                        ExecutorHelper.handler,
+                                        getUserId(),
+                                        bundle,
+                                        view
+                                    )
+                                } catch (e: Throwable) {
+                                    it.authenticate(
+                                        crypto,
+                                        signalObject,
+                                        0,
+                                        callback,
+                                        ExecutorHelper.handler,
+                                        view
+                                    )
+                                }
                             }
 
                             override fun surfaceChanged(
@@ -287,14 +313,27 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     }
                 } ?: run {
                     authCallTimestamp.set(System.currentTimeMillis())
-                    it.authenticate(
-                        crypto,
-                        signalObject,
-                        0,
-                        callback,
-                        ExecutorHelper.handler,
-                        null
-                    )
+                    try {
+                        it.authenticate(
+                            crypto,
+                            signalObject,
+                            0,
+                            callback,
+                            ExecutorHelper.handler,
+                            getUserId(),
+                            bundle,
+                            null
+                        )
+                    } catch (e: Throwable) {
+                        it.authenticate(
+                            crypto,
+                            signalObject,
+                            0,
+                            callback,
+                            ExecutorHelper.handler,
+                            null
+                        )
+                    }
                 }
 
                 return
@@ -323,7 +362,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (errMsgId) {
                 IRIS_ERROR_NO_EYE_DETECTED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 

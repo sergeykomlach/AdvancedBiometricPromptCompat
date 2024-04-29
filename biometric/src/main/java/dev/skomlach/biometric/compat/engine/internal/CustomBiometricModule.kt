@@ -182,7 +182,7 @@ class CustomBiometricModule constructor(
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (errMsgId) {
                 CUSTOM_BIOMETRIC_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 

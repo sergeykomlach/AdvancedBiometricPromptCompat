@@ -332,23 +332,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     }
 
-    private val finalTask = Runnable {
-        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
-        BiometricAuthentication.cancelAuthentication()
-        val finished = secondary.filter { type ->
-            authFinished.keys.contains(type)
-        }
-        secondary.removeAll(finished.toSet())
-        secondary.forEach {
-            checkAuthResultForSecondary(
-                AuthenticationResult(confirmed = it),
-                AuthResult.AuthResultState.FATAL_ERROR,
-                AuthenticationFailureReason.TIMEOUT
-            )
-        }
-
-    }
-
     override fun startAuth() {
         d("BiometricPromptApi28Impl.startAuth():")
         val prompt = biometricPrompt
@@ -362,9 +345,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
         onUiOpened()
         showSystemUi(prompt)
-        if (secondary.isNotEmpty()) {
+        if (secondary.isNotEmpty() && !DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
             ExecutorHelper.postDelayed({
-                if (!isNativeBiometricWorkaroundRequired) {
                     BiometricAuthentication.authenticate(
                         builder.getCryptographyPurpose(),
                         null,
@@ -372,42 +354,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         fmAuthCallback,
                         BundleBuilder.create(builder)
                     )
-                } else {
-                    BiometricAuthentication.authenticate(
-                        builder.getCryptographyPurpose(),
-                        null,
-                        secondary,
-                        object : BiometricAuthenticationListener {
-                            override fun onSuccess(module: AuthenticationResult?) {
-                                checkAuthResultForSecondary(
-                                    module,
-                                    AuthResult.AuthResultState.SUCCESS
-                                )
-                            }
-
-                            override fun onHelp(msg: CharSequence?) {
-
-                            }
-
-                            override fun onFailure(
-                                failureReason: AuthenticationFailureReason?,
-                                module: BiometricType?
-                            ) {
-                                checkAuthResultForSecondary(
-                                    AuthenticationResult(confirmed = module),
-                                    AuthResult.AuthResultState.FATAL_ERROR,
-                                    failureReason
-                                )
-                            }
-
-
-                            override fun onCanceled(module: BiometricType?) {}
-                        },
-                        BundleBuilder.create(builder)
-                    )
-
-                    ExecutorHelper.postDelayed(finalTask, 1500)
-                }
             }, shortDelayMillis)
         }
 
@@ -498,7 +444,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun stopAuth() {
         e("BiometricPromptApi28Impl.stopAuth():")
-        ExecutorHelper.removeCallbacks(finalTask)
         BiometricAuthentication.cancelAuthentication()
         biometricFragment.get()?.let {
             CancellationHelper.forceCancel(it)
@@ -535,21 +480,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         callback?.onUIClosed()
         isOpened.set(false)
     }
-
-    private val isNativeBiometricWorkaroundRequired: Boolean
-        get() {
-            val candidatesAll = builder.getAllAvailableTypes().filter {
-                it != BiometricType.BIOMETRIC_ANY
-            }
-
-            if (DevicesWithKnownBugs.systemDealWithBiometricPrompt) //Samsung OR Android 13+
-            {
-                return candidatesAll.size > 1 && builder.getPrimaryAvailableTypes()
-                    .contains(BiometricType.BIOMETRIC_FINGERPRINT)
-            }
-            return false
-        }
-
     private fun checkAuthResultForPrimary(
         authResult: AuthResult.AuthResultState,
         cryptoObject: BiometricPrompt.CryptoObject?,
