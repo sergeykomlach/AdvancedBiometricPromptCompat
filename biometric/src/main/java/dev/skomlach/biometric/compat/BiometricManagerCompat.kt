@@ -42,6 +42,8 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 
 object BiometricManagerCompat {
     private val preferences =
@@ -188,20 +190,25 @@ object BiometricManagerCompat {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
         }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isBiometricEnrollChanged
-        else
-            HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
-                    api.type
-                )
-            ).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
-                    api.type
-                )
-            ).isBiometricEnrollChanged
+        val result = runBlocking {
+            withTimeoutOrNull(1000L) {
+                if (api.api != BiometricApi.AUTO)
+                    HardwareAccessImpl.getInstance(api).isBiometricEnrollChanged
+                else
+                    HardwareAccessImpl.getInstance(
+                        BiometricAuthRequest(
+                            BiometricApi.LEGACY_API,
+                            api.type
+                        )
+                    ).isBiometricEnrollChanged || HardwareAccessImpl.getInstance(
+                        BiometricAuthRequest(
+                            BiometricApi.BIOMETRIC_API,
+                            api.type
+                        )
+                    ).isBiometricEnrollChanged
+            }
+        }?:preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
+
         BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricEnrollChanged for $api return $result")
         preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
             .apply()
