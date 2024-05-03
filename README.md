@@ -56,40 +56,23 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 
 #### Supported types of biometric authentication
 
-| Type | Details | Tested on  
-|--|--|--|  
-| BiometricPrompt API | Android 9+ |Xiaomi POCO F1, OnePlus 8T|  
-| Samsung IrisID | Android 7+ and Samsung devices |Samsung Galaxy S10|   
-| Samsung Pass Fingerprint| Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5 |  
-| Fingerprint | Android 6+ |Xiaomi POCO F1|
-| In-screen Fingerprint | Android 8+ |OnePlus 6T/OnePlus 7 Pro| 
-| Meizu Fingerprint | Android 5.0-5.1 and Meizu devices | Meizu Pro 5 | 
-| Face Unlock (aka TrustedFaces) | Android 4.1+ |Prestigio PAP3400|  
-| Huawei FaceID (3D) | Android 8+ and Huawei devices |Huawei MatePad T8, Huawei P30,Huawei Mate 30 Pro| 
-| Honor FaceID (3D)| Android 8+ and Honor devices |Honor Magic 5 Lite|
-| Xiaomi FaceUnlock | Android 7+ and Xiaomi devices |Xiaomi POCO F1| 
-| Samsung FaceID | Android 7+ and Samsung devices |Samsung Galaxy S10|  
-| Oppo FaceID | Android 8+ and Oppo devices |Not tested yet|
-| Lava FaceId | Android (Unknown) and Lava devices |Not tested yet|
+| Type                                          | Details                             | Tested on                                           |
+|-----------------------------------------------|-------------------------------------|-----------------------------------------------------|  
+| BiometricPrompt API                           | Android 9+                          | Xiaomi POCO F1, OnePlus 8T                          |  
+| Samsung IrisID                                | Android 7+ and Samsung devices      | Samsung Galaxy S10                                  |   
+| Samsung Pass Fingerprint                      | Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5                                   |  
+| Fingerprint                                   | Android 6+                          | Xiaomi POCO F1                                      |
+| In-screen Fingerprint                         | Android 8+                          | OnePlus 6T/OnePlus 7 Pro                            | 
+| Meizu Fingerprint                             | Android 5.0-5.1 and Meizu devices   | Meizu Pro 5                                         | 
+| Face Unlock (aka TrustedFaces)                | Android 4.1+                        | Prestigio PAP3400                                   |  
+| Huawei FaceID (3D)                            | Android 8+ and Huawei devices       | Huawei MatePad T8, Huawei P30,Huawei Mate 30 Pro    | 
+| Honor FaceID (3D)                             | Android 8+ and Honor devices        | Honor Magic 5 Lite                                  |
+| Xiaomi FaceUnlock                             | Android 7+ and Xiaomi devices       | Xiaomi POCO F1                                      | 
+| Samsung FaceID                                | Android 7+ and Samsung devices      | Samsung Galaxy S10                                  |  
+| Oppo FaceID                                   | Android 8+ and Oppo devices         | Not tested yet                                      |
+| Lava FaceId                                   | Android (Unknown) and Lava devices  | Not tested yet                                      |
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
-
-## Recent changes (last 3 month)
-April 2 2024
-
-**Bugfixes** Crash fixed
-
-March 31 2024
-
-**Bugfixes** Major update with bugfixes
-
-March 15 2024
-
-**Bugfixes**
-
-February 19 2024
-
-**Bugfixes**
 
 ## Test app
 
