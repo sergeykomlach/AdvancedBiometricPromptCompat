@@ -767,7 +767,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         //Solution to prevent Frida hooking
         //See https://fi5t.xyz/posts/biometric-underauthentication/
         private val skipTimeout =
-            AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+            AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
         private val authCallTimeStamp = AtomicLong(System.currentTimeMillis())
         internal fun updateTimestamp() {
             authCallTimeStamp.set(System.currentTimeMillis())
