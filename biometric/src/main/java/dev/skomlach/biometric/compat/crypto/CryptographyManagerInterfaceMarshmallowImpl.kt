@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.crypto
 import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProperties.BLOCK_MODE_CBC
 import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7
 import android.security.keystore.KeyProperties.KEY_ALGORITHM_AES
@@ -122,6 +123,10 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 setUserConfirmationRequired(false)//TRUE produce error during encoding
                 setIsStrongBoxBacked(hasStrongBox())
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                setUserAuthenticationParameters(Int.MAX_VALUE, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
+            else
+                setUserAuthenticationValidityDurationSeconds(Int.MAX_VALUE)
         }
 
         val keyGenParams = paramsBuilder.build()

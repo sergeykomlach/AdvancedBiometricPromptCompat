@@ -302,11 +302,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
                             .setRandomizedEncryptionRequired(false)
                             .apply {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                    setUserPresenceRequired(false)
-                                    setUserConfirmationRequired(false)
-                                    setIsStrongBoxBacked(false)
-                                }
                                 setInvalidatedByBiometricEnrollment(true)
                                 setUserAuthenticationRequired(true)
                             }
