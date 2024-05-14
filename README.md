@@ -9,6 +9,21 @@ Advanced BiometricPromptCompat
 
 [Help/Discussing chat](https://t.me/advancedbiometric)
 
+## License
+
+Apache License 2.0
+
+## Contact author
+
+Telegram: [@SergeyKomlach](https://t.me/SerghiiKomlach)
+
+Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+  
+</p>
+
 
 ## Introduction
 
@@ -410,19 +425,4 @@ Library still works properly, so, no worries
 - Snyk
 
 - Sonatype-Lift
-
-## License
-
-Apache License 2.0
-
-## Contact author
-
-Telegram: [@SergeyKomlach](https://t.me/SerghiiKomlach)
-
-Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
-
-<p align="center">
-  <a href="https://www.buymeacoffee.com/sergey.komlach" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
-  
-</p>
 
