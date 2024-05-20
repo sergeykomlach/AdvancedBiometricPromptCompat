@@ -334,8 +334,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (builder.getAllAvailableTypes().isEmpty()) {
                 val checkHardware = checkHardware()
                 val interruptAuth = when (checkHardware) {
+                    //Temporary blocked, we can try to bypass
+                    AuthenticationFailureReason.LOCKED_OUT, AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> !builder.forceDeviceCredential()
+                    //All good
                     AuthenticationFailureReason.UNKNOWN -> false
-                    else -> !builder.forceDeviceCredential()
+                    //Not able to continue
+                    else -> true
                 }
                 if (interruptAuth) {
                     ExecutorHelper.post {

@@ -22,8 +22,10 @@ package dev.skomlach.biometric.compat.crypto
 import android.os.Build
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import kotlinx.coroutines.sync.Mutex
 
 object BiometricCryptoObjectHelper {
+    private val mutex = Mutex()
     private val managerInterface: CryptographyManagerInterface =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             CryptographyManagerInterfaceMarshmallowImpl()
@@ -44,6 +46,7 @@ object BiometricCryptoObjectHelper {
     ): BiometricCryptoObject? {
         if (purpose == null)
             return null
+        mutex.tryLock()
         try {
             val cipher =
                 when (purpose.purpose) {
@@ -72,6 +75,8 @@ object BiometricCryptoObjectHelper {
             throw ex
         } catch (e: Throwable) {
             throw BiometricCryptoException(e)
+        } finally {
+            mutex.unlock()
         }
 
     }

@@ -33,6 +33,8 @@ import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.storage.SharedPreferenceProvider
+import kotlinx.coroutines.sync.Mutex
 import java.lang.reflect.Modifier
 import java.security.InvalidKeyException
 import java.security.KeyStore
@@ -45,6 +47,7 @@ import javax.crypto.SecretKey
 class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     AbstractHardware(authRequest) {
     private val appContext = AndroidContext.appContext
+    private val mutex = Mutex()
     private val biometricFeatures: ArrayList<String>
         get() {
             val list = ArrayList<String>()
@@ -242,13 +245,25 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     override val isBiometricEnrollChanged: Boolean
         get() {
-            return EnrollCheckHelper.isChanged()
+            if(mutex.isLocked)
+                return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                    .getBoolean("isBiometricEnrollChanged", false)
+            mutex.tryLock()
+            try {
+                val isChanged =  EnrollCheckHelper.isChanged()
+                SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                    .edit()
+                    .putBoolean("isBiometricEnrollChanged", isChanged).apply()
+                return isChanged
+            } finally {
+                mutex.unlock()
+            }
         }
 
     override
     fun updateBiometricEnrollChanged() {
         try {
-            if (EnrollCheckHelper.isChanged()) {
+            if (isBiometricEnrollChanged) {
                 val keyStore = KeyStore.getInstance("AndroidKeyStore")
                 keyStore.load(null)
                 if (keyStore.containsAlias(EnrollCheckHelper.KEY_NAME))
