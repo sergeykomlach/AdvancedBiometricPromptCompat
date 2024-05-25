@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
@@ -36,7 +37,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 //actually perhaps not necessary impl.
-
+@SuppressLint("RestrictedApi")
 class SupportFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_SUPPORT) {
     companion object {
@@ -214,7 +215,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
-        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
+        override fun onAuthenticationError(errMsgId: Int, errString: CharSequence) {
             d("$name.onAuthenticationError: $errMsgId-$errString")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout)
@@ -313,13 +314,13 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 }
         }
 
-        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {
+        override fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence) {
             d("$name.onAuthenticationHelp: $helpMsgId-$helpString")
             listener?.onHelp(helpString)
         }
 
-        override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult?) {
-            d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
+        override fun onAuthenticationSucceeded(result: FingerprintManagerCompat.AuthenticationResult) {
+            d("$name.onAuthenticationSucceeded: $result; Crypto=${result.cryptoObject}")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
@@ -327,9 +328,9 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
             listener?.onSuccess(
                 tag(),
                 BiometricCryptoObject(
-                    result?.cryptoObject?.signature,
-                    result?.cryptoObject?.cipher,
-                    result?.cryptoObject?.mac
+                    result.cryptoObject.signature,
+                    result.cryptoObject.cipher,
+                    result.cryptoObject.mac
                 )
             )
         }
