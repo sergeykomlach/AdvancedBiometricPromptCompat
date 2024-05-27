@@ -481,10 +481,10 @@ public final class OkHttpURLConnection extends HttpURLConnection implements Call
         clientBuilder.networkInterceptors().clear();
         clientBuilder.networkInterceptors().add(networkInterceptor);
 
-        ChuckInterceptor chuckInterceptor = new ChuckInterceptor(AndroidContext.INSTANCE.getAppContext());
-        chuckInterceptor.showNotification(false);
-        chuckInterceptor.retainDataFor(ChuckInterceptor.Period.ONE_HOUR);
-        clientBuilder.interceptors().add(chuckInterceptor);
+//        ChuckInterceptor chuckInterceptor = new ChuckInterceptor(AndroidContext.INSTANCE.getAppContext());
+//        chuckInterceptor.showNotification(false);
+//        chuckInterceptor.retainDataFor(ChuckInterceptor.Period.ONE_HOUR);
+//        clientBuilder.interceptors().add(chuckInterceptor);
 
         // Use a separate dispatcher so that limits aren't impacted. But use the same executor service!
         clientBuilder.dispatcher(new Dispatcher(client.dispatcher().executorService()));
