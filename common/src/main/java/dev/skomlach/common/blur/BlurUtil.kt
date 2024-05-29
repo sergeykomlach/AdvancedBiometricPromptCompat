@@ -61,6 +61,7 @@ object BlurUtil {
     } catch (ignore: Throwable) {
         null
     }
+
     interface OnPublishListener {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
     }
@@ -77,6 +78,23 @@ object BlurUtil {
             }, ExecutorHelper.executor)
         }
     }
+
+    suspend fun takeScreenshotSync(window: Window): Bitmap? =
+        withContext(Dispatchers.Main) {
+            val bitmapDeferred = CompletableDeferred<Bitmap?>()
+            try {
+                val bm = window.captureRegionToBitmap()
+                bm.addListener({
+                    bitmapDeferred.complete(bm.get())
+                }, ExecutorHelper.executor)
+                bm.await()
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                RfLogger.e(TAG, "takeScreenshotSync", e)
+                bitmapDeferred.complete(null)
+            }
+            bitmapDeferred.await()
+        }
 
     fun takeScreenshotAndBlur(window: Window, listener: OnPublishListener) {
         GlobalScope.launch(Dispatchers.Main) {
@@ -140,6 +158,63 @@ object BlurUtil {
         }
 
     }
+
+    suspend fun takeScreenshotSync(view: View): Bitmap? =
+        withContext(Dispatchers.IO) {
+            val bitmapDeferred = CompletableDeferred<Bitmap?>()
+            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
+            val isBlackBerryBug = (Build.BRAND.equals(
+                "Blackberry",
+                ignoreCase = true
+            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
+                    && try {
+                val f =
+                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
+                val isAccessible = f?.isAccessible ?: true
+                var result = false
+                try {
+                    f?.isAccessible = true
+                    result = f?.get(view) == null
+                } finally {
+                    if (!isAccessible)
+                        f?.isAccessible = false
+                }
+                result
+            } catch (ignore: Throwable) {
+                false
+            }
+            if (!isBlackBerryBug) {
+                m?.let { method ->
+                    val startMs = System.currentTimeMillis()
+                    try {
+                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
+                            try {
+                                LogCat.log("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
+                                bitmapDeferred.complete(
+                                    bm.copy(Bitmap.Config.ARGB_4444, false)
+                                )
+                            } catch (e: Throwable) {
+                                if (e is CancellationException) {
+                                    throw e
+                                } else {
+                                    bitmapDeferred.complete(null)
+                                    LogCat.logException(e)
+                                }
+                            }
+                        }
+                    } catch (ignore: Throwable) {
+                        if (ignore is CancellationException) {
+                            throw ignore
+                        } else {
+                            bitmapDeferred.complete(null)
+                            bitmapDeferred.complete(fallbackViewCapture(view))
+                        }
+                    }
+                }
+            }
+            bitmapDeferred.complete(fallbackViewCapture(view))
+            bitmapDeferred.await()
+        }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
         ExecutorHelper.startOnBackground {
@@ -493,7 +568,7 @@ object BlurUtil {
                 if (window != null) {
                     try {
                         generateBitmapFromPixelCopy(window, destBitmap, bitmapFuture)
-                    }catch (e: IllegalArgumentException){ //Window doesn't have a backing surface
+                    } catch (e: IllegalArgumentException) { //Window doesn't have a backing surface
                         LogCat.logError(TAG, "generateBitmap:",e)
                         generateBitmapFromDraw(destBitmap, bitmapFuture) // fall back
                     }
@@ -620,7 +695,12 @@ object BlurUtil {
                 // TODO: handle boundsInWindow
                 decorView.generateBitmapFromDraw(destBitmap, bitmapFuture)
 
-            else -> generateBitmapFromPixelCopy(boundsInWindow, destBitmap, bitmapFuture)
+            else -> try {
+                generateBitmapFromPixelCopy(boundsInWindow, destBitmap, bitmapFuture)
+            } catch (e: IllegalArgumentException) { //Window doesn't have a backing surface
+                LogCat.logError(TAG, "generateBitmap:",e)
+                decorView.generateBitmapFromDraw(destBitmap, bitmapFuture)
+            }
         }
     }
 
