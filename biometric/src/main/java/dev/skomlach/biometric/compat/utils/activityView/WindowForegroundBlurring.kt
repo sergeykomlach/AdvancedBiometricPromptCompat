@@ -38,6 +38,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.core.view.doOnAttach
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
@@ -219,14 +220,16 @@ class WindowForegroundBlurring(
 
             updateBackground()
             IconStateHelper.registerListener(this)
-            parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
-                LifecycleEventObserver {
-                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                    if(event == Lifecycle.Event.ON_DESTROY){
-                        forceToCloseCallback.onCloseBiometric()
+            parentView.doOnAttach {
+                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
+                    LifecycleEventObserver {
+                    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                        if (event == Lifecycle.Event.ON_DESTROY) {
+                            forceToCloseCallback.onCloseBiometric()
+                        }
                     }
-                }
-            })
+                })
+            }
             parentView.addOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
