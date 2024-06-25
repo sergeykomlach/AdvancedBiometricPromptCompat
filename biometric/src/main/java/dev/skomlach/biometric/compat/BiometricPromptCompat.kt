@@ -67,6 +67,7 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
@@ -430,6 +431,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 val callback = object : AuthenticationCallback() {
 
                     private var isOpened = AtomicBoolean(false)
+                    private var lastKnownOrientation = AtomicInteger(0)
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
                         if (isOpened.get()) {
                             super.onSucceeded(result)
@@ -543,6 +545,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onUIOpened() {
                         if (!isOpened.get()) {
                             isOpened.set(true)
+                            lastKnownOrientation.set(builder.getActivity()?.requestedOrientation?:builder.getMultiWindowSupport().screenOrientation)
+                            builder.getActivity()?.requestedOrientation = builder.getMultiWindowSupport().screenOrientation
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
                             val s =
                                 "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
@@ -586,6 +590,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onUIClosed() {
                         if (isOpened.get()) {
                             isOpened.set(false)
+                            builder.getActivity()?.requestedOrientation = lastKnownOrientation.get()
                             BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onUIClosed")
                             ExecutorHelper.post { appBackgroundDetector.detachListeners() }
                             ExecutorHelper.post {

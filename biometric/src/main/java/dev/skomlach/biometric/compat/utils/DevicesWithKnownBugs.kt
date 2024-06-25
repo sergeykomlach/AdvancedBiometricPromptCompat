@@ -98,6 +98,10 @@ object DevicesWithKnownBugs {
         }
 
 
+    private val guessingHasUnderDisplayFingerprint: Boolean
+    get(){
+        return Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()
+    }
     val hasUnderDisplayFingerprint: Boolean
         get() {
             val ts = "hasUnderDisplayFingerprint-${LastUpdatedTs.timestamp}"
@@ -107,7 +111,7 @@ object DevicesWithKnownBugs {
                 val value =
                     DeviceInfoManager.hasUnderDisplayFingerprint(
                         BiometricPromptCompat.deviceInfo ?: return false
-                    ) || CheckBiometricUI.hasSomethingFrontSensor(appContext)
+                    ) || CheckBiometricUI.hasSomethingFrontSensor(appContext) || guessingHasUnderDisplayFingerprint
                 cached = "$value"
                 SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
                     .putString(ts, cached).apply()

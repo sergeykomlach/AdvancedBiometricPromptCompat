@@ -85,7 +85,7 @@ object CheckBiometricUI {
     }
 
     @Throws(Exception::class)
-    private fun checkApkForRear(
+    private fun checkForFront(
         fileZip: String
     ): Boolean {
 
@@ -126,7 +126,7 @@ object CheckBiometricUI {
                 return true
 
             for (f in apks) {
-                if (checkApkForRear(f))
+                if (checkForFront(f))
                     return true
             }
         } catch (e: Throwable) {
