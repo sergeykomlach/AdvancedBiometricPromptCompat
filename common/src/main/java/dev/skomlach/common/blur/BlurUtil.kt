@@ -41,15 +41,20 @@ import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import kotlin.coroutines.cancellation.CancellationException
 
 @SuppressLint("RestrictedApi")
 object BlurUtil {
     private const val TAG = "BlurUtil"
+
+    @SuppressLint("SoonBlockedPrivateApi")
     private var m: Method? = try {
         ViewDebug::class.java.getDeclaredMethod(
             "performViewCapture",
@@ -84,13 +89,12 @@ object BlurUtil {
             val bitmapDeferred = CompletableDeferred<Bitmap?>()
             try {
                 val bm = window.captureRegionToBitmap()
-                bm.addListener({
-                    bitmapDeferred.complete(bm.get())
-                }, ExecutorHelper.executor)
-                bm.await()
+                bitmapDeferred.complete(withContext(Dispatchers.IO) {
+                    bm.get()
+                })
             } catch (e: Throwable) {
                 if (e is CancellationException) throw e
-                RfLogger.e(TAG, "takeScreenshotSync", e)
+                LogCat.log(TAG, "takeScreenshotSync", e)
                 bitmapDeferred.complete(null)
             }
             bitmapDeferred.await()
