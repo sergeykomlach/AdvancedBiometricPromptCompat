@@ -27,7 +27,7 @@ import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.github.anrwatchdog.ANRWatchDog
+//import com.github.anrwatchdog.ANRWatchDog
 import java.io.File
 import java.lang.reflect.Modifier
 import java.net.URL
@@ -37,7 +37,7 @@ import java.text.DecimalFormat
 class AppMonitoringDevTools(val app: Application) {
     private val threadPolicy = StrictMode.getThreadPolicy()
     private val vmPolicy = StrictMode.getVmPolicy()
-    private var anrWatchDog: ANRWatchDog? = null
+//    private var anrWatchDog: ANRWatchDog? = null
     private var enable: Boolean = false
     private var fileObserver: FileObserver? = null
 
@@ -121,38 +121,38 @@ class AppMonitoringDevTools(val app: Application) {
             }
         }
 
-        LeakCanaryConfig.setup(enable)
+//        LeakCanaryConfig.setup(enable)
 
         if (enable) {
-            //Log ANR's, always
-            if (anrWatchDog == null) {
-                anrWatchDog = ANRWatchDog()
-                    .setLogThreadsWithoutStackTrace(true)
-                    .setIgnoreDebugger(true)
-                    .setReportMainThreadOnly()
-                    .setInterruptionListener { exception ->
-                        Log.e(
-                            "ANRWatchDog", "onInterrupted",
-                            exception
-                        )
-                    }
-                    .setANRListener { error ->
-                        Log.e(
-                            "ANRWatchDog", "onAppNotResponding",
-                            error
-                        )
-                    }
-            }
-
-            anrWatchDog?.start()
+//            //Log ANR's, always
+//            if (anrWatchDog == null) {
+//                anrWatchDog = ANRWatchDog()
+//                    .setLogThreadsWithoutStackTrace(true)
+//                    .setIgnoreDebugger(true)
+//                    .setReportMainThreadOnly()
+//                    .setInterruptionListener { exception ->
+//                        Log.e(
+//                            "ANRWatchDog", "onInterrupted",
+//                            exception
+//                        )
+//                    }
+//                    .setANRListener { error ->
+//                        Log.e(
+//                            "ANRWatchDog", "onAppNotResponding",
+//                            error
+//                        )
+//                    }
+//            }
+//
+//            anrWatchDog?.start()
             fileObserver?.startWatching()
         } else {
-            try {
-                anrWatchDog?.interrupt()
-                anrWatchDog = null
-            } catch (ignore: InterruptedException) {
-
-            }
+//            try {
+//                anrWatchDog?.interrupt()
+//                anrWatchDog = null
+//            } catch (ignore: InterruptedException) {
+//
+//            }
             fileObserver?.stopWatching()
         }
 

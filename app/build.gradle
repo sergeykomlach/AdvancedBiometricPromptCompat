@@ -80,12 +80,12 @@ dependencies {
     implementation 'org.smali:dexlib2:2.5.2'
 
     implementation 'com.google.iot.cbor:cbor:0.01.02'
-    //DevTools
-    //ANR's
-    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
-    //memory leaks
-    implementation 'com.squareup.leakcanary:leakcanary-android:2.13'
-    implementation 'com.readystatesoftware.chuck:library:1.1.0'
+//    //DevTools
+//    //ANR's
+//    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
+//    //memory leaks
+//    implementation 'com.squareup.leakcanary:leakcanary-android:2.13'
+//    implementation 'com.readystatesoftware.chuck:library:1.1.0'
 
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation "com.squareup.okhttp3:okhttp-urlconnection:4.11.0"

@@ -30,7 +30,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
-import com.readystatesoftware.chuck.Chuck
+//import com.readystatesoftware.chuck.Chuck
 import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
@@ -40,7 +40,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import leakcanary.LeakCanary
+//import leakcanary.LeakCanary
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -140,12 +140,12 @@ class FirstFragment : Fragment() {
         binding?.buttonSecond?.setOnClickListener {
             (activity as MainActivity).showDialog()
         }
-        binding?.buttonForth?.setOnClickListener {
-            (activity as MainActivity).startActivity(Chuck.getLaunchIntent(it.context))
-        }
-        binding?.buttonThird?.setOnClickListener {
-            activity?.startActivity(LeakCanary.newLeakDisplayActivityIntent())
-        }
+//        binding?.buttonForth?.setOnClickListener {
+//            (activity as MainActivity).startActivity(Chuck.getLaunchIntent(it.context))
+//        }
+//        binding?.buttonThird?.setOnClickListener {
+////            activity?.startActivity(LeakCanary.newLeakDisplayActivityIntent())
+//        }
     }
 
     private fun checkDeviceInfo() {

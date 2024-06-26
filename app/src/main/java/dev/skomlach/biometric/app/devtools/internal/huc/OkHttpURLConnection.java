@@ -22,7 +22,7 @@ import static okhttp3.internal.Util.UTC;
 
 import android.net.TrafficStats;
 
-import com.readystatesoftware.chuck.ChuckInterceptor;
+//import com.readystatesoftware.chuck.ChuckInterceptor;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
