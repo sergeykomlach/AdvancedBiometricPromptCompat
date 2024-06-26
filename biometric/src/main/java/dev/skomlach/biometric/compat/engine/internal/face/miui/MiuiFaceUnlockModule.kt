@@ -188,7 +188,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             var failureReason = AuthenticationFailureReason.UNKNOWN
 
             //See IMiuiFaceManagerImpl.getMessageInfo()
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (errMsgId) {
                 11 -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 

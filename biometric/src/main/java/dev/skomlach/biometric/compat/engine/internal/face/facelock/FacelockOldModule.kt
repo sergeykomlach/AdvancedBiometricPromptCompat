@@ -237,7 +237,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                 return null
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (errMsgId) {
                 FaceLockHelper.FACELOCK_FAILED_ATTEMPT -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 

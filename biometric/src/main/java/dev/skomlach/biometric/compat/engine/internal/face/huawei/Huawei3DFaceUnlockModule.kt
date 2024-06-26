@@ -186,7 +186,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (errMsgId) {
                 HuaweiFaceRecognizeManager.HUAWEI_FACE_AUTHENTICATOR_FAIL -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 

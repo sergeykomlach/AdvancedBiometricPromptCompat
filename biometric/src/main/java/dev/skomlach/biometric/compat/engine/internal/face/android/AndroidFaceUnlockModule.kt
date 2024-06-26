@@ -566,7 +566,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+            when (errMsgId) {
                 FACE_ERROR_NO_FACE_DETECTED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 
