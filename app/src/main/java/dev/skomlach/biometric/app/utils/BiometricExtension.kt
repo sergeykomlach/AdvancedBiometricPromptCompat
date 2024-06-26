@@ -25,6 +25,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricAuthException
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricManagerCompat
@@ -173,7 +174,7 @@ fun Fragment.startBiometric(
         }
 
         override fun onFailed(reason: AuthenticationFailureReason?, msg: CharSequence?) {
-            BiometricLoggerImpl.e("CheckBiometric.onFailed() - $reason")
+            BiometricLoggerImpl.e(BiometricAuthException(reason.toString()),"CheckBiometric.onFailed()")
             try {
                 when (reason) {
                     AuthenticationFailureReason.NO_HARDWARE -> showAlertDialog(
