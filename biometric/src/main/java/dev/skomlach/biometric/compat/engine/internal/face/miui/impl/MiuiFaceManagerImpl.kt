@@ -425,6 +425,10 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                 stringBuilder.append(MiuiBuild.region)
                 d(TAG, stringBuilder.toString())
             }
+            if (res) {
+                initService()
+                if (mMiuiFaceService == null) res = false
+            }
             return res
         }
     override val isSupportScreenOnDelayed: Boolean

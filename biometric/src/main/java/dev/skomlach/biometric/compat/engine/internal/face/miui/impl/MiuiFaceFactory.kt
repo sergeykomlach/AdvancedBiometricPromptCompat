@@ -33,23 +33,35 @@ object MiuiFaceFactory {
         } else {
             getCurrentAuthType()
         }
-        return if (sCurrentAuthType == TYPE_3D) {
-            Miui3DFaceManagerImpl.getInstance()
-        } else MiuiFaceManagerImpl.getInstance()
+        return when (sCurrentAuthType) {
+            TYPE_3D -> {
+                Miui3DFaceManagerImpl.getInstance()
+            }
+            TYPE_2D -> {
+                MiuiFaceManagerImpl.getInstance()
+            }
+            else -> null
+        }
     }
 
     fun getCurrentAuthType(): Int {
         sCurrentAuthType = when {
             "ursa" != Build.DEVICE -> {
+                if (MiuiFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true) {
+                    TYPE_2D
+                } else
+                    TYPE_DEFAULT
+            }
+
+            MiuiFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
                 TYPE_2D
             }
 
-            MiuiFaceManagerImpl.getInstance()?.hasEnrolledFaces() != 0 -> {
-                TYPE_2D
-            }
-
-            else -> {
+            Miui3DFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
                 TYPE_3D
+            }
+            else -> {
+                TYPE_DEFAULT
             }
         }
         return sCurrentAuthType
