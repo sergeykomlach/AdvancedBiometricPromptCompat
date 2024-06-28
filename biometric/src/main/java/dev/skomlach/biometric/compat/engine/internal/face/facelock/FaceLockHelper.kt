@@ -232,6 +232,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                                 FACELOCK_UNABLE_TO_BIND,
                                 getMessage(FACELOCK_UNABLE_TO_BIND)
                             )
+                        faceLockInterface.onDisconnected()
                     } else {
                         d(TAG + ".Binded, waiting for connection")
                         return

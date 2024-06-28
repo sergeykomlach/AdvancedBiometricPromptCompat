@@ -61,21 +61,24 @@ class FaceLock {
     init {
         val FACELOCK_INTERFACE = "com.android.internal.policy.IFaceLockInterface"
         val FACELOCK_CALLBACK = "com.android.internal.policy.IFaceLockCallback"
-        val TRUSTEDFACE_INTERFACE = "com.android.facelock.ITrustedFaceInterface"
-        val TRUSTEDFACE_CALLBACK = "com.android.facelock.ITrustedFaceCallback"
+
+//        <permission android:name="com.google.android.gms.auth.permission.FACE_UNLOCK" android:protectionLevel="signature"/>
+//        <uses-permission android:name="com.google.android.gms.auth.permission.FACE_UNLOCK"/>
+//        val TRUSTEDFACE_INTERFACE = "com.android.facelock.ITrustedFaceInterface"
+//        val TRUSTEDFACE_CALLBACK = "com.android.facelock.ITrustedFaceCallback"
         try {
             flInterface = getClassFromPkg(pkg, FACELOCK_INTERFACE)
             flInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_INTERFACE\$Stub")
             flCallbackInterface = getClassFromPkg(pkg, FACELOCK_CALLBACK)
             flCallbackInterfaceStub = getClassFromPkg(pkg, "$FACELOCK_CALLBACK\$Stub")
         } catch (ignored: Throwable) {
-            try {
-                flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE)
-                flInterfaceStub = getClassFromPkg(pkg, "$TRUSTEDFACE_INTERFACE\$Stub")
-                flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK)
-                flCallbackInterfaceStub = getClassFromPkg(pkg, "$TRUSTEDFACE_CALLBACK\$Stub")
-            } catch (ignored2: Throwable) {
-            }
+//            try {
+//                flInterface = getClassFromPkg(pkg, TRUSTEDFACE_INTERFACE)
+//                flInterfaceStub = getClassFromPkg(pkg, "$TRUSTEDFACE_INTERFACE\$Stub")
+//                flCallbackInterface = getClassFromPkg(pkg, TRUSTEDFACE_CALLBACK)
+//                flCallbackInterfaceStub = getClassFromPkg(pkg, "$TRUSTEDFACE_CALLBACK\$Stub")
+//            } catch (ignored2: Throwable) {
+//            }
         }
         if (flCallbackInterfaceStub == null) {
             throw RuntimeException(TAG + " not supported")
@@ -84,14 +87,16 @@ class FaceLock {
 
     fun bind(connection: ServiceConnection): Boolean {
         d(TAG + " bind to service")
-        if (mServiceConnection != null) {
+        try {
+            if(mServiceConnection == null)
+            mServiceConnection = ServiceConnectionWrapper(connection)
+            val intent = Intent()
+            intent.setPackage(pkg)
+            return context
+                .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
+        } catch (e :Throwable){
             return false
         }
-        mServiceConnection = ServiceConnectionWrapper(connection)
-        val intent = Intent()
-        intent.setPackage(pkg)
-        return context
-            .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
     }
 
     fun unbind() {

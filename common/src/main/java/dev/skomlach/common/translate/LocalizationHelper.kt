@@ -54,6 +54,7 @@ object LocalizationHelper {
     )
 
     fun fetchFromWeb(url: String): String? {
+        if(NetworkApi.hasInternet())
         try {
             val urlConnection =
                 NetworkApi.createConnection(
