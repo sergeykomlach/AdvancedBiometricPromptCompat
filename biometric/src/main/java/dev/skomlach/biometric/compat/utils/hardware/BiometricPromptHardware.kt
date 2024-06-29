@@ -134,7 +134,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
                 BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> false //no biometric
-                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable; biometric most probably be exists
+                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> BiometricAuthentication.hasEnrolled
+                //sensor temporary unavailable; fallback to legacy
                 else -> false
             }
         }
@@ -179,13 +180,16 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     //OK to check in this way
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
         if (isAnyHardwareAvailable) {
-            if (type == BiometricType.BIOMETRIC_FINGERPRINT)
-                return BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent
-                    ?: false
+            if (type == BiometricType.BIOMETRIC_FINGERPRINT &&
+                BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent == true)
+                return true
             //legacy
             val packageManager = appContext.packageManager
             for (f in biometricFeatures) {
                 if (packageManager.hasSystemFeature(f)) {
+                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
+                        type == BiometricType.BIOMETRIC_FINGERPRINT
+                    ) return true
                     if ((f.endsWith(".face") || f.contains(".face.")) &&
                         type == BiometricType.BIOMETRIC_FACE
                     ) return true

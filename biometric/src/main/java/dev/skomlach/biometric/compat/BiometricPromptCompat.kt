@@ -436,18 +436,27 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         if (isOpened.get()) {
                             super.onSucceeded(result)
                             if (builder.isDeviceCredentialFallbackAllowed() && builder.forceDeviceCredential()) {
-                                BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")
-                                builder.setForceDeviceCredentials(false)
-                                builder.setTitle(oldTitle)
-                                builder.setDescription(oldDescription)
-                                ExecutorHelper.postDelayed(
-                                    {
-                                        authenticateInternal(this)
-                                    },
-                                    AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
-                                        .toLong()
-                                )
-                                return
+                                val checkHardware = checkHardware()
+                                val interruptAuth = when (checkHardware) {
+                                    //All good
+                                    AuthenticationFailureReason.UNKNOWN -> false
+                                    //Not able to continue
+                                    else -> true
+                                }
+                                if(!interruptAuth) {
+                                    BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")
+                                    builder.setForceDeviceCredentials(false)
+                                    builder.setTitle(oldTitle)
+                                    builder.setDescription(oldDescription)
+                                    ExecutorHelper.postDelayed(
+                                        {
+                                            authenticateInternal(this)
+                                        },
+                                        AndroidContext.appContext.resources.getInteger(android.R.integer.config_shortAnimTime)
+                                            .toLong()
+                                    )
+                                    return
+                                }
                             }
                             val confirmed = result.toMutableSet()
 

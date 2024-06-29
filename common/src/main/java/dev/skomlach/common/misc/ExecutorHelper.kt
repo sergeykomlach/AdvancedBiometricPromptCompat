@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.misc
 
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import dev.skomlach.common.logging.LogCat
@@ -29,7 +30,12 @@ import java.util.concurrent.Executors
 object ExecutorHelper {
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
-    val backgroundExecutor: Executor = Executors.newCachedThreadPool()
+    //https://proandroiddev.com/what-is-faster-and-in-which-tasks-coroutines-rxjava-executor-952b1ff62506
+    val backgroundExecutor: Executor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        Executors.newWorkStealingPool(100)
+    } else {
+        Executors.newFixedThreadPool(100)
+    }
 
     fun startOnBackground(task: Runnable, delay: Long) {
         backgroundExecutor.execute {

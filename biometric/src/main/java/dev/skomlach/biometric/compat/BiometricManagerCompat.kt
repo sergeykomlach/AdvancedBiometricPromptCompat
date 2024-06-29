@@ -527,20 +527,24 @@ object BiometricManagerCompat {
         }
         val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
-        else
-            HardwareAccessImpl.getInstance(
+        else {
+           var isLockedOut = HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
                     BiometricApi.LEGACY_API,
                     api.type
                 )
-            ).isLockedOut && HardwareAccessImpl.getInstance(
+            ).isLockedOut
+            if(!isLockedOut)
+                isLockedOut = HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
                     BiometricApi.BIOMETRIC_API,
                     api.type
                 )
             ).isLockedOut
+            isLockedOut
+        }
         val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
-        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return ${result || cameraInUse}")
+        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return ${result}  && ${cameraInUse}")
         preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
         return result || cameraInUse
     }
