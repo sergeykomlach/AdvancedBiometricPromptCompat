@@ -88,6 +88,19 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 | Lava FaceId                                   | Android (Unknown) and Lava devices  | Not tested yet                                      |
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
+## Recent changes (last 3 month)
+June 30 2024
+
+**Bugfixes** 
+Sony Xperia devices:
+- fixed init hangs due to inproper FaceUnlock initialization;
+- fixed bug when due to HAL/driver issue fingeprint sensor is unreachable on SW level (see https://community.sony.pt/t5/1-series/fingerprint-scanner-option-has-now-disappeared/td-p/3655860)
+
+Redmi Tab: fixed bug when binding to "miui.face.FaceService" fails - in this case hadrware/enroll properly detected, but `authenticate` does nothing
+
+Test app fixed cause leads to crashes on some devices
+
+**Improvement** Moved to Tokens usage during publishing flow
 
 ## Test app
 

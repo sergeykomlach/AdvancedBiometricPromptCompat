@@ -19,6 +19,8 @@ ext["signing.secretKeyRingFile"] = ''
 ext["ossrhUsername"] = ''
 ext["ossrhPassword"] = ''
 ext["sonatypeStagingProfileId"] = ''
+ext["ossrTokenUsername"] = ''
+ext["ossrTokenPassword"] = ''
 
 File secretPropsFile = project.rootProject.file('local.properties')
 if (secretPropsFile.exists()) {
@@ -35,6 +37,8 @@ if (secretPropsFile.exists()) {
     ext["signing.secretKeyRingFile"] = System.getenv('SIGNING_SECRET_KEY_RING_FILE')
     ext["ossrhUsername"] = System.getenv('OSSRH_USERNAME')
     ext["ossrhPassword"] = System.getenv('OSSRH_PASSWORD')
+    ext["ossrTokenUsername"] = System.getenv('OSSRTOKEN_USERNAME')
+    ext["ossrTokenPassword"] = System.getenv('OSSRTOKEN_PASSWORD')
     ext["sonatypeStagingProfileId"] = System.getenv('SONATYPE_STAGING_PROFILE_ID')
 }
 
@@ -130,8 +134,8 @@ publishing {
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
 
             credentials {
-                username ossrhUsername
-                password ossrhPassword
+                username ossrTokenUsername
+                password ossrTokenPassword
             }
         }
     }
