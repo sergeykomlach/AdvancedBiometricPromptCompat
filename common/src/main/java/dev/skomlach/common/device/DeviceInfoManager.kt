@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
+    const val PREF_NAME = "BiometricCompat_DeviceInfo-V2"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
 
@@ -201,7 +202,7 @@ object DeviceInfoManager {
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
+                val sharedPreferences = getPreferences(DeviceInfoManager.PREF_NAME)
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model =
                         sharedPreferences.getString("model", null)
@@ -235,7 +236,7 @@ object DeviceInfoManager {
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo, strictMatch: Boolean) {
         cachedDeviceInfo = deviceInfo
         try {
-            val sharedPreferences = getPreferences("BiometricCompat_DeviceInfo")
+            val sharedPreferences = getPreferences(DeviceInfoManager.PREF_NAME)
                 .edit()
             sharedPreferences.clear().commit()
             sharedPreferences
@@ -384,7 +385,7 @@ object DeviceInfoManager {
                 loadingInProgress.set(true)
                 ExecutorHelper.startOnBackground {
                     val sharedPreferences =
-                        getPreferences("BiometricCompat_DeviceInfo")
+                        getPreferences(DeviceInfoManager.PREF_NAME)
                     if (NetworkApi.hasInternet() && !sharedPreferences.getBoolean(
                             "strictMatch",
                             false

@@ -232,7 +232,7 @@ object DeviceModel {
                 loadingInProgress.set(true)
                 ExecutorHelper.startOnBackground {
                     val sharedPreferences =
-                        SharedPreferenceProvider.getPreferences("BiometricCompat_DeviceInfo")
+                        SharedPreferenceProvider.getPreferences(DeviceInfoManager.PREF_NAME)
                     if (NetworkApi.hasInternet() && !sharedPreferences.getBoolean(
                             "strictMatch",
                             false
@@ -280,7 +280,10 @@ object DeviceModel {
         return if (info != null) {
             val list = mutableListOf<String>()
             if (info.manufacturer.isNullOrEmpty()) {
+                if(info.model != info.codename)
                 list.add(info.model)
+                else
+                list.add(info.marketName)
                 return list
             } else {
                 list.add(
