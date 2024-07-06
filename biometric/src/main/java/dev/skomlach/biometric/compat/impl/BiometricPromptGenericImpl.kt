@@ -103,7 +103,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
     override fun cancelAuth() {
         val success =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         if (success != null)
             return
         callback?.onCanceled()
@@ -162,9 +162,9 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         allList.removeAll(authFinishedList)
         d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
         val error =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
         val success =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
         if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
@@ -187,7 +187,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     result
                 }.toSet())
                 cancelAuthentication()
-            } else if (error != null) {
+            } else if (error != null && allList.isEmpty()) {
                 if (failureCounter.get() == 1 ||  error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
                     callback?.onFailed(error.failureReason)
                     cancelAuthentication()

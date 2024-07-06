@@ -46,19 +46,11 @@ object MiuiFaceFactory {
 
     fun getCurrentAuthType(): Int {
         sCurrentAuthType = when {
-            "ursa" != Build.DEVICE -> {
-                if (MiuiFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true) {
-                    TYPE_2D
-                } else
-                    TYPE_DEFAULT
-            }
-
-            MiuiFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
-                TYPE_2D
-            }
-
             Miui3DFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
                 TYPE_3D
+            }
+            MiuiFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
+                TYPE_2D
             }
             else -> {
                 TYPE_DEFAULT

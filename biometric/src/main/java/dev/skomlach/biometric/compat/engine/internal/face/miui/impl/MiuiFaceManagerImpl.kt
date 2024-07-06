@@ -163,6 +163,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
     private val mFaceUnlockModel = 0
     private lateinit var mHandler: Handler
     private var mHasFaceData = false
+    private var serviceStartedAtLeastOnce = false
     override var isFaceUnlockInited = false
         private set
     private val mServiceReceiver: IBinder = object : Binder() {
@@ -373,6 +374,8 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
             faceObserver.onChange(false, Uri.parse(POWERMODE_SUPERSAVE_OPEN_URI))
         } catch (e: Throwable) {
             e(e)
+        } finally {
+            initService()
         }
     }
 
@@ -385,7 +388,10 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                     mMiuiFaceService = Class.forName("android.os.ServiceManager")
                         .getMethod("getService", String::class.java)
                         .invoke(null, SERVICE_NAME) as IBinder
-                } catch (ignore: Exception) {
+                    if(!serviceStartedAtLeastOnce)
+                    serviceStartedAtLeastOnce = mMiuiFaceService != null
+                } catch (e: Exception) {
+                    e(TAG, e)
                 }
 
                 mMiuiFaceService?.linkToDeath(mBinderDied, 0)
@@ -399,6 +405,7 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
 
     override val isFaceFeatureSupport: Boolean
         get() {
+            initService()
             if (mIsSuperPower) {
                 d(TAG, "enter super power mode, isFaceFeatureSupport:false")
                 return false
@@ -425,9 +432,8 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                 stringBuilder.append(MiuiBuild.region)
                 d(TAG, stringBuilder.toString())
             }
-            if (res) {
-                initService()
-                if (mMiuiFaceService == null) res = false
+            if (res && !serviceStartedAtLeastOnce) {
+                res = false
             }
             return res
         }

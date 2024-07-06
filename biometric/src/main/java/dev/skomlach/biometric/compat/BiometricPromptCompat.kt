@@ -238,8 +238,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
 
-    private val oldDescription = builder.getDescription()
-    private val oldTitle = builder.getTitle()
+    private lateinit var oldDescription : CharSequence
+    private lateinit var oldTitle : CharSequence
     private val oldIsBiometricReadyForUsage = BiometricManagerCompat.isBiometricReadyForUsage()
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
@@ -275,8 +275,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
     private val appBackgroundDetector: AppBackgroundDetector by lazy {
         AppBackgroundDetector(impl) {
-            BiometricLoggerImpl.e("BiometricPromptCompat.AppBackgroundDetector()")
-            cancelAuthentication()
+            if (!builder.forceDeviceCredential()) {
+                BiometricLoggerImpl.e("BiometricPromptCompat.AppBackgroundDetector()")
+                cancelAuthentication()
+            }
         }
     }
     private var startTs = 0L
@@ -446,7 +448,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 if(!interruptAuth) {
                                     BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")
                                     builder.setForceDeviceCredentials(false)
+                                    if(::oldTitle.isInitialized)
                                     builder.setTitle(oldTitle)
+                                    if(::oldDescription.isInitialized)
                                     builder.setDescription(oldDescription)
                                     ExecutorHelper.postDelayed(
                                         {
@@ -678,6 +682,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (builder.getCryptographyPurpose() != null) {
                     callback.onFailed(AuthenticationFailureReason.CRYPTO_ERROR, null)
                     return
+                }
+                if(!::oldTitle.isInitialized) {
+                    oldTitle = builder.getTitle()?:""
+                }
+                if(!::oldDescription.isInitialized) {
+                    oldDescription = builder.getDescription()?:""
                 }
                 val secureScreenDialog = {
                     val title = try {
@@ -1058,7 +1068,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         })
                 }
             }
-            return isTruncateChecked ?: true
+            return isTruncateChecked ?: false
         }
 
         fun getPrimaryAvailableTypes(): Set<BiometricType> {

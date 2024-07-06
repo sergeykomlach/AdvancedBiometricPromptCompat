@@ -243,10 +243,8 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
             e(e)
         }
         mBiometricClient = BiometricClient()
-        mBiometricClient?.let {
-            it.startService(this)
-        }
         preloadBoostFramework()
+        tryConnectService()
     }
 
     private fun preloadBoostFramework() {

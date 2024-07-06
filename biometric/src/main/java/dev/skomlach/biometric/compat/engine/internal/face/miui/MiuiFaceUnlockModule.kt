@@ -189,10 +189,14 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
             //See IMiuiFaceManagerImpl.getMessageInfo()
             when (errMsgId) {
+                34, 2000 -> {
+                    //canceled
+                    return
+                }
                 11 -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 
-                12 -> failureReason =
+                12, 2100 -> failureReason =
                     AuthenticationFailureReason.NO_HARDWARE
 
                 1 -> failureReason =
@@ -211,7 +215,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 4 -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
 
-                3 -> failureReason =
+                3, 66 -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
 
                 7 -> {

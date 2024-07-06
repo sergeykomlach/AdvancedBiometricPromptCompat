@@ -21,10 +21,16 @@ package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.view.*
+import android.view.LayoutInflater
+import android.view.SurfaceView
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.view.Window
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.collection.LruCache
 import com.google.gson.Gson
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
@@ -44,7 +50,8 @@ object TruncatedTextFix {
     private var DESCRIPTION_SHIFT = 2
     private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
-    private var truncatedText: TruncatedText? = null
+    private val cache: LruCache<String, TruncatedText> = LruCache(5)
+
 
     init {
         //Title and description should be fixed a bit for Android 12
@@ -71,10 +78,7 @@ object TruncatedTextFix {
         }
         val config =
             AndroidContext.appConfiguration ?: AndroidContext.appContext.resources.configuration
-        val cache =
-            truncatedText ?: getTruncatedText(config).also {
-                truncatedText = it
-            }
+        val cache = getTruncatedText(config)
         val map = cache?.map?.toMutableMap() ?: HashMap()
         if (map.isNotEmpty()) {
             var totalCount = 0
@@ -142,9 +146,7 @@ object TruncatedTextFix {
             val negativeButton: Button? = rootView?.findViewById(android.R.id.button1)
             val action = {
                 windowView.removeView(layout)
-                setTruncatedText(config, TruncatedText(map).also {
-                    truncatedText = it
-                })
+                setTruncatedText(config, TruncatedText(map))
                 onTruncateChecked.onDone()
             }
             val counter = AtomicInteger(4)
@@ -310,7 +312,10 @@ object TruncatedTextFix {
 
     private fun getTruncatedText(config: Configuration): TruncatedText? {
         val data = config.toString()
-        return try {
+        cache.get(data)?.let {
+            return it
+        }
+        return (try {
             val json =
                 SharedPreferenceProvider.getPreferences("TruncatedText_v2").getString(data, null)
             if (json.isNullOrEmpty()) {
@@ -321,12 +326,15 @@ object TruncatedTextFix {
         } catch (e: Throwable) {
             SharedPreferenceProvider.getPreferences("TruncatedText_v2").edit().remove(data).apply()
             TruncatedText(HashMap())
+        }).also {
+            cache.put(data, it)
         }
     }
 
     private fun setTruncatedText(config: Configuration, truncatedText: TruncatedText) {
         val json = Gson().toJson(truncatedText, TruncatedText::class.java)
         val data: String = config.toString()
+        cache.put(data, truncatedText)
         SharedPreferenceProvider.getPreferences("TruncatedText_v2").edit().putString(data, json)
             .apply()
     }

@@ -456,7 +456,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun cancelAuth() {
         try {
             val success =
-                authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+                authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
             e("BiometricPromptApi28Impl.cancelAuth(): $success")
             if (success != null)
                 return
@@ -536,9 +536,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         allList.removeAll(authFinishedList)
         d("BiometricPromptApi28Impl.checkAuthResultForPrimary.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
         val error =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
         val success =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("BiometricPromptApi28Impl.checkAuthResultForPrimary.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
         if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
@@ -644,9 +644,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         allList.removeAll(authFinishedList)
         d("checkAuthResultForSecondary.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
         val error =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
         val success =
-            authFinished.values.lastOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
 
         d("BiometricPromptApi28Impl.checkAuthResultForSecondary.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
         if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
@@ -672,7 +672,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 }.toSet())
                 cancelAuth()
 
-            } else if (error != null) {
+            } else if (error != null && allList.isEmpty()) {
                 if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
                     e("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onFailed")
                     callback?.onFailed(error.failureReason)
@@ -716,7 +716,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
 
         override fun onCanceled(module: BiometricType?) {
-            cancelAuth()
+
         }
     }
 }
