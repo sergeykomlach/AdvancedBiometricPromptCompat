@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.utils
 
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -100,7 +101,11 @@ object DevicesWithKnownBugs {
 
     private val guessingHasUnderDisplayFingerprint: Boolean
     get(){
-        return Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()
+        //Foldable mostly do not have under display sensors
+        if(isFoldable) return false
+        else if(CheckBiometricUI.hasSomethingFrontSensor(appContext)) return true
+        else if(Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()) return true
+        return false
     }
     val hasUnderDisplayFingerprint: Boolean
         get() {
@@ -111,7 +116,7 @@ object DevicesWithKnownBugs {
                 val value =
                     DeviceInfoManager.hasUnderDisplayFingerprint(
                         BiometricPromptCompat.deviceInfo ?: return false
-                    ) || CheckBiometricUI.hasSomethingFrontSensor(appContext) || guessingHasUnderDisplayFingerprint
+                    ) || guessingHasUnderDisplayFingerprint
                 cached = "$value"
                 SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
                     .putString(ts, cached).apply()
@@ -149,7 +154,7 @@ object DevicesWithKnownBugs {
         return false
     }
 
-    val isChromeBook: Boolean
+    private val isChromeBook: Boolean
         get() {
             //https://developer.chrome.com/apps/getstarted_arc
             //https://github.com/google/talkback/blob/master/src/main/java/com/google/android/marvin/talkback/TalkBackService.java#L1779-L1781
@@ -159,5 +164,20 @@ object DevicesWithKnownBugs {
                 ignoreCase = true
             ) || Build.DEVICE != null && Build.DEVICE.matches(Regex(".+_cheets"))
                     || AndroidContext.appContext.packageManager.hasSystemFeature("org.chromium.arc.device_management"))
+                    || AndroidContext.appContext.packageManager.hasSystemFeature("org.chromium.arc")
+        }
+
+    val isFoldable: Boolean
+        get() {
+            if (AndroidContext.appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE))
+                return true
+            else
+                if (isChromeBook) return true
+                else if (isSamsung) {
+                    val model = DeviceInfoManager.getAnyDeviceInfo().model
+                    return model.contains("Flip") || model.contains("Fold")
+                }
+
+            return false
         }
 }
