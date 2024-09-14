@@ -89,6 +89,13 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
 ## Recent changes (last 3 month)
+
+September 14 2024
+
+**Bugfixes** Fixed bug on Pixel 9 Pro Fold when activity restarted endlessly in unfolded mode
+
+**Bugfixes** Fixed bug on Remdi Tab and FaciId
+
 July 6 2024
 
 **Bugfixes** Fixed bug when secondary biometric fails and auth interrupted, but primary still running 
