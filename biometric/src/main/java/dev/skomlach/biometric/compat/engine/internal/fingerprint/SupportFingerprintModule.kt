@@ -106,7 +106,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
             try {
                 return managerCompat?.isHardwareDetected == true
-            } catch (e: Throwable) {
+            } catch (_: Throwable) {
 
             }
 
@@ -117,7 +117,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         get() {
             try {
                 return managerCompat?.hasEnrolledFingerprints() == true
-            } catch (e: Throwable) {
+            } catch (_: Throwable) {
 
             }
             return false

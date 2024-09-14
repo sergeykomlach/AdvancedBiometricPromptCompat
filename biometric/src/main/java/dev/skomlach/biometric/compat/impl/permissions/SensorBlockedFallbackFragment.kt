@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.impl.permissions
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -142,10 +143,14 @@ class SensorBlockedFallbackFragment : Fragment() {
                         "sensor_privacy_start_use_dialog_turn_on_button"
                     ) ?: getString(android.R.string.ok)
                 ) { p0, _ ->
-                    Utils.startActivity(
-                        Intent(android.provider.Settings.ACTION_PRIVACY_SETTINGS),
-                        context
-                    )
+                    if(Utils.startActivity(
+                            Intent(Settings.ACTION_PRIVACY_SETTINGS),
+                            context
+                        )) else {
+                        Utils.startActivity(
+                            Intent(Settings.ACTION_SETTINGS), context
+                        )
+                    }
                     p0.dismiss()
                 }
                 .setOnDismissListener {

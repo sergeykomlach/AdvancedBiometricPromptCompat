@@ -281,6 +281,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     private object EnrollCheckHelper {
         const val KEY_NAME = "BiometricEnrollChanged.test"
+        private var lastCheckedTs: Long = System.currentTimeMillis()
+        private var lastCheckedState: Boolean? = null
 
         private fun generateSecretKey(keyGenParameterSpec: KeyGenParameterSpec): SecretKey {
             val keyGenerator = KeyGenerator.getInstance(
@@ -306,8 +308,15 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                         + KeyProperties.ENCRYPTION_PADDING_PKCS7
             )
         }
-
         fun isChanged(): Boolean {
+            if(lastCheckedState == null || System.currentTimeMillis() - lastCheckedTs >= 2500) {
+                lastCheckedState = isChangedInternal()
+                lastCheckedTs = System.currentTimeMillis()
+            }
+            return lastCheckedState?:false
+        }
+
+        private fun isChangedInternal(): Boolean {
             try {
                 val cipher: Cipher = getCipher()
                 var secretKey = getSecretKey()

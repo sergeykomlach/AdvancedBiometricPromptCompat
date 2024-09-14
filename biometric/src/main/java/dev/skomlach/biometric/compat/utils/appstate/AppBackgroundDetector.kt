@@ -38,17 +38,17 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
     private val homeWatcher = HomeWatcher(object : HomeWatcher.OnHomePressedListener {
         override fun onHomePressed() {
             if (stopWatcher != null)
-            callback.invoke()
+                callback.invoke()
         }
 
         override fun onRecentAppPressed() {
             if (stopWatcher != null)
-            callback.invoke()
+                callback.invoke()
         }
 
         override fun onPowerPressed() {
             if (stopWatcher != null)
-            callback.invoke()
+                callback.invoke()
         }
     })
     private val fragmentLifecycleCallbacks = object :
@@ -58,7 +58,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
             if (atomicBoolean.get() <= 0) {
                 BiometricLoggerImpl.e("fragmentLifecycleCallbacks.AppBackgroundDetector.dismissTask")
                 if (stopWatcher != null)
-                callback.invoke()
+                    callback.invoke()
             }
         }
 
@@ -73,14 +73,6 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
                             "$f"
                 )
                 atomicBoolean.incrementAndGet()
-                try {
-                    ScreenProtection.applyProtectionInView(f.requireView())
-                    if (f is DialogFragment) {
-                        ScreenProtection.applyProtectionInWindow(f.dialog?.window)
-                    }
-                } catch (e: Throwable) {
-
-                }
             }
         }
 
@@ -111,7 +103,7 @@ class AppBackgroundDetector(val impl: IBiometricPromptImpl, callback: () -> Unit
         private val dismissTask = Runnable {
             BiometricLoggerImpl.e("lifecycleEventObserver.AppBackgroundDetector.dismissTask")
             if (stopWatcher != null)
-            callback.invoke()
+                callback.invoke()
         }
 
         override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
