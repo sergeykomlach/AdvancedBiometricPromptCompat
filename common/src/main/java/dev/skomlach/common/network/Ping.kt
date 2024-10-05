@@ -69,7 +69,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     private fun isWebUrl(u: String): Boolean {
         var url = u
         if (url.isEmpty()) return false
-        url = url.lowercase(systemLocale)
+        url = url.lowercase(Locale.ROOT)
         //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
         val slash = url.indexOf("/")
         if (slash > 0 && slash < url.indexOf("?")) {

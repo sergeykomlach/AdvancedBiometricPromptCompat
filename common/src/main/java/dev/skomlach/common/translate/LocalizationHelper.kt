@@ -41,62 +41,60 @@ import java.util.concurrent.TimeUnit
 
 object LocalizationHelper {
     val agents = arrayOf(
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/602.2.14 (KHTML, like Gecko) Version/10.0.1 Safari/602.2.14",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.98 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36",
-        "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:50.0) Gecko/20100101 Firefox/50.0"
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36"
     )
 
     fun fetchFromWeb(url: String): String? {
         if(NetworkApi.hasInternet())
-        try {
-            val urlConnection =
-                NetworkApi.createConnection(
-                    url,
-                    TimeUnit.SECONDS.toMillis(30).toInt()
+            try {
+                val urlConnection =
+                    NetworkApi.createConnection(
+                        url,
+                        TimeUnit.SECONDS.toMillis(30).toInt()
+                    )
+
+                urlConnection.requestMethod = "GET"
+                urlConnection.setRequestProperty("Content-Language", "en-US")
+                urlConnection.setRequestProperty("Accept-Language", "en-US")
+                urlConnection.setRequestProperty(
+                    "User-Agent",
+                    agents[SecureRandom().nextInt(agents.size)]
                 )
+                urlConnection.connect()
+                val responseCode = urlConnection.responseCode
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                val inputStream: InputStream
 
-            urlConnection.requestMethod = "GET"
-            urlConnection.setRequestProperty("Content-Language", "en-US")
-            urlConnection.setRequestProperty("Accept-Language", "en-US")
-            urlConnection.setRequestProperty(
-                "User-Agent",
-                agents[SecureRandom().nextInt(agents.size)]
-            )
-            urlConnection.connect()
-            val responseCode = urlConnection.responseCode
-            val byteArrayOutputStream = ByteArrayOutputStream()
-            val inputStream: InputStream
-
-            //if any 2XX response code
-            if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-                inputStream = urlConnection.inputStream
-            } else {
-                //Redirect happen
-                if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
-                    var target = urlConnection.getHeaderField("Location")
-                    if (target != null && !NetworkApi.isWebUrl(target)) {
-                        target = "https://$target"
+                //if any 2XX response code
+                if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
+                    inputStream = urlConnection.inputStream
+                } else {
+                    //Redirect happen
+                    if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
+                        var target = urlConnection.getHeaderField("Location")
+                        if (target != null && !NetworkApi.isWebUrl(target)) {
+                            target = "https://$target"
+                        }
+                        return fetchFromWeb(target)
                     }
-                    return fetchFromWeb(target)
+                    inputStream = urlConnection.inputStream ?: urlConnection.errorStream
                 }
-                inputStream = urlConnection.inputStream ?: urlConnection.errorStream
+                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
+                inputStream.close()
+                val data = byteArrayOutputStream.toByteArray()
+                byteArrayOutputStream.close()
+                urlConnection.disconnect()
+                return String(data, Charset.forName("UTF-8"))
+            } catch (e: Throwable) {
+                LogCat.logException(e, "LocalizationHelper")
             }
-            NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-            inputStream.close()
-            val data = byteArrayOutputStream.toByteArray()
-            byteArrayOutputStream.close()
-            urlConnection.disconnect()
-            return String(data, Charset.forName("UTF-8"))
-        } catch (e: Throwable) {
-            LogCat.logException(e, "LocalizationHelper")
-        }
         return null
     }
 

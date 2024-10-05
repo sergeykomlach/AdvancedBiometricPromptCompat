@@ -31,13 +31,14 @@ import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.channels.ReadableByteChannel
 import java.nio.channels.WritableByteChannel
+import java.util.Locale
 import javax.net.ssl.HttpsURLConnection
 
 object NetworkApi {
     fun isWebUrl(u: String): Boolean {
         var url = u
         if (url.isEmpty()) return false
-        url = url.lowercase(AndroidContext.systemLocale)
+        url = url.lowercase(Locale.ROOT)
         //Fix java.lang.RuntimeException: utext_close failed: U_REGEX_STACK_OVERFLOW
         val slash = url.indexOf("/")
         if (slash > 0 && slash < url.indexOf("?")) {

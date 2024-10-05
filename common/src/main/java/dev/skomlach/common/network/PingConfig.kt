@@ -36,8 +36,8 @@ object PingConfig {
         }
 
     init {
-        val pref = SharedPreferenceProvider.getPreferences("pingConfig")
-        this.timeout = pref.getLong("pingTimeoutSec", 1)
+        val pref = SharedPreferenceProvider.getPreferences("pingConfig_v2")
+        this.timeout = pref.getLong("pingTimeoutSec", 5)
         this.hosts =
             pref.getStringSet("hostsList", arrayOf("1.1.1.1", "google.com").toSet()) ?: emptySet()
 
