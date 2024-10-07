@@ -171,9 +171,10 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 val rel = m.group(1)
                 val url = getUrlFromRel(rel)
                 if (url != null) {
-                    checkUrls(originalUrl, url)
-                    LogCat.log("Ping compare (link):$originalUrl == $url")
-                    return true
+                    if (checkUrls(originalUrl, url)) {
+                        LogCat.log("Ping compare (link):$originalUrl == $url")
+                        return true
+                    }
                 }
             }
             m = patternMeta.matcher(html)
@@ -182,9 +183,10 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 if (isOriginFromMeta(meta)) return true
                 val url = getUrlFromMeta(meta)
                 if (url != null) {
-                    checkUrls(originalUrl, url)
-                    LogCat.log("Ping compare (meta):$originalUrl == $url")
-                    return true
+                    if (checkUrls(originalUrl, url)) {
+                        LogCat.log("Ping compare (meta):$originalUrl == $url")
+                        return true
+                    }
                 }
             }
         }
@@ -221,17 +223,15 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         return attributes
     }
 
-    @Throws(Exception::class)
-    private fun checkUrls(original: String, t: String) {
+
+    private fun checkUrls(original: String, t: String): Boolean {
         var target: String? = t
         if (target != null && !isWebUrl(target)) {
             target = "https://$target"
         }
 
         //Some providers show "dummy" page, lets compare with target URL
-        if (!matchesUrl(original, target)) {
-            throw IllegalStateException("HTML data do not matched with $original")
-        }
+        return matchesUrl(original, target)
     }
 
     private fun getScheme(url: String): String {
@@ -248,6 +248,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         //SpLog.log("matchesUrl: '"+url1 +"' & '"+url2+"'");
         var url1 = link1 ?: ""
         var url2 = link2 ?: ""
+        if (url1 == url2) return true
         if (url1.isEmpty()) return false
         if (url2.isEmpty()) return false
         try {
@@ -268,27 +269,25 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             if (u1.protocol != u2.protocol) {
                 u1 = URL(u2.protocol, u1.host, u1.port, u1.file)
             }
-            val isMobile = u1.host.startsWith("m.") || u2.host.startsWith("m.")
-            val isWww = u1.host.startsWith("www.") || u2.host.startsWith("www.")
 
             //in result, www.facebook.com and m.facebook.com  should be both - facebook.com
-            if (isMobile) {
-                if (u1.host.startsWith("m.")) {
-                    u1 = URL(u1.protocol, u1.host.substring("m.".length), u1.port, u1.file)
-                } else if (u2.host.startsWith("m.")) {
-                    u2 = URL(u2.protocol, u2.host.substring("m.".length), u2.port, u2.file)
-                }
+
+            if (u1.host.startsWith("m.")) {
+                u1 = URL(u1.protocol, u1.host.substring("m.".length), u1.port, u1.file)
+            } else if (u1.host.startsWith("www.")) {
+                u1 = URL(u1.protocol, u1.host.substring("www.".length), u1.port, u1.file)
             }
-            if (isWww) {
-                if (u1.host.startsWith("www.")) {
-                    u1 = URL(u1.protocol, u1.host.substring("www.".length), u1.port, u1.file)
-                } else if (u2.host.startsWith("www.")) {
-                    u2 = URL(u2.protocol, u2.host.substring("www.".length), u2.port, u2.file)
-                }
+
+            if (u2.host.startsWith("m.")) {
+                u2 = URL(u2.protocol, u2.host.substring("m.".length), u2.port, u2.file)
+            } else if (u2.host.startsWith("www.")) {
+                u2 = URL(u2.protocol, u2.host.substring("www.".length), u2.port, u2.file)
             }
+
             url1 = u1.toExternalForm()
             url2 = u2.toExternalForm()
         } catch (e: Throwable) {
+            LogCat.logException(e)
         }
         return url1 == url2
     }
