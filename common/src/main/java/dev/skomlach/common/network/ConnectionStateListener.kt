@@ -45,7 +45,6 @@ class ConnectionStateListener {
     init {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
-        isConnectionOk.set(isConnectionDetected())
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -71,6 +70,7 @@ class ConnectionStateListener {
                 ping.updateConnectionCheckQuery(1)
             }
         }
+        ping.updateConnectionCheckQuery(0)
     }
 
     fun isConnectionDetected() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
@@ -101,7 +101,7 @@ class ConnectionStateListener {
                     intentFilter
                 )
             }
-        } catch (ignore: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 
@@ -115,7 +115,7 @@ class ConnectionStateListener {
             } else {
                 BroadcastTools.unregisterGlobalBroadcastIntent(appContext, receiverTypeConnection)
             }
-        } catch (ignore: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 

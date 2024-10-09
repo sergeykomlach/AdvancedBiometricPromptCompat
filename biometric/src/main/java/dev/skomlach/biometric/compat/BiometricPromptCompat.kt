@@ -169,14 +169,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (Looper.getMainLooper().thread !== Thread.currentThread())
                 throw IllegalThreadStateException("Main Thread required")
 
-            if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-            reference.set(false)
-            HookDetection.detect(object : HookDetection.HookDetectionListener {
-                override fun onDetected(flag: Boolean) {
-                    reference.set(flag)
-                }
-            })
+
             if (isInitialized) {
                 BiometricLoggerImpl.d("BiometricPromptCompat.init() - ready")
                 execute?.let { ExecutorHelper.post(it) }
@@ -185,6 +178,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() - pending")
                     pendingTasks.add(execute)
                 } else {
+                    if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+                        BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                    reference.set(false)
+                    HookDetection.detect(object : HookDetection.HookDetectionListener {
+                        override fun onDetected(flag: Boolean) {
+                            reference.set(flag)
+                        }
+                    })
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
                     isBiometricInit.set(false)
                     initInProgress.set(true)
@@ -449,9 +450,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")
                                     builder.setForceDeviceCredentials(false)
                                     if(::oldTitle.isInitialized)
-                                    builder.setTitle(oldTitle)
+                                        builder.setTitle(oldTitle)
                                     if(::oldDescription.isInitialized)
-                                    builder.setDescription(oldDescription)
+                                        builder.setDescription(oldDescription)
                                     ExecutorHelper.postDelayed(
                                         {
                                             authenticateInternal(this)

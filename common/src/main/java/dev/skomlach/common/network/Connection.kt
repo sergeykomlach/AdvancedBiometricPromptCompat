@@ -47,7 +47,7 @@ object Connection {
             connectionStateListener.updateConnectionCheckQuery(1)
         }
     }
-    private val ACTION = "check_network"
+    private const val ACTION = "check_network"
     private var job: Runnable? = null
     private var lastActiveNetworkInfo: AtomicReference<Any?> = AtomicReference<Any?>(null)
     private var lastKnownConnection = false
@@ -90,7 +90,7 @@ object Connection {
                 lastKnownConnection = isConnected
                 notifyNetworkChange()
             }
-        } catch (ignore: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 
