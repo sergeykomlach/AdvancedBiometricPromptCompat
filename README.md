@@ -89,6 +89,10 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
 ## Recent changes (last 3 month)
+November 4 2024
+
+**Bugfixes** Fixed issue with Notification channel request on OneUI 6.1+
+
 October 9 2024
 
 **Bugfixes** Fixed network connection check

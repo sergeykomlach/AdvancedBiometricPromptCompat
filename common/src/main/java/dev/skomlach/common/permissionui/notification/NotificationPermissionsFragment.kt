@@ -26,6 +26,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Build.VERSION
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
@@ -51,6 +52,33 @@ class NotificationPermissionsFragment : Fragment() {
         private const val PERMISSION_KEY = "permissions_type"
         private const val CHANNEL_ID = "channelId"
         private const val INTENT_KEY = "NotificationPermissionsFragment.intent_key"
+        //Also channels permission cann't be toggled properly
+        //https://www.reddit.com/r/Android/comments/1aezehk/one_ui_61_disables_one_of_androids_best/
+        //https://www.androidpolice.com/samsung-disables-notification-channels-on-all-one-ui-61-devices/
+        fun getOneUiVersion(): String {
+            try {
+                if (!isSemAvailable(AndroidContext.appContext)) {
+                    return "" // was "1.0" originally but probably just a dummy value for one UI devices
+                }
+                val semPlatformIntField =
+                    VERSION::class.java.getDeclaredField("SEM_PLATFORM_INT")
+                val version: Int = semPlatformIntField.getInt(null) - 90000
+                if (version < 0) {
+                    // not one ui (could be previous Samsung OS)
+                    return ""
+                }
+                return (version / 10000).toString() + "." + ((version % 10000) / 100)
+            } catch (e: Throwable) {
+                LogCat.logException(e)
+            }
+            return ""
+        }
+
+        private fun isSemAvailable(context: Context?): Boolean {
+            return context != null &&
+                    (context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile") ||
+                            context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile_lite"))
+        }
         fun preloadTranslations() {
             ExecutorHelper.startOnBackground {
                 LocalizationHelper.prefetch(
@@ -185,12 +213,12 @@ class NotificationPermissionsFragment : Fragment() {
                 p0.dismiss()
                 if (Build.VERSION.SDK_INT >= 26) {
                     try {
-                        safeStartActivity(
-                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName),
+                        if(safeStartActivity(
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName),
 
-                            )
-                        return@setPositiveButton
+                                ))
+                            return@setPositiveButton
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -203,8 +231,8 @@ class NotificationPermissionsFragment : Fragment() {
                     launchIntent.putExtra("app_uid", context?.applicationInfo?.uid)
 
                     if (intentCanBeResolved(launchIntent)) {
-                        safeStartActivity(launchIntent)
-                        return@setPositiveButton
+                        if(safeStartActivity(launchIntent))
+                            return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -213,8 +241,8 @@ class NotificationPermissionsFragment : Fragment() {
                     val i = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
-                        safeStartActivity(i)
-                        return@setPositiveButton
+                        if(safeStartActivity(i))
+                            return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -270,16 +298,17 @@ class NotificationPermissionsFragment : Fragment() {
                 if (Build.VERSION.SDK_INT >= 26) {
                     try {
                         val channelId = arguments?.getString(CHANNEL_ID)
-                        safeStartActivity(
-                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
-                                .putExtra(
-                                    Settings.EXTRA_CHANNEL_ID,
-                                    channelId
-                                )
-                        )
+                        if(safeStartActivity(
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
+                                    val oneUiVersion = getOneUiVersion()
+                                    if (oneUiVersion.isEmpty() || io.github.g00fy2.versioncompare.Version(oneUiVersion).isLowerThan("6.1")
+                                    )
+                                        putExtra(  Settings.EXTRA_CHANNEL_ID,channelId)
+                                }
+                            ))
 
-                        return@setPositiveButton
+                            return@setPositiveButton
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -291,8 +320,8 @@ class NotificationPermissionsFragment : Fragment() {
                     launchIntent.putExtra("app_uid", context?.applicationInfo?.uid)
 
                     if (intentCanBeResolved(launchIntent)) {
-                        safeStartActivity(launchIntent)
-                        return@setPositiveButton
+                        if(safeStartActivity(launchIntent))
+                            return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -301,8 +330,8 @@ class NotificationPermissionsFragment : Fragment() {
                     val i = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
-                        safeStartActivity(i)
-                        return@setPositiveButton
+                        if(safeStartActivity(i))
+                            return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
