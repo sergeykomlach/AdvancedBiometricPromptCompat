@@ -95,27 +95,32 @@ object BiometricAuthentication {
             this.add(BiometricMethod.FINGERPRINT_API23)
             this.add(BiometricMethod.FINGERPRINT_SUPPORT)
         }
-        //Miui and Samsung Face/Iris - Nougat (7.0)
+        //Samsung Face/Iris - Nougat (7.0)+
         if (Build.VERSION.SDK_INT >= 24) {
             this.add(BiometricMethod.FACE_SOTERAPI)
             this.add(BiometricMethod.FACE_SAMSUNG)
             this.add(BiometricMethod.IRIS_SAMSUNG)
+        }
+        //Miui FaceUnlock - AOS7 - AOS13
+        if (Build.VERSION.SDK_INT in 24..33) {
             this.add(BiometricMethod.FACE_MIUI)
         }
-        //Vivo and Huawei Face - Oreo (8.0)
-        if (Build.VERSION.SDK_INT >= 26) {
+        //Honor and Huawei FaceUnlock - AOS5-AOS9
+        if (Build.VERSION.SDK_INT in 21..28) {
             this.add(BiometricMethod.FACE_HUAWEI)
             this.add(BiometricMethod.FACE_HIHONOR)
+        }
+        //Honor and Huawei official FaceUnlock - AOS10+
+        if (Build.VERSION.SDK_INT >= 29) {
+            this.add(BiometricMethod.FACE_HUAWEI3D)
+            this.add(BiometricMethod.FACE_HIHONOR3D)
         }
         //Android biometric - Pie (9.0)
         if (Build.VERSION.SDK_INT >= 28) {
             this.add(BiometricMethod.FACE_ANDROIDAPI)
             this.add(BiometricMethod.IRIS_ANDROIDAPI)
         }
-        if (Build.VERSION.SDK_INT >= 29) {
-            this.add(BiometricMethod.FACE_HUAWEI3D)
-            this.add(BiometricMethod.FACE_HIHONOR3D)
-        }
+
     }
 
     fun registerCustomModule(
