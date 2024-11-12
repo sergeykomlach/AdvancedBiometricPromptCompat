@@ -66,7 +66,7 @@ object DevicesWithKnownBugs {
 
     val systemDealWithBiometricPrompt: Boolean
         get() = (isSamsung || Utils.isAtLeastT)
-    private val isSamsung: Boolean
+    val isSamsung: Boolean
         get() {
             return checkForVendor("Samsung", ignoreCase = true)
         }

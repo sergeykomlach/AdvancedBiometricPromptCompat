@@ -345,7 +345,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
         onUiOpened()
         showSystemUi(prompt)
-        if (secondary.isNotEmpty() && !DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
+        if (secondary.isNotEmpty() && !DevicesWithKnownBugs.isSamsung) {
             ExecutorHelper.postDelayed({
                     BiometricAuthentication.authenticate(
                         builder.getCryptographyPurpose(),
@@ -541,7 +541,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("BiometricPromptApi28Impl.checkAuthResultForPrimary.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
         if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
-            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.systemDealWithBiometricPrompt || allList.isEmpty()))
+            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && (DevicesWithKnownBugs.isSamsung || allList.isEmpty()))
         ) {
             if (success != null) {
                 val onlySuccess = authFinished.filter {
