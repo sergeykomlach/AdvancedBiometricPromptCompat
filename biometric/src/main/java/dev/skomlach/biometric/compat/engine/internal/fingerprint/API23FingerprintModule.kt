@@ -202,7 +202,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 FingerprintManager.FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 

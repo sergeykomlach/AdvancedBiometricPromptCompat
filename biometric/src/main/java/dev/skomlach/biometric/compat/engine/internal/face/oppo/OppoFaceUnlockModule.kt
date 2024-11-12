@@ -265,7 +265,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 FACE_ERROR_NOT_ENROLLED -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 

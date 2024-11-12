@@ -181,7 +181,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_HW_UNAVAILABLE, com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_CAMERA_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 

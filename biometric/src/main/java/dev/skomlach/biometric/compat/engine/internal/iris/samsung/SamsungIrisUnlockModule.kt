@@ -362,7 +362,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 IRIS_ERROR_NO_EYE_DETECTED -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 

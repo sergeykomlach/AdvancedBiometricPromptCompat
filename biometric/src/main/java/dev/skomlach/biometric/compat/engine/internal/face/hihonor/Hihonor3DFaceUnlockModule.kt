@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
+import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -34,6 +35,7 @@ import dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl.HihonorFa
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import java.util.concurrent.TimeUnit
 
 
 class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
@@ -45,6 +47,42 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 hihonor3DFaceManager = HwFaceManagerFactory.getFaceManager(context)
                 d("$name.hihonor3DFaceManager - $hihonor3DFaceManager")
+                if (isHardwarePresent && HihonorFaceRecognizeManager.shouldCheckCamera()) {
+                    val cancellationSignal = CancellationSignal()
+                    val checkTask = Runnable {
+                        HihonorFaceRecognizeManager.resetCheckCamera()
+                        listener?.initFinished(biometricMethod, this@Hihonor3DFaceUnlockModule)
+                        if (!cancellationSignal.isCanceled)
+                            cancellationSignal.cancel()
+                    }
+                    ExecutorHelper.postDelayed(checkTask, TimeUnit.SECONDS.toMillis(1))
+                    authenticate(null, cancellationSignal, object : AuthenticationListener {
+                        override fun onHelp(msg: CharSequence?) {}
+
+                        override fun onSuccess(
+                            moduleTag: Int,
+                            biometricCryptoObject: BiometricCryptoObject?
+                        ) {
+                            ExecutorHelper.removeCallbacks(checkTask)
+                            checkTask.run()
+                        }
+
+                        override fun onFailure(
+                            failureReason: AuthenticationFailureReason?,
+                            moduleTag: Int
+                        ) {
+                            ExecutorHelper.removeCallbacks(checkTask)
+                            checkTask.run()
+                        }
+
+                        override fun onCanceled(moduleTag: Int) {
+                            ExecutorHelper.removeCallbacks(checkTask)
+                            checkTask.run()
+                        }
+                    }, RestartPredicatesImpl.defaultPredicate())
+
+                    return@post
+                }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
@@ -187,7 +225,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 HihonorFaceRecognizeManager.HIHONOR_FACE_AUTHENTICATOR_FAIL -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 

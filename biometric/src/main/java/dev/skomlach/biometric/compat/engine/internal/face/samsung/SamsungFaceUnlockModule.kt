@@ -300,7 +300,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 FACE_ERROR_HW_UNAVAILABLE, FACE_ERROR_CAMERA_UNAVAILABLE, FACE_ERROR_IDENTIFY_FAILURE_BROKEN_DATABASE, FACE_ERROR_CAMERA_FAILURE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 

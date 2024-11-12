@@ -60,7 +60,7 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
                         if (!cancellationSignal.isCanceled)
                             cancellationSignal.cancel()
                     }
-                    ExecutorHelper.postDelayed(checkTask, TimeUnit.SECONDS.toMillis(5))
+                    ExecutorHelper.postDelayed(checkTask, TimeUnit.SECONDS.toMillis(1))
                     authenticate(null, cancellationSignal, object : AuthenticationListener {
                         override fun onHelp(msg: CharSequence?) {}
 
@@ -251,7 +251,7 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 HihonorFaceRecognizeManager.HIHONOR_FACE_AUTHENTICATOR_FAIL -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
 

@@ -201,7 +201,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 return
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 FINGERPRINT_ERROR_NO_FINGERPRINTS -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 

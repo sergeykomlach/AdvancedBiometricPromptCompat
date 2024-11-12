@@ -188,7 +188,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             var failureReason = AuthenticationFailureReason.UNKNOWN
 
             //See IMiuiFaceManagerImpl.getMessageInfo()
-            when (errMsgId) {
+            when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
                 34, 2000 -> {
                     //canceled
                     return
