@@ -27,7 +27,6 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceModel.getNames
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.translate.LocalizationHelper
@@ -174,6 +173,11 @@ object DeviceInfoManager {
             return
         }
         val names = getNames()
+        val devicesList = try {
+            Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)
+        } catch (e: Throwable) {
+            arrayOf<DeviceSpec>()
+        }
         for (m in names) {
             val first = m.first
             val secondArray = splitString(m.second, " ")
@@ -182,7 +186,13 @@ object DeviceInfoManager {
                 if (limit < 2)//Device should have at least brand + model
                     break
                 val second = join(secondArray, " ", limit)
-                deviceInfo = loadDeviceInfo(first, second, DeviceModel.brand, DeviceModel.device)
+                deviceInfo = loadDeviceInfo(
+                    devicesList,
+                    first,
+                    second,
+                    DeviceModel.brand,
+                    DeviceModel.device
+                )
                 if (!deviceInfo?.sensors.isNullOrEmpty()) {
                     LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
                     setCachedDeviceInfo(deviceInfo ?: continue, true)
@@ -251,14 +261,13 @@ object DeviceInfoManager {
     }
 
     private fun loadDeviceInfo(
+        devicesList: Array<DeviceSpec>,
         modelReadableName: String,
         model: String,
         brand: String,
         codeName: String
     ): DeviceInfo? {
         try {
-            val devicesList = Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)
-
             val info = findDeviceInfo(devicesList, model, brand, codeName)
             if (info != null)
                 return info
@@ -292,11 +301,11 @@ object DeviceInfoManager {
                     ignoreCase = true
                 ) && it.codename == codeName)
             ) {
-                LogCat.log("DeviceInfoManager: $it")
+                LogCat.log("DeviceInfoManager: (1) $it")
                 return DeviceInfo(m, getSensors(it))
             } else if (firstFound == null) {
                 if (it.name?.contains(model, ignoreCase = true) == true) {
-                    LogCat.log("DeviceInfoManager: $it")
+                    LogCat.log("DeviceInfoManager: (2) $it")
                     firstFound = DeviceInfo(m, getSensors(it))
                 } else {
                     val arr = splitString(model, " ")
@@ -306,7 +315,7 @@ object DeviceInfoManager {
                             break
                         val shortName = join(arr, " ", i)
                         if (it.name?.contains(shortName, ignoreCase = true) == true) {
-                            LogCat.log("DeviceInfoManager: $it")
+                            LogCat.log("DeviceInfoManager: (3) $it")
                             firstFound = DeviceInfo(m, getSensors(it))
                         }
                         i--

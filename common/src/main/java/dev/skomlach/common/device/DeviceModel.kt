@@ -26,7 +26,6 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemPropertiesProxy
-import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.translate.LocalizationHelper
@@ -71,22 +70,23 @@ object DeviceModel {
             }
         }
         if (strings.isEmpty())
-            getNameFromDatabase()?.let {
-                for (s in it) {
-                    val str = fixVendorName(s)
-                    if (str.trim().isNotEmpty())
-                        strings.put(str, str.filter { c ->
-                            c.isLetterOrDigit() || c.isWhitespace()
-                        })
-                }
-            }
-        if (strings.isEmpty())
             getSimpleDeviceName()?.let {
                 val str = fixVendorName(it)
                 if (str.trim().isNotEmpty())
                     strings.put(str, str.filter { c ->
                         c.isLetterOrDigit() || c.isWhitespace()
                     })
+            }
+        //Obsolete DB, use it as last chance
+        if (strings.isEmpty())
+            getNameFromDatabase()?.let {
+                for (s in it) {
+                    val str = fixVendorName(s ?: continue)
+                    if (str.trim().isNotEmpty())
+                        strings.put(str, str.filter { c ->
+                            c.isLetterOrDigit() || c.isWhitespace()
+                        })
+                }
             }
 
 
@@ -133,11 +133,7 @@ object DeviceModel {
             if (it.isNotEmpty())
                 return getName(brand, it)
         }
-        return if (brand.equals("Huawei", ignoreCase = true) || brand.equals(
-                "Honor",
-                ignoreCase = true
-            )
-        ) "$brand $model" else null
+        return null
     }
 
     @WorkerThread
@@ -148,7 +144,7 @@ object DeviceModel {
         try {
             val json = JSONObject(getJSON() ?: return null)
             for (key in json.keys()) {
-                if (brand.equals(key, ignoreCase = true)) {
+
                     val details = json.getJSONArray(key)
                     for (i in 0 until details.length()) {
                         val jsonObject = details.getJSONObject(i)
@@ -157,20 +153,47 @@ object DeviceModel {
                         val d = jsonObject.getString("device")
                         if (name.isNullOrEmpty()) {
                             continue
-                        } else if (!m.isNullOrEmpty() && model.equals(m, ignoreCase = true)) {
+                        } else if (!m.isNullOrEmpty() && (model.equals(
+                                m,
+                                ignoreCase = true
+                            ) || model.filter { c ->
+                                c.isLetterOrDigit() || c.isWhitespace()
+                            }.equals(m.filter { c ->
+                                c.isLetterOrDigit() || c.isWhitespace()
+                            }, ignoreCase = true))
+                        ) {
                             return mutableSetOf<String>().apply {
                                 this.add(getName(brand, getFullName(model)))
                                 this.add(getName(brand, getFullName(name)))
                             }.also {
                                 LogCat.log("AndroidModel.getNameFromAssets1 - $jsonObject -> $it")
                             }
-                        } else if (!d.isNullOrEmpty() && device.equals(d, ignoreCase = true)) {
-                            return mutableSetOf<String>().apply {
-                                this.add(getName(brand, getFullName(model)))
-                                this.add(getName(brand, getFullName(name)))
-                            }.also {
-                                LogCat.log("AndroidModel.getNameFromAssets2 - $jsonObject -> $it")
-                            }
+                        }
+                    }
+            }
+
+            for (key in json.keys()) {
+                val details = json.getJSONArray(key)
+                for (i in 0 until details.length()) {
+                    val jsonObject = details.getJSONObject(i)
+                    val m = jsonObject.getString("model")
+                    val name = jsonObject.getString("name")
+                    val d = jsonObject.getString("device")
+                    if (name.isNullOrEmpty()) {
+                        continue
+                    } else if (!d.isNullOrEmpty() && (device.equals(d,
+                            ignoreCase = true
+                        ) || device.filter { c ->
+                            c.isLetterOrDigit() || c.isWhitespace()
+                        }.equals(d.filter { c ->
+                            c.isLetterOrDigit() || c.isWhitespace()
+                        }, ignoreCase = true))
+                    ) {
+                        return mutableSetOf<String>().apply {
+                            this.add(getName(brand, getFullName(model)))
+                            this.add(getName(brand, getFullName(name)))
+                        }.also {
+                            LogCat.log("AndroidModel.getNameFromAssets2 - $jsonObject -> $it")
                         }
                     }
                 }
@@ -180,6 +203,7 @@ object DeviceModel {
         } finally {
             System.gc()
         }
+        LogCat.log("AndroidModel.getNameFromAssets3 - null")
         return null
     }
 
@@ -273,17 +297,17 @@ object DeviceModel {
     }
 
     @WorkerThread
-    private fun getNameFromDatabase(): List<String>? {
+    private fun getNameFromDatabase(): List<String?>? {
         val info = DeviceName
             .getDeviceInfo(appContext)
         LogCat.log("AndroidModel.getNameFromDatabase -{ ${info.manufacturer}; ${info.codename}; ${info.name}; ${info.marketName}; ${info.model}; }")
         return if (info != null) {
-            val list = mutableListOf<String>()
+            val list = mutableListOf<String?>()
             if (info.manufacturer.isNullOrEmpty()) {
-                if(info.model != info.codename)
-                list.add(info.model)
+                if (info.model != info.codename)
+                    list.add(info.model)
                 else
-                list.add(info.marketName)
+                    list.add(info.marketName)
                 return list
             } else {
                 list.add(
