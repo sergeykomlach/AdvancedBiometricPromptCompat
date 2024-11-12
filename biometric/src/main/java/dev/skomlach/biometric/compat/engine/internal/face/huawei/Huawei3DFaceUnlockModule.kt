@@ -47,42 +47,6 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
             try {
                 huawei3DFaceManager = HwFaceManagerFactory.getFaceManager(context)
                 d("$name.huawei3DFaceManager - $huawei3DFaceManager")
-                if (isHardwarePresent && HuaweiFaceRecognizeManager.shouldCheckCamera()) {
-                    val cancellationSignal = CancellationSignal()
-                    val checkTask = Runnable {
-                        HuaweiFaceRecognizeManager.resetCheckCamera()
-                        listener?.initFinished(biometricMethod, this@Huawei3DFaceUnlockModule)
-                        if (!cancellationSignal.isCanceled)
-                            cancellationSignal.cancel()
-                    }
-                    ExecutorHelper.postDelayed(checkTask, TimeUnit.SECONDS.toMillis(1))
-                    authenticate(null, cancellationSignal, object : AuthenticationListener {
-                        override fun onHelp(msg: CharSequence?) {}
-
-                        override fun onSuccess(
-                            moduleTag: Int,
-                            biometricCryptoObject: BiometricCryptoObject?
-                        ) {
-                            ExecutorHelper.removeCallbacks(checkTask)
-                            checkTask.run()
-                        }
-
-                        override fun onFailure(
-                            failureReason: AuthenticationFailureReason?,
-                            moduleTag: Int
-                        ) {
-                            ExecutorHelper.removeCallbacks(checkTask)
-                            checkTask.run()
-                        }
-
-                        override fun onCanceled(moduleTag: Int) {
-                            ExecutorHelper.removeCallbacks(checkTask)
-                            checkTask.run()
-                        }
-                    }, RestartPredicatesImpl.defaultPredicate())
-
-                    return@post
-                }
             } catch (e: Throwable) {
                 if (DEBUG_MANAGERS)
                     e(e, name)
