@@ -65,7 +65,7 @@ object DevicesWithKnownBugs {
         }
 
     val systemDealWithBiometricPrompt: Boolean
-        get() = (isSamsung || Utils.isAtLeastU)
+        get() = (isSamsung || Utils.isAtLeastU)//Up to AOS13 we are ab le to use multiple biometrics
     private val isSamsung: Boolean
         get() {
             return checkForVendor("Samsung", ignoreCase = true)
@@ -100,13 +100,13 @@ object DevicesWithKnownBugs {
 
 
     private val guessingHasUnderDisplayFingerprint: Boolean
-    get(){
-        //Foldable mostly do not have under display sensors
-        if(isFoldable) return false
-        else if(CheckBiometricUI.hasSomethingFrontSensor(appContext)) return true
-        else if(Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()) return true
-        return false
-    }
+        get(){
+            //Foldable mostly do not have under display sensors
+            if(isFoldable) return false
+            else if(CheckBiometricUI.hasSomethingFrontSensor(appContext)) return true
+            else if(Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()) return true
+            return false
+        }
     val hasUnderDisplayFingerprint: Boolean
         get() {
             val ts = "hasUnderDisplayFingerprint-${LastUpdatedTs.timestamp}"
@@ -154,7 +154,7 @@ object DevicesWithKnownBugs {
         return false
     }
 
-    private val isChromeBook: Boolean
+    val isChromeBook: Boolean
         get() {
             //https://developer.chrome.com/apps/getstarted_arc
             //https://github.com/google/talkback/blob/master/src/main/java/com/google/android/marvin/talkback/TalkBackService.java#L1779-L1781

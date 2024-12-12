@@ -145,31 +145,31 @@ object DeviceModel {
             val json = JSONObject(getJSON() ?: return null)
             for (key in json.keys()) {
 
-                    val details = json.getJSONArray(key)
-                    for (i in 0 until details.length()) {
-                        val jsonObject = details.getJSONObject(i)
-                        val m = jsonObject.getString("model")
-                        val name = jsonObject.getString("name")
-                        val d = jsonObject.getString("device")
-                        if (name.isNullOrEmpty()) {
-                            continue
-                        } else if (!m.isNullOrEmpty() && (model.equals(
-                                m,
-                                ignoreCase = true
-                            ) || model.filter { c ->
-                                c.isLetterOrDigit() || c.isWhitespace()
-                            }.equals(m.filter { c ->
-                                c.isLetterOrDigit() || c.isWhitespace()
-                            }, ignoreCase = true))
-                        ) {
-                            return mutableSetOf<String>().apply {
-                                this.add(getName(brand, getFullName(model)))
-                                this.add(getName(brand, getFullName(name)))
-                            }.also {
-                                LogCat.log("AndroidModel.getNameFromAssets1 - $jsonObject -> $it")
-                            }
+                val details = json.getJSONArray(key)
+                for (i in 0 until details.length()) {
+                    val jsonObject = details.getJSONObject(i)
+                    val m = jsonObject.getString("model")
+                    val name = jsonObject.getString("name")
+                    val d = jsonObject.getString("device")
+                    if (name.isNullOrEmpty()) {
+                        continue
+                    } else if (!m.isNullOrEmpty() && (model.equals(
+                            m,
+                            ignoreCase = true
+                        ) || model.filter { c ->
+                            c.isLetterOrDigit() || c.isWhitespace()
+                        }.equals(m.filter { c ->
+                            c.isLetterOrDigit() || c.isWhitespace()
+                        }, ignoreCase = true))
+                    ) {
+                        return mutableSetOf<String>().apply {
+                            this.add(getName(brand, getFullName(model)))
+                            this.add(getName(brand, getFullName(name)))
+                        }.also {
+                            LogCat.log("AndroidModel.getNameFromAssets1 - $jsonObject -> $it")
                         }
                     }
+                }
             }
 
             for (key in json.keys()) {

@@ -79,7 +79,7 @@ object ActiveWindow {
         return topView
     }
 
-    fun getActiveWindows(activity: FragmentActivity?): List<View> {
+    fun getActiveWindows(activity: Activity?): List<View> {
         val screens = mutableListOf<View>()
         val list = viewRoots
         for (i in list.indices) {

@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
-    const val PREF_NAME = "BiometricCompat_DeviceInfo-V2"
+    const val PREF_NAME = "BiometricCompat_DeviceInfo-V3"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
 
@@ -174,33 +174,37 @@ object DeviceInfoManager {
         }
         val names = getNames()
         val devicesList = try {
-            Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)
+            Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)?:arrayOf<DeviceSpec>()
         } catch (e: Throwable) {
             arrayOf<DeviceSpec>()
         }
         for (m in names) {
-            val first = m.first
-            val secondArray = splitString(m.second, " ")
-            for (i in secondArray.indices - 1) {
-                val limit = secondArray.size - i
-                if (limit < 2)//Device should have at least brand + model
-                    break
-                val second = join(secondArray, " ", limit)
-                deviceInfo = loadDeviceInfo(
-                    devicesList,
-                    first,
-                    second,
-                    DeviceModel.brand,
-                    DeviceModel.device
-                )
-                if (!deviceInfo?.sensors.isNullOrEmpty()) {
-                    LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                    setCachedDeviceInfo(deviceInfo ?: continue, true)
-                    onDeviceInfoListener.onReady(deviceInfo)
-                    return
-                } else {
-                    LogCat.log("DeviceInfoManager: no data for $first/$second")
+            try {
+                val first = m.first
+                val secondArray = splitString(m.second, " ")
+                for (i in secondArray.indices - 1) {
+                    val limit = secondArray.size - i
+                    if (limit < 2)//Device should have at least brand + model
+                        break
+                    val second = join(secondArray, " ", limit)
+                    deviceInfo = loadDeviceInfo(
+                        devicesList,
+                        first,
+                        second,
+                        DeviceModel.brand,
+                        DeviceModel.device
+                    )
+                    if (!deviceInfo?.sensors.isNullOrEmpty()) {
+                        LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
+                        setCachedDeviceInfo(deviceInfo ?: continue, true)
+                        onDeviceInfoListener.onReady(deviceInfo)
+                        return
+                    } else {
+                        LogCat.log("DeviceInfoManager: no data for $first/$second")
+                    }
                 }
+            } catch (e :Throwable){
+                LogCat.logException(e)
             }
         }
         onDeviceInfoListener.onReady(getAnyDeviceInfo().also {

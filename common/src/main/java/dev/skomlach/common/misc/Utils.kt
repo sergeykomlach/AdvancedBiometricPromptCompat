@@ -54,7 +54,7 @@ object Utils {
         return false
     }
 
-    private fun intentCanBeResolved(intent: Intent, context: Context): Boolean {
+    fun intentCanBeResolved(intent: Intent, context: Context): Boolean {
         val pm = context.packageManager
         val pkgAppsList = pm.queryIntentActivities(intent, 0)
         return pkgAppsList.size > 0
