@@ -20,7 +20,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext.kotlin_version = '2.0.21'
-    ext.minSDK = 19
+    ext.minSDK = 21
 //    ext.compileSDK = "UpsideDownCake"
 //    ext.targetSDK = "UpsideDownCake"
     ext.compileSDK = 35

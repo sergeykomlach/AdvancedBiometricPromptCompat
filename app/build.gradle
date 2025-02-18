@@ -29,7 +29,7 @@ android {
     compileSdk compileSDK
     defaultConfig {
         applicationId "dev.skomlach.biometric.app"
-        minSdkVersion 21
+        minSdkVersion minSDK
         //targetSdkPreview targetSDK
         targetSdkVersion targetSDK
         versionCode libsMinorVersion
