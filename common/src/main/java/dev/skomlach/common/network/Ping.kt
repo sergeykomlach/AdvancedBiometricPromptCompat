@@ -19,7 +19,6 @@
 package dev.skomlach.common.network
 
 import androidx.annotation.WorkerThread
-import dev.skomlach.common.contextprovider.AndroidContext.systemLocale
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.translate.LocalizationHelper
@@ -144,9 +143,9 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             } catch (e: Throwable) {
                 //UnknownHostException
                 //SocketTimeoutException
-                if(e.javaClass.name.startsWith("java.net.")){
+                if (e.javaClass.name.startsWith("java.net.")) {
                     LogCat.logException(e, "Ping")
-                    connectionStateListener.setState(false)
+                    updateConnectionCheckQuery(PingConfig.pingTimeoutSec)
                     return
                 }
                 LogCat.logException(e, "Ping")
@@ -175,7 +174,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             //verify URL in HTML body
             var m = patternLink.matcher(html)
             while (m.find()) {
-                val rel = m.group(1)
+                val rel = m.group(1) ?: continue
                 val url = getUrlFromRel(rel)
                 if (url != null) {
                     if (checkUrls(originalUrl, url)) {
@@ -186,7 +185,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             }
             m = patternMeta.matcher(html)
             while (m.find()) {
-                val meta = m.group(1)
+                val meta = m.group(1) ?: continue
                 if (isOriginFromMeta(meta)) return true
                 val url = getUrlFromMeta(meta)
                 if (url != null) {
@@ -223,8 +222,8 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         val matcher = patternTagAttributes.matcher(tag)
         val attributes: MutableMap<String, String> = HashMap()
         while (matcher.find()) {
-            val key = matcher.group(1)
-            val value = matcher.group(2)
+            val key = matcher.group(1) ?: continue
+            val value = matcher.group(2) ?: continue
             attributes[key] = value
         }
         return attributes

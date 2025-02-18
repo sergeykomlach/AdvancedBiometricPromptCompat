@@ -33,7 +33,6 @@ import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInst
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean

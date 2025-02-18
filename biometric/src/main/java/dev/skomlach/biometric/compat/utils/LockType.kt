@@ -27,7 +27,7 @@ import android.os.Build
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ReflectionTools
 import dev.skomlach.common.misc.SettingsHelper
-import java.util.*
+import java.util.Locale
 
 @SuppressLint("PrivateApi")
 

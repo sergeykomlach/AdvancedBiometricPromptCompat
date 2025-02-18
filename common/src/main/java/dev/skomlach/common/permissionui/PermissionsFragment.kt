@@ -60,7 +60,7 @@ class PermissionsFragment : Fragment() {
         private const val INTENT_KEY = "PermissionsFragment.intent_key"
 
         fun extractDescriptionsForPermissions(keys: List<String>): String? {
-            val permissionsList = PermissionUtils.getPermissions(keys)
+            val permissionsList = PermissionUtils.INSTANCE.getPermissions(keys)
             val isLeftToRight =
                 TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR
             if (permissionsList.isNotEmpty()) {
@@ -90,7 +90,7 @@ class PermissionsFragment : Fragment() {
             callback: Runnable?
         ) {
             LogCat.log("PermissionsFragment.askForPermissions()")
-            if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
+            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
                 val tag = "${PermissionsFragment::class.java.name}-${
                     permissions.joinToString(",").hashCode()
                 }"
@@ -163,7 +163,7 @@ class PermissionsFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-        if (permissions.isNotEmpty() && !PermissionUtils.hasSelfPermissions(permissions)) {
+        if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
             ExecutorHelper.postDelayed({
                 requestPermissions(permissions)
             }, 250)

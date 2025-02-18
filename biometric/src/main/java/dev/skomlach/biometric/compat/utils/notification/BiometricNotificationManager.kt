@@ -55,7 +55,10 @@ object BiometricNotificationManager {
                 if (notificationChannel == null) {
                     notificationChannel = NotificationChannel(
                         CHANNEL_ID,
-                        LocalizationHelper.getLocalizedString(appContext.getString(R.string.biometriccompat_channel_id)),
+                        LocalizationHelper.getLocalizedString(
+                            appContext,
+                            R.string.biometriccompat_channel_id
+                        ),
                         NotificationManager.IMPORTANCE_DEFAULT
                     )
                     notificationChannel.setShowBadge(false)
@@ -102,8 +105,8 @@ object BiometricNotificationManager {
                         .setSmallIcon(type.iconId).build()
 
                     if (
-                        PermissionUtils.isAllowedNotificationsPermission &&
-                        PermissionUtils.isAllowedNotificationsChannelPermission(CHANNEL_ID)
+                        PermissionUtils.INSTANCE.isAllowedNotificationsPermission &&
+                        PermissionUtils.INSTANCE.isAllowedNotificationsChannelPermission(CHANNEL_ID)
                     ) {
                         notificationCompat.notify(type.hashCode(), notif)
                         BiometricLoggerImpl.d("BiometricNotificationManager", "Notification posted")

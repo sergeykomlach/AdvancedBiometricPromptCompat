@@ -26,34 +26,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.BufferedReader
 import java.io.FileReader
-import java.net.InetSocketAddress
-import java.net.ServerSocket
-import java.net.SocketException
 
 
 object HookDetection {
     private var job: Job? = null
 
-    @Throws(Exception::class)
-    private fun getServerSocket(): ServerSocket {
-        val newServerSocket = ServerSocket()
-        try {
-            newServerSocket.reuseAddress = true
-        } catch (e: SocketException) {
-            //we ignore setReuseAddress errors
-        }
-
-        newServerSocket.bind(InetSocketAddress("127.0.0.1", 27042), 150)
-        val start = System.currentTimeMillis()
-        while (!newServerSocket.isBound) {
-            if (System.currentTimeMillis() - start >= 2500) {
-                throw Exception("Cannot bind to frida port")
-            }
-            Thread.sleep(50)
-        }
-
-        return newServerSocket
-    }
 
     fun detect(listener: HookDetectionListener) {
         if (job?.isActive == true) return
@@ -69,22 +46,7 @@ object HookDetection {
                     e.message, e
                 )
             }
-            try {
-                val server = getServerSocket()
-                LogCat.log(
-                    "HookDetection",
-                    "HookDetection SocketServer started"
-                )
-                server.close()
-                listener.onDetected(false)
-                return@launch
-            } catch (e: Throwable) {
-                LogCat.logError(
-                    "HookDetection",
-                    e.message, e
-                )
-            }
-            listener.onDetected(true)
+            listener.onDetected(false)
         }
     }
 

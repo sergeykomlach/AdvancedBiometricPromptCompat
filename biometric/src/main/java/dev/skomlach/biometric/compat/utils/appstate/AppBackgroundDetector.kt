@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.utils.appstate
 
 import android.annotation.SuppressLint
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
@@ -28,7 +27,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
-import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicInteger

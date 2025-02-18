@@ -150,7 +150,10 @@ class CredentialsRequestFragment : Fragment() {
             } else {
                 null
             }
-            startForResult.launch(intent)
+            startForResult.launch(intent ?: run {
+                closeFragment()
+                return
+            })
         } catch (e: Throwable) {
             LogCat.logException(
                 e, "CredentialsRequestFragment", e.message

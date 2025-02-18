@@ -86,7 +86,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         HiddenApiBypass.addHiddenApiExemptions("")
                     }
                 } catch (e: Throwable) {
-                    e.printStackTrace()
+
                 }
             }
             ExecutorHelper.post {
@@ -206,6 +206,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (DevicesWithKnownBugs.isHideDialogInstantly) {
                         BiometricLoggerImpl.d("BiometricPromptCompat.done() for ${AndroidContext.appContext.packageName}")
                     }
+                    AndroidContext.configurationLiveData.observeForever {
+                        NotificationPermissionsFragment.preloadTranslations()
+                        UntrustedAccessibilityFragment.preloadTranslations()
+                    }
                 }
             }
         }
@@ -234,9 +238,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
     }
 
-    init {
-        NotificationPermissionsFragment.preloadTranslations()
-    }
 
 
     private lateinit var oldDescription : CharSequence
@@ -703,10 +704,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     val title = try {
                         val appInfo =
                             (if (Utils.isAtLeastT) AndroidContext.appContext.packageManager.getApplicationInfo(
-                                AndroidContext.appInstance?.packageName ?: "",
+                                AndroidContext.appContext.packageName ?: "",
                                 PackageManager.ApplicationInfoFlags.of(0L)
                             ) else AndroidContext.appContext.packageManager.getApplicationInfo(
-                                AndroidContext.appInstance?.packageName ?: "",
+                                AndroidContext.appContext.packageName ?: "",
                                 0
                             ))
                         AndroidContext.appContext.packageManager.getApplicationLabel(appInfo)
@@ -952,8 +953,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var forceDeviceCredential: Boolean = false
 
         init {
-            NotificationPermissionsFragment.preloadTranslations()
-            UntrustedAccessibilityFragment.preloadTranslations()
 
             if (BiometricErrorLockoutPermanentFix.isRebootDetected())
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()

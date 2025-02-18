@@ -84,7 +84,7 @@ object LastUpdatedTs {
                 }
             }
         } catch (e: Throwable) {
-            e.printStackTrace()
+
         }
     }
 }

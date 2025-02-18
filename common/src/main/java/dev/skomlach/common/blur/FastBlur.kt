@@ -126,10 +126,10 @@ internal object FastBlur {
         // the following line:
         //
         // Stack Blur Algorithm by Mario Klingemann <mario@quasimondo.com>
-        val bitmap: Bitmap = if (canReuseInBitmap) {
+        val bitmap: Bitmap = if (canReuseInBitmap || sentBitmap.config == null) {
             sentBitmap
         } else {
-            sentBitmap.copy(sentBitmap.config, true)
+            sentBitmap.copy(sentBitmap.config!!, true)
         }
         if (radius < 1) {
             radius = DEFAULT_RADIUS

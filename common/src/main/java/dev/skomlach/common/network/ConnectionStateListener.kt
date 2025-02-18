@@ -46,7 +46,7 @@ class ConnectionStateListener {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
 
-
+        isConnectionOk.set(isConnectionDetected())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             networkCallback = object : NetworkCallback() {
 

@@ -38,9 +38,6 @@ import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
-import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
-import android.view.accessibility.AccessibilityNodeProvider
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.FrameLayout

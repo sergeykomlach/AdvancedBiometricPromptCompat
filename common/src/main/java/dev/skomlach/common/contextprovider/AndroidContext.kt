@@ -31,7 +31,6 @@ import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.isActivityFinished
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.lang.ref.Reference
@@ -79,33 +78,34 @@ object AndroidContext {
 
     val appContext: Context
         get() {
-            try {
-                lock.runCatching { this.lock() }
-                getContextRef()?.let {
-                    ExecutorHelper.startOnBackground {
-                        fixDirAccess(it)
-                    }
-                    return it
+            getContextRef()?.let {
+                ExecutorHelper.startOnBackground {
+                    fixDirAccess(it)
                 }
-                if (Looper.getMainLooper().thread !== Thread.currentThread()) {
-                    runBlocking {
-                        withContext(Dispatchers.Main) {
-                            updateApplicationReference()
+                return it
+            } ?: run {
+                try {
+                    lock.runCatching { this.lock() }
+                    if (Looper.getMainLooper().thread !== Thread.currentThread()) {
+                        runBlocking {
+                            withContext(Dispatchers.Main) {
+                                updateApplicationReference()
+                            }
                         }
+                    } else {
+                        updateApplicationReference()
                     }
-                } else {
-                    updateApplicationReference()
-                }
-                getContextRef()?.let {
-                    ExecutorHelper.startOnBackground {
-                        fixDirAccess(it)
+                    getContextRef()?.let {
+                        ExecutorHelper.startOnBackground {
+                            fixDirAccess(it)
+                        }
+                        return it
                     }
-                    return it
-                }
-                throw RuntimeException("Application is NULL")
-            } finally {
-                lock.runCatching {
-                    this.unlock()
+                    throw RuntimeException("Application is NULL")
+                } finally {
+                    lock.runCatching {
+                        this.unlock()
+                    }
                 }
             }
         }
@@ -231,6 +231,7 @@ object AndroidContext {
             throw IOException("setPermissions failed with error code $errorCode")
         }
     }
+
     val systemLocale: Locale
         get() {
             val listCompat = LocaleManagerCompat.getSystemLocales(appContext)

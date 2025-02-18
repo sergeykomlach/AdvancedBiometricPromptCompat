@@ -92,8 +92,6 @@ class FaceVerifyManager(private val mContext: Context) {
                     mIFaceVerifyService?.registerCallback(mIFaceVerifyServiceCallback)
                     mIFaceVerifyService?.startVerify()
                 } catch (e: RemoteException) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace()
                 }
             }
             isBinded = true

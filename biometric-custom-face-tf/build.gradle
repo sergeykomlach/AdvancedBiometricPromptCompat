@@ -1,0 +1,53 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'de.undercouch.download'
+/*
+Note: Keep module in Java to keep compatibility with OEM/AOSP API's
+*/
+android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+//    compileSdkPreview compileSDK
+    compileSdk compileSDK
+    defaultConfig {
+        minSdkVersion minSDK
+        //targetSdkPreview targetSDK
+        targetSdkVersion targetSDK
+        multiDexEnabled true
+
+    }
+    namespace 'dev.skomlach.biometric.custom.face.tf'
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
+}
+// import DownloadModels task
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+project.ext.TMP_DIR   = project.buildDir.toString() + '/downloads'
+
+dependencies {
+    implementation project(":" + libArtifactId_common)
+    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation 'com.google.android.material:material:1.12.0'
+
+    implementation('org.tensorflow:tensorflow-lite:2.16.1') { changing = true }
+//    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
+//    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1'
+//    implementation 'org.tensorflow:tensorflow-lite-support:2.16.1'
+    // added MLKit dependencies for face detector
+    implementation 'com.google.mlkit:face-detection:16.1.7'
+}
+
+// Publishing
+ext {
+    PUBLISH_GROUP_ID = libsGroupId
+    PUBLISH_ARTIFACT_ID = libArtifactId_biometric_ktx
+    PUBLISH_VERSION = libVersion
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"

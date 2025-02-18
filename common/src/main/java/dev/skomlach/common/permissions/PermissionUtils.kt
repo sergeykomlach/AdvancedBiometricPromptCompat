@@ -40,12 +40,17 @@ import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 
-object PermissionUtils {
-    private val appContext = AndroidContext.appContext
-    private val appOpCache: MutableMap<String, Boolean> = HashMap()
+class PermissionUtils internal constructor() {
 
-    private var isAllowedOverlayPermissionFlag: Boolean? = null
-    private var isAllowedUsageStatPermissionFlag: Boolean? = null
+    companion object {
+        private val appOpCache: MutableMap<String, Boolean> = HashMap()
+
+        @JvmField
+        var INSTANCE = PermissionUtils()
+        private var isAllowedOverlayPermissionFlag: Boolean? = null
+        private var isAllowedUsageStatPermissionFlag: Boolean? = null
+
+    }
 
     /**
      * Checks all given permissions have been granted.
@@ -68,11 +73,11 @@ object PermissionUtils {
     fun isEnabledDontKeepActivities(context: Context): Boolean {
         try {
             return Settings.System.getInt(
-                context.contentResolver,
+                AndroidContext.appContext.contentResolver,
                 Settings.System.ALWAYS_FINISH_ACTIVITIES,
                 0
-            ) != 0 || (VERSION.SDK_INT >= 17 && Settings.Global.getInt(
-                context.contentResolver,
+            ) != 0 || (Settings.Global.getInt(
+                AndroidContext.appContext.contentResolver,
                 Settings.Global.ALWAYS_FINISH_ACTIVITIES,
                 0
             ) != 0)
@@ -94,9 +99,8 @@ object PermissionUtils {
 
     fun hasSelfPermissions(vararg permissions: String): Boolean {
         for (permission: String in permissions) {
-            //Starting from Android 11 app able to RW files/dirs in filesystem without asking permissions
-            //But the app can manage only own files in this case
-            if (Utils.isAtLeastR && listOf(
+            //always granted for Android 12+
+            if (Utils.isAtLeastT && listOf(
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
                     Manifest.permission.READ_EXTERNAL_STORAGE
                 ).contains(permission)
@@ -114,11 +118,12 @@ object PermissionUtils {
 
     private fun isPermissionExistsInTheSystem(permission: String): Boolean {
         try {
-            val lstGroups = appContext.packageManager.getAllPermissionGroups(0)
+            val lstGroups = AndroidContext.appContext.packageManager.getAllPermissionGroups(0)
             lstGroups.add(null) // ungrouped permissions
             for (pgi: PermissionGroupInfo? in lstGroups) {
                 pgi?.name?.let {
-                    val lstPermissions = appContext.packageManager.queryPermissionsByGroup(it, 0)
+                    val lstPermissions =
+                        AndroidContext.appContext.packageManager.queryPermissionsByGroup(it, 0)
                     for (pi: PermissionInfo in lstPermissions) {
                         if ((pi.name == permission)) {
                             return true
@@ -152,7 +157,7 @@ object PermissionUtils {
             if (permissionToOp.isEmpty()) {
                 // in case of normal permissions(e.g. INTERNET)
                 granted = PermissionChecker.checkSelfPermission(
-                    appContext,
+                    AndroidContext.appContext,
                     permission
                 ) == PermissionChecker.PERMISSION_GRANTED
                 logError("PermissionUtils.isPermissionGranted - normal permission - $permission - $granted")
@@ -160,17 +165,17 @@ object PermissionUtils {
             }
             val noteOp: Int = try {
                 AppOpsManagerCompat.noteOpNoThrow(
-                    appContext,
+                    AndroidContext.appContext,
                     permissionToOp,
                     Process.myUid(),
-                    appContext.packageName
+                    AndroidContext.appContext.packageName
                 )
-            } catch (ignored: Throwable) {
-                if (VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) appOpPermissionsCheckMiui(
+            } catch (_: Throwable) {
+                appOpPermissionsCheckMiui(
                     permissionToOp,
                     Process.myUid(),
-                    appContext.packageName
-                ) else AppOpsManagerCompat.MODE_IGNORED
+                    AndroidContext.appContext.packageName
+                )
             }
             var appOpAllowed = noteOp == AppOpsManagerCompat.MODE_ALLOWED
             val appOpIgnored = noteOp == AppOpsManagerCompat.MODE_IGNORED
@@ -187,7 +192,7 @@ object PermissionUtils {
                 granted
             } else {
                 granted = appOpAllowed && PermissionChecker.checkSelfPermission(
-                    appContext,
+                    AndroidContext.appContext,
                     permission
                 ) == PermissionChecker.PERMISSION_GRANTED
                 logError("PermissionUtils.isPermissionGranted - danger permission - $permission - $permissionToOp - $granted")
@@ -197,7 +202,7 @@ object PermissionUtils {
             logException(t)
         }
         granted = PermissionChecker.checkSelfPermission(
-            appContext,
+            AndroidContext.appContext,
             permission
         ) == PermissionChecker.PERMISSION_GRANTED
         logError("PermissionUtils.isPermissionGranted - normal permission - $permission - $granted")
@@ -206,7 +211,7 @@ object PermissionUtils {
 
     private fun isAppOpPermission(manifestPermission: String): Boolean {
         try {
-            val info = appContext.packageManager.getPermissionInfo(
+            val info = AndroidContext.appContext.packageManager.getPermissionInfo(
                 manifestPermission,
                 PackageManager.GET_META_DATA
             )
@@ -229,13 +234,13 @@ object PermissionUtils {
         }
         val permissionsList = HashMap<String, String>()
         try {
-            val manifestPermissions = appContext.packageManager.getPackageInfo(
-                appContext.packageName,
+            val manifestPermissions = AndroidContext.appContext.packageManager.getPackageInfo(
+                AndroidContext.appContext.packageName,
                 PackageManager.GET_PERMISSIONS
-            ).requestedPermissions
+            ).requestedPermissions?: emptyArray()
             for (manifestPermission: String in manifestPermissions) try {
                 if (!targetPermissionsKes.contains(manifestPermission)) continue
-                val info = appContext.packageManager.getPermissionInfo(
+                val info = AndroidContext.appContext.packageManager.getPermissionInfo(
                     manifestPermission,
                     PackageManager.GET_META_DATA
                 )
@@ -247,9 +252,9 @@ object PermissionUtils {
                 if (hasSelfPermissions(manifestPermission)) {
                     continue
                 }
-                val permName = info.loadLabel(appContext.packageManager).toString()
+                val permName = info.loadLabel(AndroidContext.appContext.packageManager).toString()
                 permissionsList[manifestPermission] = permName
-            } catch (ignored: Throwable) {
+            } catch (_: Throwable) {
             }
         } catch (e: Throwable) {
             logException(e)
@@ -261,10 +266,10 @@ object PermissionUtils {
     val isAllowedNotificationsPermission: Boolean
         get() = if (Utils.isAtLeastT)
             hasSelfPermissions("android.permission.POST_NOTIFICATIONS") && NotificationManagerCompat.from(
-                appContext
+                AndroidContext.appContext
             ).areNotificationsEnabled()
         else
-            NotificationManagerCompat.from(appContext).areNotificationsEnabled()
+            NotificationManagerCompat.from(AndroidContext.appContext).areNotificationsEnabled()
 
     //Notification channel permissions
     fun isAllowedNotificationsChannelPermission(channelId: String?): Boolean {
@@ -272,10 +277,12 @@ object PermissionUtils {
             return true
         }
         return try {
-            val notificationManager = appContext.getSystemService(
+            val notificationManager = AndroidContext.appContext.getSystemService(
                 NotificationManager::class.java
             )
-            val notificationChannel = notificationManager.getNotificationChannel(channelId)?:return true
+
+            val notificationChannel =
+                notificationManager.getNotificationChannel(channelId) ?: return true
 
             return if (VERSION.SDK_INT >= 28) {
                 logError(
@@ -317,7 +324,7 @@ object PermissionUtils {
         get() {
             return if (VERSION.SDK_INT >= 23) {
                 hasSelfPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW) || Settings.canDrawOverlays(
-                    appContext
+                    AndroidContext.appContext
                 )
             } else {
                 hasSelfPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
@@ -330,8 +337,8 @@ object PermissionUtils {
             try {
                 val permissionToOp = AppOpCompatConstants.getAppOpFromPermission(permission) ?: ""
                 val appOpsManager =
-                    appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-                val pkgName = appContext.packageName
+                    AndroidContext.appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+                val pkgName = AndroidContext.appContext.packageName
                 appOpsManager.startWatchingMode(
                     (permissionToOp),
                     pkgName
@@ -339,7 +346,7 @@ object PermissionUtils {
                     if (permissionToOp == op && pkgName == packageName) {
                         logError("PermissionUtils.onOpChanged - $op - $packageName")
                         //https://stackoverflow.com/a/40649631
-                        ExecutorHelper.postDelayed(runnable, 250)
+                        ExecutorHelper.handler.postDelayed(runnable, 250)
                     }
                 }
             } catch (e: Throwable) {
@@ -375,7 +382,8 @@ object PermissionUtils {
     @RequiresApi(Build.VERSION_CODES.KITKAT)
     fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
         try {
-            val manager = appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+            val manager =
+                AndroidContext.appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val clazz: Class<*> = AppOpsManager::class.java
             val dispatchMethod = clazz.getMethod(
                 "noteOpNoThrow",

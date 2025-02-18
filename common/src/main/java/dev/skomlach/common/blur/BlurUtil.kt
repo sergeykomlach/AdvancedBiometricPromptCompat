@@ -27,8 +27,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.View
@@ -53,8 +51,6 @@ import kotlin.coroutines.cancellation.CancellationException
 @SuppressLint("RestrictedApi")
 object BlurUtil {
     private const val TAG = "BlurUtil"
-
-    @SuppressLint("SoonBlockedPrivateApi")
     private var m: Method? = try {
         ViewDebug::class.java.getDeclaredMethod(
             "performViewCapture",
@@ -545,7 +541,7 @@ object BlurUtil {
                             handled = true
                             future.set(null)
                             // cannot remove on draw listener inside of onDraw
-                            Handler(Looper.getMainLooper()).post {
+                            post {
                                 viewTreeObserver.removeOnDrawListener(
                                     this
                                 )
@@ -702,7 +698,6 @@ object BlurUtil {
             else -> try {
                 generateBitmapFromPixelCopy(boundsInWindow, destBitmap, bitmapFuture)
             } catch (e: IllegalArgumentException) { //Window doesn't have a backing surface
-                LogCat.logError(TAG, "generateBitmap:",e)
                 decorView.generateBitmapFromDraw(destBitmap, bitmapFuture)
             }
         }
@@ -734,7 +729,7 @@ object BlurUtil {
             boundsInWindow,
             destBitmap,
             onCopyFinished,
-            Handler(Looper.getMainLooper())
+            ExecutorHelper.handler
         )
     }
 

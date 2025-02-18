@@ -224,7 +224,7 @@ object SensorPrivacyCheck {
                         )
                     } catch (ignored: Throwable) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                            PermissionUtils.appOpPermissionsCheckMiui(
+                            PermissionUtils.INSTANCE.appOpPermissionsCheckMiui(
                                 permissionToOp,
                                 Process.myUid(),
                                 appContext.packageName

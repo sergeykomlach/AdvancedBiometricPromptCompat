@@ -28,8 +28,6 @@ import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
-import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.common.misc.ExecutorHelper

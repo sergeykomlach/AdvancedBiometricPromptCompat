@@ -146,7 +146,8 @@ class SensorBlockedFallbackFragment : Fragment() {
                     if(Utils.startActivity(
                             Intent(Settings.ACTION_PRIVACY_SETTINGS),
                             context
-                        )) else {
+                        )
+                    ) else {
                         Utils.startActivity(
                             Intent(Settings.ACTION_SETTINGS), context
                         )

@@ -85,13 +85,13 @@ object BiometricManagerCompat {
         if(list.isEmpty()) return true
         return if (api.type == BiometricType.BIOMETRIC_ANY) {
             list.forEach {
-                if (!PermissionUtils.hasSelfPermissions(it)) {
+                if (!PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
                     return false
                 }
             }
             true
         } else {
-            PermissionUtils.hasSelfPermissions(list)
+            PermissionUtils.INSTANCE.hasSelfPermissions(list)
         }
     }
 
@@ -528,7 +528,7 @@ object BiometricManagerCompat {
         val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isLockedOut
         else {
-           var isLockedOut = HardwareAccessImpl.getInstance(
+            var isLockedOut = HardwareAccessImpl.getInstance(
                 BiometricAuthRequest(
                     BiometricApi.LEGACY_API,
                     api.type
@@ -536,11 +536,11 @@ object BiometricManagerCompat {
             ).isLockedOut
             if(!isLockedOut)
                 isLockedOut = HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
-                    api.type
-                )
-            ).isLockedOut
+                    BiometricAuthRequest(
+                        BiometricApi.BIOMETRIC_API,
+                        api.type
+                    )
+                ).isLockedOut
             isLockedOut
         }
         val cameraInUse = isCameraInUse(api, ignoreCameraCheck)

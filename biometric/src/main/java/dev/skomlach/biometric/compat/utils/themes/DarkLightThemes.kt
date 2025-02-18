@@ -25,7 +25,6 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.themes.DarkThemeCheckResult

@@ -28,6 +28,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.hardware.display.DisplayManagerCompat
 import dev.skomlach.common.misc.Utils.isAtLeastR
 
+
 fun Context.animationsEnabled(): Boolean =
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) true else
         !(Settings.Global.getFloat(
@@ -64,17 +65,21 @@ private fun getDisplayContext(context: Context, type: Int): Context {
             }
         }
     } catch (e: Throwable) {
-        e.printStackTrace()
+
     }
     try {
         val dm = DisplayManagerCompat.getInstance(context)
         dm.getDisplay(Display.DEFAULT_DISPLAY)?.let { d ->
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 context.createWindowContext(d, type, null)
-            } else context.createDisplayContext(d).createWindowContext(type, null)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                context.createDisplayContext(d).createWindowContext(type, null)
+            } else {
+                getWindowContext(context, type)
+            }
         }
     } catch (e: Throwable) {
-        e.printStackTrace()
+
     }
     //give up, lets use at least original Context
     return getWindowContext(context, type)
@@ -85,7 +90,7 @@ private fun getWindowContext(context: Context, type: Int): Context {
         try {
             return context.createWindowContext(type, null)//for now - fail always for 3rd party apps
         } catch (e: Throwable) {
-            e.printStackTrace()
+
         }
         //give up, lets use at least original Context
     }

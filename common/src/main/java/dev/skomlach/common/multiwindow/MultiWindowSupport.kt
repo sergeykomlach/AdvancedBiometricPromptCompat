@@ -20,19 +20,22 @@
 package dev.skomlach.common.multiwindow
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Point
 import android.graphics.Rect
 import android.os.Build
-import android.view.*
+import android.view.KeyCharacterMap
+import android.view.KeyEvent
+import android.view.ViewConfiguration
+import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
 import androidx.collection.LruCache
 import androidx.window.WindowHelper
 import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.isActivityFinished
 
 class MultiWindowSupport private constructor() {
     companion object {

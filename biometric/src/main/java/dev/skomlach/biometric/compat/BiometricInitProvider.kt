@@ -22,7 +22,6 @@ package dev.skomlach.biometric.compat
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.ExecutorHelper
 
 class BiometricInitProvider : ContentProvider() {

@@ -35,7 +35,7 @@ object PermissionRequestController {
             context,
             PermissionType.GENERAL_PERMISSION, null, object : PermissionGrantedCallback {
                 override val isGranted: Boolean
-                    get() = PermissionUtils.isAllowedNotificationsPermission
+                    get() = PermissionUtils.INSTANCE.isAllowedNotificationsPermission
             }, okResult, failResult
         )
     }
@@ -55,7 +55,7 @@ object PermissionRequestController {
             context,
             PermissionType.CHANNEL_PERMISSION, channelId, object : PermissionGrantedCallback {
                 override val isGranted: Boolean
-                    get() = PermissionUtils.isAllowedNotificationsChannelPermission(
+                    get() = PermissionUtils.INSTANCE.isAllowedNotificationsChannelPermission(
                         channelId
                     )
             }, okResult, failResult

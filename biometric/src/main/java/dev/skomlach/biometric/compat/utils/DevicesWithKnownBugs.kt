@@ -77,9 +77,16 @@ object DevicesWithKnownBugs {
     val isMissedBiometricUI: Boolean
         get() {
             val ts = "isMissedBiometricUI-${LastUpdatedTs.timestamp}"
-            var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-                .getString(ts, null)
+            val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+            var cached = prefs.getString(ts, null)
             if (cached == null) {
+                val edit = prefs.edit()
+                prefs.all.map {
+                    it.key
+                }.forEach {
+                    if (it.startsWith("isMissedBiometricUI-"))
+                        edit.remove(it)
+                }
                 val value =
                     (checkForVendor("LG", ignoreCase = false) &&
                             listOf(*lgWithMissedBiometricUI).any { knownModel ->
@@ -91,7 +98,7 @@ object DevicesWithKnownBugs {
                         appContext
                     )
                 cached = "$value"
-                SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
+                edit
                     .putString(ts, cached).apply()
             }
 
@@ -100,48 +107,61 @@ object DevicesWithKnownBugs {
 
 
     private val guessingHasUnderDisplayFingerprint: Boolean
-        get(){
+        get() {
             //Foldable mostly do not have under display sensors
-            if(isFoldable) return false
-            else if(CheckBiometricUI.hasSomethingFrontSensor(appContext)) return true
-            else if(Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()) return true
+            if (isFoldable) return false
+            else if (CheckBiometricUI.hasSomethingFrontSensor(appContext)) return true
+            else if (Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()) return true
             return false
         }
     val hasUnderDisplayFingerprint: Boolean
         get() {
+            val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
             val ts = "hasUnderDisplayFingerprint-${LastUpdatedTs.timestamp}"
-            var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-                .getString(ts, null)
+            var cached = prefs.getString(ts, null)
             if (cached == null) {
+                val edit = prefs.edit()
+                prefs.all.map {
+                    it.key
+                }.forEach {
+                    if (it.startsWith("hasUnderDisplayFingerprint-"))
+                        edit.remove(it)
+                }
                 val value =
                     DeviceInfoManager.hasUnderDisplayFingerprint(
                         BiometricPromptCompat.deviceInfo ?: return false
                     ) || guessingHasUnderDisplayFingerprint
                 cached = "$value"
-                SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
-                    .putString(ts, cached).apply()
+                edit.putString(ts, cached).apply()
             }
 
             return cached == "true"
         }
 
     private fun checkForVendor(vendor: String, ignoreCase: Boolean): Boolean {
+        val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
         val ts = "checkForVendor-$vendor-${LastUpdatedTs.timestamp}"
         var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
             .getString(ts, null)
         if (cached == null) {
+            val edit = prefs.edit()
+            prefs.all.map {
+                it.key
+            }.forEach {
+                if (it.startsWith("checkForVendor-"))
+                    edit.remove(it)
+            }
             val value =
                 checkVendor(vendor, ignoreCase)
             cached = "$value"
-            SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat").edit()
-                .putString(ts, cached).apply()
+            edit.putString(ts, cached).apply()
         }
 
         return cached == "true"
 
     }
 
-    private fun checkVendor(vendor: String, ignoreCase: Boolean) : Boolean {
+    private fun checkVendor(vendor: String, ignoreCase: Boolean): Boolean {
         val allFields = Build::class.java.fields
         for (f in allFields) try {
             if (!Modifier.isPrivate(f.modifiers) && f.type == String::class.java) {

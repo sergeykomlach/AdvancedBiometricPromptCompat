@@ -68,7 +68,7 @@ object Connection {
     }
 
     //schedule forced network check after last user interaction
-    fun updateConnectionCheckDueToUserInteraction(delaySeconds: Long = 5) {
+    fun updateConnectionCheckDueToUserInteraction(delaySeconds: Long = 1) {
         connectionStateListener.updateConnectionCheckQuery(delaySeconds)
     }
 

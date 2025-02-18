@@ -118,12 +118,17 @@ class UntrustedAccessibilityFragment : Fragment() {
             title
         )
         val str = SpannableStringBuilder(longText)
-        str.setSpan(
-            StyleSpan(Typeface.BOLD),
-            shortText.length,
-            longText.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
+        //Should not happen anymore
+        try {
+            str.setSpan(
+                StyleSpan(Typeface.BOLD),
+                shortText.length,
+                longText.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
 
         val alert = AlertDialog.Builder(requireActivity())
             .setTitle(title)

@@ -131,11 +131,11 @@ class NotificationPermissionsFragment : Fragment() {
 
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            if (!PermissionUtils.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
+            if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
                 ExecutorHelper.postDelayed({
                     closeFragment()
                 }, 250)
-            } else if (!PermissionUtils.isAllowedNotificationsPermission) {
+            } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
                 generalNotification.invoke()
             } else {
                 ExecutorHelper.postDelayed({
@@ -217,7 +217,8 @@ class NotificationPermissionsFragment : Fragment() {
                                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                                     .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName),
 
-                                ))
+                                )
+                        )
                             return@setPositiveButton
                     } catch (e: Throwable) {
                         LogCat.logException(e)
@@ -304,9 +305,10 @@ class NotificationPermissionsFragment : Fragment() {
                                     val oneUiVersion = getOneUiVersion()
                                     if (oneUiVersion.isEmpty() || io.github.g00fy2.versioncompare.Version(oneUiVersion).isLowerThan("6.1")
                                     )
-                                        putExtra(  Settings.EXTRA_CHANNEL_ID,channelId)
+                                        putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
                                 }
-                            ))
+                            )
+                        )
 
                             return@setPositiveButton
                     } catch (e: Throwable) {
@@ -357,10 +359,10 @@ class NotificationPermissionsFragment : Fragment() {
 
         when (type) {
             PermissionRequestController.PermissionType.GENERAL_PERMISSION -> {
-                if (!PermissionUtils.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
+                if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
                     startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())
                     return
-                } else if (!PermissionUtils.isAllowedNotificationsPermission) {
+                } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
                     generalNotification.invoke()
                     return
                 }
