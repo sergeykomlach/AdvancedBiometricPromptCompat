@@ -61,7 +61,9 @@ publishing {
 
             pom {
                 name = PUBLISH_ARTIFACT_ID
-                 if (libArtifactId_biometric_api == artifactId) {
+                if(libArtifactId_biometric_custom_face_tf == artifactId) {
+                    description = 'Custom Module for AdvancedBiometricPromptCompat library'
+                } else if (libArtifactId_biometric_api == artifactId) {
                      description = 'The set of API\'s that allow to access some hidden features for AdvancedBiometricPromptCompat library'
                  } else if (libArtifactId_biometric == artifactId) {
                      description = 'This is an Android project allowing you to use the advanced biometric authorization features'
@@ -91,12 +93,12 @@ publishing {
                     //Creating additional node for dependencies
                     def dependenciesNode = asNode().appendNode('dependencies')
 
-                    if (libArtifactId_biometric == artifactId) {
-                        def dependencyComponent = dependenciesNode.appendNode('dependency')
-                        dependencyComponent.appendNode('groupId', libsGroupId)
-                        dependencyComponent.appendNode('artifactId', libArtifactId_common)
-                        dependencyComponent.appendNode('version', version)
-                    }
+//                    if (libArtifactId_biometric == artifactId) {
+//                        def dependencyComponent = dependenciesNode.appendNode('dependency')
+//                        dependencyComponent.appendNode('groupId', libsGroupId)
+//                        dependencyComponent.appendNode('artifactId', libArtifactId_common)
+//                        dependencyComponent.appendNode('version', version)
+//                    }
 
                     //Defining configuration names from which dependencies will be taken (debugCompile or releaseCompile and compile)
                     def configurationNames = ["releaseImplementation", 'implementation']
