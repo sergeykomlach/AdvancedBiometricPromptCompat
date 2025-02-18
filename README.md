@@ -89,6 +89,13 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 | Windows Subsystem for Android & Windows Hello | Doesn't work; Stubs in system API's | Acer Aspire 7 with fingerprint scanner & Windows 11 |
 
 ## Recent changes (last 3 month)
+
+February 18 2025
+
+**Improvement**  Cumulative commit with bugfixes and improvements
+
+**Improvement**  DRAFT for FaceUnlock via TensorFlow (Custom Biometric Module)
+
 November 12 2024
 
 **Bugfixes** Xiaomi/Mi devices - fixed bug when multiple biometrics (Finger + Face) doesn't work when set ANY combination
