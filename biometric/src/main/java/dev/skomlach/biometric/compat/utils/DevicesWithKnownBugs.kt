@@ -24,6 +24,7 @@ import android.os.Build
 import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.LastUpdatedTs
 import dev.skomlach.common.misc.Utils
@@ -31,7 +32,7 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.lang.reflect.Modifier
 
 object DevicesWithKnownBugs {
-    private val appContext = AndroidContext.appContext
+
 
     //Users reports that on LG devices have a bug with wrong/missing BiometricUI
     //After digging I found that it seems like system BiometricPrompt simply missing on this device

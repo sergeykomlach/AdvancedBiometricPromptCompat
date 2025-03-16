@@ -101466,6 +101466,11 @@
    "model": "L2"
   },
   {
+   "device": "L22025",
+   "name": "LeBest L22025",
+   "model": "LeBest L22025"
+  },
+  {
    "device": "S1",
    "name": "S1",
    "model": "S1"
@@ -130795,6 +130800,11 @@
    "model": "OPWWE234"
   },
   {
+   "device": "OPWWE251",
+   "name": "OnePlus Watch 3",
+   "model": "OPWWE251"
+  },
+  {
    "device": "OnePlus2",
    "name": "OnePlus2",
    "model": "ONE A2003"
@@ -135899,11 +135909,6 @@
    "device": "WP2",
    "name": "WP2",
    "model": "WP2"
-  },
-  {
-   "device": "WP200_Pro",
-   "name": "WP200_Pro_EEA",
-   "model": "WP200 Pro"
   },
   {
    "device": "WP20",
@@ -150083,6 +150088,11 @@
    "model": "2312CRNCCL"
   },
   {
+   "device": "pond",
+   "name": "Redmi A3 Pro",
+   "model": "2409BRN2CG"
+  },
+  {
    "device": "klein",
    "name": "Redmi A3x",
    "model": "24044RN32L"
@@ -156412,11 +156422,6 @@
   {
    "device": "a06x",
    "name": "Galaxy A06 5G",
-   "model": "SM-E066B"
-  },
-  {
-   "device": "a06x",
-   "name": "Galaxy A06 5G",
    "model": "SM-M066B"
   },
   {
@@ -157073,6 +157078,26 @@
    "device": "a24",
    "name": "Galaxy A24",
    "model": "SM-A245N"
+  },
+  {
+   "device": "SC-53F",
+   "name": "Galaxy A25 5G",
+   "model": "SC-53F"
+  },
+  {
+   "device": "SCG33",
+   "name": "Galaxy A25 5G",
+   "model": "SCG33"
+  },
+  {
+   "device": "a25ex",
+   "name": "Galaxy A25 5G",
+   "model": "SM-A253Q"
+  },
+  {
+   "device": "a25ex",
+   "name": "Galaxy A25 5G",
+   "model": "SM-A253Z"
   },
   {
    "device": "a25x",
@@ -159750,6 +159775,11 @@
    "model": "SM-E055F"
   },
   {
+   "device": "a06x",
+   "name": "Galaxy F06 5G",
+   "model": "SM-E066B"
+  },
+  {
    "device": "f12",
    "name": "Galaxy F12",
    "model": "SM-F127G"
@@ -161755,6 +161785,11 @@
    "model": "SM-M055F"
   },
   {
+   "device": "a06x",
+   "name": "Galaxy M06 5G",
+   "model": "SM-M066B"
+  },
+  {
    "device": "m10lte",
    "name": "Galaxy M10",
    "model": "SM-M105F"
@@ -161838,6 +161873,11 @@
    "device": "m15x",
    "name": "Galaxy M15 5G",
    "model": "SM-M156B"
+  },
+  {
+   "device": "m16xm",
+   "name": "Galaxy M16 5G",
+   "model": "SM-M166P"
   },
   {
    "device": "m20",
@@ -205053,6 +205093,13 @@
    "model": "VISIO TV"
   }
  ],
+ "VISIONTEK": [
+  {
+   "device": "VT_31",
+   "name": "VT_31",
+   "model": "VT 31"
+  }
+ ],
  "VIVIMAGE": [
   {
    "device": "E8",
@@ -208135,11 +208182,6 @@
    "device": "PVT-8-A50-R1",
    "name": "PVT-8-A50-R1",
    "model": "PVT-8-A50-R1"
-  },
-  {
-   "device": "VT_31",
-   "name": "VT_31",
-   "model": "VT 31"
   }
  ],
  "Visiontouch": [
@@ -235455,6 +235497,11 @@
    "device": "RE6081L1",
    "name": "realme 14 Pro 5G",
    "model": "RMX5056"
+  },
+  {
+   "device": "RE6079L1",
+   "name": "realme 14 Pro+ 5G",
+   "model": "RMX5051"
   },
   {
    "device": "SW6H",

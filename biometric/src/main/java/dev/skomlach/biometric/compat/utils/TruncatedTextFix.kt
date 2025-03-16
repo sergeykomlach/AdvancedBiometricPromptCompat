@@ -21,12 +21,7 @@ package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.view.LayoutInflater
-import android.view.SurfaceView
-import android.view.View
-import android.view.ViewGroup
-import android.view.ViewTreeObserver
-import android.view.Window
+import android.view.*
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView

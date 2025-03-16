@@ -26,26 +26,27 @@ import android.view.Display
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.core.hardware.display.DisplayManagerCompat
+import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils.isAtLeastR
 
 
 fun Context.animationsEnabled(): Boolean =
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) true else
-        !(Settings.Global.getFloat(
-            contentResolver,
-            Settings.Global.ANIMATOR_DURATION_SCALE,
-            1.0f
-        ) == 0f
-                && Settings.Global.getFloat(
-            contentResolver,
-            Settings.Global.TRANSITION_ANIMATION_SCALE,
-            1.0f
-        ) == 0f
-                && Settings.Global.getFloat(
-            contentResolver,
-            Settings.Global.WINDOW_ANIMATION_SCALE,
-            1.0f
-        ) == 0f)
+    !(SettingsHelper.getFloat(
+        this,
+        Settings.Global.ANIMATOR_DURATION_SCALE,
+        1.0f
+    ) == 0f
+            || SettingsHelper.getFloat(
+        this,
+        Settings.Global.TRANSITION_ANIMATION_SCALE,
+        1.0f
+    ) == 0f
+            || SettingsHelper.getFloat(
+        this,
+        Settings.Global.WINDOW_ANIMATION_SCALE,
+        1.0f
+    ) == 0f)
+
 
 fun Context.getFixedContext(type: Int = WindowManager.LayoutParams.TYPE_APPLICATION): Context {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {

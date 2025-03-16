@@ -32,7 +32,7 @@ import androidx.core.app.AppOpsManagerCompat
 import dev.skomlach.biometric.compat.impl.permissions.SensorBlockedFallbackFragment
 
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicLong
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
     const val CHECK_TIMEOUT = 5_000L
-    private val appContext = AndroidContext.appContext
+
     private var isCameraInUseTime = AtomicLong(0)
     private var isCameraInUse = AtomicBoolean(false)
 

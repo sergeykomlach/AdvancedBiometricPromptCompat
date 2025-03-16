@@ -20,12 +20,12 @@
 package dev.skomlach.common.themes.monet
 
 import androidx.annotation.RequiresApi
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.themes.monet.colors.Srgb
 
 @RequiresApi(31)
 class SystemColorScheme {
-    private val appContext = AndroidContext.appContext
+    
     val accent1 = getSwatch(ACCENT1_RES)
     val accent2 = getSwatch(ACCENT2_RES)
     val accent3 = getSwatch(ACCENT3_RES)

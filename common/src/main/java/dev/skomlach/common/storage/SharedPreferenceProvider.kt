@@ -21,10 +21,10 @@ package dev.skomlach.common.storage
 
 import android.content.Context
 import android.content.SharedPreferences
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object SharedPreferenceProvider {
-    private val appContext = AndroidContext.appContext
+    
     fun getPreferences(name: String): SharedPreferences {
         return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }

@@ -26,12 +26,12 @@ import android.content.IntentFilter
 import android.os.Build
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools
 
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
-        private val appContext = AndroidContext.appContext
+
         fun registerDeviceUnlockListener() {
                 try {
                     val filter = IntentFilter()

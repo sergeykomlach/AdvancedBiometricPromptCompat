@@ -37,6 +37,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
@@ -44,7 +45,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class CredentialsRequestFragment : Fragment() {
     companion object {
-        private val appContext = AndroidContext.appContext
+
         private const val INTENT_KEY = "CredentialsRequestFragment.intent_key"
 
         fun showFragment(

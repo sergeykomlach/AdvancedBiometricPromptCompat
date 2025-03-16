@@ -100,7 +100,7 @@ object LocalizationHelper {
     }
 
     fun prefetch(context: Context, vararg formatArgs: Any?) {
-        try {
+        try{
         formatArgs.toList().forEach {
             try {
                 if (getTranslatedStringFromResources(context, it as Int).isNullOrEmpty())
@@ -109,23 +109,23 @@ object LocalizationHelper {
                         Locale.US,
                         AndroidContext.appLocale
                     )
-            } catch (e: Throwable) {
+            } catch (e :Throwable){
                 LogCat.logException(e, "LocalizationHelper")
             }
         }
-        } catch (e: Throwable) {
+        } catch (e :Throwable){
             LogCat.logException(e, "LocalizationHelper")
         }
     }
 
     fun getLocalizedString(context: Context, @StringRes resId: Int): String {
-        try {
-            getTranslatedStringFromResources(context, resId)?.let {
-                return it
-            }
-            val str = getStringForLocale(context, resId, Locale.US)
+        try{
+        getTranslatedStringFromResources(context, resId)?.let {
+            return it
+        }
+        val str = getStringForLocale(context, resId, Locale.US)
         return getLocalizedString(str)
-        } catch (e: Throwable) {
+        } catch (e :Throwable){
             LogCat.logException(e, "LocalizationHelper")
             return context.getString(resId)
         }
@@ -142,7 +142,7 @@ object LocalizationHelper {
             }
             val str = getStringForLocale(context, resId, Locale.US)
             return getLocalizedString(str, *formatArgs)
-        } catch (e: Throwable) {
+        } catch (e :Throwable){
             LogCat.logException(e, "LocalizationHelper")
             return context.getString(resId, *formatArgs)
         }
@@ -253,7 +253,7 @@ object LocalizationHelper {
                 result = result.substring(0, result.length - 1)
 
             if (result.isNotEmpty()) return result
-        } catch (e: Throwable) {
+        } catch (e : Throwable){
             LogCat.logException(e, "LocalizationHelper")
         }
         return text//return not translated
@@ -366,23 +366,23 @@ object LocalizationHelper {
         if (authorsLocale.language == currentLocale.language) {
             return stringInCurrentLocale
         } else {
-            val authorsOriginalString = getStringForLocale(currentContext, id, authorsLocale)
-            if (authorsOriginalString == stringInCurrentLocale) {
-                //Check if translations exists for any other locales, but may missed for current -
-                //in this case return default translation and give up
-                try {
-                    val resources = currentContext.resources
-                    for (loc in resources.assets.locales) {
-                        if (loc.isEmpty()) continue
-                        val locale: Locale = Locale.forLanguageTag(loc)
-                        val testTranslation = getStringForLocale(currentContext, id, locale)
-                        if (testTranslation != authorsOriginalString)
-                            return authorsOriginalString
-                    }
-                } catch (e: Throwable) {
-                    LogCat.logException(e, "LocalizationHelper")
-                }
-                return null
+             val authorsOriginalString = getStringForLocale(currentContext, id, authorsLocale)
+             if (authorsOriginalString == stringInCurrentLocale) {
+                 //Check if translations exists for any other locales, but may missed for current -
+                 //in this case return default translation and give up
+                 try {
+                     val resources = currentContext.resources
+                     for (loc in resources.assets.locales) {
+                         if (loc.isEmpty()) continue
+                         val locale: Locale = Locale.forLanguageTag(loc)
+                         val testTranslation = getStringForLocale(currentContext, id, locale)
+                         if(testTranslation != authorsOriginalString)
+                             return authorsOriginalString
+                     }
+                 } catch (e :Throwable){
+                     LogCat.logException(e, "LocalizationHelper")
+                 }
+                 return null
             } else {
                 return stringInCurrentLocale
             }
@@ -401,8 +401,7 @@ object LocalizationHelper {
         if (authorsLocale.language == currentLocale.language) {
             return stringInCurrentLocale
         } else {
-            val authorsOriginalString =
-                getStringForLocale(currentContext, id, authorsLocale, *formatArgs)
+            val authorsOriginalString = getStringForLocale(currentContext, id, authorsLocale, *formatArgs)
             if (authorsOriginalString == stringInCurrentLocale) {
                 //Check if translations exists for any other locales, but may missed for current -
                 //in this case return default translation and give up
@@ -411,12 +410,11 @@ object LocalizationHelper {
                     for (loc in resources.assets.locales) {
                         if (loc.isEmpty()) continue
                         val locale: Locale = Locale.forLanguageTag(loc)
-                        val testTranslation =
-                            getStringForLocale(currentContext, id, locale, *formatArgs)
-                        if (testTranslation != authorsOriginalString)
+                        val testTranslation = getStringForLocale(currentContext, id, locale, *formatArgs)
+                        if(testTranslation != authorsOriginalString)
                             return authorsOriginalString
                     }
-                } catch (e: Throwable) {
+                } catch (e :Throwable){
                     LogCat.logException(e, "LocalizationHelper")
                 }
                 return null

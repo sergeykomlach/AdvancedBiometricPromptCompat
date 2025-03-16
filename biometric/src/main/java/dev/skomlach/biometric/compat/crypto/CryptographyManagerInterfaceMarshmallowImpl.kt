@@ -29,7 +29,7 @@ import android.security.keystore.KeyProperties.PURPOSE_DECRYPT
 import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -41,7 +41,9 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
     private val KEY_NAME = "CryptographyManagerInterfaceMarshmallowImpl-$version"
-    private val context = AndroidContext.appContext
+    private val keyStore by lazy {
+        KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+    }
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean,
@@ -88,7 +90,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     }
 
     override fun deleteKey(keyName: String) {
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.deleteEntry("$KEY_NAME.$keyName")
 
@@ -101,7 +103,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
     private fun getOrCreateSecretKey(keyName: String, isUserAuthRequired: Boolean): SecretKey {
         // If Secretkey was previously created for that keyName, then grab and return it.
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.getKey(keyName, null)?.let { return it as SecretKey }
 
@@ -140,7 +142,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
 
     private fun hasStrongBox(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            context.packageManager
+            appContext.packageManager
                 .hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
         } else {
             false

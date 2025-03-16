@@ -24,10 +24,10 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object Vibro {
-    private val appContext = AndroidContext.appContext
+
     private var v: Vibrator? = null
     private var audioManager: AudioManager? = null
 

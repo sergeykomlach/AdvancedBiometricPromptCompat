@@ -28,7 +28,7 @@ import android.net.Network
 import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.Build
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import java.util.concurrent.atomic.AtomicBoolean
@@ -40,7 +40,7 @@ class ConnectionStateListener {
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
     private var receiverTypeConnection: BroadcastReceiver? = null
-    private val appContext = AndroidContext.appContext
+    
 
     init {
         connectivityManager =

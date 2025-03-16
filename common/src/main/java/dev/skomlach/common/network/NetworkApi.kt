@@ -20,7 +20,6 @@
 package dev.skomlach.common.network
 
 import android.net.TrafficStats
-import dev.skomlach.common.contextprovider.AndroidContext
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

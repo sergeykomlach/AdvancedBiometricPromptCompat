@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.utils.activityView
 
 import android.annotation.SuppressLint
-import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.RenderEffect
 import android.graphics.Shader

@@ -24,7 +24,6 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.os.BuildCompat
 import dev.skomlach.common.logging.LogCat
-import java.util.*
 
 object Utils {
     val isAtLeastU: Boolean

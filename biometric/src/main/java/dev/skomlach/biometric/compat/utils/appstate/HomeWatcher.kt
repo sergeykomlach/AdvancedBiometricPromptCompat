@@ -23,14 +23,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 
 class HomeWatcher(private val mListener: OnHomePressedListener) {
     private val mFilter: IntentFilter = IntentFilter()
     private val mReceiver = InnerReceiver()
-    private val appContext = AndroidContext.appContext
+
 
     init {
         //Deprecated starts from API 31

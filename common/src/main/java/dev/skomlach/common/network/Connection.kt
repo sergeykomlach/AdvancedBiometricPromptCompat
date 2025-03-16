@@ -26,7 +26,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.Collections
@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicReference
 
 object Connection {
 
-    private val appContext = AndroidContext.appContext
     val connectionStateListener = ConnectionStateListener()
 
     private val connectivityManager: ConnectivityManager? =

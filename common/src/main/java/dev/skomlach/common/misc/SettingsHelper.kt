@@ -25,7 +25,13 @@ import android.provider.Settings
 
 
 object SettingsHelper {
-
+    fun getFloat(context: Context, secureSettingKey: String?, defaultValue: Float): Float {
+        var result = getFloatInternal(context, secureSettingKey, defaultValue)
+        if (result == defaultValue) {
+            result = getInt(context, secureSettingKey, defaultValue.toInt()).toFloat()
+        }
+        return result
+    }
     fun getInt(context: Context, secureSettingKey: String?, defaultValue: Int): Int {
         return getLong(context, secureSettingKey, defaultValue.toLong()).toInt()
     }
@@ -100,6 +106,29 @@ object SettingsHelper {
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) try {
             val result = Settings.Global.getInt(context.contentResolver, secureSettingKey)
+            if (result != defaultValue) return result
+        } catch (e: Throwable) {
+        }
+        return defaultValue
+    }
+    private fun getFloatInternal(
+        context: Context,
+        secureSettingKey: String?,
+        defaultValue: Float
+    ): Float {
+        try {
+            val result = Settings.Secure.getFloat(context.contentResolver, secureSettingKey)
+            if (result != defaultValue) return result
+        } catch (e: Throwable) {
+        }
+        //fallback
+        try {
+            val result = Settings.System.getFloat(context.contentResolver, secureSettingKey)
+            if (result != defaultValue) return result
+        } catch (e: Throwable) {
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) try {
+            val result = Settings.Global.getFloat(context.contentResolver, secureSettingKey)
             if (result != defaultValue) return result
         } catch (e: Throwable) {
         }

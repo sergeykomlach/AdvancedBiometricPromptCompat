@@ -43,6 +43,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
@@ -55,7 +56,7 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 
 class PermissionsFragment : Fragment() {
     companion object {
-        private val appContext = AndroidContext.appContext
+
         private const val LIST_KEY = "permissions_list"
         private const val INTENT_KEY = "PermissionsFragment.intent_key"
 

@@ -54,9 +54,11 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private val context = AndroidContext.appContext
 
     private val KEY_NAME = "CryptographyManagerInterfaceKitkatImpl-$version"
-
+    private val keyStore by lazy {
+        KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+    }
     override fun deleteKey(keyName: String) {
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.deleteEntry("$KEY_NAME.$keyName")
         val sharedPreferences =
@@ -211,8 +213,6 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         var entry = keyPairInFallback(name)
         try {
 
-            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
-
             keyStore.load(null)
 
             entry = entry || keyStore.containsAlias(name)
@@ -235,7 +235,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
          * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
          */
             setFakeEnglishLocale()
-            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
             keyStore.load(null)
             list.add(keyStore.getKey(name, null) as PrivateKey?)
         } catch (e: Throwable) {
@@ -262,7 +262,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
          * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
          */
             setFakeEnglishLocale()
-            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
+
             keyStore.load(null)
             list.add(keyStore.getCertificate(name)?.publicKey)
         } catch (e: Throwable) {

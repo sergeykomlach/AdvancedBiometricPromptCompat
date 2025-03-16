@@ -22,16 +22,16 @@ package dev.skomlach.common.misc
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.os.BuildCompat
-import dalvik.system.PathClassLoader
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat.log
 import dev.skomlach.common.logging.LogCat.logException
+import dalvik.system.PathClassLoader
 import java.lang.reflect.Modifier
 import java.util.*
 
 
 object ReflectionTools {
-    private val appContext = AndroidContext.appContext
+
     private val cache = WeakHashMap<String, PathClassLoader>()
 
     @Throws(Exception::class)

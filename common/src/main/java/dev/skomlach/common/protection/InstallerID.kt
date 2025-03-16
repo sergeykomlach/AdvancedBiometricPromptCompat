@@ -66,6 +66,26 @@ enum class InstallerID(private val text: String) {
     }
 
     companion object {
+        fun getInstallerId(context: Context, packageName: String): String? {
+
+            val validInstallers = ArrayList<String>()
+            val installer = try {
+                if (Utils.isAtLeastR)
+                    context.packageManager.getInstallSourceInfo(packageName).installingPackageName.toString()
+                        .ifEmpty { context.packageManager.getInstallerPackageName(packageName) }
+                else
+                    context.packageManager.getInstallerPackageName(packageName)
+            } catch (e :Throwable){
+                return "com.android.vending" //unable to get InstallerPackageName
+            }
+            for (id in entries) {
+                validInstallers.addAll(id.toIDs())
+            }
+            return if (installer != null && validInstallers.contains(installer)) {
+                validInstallers[validInstallers.indexOf(installer)]
+            } else
+                null
+        }
         fun verifyInstallerId(context: Context, packageName: String): Boolean {
             val validInstallers = ArrayList<String>()
             val installer = try {

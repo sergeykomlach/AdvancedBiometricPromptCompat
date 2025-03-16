@@ -214,12 +214,11 @@ class NotificationPermissionsFragment : Fragment() {
                 if (Build.VERSION.SDK_INT >= 26) {
                     try {
                         if(safeStartActivity(
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                    .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName),
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName),
 
-                                )
-                        )
-                            return@setPositiveButton
+                            ))
+                        return@setPositiveButton
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -233,7 +232,7 @@ class NotificationPermissionsFragment : Fragment() {
 
                     if (intentCanBeResolved(launchIntent)) {
                         if(safeStartActivity(launchIntent))
-                            return@setPositiveButton
+                        return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -243,7 +242,7 @@ class NotificationPermissionsFragment : Fragment() {
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
                         if(safeStartActivity(i))
-                            return@setPositiveButton
+                        return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -305,12 +304,11 @@ class NotificationPermissionsFragment : Fragment() {
                                     val oneUiVersion = getOneUiVersion()
                                     if (oneUiVersion.isEmpty() || io.github.g00fy2.versioncompare.Version(oneUiVersion).isLowerThan("6.1")
                                     )
-                                        putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+                                    putExtra(  Settings.EXTRA_CHANNEL_ID,channelId)
                                 }
-                            )
-                        )
+                        ))
 
-                            return@setPositiveButton
+                        return@setPositiveButton
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -323,7 +321,7 @@ class NotificationPermissionsFragment : Fragment() {
 
                     if (intentCanBeResolved(launchIntent)) {
                         if(safeStartActivity(launchIntent))
-                            return@setPositiveButton
+                        return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -333,7 +331,7 @@ class NotificationPermissionsFragment : Fragment() {
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
                         if(safeStartActivity(i))
-                            return@setPositiveButton
+                        return@setPositiveButton
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)

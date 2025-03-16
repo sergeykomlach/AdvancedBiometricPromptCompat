@@ -29,6 +29,7 @@ import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.utils.activityView.ActiveWindow
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
@@ -37,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class SensorBlockedFallbackFragment : Fragment() {
     companion object {
-        private val appContext = AndroidContext.appContext
+
 
         //Just a references to system resources
 //   [`sensor_privacy_start_use_camera_notification_content_title`->`Unblock device camera`]

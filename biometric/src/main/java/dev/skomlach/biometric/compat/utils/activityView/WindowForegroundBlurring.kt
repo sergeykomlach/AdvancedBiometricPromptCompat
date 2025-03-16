@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat.utils.activityView
 
 import android.annotation.SuppressLint
-import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
@@ -34,11 +33,11 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnAttach
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.core.view.doOnAttach
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat

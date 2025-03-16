@@ -23,6 +23,7 @@ import android.os.Build
 import androidx.annotation.WorkerThread
 import com.jaredrummler.android.device.DeviceName
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemPropertiesProxy
@@ -42,7 +43,7 @@ object DeviceModel {
         private set
     val model = (Build.MODEL ?: "").replace("  ", " ")
     val device = (Build.DEVICE ?: "").replace("  ", " ")
-    private val appContext = AndroidContext.appContext
+
     private val list = ArrayList<Pair<String, String>>()
 
     init {
