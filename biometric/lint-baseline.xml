@@ -1,860 +1,630 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.1.1" type="baseline" client="gradle" dependencies="false" name="AGP (8.1.1)" variant="all" version="8.1.1">
+<issues name="AGP (8.1.1)" by="lint 8.1.1" client="gradle" dependencies="false" format="6"
+        type="baseline" variant="all" version="8.1.1">
 
-    <issue
-        id="ApplySharedPref"
-        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
-        errorLine1="                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()"
-        errorLine2="                                                                                ~~~~~~~~">
+    <issue errorLine1="                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()"
+            errorLine2="                                                                                ~~~~~~~~"
+            id="ApplySharedPref"
+            message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/hihonor/impl/HihonorFaceRecognizeManager.kt"
-            line="105"
-            column="81"/>
+                column="81"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/hihonor/impl/HihonorFaceRecognizeManager.kt" line="105" />
     </issue>
 
-    <issue
-        id="ApplySharedPref"
-        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
-        errorLine1="                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()"
-        errorLine2="                                                                                ~~~~~~~~">
+    <issue errorLine1="                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()"
+            errorLine2="                                                                                ~~~~~~~~"
+            id="ApplySharedPref"
+            message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/impl/HuaweiFaceRecognizeManager.kt"
-            line="105"
-            column="81"/>
+                column="81"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/huawei/impl/HuaweiFaceRecognizeManager.kt" line="105" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="Exception requires API level 23 (current min is 28): `android.security.keystore.KeyPermanentlyInvalidatedException`, and having a surrounding/preceding version check **does not** help since prior to API level 19, just **loading** the class will cause a crash. Consider marking the surrounding class with `RequiresApi(19)` to ensure that the class is never loaded except when on API 19 or higher."
-        errorLine1="                } catch (e: KeyPermanentlyInvalidatedException) {"
-        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                } catch (e: KeyPermanentlyInvalidatedException) {"
+            errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="Exception requires API level 23 (current min is 28): `android.security.keystore.KeyPermanentlyInvalidatedException`, and having a surrounding/preceding version check **does not** help since prior to API level 19, just **loading** the class will cause a crash. Consider marking the surrounding class with `RequiresApi(19)` to ensure that the class is never loaded except when on API 19 or higher.">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/hardware/BiometricPromptHardware.kt"
-            line="339"
-            column="29"/>
+                column="29"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/hardware/BiometricPromptHardware.kt" line="339" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`&lt;animated-vector>` requires API level 21 (current min is 16)"
-        errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_draw_off_animation.xml"
-            line="20"
-            column="2"/>
+    <issue errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;" errorLine2=" ~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`&lt;animated-vector>` requires API level 21 (current min is 16)">
+        <location column="2" file="src/main/res/drawable/fingerprint_draw_off_animation.xml"
+                line="20" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`&lt;animated-vector>` requires API level 21 (current min is 16)"
-        errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_draw_on_animation.xml"
-            line="20"
-            column="2"/>
+    <issue errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;" errorLine2=" ~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`&lt;animated-vector>` requires API level 21 (current min is 16)">
+        <location column="2" file="src/main/res/drawable/fingerprint_draw_on_animation.xml"
+                line="20" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`&lt;animated-vector>` requires API level 21 (current min is 16)"
-        errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_error_off_animation.xml"
-            line="20"
-            column="2"/>
+    <issue errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;" errorLine2=" ~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`&lt;animated-vector>` requires API level 21 (current min is 16)">
+        <location column="2" file="src/main/res/drawable/fingerprint_error_off_animation.xml"
+                line="20" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`&lt;animated-vector>` requires API level 21 (current min is 16)"
-        errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_error_on_animation.xml"
-            line="20"
-            column="2"/>
+    <issue errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;" errorLine2=" ~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`&lt;animated-vector>` requires API level 21 (current min is 16)">
+        <location column="2" file="src/main/res/drawable/fingerprint_error_on_animation.xml"
+                line="20" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`&lt;animated-vector>` requires API level 21 (current min is 16)"
-        errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_error_state_to_fp_animation.xml"
-            line="20"
-            column="2"/>
+    <issue errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;" errorLine2=" ~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`&lt;animated-vector>` requires API level 21 (current min is 16)">
+        <location column="2" file="src/main/res/drawable/fingerprint_error_state_to_fp_animation.xml"
+                line="20" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`@android:interpolator/fast_out_linear_in` requires API level 21 (current min is 16)"
-        errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_linear_in&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_group_1_animation.xml"
-            line="25"
-            column="13"/>
+    <issue errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_linear_in&quot;"
+            errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`@android:interpolator/fast_out_linear_in` requires API level 21 (current min is 16)">
+        <location column="13"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_group_1_animation.xml" line="25" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`@android:interpolator/fast_out_linear_in` requires API level 21 (current min is 16)"
-        errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_linear_in&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_path_3_animation.xml"
-            line="23"
-            column="13"/>
+    <issue errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_linear_in&quot;"
+            errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`@android:interpolator/fast_out_linear_in` requires API level 21 (current min is 16)">
+        <location column="13"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_path_3_animation.xml" line="23" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`&lt;animated-vector>` requires API level 21 (current min is 16)"
-        errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_fp_to_error_state_animation.xml"
-            line="20"
-            column="2"/>
+    <issue errorLine1="&lt;animated-vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;" errorLine2=" ~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`&lt;animated-vector>` requires API level 21 (current min is 16)">
+        <location column="2" file="src/main/res/drawable/fingerprint_fp_to_error_state_animation.xml"
+                line="20" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)"
-        errorLine1="                android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_path_3_animation.xml"
-            line="33"
-            column="17"/>
+    <issue errorLine1="                android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
+            errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)">
+        <location column="17"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_path_3_animation.xml" line="33" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)"
-        errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
+            errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_ridge_1_path_0_animation.xml"
-            line="23"
-            column="13"/>
+                column="13"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_ridge_1_path_0_animation.xml" line="23" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)"
-        errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
+            errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_ridge_5_path_0_animation.xml"
-            line="23"
-            column="13"/>
+                column="13"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_ridge_5_path_0_animation.xml" line="23" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)"
-        errorLine1="                android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                android:interpolator=&quot;@android:interpolator/fast_out_slow_in&quot;"
+            errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`@android:interpolator/fast_out_slow_in` requires API level 21 (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_ridge_7_path_0_animation.xml"
-            line="31"
-            column="17"/>
+                column="17"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_ridge_7_path_0_animation.xml" line="31" />
     </issue>
 
-    <issue
-        id="NewApi"
-        message="`android:forceDarkAllowed` requires API level 29 (current min is 16)"
-        errorLine1="        &lt;item name=&quot;android:forceDarkAllowed&quot;>false&lt;/item>"
-        errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-sw600dp/styles.xml"
-            line="24"
-            column="15"/>
+    <issue errorLine1="        &lt;item name=&quot;android:forceDarkAllowed&quot;>false&lt;/item>"
+            errorLine2="              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="NewApi"
+            message="`android:forceDarkAllowed` requires API level 29 (current min is 16)">
+        <location column="15" file="src/main/res/values-sw600dp/styles.xml" line="24" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            clazz = Class.forName(&quot;android.view.ViewRootImpl&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            clazz = Class.forName(&quot;android.view.ViewRootImpl&quot;)"
+            errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/ActiveWindow.kt"
-            line="43"
-            column="21"/>
+                column="21"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/ActiveWindow.kt" line="43" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="                windowManagerClazz = Class.forName(&quot;android.view.WindowManagerGlobal&quot;)"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                windowManagerClazz = Class.forName(&quot;android.view.WindowManagerGlobal&quot;)"
+            errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/ActiveWindow.kt"
-            line="45"
-            column="38"/>
+                column="38"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/ActiveWindow.kt" line="45" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="                windowManagerClazz = Class.forName(&quot;android.view.WindowManagerImpl&quot;)"
-        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                windowManagerClazz = Class.forName(&quot;android.view.WindowManagerImpl&quot;)"
+            errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/ActiveWindow.kt"
-            line="49"
-            column="38"/>
+                column="38"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/ActiveWindow.kt" line="49" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            clazz = Class.forName(&quot;android.miui.BiometricConnect&quot;)"
-        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            clazz = Class.forName(&quot;android.miui.BiometricConnect&quot;)"
+            errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/BiometricConnect.kt"
-            line="57"
-            column="21"/>
+                column="21"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/BiometricConnect.kt" line="57" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            dbtemplateClass = Class.forName(&quot;android.miui.BiometricConnect\$DBTemplate&quot;)"
-        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            dbtemplateClass = Class.forName(&quot;android.miui.BiometricConnect\$DBTemplate&quot;)"
+            errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/BiometricConnect.kt"
-            line="58"
-            column="31"/>
+                column="31"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/BiometricConnect.kt" line="58" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            dbgroupClass = Class.forName(&quot;android.miui.BiometricConnect\$DBGroup&quot;)"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            dbgroupClass = Class.forName(&quot;android.miui.BiometricConnect\$DBGroup&quot;)"
+            errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/BiometricConnect.kt"
-            line="59"
-            column="28"/>
+                column="28"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/wrapper/BiometricConnect.kt" line="59" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            val servicemanager = Class.forName(&quot;android.os.ServiceManager&quot;)"
-        errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            val servicemanager = Class.forName(&quot;android.os.ServiceManager&quot;)"
+            errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/fingerprint/FlymeFingerprintModule.kt"
-            line="45"
-            column="34"/>
+                column="34"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/fingerprint/FlymeFingerprintModule.kt" line="45" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            sPerfClass = Class.forName(&quot;android.util.BoostFramework&quot;)"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            sPerfClass = Class.forName(&quot;android.util.BoostFramework&quot;)"
+            errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/Miui3DFaceManagerImpl.kt"
-            line="254"
-            column="26"/>
+                column="26"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/Miui3DFaceManagerImpl.kt" line="254" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="            stringArrayFields = Class.forName(&quot;com.android.internal.R\$array&quot;).declaredFields"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="            stringArrayFields = Class.forName(&quot;com.android.internal.R\$array&quot;).declaredFields"
+            errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/MiuiCodeToString.kt"
-            line="38"
-            column="33"/>
+                column="33"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/MiuiCodeToString.kt" line="38" />
     </issue>
 
-    <issue
-        id="PrivateApi"
-        message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future"
-        errorLine1="                    mMiuiFaceService = Class.forName(&quot;android.os.ServiceManager&quot;)"
-        errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                    mMiuiFaceService = Class.forName(&quot;android.os.ServiceManager&quot;)"
+            errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateApi"
+            message="Accessing internal APIs via reflection is not supported and may not work on all devices or in the future">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/MiuiFaceManagerImpl.kt"
-            line="385"
-            column="40"/>
+                column="40"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/MiuiFaceManagerImpl.kt" line="385" />
     </issue>
 
-    <issue
-        id="SdCardPath"
-        message="Do not hardcode &quot;`/data/`&quot;; use `Context.getFilesDir().getPath()` instead"
-        errorLine1="        private const val TEMPLATE_PATH = &quot;/data/user/0/com.xiaomi.biometric/files/&quot;"
-        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        private const val TEMPLATE_PATH = &quot;/data/user/0/com.xiaomi.biometric/files/&quot;"
+            errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="SdCardPath"
+            message="Do not hardcode &quot;`/data/`&quot;; use `Context.getFilesDir().getPath()` instead">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/Miui3DFaceManagerImpl.kt"
-            line="130"
-            column="44"/>
+                column="44"
+                file="src/main/java/dev/skomlach/biometric/compat/engine/internal/face/miui/impl/Miui3DFaceManagerImpl.kt" line="130" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)"
-        errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/biometric_prompt_dialog_content.xml"
-            line="30"
-            column="9"/>
+    <issue errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)">
+        <location column="9" file="src/main/res/layout/biometric_prompt_dialog_content.xml"
+                line="30" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)"
-        errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/biometric_prompt_dialog_content_inscreen.xml"
-            line="29"
-            column="9"/>
+    <issue errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)">
+        <location column="9" file="src/main/res/layout/biometric_prompt_dialog_content_inscreen.xml"
+                line="29" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)"
-        errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/biometrics.xml"
-            line="10"
-            column="9"/>
+    <issue errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)">
+        <location column="9" file="src/main/res/layout/biometrics.xml" line="10" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)"
-        errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/blurred_screen.xml"
-            line="25"
-            column="9"/>
+    <issue errorLine1="        android:forceDarkAllowed=&quot;false&quot;"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `forceDarkAllowed` is only used in API level 29 and higher (current min is 16)">
+        <location column="9" file="src/main/res/layout/blurred_screen.xml" line="25" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.5,0.0 1.0,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_draw_off_animation_interpolator_0.xml"
-            line="21"
-            column="9"/>
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.5,0.0 1.0,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
+        <location column="9"
+                file="src/main/res/anim/fingerprint_draw_off_animation_interpolator_0.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.5,0.0 0.5,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_draw_off_animation_interpolator_1.xml"
-            line="21"
-            column="9"/>
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.5,0.0 0.5,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
+        <location column="9"
+                file="src/main/res/anim/fingerprint_draw_off_animation_interpolator_1.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.29,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_draw_on_animation_interpolator_0.xml"
-            line="21"
-            column="9"/>
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.29,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
+        <location column="9"
+                file="src/main/res/anim/fingerprint_draw_on_animation_interpolator_0.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.5,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/anim/fingerprint_draw_on_animation_interpolator_1.xml"
-            line="21"
-            column="9"/>
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.5,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
+        <location column="9"
+                file="src/main/res/anim/fingerprint_draw_on_animation_interpolator_1.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.29,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.29,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_0.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_0.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.4,0.0 0.83333333333,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.4,0.0 0.83333333333,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_1.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_1.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.5,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.5,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_2.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_2.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.9999,0.999933333333 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.9999,0.999933333333 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_3.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_3.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.612659627466,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.612659627466,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_4.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_4.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.9999,0.999883333333 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.9999,0.999883333333 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_5.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_error_state_to_fp_animation_interpolator_5.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.16666666667,0.0 0.83333333333,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.16666666667,0.0 0.83333333333,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_0.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_0.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.312548622571,1.03663900165 0.662518487347,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.312548622571,1.03663900165 0.662518487347,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_1.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_1.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.8,0.0 0.5,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.8,0.0 0.5,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_2.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_2.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.4,0.0 0.6,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.4,0.0 0.6,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_3.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_3.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.6,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.6,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_4.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_4.xml" line="21" />
     </issue>
 
-    <issue
-        id="UnusedAttribute"
-        message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)"
-        errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.5,1.0 1.0,1.0&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="        android:pathData=&quot;M 0.0,0.0 c 0.0,0.0 0.5,1.0 1.0,1.0&quot; />"
+            errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="UnusedAttribute"
+            message="Attribute `pathData` is only used in API level 21 and higher (current min is 16)">
         <location
-            file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_5.xml"
-            line="21"
-            column="9"/>
+                column="9"
+                file="src/main/res/anim/fingerprint_fp_to_error_state_animation_interpolator_5.xml" line="21" />
     </issue>
 
-    <issue
-        id="AppBundleLocaleChanges"
-        message="Found dynamic locale changes, but did not find corresponding Play Core library calls for downloading languages and splitting by language is not disabled in the `bundle` configuration"
-        errorLine1="        config.locale = locale"
-        errorLine2="               ~~~~~~">
+    <issue errorLine1="        config.locale = locale"
+            errorLine2="               ~~~~~~"
+            id="AppBundleLocaleChanges" message="Found dynamic locale changes, but did not find corresponding Play Core library calls for downloading languages and splitting by language is not disabled in the `bundle` configuration">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/crypto/CryptographyManagerInterfaceKitkatImpl.kt"
-            line="212"
-            column="16"/>
+                column="16"
+                file="src/main/java/dev/skomlach/biometric/compat/crypto/CryptographyManagerInterfaceKitkatImpl.kt" line="212" />
     </issue>
 
-    <issue
-        id="InflateParams"
-        message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
-        errorLine1="                    .inflate(R.layout.blurred_screen, null, false).apply {"
-        errorLine2="                                                      ~~~~">
+    <issue errorLine1="                    .inflate(R.layout.blurred_screen, null, false).apply {"
+            errorLine2="                                                      ~~~~"
+            id="InflateParams"
+            message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/WindowBackgroundBlurring.kt"
-            line="118"
-            column="55"/>
+                column="55"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/WindowBackgroundBlurring.kt" line="118" />
     </issue>
 
-    <issue
-        id="InflateParams"
-        message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
-        errorLine1="                .inflate(R.layout.blurred_screen, null, false).apply {"
-        errorLine2="                                                  ~~~~">
+    <issue errorLine1="                .inflate(R.layout.blurred_screen, null, false).apply {"
+            errorLine2="                                                  ~~~~"
+            id="InflateParams"
+            message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/WindowForegroundBlurring.kt"
-            line="121"
-            column="51"/>
+                column="51"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/activityView/WindowForegroundBlurring.kt" line="121" />
     </issue>
 
-    <issue
-        id="PrivateResource"
-        message="The resource `@string/fingerprint_error_lockout` is marked as private in androidx.biometric:biometric:1.2.0-alpha05"
-        errorLine1="                .getString(androidx.biometric.R.string.fingerprint_error_lockout)"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                .getString(androidx.biometric.R.string.fingerprint_error_lockout)"
+            errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateResource"
+            message="The resource `@string/fingerprint_error_lockout` is marked as private in androidx.biometric:biometric:1.2.0-alpha05">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/impl/dialogs/BiometricPromptCompatDialogImpl.kt"
-            line="71"
-            column="28"/>
+                column="28"
+                file="src/main/java/dev/skomlach/biometric/compat/impl/dialogs/BiometricPromptCompatDialogImpl.kt" line="71" />
     </issue>
 
-    <issue
-        id="PrivateResource"
-        message="The resource `@string/fingerprint_not_recognized` is marked as private in androidx.biometric:biometric:1.2.0-alpha05"
-        errorLine1="                .getString(androidx.biometric.R.string.fingerprint_not_recognized)"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                .getString(androidx.biometric.R.string.fingerprint_not_recognized)"
+            errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateResource"
+            message="The resource `@string/fingerprint_not_recognized` is marked as private in androidx.biometric:biometric:1.2.0-alpha05">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/impl/dialogs/BiometricPromptCompatDialogImpl.kt"
-            line="74"
-            column="28"/>
+                column="28"
+                file="src/main/java/dev/skomlach/biometric/compat/impl/dialogs/BiometricPromptCompatDialogImpl.kt" line="74" />
     </issue>
 
-    <issue
-        id="PrivateResource"
-        message="The resource `@string/face_prompt_message` is marked as private in androidx.biometric:biometric:1.2.0-alpha05"
-        errorLine1="                .getString(androidx.biometric.R.string.face_prompt_message)"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/BiometricTitle.kt"
-            line="39"
-            column="28"/>
+    <issue errorLine1="                .getString(androidx.biometric.R.string.face_prompt_message)"
+            errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateResource"
+            message="The resource `@string/face_prompt_message` is marked as private in androidx.biometric:biometric:1.2.0-alpha05">
+        <location column="28"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/BiometricTitle.kt" line="39" />
     </issue>
 
-    <issue
-        id="PrivateResource"
-        message="The resource `@string/fingerprint_prompt_message` is marked as private in androidx.biometric:biometric:1.2.0-alpha05"
-        errorLine1="                .getString(androidx.biometric.R.string.fingerprint_prompt_message)"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/BiometricTitle.kt"
-            line="49"
-            column="28"/>
+    <issue errorLine1="                .getString(androidx.biometric.R.string.fingerprint_prompt_message)"
+            errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateResource"
+            message="The resource `@string/fingerprint_prompt_message` is marked as private in androidx.biometric:biometric:1.2.0-alpha05">
+        <location column="28"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/BiometricTitle.kt" line="49" />
     </issue>
 
-    <issue
-        id="PrivateResource"
-        message="The resource `@string/biometric_prompt_message` is marked as private in androidx.biometric:biometric:1.2.0-alpha05"
-        errorLine1="            .getString(androidx.biometric.R.string.biometric_prompt_message)"
-        errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/BiometricTitle.kt"
-            line="92"
-            column="24"/>
+    <issue errorLine1="            .getString(androidx.biometric.R.string.biometric_prompt_message)"
+            errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateResource"
+            message="The resource `@string/biometric_prompt_message` is marked as private in androidx.biometric:biometric:1.2.0-alpha05">
+        <location column="24"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/BiometricTitle.kt" line="92" />
     </issue>
 
-    <issue
-        id="PrivateResource"
-        message="The resource `@array/hide_fingerprint_instantly_prefixes` is marked as private in androidx.biometric:biometric:1.2.0-alpha05"
-        errorLine1="                appContext.resources.getStringArray(R.array.hide_fingerprint_instantly_prefixes)"
-        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/dev/skomlach/biometric/compat/utils/DevicesWithKnownBugs.kt"
-            line="57"
-            column="53"/>
+    <issue errorLine1="                appContext.resources.getStringArray(R.array.hide_fingerprint_instantly_prefixes)"
+            errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="PrivateResource"
+            message="The resource `@array/hide_fingerprint_instantly_prefixes` is marked as private in androidx.biometric:biometric:1.2.0-alpha05">
+        <location column="53"
+                file="src/main/java/dev/skomlach/biometric/compat/utils/DevicesWithKnownBugs.kt" line="57" />
     </issue>
 
-    <issue
-        id="SwitchIntDef"
-        message="Unexpected constant; expected one of: `BiometricPrompt.ERROR_CANCELED`, `BiometricPrompt.ERROR_HW_NOT_PRESENT`, `BiometricPrompt.ERROR_HW_UNAVAILABLE`, `BiometricPrompt.ERROR_LOCKOUT`, `BiometricPrompt.ERROR_LOCKOUT_PERMANENT`, `BiometricPrompt.ERROR_NEGATIVE_BUTTON`, `BiometricPrompt.ERROR_NO_BIOMETRICS`, `BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL`, `BiometricPrompt.ERROR_NO_SPACE`, `BiometricPrompt.ERROR_TIMEOUT`, `BiometricPrompt.ERROR_UNABLE_TO_PROCESS`, `BiometricPrompt.ERROR_USER_CANCELED`, `BiometricPrompt.ERROR_VENDOR`"
-        errorLine1="                        BiometricPrompt.ERROR_HW_UNAVAILABLE, BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED, BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> failureReason ="
-        errorLine2="                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+    <issue errorLine1="                        BiometricPrompt.ERROR_HW_UNAVAILABLE, BiometricPrompt.ERROR_SECURITY_UPDATE_REQUIRED, BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL -> failureReason ="
+            errorLine2="                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="SwitchIntDef"
+            message="Unexpected constant; expected one of: `BiometricPrompt.ERROR_CANCELED`, `BiometricPrompt.ERROR_HW_NOT_PRESENT`, `BiometricPrompt.ERROR_HW_UNAVAILABLE`, `BiometricPrompt.ERROR_LOCKOUT`, `BiometricPrompt.ERROR_LOCKOUT_PERMANENT`, `BiometricPrompt.ERROR_NEGATIVE_BUTTON`, `BiometricPrompt.ERROR_NO_BIOMETRICS`, `BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL`, `BiometricPrompt.ERROR_NO_SPACE`, `BiometricPrompt.ERROR_TIMEOUT`, `BiometricPrompt.ERROR_UNABLE_TO_PROCESS`, `BiometricPrompt.ERROR_USER_CANCELED`, `BiometricPrompt.ERROR_VENDOR`">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/impl/BiometricPromptApi28Impl.kt"
-            line="129"
-            column="63"/>
+                column="63"
+                file="src/main/java/dev/skomlach/biometric/compat/impl/BiometricPromptApi28Impl.kt" line="129" />
     </issue>
 
-    <issue
-        id="TrulyRandom"
-        message="Potentially insecure random numbers on Android 4.3 and older. Read https://android-developers.blogspot.com/2013/08/some-securerandom-thoughts.html for more info."
-        errorLine1="                    .getInstance("
-        errorLine2="                     ~~~~~~~~~~~">
+    <issue errorLine1="                    .getInstance("
+            errorLine2="                     ~~~~~~~~~~~"
+            id="TrulyRandom"
+            message="Potentially insecure random numbers on Android 4.3 and older. Read https://android-developers.blogspot.com/2013/08/some-securerandom-thoughts.html for more info.">
         <location
-            file="src/main/java/dev/skomlach/biometric/compat/crypto/CryptographyManagerInterfaceKitkatImpl.kt"
-            line="150"
-            column="22"/>
+                column="22"
+                file="src/main/java/dev/skomlach/biometric/compat/crypto/CryptographyManagerInterfaceKitkatImpl.kt" line="150" />
     </issue>
 
-    <issue
-        id="QueryAllPackagesPermission"
-        message="A `&lt;queries>` declaration should generally be used instead of QUERY_ALL_PACKAGES; \&#xA;see https://g.co/dev/packagevisibility for details"
-        errorLine1="    &lt;uses-permission android:name=&quot;android.permission.QUERY_ALL_PACKAGES&quot; />"
-        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="38"
-            column="22"/>
+    <issue errorLine1="    &lt;uses-permission android:name=&quot;android.permission.QUERY_ALL_PACKAGES&quot; />"
+            errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="QueryAllPackagesPermission"
+            message="A `&lt;queries>` declaration should generally be used instead of QUERY_ALL_PACKAGES; \&#xA;see https://g.co/dev/packagevisibility for details">
+        <location column="22" file="src/main/AndroidManifest.xml" line="38" />
     </issue>
 
-    <issue
-        id="VectorPath"
-        message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_draw_off.xml"
-            line="55"
-            column="43"/>
+    <issue errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
+            errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="VectorPath"
+            message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location column="43" file="src/main/res/drawable/fingerprint_draw_off.xml" line="55" />
     </issue>
 
-    <issue
-        id="VectorPath"
-        message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_draw_on.xml"
-            line="57"
-            column="43"/>
+    <issue errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
+            errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="VectorPath"
+            message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location column="43" file="src/main/res/drawable/fingerprint_draw_on.xml" line="57" />
     </issue>
 
-    <issue
-        id="VectorPath"
-        message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_error_state_to_fp.xml"
-            line="58"
-            column="43"/>
+    <issue errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
+            errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="VectorPath"
+            message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location column="43" file="src/main/res/drawable/fingerprint_error_state_to_fp.xml"
+                line="58" />
     </issue>
 
-    <issue
-        id="VectorPath"
-        message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_fp_to_error_state.xml"
-            line="55"
-            column="43"/>
+    <issue errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
+            errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="VectorPath"
+            message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location column="43" file="src/main/res/drawable/fingerprint_fp_to_error_state.xml"
+                line="55" />
     </issue>
 
-    <issue
-        id="VectorPath"
-        message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector."
-        errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/drawable/fingerprint_fp_to_error_state.xml"
-            line="113"
-            column="43"/>
+    <issue errorLine1="                        android:pathData=&quot;M -42.1907958984,-25.6756896973 c -0.758117675781,-2.14370727539 -0.896545410156,-3.86891174316 -0.896545410156,-5.12921142578 c 0.0,-1.46069335938 0.249176025391,-2.84799194336 0.814682006836,-4.09748840332 c 1.56153869629,-3.45030212402 5.03434753418,-5.85076904297 9.0679473877,-5.85076904297 c 5.49430847168,0.0 9.94830322266,4.4539642334 9.94830322266,9.94825744629 c 0.0,1.83151245117 -1.48460388184,3.31610107422 -3.31610107422,3.31610107422 c -1.83149719238,0.0 -3.31610107422,-1.48469543457 -3.31610107422,-3.31610107422 c 0.0,-1.83139038086 -1.48458862305,-3.31610107422 -3.31610107422,-3.31610107422 c -1.83149719238,0.0 -3.31610107422,1.48471069336 -3.31610107422,3.31610107422 c 0.0,2.57020568848 0.989517211914,4.88710021973 2.60510253906,6.5865020752 c 1.22210693359,1.28550720215 2.43139648438,2.09950256348 4.47590637207,2.69030761719&quot;"
+            errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="VectorPath"
+            message="Very long vector path (851 characters), which is bad for performance. Considering reducing precision, removing minor details or rasterizing vector.">
+        <location column="43" file="src/main/res/drawable/fingerprint_fp_to_error_state.xml"
+                line="113" />
     </issue>
 
-    <issue
-        id="UselessParent"
-        message="This `LinearLayout` layout or its `LinearLayout` parent is unnecessary"
-        errorLine1="    &lt;LinearLayout"
-        errorLine2="     ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/blurred_screen.xml"
-            line="28"
-            column="6"/>
+    <issue errorLine1="    &lt;LinearLayout"
+            errorLine2="     ~~~~~~~~~~~~"
+            id="UselessParent" message="This `LinearLayout` layout or its `LinearLayout` parent is unnecessary">
+        <location column="6" file="src/main/res/layout/blurred_screen.xml" line="28" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_behavior.png, src\main\res\drawable\bio_ic_behavior.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_behavior.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_behavior.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_behavior.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_behavior.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_behavior.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_behavior.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_behavior.png, src\main\res\drawable\bio_ic_behavior.xml">
+        <location file="src/main/res/drawable/bio_ic_behavior.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_behavior.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_behavior.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_behavior.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_behavior.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_behavior.png" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_face.png, src\main\res\drawable\bio_ic_face.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_face.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_face.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_face.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_face.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_face.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_face.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_face.png, src\main\res\drawable\bio_ic_face.xml">
+        <location file="src/main/res/drawable/bio_ic_face.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_face.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_face.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_face.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_face.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_face.png" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_fingerprint.png, src\main\res\drawable\bio_ic_fingerprint.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_fingerprint.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_fingerprint.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_fingerprint.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_fingerprint.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_fingerprint.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_fingerprint.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_fingerprint.png, src\main\res\drawable\bio_ic_fingerprint.xml">
+        <location file="src/main/res/drawable/bio_ic_fingerprint.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_fingerprint.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_fingerprint.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_fingerprint.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_fingerprint.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_fingerprint.png" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_heartrate.png, src\main\res\drawable\bio_ic_heartrate.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_heartrate.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_heartrate.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_heartrate.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_heartrate.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_heartrate.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_heartrate.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_heartrate.png, src\main\res\drawable\bio_ic_heartrate.xml">
+        <location file="src/main/res/drawable/bio_ic_heartrate.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_heartrate.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_heartrate.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_heartrate.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_heartrate.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_heartrate.png" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_iris.png, src\main\res\drawable\bio_ic_iris.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_iris.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_iris.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_iris.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_iris.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_iris.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_iris.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_iris.png, src\main\res\drawable\bio_ic_iris.xml">
+        <location file="src/main/res/drawable/bio_ic_iris.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_iris.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_iris.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_iris.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_iris.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_iris.png" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_palm.png, src\main\res\drawable\bio_ic_palm.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_palm.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_palm.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_palm.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_palm.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_palm.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_palm.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_palm.png, src\main\res\drawable\bio_ic_palm.xml">
+        <location file="src/main/res/drawable/bio_ic_palm.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_palm.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_palm.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_palm.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_palm.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_palm.png" />
     </issue>
 
-    <issue
-        id="IconXmlAndPng"
-        message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_voice.png, src\main\res\drawable\bio_ic_voice.xml">
-        <location
-            file="src/main/res/drawable/bio_ic_voice.xml"/>
-        <location
-            file="src/main/res/drawable-xxxhdpi/bio_ic_voice.png"/>
-        <location
-            file="src/main/res/drawable-xxhdpi/bio_ic_voice.png"/>
-        <location
-            file="src/main/res/drawable-xhdpi/bio_ic_voice.png"/>
-        <location
-            file="src/main/res/drawable-mdpi/bio_ic_voice.png"/>
-        <location
-            file="src/main/res/drawable-hdpi/bio_ic_voice.png"/>
+    <issue id="IconXmlAndPng"
+            message="The following images appear both as density independent `.xml` files and as bitmap files: src\main\res\drawable-hdpi\bio_ic_voice.png, src\main\res\drawable\bio_ic_voice.xml">
+        <location file="src/main/res/drawable/bio_ic_voice.xml" />
+        <location file="src/main/res/drawable-xxxhdpi/bio_ic_voice.png" />
+        <location file="src/main/res/drawable-xxhdpi/bio_ic_voice.png" />
+        <location file="src/main/res/drawable-xhdpi/bio_ic_voice.png" />
+        <location file="src/main/res/drawable-mdpi/bio_ic_voice.png" />
+        <location file="src/main/res/drawable-hdpi/bio_ic_voice.png" />
     </issue>
 
-    <issue
-        id="RtlHardcoded"
-        message="Consider adding `android:layout_alignStart=&quot;@+id/biometrics&quot;` to better support right-to-left layouts"
-        errorLine1="            android:layout_alignLeft=&quot;@+id/biometrics&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/biometrics.xml"
-            line="91"
-            column="13"/>
+    <issue errorLine1="            android:layout_alignLeft=&quot;@+id/biometrics&quot;"
+            errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="RtlHardcoded"
+            message="Consider adding `android:layout_alignStart=&quot;@+id/biometrics&quot;` to better support right-to-left layouts">
+        <location column="13" file="src/main/res/layout/biometrics.xml" line="91" />
     </issue>
 
-    <issue
-        id="RtlHardcoded"
-        message="Consider adding `android:layout_alignEnd=&quot;@+id/biometrics&quot;` to better support right-to-left layouts"
-        errorLine1="            android:layout_alignRight=&quot;@+id/biometrics&quot;"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/biometrics.xml"
-            line="92"
-            column="13"/>
+    <issue errorLine1="            android:layout_alignRight=&quot;@+id/biometrics&quot;"
+            errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~"
+            id="RtlHardcoded"
+            message="Consider adding `android:layout_alignEnd=&quot;@+id/biometrics&quot;` to better support right-to-left layouts">
+        <location column="13" file="src/main/res/layout/biometrics.xml" line="92" />
     </issue>
 
 </issues>

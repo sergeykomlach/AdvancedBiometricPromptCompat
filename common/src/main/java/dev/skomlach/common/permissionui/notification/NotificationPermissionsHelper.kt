@@ -30,7 +30,8 @@ object NotificationPermissionsHelper {
         context: Activity?, channelId: String, runnableOk: Runnable, runnableFailed: Runnable?
     ) {
         if (!PermissionUtils.INSTANCE.isAllowedNotificationsChannelPermission(channelId)) {
-            PermissionRequestController.askNotificationsChannelsPermission(context,
+            PermissionRequestController.askNotificationsChannelsPermission(
+                context,
                 channelId,
                 { runnableOk.run() }) {
                 runnableFailed?.let {

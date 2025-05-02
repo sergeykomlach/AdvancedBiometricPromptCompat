@@ -16,7 +16,6 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-
 package dev.skomlach.biometric.compat.crypto
 
 import android.util.Base64
@@ -24,11 +23,15 @@ import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import java.security.*
+import java.security.KeyFactory
+import java.security.KeyPair
+import java.security.KeyPairGenerator
+import java.security.PrivateKey
+import java.security.PublicKey
 import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
-import java.util.*
+import java.util.Locale
 import javax.crypto.Cipher
 
 class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {

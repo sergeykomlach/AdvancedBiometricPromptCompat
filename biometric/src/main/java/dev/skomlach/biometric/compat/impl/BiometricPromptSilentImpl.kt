@@ -104,7 +104,10 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             return
         isOpened.set(true)
         callback?.onUIOpened()
-        ExecutorHelper.postDelayed(autoCancel, TimeUnit.SECONDS.toMillis(builder.getAuthWindow().toLong()))
+        ExecutorHelper.postDelayed(
+            autoCancel,
+            TimeUnit.SECONDS.toMillis(builder.getAuthWindow().toLong())
+        )
     }
 
     override fun onUiClosed() {

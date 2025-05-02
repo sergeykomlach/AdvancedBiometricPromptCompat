@@ -194,6 +194,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
         private var selfCanceled = false
+
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {
             d("$name.onAuthenticationError: $errMsgId-$errString")

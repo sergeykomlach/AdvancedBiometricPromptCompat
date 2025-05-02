@@ -38,6 +38,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
@@ -46,16 +47,20 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
+
     @JvmStatic
-    fun shouldFallbackToDeviceCredentials(api: BiometricAuthRequest = BiometricAuthRequest(
-        BiometricApi.AUTO,
-        BiometricType.BIOMETRIC_ANY
-    )): Boolean {
-        if(isBiometricReadyForUsage(api) || isBiometricReadyForEnroll(api))
+    fun shouldFallbackToDeviceCredentials(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        if (isBiometricReadyForUsage(api) || isBiometricReadyForEnroll(api))
             return false
 
         return isBiometricAvailable(api) && isDeviceSecureAvailable()
     }
+
     @JvmStatic
     fun isDeviceSecureAvailable(): Boolean {
         val context = AndroidContext.appContext
@@ -82,7 +87,7 @@ object BiometricManagerCompat {
     ): Boolean {
 
         val list = getUsedPermissions(api)
-        if(list.isEmpty()) return true
+        if (list.isEmpty()) return true
         return if (api.type == BiometricType.BIOMETRIC_ANY) {
             list.forEach {
                 if (!PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
@@ -376,6 +381,7 @@ object BiometricManagerCompat {
         }
         return false
     }
+
     @JvmStatic
     fun isBiometricAvailable(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -385,6 +391,7 @@ object BiometricManagerCompat {
     ): Boolean {
         return isHardwareDetected(api) && hasEnrolled(api)
     }
+
     @JvmStatic
     fun isBiometricReadyForUsage(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -483,7 +490,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
-        if(!isBiometricAppEnabled())
+        if (!isBiometricAppEnabled())
             return false
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
@@ -534,7 +541,7 @@ object BiometricManagerCompat {
                     api.type
                 )
             ).isLockedOut
-            if(!isLockedOut)
+            if (!isLockedOut)
                 isLockedOut = HardwareAccessImpl.getInstance(
                     BiometricAuthRequest(
                         BiometricApi.BIOMETRIC_API,
@@ -587,6 +594,7 @@ object BiometricManagerCompat {
         }
         return false
     }
+
     //Special case for Pixel and probable others -
     //user need to enable "Identity verification in apps" feature in device settings
     //NOTE: On newer AOS14 builds this case already handled properly
@@ -602,7 +610,7 @@ object BiometricManagerCompat {
             ) {
                 val value = try {
                     val biometricAppEnabled: Int =
-                        Settings.Secure.getInt(contentResolver, key, 1)
+                        SettingsHelper.getInt(AndroidContext.appContext, key, 1)
                     biometricAppEnabled == 1
                 } catch (e: Throwable) {
                     true

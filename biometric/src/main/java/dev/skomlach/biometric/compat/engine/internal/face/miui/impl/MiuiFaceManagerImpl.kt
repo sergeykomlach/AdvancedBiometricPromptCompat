@@ -24,15 +24,26 @@ import android.database.ContentObserver
 import android.graphics.Rect
 import android.graphics.RectF
 import android.net.Uri
-import android.os.*
+import android.os.Binder
+import android.os.CancellationSignal
+import android.os.Handler
+import android.os.IBinder
 import android.os.IBinder.DeathRecipient
+import android.os.Looper
+import android.os.Message
+import android.os.Parcel
+import android.os.RemoteException
 import android.provider.Settings
 import android.view.Surface
-import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.*
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.ContentResolverHelper
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.FeatureParser
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.MiuiBuild
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSecure
+import dev.skomlach.biometric.compat.engine.internal.face.miui.impl.wrapper.SettingsSystem
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
-import java.util.*
+import java.util.Arrays
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 
@@ -388,8 +399,8 @@ class MiuiFaceManagerImpl : IMiuiFaceManager {
                     mMiuiFaceService = Class.forName("android.os.ServiceManager")
                         .getMethod("getService", String::class.java)
                         .invoke(null, SERVICE_NAME) as IBinder
-                    if(!serviceStartedAtLeastOnce)
-                    serviceStartedAtLeastOnce = mMiuiFaceService != null
+                    if (!serviceStartedAtLeastOnce)
+                        serviceStartedAtLeastOnce = mMiuiFaceService != null
                 } catch (e: Exception) {
                     e(TAG, e)
                 }

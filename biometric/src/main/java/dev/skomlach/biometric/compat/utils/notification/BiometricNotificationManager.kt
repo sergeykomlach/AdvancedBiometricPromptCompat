@@ -45,9 +45,8 @@ object BiometricNotificationManager {
     const val CHANNEL_ID = "biometric"
     private val notificationReference = AtomicReference<Runnable>(null)
 
-    private val notificationCompat: NotificationManagerCompat by lazy {
-        NotificationManagerCompat.from(appContext)
-    }
+    @SuppressLint("StaticFieldLeak")
+    private val notificationCompat = NotificationManagerCompat.from(appContext)
 
 
     fun initNotificationsPreferences() {

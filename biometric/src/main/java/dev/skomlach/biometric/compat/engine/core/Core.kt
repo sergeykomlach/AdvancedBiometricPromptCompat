@@ -30,8 +30,7 @@ import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import java.util.*
-import kotlin.collections.set
+import java.util.Collections
 
 
 object Core {

@@ -23,7 +23,8 @@ import android.app.Activity
 import android.app.Application
 import android.content.ComponentCallbacks
 import android.content.Context
-import android.content.res.*
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Bundle
 import android.os.Looper
 import androidx.core.app.LocaleManagerCompat
@@ -31,11 +32,13 @@ import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 

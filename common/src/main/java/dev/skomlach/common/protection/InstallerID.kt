@@ -94,7 +94,7 @@ enum class InstallerID(private val text: String) {
                         .ifEmpty { context.packageManager.getInstallerPackageName(packageName) }
                 else
                     context.packageManager.getInstallerPackageName(packageName)
-            } catch (e :Throwable){
+            } catch (e: Throwable) {
                 return true //unable to get InstallerPackageName
             }
             for (id in InstallerID.entries) {

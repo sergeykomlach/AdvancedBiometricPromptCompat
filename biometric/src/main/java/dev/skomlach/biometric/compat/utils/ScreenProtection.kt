@@ -54,7 +54,7 @@ object ScreenProtection {
         view: View
     ) {
         try {
-            if(A11yDetection.hasWhiteListedService(view.context))
+            if (A11yDetection.hasWhiteListedService(view.context))
                 return
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

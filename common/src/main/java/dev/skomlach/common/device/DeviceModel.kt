@@ -182,7 +182,8 @@ object DeviceModel {
                     val d = jsonObject.getString("device")
                     if (name.isNullOrEmpty()) {
                         continue
-                    } else if (!d.isNullOrEmpty() && (device.equals(d,
+                    } else if (!d.isNullOrEmpty() && (device.equals(
+                            d,
                             ignoreCase = true
                         ) || device.filter { c ->
                             c.isLetterOrDigit() || c.isWhitespace()

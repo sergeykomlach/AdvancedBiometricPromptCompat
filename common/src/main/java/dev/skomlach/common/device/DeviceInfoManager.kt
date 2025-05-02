@@ -174,7 +174,7 @@ object DeviceInfoManager {
         }
         val names = getNames()
         val devicesList = try {
-            Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java)?:arrayOf<DeviceSpec>()
+            Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java) ?: arrayOf<DeviceSpec>()
         } catch (e: Throwable) {
             arrayOf<DeviceSpec>()
         }
@@ -203,7 +203,7 @@ object DeviceInfoManager {
                         LogCat.log("DeviceInfoManager: no data for $first/$second")
                     }
                 }
-            } catch (e :Throwable){
+            } catch (e: Throwable) {
                 LogCat.logException(e)
             }
         }

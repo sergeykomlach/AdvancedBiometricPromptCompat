@@ -30,6 +30,7 @@ import java.util.concurrent.Executors
 object ExecutorHelper {
     val handler: Handler = Handler(Looper.getMainLooper())
     val executor: Executor = HandlerExecutor()
+
     //https://proandroiddev.com/what-is-faster-and-in-which-tasks-coroutines-rxjava-executor-952b1ff62506
     val backgroundExecutor: Executor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         Executors.newWorkStealingPool(100)

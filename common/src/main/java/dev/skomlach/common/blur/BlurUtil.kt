@@ -63,15 +63,15 @@ object BlurUtil {
         null
     }
 
-    interface OnPublishListener {
+    fun interface OnPublishListener {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
     }
 
-    interface onScreenshotListener {
+    fun interface OnScreenshotListener {
         fun invoke(originalBitmap: Bitmap)
     }
 
-    fun takeScreenshot(window: Window, listener: onScreenshotListener) {
+    fun takeScreenshot(window: Window, listener: OnScreenshotListener) {
         GlobalScope.launch(Dispatchers.Main) {
             val bm = window.captureRegionToBitmap()
             bm.addListener({
@@ -105,7 +105,7 @@ object BlurUtil {
         }
     }
 
-    fun takeScreenshot(view: View, listener: onScreenshotListener) {
+    fun takeScreenshot(view: View, listener: OnScreenshotListener) {
         ExecutorHelper.startOnBackground {
             //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
             val isBlackBerryBug = (Build.BRAND.equals(

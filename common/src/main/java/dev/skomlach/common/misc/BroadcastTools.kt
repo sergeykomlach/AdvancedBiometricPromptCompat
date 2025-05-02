@@ -49,7 +49,7 @@ object BroadcastTools {
             val action = actionsIterator.next()
             if (!action.isNullOrEmpty() && !action.startsWith(androidIntentAction)) {
                 LocalBroadcastManager.getInstance(context)
-                    .registerReceiver(broadcastReceiver?:return, filter)
+                    .registerReceiver(broadcastReceiver ?: return, filter)
                 return
             }
         }
@@ -64,7 +64,8 @@ object BroadcastTools {
 
         }
         try {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(broadcastReceiver?:return)
+            LocalBroadcastManager.getInstance(context)
+                .unregisterReceiver(broadcastReceiver ?: return)
         } catch (ignore: Throwable) {
 
         }

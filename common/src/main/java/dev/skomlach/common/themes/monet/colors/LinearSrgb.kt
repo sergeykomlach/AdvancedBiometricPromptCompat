@@ -19,8 +19,9 @@
 
 package dev.skomlach.common.themes.monet.colors
 
+import androidx.annotation.Keep
 import kotlin.math.pow
-
+@Keep
 data class LinearSrgb(
     val r: Double,
     val g: Double,

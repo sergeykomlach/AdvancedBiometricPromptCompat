@@ -24,22 +24,8 @@ import dev.skomlach.common.BuildConfig
 
 object LogCat {
     var DEBUG = BuildConfig.DEBUG
-    var externalLogger: ExternalLogger? = null
-    private val method: String
-        get() {
-            val elements = Thread.currentThread().stackTrace
-            val el = elements[3]
-            return el.className + ":" + el.methodName + ", " + el.fileName + ":" + el.lineNumber
-        }
-
-
     fun logError(vararg msgs: Any?) {
         if (DEBUG) {
-            val m = mutableListOf(*msgs).also {
-                it.add(0, "LogCat")
-                it.add(1, method)
-            }
-            externalLogger?.logError(*m.toTypedArray())
             if (DEBUG) Log.e("LogCat", listOf(*msgs).toString())
         }
     }
@@ -51,11 +37,6 @@ object LogCat {
 
     fun logException(e: Throwable?, vararg msgs: Any?) {
         if (DEBUG) {
-            val m = mutableListOf(*msgs).also {
-                it.add(0, "LogCat")
-                it.add(1, method)
-            }
-            externalLogger?.logException(e, *m.toTypedArray())
             Log.e("LogCat", listOf(*msgs).toString(), e)
         }
     }
@@ -63,18 +44,7 @@ object LogCat {
 
     fun log(vararg msgs: Any?) {
         if (DEBUG) {
-            val m = mutableListOf(*msgs).also {
-                it.add(0, "LogCat")
-                it.add(1, method)
-            }
-            externalLogger?.log(*m.toTypedArray())
             Log.d("LogCat", listOf(*msgs).toString())
         }
-    }
-
-    interface ExternalLogger {
-        fun log(vararg msgs: Any?)
-        fun logError(vararg msgs: Any?)
-        fun logException(e: Throwable?, vararg msgs: Any?)
     }
 }

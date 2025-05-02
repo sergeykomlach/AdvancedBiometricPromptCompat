@@ -88,13 +88,13 @@ class FaceLock {
     fun bind(connection: ServiceConnection): Boolean {
         d(TAG + " bind to service")
         try {
-            if(mServiceConnection == null)
-            mServiceConnection = ServiceConnectionWrapper(connection)
+            if (mServiceConnection == null)
+                mServiceConnection = ServiceConnectionWrapper(connection)
             val intent = Intent()
             intent.setPackage(pkg)
             return context
                 .bindService(intent, mServiceConnection ?: return false, Context.BIND_AUTO_CREATE)
-        } catch (e :Throwable){
+        } catch (e: Throwable) {
             return false
         }
     }

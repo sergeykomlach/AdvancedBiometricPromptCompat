@@ -66,6 +66,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     private var manager: SemBioFaceManager? = null
     private var viewWeakReference = WeakReference<SurfaceView?>(null)
+
     init {
         manager = try {
             SemBioFaceManager.getInstance(context)

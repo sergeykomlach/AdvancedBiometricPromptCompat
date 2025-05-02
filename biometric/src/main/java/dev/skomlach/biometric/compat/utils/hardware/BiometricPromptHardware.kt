@@ -281,6 +281,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     private object EnrollCheckHelper {
         const val KEY_NAME = "BiometricEnrollChanged.test"
+        private val mutex = Mutex()
         val keyStore: KeyStore by lazy {
             KeyStore.getInstance("AndroidKeyStore")
         }
@@ -329,6 +330,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
 
         fun isChanged(): Boolean {
+            mutex.tryLock()
             try {
                 val cipher: Cipher = getCipher()
                 var secretKey = getSecretKey()
@@ -359,6 +361,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 if (e.message?.contains("User changed or deleted their auth credentials") == true)
                     return true
                 e(e)
+            } finally {
+                if (mutex.isLocked) mutex.unlock()
             }
             return false
 

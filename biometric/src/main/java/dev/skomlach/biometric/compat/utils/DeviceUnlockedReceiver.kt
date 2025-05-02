@@ -33,21 +33,21 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
 
         fun registerDeviceUnlockListener() {
-                try {
-                    val filter = IntentFilter()
-                    filter.addAction(Intent.ACTION_USER_PRESENT)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        filter.addAction(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
-                        filter.addAction(Intent.ACTION_USER_UNLOCKED)
-                    }
-                    BroadcastTools.registerGlobalBroadcastIntent(
-                        appContext,
-                        DeviceUnlockedReceiver(),
-                        filter
-                    )
-                } catch (e: Throwable) {
-                    e(e)
+            try {
+                val filter = IntentFilter()
+                filter.addAction(Intent.ACTION_USER_PRESENT)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    filter.addAction(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
+                    filter.addAction(Intent.ACTION_USER_UNLOCKED)
                 }
+                BroadcastTools.registerGlobalBroadcastIntent(
+                    appContext,
+                    DeviceUnlockedReceiver(),
+                    filter
+                )
+            } catch (e: Throwable) {
+                e(e)
+            }
 
         }
     }
@@ -57,14 +57,14 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
             d("Device boot completed")
             BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
         } else
-        if (!intent.action.isNullOrEmpty()) {
-            d("Device unlocked completed")
-            if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+            if (!intent.action.isNullOrEmpty()) {
+                d("Device unlocked completed")
+                if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                else
+                    BiometricLockoutFix.reset()
+            } else if (BiometricErrorLockoutPermanentFix.isRebootDetected())
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-            else
-                BiometricLockoutFix.reset()
-        } else if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
     }
 
 }

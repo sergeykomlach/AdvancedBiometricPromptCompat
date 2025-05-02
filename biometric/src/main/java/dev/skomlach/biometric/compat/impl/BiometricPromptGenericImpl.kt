@@ -49,6 +49,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         HashMap<BiometricType?, AuthResult>()
     private val isOpened = AtomicBoolean(false)
     private val failureCounter = AtomicInteger(0)
+
     init {
         isFingerprint.set(
             builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
@@ -187,7 +188,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null && allList.isEmpty()) {
-                if (failureCounter.get() == 1 ||  error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
+                if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
                     callback?.onFailed(error.failureReason)
                     cancelAuthentication()
                 } else {

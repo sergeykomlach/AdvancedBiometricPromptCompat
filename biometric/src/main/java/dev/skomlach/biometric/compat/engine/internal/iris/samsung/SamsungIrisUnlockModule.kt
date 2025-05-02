@@ -129,6 +129,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     private var manager: SemIrisManager? = null
     private var viewWeakReference = WeakReference<SurfaceView?>(null)
+
     init {
 
         manager = try {
@@ -388,7 +389,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 IRIS_ERROR_IDENTIFY_FAILURE_SYSTEM_FAILURE,
                 IRIS_ERROR_OPEN_IR_CAMERA_FAIL,
                 IRIS_ERROR_DEVICE_NEED_RECAL //????
-                -> failureReason =
+                    -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 IRIS_ERROR_CANCELED -> {

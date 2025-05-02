@@ -58,33 +58,33 @@ fun Fragment.startBiometric(
 //
 //                )
 //        else
-            if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest) || !BiometricManagerCompat.isBiometricAppEnabled())
-                showAlertDialog(
-                    requireActivity(),
-                    "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+        if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest) || !BiometricManagerCompat.isBiometricAppEnabled())
+            showAlertDialog(
+                requireActivity(),
+                "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
 
-                    )
-            else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
-                showAlertDialog(
-                    requireActivity(),
-                    "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
                 )
-            } else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
-                )
-            else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            else {
-                showAlertDialog(
-                    requireActivity(),
-                    "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            }
+        else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
+            showAlertDialog(
+                requireActivity(),
+                "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            )
+        } else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
+            showAlertDialog(
+                requireActivity(),
+                "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
+            )
+        else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
+            showAlertDialog(
+                requireActivity(),
+                "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            )
+        else {
+            showAlertDialog(
+                requireActivity(),
+                "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            )
+        }
 
 
         return
@@ -174,7 +174,10 @@ fun Fragment.startBiometric(
         }
 
         override fun onFailed(reason: AuthenticationFailureReason?, msg: CharSequence?) {
-            BiometricLoggerImpl.e(BiometricAuthException(reason.toString()),"CheckBiometric.onFailed()")
+            BiometricLoggerImpl.e(
+                BiometricAuthException(reason.toString()),
+                "CheckBiometric.onFailed()"
+            )
             try {
                 when (reason) {
                     AuthenticationFailureReason.NO_HARDWARE -> showAlertDialog(

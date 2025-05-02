@@ -47,6 +47,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     //EMUI 10.1.0
     private var huaweiFaceManagerLegacy: HuaweiFaceManager? = null
     private var viewWeakReference = WeakReference<SurfaceView?>(null)
+
     init {
         ExecutorHelper.post {
             try {

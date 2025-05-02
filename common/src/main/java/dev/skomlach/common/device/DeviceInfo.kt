@@ -19,6 +19,9 @@
 
 package dev.skomlach.common.device
 
+import androidx.annotation.Keep
+
+@Keep
 data class DeviceInfo(
     val model: String,
     val sensors: Set<String>

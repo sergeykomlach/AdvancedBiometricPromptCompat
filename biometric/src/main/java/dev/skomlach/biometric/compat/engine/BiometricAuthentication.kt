@@ -327,14 +327,20 @@ object BiometricAuthentication {
         bundle: Bundle?
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) return
-        if(initInProgress.get()){
+        if (initInProgress.get()) {
             val reference = WeakReference(targetView)
-            ExecutorHelper.startOnBackground{
-                while (initInProgress.get()){
+            ExecutorHelper.startOnBackground {
+                while (initInProgress.get()) {
                     Thread.sleep(10)
                 }
-                ExecutorHelper.post{
-                    authenticate(biometricCryptographyPurpose, reference.get(), requestedMethods, listener, bundle)
+                ExecutorHelper.post {
+                    authenticate(
+                        biometricCryptographyPurpose,
+                        reference.get(),
+                        requestedMethods,
+                        listener,
+                        bundle
+                    )
                 }
             }
             return

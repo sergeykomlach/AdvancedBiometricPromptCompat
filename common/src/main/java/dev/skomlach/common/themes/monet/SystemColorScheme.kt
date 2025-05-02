@@ -25,7 +25,7 @@ import dev.skomlach.common.themes.monet.colors.Srgb
 
 @RequiresApi(31)
 class SystemColorScheme {
-    
+
     val accent1 = getSwatch(ACCENT1_RES)
     val accent2 = getSwatch(ACCENT2_RES)
     val accent3 = getSwatch(ACCENT3_RES)

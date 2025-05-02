@@ -30,22 +30,31 @@ import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils.isAtLeastR
 
 
-fun Context.animationsEnabled(): Boolean =
-    !(SettingsHelper.getFloat(
+fun Context.animationsDisabled(): Boolean =
+    //Developers mode enabled
+    SettingsHelper.getInt(
         this,
-        Settings.Global.ANIMATOR_DURATION_SCALE,
-        1.0f
-    ) == 0f
-            || SettingsHelper.getFloat(
-        this,
-        Settings.Global.TRANSITION_ANIMATION_SCALE,
-        1.0f
-    ) == 0f
-            || SettingsHelper.getFloat(
-        this,
-        Settings.Global.WINDOW_ANIMATION_SCALE,
-        1.0f
-    ) == 0f)
+        Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
+        0
+    ) != 0 &&
+            //Progress bar animation, etc
+            (SettingsHelper.getFloat(
+                this,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1.0f
+            ) <= 0.0f
+                    //Fragment/Activity switching animation
+                    || SettingsHelper.getFloat(
+                this,
+                Settings.Global.TRANSITION_ANIMATION_SCALE,
+                1.0f
+            ) <= 0.0f
+                    //Dialogs appearing animation
+                    || SettingsHelper.getFloat(
+                this,
+                Settings.Global.WINDOW_ANIMATION_SCALE,
+                1.0f
+            ) <= 0.0f)
 
 
 fun Context.getFixedContext(type: Int = WindowManager.LayoutParams.TYPE_APPLICATION): Context {
@@ -75,9 +84,8 @@ private fun getDisplayContext(context: Context, type: Int): Context {
                 context.createWindowContext(d, type, null)
             } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 context.createDisplayContext(d).createWindowContext(type, null)
-            } else {
+            } else
                 getWindowContext(context, type)
-            }
         }
     } catch (e: Throwable) {
 

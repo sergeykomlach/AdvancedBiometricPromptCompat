@@ -77,16 +77,9 @@ class WindowBackgroundBlurring(
         BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
         try {
             contentView?.let {
-                BlurUtil.takeScreenshotAndBlur(
-                    it,
-                    object : BlurUtil.OnPublishListener {
-                        override fun onBlurredScreenshot(
-                            originalBitmap: Bitmap,
-                            blurredBitmap: Bitmap?
-                        ) {
-                            setDrawable(blurredBitmap)
-                        }
-                    })
+                BlurUtil.takeScreenshotAndBlur(it) { _, blurredBitmap ->
+                    setDrawable(blurredBitmap)
+                }
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

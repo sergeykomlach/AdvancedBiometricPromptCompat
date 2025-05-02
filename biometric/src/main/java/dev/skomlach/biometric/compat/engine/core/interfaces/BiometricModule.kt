@@ -38,6 +38,7 @@ interface BiometricModule {
     val isUserAuthCanByUsedWithCrypto: Boolean
     val hasEnrolled: Boolean
     val isBiometricEnrollChanged: Boolean
+
     /**
      * Start a fingerprint authentication request.
      *

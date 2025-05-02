@@ -31,7 +31,6 @@ import java.io.FileReader
 object HookDetection {
     private var job: Job? = null
 
-
     fun detect(listener: HookDetectionListener) {
         if (job?.isActive == true) return
         job = GlobalScope.launch(Dispatchers.IO) {

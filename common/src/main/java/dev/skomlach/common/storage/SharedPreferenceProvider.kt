@@ -24,7 +24,7 @@ import android.content.SharedPreferences
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object SharedPreferenceProvider {
-    
+
     fun getPreferences(name: String): SharedPreferences {
         return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }

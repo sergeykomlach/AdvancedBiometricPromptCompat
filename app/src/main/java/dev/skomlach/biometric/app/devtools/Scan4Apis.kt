@@ -26,11 +26,32 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.network.NetworkApi
 import org.jf.dexlib2.DexFileFactory
 import org.jf.dexlib2.Opcodes
-import java.io.*
-import java.util.*
+import java.io.BufferedOutputStream
+import java.io.DataOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.FileWriter
+import java.io.IOException
+import java.io.OutputStream
+import java.io.StringWriter
+import java.util.Arrays
+import java.util.Locale
+import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
+import kotlin.Array
+import kotlin.Boolean
+import kotlin.ByteArray
+import kotlin.Comparator
+import kotlin.Exception
+import kotlin.RuntimeException
+import kotlin.String
+import kotlin.Throwable
+import kotlin.Throws
+import kotlin.arrayOf
+import kotlin.plus
 
 class Scan4Apis {
     @WorkerThread

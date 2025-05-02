@@ -64,6 +64,7 @@ object BiometricErrorLockoutPermanentFix {
             }
         }
     }
+
     fun resetBiometricSensorPermanentlyLocked() {
         try {
             lock.runCatching { this.lock() }

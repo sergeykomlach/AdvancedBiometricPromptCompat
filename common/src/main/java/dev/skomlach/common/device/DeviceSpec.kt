@@ -1,8 +1,9 @@
 package dev.skomlach.common.device
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
-
+@Keep
 data class DeviceSpec(
     @SerializedName("brand") var brand: String? = null,
     @SerializedName("codename") var codename: String? = null,

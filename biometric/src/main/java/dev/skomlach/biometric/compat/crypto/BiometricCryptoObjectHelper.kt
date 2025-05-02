@@ -68,6 +68,7 @@ object BiometricCryptoObjectHelper {
                         isUserAuthRequired,
                         purpose.initVector
                     )
+
                     else -> throw IllegalArgumentException("Cryptography purpose should be BiometricCryptographyPurpose.ENCRYPT or BiometricCryptographyPurpose.DECRYPT")
                 }
             return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
@@ -76,7 +77,7 @@ object BiometricCryptoObjectHelper {
         } catch (e: Throwable) {
             throw BiometricCryptoException(e)
         } finally {
-            mutex.unlock()
+            if (mutex.isLocked) mutex.unlock()
         }
 
     }

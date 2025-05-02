@@ -95,7 +95,10 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         view.findViewById<CheckBox>(R.id.allowDeviceCredentials)?.let {
             it.isChecked =
                 SharedPreferenceProvider.getPreferences("app_settings")
-                    .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
+                    .getBoolean(
+                        "allowDeviceCredentials",
+                        BiometricManagerCompat.isDeviceSecureAvailable()
+                    )
             it.setOnCheckedChangeListener { buttonView, isChecked ->
                 SharedPreferenceProvider.getPreferences("app_settings").edit()
                     .putBoolean("allowDeviceCredentials", isChecked).apply()
@@ -133,7 +136,10 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("crypto", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
+                        .getBoolean(
+                            "allowDeviceCredentials",
+                            BiometricManagerCompat.isDeviceSecureAvailable()
+                        )
                 )
             }
             buttonsList.addView(container)

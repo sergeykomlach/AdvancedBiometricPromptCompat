@@ -30,6 +30,7 @@ import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import kotlinx.coroutines.sync.Mutex
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -41,13 +42,16 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
     private val KEY_NAME = "CryptographyManagerInterfaceMarshmallowImpl-$version"
+    private val mutex = Mutex()
     private val keyStore by lazy {
         KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
     }
+
     override fun getInitializedCipherForEncryption(
         keyName: String,
         isUserAuthRequired: Boolean,
     ): Cipher {
+        mutex.tryLock()
         return try {
             val cipher = getCipher()
             val secretKey = getOrCreateSecretKey(
@@ -62,6 +66,8 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
             )
             throw e
+        } finally {
+            if (mutex.isLocked) mutex.unlock()
         }
     }
 
@@ -126,7 +132,10 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 setIsStrongBoxBacked(hasStrongBox())
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                setUserAuthenticationParameters(Int.MAX_VALUE, KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL)
+                setUserAuthenticationParameters(
+                    Int.MAX_VALUE,
+                    KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+                )
             else
                 setUserAuthenticationValidityDurationSeconds(Int.MAX_VALUE)
         }

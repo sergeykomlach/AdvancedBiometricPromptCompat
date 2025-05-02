@@ -20,10 +20,18 @@
 package dev.skomlach.common.blur
 
 import android.content.Context
-import android.graphics.*
-import android.os.Build
-import android.renderscript.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.renderscript.Allocation
+import android.renderscript.Element
+import android.renderscript.RSRuntimeException
+import android.renderscript.RenderScript
 import android.renderscript.RenderScript.RSMessageHandler
+import android.renderscript.ScriptIntrinsicBlur
+import android.os.Build
 import androidx.annotation.RequiresApi
 
 internal object FastBlur {

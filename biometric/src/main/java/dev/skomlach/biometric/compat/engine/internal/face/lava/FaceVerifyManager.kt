@@ -24,9 +24,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
-import android.provider.Settings
 import android.util.Log
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.misc.SettingsHelper
 
 
 class FaceVerifyManager(private val mContext: Context) {
@@ -158,8 +158,8 @@ class FaceVerifyManager(private val mContext: Context) {
     val isFaceUnlockOn: Boolean
         get() {
             var on = 0
-            on = Settings.System.getInt(
-                mContext.contentResolver,
+            on = SettingsHelper.getInt(
+                mContext,
                 "prize_faceid_switch",//Settings.System.PRIZE_FACEID_SWITCH,
                 0
             )

@@ -29,7 +29,6 @@ import android.view.ViewGroup
 import android.view.ViewParent
 import android.view.WindowManager
 import androidx.core.util.ObjectsCompat
-import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
 

@@ -144,7 +144,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                         "sensor_privacy_start_use_dialog_turn_on_button"
                     ) ?: getString(android.R.string.ok)
                 ) { p0, _ ->
-                    if(Utils.startActivity(
+                    if (Utils.startActivity(
                             Intent(Settings.ACTION_PRIVACY_SETTINGS),
                             context
                         )

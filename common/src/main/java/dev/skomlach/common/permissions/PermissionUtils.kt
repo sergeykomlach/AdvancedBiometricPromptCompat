@@ -237,7 +237,7 @@ class PermissionUtils internal constructor() {
             val manifestPermissions = AndroidContext.appContext.packageManager.getPackageInfo(
                 AndroidContext.appContext.packageName,
                 PackageManager.GET_PERMISSIONS
-            ).requestedPermissions?: emptyArray()
+            ).requestedPermissions ?: emptyArray()
             for (manifestPermission: String in manifestPermissions) try {
                 if (!targetPermissionsKes.contains(manifestPermission)) continue
                 val info = AndroidContext.appContext.packageManager.getPermissionInfo(

@@ -47,6 +47,7 @@ class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
     //EMUI 10.1.0
     private var hihonorFaceManagerLegacy: HihonorFaceManager? = null
     private var viewWeakReference = WeakReference<SurfaceView?>(null)
+
     init {
         ExecutorHelper.post {
             try {

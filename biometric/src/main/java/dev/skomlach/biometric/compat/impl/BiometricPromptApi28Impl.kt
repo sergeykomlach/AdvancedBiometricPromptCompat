@@ -33,7 +33,15 @@ import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.biometric.CancellationHelper
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
-import dev.skomlach.biometric.compat.*
+import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricConfirmation
+import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
@@ -109,15 +117,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
 
             if (isAtLeastR)
-            promptInfoBuilder.setAllowedAuthenticators(
-                if (builder.forceDeviceCredential())
-                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
-                else
-                    if (builder.getCryptographyPurpose() != null)
-                        BiometricManager.Authenticators.BIOMETRIC_STRONG
+                promptInfoBuilder.setAllowedAuthenticators(
+                    if (builder.forceDeviceCredential())
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
                     else
-                        (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
-            )
+                        if (builder.getCryptographyPurpose() != null)
+                            BiometricManager.Authenticators.BIOMETRIC_STRONG
+                        else
+                            (BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.BIOMETRIC_STRONG)
+                )
             else
                 promptInfoBuilder.setDeviceCredentialAllowed(builder.forceDeviceCredential())
 
@@ -347,13 +355,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         showSystemUi(prompt)
         if (secondary.isNotEmpty() && !DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
             ExecutorHelper.postDelayed({
-                    BiometricAuthentication.authenticate(
-                        builder.getCryptographyPurpose(),
-                        null,
-                        secondary,
-                        fmAuthCallback,
-                        BundleBuilder.create(builder)
-                    )
+                BiometricAuthentication.authenticate(
+                    builder.getCryptographyPurpose(),
+                    null,
+                    secondary,
+                    fmAuthCallback,
+                    BundleBuilder.create(builder)
+                )
             }, shortDelayMillis)
         }
 
@@ -480,6 +488,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         callback?.onUIClosed()
         isOpened.set(false)
     }
+
     private fun checkAuthResultForPrimary(
         authResult: AuthResult.AuthResultState,
         cryptoObject: BiometricPrompt.CryptoObject?,

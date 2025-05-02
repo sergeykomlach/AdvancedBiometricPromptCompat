@@ -29,7 +29,7 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 import java.security.SecureRandom
-import java.util.*
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
@@ -204,11 +204,13 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         val relValue = attributes["property"]
         return if ("og:url".equals(relValue, ignoreCase = true)) attributes["content"] else null
     }
+
     private fun isOriginFromMeta(meta: String): Boolean {
         val attributes = parseHtmlTagAttributes(meta)
         val relValue = attributes["content"]?.lowercase()
         return relValue == "origin"
     }
+
     private fun getUrlFromRel(rel: String): String? {
         val attributes = parseHtmlTagAttributes(rel)
         val relValue = attributes["rel"]

@@ -22,12 +22,10 @@ package dev.skomlach.biometric.app
 import android.os.Handler
 import android.os.Looper
 import androidx.multidex.MultiDexApplication
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 class App : MultiDexApplication() {
     companion object {
@@ -46,33 +44,7 @@ class App : MultiDexApplication() {
         LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
             override fun log(string: String) {
                 LogCat.setLog2ViewCallback(null)
-                BiometricPromptCompat.logging(true, object : BiometricLoggerImpl.ExternalLogger {
-                    override fun log(vararg msgs: Any?) {
-                        FirebaseCrashlytics.getInstance().log(listOf(*msgs).toString())
-                    }
-
-                    override fun logError(vararg msgs: Any?) {
-                        FirebaseCrashlytics.getInstance().log(listOf(*msgs).toString())
-                    }
-
-                    override fun logException(e: Throwable?, vararg msgs: Any?) {
-                        FirebaseCrashlytics.getInstance().log(listOf(*msgs).toString())
-                        FirebaseCrashlytics.getInstance().recordException(e ?: return)
-                    }
-                }, object : dev.skomlach.common.logging.LogCat.ExternalLogger {
-                    override fun log(vararg msgs: Any?) {
-                        FirebaseCrashlytics.getInstance().log(listOf(*msgs).toString())
-                    }
-
-                    override fun logError(vararg msgs: Any?) {
-                        FirebaseCrashlytics.getInstance().log(listOf(*msgs).toString())
-                    }
-
-                    override fun logException(e: Throwable?, vararg msgs: Any?) {
-                        FirebaseCrashlytics.getInstance().log(listOf(*msgs).toString())
-                        FirebaseCrashlytics.getInstance().recordException(e ?: return)
-                    }
-                })
+                BiometricPromptCompat.logging(true)
                 BiometricPromptCompat.init {
                     checkForDeviceInfo()
                 }

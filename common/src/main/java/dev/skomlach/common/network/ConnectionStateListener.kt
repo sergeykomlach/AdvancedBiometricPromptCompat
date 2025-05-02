@@ -40,7 +40,7 @@ class ConnectionStateListener {
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
     private var receiverTypeConnection: BroadcastReceiver? = null
-    
+
 
     init {
         connectivityManager =

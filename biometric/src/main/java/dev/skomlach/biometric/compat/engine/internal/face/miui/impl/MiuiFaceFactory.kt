@@ -19,8 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.miui.impl
 
-import android.os.Build
-
 object MiuiFaceFactory {
     const val TAG = "MiuiFaceFactory"
     const val TYPE_2D = 1
@@ -37,9 +35,11 @@ object MiuiFaceFactory {
             TYPE_3D -> {
                 Miui3DFaceManagerImpl.getInstance()
             }
+
             TYPE_2D -> {
                 MiuiFaceManagerImpl.getInstance()
             }
+
             else -> null
         }
     }
@@ -49,9 +49,11 @@ object MiuiFaceFactory {
             Miui3DFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
                 TYPE_3D
             }
+
             MiuiFaceManagerImpl.getInstance()?.isFaceFeatureSupport == true -> {
                 TYPE_2D
             }
+
             else -> {
                 TYPE_DEFAULT
             }

@@ -19,9 +19,10 @@
 
 package dev.skomlach.common.themes.monet.colors
 
+import androidx.annotation.Keep
 import kotlin.math.roundToInt
 import  dev.skomlach.common.themes.monet.colors.LinearSrgb.Companion.toLinearSrgb as realToLinearSrgb
-
+@Keep
 data class Srgb(
     val r: Double,
     val g: Double,

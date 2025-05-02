@@ -19,15 +19,14 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/dialogContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@null"
+        android:forceDarkAllowed="false"
         android:orientation="vertical"
         android:tag="light_theme"
-        android:forceDarkAllowed="false"
         >
 
     <LinearLayout

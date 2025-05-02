@@ -24,9 +24,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@null"
+        android:forceDarkAllowed="false"
         android:orientation="vertical"
         android:tag="light_theme"
-        android:forceDarkAllowed="false"
         >
 
     <LinearLayout

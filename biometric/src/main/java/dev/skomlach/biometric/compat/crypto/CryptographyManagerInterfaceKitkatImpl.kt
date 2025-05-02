@@ -57,6 +57,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private val keyStore by lazy {
         KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
     }
+
     override fun deleteKey(keyName: String) {
 
         keyStore.load(null) // Keystore must be loaded before it can be accessed

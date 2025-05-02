@@ -1,8 +1,9 @@
 package dev.skomlach.common.device
 
+import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 
-
+@Keep
 data class Specs(
     @SerializedName("cpu") var cpu: String? = null,
     @SerializedName("weight") var weight: String? = null,

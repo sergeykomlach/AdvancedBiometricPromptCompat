@@ -30,10 +30,11 @@ class BiometricInitProvider : ContentProvider() {
         try {
             BiometricPromptCompat.init()
         } catch (e: Throwable) {
-            ExecutorHelper.post{
+            ExecutorHelper.post {
                 try {
                     BiometricPromptCompat.init()
-                } catch (e: Throwable) {}
+                } catch (e: Throwable) {
+                }
             }
         }
 

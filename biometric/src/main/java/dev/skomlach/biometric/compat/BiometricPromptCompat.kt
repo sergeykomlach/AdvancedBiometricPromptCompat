@@ -137,17 +137,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         @JvmStatic
         fun logging(
-            enabled: Boolean,
-            externalLogger1: BiometricLoggerImpl.ExternalLogger? = null,
-            externalLogger2: LogCat.ExternalLogger? = null
+            enabled: Boolean
         ) {
             if (!API_ENABLED)
                 return
 //            AbstractBiometricModule.DEBUG_MANAGERS = enabled
             LogCat.DEBUG = enabled
             BiometricLoggerImpl.DEBUG = enabled
-            LogCat.externalLogger = externalLogger2
-            BiometricLoggerImpl.externalLogger = externalLogger1
         }
 
         private val pendingTasks: MutableList<Runnable?> =
@@ -239,9 +235,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
 
-
-    private lateinit var oldDescription : CharSequence
-    private lateinit var oldTitle : CharSequence
+    private lateinit var oldDescription: CharSequence
+    private lateinit var oldTitle: CharSequence
     private val oldIsBiometricReadyForUsage = BiometricManagerCompat.isBiometricReadyForUsage()
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
@@ -447,12 +442,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                     //Not able to continue
                                     else -> true
                                 }
-                                if(!interruptAuth) {
+                                if (!interruptAuth) {
                                     BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onSucceeded restart auth with biometric")
                                     builder.setForceDeviceCredentials(false)
-                                    if(::oldTitle.isInitialized)
+                                    if (::oldTitle.isInitialized)
                                         builder.setTitle(oldTitle)
-                                    if(::oldDescription.isInitialized)
+                                    if (::oldDescription.isInitialized)
                                         builder.setDescription(oldDescription)
                                     ExecutorHelper.postDelayed(
                                         {
@@ -531,9 +526,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ) {
                         if (isOpened.get()) {
                             //Lock/Permanent Lock
-                            if (System.currentTimeMillis() - startTs <= AndroidContext.appContext.resources.getInteger(android.R.integer.config_longAnimTime)
+                            if (System.currentTimeMillis() - startTs <= AndroidContext.appContext.resources.getInteger(
+                                    android.R.integer.config_longAnimTime
+                                )
                                 && (oldIsBiometricReadyForUsage != BiometricManagerCompat.isBiometricReadyForUsage())
-                                && builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential()) {
+                                && builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential()
+                            ) {
                                 BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed restart auth with credentials")
                                 builder.setForceDeviceCredentials(true)
                                 ExecutorHelper.postDelayed(
@@ -560,7 +558,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onUIOpened() {
                         if (!isOpened.get()) {
                             isOpened.set(true)
-                            if(DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+                            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
                                 lastKnownOrientation.set(
                                     builder.getActivity()?.requestedOrientation
                                         ?: builder.getMultiWindowSupport().screenOrientation
@@ -611,7 +609,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onUIClosed() {
                         if (isOpened.get()) {
                             isOpened.set(false)
-                            if(DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
+                            if (DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
                                 builder.getActivity()?.requestedOrientation =
                                     lastKnownOrientation.get()
                             }
@@ -694,11 +692,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     callback.onFailed(AuthenticationFailureReason.CRYPTO_ERROR, null)
                     return
                 }
-                if(!::oldTitle.isInitialized) {
-                    oldTitle = builder.getTitle()?:""
+                if (!::oldTitle.isInitialized) {
+                    oldTitle = builder.getTitle() ?: ""
                 }
-                if(!::oldDescription.isInitialized) {
-                    oldDescription = builder.getDescription()?:""
+                if (!::oldDescription.isInitialized) {
+                    oldDescription = builder.getDescription() ?: ""
                 }
                 val secureScreenDialog = {
                     val title = try {
@@ -1128,7 +1126,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setForceDeviceCredentials(enabled: Boolean): Builder {
-            if(this.isDeviceCredentialFallbackAllowed) {
+            if (this.isDeviceCredentialFallbackAllowed) {
                 this.forceDeviceCredential = enabled
             }
             return this

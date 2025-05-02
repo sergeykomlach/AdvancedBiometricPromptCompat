@@ -54,7 +54,6 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.statusbar.ColorUtil
 import java.util.concurrent.atomic.AtomicBoolean
 
-
 class WindowForegroundBlurring(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val parentView: ViewGroup,
@@ -74,10 +73,11 @@ class WindowForegroundBlurring(
 
     private val biometricTypesList: List<BiometricType>
         get() {
-            val typesList = (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
-                compatBuilder.getAllAvailableTypes()
-            ) else emptyList())
-            return if(!isBlurViewAttachedToHost){
+            val typesList =
+                (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
+                    compatBuilder.getAllAvailableTypes()
+                ) else emptyList())
+            return if (!isBlurViewAttachedToHost) {
                 typesList
             } else
                 typesList.filter {
@@ -161,26 +161,19 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.d("${this.javaClass.name}.updateBackground")
             try {
                 contentView?.let {
-                    BlurUtil.takeScreenshotAndBlur(
-                        it,
-                        object : BlurUtil.OnPublishListener {
-                            override fun onBlurredScreenshot(
-                                originalBitmap: Bitmap,
-                                blurredBitmap: Bitmap?
-                            ) {
-                                if (!isBlurViewAttachedToHost)
-                                    return
-                                setDrawable(blurredBitmap)
-                                updateDefaultColor(originalBitmap)
-                            }
-                        })
+                    BlurUtil.takeScreenshotAndBlur(it) { originalBitmap, blurredBitmap ->
+                        if (!isBlurViewAttachedToHost) {
+                            return@takeScreenshotAndBlur
+                        }
+                        setDrawable(blurredBitmap)
+                        updateDefaultColor(originalBitmap)
+                    }
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
         }
     }
-
 
     private fun setDrawable(bm: Bitmap?) {
         BiometricLoggerImpl.d("${this.javaClass.name}.setDrawable")
@@ -213,7 +206,7 @@ class WindowForegroundBlurring(
         try {
             v?.apply {
                 parentView.addView(this)
-                post {  updateBiometricIconsLayout() }
+                post { updateBiometricIconsLayout() }
             }
 
 
@@ -337,8 +330,9 @@ class WindowForegroundBlurring(
             val rect = Rect()
             biometricsLayout?.getGlobalVisibleRect(rect)
 
-            if(rect.isEmpty) return
-            val newBm = Bitmap.createBitmap(bm,
+            if (rect.isEmpty) return
+            val newBm = Bitmap.createBitmap(
+                bm,
                 rect.left,
                 rect.top,
                 rect.width(),
@@ -362,10 +356,10 @@ class WindowForegroundBlurring(
                             )
                         } ?: Color.TRANSPARENT
 
-                    defaultColor = if(paletteDefColor != Color.TRANSPARENT){
+                    defaultColor = if (paletteDefColor != Color.TRANSPARENT) {
                         val isDark = ColorUtil.isDark(paletteDefColor)
                         DialogMainColor.getColor(context, !isDark)
-                    } else{
+                    } else {
                         val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
                         DialogMainColor.getColor(context, !isDark)
                     }

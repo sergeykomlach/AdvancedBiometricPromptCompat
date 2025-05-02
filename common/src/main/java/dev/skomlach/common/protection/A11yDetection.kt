@@ -29,6 +29,7 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.view.accessibility.AccessibilityManager
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.SettingsHelper
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -36,16 +37,18 @@ import java.io.IOException
 import java.io.StringReader
 
 object A11yDetection {
-    private val talkBackPackages = listOf( "com.google.android.marvin.talkback", "com.android.talkback")
-    fun hasWhiteListedService(cnt: Context) : Boolean{
+    private val talkBackPackages =
+        listOf("com.google.android.marvin.talkback", "com.android.talkback")
+
+    fun hasWhiteListedService(cnt: Context): Boolean {
         try {
             val accessibilityEnabled =
-                Settings.Secure.getInt(cnt.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
+                SettingsHelper.getInt(cnt, Settings.Secure.ACCESSIBILITY_ENABLED)
             val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
 
             if (accessibilityEnabled == 1) {
-                val settingValue = Settings.Secure.getString(
-                    cnt.contentResolver,
+                val settingValue = SettingsHelper.getString(
+                    cnt,
                     Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
                 ) ?: return false
                 mStringColonSplitter.setString(settingValue)
@@ -81,16 +84,17 @@ object A11yDetection {
             )
         }
     }
+
     //isAccessibilityTool
     fun shouldWeTrustA11y(cnt: Context): Boolean {
         try {
             val accessibilityEnabled =
-                Settings.Secure.getInt(cnt.contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED)
+                SettingsHelper.getInt(cnt, Settings.Secure.ACCESSIBILITY_ENABLED)
             val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
 
             if (accessibilityEnabled == 1) {
-                val settingValue = Settings.Secure.getString(
-                    cnt.contentResolver,
+                val settingValue = SettingsHelper.getString(
+                    cnt,
                     Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
                 ) ?: return true
                 mStringColonSplitter.setString(settingValue)
@@ -129,9 +133,9 @@ object A11yDetection {
             list.forEach {
                 if ("${it.resolveInfo.serviceInfo.packageName}/${it.resolveInfo.serviceInfo.name}" == componentName.flattenToString()) {
                     return AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool")
-                            .apply {
-                                this.isAccessible = true
-                            }.invoke(it) as Boolean
+                        .apply {
+                            this.isAccessible = true
+                        }.invoke(it) as Boolean
                 }
             }
         } catch (e: Throwable) {

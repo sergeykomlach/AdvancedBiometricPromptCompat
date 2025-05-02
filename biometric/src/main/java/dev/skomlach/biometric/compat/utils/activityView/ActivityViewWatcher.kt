@@ -30,16 +30,17 @@ class ActivityViewWatcher(
 ) {
     private val views = ActiveWindow.getActiveWindows(compatBuilder.getActivity()).toMutableList()
     private val activeView = ActiveWindow.getActiveWindow(views)
-    private val windowForegroundBlurring : WindowForegroundBlurring? = if(activeView == null) null else
-        WindowForegroundBlurring(
-            compatBuilder,
-            activeView.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup,
-            object : ForceToCloseCallback {
-                override fun onCloseBiometric() {
-                    resetListeners()
-                    forceToCloseCallback.onCloseBiometric()
-                }
-            })
+    private val windowForegroundBlurring: WindowForegroundBlurring? =
+        if (activeView == null) null else
+            WindowForegroundBlurring(
+                compatBuilder,
+                activeView.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup,
+                object : ForceToCloseCallback {
+                    override fun onCloseBiometric() {
+                        resetListeners()
+                        forceToCloseCallback.onCloseBiometric()
+                    }
+                })
     private val backgroundBlurs = mutableListOf<WindowBackgroundBlurring>()
 
     init {

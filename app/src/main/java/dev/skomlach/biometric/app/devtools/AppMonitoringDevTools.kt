@@ -37,7 +37,8 @@ import java.text.DecimalFormat
 class AppMonitoringDevTools(val app: Application) {
     private val threadPolicy = StrictMode.getThreadPolicy()
     private val vmPolicy = StrictMode.getVmPolicy()
-//    private var anrWatchDog: ANRWatchDog? = null
+
+    //    private var anrWatchDog: ANRWatchDog? = null
     private var enable: Boolean = false
     private var fileObserver: FileObserver? = null
 

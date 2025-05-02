@@ -22,8 +22,6 @@ import static okhttp3.internal.Util.UTC;
 
 import android.net.TrafficStats;
 
-//import com.readystatesoftware.chuck.ChuckInterceptor;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 
 import dev.skomlach.biometric.app.devtools.internal.JavaNetHeaders;
 import dev.skomlach.biometric.app.devtools.internal.URLFilter;
-import dev.skomlach.common.contextprovider.AndroidContext;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Dispatcher;

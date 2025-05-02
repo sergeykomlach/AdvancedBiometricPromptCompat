@@ -40,6 +40,7 @@ import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
+
 //import leakcanary.LeakCanary
 
 /**
@@ -116,7 +117,10 @@ class FirstFragment : Fragment() {
                 .getBoolean("crypto", false)
         binding?.allowDeviceCredentials?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
-                .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
+                .getBoolean(
+                    "allowDeviceCredentials",
+                    BiometricManagerCompat.isDeviceSecureAvailable()
+                )
         binding?.checkboxCrypto?.setOnCheckedChangeListener { buttonView, isChecked ->
             SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("crypto", isChecked).apply()
@@ -167,7 +171,10 @@ class FirstFragment : Fragment() {
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("crypto", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("allowDeviceCredentials", BiometricManagerCompat.isDeviceSecureAvailable())
+                        .getBoolean(
+                            "allowDeviceCredentials",
+                            BiometricManagerCompat.isDeviceSecureAvailable()
+                        )
                 )
             }
             buttonsList?.addView(container)
