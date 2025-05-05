@@ -31,6 +31,7 @@ import android.text.style.StyleSpan
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
@@ -90,63 +91,67 @@ class UntrustedAccessibilityFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        val activity = requireActivity()
+        lifecycleScope.launchWhenResumed {
+            try {
+                val title = try {
+                    val appInfo =
+                        (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
+                            requireActivity().application.packageName,
+                            PackageManager.ApplicationInfoFlags.of(0L)
+                        ) else requireActivity().packageManager.getApplicationInfo(
+                            requireActivity().application.packageName,
+                            0
+                        ))
+                    requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
+                        getString(appInfo.labelRes)
+                    }
+                } catch (e: Throwable) {
+                    "Unknown"
+                }
+                val shortText = LocalizationHelper.getLocalizedString(
+                    requireActivity(),
+                    R.string.biometriccompat_use_devicecredentials
+                )
+                val longText = LocalizationHelper.getLocalizedString(
+                    requireActivity(),
+                    R.string.biometriccompat_untrusted_a11y,
+                    shortText,
+                    title
+                )
+                val str = SpannableStringBuilder(longText)
+                //Should not happen anymore
+                try {
+                    str.setSpan(
+                        StyleSpan(Typeface.BOLD),
+                        shortText.length,
+                        longText.length,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                } catch (e: Throwable) {
+                    LogCat.logException(e)
+                }
 
-        val title = try {
-            val appInfo =
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
-                getString(appInfo.labelRes)
-            }
-        } catch (e: Throwable) {
-            "Unknown"
-        }
-        val shortText = LocalizationHelper.getLocalizedString(
-            activity,
-            R.string.biometriccompat_use_devicecredentials
-        )
-        val longText = LocalizationHelper.getLocalizedString(
-            activity,
-            R.string.biometriccompat_untrusted_a11y,
-            shortText,
-            title
-        )
-        val str = SpannableStringBuilder(longText)
-        //Should not happen anymore
-        try {
-            str.setSpan(
-                StyleSpan(Typeface.BOLD),
-                shortText.length,
-                longText.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-        } catch (e: Throwable) {
-            LogCat.logException(e)
-        }
+                val alert = AlertDialog.Builder(requireActivity())
+                    .setTitle(title)
+                    .setMessage(str)
+                    .setOnDismissListener {
+                        closeFragment(false)
+                    }
+                    .setCancelable(false)
+                    .setNegativeButton(android.R.string.cancel) { p0, _ ->
+                        closeFragment(false)
+                    }
+                    .setPositiveButton(
+                        android.R.string.ok
+                    ) { p0, _ ->
+                        closeFragment(true)
+                    }
 
-        val alert = AlertDialog.Builder(requireActivity())
-            .setTitle(title)
-            .setMessage(str)
-            .setOnDismissListener {
+                alert.show()
+            } catch (e: Throwable){
                 closeFragment(false)
-            }
-            .setCancelable(false)
-            .setNegativeButton(android.R.string.cancel) { p0, _ ->
-                closeFragment(false)
-            }
-            .setPositiveButton(
-                android.R.string.ok
-            ) { p0, _ ->
-                closeFragment(true)
-            }
-
-        alert.show()
+                }
+        }
     }
 
     private fun closeFragment(ok: Boolean) {

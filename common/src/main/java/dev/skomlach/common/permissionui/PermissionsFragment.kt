@@ -53,7 +53,7 @@ import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
-
+import androidx.lifecycle.lifecycleScope
 class PermissionsFragment : Fragment() {
     companion object {
 
@@ -163,13 +163,18 @@ class PermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-        if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
-            ExecutorHelper.postDelayed({
-                requestPermissions(permissions)
-            }, 250)
-        } else {
-            closeFragment()
+        lifecycleScope.launchWhenResumed {
+            val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
+            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
+
+                try {
+                    requestPermissions(permissions)
+                } catch (e: Throwable) {
+                    closeFragment()
+                }
+            } else {
+                closeFragment()
+            }
         }
     }
 

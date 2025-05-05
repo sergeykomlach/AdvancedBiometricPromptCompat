@@ -28,6 +28,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools
+import dev.skomlach.common.misc.ExecutorHelper
 
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
@@ -53,18 +54,20 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action?.contains("boot", ignoreCase = true) == true) {
-            d("Device boot completed")
-            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-        } else
-            if (!intent.action.isNullOrEmpty()) {
-                d("Device unlocked completed")
-                if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                else
-                    BiometricLockoutFix.reset()
-            } else if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+        ExecutorHelper.startOnBackground {
+            if (intent.action?.contains("boot", ignoreCase = true) == true) {
+                d("Device boot completed")
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+            } else
+                if (!intent.action.isNullOrEmpty()) {
+                    d("Device unlocked completed")
+                    if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+                        BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                    else
+                        BiometricLockoutFix.reset()
+                } else if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+        }
     }
 
 }

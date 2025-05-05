@@ -35,6 +35,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -133,33 +134,35 @@ class CredentialsRequestFragment : Fragment() {
     override fun onAttach(context: Context) {
         LogCat.log("CredentialsRequestFragment", "onAttach")
         super.onAttach(context)
-        try {
-            //Create an intent to open device screen lock screen to authenticate
-            //Pass the Screen Lock screen Title and Description
-            val title = arguments?.getCharSequence("title")
-                ?: resources.getString(androidx.biometric.R.string.use_screen_lock_label)
-            val description = arguments?.getCharSequence("description")
-                ?: resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
-            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                //Get the instance of KeyGuardManager
-                val keyguardManager =
-                    requireActivity().getSystemService(KEYGUARD_SERVICE) as KeyguardManager?
-                keyguardManager?.createConfirmDeviceCredentialIntent(
-                    title,
-                    description
+        lifecycleScope.launchWhenResumed {
+            try {
+                //Create an intent to open device screen lock screen to authenticate
+                //Pass the Screen Lock screen Title and Description
+                val title = arguments?.getCharSequence("title")
+                    ?: resources.getString(androidx.biometric.R.string.use_screen_lock_label)
+                val description = arguments?.getCharSequence("description")
+                    ?: resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
+                val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    //Get the instance of KeyGuardManager
+                    val keyguardManager =
+                        requireActivity().getSystemService(KEYGUARD_SERVICE) as KeyguardManager?
+                    keyguardManager?.createConfirmDeviceCredentialIntent(
+                        title,
+                        description
+                    )
+                } else {
+                    null
+                }
+                startForResult.launch(intent ?: run {
+                    closeFragment()
+                    return@launchWhenResumed
+                })
+            } catch (e: Throwable) {
+                LogCat.logException(
+                    e, "CredentialsRequestFragment", e.message
                 )
-            } else {
-                null
-            }
-            startForResult.launch(intent ?: run {
                 closeFragment()
-                return
-            })
-        } catch (e: Throwable) {
-            LogCat.logException(
-                e, "CredentialsRequestFragment", e.message
-            )
-            closeFragment()
+            }
         }
     }
 

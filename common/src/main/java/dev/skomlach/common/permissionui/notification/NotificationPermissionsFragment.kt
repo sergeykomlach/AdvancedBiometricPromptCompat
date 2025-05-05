@@ -45,7 +45,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.translate.LocalizationHelper
-
+import androidx.lifecycle.lifecycleScope
 class NotificationPermissionsFragment : Fragment() {
     companion object {
         private const val TAG = "NotificationPermissionsFragment"
@@ -215,12 +215,11 @@ class NotificationPermissionsFragment : Fragment() {
                 p0.dismiss()
                 if (Build.VERSION.SDK_INT >= 26) {
                     try {
-                        if (safeStartActivity(
+                        if(safeStartActivity(
                                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                                     .putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName),
 
-                                )
-                        )
+                                ))
                             return@setPositiveButton
                     } catch (e: Throwable) {
                         LogCat.logException(e)
@@ -234,7 +233,7 @@ class NotificationPermissionsFragment : Fragment() {
                     launchIntent.putExtra("app_uid", context?.applicationInfo?.uid)
 
                     if (intentCanBeResolved(launchIntent)) {
-                        if (safeStartActivity(launchIntent))
+                        if(safeStartActivity(launchIntent))
                             return@setPositiveButton
                     }
                 } catch (e: Throwable) {
@@ -244,7 +243,7 @@ class NotificationPermissionsFragment : Fragment() {
                     val i = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
-                        if (safeStartActivity(i))
+                        if(safeStartActivity(i))
                             return@setPositiveButton
                     }
                 } catch (e: Throwable) {
@@ -301,18 +300,15 @@ class NotificationPermissionsFragment : Fragment() {
                 if (Build.VERSION.SDK_INT >= 26) {
                     try {
                         val channelId = arguments?.getString(CHANNEL_ID)
-                        if (safeStartActivity(
+                        if(safeStartActivity(
                                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                                     putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
                                     val oneUiVersion = getOneUiVersion()
-                                    if (oneUiVersion.isEmpty() || io.github.g00fy2.versioncompare.Version(
-                                            oneUiVersion
-                                        ).isLowerThan("6.1")
+                                    if (oneUiVersion.isEmpty() || io.github.g00fy2.versioncompare.Version(oneUiVersion).isLowerThan("6.1")
                                     )
-                                        putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
+                                        putExtra(  Settings.EXTRA_CHANNEL_ID,channelId)
                                 }
-                            )
-                        )
+                            ))
 
                             return@setPositiveButton
                     } catch (e: Throwable) {
@@ -326,7 +322,7 @@ class NotificationPermissionsFragment : Fragment() {
                     launchIntent.putExtra("app_uid", context?.applicationInfo?.uid)
 
                     if (intentCanBeResolved(launchIntent)) {
-                        if (safeStartActivity(launchIntent))
+                        if(safeStartActivity(launchIntent))
                             return@setPositiveButton
                     }
                 } catch (e: Throwable) {
@@ -336,7 +332,7 @@ class NotificationPermissionsFragment : Fragment() {
                     val i = Intent(Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
-                        if (safeStartActivity(i))
+                        if(safeStartActivity(i))
                             return@setPositiveButton
                     }
                 } catch (e: Throwable) {
@@ -357,30 +353,30 @@ class NotificationPermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        val type = PermissionRequestController.PermissionType.entries.firstOrNull {
-            it.name == arguments?.getString(PERMISSION_KEY)
-        }
+        lifecycleScope.launchWhenResumed {
+            val type = PermissionRequestController.PermissionType.entries.firstOrNull {
+                it.name == arguments?.getString(PERMISSION_KEY)
+            }
 
-        when (type) {
-            PermissionRequestController.PermissionType.GENERAL_PERMISSION -> {
-                if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
-                    startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())
-                    return
-                } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
-                    generalNotification.invoke()
-                    return
+            when (type) {
+                PermissionRequestController.PermissionType.GENERAL_PERMISSION -> {
+                    if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
+                        startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())
+                        return@launchWhenResumed
+                    } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
+                        generalNotification.invoke()
+                        return@launchWhenResumed
+                    }
                 }
-            }
 
-            PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> {
-                channelNotification.invoke()
-                return
-            }
+                PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> {
+                    channelNotification.invoke()
+                    return@launchWhenResumed
+                }
 
-            else -> {
-                ExecutorHelper.postDelayed({
+                else -> {
                     closeFragment()
-                }, 250)
+                }
             }
         }
     }
