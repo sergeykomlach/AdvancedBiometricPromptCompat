@@ -67,7 +67,10 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             )
             throw e
         } finally {
-            if (mutex.isLocked) mutex.unlock()
+            try {
+                if (mutex.isLocked) mutex.unlock()
+            } catch (e: Throwable) {
+            }
         }
     }
 

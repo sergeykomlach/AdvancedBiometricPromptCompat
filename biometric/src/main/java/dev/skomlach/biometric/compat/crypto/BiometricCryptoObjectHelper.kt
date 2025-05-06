@@ -77,7 +77,10 @@ object BiometricCryptoObjectHelper {
         } catch (e: Throwable) {
             throw BiometricCryptoException(e)
         } finally {
-            if (mutex.isLocked) mutex.unlock()
+            try {
+                if (mutex.isLocked) mutex.unlock()
+            } catch (e: Throwable) {
+            }
         }
 
     }

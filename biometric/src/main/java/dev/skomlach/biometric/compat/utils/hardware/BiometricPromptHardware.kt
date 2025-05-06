@@ -20,12 +20,14 @@
 package dev.skomlach.biometric.compat.utils.hardware
 
 import android.annotation.TargetApi
+import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
+import androidx.lifecycle.Observer
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
@@ -51,6 +53,11 @@ import javax.crypto.SecretKey
 
 class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     AbstractHardware(authRequest) {
+    private val KEY_NAME = "BiometricEnrollChanged.test"
+    private val enrollChanged = EnrollCheckHelper()
+
+    @Volatile
+    private var isEnrollChanged: Boolean? = null
 
     private val biometricFeatures: ArrayList<String>
         get() {
@@ -144,8 +151,18 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             }
         }
 
+    private val observer = Observer<Activity?> {
+        enrollChanged.updateState()
+    }
+
     init {
-        EnrollCheckHelper.updateState()
+        enrollChanged.updateState()
+        AndroidContext.resumedActivityLiveData.observeForever(observer)
+    }
+
+    @Throws(Throwable::class)
+    fun finalize() {
+        AndroidContext.resumedActivityLiveData.removeObserver(observer)
     }
 
     override val isHardwareAvailable: Boolean
@@ -221,7 +238,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
         return false
     }
-
     //More or less ok this one
     private fun isLockedOutForType(type: BiometricType): Boolean =
         BiometricLockoutFix.isLockOut(type)
@@ -260,18 +276,23 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     override val isBiometricEnrollChanged: Boolean
         get() {
-            EnrollCheckHelper.updateState()
-            return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                .getBoolean("isBiometricEnrollChanged", false)
+            return isEnrollChanged
+                ?: SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                    .getBoolean("isBiometricEnrollChanged", false).apply {
+                        isEnrollChanged = this
+                    }
         }
 
     override
     fun updateBiometricEnrollChanged() {
         try {
             if (isBiometricEnrollChanged) {
-                EnrollCheckHelper.keyStore.load(null)
-                if (EnrollCheckHelper.keyStore.containsAlias(EnrollCheckHelper.KEY_NAME))
-                    EnrollCheckHelper.keyStore.deleteEntry(EnrollCheckHelper.KEY_NAME)
+                enrollChanged.keyStore.load(null)
+                if (enrollChanged.keyStore.containsAlias(KEY_NAME))
+                    enrollChanged.keyStore.deleteEntry(KEY_NAME)
+                SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                    .edit()
+                    .putBoolean("isBiometricEnrollChanged", false).apply()
             }
         } catch (e: Throwable) {
             e(e)
@@ -279,29 +300,20 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     }
 
-    private object EnrollCheckHelper {
-        const val KEY_NAME = "BiometricEnrollChanged.test"
+    inner class EnrollCheckHelper {
         private val mutex = Mutex()
         val keyStore: KeyStore by lazy {
             KeyStore.getInstance("AndroidKeyStore")
         }
         private var job: Job? = null
-
-        init {
-            GlobalScope.launch(Dispatchers.Main) {
-                AndroidContext.resumedActivityLiveData.observeForever {
-                    updateState()
-                }
-            }
-        }
-
         fun updateState() {
             job?.cancel()
             job = GlobalScope.launch(Dispatchers.IO) {
-                val changed = isChanged()
-                SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                    .edit()
-                    .putBoolean("isBiometricEnrollChanged", changed).apply()
+                isEnrollChanged = isChanged().also {
+                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                        .edit()
+                        .putBoolean("isBiometricEnrollChanged", it).apply()
+                }
             }
         }
 
@@ -329,7 +341,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             )
         }
 
-        fun isChanged(): Boolean {
+        private fun isChanged(): Boolean {
             mutex.tryLock()
             try {
                 val cipher: Cipher = getCipher()
@@ -362,7 +374,10 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     return true
                 e(e)
             } finally {
-                if (mutex.isLocked) mutex.unlock()
+                try {
+                    if (mutex.isLocked) mutex.unlock()
+                } catch (e: Throwable) {
+                }
             }
             return false
 
