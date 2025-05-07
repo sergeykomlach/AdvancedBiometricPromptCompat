@@ -43,7 +43,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class CustomBiometricModule constructor(
+class CustomBiometricModule(
     private val method: BiometricMethod,
     private val manager: AbstractCustomBiometricManager?,
     private val listener: BiometricInitListener?
@@ -94,9 +94,8 @@ class CustomBiometricModule constructor(
         manager?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 this.originalCancellationSignal = cancellationSignal
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)

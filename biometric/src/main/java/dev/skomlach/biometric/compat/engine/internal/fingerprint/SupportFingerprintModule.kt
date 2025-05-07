@@ -79,7 +79,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java &&
                         it.returnType.methods.firstOrNull { m -> m.name.equals("isHardwareDetected") } != null
             }
-            val isAccessible = method?.isAccessible ?: true
+            val isAccessible = method?.isAccessible != false
             if (!isAccessible)
                 method?.isAccessible = true
             val manager = try {
@@ -132,9 +132,8 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
         managerCompat?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 this.originalCancellationSignal = cancellationSignal
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -161,9 +160,8 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         cancellationSignal.cancel()
                 }
                 // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
                 val callback: FingerprintManagerCompat.AuthenticationCallback =
                     AuthCallbackCompat(
                         biometricCryptoObject,

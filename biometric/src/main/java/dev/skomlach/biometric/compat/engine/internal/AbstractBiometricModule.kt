@@ -19,13 +19,11 @@
 
 package dev.skomlach.biometric.compat.engine.internal
 
-import android.app.Activity
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.UserHandle
 import androidx.core.os.CancellationSignal
-import androidx.lifecycle.Observer
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
@@ -35,10 +33,6 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.HexUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import java.nio.charset.Charset
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicLong
@@ -49,9 +43,6 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         var DEBUG_MANAGERS = false
     }
 
-    @Volatile
-    private var isEnrollChanged: Boolean? = null
-    private var job: Job? = null
 
     private val tag: Int = biometricMethod.id
     private val preferences: SharedPreferences = getPreferences("BiometricCompat_AbstractModule")
@@ -66,30 +57,10 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     private var cancelTask: Runnable? = null
 
-    private val observer = Observer<Activity?> {
-        updateState()
-    }
-
-    init {
-        updateState()
-        AndroidContext.resumedActivityLiveData.observeForever(observer)
-    }
-
     @Throws(Throwable::class)
     fun finalize() {
-        AndroidContext.resumedActivityLiveData.removeObserver(observer)
         cancelTask?.let {
             ExecutorHelper.removeCallbacks(it)
-        }
-    }
-
-    private fun updateState() {
-        job?.cancel()
-        job = GlobalScope.launch(Dispatchers.IO) {
-            isEnrollChanged = isChanged().also {
-                preferences.edit()
-                    .putBoolean("isBiometricEnrollChanged" + tag(), it).apply()
-            }
         }
     }
 
@@ -132,34 +103,21 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     override val isBiometricEnrollChanged: Boolean
         get() {
-            return isEnrollChanged
-                ?: preferences.getBoolean("isBiometricEnrollChanged" + tag(), false).apply {
-                    isEnrollChanged = this
-                }
+            val lastKnown = preferences.getStringSet(
+                ENROLLED_PREF + tag(),
+                emptySet()
+            )
+            if (lastKnown == null) {
+                updateBiometricEnrollChanged()
+                return false
+            }
+            return getHashes().toMutableList().apply {
+                removeAll(lastKnown)
+            }.isNotEmpty()
         }
-
-
-    private fun isChanged(): Boolean {
-        val lastKnown = preferences.getStringSet(
-            ENROLLED_PREF + tag(),
-            emptySet()
-        )
-        if (lastKnown == null) {
-            updateBiometricEnrollChanged()
-            return false
-        }
-        return getHashes().toMutableList().apply {
-            removeAll(lastKnown)
-        }.isNotEmpty()
-    }
 
     fun updateBiometricEnrollChanged() {
-        GlobalScope.launch(Dispatchers.IO) {
-            preferences.edit()
-                .putStringSet(ENROLLED_PREF + tag(), getHashes())
-                .putBoolean("isBiometricEnrollChanged" + tag(), false)
-                .apply()
-        }
+        preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
     }
 
     open fun getIds(manager: Any): List<String> {
@@ -175,7 +133,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                 )) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()
             }
             methods.forEach { method ->
-                val isAccessible = method?.isAccessible ?: true
+                val isAccessible = method?.isAccessible != false
                 try {
                     if (!isAccessible)
                         method?.isAccessible = true

@@ -71,7 +71,6 @@ object BiometricNotificationManager {
         }
     }
 
-    @SuppressLint("MissingPermission")
     fun showNotification(
         builder: BiometricPromptCompat.Builder
     ) {

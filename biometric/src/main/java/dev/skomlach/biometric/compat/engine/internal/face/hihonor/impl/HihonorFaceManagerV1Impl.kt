@@ -89,8 +89,7 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
     override val isHardwareDetected: Boolean
         get() = !HihonorFaceRecognizeManager.isCameraBroken() && try {
             try {
-                HihonorFaceRecognizeManager.fRManager?.faceRecognitionAbility?.isFaceRecognitionSupport
-                    ?: false
+                HihonorFaceRecognizeManager.fRManager?.faceRecognitionAbility?.isFaceRecognitionSupport == true
             } catch (e: Throwable) {
                 HihonorFaceRecognizeManager.fRManager?.let {
                     return (it.hardwareSupportType and 1) !== 0

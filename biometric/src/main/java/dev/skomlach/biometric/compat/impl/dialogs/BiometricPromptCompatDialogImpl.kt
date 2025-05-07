@@ -331,7 +331,7 @@ class BiometricPromptCompatDialogImpl(
         }
     }
 
-    private inner class AnimateHandler constructor(looper: Looper) : Handler(looper) {
+    private inner class AnimateHandler(looper: Looper) : Handler(looper) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 WHAT_RESTORE_NORMAL_STATE -> {

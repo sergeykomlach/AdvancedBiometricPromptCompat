@@ -148,9 +148,9 @@ class UntrustedAccessibilityFragment : Fragment() {
                     }
 
                 alert.show()
-            } catch (e: Throwable){
+            } catch (e: Throwable) {
                 closeFragment(false)
-                }
+            }
         }
     }
 

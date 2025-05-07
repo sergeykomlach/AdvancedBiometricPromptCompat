@@ -761,7 +761,7 @@ class Miui3DFaceManagerImpl : IMiuiFaceManager,
                     }
                 }
                 if (is_ir_detect && mEnrollmentCallback != null) {
-                    val z = mEnrollParam.enableDistanceDetect
+                    mEnrollParam.enableDistanceDetect
                     mEnrollmentCallback?.onEnrollmentHelp(2, null)
                 }
                 return

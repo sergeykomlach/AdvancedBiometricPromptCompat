@@ -163,12 +163,20 @@ class WindowForegroundBlurring(
                 contentView?.let {
                     BlurUtil.takeScreenshotAndBlur(it) { originalBitmap, blurredBitmap ->
                         if (!isBlurViewAttachedToHost) {
+                            ExecutorHelper.postDelayed({
+                                drawingInProgress.set(false)
+                            },
+                                context.resources.getInteger(android.R.integer.config_shortAnimTime)
+                                    .toLong()
+                            )
                             return@takeScreenshotAndBlur
                         }
                         setDrawable(blurredBitmap)
                         updateDefaultColor(originalBitmap)
                     }
-                }
+                } ?: ExecutorHelper.postDelayed({
+                    drawingInProgress.set(false)
+                }, context.resources.getInteger(android.R.integer.config_shortAnimTime).toLong())
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
             }
@@ -195,7 +203,6 @@ class WindowForegroundBlurring(
             BiometricLoggerImpl.e(e)
         }
         ExecutorHelper.postDelayed({
-            updateBiometricIconsLayout()
             drawingInProgress.set(false)
         }, context.resources.getInteger(android.R.integer.config_shortAnimTime).toLong())
     }

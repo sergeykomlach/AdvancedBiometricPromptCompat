@@ -97,7 +97,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
         private set
     private var focusListener: WindowFocusChangedListener? = null
     val isShowing: Boolean
-        get() = dialog?.isShowing ?: false
+        get() = dialog?.isShowing == true
     private var dismissDialogInterface: DialogInterface.OnDismissListener? = null
     private var cancelDialogInterface: DialogInterface.OnCancelListener? = null
     private var onShowDialogInterface: DialogInterface.OnShowListener? = null
@@ -283,8 +283,8 @@ class BiometricPromptCompatDialog : DialogFragment() {
                 val wlp = w.attributes
                 wlp.height = containerView?.apply {
                     this.measure(
-                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
                     )
                 }?.measuredHeight ?: WindowManager.LayoutParams.WRAP_CONTENT
                 wlp.gravity = Gravity.BOTTOM

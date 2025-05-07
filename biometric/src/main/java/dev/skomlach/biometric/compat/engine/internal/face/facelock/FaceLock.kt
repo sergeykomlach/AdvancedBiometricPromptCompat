@@ -218,7 +218,7 @@ class FaceLock {
         mMap.remove(cb)
     }
 
-    private inner class ServiceConnectionWrapper constructor(private val mServiceConnection: ServiceConnection) :
+    private inner class ServiceConnectionWrapper(private val mServiceConnection: ServiceConnection) :
         ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             d(TAG + " service connected to $name")

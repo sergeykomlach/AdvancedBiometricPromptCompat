@@ -30,7 +30,7 @@ object MiuiBuild {
         try {
             clazz = Class.forName("miui.os.Build")
             IS_INTERNATIONAL_BUILD =
-                clazz?.getField("IS_INTERNATIONAL_BUILD")?.getBoolean(null) ?: false
+                clazz?.getField("IS_INTERNATIONAL_BUILD")?.getBoolean(null) == true
             DEVICE = clazz?.getField("DEVICE")?.get(null) as String?
         } catch (ignored: ClassNotFoundException) {
         } catch (ignored: NoSuchFieldException) {

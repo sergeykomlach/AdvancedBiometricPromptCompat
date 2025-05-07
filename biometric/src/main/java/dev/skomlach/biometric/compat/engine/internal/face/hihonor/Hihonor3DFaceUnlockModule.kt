@@ -82,7 +82,7 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
     override val hasEnrolled: Boolean
         get() {
             try {
-                return hihonor3DFaceManager?.hasEnrolledTemplates() ?: false
+                return hihonor3DFaceManager?.hasEnrolledTemplates() == true
             } catch (e: Throwable) {
 
             }
@@ -101,9 +101,8 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
         hihonor3DFaceManager?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 this.originalCancellationSignal = cancellationSignal
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)

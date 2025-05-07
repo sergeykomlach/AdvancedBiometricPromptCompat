@@ -92,9 +92,8 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         manager?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 this.originalCancellationSignal = cancellationSignal
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)

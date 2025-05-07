@@ -34,7 +34,7 @@ class ActivityViewWatcher(
         if (activeView == null) null else
             WindowForegroundBlurring(
                 compatBuilder,
-                activeView.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup,
+                activeView.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)!!,
                 object : ForceToCloseCallback {
                     override fun onCloseBiometric() {
                         resetListeners()
@@ -46,7 +46,7 @@ class ActivityViewWatcher(
     init {
         views.remove(activeView)
         for (view in views) {
-            backgroundBlurs.add(WindowBackgroundBlurring(view.findViewById(Window.ID_ANDROID_CONTENT) as ViewGroup))
+            backgroundBlurs.add(WindowBackgroundBlurring(view.findViewById<ViewGroup>(Window.ID_ANDROID_CONTENT)!!))
         }
 
     }

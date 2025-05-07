@@ -29,14 +29,14 @@ import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
 
 class HardwareAccessImpl private constructor(val biometricAuthRequest: BiometricAuthRequest) {
     companion object {
-
+        private val cache = HashMap<BiometricAuthRequest, HardwareInfo?>()
         fun getInstance(api: BiometricAuthRequest): HardwareAccessImpl {
             return HardwareAccessImpl(api)
         }
     }
 
     val isBiometricEnrollChanged: Boolean
-        get() = hardwareInfo?.isBiometricEnrollChanged ?: false
+        get() = hardwareInfo?.isBiometricEnrollChanged == true
 
     fun updateBiometricEnrollChanged() {
         hardwareInfo?.updateBiometricEnrollChanged()
@@ -46,34 +46,38 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
     val isNewBiometricApi: Boolean
         get() = hardwareInfo !is LegacyHardware
     val isHardwareAvailable: Boolean
-        get() = hardwareInfo?.isHardwareAvailable ?: false
+        get() = hardwareInfo?.isHardwareAvailable == true
     val isBiometricEnrolled: Boolean
-        get() = hardwareInfo?.isBiometricEnrolled ?: false
+        get() = hardwareInfo?.isBiometricEnrolled == true
     val isLockedOut: Boolean
-        get() = hardwareInfo?.isLockedOut ?: false
+        get() = hardwareInfo?.isLockedOut == true
 
     init {
-        when (biometricAuthRequest.api) {
-            BiometricApi.LEGACY_API -> {
-                hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
-            }
+        hardwareInfo = cache[biometricAuthRequest]
+        if (hardwareInfo == null) {
+            when (biometricAuthRequest.api) {
+                BiometricApi.LEGACY_API -> {
+                    hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
+                }
 
-            BiometricApi.BIOMETRIC_API -> {
-                hardwareInfo =
-                    BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
-            }
-
-            else -> { //AUTO
-                hardwareInfo = when {
-                    BuildCompat.isAtLeastP() -> {
+                BiometricApi.BIOMETRIC_API -> {
+                    hardwareInfo =
                         BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
-                    }
+                }
 
-                    else -> {
-                        LegacyHardware(biometricAuthRequest) //Android 4+
+                else -> { //AUTO
+                    hardwareInfo = when {
+                        BuildCompat.isAtLeastP() -> {
+                            BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+                        }
+
+                        else -> {
+                            LegacyHardware(biometricAuthRequest) //Android 4+
+                        }
                     }
                 }
             }
+            cache[biometricAuthRequest] = hardwareInfo
         }
     }
 

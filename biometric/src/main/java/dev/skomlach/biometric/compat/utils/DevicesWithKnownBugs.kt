@@ -184,13 +184,13 @@ object DevicesWithKnownBugs {
                 "Chromium",
                 ignoreCase = true
             ) || Build.DEVICE != null && Build.DEVICE.matches(Regex(".+_cheets"))
-                    || AndroidContext.appContext.packageManager.hasSystemFeature("org.chromium.arc.device_management"))
-                    || AndroidContext.appContext.packageManager.hasSystemFeature("org.chromium.arc")
+                    || appContext.packageManager.hasSystemFeature("org.chromium.arc.device_management"))
+                    || appContext.packageManager.hasSystemFeature("org.chromium.arc")
         }
 
     val isFoldable: Boolean
         get() {
-            if (AndroidContext.appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE))
+            if (appContext.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_HINGE_ANGLE))
                 return true
             else
                 if (isChromeBook) return true

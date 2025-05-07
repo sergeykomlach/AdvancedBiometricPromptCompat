@@ -249,7 +249,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         get() {
 
             try {
-                return manager?.hasEnrolledIrises() ?: false
+                return manager?.hasEnrolledIrises() == true
             } catch (e: Throwable) {
 
             }
@@ -267,9 +267,8 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
         manager?.let {
             try {
                 // Why getCancellationSignalObject returns an Object is unexplained
-                val signalObject =
-                    (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
+                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
 
                 this.originalCancellationSignal = cancellationSignal
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)

@@ -1075,7 +1075,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         })
                 }
             }
-            return isTruncateChecked ?: false
+            return isTruncateChecked == true
         }
 
         fun getPrimaryAvailableTypes(): Set<BiometricType> {
