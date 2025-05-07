@@ -21,7 +21,12 @@ package dev.skomlach.biometric.compat.utils
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.view.*
+import android.view.LayoutInflater
+import android.view.SurfaceView
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import android.view.Window
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -31,6 +36,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.concurrent.atomic.AtomicInteger
@@ -55,6 +61,21 @@ object TruncatedTextFix {
             DESCRIPTION_SHIFT = 0
         }
 
+    }
+
+    fun readCache() {
+        ExecutorHelper.post {
+            try {
+                SharedPreferenceProvider.getPreferences("TruncatedText_v2").all.values.forEach { json ->
+                    if (json is String && json.isNotEmpty()) {
+                        Gson().fromJson(json, TruncatedText::class.java).also {
+                            cache.put(json, it)
+                        }
+                    }
+                }
+            } catch (e: Throwable) {
+            }
+        }
     }
 
     interface OnTruncateChecked {

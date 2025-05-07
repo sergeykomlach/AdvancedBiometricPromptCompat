@@ -206,6 +206,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         NotificationPermissionsFragment.preloadTranslations()
                         UntrustedAccessibilityFragment.preloadTranslations()
                     }
+                    TruncatedTextFix.readCache()
                 }
             }
         }
