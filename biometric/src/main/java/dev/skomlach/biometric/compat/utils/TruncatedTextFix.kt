@@ -64,7 +64,7 @@ object TruncatedTextFix {
     }
 
     fun readCache() {
-        ExecutorHelper.post {
+        ExecutorHelper.startOnBackground {
             try {
                 SharedPreferenceProvider.getPreferences("TruncatedText_v2").all.values.forEach { json ->
                     if (json is String && json.isNotEmpty()) {
