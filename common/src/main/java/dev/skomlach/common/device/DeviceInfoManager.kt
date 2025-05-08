@@ -272,6 +272,27 @@ object DeviceInfoManager {
         codeName: String
     ): DeviceInfo? {
         try {
+            if (model.startsWith(brand, ignoreCase = true)) {
+                val info =
+                    findDeviceInfo(
+                        devicesList,
+                        model.substring(brand.length).trim(),
+                        brand,
+                        codeName
+                    )
+                if (info != null)
+                    return info
+            }
+            if (modelReadableName.startsWith(brand, ignoreCase = true)) {
+                val info = findDeviceInfo(
+                    devicesList,
+                    modelReadableName.substring(brand.length).trim(),
+                    brand,
+                    codeName
+                )
+                if (info != null)
+                    return info
+            }
             val info = findDeviceInfo(devicesList, model, brand, codeName)
             if (info != null)
                 return info
