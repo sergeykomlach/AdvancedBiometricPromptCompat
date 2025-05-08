@@ -46,6 +46,7 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.blur.BlurUtil
 import dev.skomlach.common.blur.DEFAULT_RADIUS
@@ -89,18 +90,6 @@ class WindowForegroundBlurring(
                     )
                 }
         }
-
-    private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View) {
-            BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
-        }
-
-        override fun onViewDetachedFromWindow(v: View) {
-            BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
-            forceToCloseCallback.onCloseBiometric()
-        }
-    }
-
     private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
         updateBackground()
         true
@@ -224,12 +213,12 @@ class WindowForegroundBlurring(
                     LifecycleEventObserver {
                     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
                         if (event == Lifecycle.Event.ON_DESTROY) {
+                            e("${this.javaClass.name}.onStateChanged - ON_DESTROY")
                             forceToCloseCallback.onCloseBiometric()
                         }
                     }
                 })
             }
-            parentView.addOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
@@ -242,7 +231,6 @@ class WindowForegroundBlurring(
         if (!isBlurViewAttachedToHost) return
         isBlurViewAttachedToHost = false
         try {
-            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

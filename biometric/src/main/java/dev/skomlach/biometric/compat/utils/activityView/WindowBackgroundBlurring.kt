@@ -29,8 +29,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnAttach
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.blur.BlurUtil
 import dev.skomlach.common.blur.DEFAULT_RADIUS
 import dev.skomlach.common.misc.ExecutorHelper
@@ -45,17 +51,6 @@ class WindowBackgroundBlurring(
     private var isBlurViewAttachedToHost = false
     private var drawingInProgress = false
     private var biometricsLayout: View? = null
-
-    private val attachStateChangeListener = object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View) {
-            BiometricLoggerImpl.d("${this.javaClass.name}.onViewAttachedToWindow")
-        }
-
-        override fun onViewDetachedFromWindow(v: View) {
-            BiometricLoggerImpl.d("${this.javaClass.name}.onViewDetachedFromWindow")
-            resetListeners()
-        }
-    }
 
     private val onDrawListener = ViewTreeObserver.OnPreDrawListener {
         updateBackground()
@@ -145,7 +140,17 @@ class WindowBackgroundBlurring(
         isBlurViewAttachedToHost = true
         try {
             updateBackground()
-            parentView.addOnAttachStateChangeListener(attachStateChangeListener)
+            parentView.doOnAttach {
+                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
+                    LifecycleEventObserver {
+                    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                        if (event == Lifecycle.Event.ON_DESTROY) {
+                            e("${this.javaClass.name}.onStateChanged - ON_DESTROY")
+                            resetListeners()
+                        }
+                    }
+                })
+            }
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
@@ -158,7 +163,6 @@ class WindowBackgroundBlurring(
         if (!isBlurViewAttachedToHost) return
         isBlurViewAttachedToHost = false
         try {
-            parentView.removeOnAttachStateChangeListener(attachStateChangeListener)
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

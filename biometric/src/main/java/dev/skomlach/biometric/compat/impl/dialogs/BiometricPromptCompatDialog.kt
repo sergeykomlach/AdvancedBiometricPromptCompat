@@ -49,8 +49,13 @@ import androidx.appcompat.app.AppCompatDialog
 import androidx.core.content.ContextCompat
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.doOnAttach
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
@@ -198,32 +203,38 @@ class BiometricPromptCompatDialog : DialogFragment() {
 
         }
         rootView = containerView?.findViewById(R.id.dialogContent)
-        rootView?.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(v: View) {
-                try {
-                    @Suppress("DEPRECATION")
-                    BroadcastTools.registerGlobalBroadcastIntent(
-                        v.context,
-                        wallpaperChangedReceiver,
-                        IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
-                    )
-                    updateMonetColorsInternal(v.context ?: return)
-                } catch (e: Throwable) {
-                    e(e, "setupMonet")
+        rootView?.doOnAttach {
+            rootView?.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
+                LifecycleEventObserver {
+                override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                    if (event == Lifecycle.Event.ON_PAUSE) {
+                        e("${this.javaClass.name}.onStateChanged - ON_PAUSE")
+                        try {
+                            BroadcastTools.unregisterGlobalBroadcastIntent(
+                                requireActivity(),
+                                wallpaperChangedReceiver
+                            )
+                        } catch (e: Throwable) {
+                            e(e, "setupMonet")
+                        }
+                    } else
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            e("${this.javaClass.name}.onStateChanged - ON_RESUME")
+                            try {
+                                @Suppress("DEPRECATION")
+                                BroadcastTools.registerGlobalBroadcastIntent(
+                                    requireActivity(),
+                                    wallpaperChangedReceiver,
+                                    IntentFilter(Intent.ACTION_WALLPAPER_CHANGED)
+                                )
+                                updateMonetColorsInternal(requireActivity())
+                            } catch (e: Throwable) {
+                                e(e, "setupMonet")
+                            }
+                        }
                 }
-            }
-
-            override fun onViewDetachedFromWindow(v: View) {
-                try {
-                    BroadcastTools.unregisterGlobalBroadcastIntent(
-                        v.context,
-                        wallpaperChangedReceiver
-                    )
-                } catch (e: Throwable) {
-                    e(e, "setupMonet")
-                }
-            }
-        })
+            })
+        }
         title = rootView?.findViewById(R.id.title)
         subtitle = rootView?.findViewById(R.id.subtitle)
         description = rootView?.findViewById(R.id.description)
