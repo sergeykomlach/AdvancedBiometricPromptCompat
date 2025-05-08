@@ -291,7 +291,7 @@ class HihonorFaceRecognizeManager {
                 } catch (e: Throwable) {
                     (this.hardwareSupportType and 1) !== 0
                 }
-                if(supported && init() == 0) {
+                if (supported && init() == 0) {
                     fRManager = this
                     release()
                 }

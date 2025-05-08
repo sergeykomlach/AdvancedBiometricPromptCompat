@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.huawei.impl
 
-import android.os.Build
 import com.huawei.facerecognition.FaceRecognizeManager
 import com.huawei.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -292,7 +291,7 @@ class HuaweiFaceRecognizeManager {
                 } catch (e: Throwable) {
                     (this.hardwareSupportType and 1) !== 0
                 }
-                if(supported && init() == 0) {
+                if (supported && init() == 0) {
                     fRManager = this
                     release()
                 }
