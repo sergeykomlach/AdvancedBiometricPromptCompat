@@ -28,7 +28,6 @@ import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
-import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
@@ -39,7 +38,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
-import java.util.concurrent.TimeUnit
 
 
 class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
@@ -49,54 +47,15 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
     private var viewWeakReference = WeakReference<SurfaceView?>(null)
 
     init {
-        ExecutorHelper.post {
-            try {
-                huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager()
-                d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
-                if (isHardwarePresent && HuaweiFaceRecognizeManager.shouldCheckCamera()) {
-                    val cancellationSignal = CancellationSignal()
-                    val checkTask = Runnable {
-                        HuaweiFaceRecognizeManager.resetCheckCamera()
-                        listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
-                        if (!cancellationSignal.isCanceled)
-                            cancellationSignal.cancel()
-                    }
-                    ExecutorHelper.postDelayed(checkTask, TimeUnit.SECONDS.toMillis(1))
-                    authenticate(null, cancellationSignal, object : AuthenticationListener {
-                        override fun onHelp(msg: CharSequence?) {}
-
-                        override fun onSuccess(
-                            moduleTag: Int,
-                            biometricCryptoObject: BiometricCryptoObject?
-                        ) {
-                            ExecutorHelper.removeCallbacks(checkTask)
-                            checkTask.run()
-                        }
-
-                        override fun onFailure(
-                            failureReason: AuthenticationFailureReason?,
-                            moduleTag: Int
-                        ) {
-                            ExecutorHelper.removeCallbacks(checkTask)
-                            checkTask.run()
-                        }
-
-                        override fun onCanceled(moduleTag: Int) {
-                            ExecutorHelper.removeCallbacks(checkTask)
-                            checkTask.run()
-                        }
-                    }, RestartPredicatesImpl.defaultPredicate())
-
-                    return@post
-                }
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-                huaweiFaceManagerLegacy = null
-            }
-
-            listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
+        try {
+            huaweiFaceManagerLegacy = HuaweiFaceManagerFactory.getHuaweiFaceManager()
+            d("$name.huaweiFaceManagerLegacy - $huaweiFaceManagerLegacy")
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+            huaweiFaceManagerLegacy = null
         }
+        listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
     }
 
     override val isUserAuthCanByUsedWithCrypto: Boolean

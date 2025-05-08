@@ -41,18 +41,18 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
     private var huawei3DFaceManager: FaceManager? = null
 
     init {
-        ExecutorHelper.post {
-            try {
-                huawei3DFaceManager = HwFaceManagerFactory.getFaceManager(context)
-                d("$name.huawei3DFaceManager - $huawei3DFaceManager")
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-                huawei3DFaceManager = null
-            }
 
-            listener?.initFinished(biometricMethod, this@Huawei3DFaceUnlockModule)
+        try {
+            huawei3DFaceManager = HwFaceManagerFactory.getFaceManager(context)
+            d("$name.huawei3DFaceManager - $huawei3DFaceManager")
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+            huawei3DFaceManager = null
         }
+
+        listener?.initFinished(biometricMethod, this@Huawei3DFaceUnlockModule)
+
     }
 
     override val isUserAuthCanByUsedWithCrypto: Boolean

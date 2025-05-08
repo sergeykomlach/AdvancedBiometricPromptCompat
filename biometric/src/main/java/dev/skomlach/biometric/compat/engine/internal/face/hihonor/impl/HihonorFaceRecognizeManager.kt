@@ -19,17 +19,12 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.hihonor.impl
 
-import android.os.Build
 import com.hihonor.android.facerecognition.FaceRecognizeManager
 import com.hihonor.android.facerecognition.FaceRecognizeManager.FaceRecognizeCallback
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.HexUtils
-import dev.skomlach.common.storage.SharedPreferenceProvider
-import java.nio.charset.Charset
-import java.security.MessageDigest
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -102,11 +97,6 @@ class HihonorFaceRecognizeManager {
             e(str, stringBuilder.toString())
             return when (hwErrorCode) {
                 FaceRecognizeManager.FaceErrorCode.CAMERA_FAIL -> {
-                    SharedPreferenceProvider.getPreferences(TAG).edit().clear().commit()
-                    SharedPreferenceProvider.getPreferences(TAG).edit()
-                        .putBoolean(md5(Build.FINGERPRINT), false)
-                        .putBoolean("broken_camera", true)
-                        .apply()
                     return HIHONOR_FACE_AUTH_ERROR_HW_UNAVAILABLE
                 }
 
@@ -193,32 +183,6 @@ class HihonorFaceRecognizeManager {
                 11 -> return "low temp & cap"
             }
             return "" + errorCode
-        }
-
-        fun isCameraBroken(): Boolean {
-            return SharedPreferenceProvider.getPreferences(TAG).getBoolean("broken_camera", false)
-        }
-
-        fun resetCheckCamera() {
-            val pref = SharedPreferenceProvider.getPreferences(TAG)
-            pref.edit().clear().putBoolean(md5(Build.FINGERPRINT), false).apply()
-        }
-
-        fun shouldCheckCamera(): Boolean {
-            val pref = SharedPreferenceProvider.getPreferences(TAG)
-            return pref.getBoolean(md5(Build.FINGERPRINT), true)
-        }
-
-        private fun md5(s: String): String? {
-            try {
-                val digest = MessageDigest.getInstance("MD5")
-                digest.reset()
-                digest.update(s.toByteArray(Charset.forName("UTF-8")))
-                return HexUtils.bytesToHex(digest.digest())
-            } catch (e: Exception) {
-
-            }
-            return null
         }
 
         private val lock = ReentrantLock()
@@ -318,11 +282,20 @@ class HihonorFaceRecognizeManager {
             }
         }
     }
-    private val context = AndroidContext.appContext
 
     init {
         if (fRManager == null) {
-            fRManager = FaceRecognizeManager(context, mFRCallback)
+            FaceRecognizeManager(AndroidContext.appContext, mFRCallback).apply {
+                val supported = try {
+                    this.faceRecognitionAbility?.isFaceRecognitionSupport == true
+                } catch (e: Throwable) {
+                    (this.hardwareSupportType and 1) !== 0
+                }
+                if(supported && init() == 0) {
+                    fRManager = this
+                    release()
+                }
+            }
         }
     }
 

@@ -87,7 +87,7 @@ class HuaweiFaceManagerV1Impl : HuaweiFaceManagerV1() {
     override val version: Int
         get() = FACE_AUTH_VERSION_V1
     override val isHardwareDetected: Boolean
-        get() = !HuaweiFaceRecognizeManager.isCameraBroken() && try {
+        get() = try {
             try {
                 HuaweiFaceRecognizeManager.fRManager?.faceRecognitionAbility?.isFaceRecognitionSupport == true
             } catch (e: Throwable) {

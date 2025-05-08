@@ -41,18 +41,18 @@ class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
     private var hihonor3DFaceManager: FaceManager? = null
 
     init {
-        ExecutorHelper.post {
-            try {
-                hihonor3DFaceManager = HwFaceManagerFactory.getFaceManager(context)
-                d("$name.hihonor3DFaceManager - $hihonor3DFaceManager")
-            } catch (e: Throwable) {
-                if (DEBUG_MANAGERS)
-                    e(e, name)
-                hihonor3DFaceManager = null
-            }
 
-            listener?.initFinished(biometricMethod, this@Hihonor3DFaceUnlockModule)
+        try {
+            hihonor3DFaceManager = HwFaceManagerFactory.getFaceManager(context)
+            d("$name.hihonor3DFaceManager - $hihonor3DFaceManager")
+        } catch (e: Throwable) {
+            if (DEBUG_MANAGERS)
+                e(e, name)
+            hihonor3DFaceManager = null
         }
+
+        listener?.initFinished(biometricMethod, this@Hihonor3DFaceUnlockModule)
+
     }
 
     override val isUserAuthCanByUsedWithCrypto: Boolean

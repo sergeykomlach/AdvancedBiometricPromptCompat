@@ -87,7 +87,7 @@ class HihonorFaceManagerV1Impl : HihonorFaceManagerV1() {
     override val version: Int
         get() = FACE_AUTH_VERSION_V1
     override val isHardwareDetected: Boolean
-        get() = !HihonorFaceRecognizeManager.isCameraBroken() && try {
+        get() = try {
             try {
                 HihonorFaceRecognizeManager.fRManager?.faceRecognitionAbility?.isFaceRecognitionSupport == true
             } catch (e: Throwable) {

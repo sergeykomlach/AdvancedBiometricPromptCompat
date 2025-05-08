@@ -181,9 +181,10 @@ object BiometricAuthentication {
                             clear()
                             putAll(modulesMap)
                         }
-                        globalInitListener?.onBiometricReady()
-                        e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
                         initInProgress.set(false)
+                        e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
+                        globalInitListener?.onBiometricReady()
+
                     }
                 }
 

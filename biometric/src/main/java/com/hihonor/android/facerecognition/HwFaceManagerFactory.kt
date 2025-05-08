@@ -26,9 +26,6 @@ import java.lang.reflect.InvocationTargetException
 
 object HwFaceManagerFactory {
     private const val TAG = "FaceRecognize"
-
-    private fun HwFaceManagerFactory() {}
-
     @Synchronized
     @JvmStatic
     fun getFaceManager(context: Context?): FaceManager? {
@@ -37,7 +34,7 @@ object HwFaceManagerFactory {
                 Log.e("FaceRecognize", "The current version does not support face recognition")
                 return null
             }
-            val t = Class.forName("com.hihonor.android.facerecognition.FaceManager")
+            val t = Class.forName("com.hihonor.android.facerecognition.FaceManagerFactory")
             val method = t.getDeclaredMethod("getFaceManager", Context::class.java)
             return method.invoke(null as Any?, context) as FaceManager?
         } catch (var3: ClassNotFoundException) {
