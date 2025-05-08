@@ -20,7 +20,9 @@
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
 import android.app.Activity
+import android.util.SparseArray
 import androidx.core.os.CancellationSignal
+import androidx.core.util.forEach
 import com.samsung.android.sdk.pass.Spass
 import com.samsung.android.sdk.pass.SpassFingerprint
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
@@ -73,24 +75,17 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
         val ids = ArrayList<String>()
         try {
             mSpassFingerprint?.let {
-                it.registeredFingerprintUniqueID?.let { array ->
-                    for (i in 0 until array.size()) {
-                        //Sparsearray contains String
-                        (array.get(i) as? String)?.let { s ->
-                            ids.add(s)
-                        }
-                    }
+                val array: SparseArray<String> =
+                    it.registeredFingerprintUniqueID as SparseArray<String>
+                array.forEach { idx, value ->
+                    ids.add(value)
                 }
             }
         } catch (e: Throwable) {
             mSpassFingerprint?.let {
-                it.registeredFingerprintName?.let { array ->
-                    for (i in 0 until array.size()) {
-                        //Sparsearray contains String
-                        (array.get(i) as? String)?.let { s ->
-                            ids.add(s)
-                        }
-                    }
+                val array: SparseArray<String> = it.registeredFingerprintName as SparseArray<String>
+                array.forEach { idx, value ->
+                    ids.add(value)
                 }
             }
         }
