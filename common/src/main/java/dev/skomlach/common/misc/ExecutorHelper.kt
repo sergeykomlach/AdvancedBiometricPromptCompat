@@ -23,13 +23,22 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 object ExecutorHelper {
-    val handler: Handler = Handler(Looper.getMainLooper())
-    val executor: Executor = HandlerExecutor()
+    val handler: Handler by lazy {
+        Handler(Looper.getMainLooper())
+    }
+    val executor: Executor by lazy {
+        HandlerExecutor()
+    }
 
     //https://proandroiddev.com/what-is-faster-and-in-which-tasks-coroutines-rxjava-executor-952b1ff62506
     val backgroundExecutor: Executor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -38,15 +47,17 @@ object ExecutorHelper {
         Executors.newFixedThreadPool(100)
     }
 
+    private val dispatcher = backgroundExecutor.asCoroutineDispatcher()
+    val scope = CoroutineScope(dispatcher)
     fun startOnBackground(task: Runnable, delay: Long) {
-        backgroundExecutor.execute {
-            Thread.sleep(delay)
+        scope.launch(Dispatchers.IO) {
+            delay(delay)
             task.run()
         }
     }
 
     fun startOnBackground(task: Runnable) {
-        backgroundExecutor.execute {
+        scope.launch(Dispatchers.IO) {
             task.run()
         }
     }

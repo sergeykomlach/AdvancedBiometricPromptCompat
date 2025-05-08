@@ -192,9 +192,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
                                 deviceInfo = info
+                                BiometricLoggerImpl.d("BiometricPromptCompat isMissedBiometricUI=${DevicesWithKnownBugs.isMissedBiometricUI}")
                             }
                         })
-                        BiometricLoggerImpl.d("BiometricPromptCompat ${DevicesWithKnownBugs.isMissedBiometricUI}")
                     }
                     DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     NotificationPermissionsFragment.preloadTranslations()
@@ -206,7 +206,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         NotificationPermissionsFragment.preloadTranslations()
                         UntrustedAccessibilityFragment.preloadTranslations()
                     }
-                    TruncatedTextFix.readCache()
                 }
             }
         }

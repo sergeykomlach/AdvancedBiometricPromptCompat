@@ -52,6 +52,9 @@ object TruncatedTextFix {
     private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
     private val cache: LruCache<String, TruncatedText> = LruCache(5)
+    private val pref  by lazy {
+        SharedPreferenceProvider.getPreferences("TruncatedText_v2")
+    }
 
 
     init {
@@ -61,21 +64,6 @@ object TruncatedTextFix {
             DESCRIPTION_SHIFT = 0
         }
 
-    }
-
-    fun readCache() {
-        ExecutorHelper.startOnBackground {
-            try {
-                SharedPreferenceProvider.getPreferences("TruncatedText_v2").all.values.forEach { json ->
-                    if (json is String && json.isNotEmpty()) {
-                        Gson().fromJson(json, TruncatedText::class.java).also {
-                            cache.put(json, it)
-                        }
-                    }
-                }
-            } catch (e: Throwable) {
-            }
-        }
     }
 
     interface OnTruncateChecked {
@@ -333,14 +321,15 @@ object TruncatedTextFix {
         }
         return (try {
             val json =
-                SharedPreferenceProvider.getPreferences("TruncatedText_v2").getString(data, null)
+                pref.getString(data, null)
             if (json.isNullOrEmpty()) {
                 TruncatedText(HashMap())
             } else {
                 Gson().fromJson(json, TruncatedText::class.java)
             }
         } catch (e: Throwable) {
-            SharedPreferenceProvider.getPreferences("TruncatedText_v2").edit().remove(data).apply()
+            BiometricLoggerImpl.e(e)
+            pref.edit().remove(data).apply()
             TruncatedText(HashMap())
         }).also {
             cache.put(data, it)
@@ -351,7 +340,7 @@ object TruncatedTextFix {
         val json = Gson().toJson(truncatedText, TruncatedText::class.java)
         val data: String = config.toString()
         cache.put(data, truncatedText)
-        SharedPreferenceProvider.getPreferences("TruncatedText_v2").edit().putString(data, json)
+        pref.edit().putString(data, json)
             .apply()
     }
 
