@@ -70,7 +70,15 @@ class WindowForegroundBlurring(
     private var drawingInProgress = AtomicBoolean(false)
     private var biometricsLayout: View? = null
     private var defaultColor = Color.TRANSPARENT
-
+    private val lifecycleEventObserver = object :
+        LifecycleEventObserver {
+        override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                e("${this.javaClass.name}.onStateChanged - ON_DESTROY")
+                forceToCloseCallback.onCloseBiometric()
+            }
+        }
+    }
 
     private val biometricTypesList: List<BiometricType>
         get() {
@@ -209,15 +217,7 @@ class WindowForegroundBlurring(
             updateBackground()
             IconStateHelper.registerListener(this)
             parentView.doOnAttach {
-                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
-                    LifecycleEventObserver {
-                    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-                        if (event == Lifecycle.Event.ON_DESTROY) {
-                            e("${this.javaClass.name}.onStateChanged - ON_DESTROY")
-                            forceToCloseCallback.onCloseBiometric()
-                        }
-                    }
-                })
+                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(lifecycleEventObserver)
             }
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
@@ -232,6 +232,7 @@ class WindowForegroundBlurring(
         isBlurViewAttachedToHost = false
         try {
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
+            parentView.findViewTreeLifecycleOwner()?.lifecycle?.removeObserver(lifecycleEventObserver)
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
