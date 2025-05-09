@@ -568,7 +568,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             }
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onUIOpened")
                             val s =
-                                "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
+                                "BiometricOpeningTime: onUIOpened << ${System.currentTimeMillis() - startTs} ms"
                             BiometricLoggerImpl.d("BiometricPromptCompat $s")
                             ExecutorHelper.post {
                                 appBackgroundDetector.attachListeners()
@@ -683,7 +683,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
 
             callback.updateTimestamp()
-            val s = "BiometricOpeningTime: ${System.currentTimeMillis() - startTs} ms"
+            val s = "BiometricOpeningTime: authenticateInternal >> ${System.currentTimeMillis() - startTs} ms"
             BiometricLoggerImpl.e("BiometricPromptCompat $s")
             if (!builder.forceDeviceCredential()) {
                 impl.authenticate(callback)
