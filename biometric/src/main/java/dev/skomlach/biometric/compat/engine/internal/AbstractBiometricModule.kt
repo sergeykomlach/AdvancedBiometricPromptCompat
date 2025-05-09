@@ -105,7 +105,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         get() {
             val lastKnown = preferences.getStringSet(
                 ENROLLED_PREF + tag(),
-                emptySet()
+                null
             )
             if (lastKnown == null) {
                 updateBiometricEnrollChanged()
