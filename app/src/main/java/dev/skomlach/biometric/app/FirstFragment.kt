@@ -80,6 +80,7 @@ class FirstFragment : Fragment() {
             })
         } else {
             fillList(inflater, binding?.buttonsList)
+            checkDeviceInfo()
         }
         updateUi()
         return binding?.root?.apply {
@@ -202,7 +203,23 @@ class FirstFragment : Fragment() {
             }
         }
     }
-
+//
+//    override fun onResume() {
+//        super.onResume()
+//        val authRequest = BiometricAuthRequest()
+//        startBiometric(
+//            BiometricAuthRequest(authRequest.api, authRequest.type),
+//            SharedPreferenceProvider.getPreferences("app_settings")
+//                .getBoolean("silent", false),
+//            SharedPreferenceProvider.getPreferences("app_settings")
+//                .getBoolean("crypto", false),
+//            SharedPreferenceProvider.getPreferences("app_settings")
+//                .getBoolean(
+//                    "allowDeviceCredentials",
+//                    BiometricManagerCompat.isDeviceSecureAvailable()
+//                )
+//        )
+//    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
