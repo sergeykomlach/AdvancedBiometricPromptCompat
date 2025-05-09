@@ -45,9 +45,9 @@ import dev.skomlach.common.translate.LocalizationHelper
 
 class UntrustedAccessibilityFragment : Fragment() {
     companion object {
-        private const val TAG = "NotificationPermissionsFragment"
-        private const val INTENT_KEY = "NotificationPermissionsFragment.intent_key"
-        private const val INTENT_RESULT = "NotificationPermissionsFragment.result"
+        private const val TAG = "UntrustedAccessibilityFragment"
+        private const val INTENT_KEY = "UntrustedAccessibilityFragment.intent_key"
+        private const val INTENT_RESULT = "UntrustedAccessibilityFragment.result"
         fun preloadTranslations() {
             ExecutorHelper.startOnBackground {
                 LocalizationHelper.prefetch(
@@ -62,7 +62,7 @@ class UntrustedAccessibilityFragment : Fragment() {
             activity: FragmentActivity,
             callback: (Boolean) -> Unit,
         ) {
-            LogCat.log("NotificationPermissionsFragment.askForPermissions()")
+            LogCat.log("UntrustedAccessibilityFragment.askForPermissions()")
 
             val tag = "${UntrustedAccessibilityFragment::class.java.name}"
             val oldFragment = activity.supportFragmentManager.findFragmentByTag(tag)

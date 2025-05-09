@@ -67,7 +67,9 @@ object ExecutorHelper {
     }
 
     fun post(task: Runnable) {
-        handler.post(task)
+        scope.launch(Dispatchers.Main) {
+            task.run()
+        }
     }
 
     fun removeCallbacks(task: Runnable) {
@@ -83,7 +85,7 @@ object ExecutorHelper {
      */
     class HandlerExecutor : Executor {
         override fun execute(runnable: Runnable) {
-            handler.post(runnable)
+            post(runnable)
         }
     }
 }

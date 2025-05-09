@@ -66,7 +66,7 @@ object DevicesWithKnownBugs {
         }
 
     val systemDealWithBiometricPrompt: Boolean
-        get() = (isSamsung || Utils.isAtLeastU)//Up to AOS13 we are ab le to use multiple biometrics
+        get() = (isSamsung || Utils.isAtLeastU)//Up to AOS13 we are able to use multiple biometrics
     private val isSamsung: Boolean
         get() {
             return checkForVendor("Samsung", ignoreCase = true)
@@ -77,7 +77,7 @@ object DevicesWithKnownBugs {
         }
     val isMissedBiometricUI: Boolean
         get() {
-            val ts = "isMissedBiometricUI-${LastUpdatedTs.timestamp}"
+            val ts = "isMissedBiometricUI-${Build.FINGERPRINT}"
             val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
             var cached = prefs.getString(ts, null)
             if (cached == null) {
@@ -118,7 +118,7 @@ object DevicesWithKnownBugs {
     val hasUnderDisplayFingerprint: Boolean
         get() {
             val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-            val ts = "hasUnderDisplayFingerprint-${LastUpdatedTs.timestamp}"
+            val ts = "hasUnderDisplayFingerprint-${Build.FINGERPRINT}"
             var cached = prefs.getString(ts, null)
             if (cached == null) {
                 val edit = prefs.edit()
@@ -141,7 +141,7 @@ object DevicesWithKnownBugs {
 
     private fun checkForVendor(vendor: String, ignoreCase: Boolean): Boolean {
         val prefs = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
-        val ts = "checkForVendor-$vendor-${LastUpdatedTs.timestamp}"
+        val ts = "checkForVendor-$vendor-${Build.FINGERPRINT}"
         var cached = SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
             .getString(ts, null)
         if (cached == null) {

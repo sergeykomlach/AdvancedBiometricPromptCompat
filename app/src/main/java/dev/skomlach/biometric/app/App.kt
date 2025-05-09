@@ -46,9 +46,7 @@ class App : MultiDexApplication() {
             override fun log(string: String) {
                 LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
-                val start = System.currentTimeMillis()
                 BiometricPromptCompat.init {
-                    BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - start} ms")
                     checkForDeviceInfo()
                 }
             }

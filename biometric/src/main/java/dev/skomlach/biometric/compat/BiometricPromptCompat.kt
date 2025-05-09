@@ -156,7 +156,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var deviceInfo: DeviceInfo? = null
             private set
         private var authFlowInProgress = AtomicBoolean(false)
-
+        var initStart = System.currentTimeMillis()
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -174,33 +174,32 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() - pending")
                     pendingTasks.add(execute)
                 } else {
-                    if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                        BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                    initStart = System.currentTimeMillis()
+                    isBiometricInit.set(false)
+                    initInProgress.set(true)
+                    pendingTasks.add(execute)
+                    BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
                     reference.set(false)
                     HookDetection.detect(object : HookDetection.HookDetectionListener {
                         override fun onDetected(flag: Boolean) {
                             reference.set(flag)
                         }
                     })
-                    BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
-                    isBiometricInit.set(false)
-                    initInProgress.set(true)
-                    pendingTasks.add(execute)
+                    ExecutorHelper.startOnBackground {
+                        if (BiometricErrorLockoutPermanentFix.isRebootDetected())
+                            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                    }
                     startBiometricInit()
                     ExecutorHelper.startOnBackground {
                         DeviceInfoManager.getDeviceInfo(object :
                             DeviceInfoManager.OnDeviceInfoListener {
                             override fun onReady(info: DeviceInfo?) {
                                 deviceInfo = info
-                                BiometricLoggerImpl.d("BiometricPromptCompat isMissedBiometricUI=${DevicesWithKnownBugs.isMissedBiometricUI}")
                             }
                         })
                     }
-                    DeviceUnlockedReceiver.registerDeviceUnlockListener()
-                    NotificationPermissionsFragment.preloadTranslations()
-                    UntrustedAccessibilityFragment.preloadTranslations()
-                    if (DevicesWithKnownBugs.isHideDialogInstantly) {
-                        BiometricLoggerImpl.d("BiometricPromptCompat.done() for ${AndroidContext.appContext.packageName}")
+                    ExecutorHelper.startOnBackground {
+                        DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     }
                     AndroidContext.configurationLiveData.observeForever {
                         NotificationPermissionsFragment.preloadTranslations()
@@ -221,7 +220,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
 
                 override fun onBiometricReady() {
-                    BiometricLoggerImpl.d("BiometricPromptCompat.init() - finished")
+                    BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")
                     isBiometricInit.set(true)
                     initInProgress.set(false)
 
@@ -1196,6 +1195,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun build(): BiometricPromptCompat {
+            isTruncateChecked()
             return BiometricPromptCompat(this)
         }
     }

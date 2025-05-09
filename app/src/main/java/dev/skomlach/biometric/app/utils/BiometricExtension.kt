@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.getFixedContext
 import java.nio.charset.Charset
 
 private val testString = "Test data"
@@ -161,7 +162,7 @@ fun Fragment.startBiometric(
 
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed; $cryptoText")
             Toast.makeText(
-                AndroidContext.appContext,
+                AndroidContext.appContext.getFixedContext(),
                 "Succeeded - $confirmed; $cryptoText",
                 Toast.LENGTH_SHORT
             )
@@ -170,7 +171,7 @@ fun Fragment.startBiometric(
 
         override fun onCanceled() {
             BiometricLoggerImpl.e("CheckBiometric.onCanceled()")
-            Toast.makeText(AndroidContext.appContext, "Canceled", Toast.LENGTH_SHORT).show()
+            Toast.makeText(AndroidContext.appContext.getFixedContext(), "Canceled", Toast.LENGTH_SHORT).show()
         }
 
         override fun onFailed(reason: AuthenticationFailureReason?, msg: CharSequence?) {
@@ -203,23 +204,23 @@ fun Fragment.startBiometric(
                     else -> showAlertDialog(requireActivity(), "Failure: $reason")
                 }
             } catch (ignore: Throwable) {
-                Toast.makeText(AndroidContext.appContext, "Failure: $reason", Toast.LENGTH_SHORT)
+                Toast.makeText(AndroidContext.appContext.getFixedContext(), "Failure: $reason", Toast.LENGTH_SHORT)
                     .show()
             }
         }
 
         override fun onUIOpened() {
             BiometricLoggerImpl.e("CheckBiometric.onUIOpened()")
-            Toast.makeText(AndroidContext.appContext, "onUIOpened", Toast.LENGTH_SHORT).show()
+            Toast.makeText(AndroidContext.appContext.getFixedContext(), "onUIOpened", Toast.LENGTH_SHORT).show()
         }
 
         override fun onUIClosed() {
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
-            Toast.makeText(AndroidContext.appContext, "onUIClosed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(AndroidContext.appContext.getFixedContext(), "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     })
     Toast.makeText(
-        AndroidContext.appContext,
+        AndroidContext.appContext.getFixedContext(),
         "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
         Toast.LENGTH_SHORT
     ).show()
