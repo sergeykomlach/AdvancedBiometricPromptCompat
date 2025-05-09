@@ -26,6 +26,7 @@ import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 class App : MultiDexApplication() {
     companion object {
@@ -45,7 +46,9 @@ class App : MultiDexApplication() {
             override fun log(string: String) {
                 LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
+                val start = System.currentTimeMillis()
                 BiometricPromptCompat.init {
+                    BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - start} ms")
                     checkForDeviceInfo()
                 }
             }
@@ -65,7 +68,7 @@ class App : MultiDexApplication() {
         } else {
             Handler(Looper.getMainLooper()).postDelayed({
                 checkForDeviceInfo()
-            }, 1000)
+            }, 500)
         }
     }
 
