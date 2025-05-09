@@ -569,7 +569,7 @@ object BlurUtil {
                     try {
                         generateBitmapFromPixelCopy(window, destBitmap, bitmapFuture)
                     } catch (e: IllegalArgumentException) { //Window doesn't have a backing surface
-                        LogCat.logError(TAG, "generateBitmap:",e)
+                        LogCat.logError(TAG, "generateBitmap:", e)
                         generateBitmapFromDraw(destBitmap, bitmapFuture) // fall back
                     }
                 } else {

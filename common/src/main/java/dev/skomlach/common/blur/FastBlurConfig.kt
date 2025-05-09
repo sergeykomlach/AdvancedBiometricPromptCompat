@@ -23,6 +23,7 @@ import androidx.annotation.Keep
 
 const val DEFAULT_RADIUS = 25
 const val DEFAULT_SAMPLING = 1
+
 @Keep
 data class FastBlurConfig(
     var width: Int,

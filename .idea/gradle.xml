@@ -13,11 +13,11 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/biometric" />
             <option value="$PROJECT_DIR$/biometric-api" />
+            <option value="$PROJECT_DIR$/biometric-custom-face-tf" />
             <option value="$PROJECT_DIR$/biometric-ktx" />
             <option value="$PROJECT_DIR$/common" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

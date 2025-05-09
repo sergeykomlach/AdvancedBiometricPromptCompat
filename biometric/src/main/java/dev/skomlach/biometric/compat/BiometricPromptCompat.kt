@@ -42,7 +42,14 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.credentials.CredentialsRequestFragment
 import dev.skomlach.biometric.compat.impl.dialogs.UntrustedAccessibilityFragment
-import dev.skomlach.biometric.compat.utils.*
+import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
+import dev.skomlach.biometric.compat.utils.BiometricTitle
+import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
+import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
+import dev.skomlach.biometric.compat.utils.DialogMainColor
+import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
+import dev.skomlach.biometric.compat.utils.TruncatedTextFix
+import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -64,7 +71,7 @@ import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.translate.LocalizationHelper
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.nio.charset.Charset
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -157,6 +164,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             private set
         private var authFlowInProgress = AtomicBoolean(false)
         var initStart = System.currentTimeMillis()
+
         @MainThread
         @JvmStatic
         fun init(execute: Runnable? = null) {
@@ -682,7 +690,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.d("BiometricPromptCompat.authenticateInternal() - impl.authenticate")
 
             callback.updateTimestamp()
-            val s = "BiometricOpeningTime: authenticateInternal >> ${System.currentTimeMillis() - startTs} ms"
+            val s =
+                "BiometricOpeningTime: authenticateInternal >> ${System.currentTimeMillis() - startTs} ms"
             BiometricLoggerImpl.e("BiometricPromptCompat $s")
             if (!builder.forceDeviceCredential()) {
                 impl.authenticate(callback)

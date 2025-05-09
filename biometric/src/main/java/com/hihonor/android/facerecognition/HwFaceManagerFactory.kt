@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException
 
 object HwFaceManagerFactory {
     private const val TAG = "FaceRecognize"
+
     @Synchronized
     @JvmStatic
     fun getFaceManager(context: Context?): FaceManager? {

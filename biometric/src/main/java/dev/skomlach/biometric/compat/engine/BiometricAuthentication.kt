@@ -190,14 +190,14 @@ object BiometricAuthentication {
 
                 override fun onBiometricReady() {}
             }
-            if(list.isEmpty()){
+            if (list.isEmpty()) {
                 initInProgress.set(false)
                 e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
                 globalInitListener?.onBiometricReady()
             } else
-            for (method in list) {
-                initModule(method, initListener)
-            }
+                for (method in list) {
+                    initModule(method, initListener)
+                }
         } catch (e: Throwable) {
             e(e, "BiometricAuthentication")
         }

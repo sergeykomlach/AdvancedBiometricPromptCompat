@@ -36,7 +36,6 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.concurrent.atomic.AtomicInteger
@@ -52,7 +51,7 @@ object TruncatedTextFix {
     private var NEGATIVE_BUTTON_SHIFT = 4
     private val FINALIZED_STRING = ".."
     private val cache: LruCache<String, TruncatedText> = LruCache(5)
-    private val pref  by lazy {
+    private val pref by lazy {
         SharedPreferenceProvider.getPreferences("TruncatedText_v2")
     }
 

@@ -160,9 +160,10 @@ class WindowForegroundBlurring(
                 contentView?.let {
                     BlurUtil.takeScreenshotAndBlur(it) { originalBitmap, blurredBitmap ->
                         if (!isBlurViewAttachedToHost) {
-                            ExecutorHelper.postDelayed({
-                                drawingInProgress.set(false)
-                            },
+                            ExecutorHelper.postDelayed(
+                                {
+                                    drawingInProgress.set(false)
+                                },
                                 context.resources.getInteger(android.R.integer.config_shortAnimTime)
                                     .toLong()
                             )
@@ -217,7 +218,9 @@ class WindowForegroundBlurring(
             updateBackground()
             IconStateHelper.registerListener(this)
             parentView.doOnAttach {
-                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(lifecycleEventObserver)
+                parentView.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(
+                    lifecycleEventObserver
+                )
             }
             parentView.viewTreeObserver.addOnPreDrawListener(onDrawListener)
         } catch (e: Throwable) {
@@ -232,7 +235,9 @@ class WindowForegroundBlurring(
         isBlurViewAttachedToHost = false
         try {
             parentView.viewTreeObserver.removeOnPreDrawListener(onDrawListener)
-            parentView.findViewTreeLifecycleOwner()?.lifecycle?.removeObserver(lifecycleEventObserver)
+            parentView.findViewTreeLifecycleOwner()?.lifecycle?.removeObserver(
+                lifecycleEventObserver
+            )
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

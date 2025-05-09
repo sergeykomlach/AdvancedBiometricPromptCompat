@@ -53,7 +53,7 @@ object LocalizationHelper {
 
     fun fetchFromWeb(url: String): String? {
         LogCat.logError("translate fetchFromWeb $url")
-        if (NetworkApi.hasInternet()&& url.isNotEmpty())
+        if (NetworkApi.hasInternet() && url.isNotEmpty())
             try {
                 val urlConnection =
                     NetworkApi.createConnection(
@@ -312,7 +312,7 @@ object LocalizationHelper {
 
     private fun translateUseFallbackApi(t: String, fromLang: Locale, toLang: Locale): String? {
         LogCat.logError("translateUseFallbackApi: from=$fromLang to=$toLang text=$t")
-        if (NetworkApi.hasInternet()&& t.isNotEmpty())
+        if (NetworkApi.hasInternet() && t.isNotEmpty())
             try {
                 var text = t
                 for (i in 1..Int.MAX_VALUE) {

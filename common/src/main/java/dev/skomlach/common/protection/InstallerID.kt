@@ -75,7 +75,7 @@ enum class InstallerID(private val text: String) {
                         .ifEmpty { context.packageManager.getInstallerPackageName(packageName) }
                 else
                     context.packageManager.getInstallerPackageName(packageName)
-            } catch (e :Throwable){
+            } catch (e: Throwable) {
                 return "com.android.vending" //unable to get InstallerPackageName
             }
             for (id in entries) {
@@ -86,6 +86,7 @@ enum class InstallerID(private val text: String) {
             } else
                 null
         }
+
         fun verifyInstallerId(context: Context, packageName: String): Boolean {
             val validInstallers = ArrayList<String>()
             val installer = try {

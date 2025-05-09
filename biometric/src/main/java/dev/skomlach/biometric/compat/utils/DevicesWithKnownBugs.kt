@@ -23,10 +23,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.device.DeviceInfoManager
-import dev.skomlach.common.misc.LastUpdatedTs
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.lang.reflect.Modifier
