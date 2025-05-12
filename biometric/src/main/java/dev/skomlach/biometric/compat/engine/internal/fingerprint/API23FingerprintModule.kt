@@ -124,7 +124,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -179,7 +179,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -233,9 +233,21 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
 
-                FingerprintManager.FINGERPRINT_ERROR_CANCELED, FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED -> {
+                FingerprintManager.FINGERPRINT_ERROR_USER_CANCELED -> {
                     if (!selfCanceled) {
-                        listener?.onCanceled(tag())
+                        listener?.onCanceled(
+                            tag(),
+                            AuthenticationFailureReason.CANCELED_BY_USER,
+                            errString
+                        )
+                        Core.cancelAuthentication(this@API23FingerprintModule)
+                    }
+                    return
+                }
+
+                FingerprintManager.FINGERPRINT_ERROR_CANCELED -> {
+                    if (!selfCanceled) {
+                        listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, errString)
                         Core.cancelAuthentication(this@API23FingerprintModule)
                     }
                     return
@@ -243,11 +255,15 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@API23FingerprintModule)
                             }
                         }
@@ -266,7 +282,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -281,11 +297,11 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@API23FingerprintModule)
                         }
                     }
@@ -318,7 +334,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         @Deprecated("Deprecated in Java")
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
         }
     }
 

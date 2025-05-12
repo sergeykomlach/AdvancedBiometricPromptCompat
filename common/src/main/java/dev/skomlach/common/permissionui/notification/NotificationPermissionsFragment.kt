@@ -214,7 +214,7 @@ class NotificationPermissionsFragment : Fragment() {
                 android.R.string.ok
             ) { p0, _ ->
                 p0.dismiss()
-                if (Build.VERSION.SDK_INT >= 26) {
+                if (VERSION.SDK_INT >= 26) {
                     try {
                         if (safeStartActivity(
                                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -299,7 +299,7 @@ class NotificationPermissionsFragment : Fragment() {
                 android.R.string.ok
             ) { p0, _ ->
                 p0.dismiss()
-                if (Build.VERSION.SDK_INT >= 26) {
+                if (VERSION.SDK_INT >= 26) {
                     try {
                         val channelId = arguments?.getString(CHANNEL_ID)
                         if (safeStartActivity(

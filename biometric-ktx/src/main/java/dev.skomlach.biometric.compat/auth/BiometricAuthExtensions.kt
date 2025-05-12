@@ -79,6 +79,7 @@ private suspend fun BiometricPromptCompat.authenticate(): Set<AuthenticationResu
         }
     }
 }
+
 private fun startBiometricAuthenticationInternal(
     host: AuthPromptHost,
     biometricAuthRequestData: BiometricAuthRequestData,

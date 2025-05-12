@@ -21,6 +21,8 @@
 package dev.skomlach.biometric.compat
 
 data class AuthenticationResult(
-    val confirmed: BiometricType?,
-    val cryptoObject: BiometricCryptoObject? = null
+    val type: BiometricType?,
+    val cryptoObject: BiometricCryptoObject? = null,
+    val reason: AuthenticationFailureReason? = null,
+    val description: CharSequence? = null
 )

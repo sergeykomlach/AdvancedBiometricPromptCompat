@@ -171,7 +171,11 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                             SpassFingerprint.STATUS_USER_CANCELLED, SpassFingerprint.STATUS_BUTTON_PRESSED, SpassFingerprint.STATUS_USER_CANCELLED_BY_TOUCH_OUTSIDE -> {
                                 if (!selfCanceled) {
                                     selfCanceled = true
-                                    listener?.onCanceled(tag())
+                                    listener?.onCanceled(
+                                        tag(),
+                                        AuthenticationFailureReason.CANCELED,
+                                        null
+                                    )
                                     cancelFingerprintRequest()
                                 }
                                 return
@@ -200,7 +204,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                     failureReason
                                 ) == true
                             ) {
-                                listener?.onFailure(failureReason, tag())
+                                listener?.onFailure(tag(), failureReason, null)
                                 selfCanceled = true
                                 cancelFingerprintRequest()
                                 ExecutorHelper.postDelayed({
@@ -220,11 +224,15 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                                     lockout()
                                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                                 }
-                                listener?.onFailure(failureReason, tag())
+                                listener?.onFailure(tag(), failureReason, null)
                                 postCancelTask {
                                     if (cancellationSignal?.isCanceled == false) {
                                         selfCanceled = true
-                                        listener?.onCanceled(tag())
+                                        listener?.onCanceled(
+                                            tag(),
+                                            AuthenticationFailureReason.CANCELED,
+                                            null
+                                        )
                                         Core.cancelAuthentication(this@SamsungFingerprintModule)
                                     }
                                 }
@@ -246,10 +254,7 @@ class SamsungFingerprintModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(
-            AuthenticationFailureReason.UNKNOWN,
-            tag()
-        )
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 

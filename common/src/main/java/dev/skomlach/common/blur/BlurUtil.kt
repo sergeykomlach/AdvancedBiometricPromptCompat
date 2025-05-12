@@ -115,7 +115,7 @@ object BlurUtil {
                     && try {
                 val f =
                     view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-                val isAccessible = f?.isAccessible ?: true
+                val isAccessible = f?.isAccessible != false
                 var result = false
                 try {
                     f?.isAccessible = true
@@ -170,7 +170,7 @@ object BlurUtil {
                     && try {
                 val f =
                     view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-                val isAccessible = f?.isAccessible ?: true
+                val isAccessible = f?.isAccessible != false
                 var result = false
                 try {
                     f?.isAccessible = true
@@ -226,7 +226,7 @@ object BlurUtil {
                     && try {
                 val f =
                     view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-                val isAccessible = f?.isAccessible ?: true
+                val isAccessible = f?.isAccessible != false
                 var result = false
                 try {
                     f?.isAccessible = true
@@ -530,7 +530,7 @@ object BlurUtil {
         val future: ResolvableFuture<Void> = ResolvableFuture.create()
 
         if (Build.VERSION.SDK_INT >= 29 && isHardwareAccelerated) {
-            viewTreeObserver.registerFrameCommitCallback() { future.set(null) }
+            viewTreeObserver.registerFrameCommitCallback { future.set(null) }
         } else {
             viewTreeObserver.addOnDrawListener(
                 object : ViewTreeObserver.OnDrawListener {

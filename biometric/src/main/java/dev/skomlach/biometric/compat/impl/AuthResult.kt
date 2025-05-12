@@ -19,13 +19,11 @@
 
 package dev.skomlach.biometric.compat.impl
 
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 
 data class AuthResult(
     val authResultState: AuthResultState,
-    val successData: AuthenticationResult? = null,
-    val failureReason: AuthenticationFailureReason? = null
+    val result: AuthenticationResult? = null
 ) {
     enum class AuthResultState {
         SUCCESS,

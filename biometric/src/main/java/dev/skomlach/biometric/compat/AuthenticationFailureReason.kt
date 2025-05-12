@@ -85,5 +85,11 @@ enum class AuthenticationFailureReason {
      */
     MISSING_PERMISSIONS_ERROR,
 
+    CANCELED_BY_USER,
+
+    CANCELED,
+
+    BIOMETRIC_ALREADY_STARTED,
+
     CRYPTO_ERROR
 }

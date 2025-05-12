@@ -123,7 +123,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -179,7 +179,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -231,9 +231,21 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
 
-                FINGERPRINT_ERROR_USER_CANCELED, FINGERPRINT_ERROR_CANCELED -> {
+                FINGERPRINT_ERROR_USER_CANCELED -> {
                     if (!selfCanceled) {
-                        listener?.onCanceled(tag())
+                        listener?.onCanceled(
+                            tag(),
+                            AuthenticationFailureReason.CANCELED_BY_USER,
+                            errString
+                        )
+                        Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
+                    }
+                    return
+                }
+
+                FINGERPRINT_ERROR_CANCELED -> {
+                    if (!selfCanceled) {
+                        listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, errString)
                         Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                     }
                     return
@@ -241,12 +253,16 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
 
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                             }
                         }
@@ -265,7 +281,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -280,12 +296,12 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
 
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@SoterFingerprintUnlockModule)
                         }
                     }
@@ -315,7 +331,7 @@ class SoterFingerprintUnlockModule @SuppressLint("WrongConstant") constructor(pr
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
         }
     }
 

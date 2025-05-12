@@ -156,14 +156,14 @@ object Core {
         } catch (e: BiometricCryptoException) {
             BiometricLoggerImpl.e(e)
             listener?.onFailure(
-                AuthenticationFailureReason.CRYPTO_ERROR,
-                m?.tag() ?: DummyBiometricModule(null).tag()
+                m?.tag() ?: DummyBiometricModule(null).tag(),
+                AuthenticationFailureReason.CRYPTO_ERROR, e.message
             )
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
             listener?.onFailure(
-                AuthenticationFailureReason.INTERNAL_ERROR,
-                m?.tag() ?: DummyBiometricModule(null).tag()
+                m?.tag() ?: DummyBiometricModule(null).tag(),
+                AuthenticationFailureReason.INTERNAL_ERROR, e.message
             )
         }
     }
@@ -191,7 +191,7 @@ object Core {
             )
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
-            listener?.onFailure(AuthenticationFailureReason.INTERNAL_ERROR, module.tag())
+            listener?.onFailure(module.tag(), AuthenticationFailureReason.INTERNAL_ERROR, e.message)
         }
     }
 

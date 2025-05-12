@@ -215,7 +215,7 @@ object DeviceModel {
         var reload = false
         try {
             try {
-                val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
+                val file = File(appContext.cacheDir, "by_brand.json")
                 if (file.parentFile?.exists() == false) {
                     file.parentFile?.mkdirs()
                 }
@@ -239,7 +239,7 @@ object DeviceModel {
             }
             try {
                 val inputStream =
-                    AndroidContext.appContext.assets.open("by_brand.json")
+                    appContext.assets.open("by_brand.json")
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                 inputStream.close()
@@ -282,7 +282,7 @@ object DeviceModel {
 
     private fun saveToCache(data: String) {
         try {
-            val file = File(AndroidContext.appContext.cacheDir, "by_brand.json")
+            val file = File(appContext.cacheDir, "by_brand.json")
             if (file.parentFile?.exists() == false) {
                 file.parentFile?.mkdirs()
             }

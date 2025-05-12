@@ -138,7 +138,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -279,7 +279,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -320,7 +320,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 FACE_ERROR_CANCELED -> {
                     if (!selfCanceled) {
-                        listener?.onCanceled(tag())
+                        listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, errString)
                         Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                     }
                     return
@@ -333,11 +333,15 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                             }
                         }
@@ -356,7 +360,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -371,11 +375,11 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@SamsungFaceUnlockModule)
                         }
                     }
@@ -405,7 +409,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
 
         }
     }

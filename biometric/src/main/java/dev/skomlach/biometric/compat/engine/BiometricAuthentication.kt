@@ -388,8 +388,10 @@ object BiometricAuthentication {
         }
         if (!isAtLeastOneFired) {
             listener.onFailure(
-                AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                requestedMethods[0]
+                AuthenticationResult(
+                    requestedMethods[0],
+                    reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
+                )
             )
             return
         } else {
@@ -409,14 +411,31 @@ object BiometricAuthentication {
                 }
 
                 override fun onFailure(
+                    moduleTag: Int,
                     reason: AuthenticationFailureReason?,
-                    moduleTag: Int
+                    description: CharSequence?
                 ) {
-                    ref.get()?.onFailure(reason, hashMap[moduleTag])
+                    ref.get()?.onFailure(
+                        AuthenticationResult(
+                            hashMap[moduleTag],
+                            reason = reason,
+                            description = description
+                        )
+                    )
                 }
 
-                override fun onCanceled(moduleTag: Int) {
-                    ref.get()?.onCanceled(hashMap[moduleTag])
+                override fun onCanceled(
+                    moduleTag: Int,
+                    reason: AuthenticationFailureReason?,
+                    description: CharSequence?
+                ) {
+                    ref.get()?.onCanceled(
+                        AuthenticationResult(
+                            hashMap[moduleTag],
+                            reason = reason,
+                            description = description
+                        )
+                    )
                 }
             })
         }

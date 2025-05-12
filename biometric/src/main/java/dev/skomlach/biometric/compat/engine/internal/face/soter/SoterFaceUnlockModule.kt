@@ -102,7 +102,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -158,7 +158,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -197,7 +197,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_CANCELED -> {
                     if (!selfCanceled) {
-                        listener?.onCanceled(tag())
+                        listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, errString)
                         Core.cancelAuthentication(this@SoterFaceUnlockModule)
                     }
                     return
@@ -205,11 +205,15 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@SoterFaceUnlockModule)
                             }
                         }
@@ -228,7 +232,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -243,11 +247,11 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@SoterFaceUnlockModule)
                         }
                     }
@@ -277,7 +281,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
         }
     }
 

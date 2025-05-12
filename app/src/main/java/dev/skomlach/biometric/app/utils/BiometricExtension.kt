@@ -164,21 +164,22 @@ fun Fragment.startBiometric(
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
                 "Succeeded - $confirmed; $cryptoText",
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_LONG
             )
                 .show()
         }
 
-        override fun onCanceled() {
-            BiometricLoggerImpl.e("CheckBiometric.onCanceled()")
-            Toast.makeText(AndroidContext.appContext.getFixedContext(), "Canceled", Toast.LENGTH_SHORT).show()
+        override fun onCanceled(canceled: Set<AuthenticationResult>) {
+            BiometricLoggerImpl.e("CheckBiometric.onCanceled() $canceled")
+            Toast.makeText(AndroidContext.appContext.getFixedContext(), "Canceled $canceled", Toast.LENGTH_SHORT).show()
         }
 
-        override fun onFailed(reason: AuthenticationFailureReason?, msg: CharSequence?) {
+        override fun onFailed(canceled: Set<AuthenticationResult>) {
             BiometricLoggerImpl.e(
-                BiometricAuthException(reason.toString()),
+                BiometricAuthException(canceled.toString()),
                 "CheckBiometric.onFailed()"
             )
+            val reason = canceled.firstOrNull()?.reason
             try {
                 when (reason) {
                     AuthenticationFailureReason.NO_HARDWARE -> showAlertDialog(
@@ -204,7 +205,7 @@ fun Fragment.startBiometric(
                     else -> showAlertDialog(requireActivity(), "Failure: $reason")
                 }
             } catch (ignore: Throwable) {
-                Toast.makeText(AndroidContext.appContext.getFixedContext(), "Failure: $reason", Toast.LENGTH_SHORT)
+                Toast.makeText(AndroidContext.appContext.getFixedContext(), "Failure: $reason", Toast.LENGTH_LONG)
                     .show()
             }
         }

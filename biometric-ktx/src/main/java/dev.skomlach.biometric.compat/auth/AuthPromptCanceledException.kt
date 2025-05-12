@@ -15,4 +15,5 @@
  */
 
 package dev.skomlach.biometric.compat.auth
+
 class AuthPromptCanceledException : Exception()

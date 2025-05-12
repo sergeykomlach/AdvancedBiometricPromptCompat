@@ -49,6 +49,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         HashMap<BiometricType?, AuthResult>()
     private val isOpened = AtomicBoolean(false)
     private val failureCounter = AtomicInteger(0)
+    private val canceled = HashSet<AuthenticationResult>()
 
     init {
         isFingerprint.set(
@@ -102,11 +103,21 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     }
 
     override fun cancelAuth() {
-        val success =
-            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-        if (success != null)
-            return
-        callback?.onCanceled()
+        try {
+            val success =
+                authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            if (success != null)
+                return
+
+            callback?.onCanceled(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
+                AuthenticationResult(
+                    it,
+                    reason = AuthenticationFailureReason.CANCELED_BY_USER
+                )
+            }.toSet() else canceled)
+        } finally {
+            cancelAuthentication()
+        }
     }
 
     override fun onUiOpened() {
@@ -125,21 +136,20 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
     private fun checkAuthResult(
         module: AuthenticationResult?,
-        authResult: AuthResult.AuthResultState,
-        failureReason: AuthenticationFailureReason? = null
+        authResult: AuthResult.AuthResultState
     ) {
         if (!isOpened.get())
             return
-
+        val failureReason = module?.reason
         if (authResult == AuthResult.AuthResultState.SUCCESS) {
             if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
                 Vibro.start()
             }
-            IconStateHelper.successType(module?.confirmed)
+            IconStateHelper.successType(module?.type)
         } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
             failureCounter.incrementAndGet()
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
-            IconStateHelper.errorType(module?.confirmed)
+            IconStateHelper.errorType(module?.type)
         }
 
         //non fatal
@@ -150,10 +160,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         ) {
             return
         }
-        authFinished[module?.confirmed] =
-            AuthResult(authResult, successData = module, failureReason)
+        authFinished[module?.type] =
+            AuthResult(authResult, result = module)
         dialog?.authFinishedCopy = authFinished
-        BiometricNotificationManager.dismiss(module?.confirmed)
+        BiometricNotificationManager.dismiss(module?.type)
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = ArrayList(
@@ -178,22 +188,28 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
                 callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
                     var result: AuthenticationResult? = null
-                    onlySuccess[it]?.successData?.let { r ->
+                    onlySuccess[it]?.result?.let { r ->
                         result = AuthenticationResult(
-                            r.confirmed,
-                            if (fixCryptoObjects) null else r.cryptoObject
+                            r.type,
+                            if (fixCryptoObjects) null else r.cryptoObject, r.reason, r.description
                         )
                     }
                     result
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null && allList.isEmpty()) {
-                if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
-                    callback?.onFailed(error.failureReason)
+                if (failureCounter.get() == 1 || error.result?.reason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
+                    callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+                        .mapNotNull {
+                            it.result
+                        }.toSet())
                     cancelAuthentication()
                 } else {
                     ExecutorHelper.postDelayed({
-                        callback?.onFailed(error.failureReason)
+                        callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+                            .mapNotNull {
+                                it.result
+                            }.toSet())
                         cancelAuthentication()
                     }, 2000)
                 }
@@ -205,7 +221,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
 
-        override fun onSuccess(module: AuthenticationResult?) {
+        override fun onSuccess(module: AuthenticationResult) {
             checkAuthResult(module, AuthResult.AuthResultState.SUCCESS)
         }
 
@@ -216,19 +232,17 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
 
         override fun onFailure(
-            failureReason: AuthenticationFailureReason?,
-            module: BiometricType?
+            result: AuthenticationResult
         ) {
             checkAuthResult(
-                AuthenticationResult(module),
-                AuthResult.AuthResultState.FATAL_ERROR,
-                failureReason
+                result,
+                AuthResult.AuthResultState.FATAL_ERROR
             )
         }
 
-        override fun onCanceled(module: BiometricType?) {
+        override fun onCanceled(result: AuthenticationResult) {
+            canceled.add(result)
             cancelAuth()
-            cancelAuthentication()
         }
     }
 }

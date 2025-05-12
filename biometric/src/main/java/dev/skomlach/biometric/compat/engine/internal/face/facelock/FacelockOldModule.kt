@@ -202,10 +202,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
-        listener?.onFailure(
-            AuthenticationFailureReason.UNKNOWN,
-            tag()
-        )
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
     }
 
     fun setCallerView(targetView: SurfaceView?) {
@@ -255,11 +252,15 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@FacelockOldModule)
                             }
                         }
@@ -283,7 +284,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     stopAuth()
                     ExecutorHelper.postDelayed({
@@ -303,11 +304,11 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@FacelockOldModule)
                         }
                     }
@@ -344,7 +345,7 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
 
         fun onAuthenticationFailed(): Void? {
             d("$name.onAuthenticationFailed")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
             return null
         }
     }

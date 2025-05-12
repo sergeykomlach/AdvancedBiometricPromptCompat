@@ -31,7 +31,7 @@ object CryptographyManager {
             return null
         for (result in confirmed) {
             try {
-                val type = result.confirmed ?: continue
+                val type = result.type ?: continue
                 val cipher = result.cryptoObject?.cipher ?: continue
                 val bytes = cipher.doFinal(plaintext)
                 return BiometricCryptographyResult(type, bytes, cipher.iv)
@@ -50,7 +50,7 @@ object CryptographyManager {
             return null
         for (result in confirmed) {
             try {
-                val type = result.confirmed ?: continue
+                val type = result.type ?: continue
                 val cipher = result.cryptoObject?.cipher ?: continue
                 return BiometricCryptographyResult(type, cipher.doFinal(ciphertext))
             } catch (e: Throwable) {

@@ -58,8 +58,8 @@ class DummyBiometricModule(listener: BiometricInitListener?) :
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         ExecutorHelper.postDelayed({
             listener?.onFailure(
-                AuthenticationFailureReason.AUTHENTICATION_FAILED,
-                biometricMethod.id
+                biometricMethod.id,
+                AuthenticationFailureReason.AUTHENTICATION_FAILED, null
             )
         }, 2500)
     }

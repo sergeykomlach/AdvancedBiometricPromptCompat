@@ -268,9 +268,14 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     fun updateBiometricEnrollChanged() {
         try {
             if (isBiometricEnrollChanged) {
-                EnrollCheckHelper.keyStore.load(null)
-                if (EnrollCheckHelper.keyStore.containsAlias(EnrollCheckHelper.KEY_NAME))
-                    EnrollCheckHelper.keyStore.deleteEntry(EnrollCheckHelper.KEY_NAME)
+                try {
+                    EnrollCheckHelper.keyStore.load(null)
+                    if (EnrollCheckHelper.keyStore.containsAlias(EnrollCheckHelper.KEY_NAME))
+                        EnrollCheckHelper.keyStore.deleteEntry(EnrollCheckHelper.KEY_NAME)
+                } finally {
+                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware").edit()
+                        .clear().apply()
+                }
             }
         } catch (e: Throwable) {
             e(e)
@@ -298,10 +303,14 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             if (job?.isActive == true) return
             job?.cancel()
             job = GlobalScope.launch(Dispatchers.IO) {
-                val changed = isChanged()
-                SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                    .edit()
-                    .putBoolean("isBiometricEnrollChanged", changed).apply()
+                try {
+                    val changed = isChanged()
+                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                        .edit()
+                        .putBoolean("isBiometricEnrollChanged", changed).apply()
+                } catch (e: Throwable) {
+
+                }
             }
         }
 
@@ -352,6 +361,9 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 }
                 try {
                     cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                        .edit()
+                        .putBoolean("isBiometricConfirmed", true).apply()
                 } catch (e: KeyPermanentlyInvalidatedException) {
                     return true
                 } catch (e: InvalidKeyException) {
@@ -360,7 +372,11 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             } catch (e: Throwable) {
                 if (e.message?.contains("User changed or deleted their auth credentials") == true)
                     return true
-                e(e)
+                else if (e.message?.contains("At least one biometric must be enrolled") == true)
+                    return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                        .getBoolean("isBiometricConfirmed", false)
+                else
+                    e(e)
             } finally {
                 try {
                     if (mutex.isLocked) mutex.unlock()

@@ -277,7 +277,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -368,11 +368,15 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 return
             } catch (e: Throwable) {
                 e(e, "$name: authenticate failed unexpectedly")
-                listener?.onFailure(AuthenticationFailureReason.HARDWARE_UNAVAILABLE, tag())
+                listener?.onFailure(
+                    tag(),
+                    AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                    e.message
+                )
                 return
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -418,9 +422,21 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
 
-                IRIS_ERROR_CANCELED, IRIS_ERROR_USER_CANCELED -> {
+                IRIS_ERROR_CANCELED -> {
                     if (!selfCanceled) {
-                        listener?.onCanceled(tag())
+                        listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, errString)
+                        Core.cancelAuthentication(this@AndroidIrisUnlockModule)
+                    }
+                    return
+                }
+
+                IRIS_ERROR_USER_CANCELED -> {
+                    if (!selfCanceled) {
+                        listener?.onCanceled(
+                            tag(),
+                            AuthenticationFailureReason.CANCELED_BY_USER,
+                            errString
+                        )
                         Core.cancelAuthentication(this@AndroidIrisUnlockModule)
                     }
                     return
@@ -428,12 +444,16 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
 
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@AndroidIrisUnlockModule)
                             }
                         }
@@ -452,7 +472,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -467,12 +487,12 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
 
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@AndroidIrisUnlockModule)
                         }
                     }
@@ -502,7 +522,7 @@ class AndroidIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
         }
     }
 

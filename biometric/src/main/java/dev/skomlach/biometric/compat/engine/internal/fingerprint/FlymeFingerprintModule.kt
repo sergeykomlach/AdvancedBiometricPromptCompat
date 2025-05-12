@@ -173,7 +173,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                 failureReason
                             ) == true
                         ) {
-                            listener?.onFailure(failureReason, tag())
+                            listener?.onFailure(tag(), failureReason, null)
                             cancelFingerprintServiceFingerprintRequest()
                             ExecutorHelper.postDelayed({
                                 authenticate(
@@ -192,10 +192,14 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
                                 lockout()
                                 failureReason = AuthenticationFailureReason.LOCKED_OUT
                             }
-                            listener?.onFailure(failureReason, tag())
+                            listener?.onFailure(tag(), failureReason, null)
                             postCancelTask {
                                 if (cancellationSignal?.isCanceled == false) {
-                                    listener?.onCanceled(tag())
+                                    listener?.onCanceled(
+                                        tag(),
+                                        AuthenticationFailureReason.CANCELED,
+                                        null
+                                    )
                                     Core.cancelAuthentication(this@FlymeFingerprintModule)
                                 }
                             }
@@ -214,7 +218,7 @@ class FlymeFingerprintModule(listener: BiometricInitListener?) :
             e(e, "$name: authenticate failed unexpectedly")
         }
 
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         cancelFingerprintServiceFingerprintRequest()
         return
     }

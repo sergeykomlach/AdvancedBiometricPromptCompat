@@ -106,7 +106,7 @@ class WindowForegroundBlurring(
     init {
         val isDark = DarkLightThemes.isNightMode(compatBuilder.getContext())
         defaultColor = DialogMainColor.getColor(context, !isDark)
-        BiometricLoggerImpl.e(
+        e(
             "${this.javaClass.name}.updateDefaultColor isDark -  ${ColorUtil.isDark(defaultColor)}; color - ${
                 Integer.toHexString(
                     defaultColor
@@ -344,7 +344,7 @@ class WindowForegroundBlurring(
                 try {
                     val paletteDefColor =
                         palette?.getDominantColor(Color.TRANSPARENT)?.also { color ->
-                            BiometricLoggerImpl.e(
+                            e(
                                 "${this.javaClass.name}.updateDefaultColor#0 isDark - ${
                                     ColorUtil.isDark(
                                         color

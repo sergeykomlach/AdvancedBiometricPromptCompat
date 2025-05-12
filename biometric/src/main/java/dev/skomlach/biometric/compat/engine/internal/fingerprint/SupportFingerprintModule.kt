@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal.fingerprint
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.core.hardware.fingerprint.FingerprintManagerCompat
 import androidx.core.os.CancellationSignal
@@ -36,7 +37,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 //actually perhaps not necessary impl.
-
+@SuppressLint("RestrictedApi")
 class SupportFingerprintModule(listener: BiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FINGERPRINT_SUPPORT) {
     companion object {
@@ -142,7 +143,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(AuthenticationFailureReason.UNKNOWN, tag())
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -195,10 +196,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(
-            AuthenticationFailureReason.UNKNOWN,
-            tag()
-        )
+        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
         return
     }
 
@@ -250,9 +248,21 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                     failureReason = AuthenticationFailureReason.LOCKED_OUT
                 }
 
-                FINGERPRINT_ERROR_CANCELED, FINGERPRINT_ERROR_USER_CANCELED -> {
+                FINGERPRINT_ERROR_CANCELED -> {
                     if (!selfCanceled) {
-                        listener?.onCanceled(tag())
+                        listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, errString)
+                        Core.cancelAuthentication(this@SupportFingerprintModule)
+                    }
+                    return
+                }
+
+                FINGERPRINT_ERROR_USER_CANCELED -> {
+                    if (!selfCanceled) {
+                        listener?.onCanceled(
+                            tag(),
+                            AuthenticationFailureReason.CANCELED_BY_USER,
+                            errString
+                        )
                         Core.cancelAuthentication(this@SupportFingerprintModule)
                     }
                     return
@@ -260,12 +270,16 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(failureReason, tag())
+                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                         postCancelTask {
 
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
-                                listener?.onCanceled(tag())
+                                listener?.onCanceled(
+                                    tag(),
+                                    AuthenticationFailureReason.CANCELED,
+                                    null
+                                )
                                 Core.cancelAuthentication(this@SupportFingerprintModule)
                             }
                         }
@@ -284,7 +298,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -299,12 +313,12 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(failureReason, tag())
+                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
                     postCancelTask {
 
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
-                            listener?.onCanceled(tag())
+                            listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
                             Core.cancelAuthentication(this@SupportFingerprintModule)
                         }
                     }
@@ -334,7 +348,7 @@ class SupportFingerprintModule(listener: BiometricInitListener?) :
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(AuthenticationFailureReason.AUTHENTICATION_FAILED, tag())
+            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
         }
     }
 

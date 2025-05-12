@@ -216,7 +216,7 @@ object DeviceInfoManager {
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
-                val sharedPreferences = getPreferences(DeviceInfoManager.PREF_NAME)
+                val sharedPreferences = getPreferences(PREF_NAME)
                 if (sharedPreferences.getBoolean("checked", false)) {
                     val model =
                         sharedPreferences.getString("model", null)
@@ -250,7 +250,7 @@ object DeviceInfoManager {
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo, strictMatch: Boolean) {
         cachedDeviceInfo = deviceInfo
         try {
-            val sharedPreferences = getPreferences(DeviceInfoManager.PREF_NAME)
+            val sharedPreferences = getPreferences(PREF_NAME)
                 .edit()
             sharedPreferences.clear().commit()
             sharedPreferences
@@ -419,7 +419,7 @@ object DeviceInfoManager {
                 loadingInProgress.set(true)
                 ExecutorHelper.startOnBackground {
                     val sharedPreferences =
-                        getPreferences(DeviceInfoManager.PREF_NAME)
+                        getPreferences(PREF_NAME)
                     if (NetworkApi.hasInternet() && !sharedPreferences.getBoolean(
                             "strictMatch",
                             false

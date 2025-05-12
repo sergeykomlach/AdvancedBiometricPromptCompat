@@ -44,11 +44,18 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     private val isFingerprint = AtomicBoolean(false)
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
         HashMap<BiometricType?, AuthResult>()
+    private val canceled = HashSet<AuthenticationResult>()
     private val failureCounter = AtomicInteger(0)
     private val isOpened = AtomicBoolean(false)
     private val autoCancel = Runnable {
+        canceled.addAll(builder.getAllAvailableTypes().map {
+            AuthenticationResult(
+                it,
+                reason = AuthenticationFailureReason.CANCELED
+            )
+        })
         cancelAuth()
-        cancelAuthentication()
+
     }
 
     init {
@@ -92,11 +99,20 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     }
 
     override fun cancelAuth() {
-        val success =
-            authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-        if (success != null)
-            return
-        callback?.onCanceled()
+        try {
+            val success =
+                authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            if (success != null)
+                return
+            callback?.onCanceled(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
+                AuthenticationResult(
+                    it,
+                    reason = AuthenticationFailureReason.CANCELED_BY_USER
+                )
+            }.toSet() else canceled)
+        } finally {
+            cancelAuthentication()
+        }
     }
 
     override fun onUiOpened() {
@@ -120,11 +136,11 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
     private fun checkAuthResult(
         module: AuthenticationResult?,
-        authResult: AuthResult.AuthResultState,
-        failureReason: AuthenticationFailureReason? = null
+        authResult: AuthResult.AuthResultState
     ) {
         if (!isOpened.get())
             return
+        val failureReason = module?.reason
         if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
             failureCounter.incrementAndGet()
         }
@@ -136,9 +152,9 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         ) {
             return
         }
-        authFinished[module?.confirmed] =
-            AuthResult(authResult, successData = module, failureReason)
-        BiometricNotificationManager.dismiss(module?.confirmed)
+        authFinished[module?.type] =
+            AuthResult(authResult, result = module)
+        BiometricNotificationManager.dismiss(module?.type)
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = ArrayList(
@@ -163,22 +179,28 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
                 callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
                     var result: AuthenticationResult? = null
-                    onlySuccess[it]?.successData?.let { r ->
+                    onlySuccess[it]?.result?.let { r ->
                         result = AuthenticationResult(
-                            r.confirmed,
-                            if (fixCryptoObjects) null else r.cryptoObject
+                            r.type,
+                            if (fixCryptoObjects) null else r.cryptoObject, r.reason, r.description
                         )
                     }
                     result
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null && allList.isEmpty()) {
-                if (failureCounter.get() == 1 || error.failureReason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
-                    callback?.onFailed(error.failureReason)
+                if (failureCounter.get() == 1 || error.result?.reason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
+                    callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+                        .mapNotNull {
+                            it.result
+                        }.toSet())
                     cancelAuthentication()
                 } else {
                     ExecutorHelper.postDelayed({
-                        callback?.onFailed(error.failureReason)
+                        callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+                            .mapNotNull {
+                                it.result
+                            }.toSet())
                         cancelAuthentication()
                     }, 2000)
                 }
@@ -190,27 +212,23 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
     private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
 
-        override fun onSuccess(module: AuthenticationResult?) {
+        override fun onSuccess(module: AuthenticationResult) {
             checkAuthResult(module, AuthResult.AuthResultState.SUCCESS)
         }
 
         override fun onHelp(msg: CharSequence?) {
         }
 
-        override fun onFailure(
-            failureReason: AuthenticationFailureReason?,
-            module: BiometricType?
-        ) {
+        override fun onFailure(result: AuthenticationResult) {
             checkAuthResult(
-                AuthenticationResult(module),
+                result,
                 AuthResult.AuthResultState.FATAL_ERROR,
-                failureReason
             )
         }
 
-        override fun onCanceled(module: BiometricType?) {
+        override fun onCanceled(result: AuthenticationResult) {
+            canceled.add(result)
             cancelAuth()
-            cancelAuthentication()
         }
     }
 }

@@ -44,9 +44,14 @@ interface AuthenticationListener {
      * useful to know the meaning of the error code.
      */
     fun onFailure(
-        failureReason: AuthenticationFailureReason?,
-        moduleTag: Int
+        moduleTag: Int,
+        reason: AuthenticationFailureReason?,
+        description: CharSequence?
     )
 
-    fun onCanceled(moduleTag: Int)
+    fun onCanceled(
+        moduleTag: Int,
+        reason: AuthenticationFailureReason?,
+        description: CharSequence?
+    )
 }
