@@ -202,10 +202,10 @@ fun Fragment.startBiometric(
                         "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
                     )
 
-                    else -> showAlertDialog(requireActivity(), "Failure: $reason")
+                    else -> showAlertDialog(requireActivity(), "Failure: ${canceled.toString()}")
                 }
             } catch (ignore: Throwable) {
-                Toast.makeText(AndroidContext.appContext.getFixedContext(), "Failure: $reason", Toast.LENGTH_LONG)
+                Toast.makeText(AndroidContext.appContext.getFixedContext(), "Failure: ${canceled.toString()}", Toast.LENGTH_LONG)
                     .show()
             }
         }

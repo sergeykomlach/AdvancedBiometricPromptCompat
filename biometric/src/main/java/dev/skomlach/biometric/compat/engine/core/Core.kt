@@ -176,10 +176,6 @@ object Core {
         restartPredicate: RestartPredicate?
     ) {
         try {
-
-            if (!module.isHardwarePresent || !module.hasEnrolled || module.isLockOut) throw RuntimeException(
-                "Module " + module.javaClass.simpleName + " not ready"
-            )
             cancelAuthentication(module)
             val cancellationSignal = CancellationSignal()
             cancellationSignals[module] = cancellationSignal
