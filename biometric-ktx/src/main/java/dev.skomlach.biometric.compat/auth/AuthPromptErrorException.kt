@@ -20,8 +20,8 @@
 package dev.skomlach.biometric.compat.auth
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.AuthenticationResult
 
 class AuthPromptErrorException(
-    val error: AuthenticationFailureReason?,
-    val errorMessage: CharSequence?
-) : Exception(errorMessage?.toString())
+    val confirmed: Set<AuthenticationResult>
+) : Exception()

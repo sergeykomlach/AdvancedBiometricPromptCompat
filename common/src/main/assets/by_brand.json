@@ -36793,6 +36793,11 @@
   {
    "device": "elliniko",
    "name": "DAHUA",
+   "model": "4K SA SMART TV"
+  },
+  {
+   "device": "elliniko",
+   "name": "DAHUA",
    "model": "4K SMART TV"
   },
   {
@@ -37293,6 +37298,11 @@
    "device": "memor_k",
    "name": "Memor K",
    "model": "Memor K"
+  },
+  {
+   "device": "mk2",
+   "name": "Memor K20",
+   "model": "Memor K2"
   },
   {
    "device": "mk2",
@@ -80636,6 +80646,11 @@
    "device": "T808",
    "name": "T808",
    "model": "T808"
+  },
+  {
+   "device": "IRA_T1021",
+   "name": "Wishtel Pvt Ltd",
+   "model": "IRA_T1021"
   }
  ],
  "IRIE": [
@@ -102305,6 +102320,11 @@
    "device": "khardi",
    "name": "LUMIO",
    "model": "LUMIO VISION"
+  },
+  {
+   "device": "LUMOS_TABLET_PRO",
+   "name": "LUMOS_TABLET_PRO",
+   "model": "LUMOS_TABLET_PRO"
   }
  ],
  "LUMUS": [
@@ -137381,6 +137401,11 @@
    "model": "PHM110"
   },
   {
+   "device": "OP615CL1",
+   "name": "Pad 4 Pro",
+   "model": "OPD2409"
+  },
+  {
    "device": "OPPO72_13076",
    "name": "R1001",
    "model": "R1001"
@@ -141092,6 +141117,11 @@
   }
  ],
  "PERSONA": [
+  {
+   "device": "86KTA_PRO_FULL",
+   "name": "86KTA_PRO_FULL",
+   "model": "86KTA_PRO_FULL"
+  },
   {
    "device": "86KTA_PRO_PIS",
    "name": "86KTA_PRO_PIS-AMLT982",
@@ -163223,6 +163253,11 @@
    "device": "a56x",
    "name": "Galaxy A56 5G",
    "model": "SM-A566E"
+  },
+  {
+   "device": "a56x",
+   "name": "Galaxy A56 5G",
+   "model": "SM-A566S"
   },
   {
    "device": "a6elteaio",
@@ -198909,6 +198944,11 @@
    "device": "R4",
    "name": "R4",
    "model": "R4"
+  },
+  {
+   "device": "mountbaker",
+   "name": "THEUHD",
+   "model": "2K SMART TV"
   }
  ],
  "THEHAM": [

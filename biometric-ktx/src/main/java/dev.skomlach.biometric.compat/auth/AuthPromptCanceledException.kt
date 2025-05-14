@@ -16,4 +16,6 @@
 
 package dev.skomlach.biometric.compat.auth
 
-class AuthPromptCanceledException : Exception()
+import dev.skomlach.biometric.compat.AuthenticationResult
+
+class AuthPromptCanceledException(val confirmed: Set<AuthenticationResult>) : Exception()

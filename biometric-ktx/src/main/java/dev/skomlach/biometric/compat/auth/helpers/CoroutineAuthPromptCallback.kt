@@ -33,13 +33,10 @@ import kotlin.coroutines.resumeWithException
 internal class CoroutineAuthPromptCallback(
     private val continuation: CancellableContinuation<Set<AuthenticationResult>>
 ) : BiometricPromptCompat.AuthenticationCallback() {
-    override fun onFailed(reason: AuthenticationFailureReason?, dialogDescription: CharSequence?) {
+    override fun onFailed(confirmed: Set<AuthenticationResult>) {
         if (!continuation.isCompleted)
             continuation.resumeWithException(
-                AuthPromptErrorException(
-                    reason,
-                    dialogDescription
-                )
+                AuthPromptErrorException(confirmed)
             )
     }
 
@@ -49,8 +46,8 @@ internal class CoroutineAuthPromptCallback(
             continuation.resumeWith(Result.success(confirmed))
     }
 
-    override fun onCanceled() {
+    override fun onCanceled(confirmed: Set<AuthenticationResult>) {
         if (!continuation.isCompleted)
-            continuation.resumeWithException(AuthPromptCanceledException())
+            continuation.resumeWithException(AuthPromptCanceledException(confirmed))
     }
 }
