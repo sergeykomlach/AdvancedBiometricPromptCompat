@@ -138,7 +138,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
         return
     }
 
@@ -279,7 +279,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
         return
     }
 

@@ -244,7 +244,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private lateinit var oldDescription: CharSequence
     private lateinit var oldTitle: CharSequence
-    private val oldIsBiometricReadyForUsage = BiometricManagerCompat.isBiometricSensorPermanentlyLocked(builder.getBiometricAuthRequest())
+    private val oldIsBiometricReadyForUsage =
+        BiometricManagerCompat.isBiometricSensorPermanentlyLocked(builder.getBiometricAuthRequest())
     private val impl: IBiometricPromptImpl by lazy {
         val isBiometricPrompt =
             builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API ||
@@ -395,7 +396,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         )
                     }.toSet())
                     authFlowInProgress.set(false)
-                } else if(BiometricManagerCompat.isLockOut(impl.builder.getBiometricAuthRequest())) {
+                } else if (BiometricManagerCompat.isLockOut(impl.builder.getBiometricAuthRequest())) {
                     callbackOuter.onFailed(builder.getAllAvailableTypes().map {
                         AuthenticationResult(
                             it,
@@ -593,7 +594,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             if (System.currentTimeMillis() - startTsImpl <= AndroidContext.appContext.resources.getInteger(
                                     android.R.integer.config_longAnimTime
                                 )
-                                && (oldIsBiometricReadyForUsage != BiometricManagerCompat.isBiometricSensorPermanentlyLocked(builder.getBiometricAuthRequest()))
+                                && (oldIsBiometricReadyForUsage != BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                                    builder.getBiometricAuthRequest()
+                                ))
                                 && builder.isDeviceCredentialFallbackAllowed() && !builder.forceDeviceCredential()
                             ) {
                                 BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed restart auth with credentials")
@@ -1127,7 +1130,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
             ) {
                 true
-            }  else false
+            } else false
         }
 
         fun getTitle(): CharSequence? {
@@ -1243,7 +1246,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setDeviceCredentialFallbackAllowed(enabled: Boolean): Builder {
             this.isDeviceCredentialFallbackAllowed = enabled
             this.forceDeviceCredential =
-                enabled && BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest)
+                enabled && BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                    biometricAuthRequest
+                )
             return this
         }
 

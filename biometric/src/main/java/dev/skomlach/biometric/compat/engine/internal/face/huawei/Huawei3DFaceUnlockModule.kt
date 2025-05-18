@@ -110,7 +110,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
         return
     }
 
@@ -164,7 +164,7 @@ class Huawei3DFaceUnlockModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
     }
 
     private inner class AuthCallback3DFace(

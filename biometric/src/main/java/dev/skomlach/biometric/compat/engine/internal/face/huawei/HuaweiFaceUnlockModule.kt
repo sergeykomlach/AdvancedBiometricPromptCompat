@@ -118,7 +118,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
         return
     }
 
@@ -187,7 +187,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
     }
 
     private inner class AuthCallbackLegacy(
@@ -224,7 +224,7 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, null)
+                        listener?.onFailure(tag(), failureReason, "$name - $errMsgId")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true

@@ -124,7 +124,7 @@ class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
     }
 
     private fun authorize(proxyListener: ProxyListener) {

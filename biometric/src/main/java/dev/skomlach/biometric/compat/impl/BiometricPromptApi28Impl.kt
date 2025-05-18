@@ -264,7 +264,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                         if (builder.getAllAvailableTypes().size == 1) builder.getAllAvailableTypes()
                                             .first() else BiometricType.BIOMETRIC_ANY,
                                         reason = failureReason,
-                                        description = errString
+                                        description = errString.ifEmpty {
+                                            "$errorCode-$errString"
+                                        }
                                     )
                                 )
                             )
@@ -274,7 +276,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                         if (builder.getAllAvailableTypes().size == 1) builder.getAllAvailableTypes()
                                             .first() else BiometricType.BIOMETRIC_ANY,
                                         reason = AuthenticationFailureReason.CANCELED,
-                                        description = errString
+                                        description = null
                                     )
                                 )
                                 cancelAuth()
@@ -302,7 +304,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 if (builder.getAllAvailableTypes().size == 1) builder.getAllAvailableTypes()
                                     .first() else BiometricType.BIOMETRIC_ANY,
                                 reason = failureReason,
-                                description = errString
+                                description = errString.ifEmpty {
+                                    "$errorCode-$errString"
+                                }
                             )
                         )
                     }
@@ -633,7 +637,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 d("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onSucceeded")
 
                 if (biometricPromptInfo.isDeviceCredentialAllowed || (biometricPromptInfo.allowedAuthenticators and BiometricManager.Authenticators.DEVICE_CREDENTIAL) != 0) {
-                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                 }
                 callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
                     var result: AuthenticationResult? = null

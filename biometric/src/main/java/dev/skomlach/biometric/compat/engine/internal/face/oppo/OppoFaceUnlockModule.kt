@@ -188,7 +188,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
         return
     }
 
@@ -243,7 +243,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.UNKNOWN, "Manager is NULL")
+        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
         return
     }
 
