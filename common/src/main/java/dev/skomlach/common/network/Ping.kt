@@ -137,18 +137,19 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 connectionStateListener.setState(true)
                 return
             } catch (e: IllegalStateException) {
-                LogCat.logException(e, "Ping")
+                LogCat.logException(e)
                 connectionStateListener.setState(false)
                 return
             } catch (e: Throwable) {
                 //UnknownHostException
                 //SocketTimeoutException
                 if (e.javaClass.name.startsWith("java.net.")) {
-                    LogCat.logException(e, "Ping")
+                    LogCat.logException(e)
+                    connectionStateListener.setState(false)
                     updateConnectionCheckQuery(PingConfig.pingTimeoutSec)
                     return
                 }
-                LogCat.logException(e, "Ping")
+                LogCat.logException(e)
                 //retry
             } finally {
                 if (urlConnection != null) {
