@@ -52,70 +52,98 @@ import javax.crypto.SecretKey
 class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     AbstractHardware(authRequest) {
 
-    private val biometricFeatures: ArrayList<String>
-        get() {
-            val list = ArrayList<String>()
-            try {
-                val fields = PackageManager::class.java.fields
-                for (f in fields) {
-                    if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
-                        (f[null] as String?)?.let { name ->
+    private val biometricFeatures: ArrayList<String> by lazy {
+        val list = ArrayList<String>()
+        try {
+            val fields = PackageManager::class.java.fields
+            for (f in fields) {
+                if (Modifier.isStatic(f.modifiers) && f.type == String::class.java) {
+                    (f[null] as String?)?.let { name ->
 
-                            val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
-                            val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
-                            if ((isAOSP || isOEM) && (
-                                        name.endsWith(".fingerprint")
-                                                || name.endsWith(".face")
-                                                || name.endsWith(".iris")
-                                                || name.endsWith(".biometric")
-                                                || name.endsWith(".palm")
-                                                || name.endsWith(".voice")
-                                                || name.endsWith(".heartrate")
-                                                || name.contains(".fingerprint.")
-                                                || name.contains(".face.")
-                                                || name.contains(".iris.")
-                                                || name.contains(".biometric.")
-                                                || name.contains(".palm.")
-                                                || name.contains(".voice.")
-                                                || name.contains(".heartrate.")
-                                        )
-                            ) {
-                                list.add(name)
-                            }
+                        val isAOSP = name.contains(".hardware.") && !name.contains(".sensor.")
+                        val isOEM = name.startsWith("com.") && !name.contains(".sensor.")
+                        if ((isAOSP || isOEM) && (
+                                    name.endsWith(".fingerprint")
+                                            || name.endsWith(".face")
+                                            || name.endsWith(".iris")
+                                            || name.endsWith(".biometric")
+                                            || name.endsWith(".palm")
+                                            || name.endsWith(".voice")
+                                            || name.endsWith(".heartrate")
+                                            || name.contains(".fingerprint.")
+                                            || name.contains(".face.")
+                                            || name.contains(".iris.")
+                                            || name.contains(".biometric.")
+                                            || name.contains(".palm.")
+                                            || name.contains(".voice.")
+                                            || name.contains(".heartrate.")
+                                    )
+                        ) {
+                            list.add(name)
                         }
                     }
                 }
-            } catch (e: Throwable) {
-                e(e)
             }
-            list.sort()
-            return list
+        } catch (e: Throwable) {
+            e(e)
         }
+        list.sort()
+        list
+    }
+    private var canAuthenticateJob: Job? = null
     private val canAuthenticate: Int
         get() {
-            var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
             try {
-                val biometricManager: BiometricManager = BiometricManager.from(appContext)
-                val authenticators = arrayOf(
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK
-                            or BiometricManager.Authenticators.BIOMETRIC_STRONG,
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK,
-                    BiometricManager.Authenticators.BIOMETRIC_STRONG
-                )
-                for (authenticator in authenticators) {
-                    code = biometricManager.canAuthenticate(authenticator)
-                    if (code == BiometricManager.BIOMETRIC_SUCCESS || code == BiometricManager.BIOMETRIC_STATUS_UNKNOWN) {
-                        break
+                if (canAuthenticateJob?.isActive == true)
+                    return SharedPreferenceProvider.getPreferences(
+                        "BiometricPromptHardware"
+                    ).getInt("canAuthenticate", getStatusCode())
+
+                canAuthenticateJob?.cancel()
+                canAuthenticateJob = GlobalScope.launch(Dispatchers.IO) {
+                    getStatusCode().also {
+                        SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                            .edit()
+                            .putInt("canAuthenticate", it).apply()
                     }
                 }
-
+                return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                    .getInt("canAuthenticate", getStatusCode())
             } catch (e: Throwable) {
-                e(e)
-            } finally {
-                e("Android28Hardware - canAuthenticate=$code")
+                e(e, "Android28Hardware - canAuthenticate")
+                return getStatusCode().also {
+                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+                        .edit()
+                        .putInt("canAuthenticate", it).apply()
+                }
             }
-            return code
         }
+
+    private fun getStatusCode(): Int {
+        var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+        try {
+            val biometricManager: BiometricManager = BiometricManager.from(appContext)
+            val authenticators = arrayOf(
+                BiometricManager.Authenticators.BIOMETRIC_WEAK
+                        or BiometricManager.Authenticators.BIOMETRIC_STRONG,
+                BiometricManager.Authenticators.BIOMETRIC_WEAK,
+                BiometricManager.Authenticators.BIOMETRIC_STRONG
+            )
+            for (authenticator in authenticators) {
+                code = biometricManager.canAuthenticate(authenticator)
+                if (code == BiometricManager.BIOMETRIC_SUCCESS || code == BiometricManager.BIOMETRIC_STATUS_UNKNOWN) {
+                    break
+                }
+            }
+
+        } catch (e: Throwable) {
+            e(e)
+        } finally {
+            e("Android28Hardware - canAuthenticate=$code")
+        }
+        return code
+    }
+
     private val isAnyHardwareAvailable: Boolean
         get() {
             return when (canAuthenticate) {
@@ -303,6 +331,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             if (job?.isActive == true) return
             job?.cancel()
             job = GlobalScope.launch(Dispatchers.IO) {
+
                 try {
                     val changed = isChanged()
                     SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
