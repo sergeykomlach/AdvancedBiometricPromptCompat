@@ -51,7 +51,10 @@ import javax.crypto.SecretKey
 
 class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     AbstractHardware(authRequest) {
-
+    companion object {
+        private var canAuthenticatePair =
+            Pair<Long, Int>(0, BiometricManager.BIOMETRIC_STATUS_UNKNOWN)
+    }
     private val biometricFeatures: ArrayList<String> by lazy {
         val list = ArrayList<String>()
         try {
@@ -90,37 +93,23 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         list.sort()
         list
     }
-    private var canAuthenticateJob: Job? = null
+
     private val canAuthenticate: Int
         get() {
             try {
-                if (canAuthenticateJob?.isActive == true)
-                    return SharedPreferenceProvider.getPreferences(
-                        "BiometricPromptHardware"
-                    ).getInt("canAuthenticate", getStatusCode())
-
-                canAuthenticateJob?.cancel()
-                canAuthenticateJob = GlobalScope.launch(Dispatchers.IO) {
+                return if (System.currentTimeMillis() - canAuthenticatePair.first >= 1000L)
                     getStatusCode().also {
-                        SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                            .edit()
-                            .putInt("canAuthenticate", it).apply()
+                        canAuthenticatePair = Pair(System.currentTimeMillis(), it)
                     }
-                }
-                return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                    .getInt("canAuthenticate", getStatusCode())
+                else canAuthenticatePair.second
             } catch (e: Throwable) {
                 e(e, "Android28Hardware - canAuthenticate")
-                return getStatusCode().also {
-                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                        .edit()
-                        .putInt("canAuthenticate", it).apply()
-                }
+                return canAuthenticatePair.second
             }
         }
 
     private fun getStatusCode(): Int {
-        var code = BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE
+        var code = BiometricManager.BIOMETRIC_STATUS_UNKNOWN
         try {
             val biometricManager: BiometricManager = BiometricManager.from(appContext)
             val authenticators = arrayOf(
