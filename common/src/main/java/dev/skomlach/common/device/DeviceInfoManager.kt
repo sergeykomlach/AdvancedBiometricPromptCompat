@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
-    const val PREF_NAME = "BiometricCompat_DeviceInfo-V3"
+    const val PREF_NAME = "BiometricCompat_DeviceInfo-V4"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
 
@@ -312,14 +312,17 @@ object DeviceInfoManager {
         brand: String,
         codeName: String
     ): DeviceInfo? {
-        LogCat.log("DeviceInfoManager: findDeviceInfo(${devicesList.size}, $model, $brand, $codeName)")
+        LogCat.log("DeviceInfoManager: findDeviceInfo(total=${devicesList.size}, brand=$brand, model=$model, codeName=$codeName)")
         var firstFound: DeviceInfo? = null
         devicesList.forEach {
-            val m = if (it.name?.startsWith(
+            var m = if (it.name?.startsWith(
                     it.brand ?: "",
                     ignoreCase = true
                 ) == true
             ) capitalize(it.name) else capitalize(it.brand) + " " + capitalize(it.name)
+            (it.brand?:brand).let { b->
+                m = m.replace(b, b, ignoreCase = true)
+            }
 
             if (it.name.equals(model, ignoreCase = true) || (brand.contains(
                     it.brand.toString(),
@@ -488,15 +491,15 @@ object DeviceInfoManager {
         return list.toTypedArray()
     }
 
-    private fun capitalize(s: String?): String {
-        if (s.isNullOrEmpty()) {
+    private fun capitalize(text: String?): String {
+        if (text.isNullOrEmpty()) {
             return ""
         }
-        val first = s[0]
-        return if (Character.isUpperCase(first)) {
-            s
-        } else {
-            Character.toUpperCase(first).toString() + s.substring(1)
-        }
+        return text
+            .split(" ")
+            .joinToString(" ") { word ->
+                word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            }.trim()
+
     }
 }
