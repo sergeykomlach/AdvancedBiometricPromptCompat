@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.2'
-    ext.libsMinorVersion = 50
+    ext.libsMinorVersion = 51
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -49,15 +49,15 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.9.2'
+        classpath 'com.android.tools.build:gradle:8.10.1'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:4.1.0"
         classpath "org.owasp:dependency-check-gradle:12.1.0"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.3'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.4'
         classpath 'com.google.gms:google-services:4.4.2'
-        classpath 'de.undercouch:gradle-download-task:4.1.1'
+        classpath 'de.undercouch:gradle-download-task:5.6.0'
     }
 }
 
@@ -75,7 +75,7 @@ allprojects {
 
     dependencies {
         // Optional, some source of nullability annotations
-        errorprone "com.google.errorprone:error_prone_core:2.19.1"
+        errorprone "com.google.errorprone:error_prone_core:2.38.0"
     }
 
 //Tool for detect known vulnerabilities in 3-rd party libraries
@@ -101,7 +101,7 @@ subprojects { project ->
     }
 }
 
-task clean(type: Delete) {
+tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }
 

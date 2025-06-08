@@ -24,6 +24,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 
 object Vibro {
@@ -32,7 +33,14 @@ object Vibro {
     private var audioManager: AudioManager? = null
 
     init {
-        v = appContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+        v = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager =
+                appContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            appContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
         audioManager =
             appContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager?
     }
@@ -51,7 +59,7 @@ object Vibro {
                 v?.vibrate(75)
             else try {
                 v?.vibrate(VibrationEffect.createOneShot(75, VibrationEffect.DEFAULT_AMPLITUDE))
-            } catch (ignore: Throwable) {
+            } catch (_: Throwable) {
                 v?.vibrate(75)
             }
         }

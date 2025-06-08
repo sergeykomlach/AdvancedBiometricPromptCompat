@@ -33,7 +33,7 @@ project.ext.TMP_DIR   = project.buildDir.toString() + '/downloads'
 dependencies {
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
-    implementation "androidx.appcompat:appcompat:1.7.0"
+    implementation "androidx.appcompat:appcompat:1.7.1"
     implementation 'com.google.android.material:material:1.12.0'
 
     implementation('org.tensorflow:tensorflow-lite:2.16.1') { changing = true }
