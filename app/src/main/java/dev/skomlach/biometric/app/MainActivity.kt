@@ -39,7 +39,7 @@ import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.app.devtools.Scan4Apis
 import dev.skomlach.biometric.app.utils.MailTo
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import dev.skomlach.common.themes.DarkLightThemes
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.storage.SharedPreferenceProvider

@@ -56,7 +56,7 @@ import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
-import dev.skomlach.common.themes.DarkLightThemes
+import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
