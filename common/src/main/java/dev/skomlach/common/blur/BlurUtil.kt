@@ -559,7 +559,7 @@ object BlurUtil {
         if (bitmapFuture.isCancelled) {
             return
         }
-        val destBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val destBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444)
         when {
             Build.VERSION.SDK_INT < 26 -> generateBitmapFromDraw(destBitmap, bitmapFuture)
             this is SurfaceView -> generateBitmapFromSurfaceViewPixelCopy(destBitmap, bitmapFuture)
@@ -688,7 +688,7 @@ object BlurUtil {
             Bitmap.createBitmap(
                 boundsInWindow?.width() ?: decorView.width,
                 boundsInWindow?.height() ?: decorView.height,
-                Bitmap.Config.ARGB_8888
+                Bitmap.Config.ARGB_4444
             )
         when {
             Build.VERSION.SDK_INT < 26 ->

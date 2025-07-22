@@ -160,6 +160,17 @@ class MultiWindowSupport private constructor() {
                 }
             }
         }
+
+    fun getNavBarDividerHeight(): Int {
+        val res = (AndroidContext.activity ?: AndroidContext.appContext).resources
+        val id = res.getIdentifier(
+            "navigation_bar_divider_height",
+            "dimen",
+            "android"
+        )
+        return if (id > 0) res.getDimensionPixelSize(id) else 0
+    }
+
     val navigationBarHeight: Int
         get() {
             if (!hasNavBar()) {
@@ -182,7 +193,7 @@ class MultiWindowSupport private constructor() {
                 )
             }
             return if (resourceId > 0) {
-                resources.getDimensionPixelSize(resourceId)
+                resources.getDimensionPixelSize(resourceId) + getNavBarDividerHeight()
             } else 0
         }
     val navigationBarWidth: Int

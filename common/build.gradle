@@ -29,6 +29,7 @@ kotlin {
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'org.jsoup:jsoup:1.21.1'
     implementation "androidx.appcompat:appcompat:1.7.1"
     implementation "androidx.window:window:1.4.0"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'

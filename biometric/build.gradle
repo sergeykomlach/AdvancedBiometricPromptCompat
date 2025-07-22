@@ -38,7 +38,7 @@ dependencies {
     compileOnly project(":" + libArtifactId_biometric_api)
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.lsposed.hiddenapibypass:hiddenapibypass:6.1'
-    implementation 'androidx.lifecycle:lifecycle-process:2.9.1'
+    implementation 'androidx.lifecycle:lifecycle-process:2.9.2'
     implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
     implementation "androidx.appcompat:appcompat:1.7.1"
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.2.0'

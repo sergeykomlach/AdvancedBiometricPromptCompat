@@ -61,7 +61,7 @@ import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.themes.DarkLightThemes
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.statusbar.ColorUtil

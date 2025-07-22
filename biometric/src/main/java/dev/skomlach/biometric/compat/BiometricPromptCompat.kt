@@ -54,7 +54,7 @@ import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager

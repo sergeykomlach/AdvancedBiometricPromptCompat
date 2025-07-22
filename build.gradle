@@ -29,7 +29,7 @@ buildscript {
 
 
     ext.libsMajorVersion = '2.2'
-    ext.libsMinorVersion = 51
+    ext.libsMinorVersion = 52
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'
@@ -49,14 +49,14 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.10.1'
+        classpath 'com.android.tools.build:gradle:8.11.1'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:4.1.0"
         classpath "org.owasp:dependency-check-gradle:12.1.0"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.4'
-        classpath 'com.google.gms:google-services:4.4.2'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.5'
+        classpath 'com.google.gms:google-services:4.4.3'
         classpath 'de.undercouch:gradle-download-task:5.6.0'
     }
 }

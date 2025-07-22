@@ -19,6 +19,10 @@
 
 package dev.skomlach.common.statusbar
 
+import android.app.UiModeManager
+import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.graphics.Color
 import android.os.Build
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
@@ -26,6 +30,11 @@ import android.view.Window
 import androidx.annotation.ColorInt
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.SettingsHelper
+import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.themes.DarkThemeCheckResult
+import dev.skomlach.common.themes.getIsOsDarkTheme
+import java.time.LocalTime
 
 
 object StatusBarTools {
@@ -77,8 +86,17 @@ object StatusBarTools {
         try {
             if (TURNOFF_TINT) return
             if (translucentNavBar) color = Color.TRANSPARENT
-            val isDark = ColorUtil.isDark(color)
-
+            val isDark =
+                if (ColorUtil.colorDistance(
+                        color,
+                        Color.TRANSPARENT
+                    ) <= 0.1
+                ) isNightMode(window.context) else ColorUtil.isDark(
+                    color
+                )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isNavigationBarContrastEnforced = false
+            }
             //emulate navbar color via translucent and custom views
             //On Android6+ and some OEM device we can enable DarkIcons
             if (!StatusBarIconsDarkMode.setDarkIconMode(
@@ -87,9 +105,10 @@ object StatusBarTools {
                     BarType.NAVBAR
                 )
             ) { //in other cases - make color a bit 'darker'
-                if (!isDark) {
-                    color = ColorUtil.blend(color, Color.BLACK, alpha.toDouble())
-                }
+                color = if (!isDark) {
+                    ColorUtil.blend(color, Color.BLACK, alpha.toDouble())
+                } else
+                    ColorUtil.blend(color, Color.WHITE, alpha.toDouble())
             }
             if (Build.VERSION.SDK_INT >= 21) {
                 window.navigationBarColor = color
@@ -97,10 +116,6 @@ object StatusBarTools {
             //add divider for android 9
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 window.navigationBarDividerColor = dividerColor
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                window.isNavigationBarContrastEnforced =
-                    ColorUtil.colorDistance(color, Color.TRANSPARENT) <= 0.1
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
@@ -112,8 +127,17 @@ object StatusBarTools {
         try {
             if (TURNOFF_TINT) return
             if (translucentStatusBar) color = Color.TRANSPARENT
-            val isDark = ColorUtil.isDark(color)
-
+            val isDark =
+                if (ColorUtil.colorDistance(
+                        color,
+                        Color.TRANSPARENT
+                    ) <= 0.1
+                ) isNightMode(window.context) else ColorUtil.isDark(
+                    color
+                )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isStatusBarContrastEnforced = false
+            }
             //emulate statusbar color via translucent and custom views
             //On Android6+ and some OEM device we can enable DarkIcons
             if (!StatusBarIconsDarkMode.setDarkIconMode(
@@ -122,19 +146,81 @@ object StatusBarTools {
                     BarType.STATUSBAR
                 )
             ) { //in other cases - make color a bit 'darker'
-                if (!isDark) {
-                    color = ColorUtil.blend(color, Color.BLACK, alpha.toDouble())
-                }
+                color = if (!isDark) {
+                    ColorUtil.blend(color, Color.BLACK, alpha.toDouble())
+                } else
+                    ColorUtil.blend(color, Color.WHITE, alpha.toDouble())
             }
             if (Build.VERSION.SDK_INT >= 21) {
                 window.statusBarColor = color
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                window.isStatusBarContrastEnforced =
-                    ColorUtil.colorDistance(color, Color.TRANSPARENT) <= 0.1
-            }
         } catch (e: Throwable) {
             LogCat.logException(e)
+        }
+    }
+
+    private fun isNightMode(context: Context): Boolean {
+        return UiModeManager.MODE_NIGHT_YES == getNightMode(
+            context
+        )
+    }
+
+    private fun getNightMode(context: Context): Int {
+        return when (getIsOsDarkTheme(context)) {
+            DarkThemeCheckResult.DARK -> {
+                UiModeManager.MODE_NIGHT_YES
+            }
+
+            DarkThemeCheckResult.LIGHT -> {
+                UiModeManager.MODE_NIGHT_NO
+            }
+
+            else -> {
+                Resources.getSystem().configuration?.let { config ->
+                    if ((config.uiMode and
+                                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) ||
+                        (Utils.isAtLeastR && config.isNightModeActive)
+                    )
+                        return UiModeManager.MODE_NIGHT_YES
+                }
+
+                val mUiModeManager =
+                    context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
+                val modeFromSettings =
+                    SettingsHelper.getInt(context, "ui_night_mode", UiModeManager.MODE_NIGHT_NO)
+                if (modeFromSettings != UiModeManager.MODE_NIGHT_NO) {
+                    if (modeFromSettings == UiModeManager.MODE_NIGHT_YES)
+                        return UiModeManager.MODE_NIGHT_YES
+                    else {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                            val start = mUiModeManager?.customNightModeStart
+                            val end = mUiModeManager?.customNightModeEnd
+                            val now = LocalTime.now()
+                            if (now.isAfter(start) && now.isBefore(end))
+                                return UiModeManager.MODE_NIGHT_YES
+                        }
+                    }
+                } else {
+                    val nightMode = mUiModeManager?.nightMode ?: UiModeManager.MODE_NIGHT_NO
+                    if (nightMode != UiModeManager.MODE_NIGHT_NO) {
+                        if (nightMode == UiModeManager.MODE_NIGHT_YES)
+                            return UiModeManager.MODE_NIGHT_YES
+                        else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val start = mUiModeManager?.customNightModeStart
+                                val end = mUiModeManager?.customNightModeEnd
+                                val now = LocalTime.now()
+                                if ((now.equals(start) || now.equals(end)) || (now.isAfter(start) && now.isBefore(
+                                        end
+                                    ))
+                                )
+                                    return UiModeManager.MODE_NIGHT_YES
+                            }
+                        }
+                    }
+                }
+                UiModeManager.MODE_NIGHT_NO
+            }
         }
     }
 }

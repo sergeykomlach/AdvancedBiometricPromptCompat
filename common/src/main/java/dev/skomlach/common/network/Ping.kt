@@ -96,11 +96,11 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 )
                 urlConnection.instanceFollowRedirects = true
                 urlConnection.requestMethod = "GET"
-                urlConnection.setRequestProperty(
-                    "User-Agent", LocalizationHelper.agents[SecureRandom().nextInt(
-                        LocalizationHelper.agents.size
-                    )]
-                )
+                LocalizationHelper.agents.randomOrNull()?.let { userAgent ->
+                    urlConnection.setRequestProperty(
+                        "User-Agent", userAgent
+                    )
+                }
                 urlConnection.connect()
                 val responseCode = urlConnection.responseCode
                 val byteArrayOutputStream = ByteArrayOutputStream()
@@ -121,7 +121,12 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                             throw IOException("Unable to connect to $host")
                         }
                     }
-                    inputStream = urlConnection.inputStream ?: urlConnection.errorStream
+                    inputStream = try {
+                        urlConnection.inputStream
+                    } catch (e: IOException) {
+                        urlConnection.errorStream
+                    }
+
                 }
                 NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                 inputStream.close()
@@ -143,14 +148,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             } catch (e: Throwable) {
                 //UnknownHostException
                 //SocketTimeoutException
-                if (e.javaClass.name.startsWith("java.net.")) {
-                    LogCat.logException(e)
-                    connectionStateListener.setState(false)
-                    updateConnectionCheckQuery(PingConfig.pingTimeoutSec)
-                    return
-                }
                 LogCat.logException(e)
-                //retry
             } finally {
                 if (urlConnection != null) {
                     try {
@@ -161,75 +159,48 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
             }
         }
-        //fallback to the current newtork state; Can be false positive
-        connectionStateListener.setState(connectionStateListener.isConnectionDetected())
+        connectionStateListener.setState(false)
     }
 
     @Throws(Exception::class)
-    private fun verifyHTML(originalUrl: String, s: String): Boolean {
-        var html = s
-        val start = html.lowercase(Locale.ROOT).indexOf("<head>")
-        val end = html.lowercase(Locale.ROOT).indexOf("</head>")
-        if (start != -1 && end != -1) {
-            html = html.substring(start + "<head>".length, end)
-            //verify URL in HTML body
-            var m = patternLink.matcher(html)
-            while (m.find()) {
-                val rel = m.group(1) ?: continue
-                val url = getUrlFromRel(rel)
-                if (url != null) {
-                    if (checkUrls(originalUrl, url)) {
-                        LogCat.log("Ping compare (link):$originalUrl == $url")
-                        return true
-                    }
+    private fun verifyHTML(originalUrl: String, htmlContent: String): Boolean {
+        try {
+            val doc = org.jsoup.Jsoup.parse(htmlContent)
+            val head = doc.head()
+
+            // Check <link rel="canonical" href="...">
+            val links = head.select("link[rel=canonical], link[rel=alternate], link[rel=shortlink]")
+            for (link in links) {
+                val href = link.attr("href")
+                if (checkUrls(originalUrl, href)) {
+                    LogCat.log("Ping compare (link): $originalUrl == $href")
+                    return true
                 }
             }
-            m = patternMeta.matcher(html)
-            while (m.find()) {
-                val meta = m.group(1) ?: continue
-                if (isOriginFromMeta(meta)) return true
-                val url = getUrlFromMeta(meta)
-                if (url != null) {
-                    if (checkUrls(originalUrl, url)) {
-                        LogCat.log("Ping compare (meta):$originalUrl == $url")
-                        return true
-                    }
+
+            // Check <meta property="og:url" content="...">
+            val metas = head.select("meta[property=og:url]")
+            for (meta in metas) {
+                val content = meta.attr("content")
+                if (checkUrls(originalUrl, content)) {
+                    LogCat.log("Ping compare (meta): $originalUrl == $content")
+                    return true
                 }
             }
+
+            // Check origin
+            val originMeta = head.select("meta[property=origin], meta[name=origin]")
+            for (meta in originMeta) {
+                val content = meta.attr("content").lowercase(Locale.ROOT)
+                if (content == "origin") {
+                    LogCat.log("Ping: origin tag matched")
+                    return true
+                }
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
         }
         return false
-    }
-
-    private fun getUrlFromMeta(meta: String): String? {
-        val attributes = parseHtmlTagAttributes(meta)
-        val relValue = attributes["property"]
-        return if ("og:url".equals(relValue, ignoreCase = true)) attributes["content"] else null
-    }
-
-    private fun isOriginFromMeta(meta: String): Boolean {
-        val attributes = parseHtmlTagAttributes(meta)
-        val relValue = attributes["content"]?.lowercase()
-        return relValue == "origin"
-    }
-
-    private fun getUrlFromRel(rel: String): String? {
-        val attributes = parseHtmlTagAttributes(rel)
-        val relValue = attributes["rel"]
-        return if ("canonical".equals(relValue, ignoreCase = true)
-            || "alternate".equals(relValue, ignoreCase = true)
-            || "shortlink".equals(relValue, ignoreCase = true)
-        ) attributes["href"] else null
-    }
-
-    private fun parseHtmlTagAttributes(tag: String): Map<String, String> {
-        val matcher = patternTagAttributes.matcher(tag)
-        val attributes: MutableMap<String, String> = HashMap()
-        while (matcher.find()) {
-            val key = matcher.group(1) ?: continue
-            val value = matcher.group(2) ?: continue
-            attributes[key] = value
-        }
-        return attributes
     }
 
 
@@ -243,61 +214,21 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         return matchesUrl(original, target)
     }
 
-    private fun getScheme(url: String): String {
-        try {
-            if (url.isEmpty()) return ""
-            return if (!isWebUrl(url)) "" else URI(url).scheme
-        } catch (e: Exception) {
-        }
-        return ""
+    private fun matchesUrl(link1: String?, link2: String?): Boolean {
+        val norm1 = normalizeUrl(link1)
+        val norm2 = normalizeUrl(link2)
+        return norm1 == norm2
     }
 
-    private fun matchesUrl(link1: String?, link2: String?): Boolean {
-
-        //SpLog.log("matchesUrl: '"+url1 +"' & '"+url2+"'");
-        var url1 = link1 ?: ""
-        var url2 = link2 ?: ""
-        if (url1 == url2) return true
-        if (url1.isEmpty()) return false
-        if (url2.isEmpty()) return false
-        try {
-            url1 = url1.lowercase(Locale.ROOT)
-            url2 = url2.lowercase(Locale.ROOT)
-            val scheme2 = getScheme(url2)
-            if (scheme2.isEmpty()) {
-                url2 =
-                    if (url2.contains("://")) "http" + url2.substring(url2.indexOf("://")) else "http://$url2"
-            }
-            val scheme1 = getScheme(url1)
-            if (scheme1.isEmpty()) {
-                url1 =
-                    if (url1.contains("://")) "http" + url1.substring(url1.indexOf("://")) else "http://$url1"
-            }
-            var u1 = URL(url1)
-            var u2 = URL(url2)
-            if (u1.protocol != u2.protocol) {
-                u1 = URL(u2.protocol, u1.host, u1.port, u1.file)
-            }
-
-            //in result, www.facebook.com and m.facebook.com  should be both - facebook.com
-
-            if (u1.host.startsWith("m.")) {
-                u1 = URL(u1.protocol, u1.host.substring("m.".length), u1.port, u1.file)
-            } else if (u1.host.startsWith("www.")) {
-                u1 = URL(u1.protocol, u1.host.substring("www.".length), u1.port, u1.file)
-            }
-
-            if (u2.host.startsWith("m.")) {
-                u2 = URL(u2.protocol, u2.host.substring("m.".length), u2.port, u2.file)
-            } else if (u2.host.startsWith("www.")) {
-                u2 = URL(u2.protocol, u2.host.substring("www.".length), u2.port, u2.file)
-            }
-
-            url1 = u1.toExternalForm()
-            url2 = u2.toExternalForm()
-        } catch (e: Throwable) {
+    private fun normalizeUrl(url: String?): String {
+        if (url.isNullOrEmpty()) return ""
+        return try {
+            val uri = URL(if (url.contains("://")) url else "https://$url")
+            val host = uri.host.removePrefix("www.").removePrefix("m.")
+            URL(uri.protocol, host, uri.port, uri.file).toExternalForm().lowercase(Locale.ROOT)
+        } catch (e: Exception) {
             LogCat.logException(e)
+            ""
         }
-        return url1 == url2
     }
 }

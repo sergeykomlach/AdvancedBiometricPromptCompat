@@ -47,7 +47,7 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
+import dev.skomlach.common.themes.DarkLightThemes
 import dev.skomlach.common.blur.BlurUtil
 import dev.skomlach.common.blur.DEFAULT_RADIUS
 import dev.skomlach.common.misc.ExecutorHelper
