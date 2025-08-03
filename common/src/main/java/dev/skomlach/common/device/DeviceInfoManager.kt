@@ -23,6 +23,7 @@ import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceModel.getNames
 import dev.skomlach.common.logging.LogCat
@@ -40,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
-    const val PREF_NAME = "BiometricCompat_DeviceInfo-V4"
+    const val PREF_NAME = "BiometricCompat_DeviceInfo-V5"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
 
@@ -173,35 +174,42 @@ object DeviceInfoManager {
             return
         }
         val names = getNames()
-        val devicesList = try {
-            Gson().fromJson(getJSON(), Array<DeviceSpec>::class.java) ?: arrayOf<DeviceSpec>()
+        val devicesList = (try {
+            Gson().fromJson(getJSON("devices.json", "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"), Array<DeviceSpec>::class.java)
+                ?: arrayOf<DeviceSpec>()
         } catch (e: Throwable) {
             arrayOf<DeviceSpec>()
-        }
+        }).toMutableList().apply {
+            addAll(getDeviceSpecCompat())
+        }.toTypedArray()
+
+
+
         for (m in names) {
             try {
                 val first = m.first
                 val secondArray = splitString(m.second, " ")
+                val spaceCount = m.second.count { it == ' ' }
                 for (i in secondArray.indices - 1) {
                     val limit = secondArray.size - i
-                    if (limit < 2)//Device should have at least brand + model
+                    if (limit < (spaceCount - 2).coerceAtLeast(2))//Device should have at least brand + model
                         break
                     val second = join(secondArray, " ", limit)
-                    deviceInfo = loadDeviceInfo(
-                        devicesList,
-                        first,
-                        second,
-                        DeviceModel.brand,
-                        DeviceModel.device
-                    )
-                    if (!deviceInfo?.sensors.isNullOrEmpty()) {
-                        LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                        setCachedDeviceInfo(deviceInfo ?: continue, true)
-                        onDeviceInfoListener.onReady(deviceInfo)
-                        return
-                    } else {
-                        LogCat.log("DeviceInfoManager: no data for $first/$second")
-                    }
+                deviceInfo = loadDeviceInfo(
+                    devicesList,
+                    first,
+                    second,
+                    DeviceModel.brand,
+                    DeviceModel.device
+                )
+                if (!deviceInfo?.sensors.isNullOrEmpty()) {
+                    LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
+                    setCachedDeviceInfo(deviceInfo ?: continue, true)
+                    onDeviceInfoListener.onReady(deviceInfo)
+                    return
+                } else {
+                    LogCat.log("DeviceInfoManager: no data for $first/$second")
+                }
                 }
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -234,15 +242,18 @@ object DeviceInfoManager {
         cachedDeviceInfo?.let {
             return it
         }
-        val names = getNames()
-        return if (names.isNotEmpty())
-            DeviceInfo(names.toList()[0].first, HashSet<String>()).also {
-                LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+        val name: String? = getNames()
+            .maxByOrNull { it.first.length }
+            ?.first
+
+        return if (!name.isNullOrEmpty())
+            DeviceInfo(name, HashSet<String>()).also {
+                LogCat.log("DeviceInfoManager: (fallback 1) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
             }
         else
-            DeviceInfo(Build.MODEL, HashSet<String>()).also {
-                LogCat.log("DeviceInfoManager: (fallback) " + it.model + " -> " + it)
+            DeviceInfo(DeviceModel.model, HashSet<String>()).also {
+                LogCat.log("DeviceInfoManager: (fallback 2) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
             }
     }
@@ -271,6 +282,7 @@ object DeviceInfoManager {
         brand: String,
         codeName: String
     ): DeviceInfo? {
+        LogCat.log("DeviceInfoManager: loadDeviceInfo(total=${devicesList.size}, modelReadableName=$modelReadableName, brand=$brand, model=$model, codeName=$codeName)")
         try {
             if (model.startsWith(brand, ignoreCase = true)) {
                 val info =
@@ -320,7 +332,7 @@ object DeviceInfoManager {
                     ignoreCase = true
                 ) == true
             ) capitalize(it.name) else capitalize(it.brand) + " " + capitalize(it.name)
-            (it.brand?:brand).let { b->
+            (it.brand ?: brand).let { b ->
                 m = m.replace(b, b, ignoreCase = true)
             }
 
@@ -338,8 +350,9 @@ object DeviceInfoManager {
                 } else {
                     val arr = splitString(model, " ")
                     var i = arr.size
+                    val spaceCount = model.count { it == ' ' }
                     for (s in arr) {
-                        if (i < 2) //Device should have at least brand + model
+                        if (i < (spaceCount - 2).coerceAtLeast(2)) //Device should have at least brand + model
                             break
                         val shortName = join(arr, " ", i)
                         if (it.name?.contains(shortName, ignoreCase = true) == true) {
@@ -374,12 +387,40 @@ object DeviceInfoManager {
     }
 
     //tools
+    private fun getDeviceSpecCompat(): Set<DeviceSpec> {
+        val list = mutableSetOf<DeviceSpec>()
+        try{
+            val type = object : TypeToken<List<Phone>>() {}.type
+            val phones: List<Phone> = Gson().fromJson(getJSON("products_infos.json", "https://github.com/milephm/phonedata_crawler/releases/download/data/products_infos_gsmarena.json"), type)
+            phones.forEach {
+                val device = DeviceSpec(
+                    brand = it.brand,
+                    name = it.name,
+                    specs = Specs(
+                        cpu = it.info?.get("CPU"),
+                        weight = it.info?.get("Weight"),
+                        year = it.info?.get("Announced"),
+                        os = it.info?.get("OS"),
+                        chipset = it.info?.get("Chipset"),
+                        gpu = it.info?.get("GPU"),
+                        sensors = it.info?.get("Sensors"),
+                        internalmemory = it.info?.get("Internal")
+                    )
+                )
+                list.add(device)
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+        return list
+    }
+
     //https://github.com/nowrom/devices/
-    private fun getJSON(): String? {
+    private fun getJSON(fileName: String, url: String): String? {
         var reload = false
         try {
             try {
-                val file = File(AndroidContext.appContext.cacheDir, "devices.json")
+                val file = File(AndroidContext.appContext.cacheDir, fileName)
                 if (file.parentFile?.exists() == false) {
                     file.parentFile?.mkdirs()
                 }
@@ -403,14 +444,14 @@ object DeviceInfoManager {
             }
             try {
                 val inputStream =
-                    AndroidContext.appContext.assets.open("devices.json")
+                    AndroidContext.appContext.assets.open(fileName)
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
                 inputStream.close()
                 byteArrayOutputStream.close()
                 val data = byteArrayOutputStream.toByteArray()
                 return String(data, Charset.forName("UTF-8")).also { data ->
-                    saveToCache(data)
+                    saveToCache(data, fileName)
                 }
             } catch (e: Throwable) {
                 reload = true
@@ -430,8 +471,8 @@ object DeviceInfoManager {
                     ) {
                         try {
                             val data =
-                                LocalizationHelper.fetchFromWeb("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
-                            saveToCache(data ?: return@startOnBackground)
+                                LocalizationHelper.fetchFromWeb(url)
+                            saveToCache(data ?: return@startOnBackground, fileName)
                         } catch (e: Throwable) {
                             LogCat.logException(e)
                         } finally {
@@ -444,9 +485,9 @@ object DeviceInfoManager {
         }
     }
 
-    private fun saveToCache(data: String) {
+    private fun saveToCache(data: String, name :String) {
         try {
-            val file = File(AndroidContext.appContext.cacheDir, "devices.json")
+            val file = File(AndroidContext.appContext.cacheDir, name)
             if (file.parentFile?.exists() == false) {
                 file.parentFile?.mkdirs()
             }

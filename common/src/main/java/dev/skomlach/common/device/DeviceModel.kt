@@ -41,8 +41,8 @@ object DeviceModel {
     private val loadingInProgress = AtomicBoolean(false)
     var brand = (Build.BRAND ?: "").replace("  ", " ")
         private set
-    val model = (Build.MODEL ?: "").replace("  ", " ")
-    val device = (Build.DEVICE ?: "").replace("  ", " ")
+    var model = (Build.MODEL ?: "").replace("  ", " ")
+    var device = (Build.DEVICE ?: "").replace("  ", " ")
 
     private val list = ArrayList<Pair<String, String>>()
 
@@ -53,7 +53,8 @@ object DeviceModel {
                     brand = "$brand Kindle"
             }
         }
-
+        //[AndroidModel.names brand=samsung; model=SM-A566B; device=a56x;]
+        LogCat.log("AndroidModel.names brand=$brand; model=$model; device=$device;")
     }
 
     fun getNames(): List<Pair<String, String>> {
