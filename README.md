@@ -90,47 +90,12 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 
 ## Recent changes (last 3 month)
 
-February 18 2025
+September 23 2025
 
-**Improvement**  Cumulative commit with bugfixes and improvements
+**Improvement**  Library aligned with Android 16; Removed "hiddenbypass" API; Per-app Locale support added, etc.
 
-**Improvement**  DRAFT for FaceUnlock via TensorFlow (Custom Biometric Module)
+**Bugfix**  Cumulative fixes for numerous bugs
 
-November 12 2024
-
-**Bugfixes** Xiaomi/Mi devices - fixed bug when multiple biometrics (Finger + Face) doesn't work when set ANY combination
-
-**Improvement**  biometric API's detection aligned with current Android ecosystem state: 
-
-- MIUI FaceID - will work on AOS7 - AOS13 (starting from AOS14 API not accessible)
-
-- Huawei/Honor legacy FaceUnlock - will work on AOS7 - AOS9 (starting from AOS10 vendor provide official localauthentification.jar library; Starting from AOS10 legacy API behaves unexpectedly)
-
-November 4 2024
-
-**Bugfixes** Fixed issue with Notification channel request on OneUI 6.1+
-
-October 9 2024
-
-**Bugfixes** Fixed network connection check
-
-September 14 2024
-
-**Bugfixes** Fixed bug on Pixel 9 Pro Fold when activity restarted endlessly in unfolded mode
-
-**Bugfixes** Fixed bug on Remdi Tab and FaciId
-
-
-**Bugfixes** 
-Sony Xperia devices:
-- fixed init hangs due to inproper FaceUnlock initialization;
-- fixed bug when due to HAL/driver issue fingeprint sensor is unreachable on SW level (see https://community.sony.pt/t5/1-series/fingerprint-scanner-option-has-now-disappeared/td-p/3655860)
-
-Redmi Tab: fixed bug when binding to "miui.face.FaceService" fails - in this case hadrware/enroll properly detected, but `authenticate` does nothing
-
-Test app fixed cause leads to crashes on some devices
-
-**Improvement** Moved to Tokens usage during publishing flow
 
 ## Test app
 

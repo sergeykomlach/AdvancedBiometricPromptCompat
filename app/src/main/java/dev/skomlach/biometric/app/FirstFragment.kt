@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.app
 
+//import com.readystatesoftware.chuck.Chuck
 import android.app.ProgressDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -28,16 +29,12 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
-//import com.readystatesoftware.chuck.Chuck
 import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
-import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
@@ -179,28 +176,6 @@ class FirstFragment : Fragment() {
                 )
             }
             buttonsList?.addView(container)
-        }
-
-        BiometricAuthentication.availableBiometrics.forEach { type ->
-            val biometricModule = BiometricAuthentication.getAvailableBiometricModule(type)
-            biometricModule?.let { module ->
-                if (module is AbstractBiometricModule) {
-                    val sb = StringBuilder()
-                    val list = module.getHashes()
-                    if (list.isEmpty())
-                        sb.append("${type?.name}").append(":No enrolled data")
-                    else {
-                        list.forEach {
-                            sb.append("${type?.name}").append(":").append(it).append("\n")
-                        }
-                        sb.append("\n")
-                    }
-
-                    buttonsList?.addView(AppCompatTextView(requireActivity()).apply {
-                        this.text = sb.toString()
-                    })
-                }
-            }
         }
     }
 

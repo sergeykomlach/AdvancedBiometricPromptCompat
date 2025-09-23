@@ -20,14 +20,19 @@
 package dev.skomlach.biometric.compat.crypto
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.util.Base64
 import androidx.annotation.RequiresApi
+import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.currentLocale
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.math.BigInteger
 import java.security.KeyFactory
@@ -143,17 +148,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private fun getOrCreateSecretKey(name: String) {
 
         if (!keyExist(name)) {
-            val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
             try {
-
-                /*
-             * Workaround for known date parsing issue in KeyPairGenerator class
-             * https://issuetracker.google.com/issues/37095309
-             * in Fabric: java.lang.IllegalArgumentException:
-             * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
-             */
-                setFakeEnglishLocale()
-
                 val keyPairGenerator = KeyPairGenerator
                     .getInstance(
                         TYPE_RSA,
@@ -174,8 +169,6 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
                 storeKeyPairInFallback(name, keyPair.generateKeyPair())
             } catch (e: Exception) {
                 throw e
-            } finally {
-                setLocale(localeBeforeFakingEnglishLocale)
             }
         }
 
@@ -188,13 +181,18 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         val keySize = 2048
         val subject = X500Principal("CN=${name}")
         val serialNumber = BigInteger.valueOf(1337)
+        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         //SK: See https://doridori.github.io/android-security-the-forgetful-keystore/
-        return KeyPairGeneratorSpec.Builder(context)
-            .setAlias(name)
-            .setKeySize(keySize)
-            .setSubject(subject)
-            .setSerialNumber(serialNumber)
-            .build()
+        try {
+            return KeyPairGeneratorSpec.Builder(updateLocale(context))
+                .setAlias(name)
+                .setKeySize(keySize)
+                .setSubject(subject)
+                .setSerialNumber(serialNumber)
+                .build()
+        } finally {
+            updateLocale(context, localeBeforeFakingEnglishLocale)
+        }
 
     }
 
@@ -202,16 +200,20 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
      * Workaround for known date parsing issue in KeyPairGenerator class
      * https://issuetracker.google.com/issues/37095309
      */
-    private fun setFakeEnglishLocale() {
-        setLocale(Locale.US)
-    }
-
-    private fun setLocale(locale: Locale) {
-        Locale.setDefault(locale)
-        val resources = context.resources
-        val config = resources.configuration
-        config.locale = locale
-        resources.updateConfiguration(config, resources.displayMetrics)
+    private fun updateLocale(context: Context, locale: Locale = Locale.US): Context {
+        val res = context.resources
+        val current = res.configuration.currentLocale
+        if (current == locale) return context
+        val config = Configuration(res.configuration)
+        ConfigurationCompat.setLocales(config, LocaleListCompat.create(locale))
+        val ctx = if (Build.VERSION.SDK_INT >= 17) {
+            context.createConfigurationContext(config)
+        } else {
+            config.locale = locale
+            res.updateConfiguration(config, res.displayMetrics)
+            context
+        }
+        return ctx
     }
 
     @Throws(Exception::class)
@@ -230,24 +232,11 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
     private fun getPrivateKeys(name: String): List<PrivateKey?> {
         val list = ArrayList<PrivateKey?>()
-
-        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         try {
-
-            /*
-         * Workaround for known date parsing issue in KeyPairGenerator class
-         * https://issuetracker.google.com/issues/37095309
-         * in Fabric: java.lang.IllegalArgumentException:
-         * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
-         */
-            setFakeEnglishLocale()
-
             keyStore.load(null)
             list.add(keyStore.getKey(name, null) as PrivateKey?)
         } catch (e: Throwable) {
 
-        } finally {
-            setLocale(localeBeforeFakingEnglishLocale)
         }
         getKeyPairFromFallback(name)?.let {
             list.add(it.private)
@@ -260,21 +249,10 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         val list = ArrayList<PublicKey?>()
         val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
         try {
-
-            /*
-         * Workaround for known date parsing issue in KeyPairGenerator class
-         * https://issuetracker.google.com/issues/37095309
-         * in Fabric: java.lang.IllegalArgumentException:
-         * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
-         */
-            setFakeEnglishLocale()
-
             keyStore.load(null)
             list.add(keyStore.getCertificate(name)?.publicKey)
         } catch (e: Throwable) {
 
-        } finally {
-            setLocale(localeBeforeFakingEnglishLocale)
         }
         getKeyPairFromFallback(name)?.let {
             list.add(it.public)

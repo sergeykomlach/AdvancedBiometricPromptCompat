@@ -25,8 +25,8 @@ object PingConfig {
     //NOTE: in some cases Cloudflare (1.1.1.1) or/and Google (google.com) hosts can be blocked (like in China)
     //So you can try to use "aliexpress.com" or "yandex.ru" or other national domains
 
-    private const val PREF_NAME = "pingConfig_v6"
-    private var timeout: Long = 1
+    private const val PREF_NAME = "pingConfig_v7"
+    private var timeout: Long = 5
     private var hosts: Set<String> = arrayOf(
         "1.1.1.1", //Must be available everywhere
         "google.com", //May be banned in China
@@ -43,7 +43,7 @@ object PingConfig {
 
     init {
         val pref = SharedPreferenceProvider.getPreferences(PREF_NAME)
-        this.timeout = pref.getLong("pingTimeoutSec", 1)
+        this.timeout = pref.getLong("pingTimeoutSec", 5)
         this.hosts =
             pref.getStringSet("hostsList", arrayOf(
                 "1.1.1.1", //Must be available everywhere

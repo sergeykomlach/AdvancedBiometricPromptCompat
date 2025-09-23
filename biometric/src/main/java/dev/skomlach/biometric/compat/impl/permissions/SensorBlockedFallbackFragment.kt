@@ -26,7 +26,9 @@ import android.provider.Settings
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.biometric.compat.utils.activityView.ActiveWindow
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -34,6 +36,7 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -131,54 +134,56 @@ class SensorBlockedFallbackFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        lifecycleScope.launchWhenResumed {
-            try {
-                val alert = AlertDialog.Builder(requireActivity())
-                    .setTitle(arguments?.getString(TITLE)).also { dialog ->
-                        arguments?.getString(MESSAGE)?.let {
-                            dialog.setMessage(it)
-                        }
-                    }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .setPositiveButton(
-                        SystemStringsHelper.getFromSystem(
-                            appContext,
-                            "sensor_privacy_start_use_dialog_turn_on_button"
-                        ) ?: getString(android.R.string.ok)
-                    ) { p0, _ ->
-                        if (Utils.startActivity(
-                                Intent(Settings.ACTION_PRIVACY_SETTINGS),
-                                context
-                            )
-                        ) else {
-                            Utils.startActivity(
-                                Intent(Settings.ACTION_SETTINGS), context
-                            )
-                        }
-                        p0.dismiss()
-                    }
-                    .setOnDismissListener {
-                        try {
-                            activity?.supportFragmentManager?.beginTransaction()
-                                ?.remove(this@SensorBlockedFallbackFragment)
-                                ?.commitNowAllowingStateLoss()
-                        } catch (e: Throwable) {
-                            e("SensorBlockedFragment", e.message, e)
-                        } finally {
-                            isFallbackFragmentShown.set(false)
-                        }
-                    }
-                alert.show()
-                isFallbackFragmentShown.set(true)
-            } catch (ignore: Throwable) {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 try {
-                    activity?.supportFragmentManager?.beginTransaction()
-                        ?.remove(this@SensorBlockedFallbackFragment)
-                        ?.commitNowAllowingStateLoss()
-                } catch (e: Throwable) {
-                    e("SensorBlockedFragment", e.message, e)
-                } finally {
-                    isFallbackFragmentShown.set(false)
+                    val alert = AlertDialog.Builder(requireActivity())
+                        .setTitle(arguments?.getString(TITLE)).also { dialog ->
+                            arguments?.getString(MESSAGE)?.let {
+                                dialog.setMessage(it)
+                            }
+                        }
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .setPositiveButton(
+                            SystemStringsHelper.getFromSystem(
+                                appContext,
+                                "sensor_privacy_start_use_dialog_turn_on_button"
+                            ) ?: getString(android.R.string.ok)
+                        ) { p0, _ ->
+                            if (Utils.startActivity(
+                                    Intent(Settings.ACTION_PRIVACY_SETTINGS),
+                                    context
+                                )
+                            ) else {
+                                Utils.startActivity(
+                                    Intent(Settings.ACTION_SETTINGS), context
+                                )
+                            }
+                            p0.dismiss()
+                        }
+                        .setOnDismissListener {
+                            try {
+                                activity?.supportFragmentManager?.beginTransaction()
+                                    ?.remove(this@SensorBlockedFallbackFragment)
+                                    ?.commitNowAllowingStateLoss()
+                            } catch (e: Throwable) {
+                                e("SensorBlockedFragment", e.message, e)
+                            } finally {
+                                isFallbackFragmentShown.set(false)
+                            }
+                        }
+                    alert.show()
+                    isFallbackFragmentShown.set(true)
+                } catch (ignore: Throwable) {
+                    try {
+                        activity?.supportFragmentManager?.beginTransaction()
+                            ?.remove(this@SensorBlockedFallbackFragment)
+                            ?.commitNowAllowingStateLoss()
+                    } catch (e: Throwable) {
+                        e("SensorBlockedFragment", e.message, e)
+                    } finally {
+                        isFallbackFragmentShown.set(false)
+                    }
                 }
             }
         }

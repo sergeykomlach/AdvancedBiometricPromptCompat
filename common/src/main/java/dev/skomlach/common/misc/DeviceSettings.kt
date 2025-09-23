@@ -121,8 +121,8 @@ object DeviceSettings {
                 m = pattern.matcher(line ?: continue)
                 if (m.find()) {
                     val result = m.toMatchResult()
-                    val key = result.group(1)
-                    val value = result.group(2)
+                    result.group(1)
+                    result.group(2)
                     LogCat.log("SystemProperties: $line")
                 }
             }

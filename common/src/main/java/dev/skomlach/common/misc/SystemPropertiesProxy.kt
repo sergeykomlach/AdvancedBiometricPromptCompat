@@ -20,8 +20,6 @@
 package dev.skomlach.common.misc
 
 import android.content.Context
-import dalvik.system.DexFile
-import java.io.File
 
 /**
  * This class cannot be instantiated
@@ -219,21 +217,19 @@ object SystemPropertiesProxy {
     @Throws(IllegalArgumentException::class)
     fun set(context: Context, key: String?, value: String?) {
         try {
-            val df = DexFile(File("/system/app/Settings.apk"))
-            val cl = context.classLoader
-            val SystemProperties = Class.forName("android.os.SystemProperties")
+            val systemProperties = Class.forName("android.os.SystemProperties")
 
 //Parameters Types
             val paramTypes: Array<Class<*>?> = arrayOfNulls(2)
             paramTypes[0] = String::class.java
             paramTypes[1] = String::class.java
-            val set = SystemProperties.getMethod("set", *paramTypes)
+            val set = systemProperties.getMethod("set", *paramTypes)
 
             //Parameters
             val params = arrayOfNulls<Any>(2)
             params[0] = key
             params[1] = value
-            set.invoke(SystemProperties, *params)
+            set.invoke(systemProperties, *params)
         } catch (iAE: IllegalArgumentException) {
             throw iAE
         } catch (e: Exception) {

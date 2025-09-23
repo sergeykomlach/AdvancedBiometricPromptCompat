@@ -38,6 +38,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
@@ -45,6 +46,7 @@ import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 object BiometricManagerCompat {
+    private const val TAG = "BiometricManagerCompat"
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
@@ -389,7 +391,21 @@ object BiometricManagerCompat {
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
-        return isHardwareDetected(api) && hasEnrolled(api)
+        val isHardwareDetected = isHardwareDetected(api)
+        val hasEnrolled = hasEnrolled(api)
+        if (!isHardwareDetected) {
+            LogCat.log(
+                TAG,
+                Exception("BiometricManagerCompat::isBiometricAvailable Hardware not Detected")
+            )
+        }
+        if (!hasEnrolled) {
+            LogCat.log(
+                TAG,
+                Exception("BiometricManagerCompat::isBiometricAvailable has not Enrolled")
+            )
+        }
+        return isHardwareDetected && hasEnrolled
     }
 
     @JvmStatic

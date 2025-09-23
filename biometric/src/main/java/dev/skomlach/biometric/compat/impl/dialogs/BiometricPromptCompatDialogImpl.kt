@@ -63,7 +63,7 @@ class BiometricPromptCompatDialogImpl(
 
     init {
         promptText = BiometricTitle.getRelevantTitle(
-            compatBuilder.getContext(),
+            compatBuilder.getActivity() ?: compatBuilder.getContext(),
             compatBuilder.getAllAvailableTypes()
         )
         too_many_attempts =
@@ -119,7 +119,8 @@ class BiometricPromptCompatDialogImpl(
             }
 
             dialog.negativeButton?.text =
-                (compatBuilder.getNegativeButtonText() ?: compatBuilder.getContext()
+                (compatBuilder.getNegativeButtonText() ?: (compatBuilder.getActivity()
+                    ?: compatBuilder.getContext())
                     .getString(android.R.string.cancel))
             dialog.negativeButton?.setOnClickListener {
                 dismissDialog()

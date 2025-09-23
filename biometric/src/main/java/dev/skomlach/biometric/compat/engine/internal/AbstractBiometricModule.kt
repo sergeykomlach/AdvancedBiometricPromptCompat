@@ -101,6 +101,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
     abstract fun getManagers(): Set<Any>
 
+    @Deprecated("Starts from Android 9 for security reasons method unable to check biometric enroll change")
     override val isBiometricEnrollChanged: Boolean
         get() {
             val lastKnown = preferences.getStringSet(
@@ -194,7 +195,8 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         return emptyList()
     }
 
-    fun getHashes(): Set<String> {
+    @Deprecated("Starts from Android 9 method return empty list due to Reflection restrictions")
+    private fun getHashes(): Set<String> {
         val hashes = HashSet<String>()
         getManagers().let {
             val ids = ArrayList<String>()

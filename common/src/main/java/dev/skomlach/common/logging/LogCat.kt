@@ -22,29 +22,30 @@ package dev.skomlach.common.logging
 import android.util.Log
 import dev.skomlach.common.BuildConfig
 
+
 object LogCat {
     var DEBUG = BuildConfig.DEBUG
     fun logError(vararg msgs: Any?) {
-        if (DEBUG) {
-            if (DEBUG) Log.e("LogCat", listOf(*msgs).toString())
-        }
+        if (DEBUG) Log.e("LogCat", "${listOf(*msgs)}")
     }
 
     fun logException(e: Throwable) {
-        logException(e, e.message)
+        if (DEBUG) {
+            Log.e("LogCat", e.message, e)
+        }
     }
 
 
     fun logException(e: Throwable?, vararg msgs: Any?) {
         if (DEBUG) {
-            Log.e("LogCat", listOf(*msgs).toString(), e)
+            Log.e("LogCat", "${listOf(*msgs)}", e)
         }
     }
 
 
     fun log(vararg msgs: Any?) {
         if (DEBUG) {
-            Log.d("LogCat", listOf(*msgs).toString())
+            Log.d("LogCat", "${listOf(*msgs)}".toString())
         }
     }
 }

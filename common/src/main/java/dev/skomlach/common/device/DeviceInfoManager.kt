@@ -19,7 +19,6 @@
 
 package dev.skomlach.common.device
 
-import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import com.google.gson.Gson
@@ -41,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
-    const val PREF_NAME = "BiometricCompat_DeviceInfo-V5"
+    val PREF_NAME = "BiometricCompat_DeviceInfo-V6"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
 
@@ -391,7 +390,12 @@ object DeviceInfoManager {
         val list = mutableSetOf<DeviceSpec>()
         try{
             val type = object : TypeToken<List<Phone>>() {}.type
-            val phones: List<Phone> = Gson().fromJson(getJSON("products_infos.json", "https://github.com/milephm/phonedata_crawler/releases/download/data/products_infos_gsmarena.json"), type)
+            val phones: List<Phone> = Gson().fromJson(
+                getJSON(
+                    "products_infos.json",
+                    "https://github.com/milephm/phonedata_crawler/releases/download/data/products_infos_gsmarena.json"
+                ), type
+            )
             phones.forEach {
                 val device = DeviceSpec(
                     brand = it.brand,

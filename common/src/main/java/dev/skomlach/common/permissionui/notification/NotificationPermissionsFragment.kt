@@ -25,7 +25,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Build.VERSION
 import android.os.Bundle
 import android.provider.Settings
@@ -34,8 +33,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
@@ -46,6 +47,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.launch
 
 class NotificationPermissionsFragment : Fragment() {
     companion object {
@@ -358,29 +360,31 @@ class NotificationPermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        lifecycleScope.launchWhenResumed {
-            val type = PermissionRequestController.PermissionType.entries.firstOrNull {
-                it.name == arguments?.getString(PERMISSION_KEY)
-            }
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                val type = PermissionRequestController.PermissionType.entries.firstOrNull {
+                    it.name == arguments?.getString(PERMISSION_KEY)
+                }
 
-            when (type) {
-                PermissionRequestController.PermissionType.GENERAL_PERMISSION -> {
-                    if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
-                        startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())
-                        return@launchWhenResumed
-                    } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
-                        generalNotification.invoke()
-                        return@launchWhenResumed
+                when (type) {
+                    PermissionRequestController.PermissionType.GENERAL_PERMISSION -> {
+                        if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
+                            startForResultForPermissions.launch(listOf("android.permission.POST_NOTIFICATIONS").toTypedArray())
+                            return@repeatOnLifecycle
+                        } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
+                            generalNotification.invoke()
+                            return@repeatOnLifecycle
+                        }
                     }
-                }
 
-                PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> {
-                    channelNotification.invoke()
-                    return@launchWhenResumed
-                }
+                    PermissionRequestController.PermissionType.CHANNEL_PERMISSION -> {
+                        channelNotification.invoke()
+                        return@repeatOnLifecycle
+                    }
 
-                else -> {
-                    closeFragment()
+                    else -> {
+                        closeFragment()
+                    }
                 }
             }
         }

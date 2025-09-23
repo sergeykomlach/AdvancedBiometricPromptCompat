@@ -31,7 +31,6 @@ import java.security.PublicKey
 import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
-import java.util.Locale
 import javax.crypto.Cipher
 
 class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
@@ -105,46 +104,15 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     @Throws(Exception::class)
     private fun getOrCreateSecretKey(name: String) {
         if (!keyExist(name)) {
-            val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
             try {
-
-                /*
-             * Workaround for known date parsing issue in KeyPairGenerator class
-             * https://issuetracker.google.com/issues/37095309
-             * in Fabric: java.lang.IllegalArgumentException:
-             * invalid date string: Unparseable date: "òððòòðòððóððGMT+00:00" (at offset 0)
-             */
-                setFakeEnglishLocale()
-                //SK: As a fallback - generate simple RSA keypair and store keys in EncryptedSharedPreferences
-                //NOTE: do not use getAlgorithmParameterSpec() - Keys cann't be stored in this case
                 val keyPair = KeyPairGenerator.getInstance(TYPE_RSA)
                 keyPair.initialize(2048)
                 storeKeyPairInFallback(name, keyPair.generateKeyPair())
             } catch (e: Exception) {
                 throw e
-            } finally {
-                setLocale(localeBeforeFakingEnglishLocale)
             }
         }
     }
-
-
-    /**
-     * Workaround for known date parsing issue in KeyPairGenerator class
-     * https://issuetracker.google.com/issues/37095309
-     */
-    private fun setFakeEnglishLocale() {
-        setLocale(Locale.US)
-    }
-
-    private fun setLocale(locale: Locale) {
-        Locale.setDefault(locale)
-        val resources = context.resources
-        val config = resources.configuration
-        config.locale = locale
-        resources.updateConfiguration(config, resources.displayMetrics)
-    }
-
     @Throws(Exception::class)
     private fun keyExist(name: String): Boolean {
         return keyPairInFallback(name)

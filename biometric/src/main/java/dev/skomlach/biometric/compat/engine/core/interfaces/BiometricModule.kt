@@ -37,6 +37,8 @@ interface BiometricModule {
     val isLockOut: Boolean
     val isUserAuthCanByUsedWithCrypto: Boolean
     val hasEnrolled: Boolean
+
+    @Deprecated("Starts from Android 9 method unable to determinate enroll changes via managers")
     val isBiometricEnrollChanged: Boolean
 
     /**

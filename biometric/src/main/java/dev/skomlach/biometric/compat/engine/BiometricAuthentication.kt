@@ -62,6 +62,7 @@ import dev.skomlach.common.misc.Utils.startActivity
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.util.Collections
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -335,19 +336,36 @@ object BiometricAuthentication {
         if (authInProgress.get() || requestedMethods.isEmpty()) return
         if (initInProgress.get()) {
             val reference = WeakReference(targetView)
+            val startTime = System.currentTimeMillis()
+            var timeout = false
             ExecutorHelper.startOnBackground {
                 while (initInProgress.get()) {
-                    Thread.sleep(10)
+                    timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
+                    if (timeout) {
+                        break
+                    }
+                    try {
+                        Thread.sleep(10)
+                    } catch (ignore: InterruptedException) {
+                    }
                 }
-                ExecutorHelper.post {
-                    authenticate(
-                        biometricCryptographyPurpose,
-                        reference.get(),
-                        requestedMethods,
-                        listener,
-                        bundle
+                if (!initInProgress.get())
+                    ExecutorHelper.post {
+                        authenticate(
+                            biometricCryptographyPurpose,
+                            reference.get(),
+                            requestedMethods,
+                            listener,
+                            bundle
+                        )
+                    } else listener.onFailure(
+                    AuthenticationResult(
+                        requestedMethods.first(),
+                        null,
+                        AuthenticationFailureReason.INTERNAL_ERROR,
+                        "Can't start authenticate"
                     )
-                }
+                )
             }
             return
         }

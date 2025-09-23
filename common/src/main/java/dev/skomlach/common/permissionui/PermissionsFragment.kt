@@ -40,8 +40,10 @@ import androidx.core.text.TextUtilsCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -54,6 +56,7 @@ import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import kotlinx.coroutines.launch
 
 class PermissionsFragment : Fragment() {
     companion object {
@@ -164,17 +167,22 @@ class PermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        lifecycleScope.launchWhenResumed {
-            val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
+                if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(
+                        permissions
+                    )
+                ) {
 
-                try {
-                    requestPermissions(permissions)
-                } catch (e: Throwable) {
+                    try {
+                        requestPermissions(permissions)
+                    } catch (e: Throwable) {
+                        closeFragment()
+                    }
+                } else {
                     closeFragment()
                 }
-            } else {
-                closeFragment()
             }
         }
     }

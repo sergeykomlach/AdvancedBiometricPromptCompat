@@ -101,7 +101,7 @@ private fun generateBitmapFromColors(
 ): Bitmap {
     val colors = intArrayOf(primaryColor, secondaryColor, tertiaryColor)
     val imageSize = 6
-    val bitmap = Bitmap.createBitmap(imageSize, 1, Bitmap.Config.ARGB_8888)
+    val bitmap = Bitmap.createBitmap(imageSize, 1, Bitmap.Config.ARGB_4444)
     for (i in 0 until imageSize / 2)
         bitmap.setPixel(i, 0, colors[0])
     for (i in imageSize / 2 until imageSize / 2 + imageSize / 3)

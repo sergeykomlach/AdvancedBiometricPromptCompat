@@ -58,11 +58,12 @@ object StatusBarTools {
         window: Window,
         @ColorInt colorNavBar: Int,
         @ColorInt dividerColor: Int,
-        @ColorInt colorStatusBar: Int
+        @ColorInt colorStatusBar: Int,
+        isAppLightTheme: Boolean? = null
     ) {
         val runnable = Runnable {
-            setStatusBarColor(window, colorStatusBar)
-            setNavBarColor(window, colorNavBar, dividerColor)
+            setStatusBarColor(window, colorStatusBar, isAppLightTheme)
+            setNavBarColor(window, colorNavBar, dividerColor, isAppLightTheme)
         }
         val view = window.decorView
         if (HelperTool.isVisible(view, 100)) {
@@ -81,12 +82,23 @@ object StatusBarTools {
         }
     }
 
-    private fun setNavBarColor(window: Window, @ColorInt c: Int, @ColorInt dividerColor: Int) {
+    private fun setNavBarColor(
+        window: Window, @ColorInt c: Int, @ColorInt dividerColor: Int,
+        isAppLightTheme: Boolean?
+    ) {
         var color = c
         try {
             if (TURNOFF_TINT) return
             if (translucentNavBar) color = Color.TRANSPARENT
-            val isDark =
+            val isDark = isAppLightTheme?.let {
+                if (ColorUtil.colorDistance(
+                        color,
+                        Color.TRANSPARENT
+                    ) <= 0.25
+                ) !it else ColorUtil.isDark(
+                    color
+                )
+            } ?: run {
                 if (ColorUtil.colorDistance(
                         color,
                         Color.TRANSPARENT
@@ -94,6 +106,7 @@ object StatusBarTools {
                 ) isNightMode(window.context) else ColorUtil.isDark(
                     color
                 )
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 window.isNavigationBarContrastEnforced = false
             }
@@ -122,12 +135,23 @@ object StatusBarTools {
         }
     }
 
-    private fun setStatusBarColor(window: Window, @ColorInt c: Int) {
+    private fun setStatusBarColor(
+        window: Window, @ColorInt c: Int,
+        isAppLightTheme: Boolean?
+    ) {
         var color = c
         try {
             if (TURNOFF_TINT) return
             if (translucentStatusBar) color = Color.TRANSPARENT
-            val isDark =
+            val isDark = isAppLightTheme?.let {
+                if (ColorUtil.colorDistance(
+                        color,
+                        Color.TRANSPARENT
+                    ) <= 0.25
+                ) !it else ColorUtil.isDark(
+                    color
+                )
+            } ?: run {
                 if (ColorUtil.colorDistance(
                         color,
                         Color.TRANSPARENT
@@ -135,6 +159,7 @@ object StatusBarTools {
                 ) isNightMode(window.context) else ColorUtil.isDark(
                     color
                 )
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 window.isStatusBarContrastEnforced = false
             }

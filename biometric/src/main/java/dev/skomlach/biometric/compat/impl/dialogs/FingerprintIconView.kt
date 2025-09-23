@@ -140,7 +140,8 @@ class FingerprintIconView @JvmOverloads constructor(
         //solution from https://stackoverflow.com/a/50015989
         @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
         private val isAndroidO = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-        private val format = if (isAndroidO) Bitmap.Config.ARGB_8888 else Bitmap.Config.ARGB_4444
+        private val format =
+            Bitmap.Config.ARGB_4444//if (isAndroidO) Bitmap.Config.ARGB_8888 else Bitmap.Config.ARGB_4444
 
         @RequiresApi(Build.VERSION_CODES.P)
         private fun getDrawableAndroidR(context: Context, resId: Int): Drawable? {

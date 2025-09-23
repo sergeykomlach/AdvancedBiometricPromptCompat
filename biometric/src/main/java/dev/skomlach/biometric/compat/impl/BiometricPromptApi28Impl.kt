@@ -106,7 +106,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             buttonTextColor = it
                         }
                 }
-                (builder.getNegativeButtonText() ?: builder.getContext()
+                (builder.getNegativeButtonText() ?: (builder.getActivity() ?: builder.getContext())
                     .getString(android.R.string.cancel)).let {
                     if (isAtLeastR) promptInfoBuilder.setNegativeButtonText(it) else promptInfoBuilder.setNegativeButtonText(
                         getFixedString(

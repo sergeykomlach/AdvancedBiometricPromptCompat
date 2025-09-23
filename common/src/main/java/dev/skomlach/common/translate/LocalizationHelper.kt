@@ -22,8 +22,9 @@ package dev.skomlach.common.translate
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
-import android.os.LocaleList
 import androidx.annotation.StringRes
+import androidx.core.os.ConfigurationCompat
+import androidx.core.os.LocaleListCompat
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -432,22 +433,36 @@ object LocalizationHelper {
         locale: Locale,
         vararg formatArgs: Any?,
     ): String {
-        val config = Configuration(currentContext.resources.configuration).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                setLocales(LocaleList(locale))
-            }
-            setLocale(locale)
+        val res = currentContext.resources
+        val config = Configuration(res.configuration)
+
+        ConfigurationCompat.setLocales(config, LocaleListCompat.create(locale))
+        return if (Build.VERSION.SDK_INT >= 17) {
+            currentContext.createConfigurationContext(config).getString(id, *formatArgs)
+        } else {
+            val oldConfig = Configuration(res.configuration)
+            config.locale = locale
+            res.updateConfiguration(config, res.displayMetrics)
+            val s = currentContext.getString(id, *formatArgs)
+            res.updateConfiguration(oldConfig, res.displayMetrics)
+            s
         }
-        return currentContext.createConfigurationContext(config).getString(id, *formatArgs)
     }
 
     private fun getStringForLocale(currentContext: Context, id: Int, locale: Locale): String {
-        val config = Configuration(currentContext.resources.configuration).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                setLocales(LocaleList(locale))
-            }
-            setLocale(locale)
+        val res = currentContext.resources
+        val config = Configuration(res.configuration)
+        ConfigurationCompat.setLocales(config, LocaleListCompat.create(locale))
+        return if (Build.VERSION.SDK_INT >= 17) {
+            currentContext.createConfigurationContext(config).getString(id)
+        } else {
+            val oldConfig = Configuration(res.configuration)
+            config.locale = locale
+            res.updateConfiguration(config, res.displayMetrics)
+            val s = currentContext.getString(id)
+            res.updateConfiguration(oldConfig, res.displayMetrics)
+            s
         }
-        return currentContext.createConfigurationContext(config).getString(id)
+
     }
 }

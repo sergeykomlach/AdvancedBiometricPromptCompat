@@ -69,7 +69,6 @@ import dev.skomlach.common.protection.A11yDetection
 import dev.skomlach.common.protection.HookDetection
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.translate.LocalizationHelper
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 import java.nio.charset.Charset
 import java.util.Collections
 import java.util.concurrent.TimeUnit
@@ -87,22 +86,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         init {
             if (API_ENABLED) {
-                AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-                try {
-                    if (Build.VERSION.SDK_INT in Build.VERSION_CODES.P..Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                        HiddenApiBypass.addHiddenApiExemptions("")
+
+                if (!AppCompatDelegate.isCompatVectorFromResourcesEnabled())
+                    AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+                ExecutorHelper.post {
+                    try {
+                        init()
+                    } catch (e: Throwable) {
                     }
-                } catch (e: Throwable) {
-
                 }
             }
-            ExecutorHelper.post {
-                try {
-                    init()
-                } catch (e: Throwable) {
-                }
-            }
-
         }
 
         @JvmStatic
@@ -790,7 +783,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             ))
                         AndroidContext.appContext.packageManager.getApplicationLabel(appInfo)
                             .ifEmpty {
-                                AndroidContext.appContext.getString(appInfo.labelRes)
+                                (builder.getActivity()
+                                    ?: builder.getContext()).getString(appInfo.labelRes)
                             }
                     } catch (e: Throwable) {
                         oldTitle
@@ -877,20 +871,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun cancelAuthentication() {
-        if (!API_ENABLED || !authFlowInProgress.get()) {
+        if (!API_ENABLED || !authFlowInProgress.get() || !isInitialized) {
             return
         }
         authFlowInProgress.set(false)
-        ExecutorHelper.startOnBackground {
-            while (!isInitialized) {
-                try {
-                    Thread.sleep(10)
-                } catch (ignore: InterruptedException) {
-                }
-            }
-            ExecutorHelper.post {
-                impl.cancelAuthentication()
-            }
+        ExecutorHelper.post {
+            impl.cancelAuthentication()
         }
     }
 
@@ -1013,7 +999,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             get() {
                 if (field.isNullOrEmpty())
                     field = BiometricTitle.getRelevantTitle(
-                        getContext(),
+                        getActivity() ?: getContext(),
                         getAllAvailableTypes()
                     )
                 return field
@@ -1268,7 +1254,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setTitle(@StringRes dialogTitleRes: Int): Builder {
-            dialogTitle = getContext().getString(dialogTitleRes)
+            dialogTitle = (getActivity() ?: getContext()).getString(dialogTitleRes)
             return this
         }
 
@@ -1278,7 +1264,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setSubtitle(@StringRes dialogSubtitleRes: Int): Builder {
-            dialogSubtitle = getContext().getString(dialogSubtitleRes)
+            dialogSubtitle = (getActivity() ?: getContext()).getString(dialogSubtitleRes)
             return this
         }
 
@@ -1288,7 +1274,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun setDescription(@StringRes dialogDescriptionRes: Int): Builder {
-            dialogDescription = getContext().getString(dialogDescriptionRes)
+            dialogDescription = (getActivity() ?: getContext()).getString(dialogDescriptionRes)
             return this
         }
 
@@ -1304,7 +1290,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!! Not actual deprecated")
         fun setNegativeButtonText(@StringRes res: Int): Builder {
-            negativeButtonText = getContext().getString(res)
+            negativeButtonText = (getActivity() ?: getContext()).getString(res)
             return this
         }
 

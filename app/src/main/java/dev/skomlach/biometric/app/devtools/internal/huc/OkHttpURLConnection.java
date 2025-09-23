@@ -18,7 +18,7 @@
  */
 package dev.skomlach.biometric.app.devtools.internal.huc;
 
-import static okhttp3.internal.Util.UTC;
+import static okhttp3.internal._UtilJvmKt.UTC;
 
 import android.net.TrafficStats;
 
@@ -34,7 +34,6 @@ import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.SocketPermission;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.security.Permission;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -450,11 +449,11 @@ public final class OkHttpURLConnection extends HttpURLConnection implements Call
         try {
             url = HttpUrl.get(getURL().toString());
         } catch (IllegalArgumentException e) {
-            if (e.getMessage().startsWith(HttpUrl.Builder.INVALID_HOST)) {
-                UnknownHostException unknownHost = new UnknownHostException();
-                unknownHost.initCause(e);
-                throw unknownHost;
-            }
+//            if (e.getMessage().startsWith(HttpUrl.Builder.INVALID_HOST)) {
+//                UnknownHostException unknownHost = new UnknownHostException();
+//                unknownHost.initCause(e);
+//                throw unknownHost;
+//            }
             MalformedURLException malformedUrl = new MalformedURLException();
             malformedUrl.initCause(e);
             throw malformedUrl;

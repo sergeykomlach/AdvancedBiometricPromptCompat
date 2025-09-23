@@ -24,9 +24,12 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Point
 import android.graphics.Rect
+import android.hardware.display.DisplayManager
 import android.os.Build
+import android.view.Display
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
+import android.view.Surface
 import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.Window
@@ -51,14 +54,17 @@ class MultiWindowSupport private constructor() {
             val ctx = AndroidContext.activity ?: AndroidContext.appContext
             val resources = ctx.resources
             val configuration = AndroidContext.appConfiguration ?: resources.configuration
-            val res = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                ctx.createConfigurationContext(configuration).resources
+            val config = Configuration(configuration)
+            return if (Build.VERSION.SDK_INT >= 17) {
+                ctx.createConfigurationContext(config).resources.getBoolean(R.bool.biometric_compat_is_tablet)
             } else {
-                @Suppress("DEPRECATION")
-                resources.updateConfiguration(configuration, resources.displayMetrics)
-                resources
+                val oldConfig = Configuration(configuration)
+                resources.updateConfiguration(config, resources.displayMetrics)
+                val flag = resources.getBoolean(R.bool.biometric_compat_is_tablet)
+                resources.updateConfiguration(oldConfig, resources.displayMetrics)
+                flag
             }
-            return res.getBoolean(R.bool.biometric_compat_is_tablet)
+
         }
     }
 
@@ -275,6 +281,45 @@ class MultiWindowSupport private constructor() {
             return statusBarHeight
         }//This should be close, as lower API devices should not have window navigation bars//this may not be 100% accurate, but it's all we've got//reflection for this weird in-between time
 
+
+    private fun Context.realScreenSizePx(): Point {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+            AndroidContext.activity?.let { act ->
+                val b = act.windowManager.maximumWindowMetrics.bounds
+                return Point(b.width(), b.height())
+            }
+
+
+            val dm = getSystemService(DisplayManager::class.java)
+            val disp = dm?.getDisplay(Display.DEFAULT_DISPLAY)
+                ?: this.display
+            disp?.mode?.let { mode ->
+                val rotation = (disp as? Display)?.rotation
+                    ?: this.display?.rotation
+                    ?: Surface.ROTATION_0
+                val nativeW = mode.physicalWidth
+                val nativeH = mode.physicalHeight
+                return when (rotation) {
+                    Surface.ROTATION_90, Surface.ROTATION_270 -> Point(nativeH, nativeW)
+                    else -> Point(nativeW, nativeH)
+                }
+            }
+
+
+            val m = resources.displayMetrics
+            return Point(m.widthPixels, m.heightPixels)
+        }
+
+        @Suppress("DEPRECATION")
+        run {
+            val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val p = Point()
+            @Suppress("DEPRECATION") wm.defaultDisplay.getRealSize(p)
+            return p
+        }
+    }
+
     //new pleasant way to get real metrics
     val realScreenSize: Point
         get() {
@@ -284,24 +329,7 @@ class MultiWindowSupport private constructor() {
             return if (point != null) {
                 point
             } else {
-                var bounds = Rect()
-                AndroidContext.activity?.let {
-                    bounds = WindowHelper.getMaximumWindowMetrics(it)
-                } ?: run {
-                    val windowManager =
-                        AndroidContext.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                    val oldDisplay = windowManager.defaultDisplay
-                    val display =
-                        (if (Build.VERSION.SDK_INT >= 30) try {
-                            AndroidContext.appContext.display
-                        } catch (e: Throwable) {
-                            oldDisplay
-                        } else oldDisplay) ?: oldDisplay
-                    display?.getRectSize(bounds)
-                }
-                val realWidth = bounds.width()
-                val realHeight = bounds.height()
-                val size = Point(realWidth, realHeight)
+                val size = (AndroidContext.activity ?: AndroidContext.appContext).realScreenSizePx()
                 Companion.realScreenSize.put(configuration, size)
                 size
             }

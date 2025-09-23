@@ -27,11 +27,10 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.Looper
-import androidx.core.app.LocaleManagerCompat
-import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.MutableLiveData
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.LocaleHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -51,8 +50,14 @@ object AndroidContext {
     val configurationLiveData = configurationMutableLiveData
 
     init {
-        _resumedActivityLiveData.observeForever {
-            resumedActivityLiveData.postValue(it.get())
+        ExecutorHelper.post {
+            try {
+                _resumedActivityLiveData.observeForever {
+                    resumedActivityLiveData.postValue(it.get())
+                }
+            } catch (_: Throwable) {
+
+            }
         }
     }
 
@@ -113,24 +118,37 @@ object AndroidContext {
             }
         }
 
+    val appLocale: Locale
+        get() {
+            return LocaleHelper.getDefault(appContext)
+        }
+    val systemLocale: Locale
+        get() {
+            return LocaleHelper.systemLocale(appContext)
+        }
+
+    private fun getApplicationContext(): Application? {
+        return try {
+            Class.forName("android.app.ActivityThread")
+                .getMethod("currentApplication")
+                .invoke(null) as Application
+        } catch (ignored: Throwable) {
+            try {
+                Class.forName("android.app.AppGlobals")
+                    .getMethod("getInitialApplication")
+                    .invoke(null) as Application
+            } catch (e: Throwable) {
+                null
+            }
+        }
+    }
+
     private fun updateApplicationReference() {
         if (Looper.getMainLooper().thread !== Thread.currentThread())
             throw IllegalThreadStateException("Main thread required for correct init")
         appRef.set(
             SoftReference<Application?>(
-                (try {
-                    Class.forName("android.app.ActivityThread")
-                        .getMethod("currentApplication")
-                        .invoke(null) as Application
-                } catch (ignored: Throwable) {
-                    try {
-                        Class.forName("android.app.AppGlobals")
-                            .getMethod("getInitialApplication")
-                            .invoke(null) as Application
-                    } catch (e: Throwable) {
-                        null
-                    }
-                })?.also {
+                getApplicationContext()?.also {
                     configurationRelay.set(SoftReference(it.resources.configuration))
                     configurationMutableLiveData.postValue(Unit)
                     it.registerComponentCallbacks(object : ComponentCallbacks {
@@ -234,22 +252,6 @@ object AndroidContext {
             throw IOException("setPermissions failed with error code $errorCode")
         }
     }
-
-    val systemLocale: Locale
-        get() {
-            val listCompat = LocaleManagerCompat.getSystemLocales(appContext)
-            val l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
-            return l ?: Locale.getDefault()
-        }
-    val appLocale: Locale
-        get() {
-            val listCompat = ConfigurationCompat.getLocales(
-                appConfiguration ?: return Locale.getDefault()
-            )
-            val l = if (!listCompat.isEmpty) listCompat[0] else Locale.getDefault()
-            return l ?: Locale.getDefault()
-        }
-
     init {
         val context = appContext
         LogCat.logError("Pkg ${context.packageName}")

@@ -26,7 +26,6 @@ import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 class App : MultiDexApplication() {
     companion object {
@@ -42,16 +41,14 @@ class App : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         AppMonitoringDevTools(this).enableMonitoringTools(true)
-        LogCat.setLog2ViewCallback(object : LogCat.Log2ViewCallback {
+        val callback = object : LogCat.Log2ViewCallback {
             override fun log(string: String) {
                 LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
-                BiometricPromptCompat.init {
-                    checkForDeviceInfo()
-                }
+                BiometricPromptCompat.init { checkForDeviceInfo() }
             }
-        })
-
+        }
+        LogCat.setLog2ViewCallback(callback)
         LogCat.start()
     }
 

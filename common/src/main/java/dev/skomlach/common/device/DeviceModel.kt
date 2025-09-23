@@ -22,7 +22,6 @@ package dev.skomlach.common.device
 import android.os.Build
 import androidx.annotation.WorkerThread
 import com.jaredrummler.android.device.DeviceName
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
