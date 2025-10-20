@@ -37,7 +37,7 @@ import android.view.WindowManager
 import androidx.collection.LruCache
 import androidx.window.WindowHelper
 import dev.skomlach.common.R
-import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.*
 import dev.skomlach.common.logging.LogCat
 
 class MultiWindowSupport private constructor() {
@@ -237,7 +237,7 @@ class MultiWindowSupport private constructor() {
             bounds = WindowHelper.getCurrentWindowMetrics(it)
         } ?: run {
             val windowManager =
-                AndroidContext.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                AndroidContext.appContext.getFixedContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val oldDisplay = windowManager.defaultDisplay
             val display =
                 (if (Build.VERSION.SDK_INT >= 30) try {
@@ -253,7 +253,7 @@ class MultiWindowSupport private constructor() {
             return true
         }
         val hasMenuKey =
-            ViewConfiguration.get(AndroidContext.activity ?: return true).hasPermanentMenuKey()
+            ViewConfiguration.get(AndroidContext.activity ?: AndroidContext.appContext.getFixedContext()).hasPermanentMenuKey()
         val hasBackKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_BACK)
         val hasHomeKey = KeyCharacterMap.deviceHasKey(KeyEvent.KEYCODE_HOME)
         val hasNoCapacitiveKeys = !hasMenuKey && !hasBackKey && !hasHomeKey
@@ -291,7 +291,7 @@ class MultiWindowSupport private constructor() {
             }
 
 
-            val dm = getSystemService(DisplayManager::class.java)
+            val dm = getFixedContext().getSystemService(DisplayManager::class.java)
             val disp = dm?.getDisplay(Display.DEFAULT_DISPLAY)
                 ?: this.display
             disp?.mode?.let { mode ->
@@ -313,7 +313,7 @@ class MultiWindowSupport private constructor() {
 
         @Suppress("DEPRECATION")
         run {
-            val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            val wm = getFixedContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager
             val p = Point()
             @Suppress("DEPRECATION") wm.defaultDisplay.getRealSize(p)
             return p
@@ -343,7 +343,7 @@ class MultiWindowSupport private constructor() {
                 bounds = WindowHelper.getCurrentWindowMetrics(it)
             } ?: run {
                 val windowManager =
-                    AndroidContext.appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                    AndroidContext.appContext.getFixedContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager
                 val oldDisplay = windowManager.defaultDisplay
                 val display =
                     (if (Build.VERSION.SDK_INT >= 30) try {

@@ -253,7 +253,6 @@ object LocaleHelper {
     }
 
     private fun isPerAppLocalesEnabled(context: Context): Boolean {
-        context.packageManager
         val assetManager = context.assets
         try {
             val parser = assetManager.openXmlResourceParser("AndroidManifest.xml")

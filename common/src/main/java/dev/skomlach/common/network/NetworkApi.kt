@@ -63,7 +63,7 @@ object NetworkApi {
         conn.instanceFollowRedirects = true
         conn.connectTimeout = timeout
         conn.readTimeout = timeout
-        TrafficStats.setThreadStatsTag(link?.hashCode() ?: 0)
+        TrafficStats.setThreadStatsTag(Thread.currentThread().id.toInt())
         return conn
     }
 

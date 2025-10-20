@@ -393,18 +393,6 @@ object BiometricManagerCompat {
     ): Boolean {
         val isHardwareDetected = isHardwareDetected(api)
         val hasEnrolled = hasEnrolled(api)
-        if (!isHardwareDetected) {
-            LogCat.log(
-                TAG,
-                Exception("BiometricManagerCompat::isBiometricAvailable Hardware not Detected")
-            )
-        }
-        if (!hasEnrolled) {
-            LogCat.log(
-                TAG,
-                Exception("BiometricManagerCompat::isBiometricAvailable has not Enrolled")
-            )
-        }
         return isHardwareDetected && hasEnrolled
     }
 
