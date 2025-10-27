@@ -77,8 +77,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.4'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.9.4'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.9.5'
     implementation 'org.smali:dexlib2:2.5.2'
 
     implementation 'com.google.iot.cbor:cbor:0.01.02'
@@ -89,11 +89,11 @@ dependencies {
 //    implementation 'com.squareup.leakcanary:leakcanary-android:2.13'
 //    implementation 'com.readystatesoftware.chuck:library:1.1.0'
 
-    implementation "com.squareup.okhttp3:okhttp:5.1.0"
-    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.1.0"
+    implementation "com.squareup.okhttp3:okhttp:5.2.1"
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.2.1"
     implementation 'com.google.code.gson:gson:2.13.2'
 
-    implementation platform('com.google.firebase:firebase-bom:34.3.0')
+    implementation platform('com.google.firebase:firebase-bom:34.4.0')
     implementation "com.google.firebase:firebase-perf"
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'
