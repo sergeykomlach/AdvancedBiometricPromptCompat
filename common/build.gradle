@@ -67,6 +67,17 @@ afterEvaluate {
                 if (!by_brand.exists()) {
                     throw IllegalStateException("Brand spec are missing")
                 }
+
+                def products_infos = new File("$projectDir/src/main/assets/products_infos.json")
+                println("Path" + products_infos.absolutePath)
+                if (products_infos.exists()) {
+                    products_infos.delete()
+                }
+                new URL("https://github.com/milephm/phonedata_crawler/releases/download/data/products_infos_gsmarena.json")
+                        .withInputStream { i -> products_infos.withOutputStream { it << i } }
+                if (!products_infos.exists()) {
+                    throw IllegalStateException("Products infos are missing")
+                }
             }
         }
     }
