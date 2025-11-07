@@ -54,6 +54,7 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.image.ops.Rot90Op
 import java.util.Collections
 import java.util.UUID
+import kotlin.math.abs
 
 class TensorFlowFaceUnlockManager(private val context: Context) : AbstractCustomBiometricManager(),
     ImageReader.OnImageAvailableListener {
@@ -509,14 +510,12 @@ class TensorFlowFaceUnlockManager(private val context: Context) : AbstractCustom
     private fun handleFace(face: Face, originalBitmap: Bitmap) {
         // Цей метод тепер завжди викликається на backgroundHandler
         try {
-
-            val yaw = face.headEulerAngleY // Нахил вліво/вправо (як "ні")
-            val roll = face.headEulerAngleZ // Нахил до плеча
-
             // Дозволяємо відхилення не більше 30 градусів
             val MAX_ANGLE_DEGREES = 30f
 
-            if (Math.abs(yaw) > MAX_ANGLE_DEGREES || Math.abs(roll) > MAX_ANGLE_DEGREES) {
+            if (abs(face.headEulerAngleX) > MAX_ANGLE_DEGREES || abs(face.headEulerAngleY) > MAX_ANGLE_DEGREES || abs(
+                    face.headEulerAngleZ
+                ) > MAX_ANGLE_DEGREES) {
                 isProcessing = false // Обличчя занадто сильно повернуте
                 return
             }
