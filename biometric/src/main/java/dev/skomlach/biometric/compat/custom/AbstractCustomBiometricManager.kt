@@ -47,12 +47,15 @@ abstract class AbstractCustomBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
     }
 
-    fun isHardwareDetected(): Boolean = throw IllegalStateException("Not implemented")
-    fun hasEnrolledBiometric(): Boolean = throw IllegalStateException("Not implemented")
+    open fun isHardwareDetected(): Boolean = throw IllegalStateException("Not implemented")
+    open fun hasEnrolledBiometric(): Boolean = throw IllegalStateException("Not implemented")
 
-    fun getManagers(): Set<Any> = throw IllegalStateException("Not implemented")
+    open fun getManagers(): Set<Any> = throw IllegalStateException("Not implemented")
 
-    fun authenticate(
+    open fun remove(extra: Bundle?){
+        throw IllegalStateException("Not implemented")
+    }
+    open fun authenticate(
         crypto: CryptoObject?,
         flags: Int,
         cancel: CancellationSignal?,

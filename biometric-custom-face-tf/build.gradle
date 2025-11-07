@@ -35,13 +35,10 @@ dependencies {
     implementation project(":" + libArtifactId_biometric)
     implementation "androidx.appcompat:appcompat:1.7.1"
     implementation 'com.google.android.material:material:1.13.0'
-
     implementation('org.tensorflow:tensorflow-lite:2.17.0') { changing = true }
-//    implementation 'org.tensorflow:tensorflow-lite-gpu:2.16.1'
-//    implementation 'org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1'
-//    implementation 'org.tensorflow:tensorflow-lite-support:2.16.1'
-    // added MLKit dependencies for face detector
     implementation 'com.google.mlkit:face-detection:16.1.7'
+    implementation 'com.google.ai.edge.litert:litert-support:1.4.0'
+    implementation 'com.google.ai.edge.litert:litert-gpu-api:1.4.0'
 }
 
 // Publishing
