@@ -68,7 +68,8 @@ kotlin {
 dependencies {
     implementation project(":" + libArtifactId_common)
     implementation project(":" + libArtifactId_biometric)
-    implementation project(":" + libArtifactId_biometric)
+    implementation project(":" + libArtifactId_biometric_ktx)
+    implementation project(":" + libArtifactId_biometric_custom_face_tf)
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation 'androidx.multidex:multidex:2.0.1'
@@ -77,8 +78,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.5'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.9.5'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.9.6'
     implementation 'org.smali:dexlib2:2.5.2'
 
     implementation 'com.google.iot.cbor:cbor:0.01.02'
@@ -89,11 +90,11 @@ dependencies {
 //    implementation 'com.squareup.leakcanary:leakcanary-android:2.13'
 //    implementation 'com.readystatesoftware.chuck:library:1.1.0'
 
-    implementation "com.squareup.okhttp3:okhttp:5.2.1"
-    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.2.1"
+    implementation "com.squareup.okhttp3:okhttp:5.3.0"
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.3.0"
     implementation 'com.google.code.gson:gson:2.13.2'
 
-    implementation platform('com.google.firebase:firebase-bom:34.4.0')
+    implementation platform('com.google.firebase:firebase-bom:34.5.0')
     implementation "com.google.firebase:firebase-perf"
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'

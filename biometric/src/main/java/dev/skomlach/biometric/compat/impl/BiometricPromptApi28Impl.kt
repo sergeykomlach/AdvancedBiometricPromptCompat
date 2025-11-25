@@ -74,6 +74,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     private val isOpened = AtomicBoolean(false)
     private val authCallTimestamp = AtomicLong(0)
     private val canceled = HashSet<AuthenticationResult>()
+    private val isDeviceCredentialAllowed: Boolean
+        get() {
+            return if (isAtLeastR) {
+                if (builder.forceDeviceCredential()) {
+                    true
+                } else {
+                    return builder.getCryptographyPurpose() == null
+                }
+            } else {
+                builder.forceDeviceCredential()
+            }
+        }
     private val biometricPromptInfo: PromptInfo
         get() {
             val promptInfoBuilder = PromptInfo.Builder()
@@ -575,7 +587,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             failureReason = AuthenticationFailureReason.LOCKED_OUT
         }
         var added = false
-        if (biometricPromptInfo.isDeviceCredentialAllowed || (biometricPromptInfo.allowedAuthenticators and BiometricManager.Authenticators.DEVICE_CREDENTIAL) != 0) {
+        if (isDeviceCredentialAllowed) {
             authFinished[BiometricType.BIOMETRIC_ANY] =
                 AuthResult(
                     authResult,
@@ -636,7 +648,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
                 d("BiometricPromptApi28Impl.checkAuthResultForPrimary() -> onSucceeded")
 
-                if (biometricPromptInfo.isDeviceCredentialAllowed || (biometricPromptInfo.allowedAuthenticators and BiometricManager.Authenticators.DEVICE_CREDENTIAL) != 0) {
+                if (isDeviceCredentialAllowed) {
                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                 }
                 callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
@@ -754,7 +766,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
                 d("BiometricPromptApi28Impl.checkAuthResultForSecondary() -> onSucceeded")
 
-                if (biometricPromptInfo.isDeviceCredentialAllowed || (biometricPromptInfo.allowedAuthenticators and BiometricManager.Authenticators.DEVICE_CREDENTIAL) != 0) {
+                if (isDeviceCredentialAllowed) {
                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                 }
                 callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
