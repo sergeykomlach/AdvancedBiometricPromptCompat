@@ -19,6 +19,8 @@
 
 package dev.skomlach.biometric.compat.utils
 
+import android.Manifest
+import android.app.Activity
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -31,6 +33,7 @@ import android.view.accessibility.AccessibilityNodeProvider
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
+import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.protection.A11yDetection
 
 object ScreenProtection {
@@ -40,13 +43,70 @@ object ScreenProtection {
     //Accessibility Services
     //Android Oreo autofill in the app
 
-    fun applyProtectionInWindow(window: Window?) {
+    private fun applyProtectionInWindowInternal(
+        window: Window?,
+        disableWindow: Boolean = true,
+        includeHostActivity: Boolean = false
+    ) {
         try {
-            window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            applyProtectionInView(window?.findViewById(Window.ID_ANDROID_CONTENT) ?: return)
+            if (window == null) return
+            if (disableWindow) {
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                window.context?.let {
+                    if (it is Activity)
+                        if (includeHostActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            it.setRecentsScreenshotEnabled(false)
+                        }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && PermissionUtils.INSTANCE.hasSelfPermissions(
+                        Manifest.permission.HIDE_OVERLAY_WINDOWS
+                    )
+                )
+                    try {
+                        window.setHideOverlayWindows(true)
+                    } catch (se: SecurityException) {
+                    }
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                window.context?.let {
+                    if (it is Activity)
+                        if (includeHostActivity && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            it.setRecentsScreenshotEnabled(true)
+                        }
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && PermissionUtils.INSTANCE.hasSelfPermissions(
+                        Manifest.permission.HIDE_OVERLAY_WINDOWS
+                    )
+                )
+                    try {
+                        window.setHideOverlayWindows(false)
+                    } catch (se: SecurityException) {
+
+                    }
+            }
         } catch (e: Exception) {
-            //not sure is exception can happens, but better to track at least
-            BiometricLoggerImpl.e(e, "ActivityContextProvider")
+
+        }
+    }
+
+    fun applyProtectionInWindow(
+        window: Window?,
+        disableWindow: Boolean = true,
+        includeHostActivity: Boolean = false
+    ) {
+        try {
+            applyProtectionInWindowInternal(
+                window,
+                disableWindow,
+                includeHostActivity
+            )
+            applyProtectionInView(
+                window?.findViewById(
+                    Window.ID_ANDROID_CONTENT
+                ) ?: return
+            )
+        } catch (_: Exception) {
+
         }
     }
 
