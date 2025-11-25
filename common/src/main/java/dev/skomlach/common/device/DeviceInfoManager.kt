@@ -174,7 +174,12 @@ object DeviceInfoManager {
         }
         val names = getNames()
         val devicesList = (try {
-            Gson().fromJson(getJSON("devices.json", "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"), Array<DeviceSpec>::class.java)
+            Gson().fromJson(
+                getJSON(
+                    "devices.json",
+                    "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
+                ), Array<DeviceSpec>::class.java
+            )
                 ?: arrayOf<DeviceSpec>()
         } catch (e: Throwable) {
             arrayOf<DeviceSpec>()
@@ -194,21 +199,21 @@ object DeviceInfoManager {
                     if (limit < (spaceCount - 2).coerceAtLeast(2))//Device should have at least brand + model
                         break
                     val second = join(secondArray, " ", limit)
-                deviceInfo = loadDeviceInfo(
-                    devicesList,
-                    first,
-                    second,
-                    DeviceModel.brand,
-                    DeviceModel.device
-                )
-                if (!deviceInfo?.sensors.isNullOrEmpty()) {
-                    LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                    setCachedDeviceInfo(deviceInfo ?: continue, true)
-                    onDeviceInfoListener.onReady(deviceInfo)
-                    return
-                } else {
-                    LogCat.log("DeviceInfoManager: no data for $first/$second")
-                }
+                    deviceInfo = loadDeviceInfo(
+                        devicesList,
+                        first,
+                        second,
+                        DeviceModel.brand,
+                        DeviceModel.device
+                    )
+                    if (!deviceInfo?.sensors.isNullOrEmpty()) {
+                        LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
+                        setCachedDeviceInfo(deviceInfo ?: continue, true)
+                        onDeviceInfoListener.onReady(deviceInfo)
+                        return
+                    } else {
+                        LogCat.log("DeviceInfoManager: no data for $first/$second")
+                    }
                 }
             } catch (e: Throwable) {
                 LogCat.logException(e)
@@ -388,7 +393,7 @@ object DeviceInfoManager {
     //tools
     private fun getDeviceSpecCompat(): Set<DeviceSpec> {
         val list = mutableSetOf<DeviceSpec>()
-        try{
+        try {
             val type = object : TypeToken<List<Phone>>() {}.type
             val phones: List<Phone> = Gson().fromJson(
                 getJSON(
@@ -489,7 +494,7 @@ object DeviceInfoManager {
         }
     }
 
-    private fun saveToCache(data: String, name :String) {
+    private fun saveToCache(data: String, name: String) {
         try {
             val file = File(AndroidContext.appContext.cacheDir, name)
             if (file.parentFile?.exists() == false) {

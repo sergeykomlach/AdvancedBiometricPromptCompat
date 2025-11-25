@@ -151,7 +151,7 @@ object DeviceModel {
                     val jsonObject = details.getJSONObject(i)
                     val m = jsonObject.getString("model")
                     val name = jsonObject.getString("name")
-                    val d = jsonObject.getString("device")
+                    jsonObject.getString("device")
                     if (name.isNullOrEmpty()) {
                         continue
                     } else if (!m.isNullOrEmpty() && (model.equals(
@@ -177,7 +177,7 @@ object DeviceModel {
                 val details = json.getJSONArray(key)
                 for (i in 0 until details.length()) {
                     val jsonObject = details.getJSONObject(i)
-                    val m = jsonObject.getString("model")
+                    jsonObject.getString("model")
                     val name = jsonObject.getString("name")
                     val d = jsonObject.getString("device")
                     if (name.isNullOrEmpty()) {

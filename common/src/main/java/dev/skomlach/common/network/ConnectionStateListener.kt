@@ -33,6 +33,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean
+
 class ConnectionStateListener {
 
     private val isConnectionOk = AtomicBoolean(false)

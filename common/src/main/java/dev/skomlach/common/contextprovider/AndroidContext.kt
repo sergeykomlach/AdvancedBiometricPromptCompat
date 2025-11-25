@@ -252,6 +252,7 @@ object AndroidContext {
             throw IOException("setPermissions failed with error code $errorCode")
         }
     }
+
     init {
         val context = appContext
         LogCat.logError("Pkg ${context.packageName}")

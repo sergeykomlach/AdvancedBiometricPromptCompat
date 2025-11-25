@@ -28,7 +28,6 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
-import java.security.SecureRandom
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern

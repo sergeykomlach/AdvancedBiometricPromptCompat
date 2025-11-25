@@ -45,11 +45,13 @@ object PingConfig {
         val pref = SharedPreferenceProvider.getPreferences(PREF_NAME)
         this.timeout = pref.getLong("pingTimeoutSec", 5)
         this.hosts =
-            pref.getStringSet("hostsList", arrayOf(
-                "1.1.1.1", //Must be available everywhere
-                "google.com", //May be banned in China
-                "cdn.jsdelivr.net"//Domain accessible from China; see https://globalping.io/network-tools/dns-from-guangzhou
-            ).toSet()) ?: emptySet()
+            pref.getStringSet(
+                "hostsList", arrayOf(
+                    "1.1.1.1", //Must be available everywhere
+                    "google.com", //May be banned in China
+                    "cdn.jsdelivr.net"//Domain accessible from China; see https://globalping.io/network-tools/dns-from-guangzhou
+                ).toSet()
+            ) ?: emptySet()
 
     }
 
