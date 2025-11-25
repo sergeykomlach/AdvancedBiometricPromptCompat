@@ -32,6 +32,7 @@ import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
+import androidx.core.content.edit
 
 class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private val KEYSTORE_FALLBACK_NAME: String
@@ -47,11 +48,11 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private val context = AndroidContext.appContext
     override fun deleteKey(keyName: String) {
         val sharedPreferences =
-            SharedPreferenceProvider.getPreferences(
+            SharedPreferenceProvider.getCryptoPreferences(
                 "$KEYSTORE_FALLBACK_NAME-$keyName"
             )
 
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit { clear() }
     }
 
     override fun getInitializedCipherForEncryption(
@@ -138,7 +139,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private fun keyPairInFallback(name: String): Boolean {
         return try {
             val sharedPreferences =
-                SharedPreferenceProvider.getPreferences(
+                SharedPreferenceProvider.getCryptoPreferences(
                     "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
@@ -153,7 +154,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private fun getKeyPairFromFallback(name: String): KeyPair? {
         try {
             val sharedPreferences =
-                SharedPreferenceProvider.getPreferences(
+                SharedPreferenceProvider.getCryptoPreferences(
                     "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             if (sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
@@ -185,19 +186,19 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
             val rsaPrivateKey = RsaPrivateKey.fromRsaKey(keyPair.private as RSAPrivateCrtKey)
             val rsaPublicKey = RsaPublicKey.fromRsaKey(keyPair.public as RSAPublicKey)
             val sharedPreferences =
-                SharedPreferenceProvider.getPreferences(
+                SharedPreferenceProvider.getCryptoPreferences(
                     "$KEYSTORE_FALLBACK_NAME-$name"
                 )
-            sharedPreferences.edit()
-                .putString(
+            sharedPreferences.edit {
+                putString(
                     PRIVATE_KEY_NAME,
                     Base64.encodeToString(rsaPrivateKey.toByteArray(8), Base64.DEFAULT)
                 )
-                .putString(
-                    PUBLIC_KEY_NAME,
-                    Base64.encodeToString(rsaPublicKey.toByteArray(8), Base64.DEFAULT)
-                )
-                .apply()
+                    .putString(
+                        PUBLIC_KEY_NAME,
+                        Base64.encodeToString(rsaPublicKey.toByteArray(8), Base64.DEFAULT)
+                    )
+            }
         } catch (e: Throwable) {
 
         }
