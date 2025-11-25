@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -47,6 +48,7 @@ class TensorFlowFaceUnlockManager(
 
         private val activeSessionLock = Any()
 
+        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var currentActiveManager: TensorFlowFaceUnlockManager? = null
 
