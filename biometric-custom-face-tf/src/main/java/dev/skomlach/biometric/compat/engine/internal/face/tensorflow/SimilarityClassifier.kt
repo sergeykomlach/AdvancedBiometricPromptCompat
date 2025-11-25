@@ -23,6 +23,7 @@ import android.graphics.RectF
 
 /** Generic interface for interacting with different recognition engines.  */
 interface SimilarityClassifier {
+    fun hasRegistered(): Boolean
     fun delete(name: String?)
 
     /**
@@ -31,7 +32,7 @@ interface SimilarityClassifier {
      * @param name The name to associate with the recognition.
      * @param recognition The recognition result to register.
      */
-    fun register(name: String?, recognition: Recognition)
+    fun register(name: String, recognition: Recognition)
 
     /**
      * Runs recognition on a new image.
@@ -61,7 +62,6 @@ interface SimilarityClassifier {
     ) {
         var extra: Any? = null
 
-        var color: Int? = null
         var crop: Bitmap? = null
 
         fun getLocation(): RectF {
@@ -87,11 +87,7 @@ interface SimilarityClassifier {
             }
 
             if (location != null) {
-                // 🛑 ПОМИЛКА БУЛА ТУТ:
-                // resultString += String.format("(%.1f%%) ", location) // <- КРЕШ
-
-                // ✅ ВИПРАВЛЕНО:
-                resultString += location.toString() // Просто додаємо рядок
+                resultString += location.toString()
             }
 
             return resultString.trim { it <= ' ' }

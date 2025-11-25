@@ -20,12 +20,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
-<uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <uses-feature android:name="android.hardware.camera" />
-    <uses-feature android:name="android.hardware.camera.autofocus" />
-    <application
-            tools:overrideLibrary="com.google.mlkit.vision.face.bundled">
-        <activity android:name=".tflite.faceai.DetectorActivity"/>
-    </application>
+    <uses-feature
+            android:name="android.hardware.camera.autofocus"
+            android:required="false" />
+
+    <application tools:overrideLibrary="com.google.mlkit.vision.face.bundled"></application>
 
 </manifest>

@@ -27,7 +27,7 @@ import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Compa
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_FINGERPRINTS
+import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_SPACE
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
@@ -182,7 +182,7 @@ class CustomBiometricModule(
             errorTs = tmp
             var failureReason = AuthenticationFailureReason.UNKNOWN
             when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
-                CUSTOM_BIOMETRIC_ERROR_NO_FINGERPRINTS -> failureReason =
+                CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC -> failureReason =
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
 
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT -> failureReason =

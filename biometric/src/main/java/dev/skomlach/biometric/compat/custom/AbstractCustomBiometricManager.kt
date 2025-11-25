@@ -39,7 +39,7 @@ abstract class AbstractCustomBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE = 1
         const val CUSTOM_BIOMETRIC_ERROR_LOCKOUT = 7
         const val CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT = 9
-        const val CUSTOM_BIOMETRIC_ERROR_NO_FINGERPRINTS = 11
+        const val CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC = 11
         const val CUSTOM_BIOMETRIC_ERROR_NO_SPACE = 4
         const val CUSTOM_BIOMETRIC_ERROR_TIMEOUT = 3
         const val CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS = 2
