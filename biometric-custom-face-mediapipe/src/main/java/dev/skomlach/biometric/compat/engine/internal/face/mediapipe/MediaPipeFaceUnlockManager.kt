@@ -131,7 +131,7 @@ class MediaPipeFaceUnlockManager(
     override fun isHardwareDetected(): Boolean = faceDetector != null && imageEmbedder != null
 
     override fun hasEnrolledBiometric(): Boolean {
-        val prefs = SharedPreferenceProvider.getPreferences(PREF_NAME)
+        val prefs = SharedPreferenceProvider.getCryptoPreferences(PREF_NAME)
         return try {
             prefs.all.isNotEmpty()
         } catch (e: Exception) {
@@ -141,7 +141,7 @@ class MediaPipeFaceUnlockManager(
 
     override fun remove(extra: Bundle?) {
         val tag = extra?.getString(ENROLLMENT_TAG_KEY)
-        val prefs = SharedPreferenceProvider.getPreferences(PREF_NAME)
+        val prefs = SharedPreferenceProvider.getCryptoPreferences(PREF_NAME)
         if (tag != null) prefs.edit().remove(tag).apply() else prefs.edit().clear().apply()
     }
 
@@ -319,14 +319,14 @@ class MediaPipeFaceUnlockManager(
     // залишаються такими ж, як у попередньому варіанті.
 
     private fun saveUser(tag: String, vector: FloatArray) {
-        val prefs = SharedPreferenceProvider.getPreferences(PREF_NAME)
+        val prefs = SharedPreferenceProvider.getCryptoPreferences(PREF_NAME)
         val vectorStr = vector.joinToString(",")
         prefs.edit().putString(tag, vectorStr).apply()
         LogCat.log("MediaPipe", "User registered: $tag")
     }
 
     private fun findNearestUser(vector: FloatArray): Pair<String?, Float> {
-        val prefs = SharedPreferenceProvider.getPreferences(PREF_NAME)
+        val prefs = SharedPreferenceProvider.getCryptoPreferences(PREF_NAME)
         val allUsers = prefs.all
 
         var maxSimilarity = -1.0f

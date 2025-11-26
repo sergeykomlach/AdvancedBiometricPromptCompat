@@ -39,8 +39,6 @@ object SharedPreferenceProvider {
     fun getPreferences(name: String): SharedPreferences {
         return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
-
-    @Deprecated("Use getPreferences (aka plaintext) instead; `androidx.security` contains too many bugs:(")
     fun getCryptoPreferences(name: String): SharedPreferences {
         return EncryptedSharedPreferences(appContext, name)
     }
