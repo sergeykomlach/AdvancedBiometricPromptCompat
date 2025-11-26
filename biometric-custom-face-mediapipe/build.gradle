@@ -1,0 +1,48 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'de.undercouch.download'
+/*
+Note: Keep module in Java to keep compatibility with OEM/AOSP API's
+*/
+android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+//    compileSdkPreview compileSDK
+    compileSdk compileSDK
+    defaultConfig {
+        minSdkVersion minSDK
+        //targetSdkPreview targetSDK
+        targetSdkVersion targetSDK
+        multiDexEnabled true
+
+    }
+    namespace 'dev.skomlach.biometric.custom.face.tf'
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
+}
+// import DownloadModels task
+project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+project.ext.TMP_DIR = project.buildDir.toString() + '/downloads'
+
+dependencies {
+    implementation project(":" + libArtifactId_common)
+    implementation project(":" + libArtifactId_biometric)
+    implementation "androidx.appcompat:appcompat:1.7.1"
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'com.google.mediapipe:tasks-vision:0.20230731'
+}
+
+// Publishing
+ext {
+    PUBLISH_GROUP_ID = libsGroupId
+    PUBLISH_ARTIFACT_ID = libArtifactId_biometric_custom_face_tf
+    PUBLISH_VERSION = libVersion
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
