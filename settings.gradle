@@ -18,4 +18,4 @@
  */
 
 rootProject.name = "biometric"
-include ":app", ":biometric", ":biometric-api", ':biometric-ktx', ":common", ":biometric-custom-face-tf", ":biometric-custom-face-mediapipe"
+include ":app", ":biometric", ":biometric-api", ':biometric-ktx', ":common", ":biometric-custom-face-tf"

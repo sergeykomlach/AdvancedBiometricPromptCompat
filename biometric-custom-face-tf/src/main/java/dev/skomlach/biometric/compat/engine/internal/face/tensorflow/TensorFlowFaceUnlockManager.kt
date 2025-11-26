@@ -38,13 +38,13 @@ class TensorFlowFaceUnlockManager(
         const val ENROLLMENT_TAG_KEY = "enrollment_tag"
 
         private const val TIMEOUT_MS = 30000L
-        private const val MAX_DISTANCE_THRESHOLD = 0.8f
+        private const val MAX_DISTANCE_THRESHOLD = 0.75f
         private const val REQUIRED_CONSECUTIVE_MATCHES = 3
 
         private const val TF_OD_API_INPUT_SIZE = 112
         private const val TF_OD_API_IS_QUANTIZED = false
-        private const val TF_OD_API_MODEL_FILE = "mobile_face_net.tflite"
-        private const val TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt"
+        private const val TF_OD_API_MODEL_FILE = "tf_bio/mobile_face_net.tflite"
+        private const val TF_OD_API_LABELS_FILE = "file:///android_asset/tf_bio/labelmap.txt"
 
         private val activeSessionLock = Any()
 
