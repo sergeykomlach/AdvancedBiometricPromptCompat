@@ -30,6 +30,7 @@ import kotlin.math.sqrt
 
 class TensorFlowFaceUnlockManager(
     private val context: Context,
+    private val config :TensorFlowFaceConfig = TensorFlowFaceConfig(),
     private var frameProvider: IFrameProvider = RealCameraProvider(context)
 ) : AbstractCustomBiometricManager() {
 
@@ -38,8 +39,7 @@ class TensorFlowFaceUnlockManager(
         const val ENROLLMENT_TAG_KEY = "enrollment_tag"
 
         private const val TIMEOUT_MS = 30000L
-        private const val MAX_DISTANCE_THRESHOLD = 0.75f
-        private const val REQUIRED_CONSECUTIVE_MATCHES = 3
+
 
         private const val TF_OD_API_INPUT_SIZE = 112
         private const val TF_OD_API_IS_QUANTIZED = false
@@ -378,7 +378,7 @@ class TensorFlowFaceUnlockManager(
 
                     LogCat.log("FaceAuth", "Match: $title, Dist: $distance")
 
-                    if (distance < MAX_DISTANCE_THRESHOLD) {
+                    if (distance < config.maxDistanceThresholds) {
                         if (id == lastMatchedId) {
                             consecutiveMatchCounter++
                         } else {
@@ -386,7 +386,7 @@ class TensorFlowFaceUnlockManager(
                             lastMatchedId = id
                         }
 
-                        if (consecutiveMatchCounter >= REQUIRED_CONSECUTIVE_MATCHES) {
+                        if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
                         }
