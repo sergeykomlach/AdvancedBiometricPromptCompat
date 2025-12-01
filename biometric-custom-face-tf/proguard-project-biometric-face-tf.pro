@@ -1,0 +1,1 @@
+-keep class dev.skomlach.biometric.compat.engine.internal.face.tensorflow.** { *; }
