@@ -31,7 +31,6 @@ object MiuiCodeToString {
 
     private var stringArrayFields: Array<Field>? = null
 
-    private val context = AndroidContext.appContext
 
     init {
         try {
@@ -50,7 +49,7 @@ object MiuiCodeToString {
                         val isAccessible = field.isAccessible
                         return try {
                             if (!isAccessible) field.isAccessible = true
-                            context.resources.getStringArray(field[null] as Int)
+                            AndroidContext.appContext.resources.getStringArray(field[null] as Int)
                         } finally {
                             if (!isAccessible) field.isAccessible = false
                         }
@@ -64,6 +63,7 @@ object MiuiCodeToString {
     }
 
     fun getErrorString(errMsg: Int, vendorCode: Int): String? {
+        val context = AndroidContext.appContext
         when (errMsg) {
             1 -> return SystemStringsHelper.getFromSystem(context, "face_error_hw_not_available")
             2 -> return SystemStringsHelper.getFromSystem(context, "face_error_unable_to_process")
@@ -72,10 +72,12 @@ object MiuiCodeToString {
             5 -> return SystemStringsHelper.getFromSystem(context, "face_error_canceled")
             7 -> return SystemStringsHelper.getFromSystem(context, "face_error_lockout")
             8 -> {
-                val msgArray = getStringArray("face_error_vendor")
-                if (msgArray != null && vendorCode < msgArray.size) {
-                    return msgArray[vendorCode]
-                }
+                try {
+                    val msgArray = getStringArray("face_error_vendor")
+                    if (msgArray != null && vendorCode < msgArray.size) {
+                        return msgArray[vendorCode]
+                    }
+                } catch (_: Exception){}
             }
 
             9 -> return SystemStringsHelper.getFromSystem(context, "face_error_lockout_permanent")
@@ -93,6 +95,7 @@ object MiuiCodeToString {
     }
 
     fun getAcquiredString(acquireInfo: Int, vendorCode: Int): String? {
+        val context = AndroidContext.appContext
         when (acquireInfo) {
             0 -> return null
             1 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_insufficient")
@@ -125,10 +128,12 @@ object MiuiCodeToString {
             20 -> return null
             21 -> return SystemStringsHelper.getFromSystem(context, "face_acquired_sensor_dirty")
             22 -> {
-                val msgArray = getStringArray("face_acquired_vendor")
-                if (msgArray != null && vendorCode < msgArray.size) {
-                    return msgArray[vendorCode]
-                }
+                try {
+                    val msgArray = getStringArray("face_acquired_vendor")
+                    if (msgArray != null && vendorCode < msgArray.size) {
+                        return msgArray[vendorCode]
+                    }
+                } catch (_: Exception){}
             }
         }
         val stringBuilder = StringBuilder()

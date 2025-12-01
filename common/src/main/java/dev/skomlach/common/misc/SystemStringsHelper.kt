@@ -28,12 +28,14 @@ object SystemStringsHelper {
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
             for (field in fields) {
-                if (field.name.equals(alias)) {
+                if (field.name == alias) {
                     LogCat.log("SystemStringsHelper", field.name)
                     val isAccessible = field.isAccessible
                     return try {
                         if (!isAccessible) field.isAccessible = true
-                        val s = context.getString(field[null] as Int)
+                        val s = context.resources.getString(field[null] as Int)
+                        if (s == alias)
+                            throw RuntimeException("String value must be different from key")
                         if (s.isEmpty())
                             throw RuntimeException("String is empty")
                         s
