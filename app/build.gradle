@@ -90,11 +90,11 @@ dependencies {
 //    implementation 'com.squareup.leakcanary:leakcanary-android:2.13'
 //    implementation 'com.readystatesoftware.chuck:library:1.1.0'
 
-    implementation "com.squareup.okhttp3:okhttp:5.3.0"
+    implementation "com.squareup.okhttp3:okhttp:5.3.2"
     implementation "com.squareup.okhttp3:okhttp-urlconnection:5.3.0"
     implementation 'com.google.code.gson:gson:2.13.2'
 
-    implementation platform('com.google.firebase:firebase-bom:34.5.0')
+    implementation platform('com.google.firebase:firebase-bom:34.6.0')
     implementation "com.google.firebase:firebase-perf"
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-crashlytics-ndk'

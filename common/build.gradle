@@ -30,11 +30,11 @@ kotlin {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.github.tozny:java-aes-crypto:1.1.0'
-    implementation 'androidx.lifecycle:lifecycle-process:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-process:2.10.0'
     implementation 'org.jsoup:jsoup:1.21.2'
     implementation "androidx.core:core-ktx:1.17.0"
     implementation "androidx.appcompat:appcompat:1.7.1"
-    implementation "androidx.window:window:1.5.0"
+    implementation "androidx.window:window:1.5.1"
     implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
     implementation 'com.google.guava:guava:33.5.0-android'
     implementation 'com.jaredrummler:android-device-names:2.1.1'

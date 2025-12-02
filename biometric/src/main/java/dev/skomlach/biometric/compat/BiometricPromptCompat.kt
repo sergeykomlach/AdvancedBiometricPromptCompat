@@ -82,8 +82,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var API_ENABLED = true
             private set
 
-        val SHOW_DETAILS_IN_UI = BuildConfig.DEBUG
-
         init {
             if (API_ENABLED) {
 
