@@ -19,6 +19,9 @@
 
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
+import androidx.annotation.FloatRange
+import androidx.annotation.IntRange
+
 data class TensorFlowFaceConfig(
     /*
     The value for "how far two faces matched to each other"
@@ -26,9 +29,21 @@ data class TensorFlowFaceConfig(
     <=0.7 - more accurate, but slower
     >= 0.8 - less accurate, but faster
     */
+    @FloatRange(from = 0.5, to = 1.0)
     val maxDistanceThresholds: Float = 0.75f,
     /*
     Size of success matches chain
     */
+    @IntRange(from = 1)
     val requiredConsecutiveMatches: Int = 3
-)
+) {
+    init {
+        require(maxDistanceThresholds in 0.5f..1.0f) {
+            "maxDistanceThresholds must be between 0.5 and 1.0, but was $maxDistanceThresholds"
+        }
+
+        require(requiredConsecutiveMatches > 0) {
+            "requiredConsecutiveMatches must be positive, but was $requiredConsecutiveMatches"
+        }
+    }
+}

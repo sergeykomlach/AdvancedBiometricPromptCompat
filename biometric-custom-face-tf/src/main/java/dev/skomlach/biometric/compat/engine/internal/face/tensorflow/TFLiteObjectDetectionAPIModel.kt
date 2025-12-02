@@ -135,6 +135,7 @@ private constructor() : SimilarityClassifier {
             return d
         }
     }
+
     private val registered: HashMap<String?, SimilarityClassifier.Recognition?> by lazy {
         val map = HashMap<String?, SimilarityClassifier.Recognition?>()
         try {

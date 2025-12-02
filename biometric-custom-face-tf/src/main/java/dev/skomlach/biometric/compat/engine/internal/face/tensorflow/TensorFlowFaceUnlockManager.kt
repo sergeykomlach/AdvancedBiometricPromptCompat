@@ -30,8 +30,7 @@ import kotlin.math.sqrt
 
 class TensorFlowFaceUnlockManager(
     private val context: Context,
-    private val config :TensorFlowFaceConfig = TensorFlowFaceConfig(),
-    private var frameProvider: IFrameProvider = RealCameraProvider(context)
+    private val config: TensorFlowFaceConfig = TensorFlowFaceConfig()
 ) : AbstractCustomBiometricManager() {
 
     companion object {
@@ -73,6 +72,7 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
+    private var frameProvider: IFrameProvider = RealCameraProvider(context)
     private var backgroundThread: HandlerThread? = null
     private var backgroundHandler: Handler? = null
     private val timeoutHandler = Handler(ExecutorHelper.handler.looper)
