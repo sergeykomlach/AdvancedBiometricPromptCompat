@@ -223,6 +223,8 @@ object BiometricManagerCompat {
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
+        if (isHardwareDetected(BiometricAuthRequest(type = type)))
+            return false
 
         return BiometricAuthentication.registerCustomModule(
             BiometricMethod.createCustomModule(
