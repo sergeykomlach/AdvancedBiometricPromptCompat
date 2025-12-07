@@ -27,6 +27,6 @@
             android:name="android.hardware.camera.autofocus"
             android:required="false" />
 
-    <application tools:overrideLibrary="com.google.mlkit.vision.face.bundled"></application>
+    <application tools:overrideLibrary="com.google.mlkit.vision.face.bundled"/>
 
 </manifest>

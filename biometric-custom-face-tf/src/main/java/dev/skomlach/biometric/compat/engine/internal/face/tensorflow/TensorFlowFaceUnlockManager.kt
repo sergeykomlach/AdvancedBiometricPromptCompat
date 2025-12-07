@@ -40,6 +40,7 @@ class TensorFlowFaceUnlockManager(
         private const val TIMEOUT_MS = 30000L
 
 
+        private const val MAX_ANGLE = 25f
         private const val TF_OD_API_INPUT_SIZE = 112
         private const val TF_OD_API_IS_QUANTIZED = false
         private const val TF_OD_API_MODEL_FILE = "tf_bio/mobile_face_net.tflite"
@@ -99,7 +100,15 @@ class TensorFlowFaceUnlockManager(
             null
         }
     }
-
+    private val antiSpoofing: FaceAntiSpoofing? by lazy {
+        try {
+            FaceAntiSpoofing(context.assets)
+        } catch (e: Exception) {
+            LogCat.log("FaceAuth", "AntiSpoofing model init failed: ${e.message}")
+            e.printStackTrace()
+            null
+        }
+    }
     private val detector: SimilarityClassifier? by lazy {
         try {
             var interpreterOptions: Interpreter.Options? = Interpreter.Options()
@@ -333,8 +342,6 @@ class TensorFlowFaceUnlockManager(
 
         val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() } ?: return
 
-        // Liveness check
-        val MAX_ANGLE = 25f
         if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
@@ -348,7 +355,31 @@ class TensorFlowFaceUnlockManager(
             authCallback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY, "Too dark")
             return
         }
+        val laplaceScore =
+            antiSpoofing?.laplacian(bitmap) ?: FaceAntiSpoofing.LAPLACIAN_THRESHOLD
 
+        if (laplaceScore < FaceAntiSpoofing.LAPLACIAN_THRESHOLD) {
+            LogCat.log("FaceAuth", "Image too blurry: $laplaceScore")
+            authCallback?.onAuthenticationHelp(
+                CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                "Image is blurry, hold still"
+            )
+            return
+        }
+        if (!isEnrolling) {
+            val spoofScore =
+                antiSpoofing?.antiSpoofing(bitmap) ?: FaceAntiSpoofing.THRESHOLD
+            LogCat.log("FaceAuth", "Spoof Score: $spoofScore")
+
+            if (spoofScore > FaceAntiSpoofing.THRESHOLD) {
+                LogCat.log("FaceAuth", "Spoof attack detected! Score: $spoofScore")
+                authCallback?.onAuthenticationHelp(
+                    CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                    "Fake face detected"
+                )
+                return
+            }
+        }
         val alignedFace = getAlignedFace(bitmap, face) ?: return
 
         try {
