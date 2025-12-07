@@ -17,7 +17,9 @@ import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetector
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.ImageUtils
+import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.translate.LocalizationHelper
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -73,7 +75,8 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(Manifest.permission.CAMERA)) {
             onError?.invoke(
                 AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                "No Camera Permission"
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_no_camera_permissions)
+               // "No Camera Permission"
             )
             return
         }
@@ -81,7 +84,8 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         val cameraId = getFrontFacingCameraId(cameraManager) ?: run {
             onError?.invoke(
                 AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                "No front camera"
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_no_front_camera)
+//                "No front camera"
             )
             return
         }
@@ -98,7 +102,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             if (validSizes.isEmpty()) {
                 onError?.invoke(
                     AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                    "Camera resolution low"
+                    LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_camera_low_res)
                 )
                 return
             }

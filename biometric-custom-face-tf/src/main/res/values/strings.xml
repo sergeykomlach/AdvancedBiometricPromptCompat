@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~  Copyright (c) 2025 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+  ~  All rights reserved.
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~
+  ~   http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  -->
+
+<resources>
+    <string name="tf_face_help_timeout">Authentication timed out</string>
+    <string name="tf_face_help_canceled_by_new_operation">Cancelled by new operation</string>
+    <string name="tf_face_help_model_not_available">Face detection models not available</string>
+    <string name="tf_face_help_model_enrollmet_tag_not_provided">Enrollment tag not provided</string>
+    <string name="tf_face_help_model_not_registered">Biometric not registered</string>
+    <string name="tf_face_help_model_image_is_blurry">Image is blurry, hold still</string>
+    <string name="tf_face_help_model_fake_face_detected">Fake face detected</string>
+    <string name="tf_face_help_model_retry">Retry</string>
+    <string name="tf_face_help_model_look_straight_ahead">Look straight ahead</string>
+    <string name="tf_face_help_model_too_dark">Too dark</string>
+    <string name="tf_face_help_model_no_camera_permissions">No Camera Permission</string>
+    <string name="tf_face_help_model_no_front_camera">No front camera</string>
+    <string name="tf_face_help_model_camera_low_res">Camera resolution low</string>
+    <string name="tf_face_help_model_camera_locked_out">Camera locked out</string>
+    <string name="tf_face_help_model_camera_disabled">Camera disabled</string>
+</resources>

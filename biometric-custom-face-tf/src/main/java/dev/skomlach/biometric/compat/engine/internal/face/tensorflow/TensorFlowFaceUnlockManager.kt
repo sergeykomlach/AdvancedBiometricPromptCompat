@@ -18,8 +18,11 @@ import com.google.mlkit.vision.face.FaceLandmark
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
+import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
+import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.translate.LocalizationHelper
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.RuntimeFlavor
 import org.tensorflow.lite.gpu.GpuDelegateFactory
@@ -105,7 +108,6 @@ class TensorFlowFaceUnlockManager(
             FaceAntiSpoofing(context.assets)
         } catch (e: Exception) {
             LogCat.log("FaceAuth", "AntiSpoofing model init failed: ${e.message}")
-            e.printStackTrace()
             null
         }
     }
@@ -169,7 +171,7 @@ class TensorFlowFaceUnlockManager(
         LogCat.log("FaceAuth", "Timeout reached")
         authCallback?.onAuthenticationError(
             CUSTOM_BIOMETRIC_ERROR_TIMEOUT,
-            "Authentication timed out"
+            LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_timeout)
         )
         stopAuthentication()
     }
@@ -180,7 +182,7 @@ class TensorFlowFaceUnlockManager(
         if (isSessionActive.get()) {
             authCallback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_CANCELED,
-                "Cancelled by new operation"
+                 LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_canceled_by_new_operation)
             )
         }
         stopAuthentication()
@@ -257,23 +259,38 @@ class TensorFlowFaceUnlockManager(
         if (!isHardwareDetected()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                "Face detection models not available"
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_not_available)
             )
             stopAuthentication()
             return
         }
-
+        if (SensorPrivacyCheck.isCameraBlocked()) {
+            callback?.onAuthenticationError(
+                CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_camera_disabled)
+            )
+            stopAuthentication()
+            return
+        }
+        if (SensorPrivacyCheck.isCameraInUse()) {
+            callback?.onAuthenticationError(
+                CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_camera_locked_out)
+            )
+            stopAuthentication()
+            return
+        }
         if (isEnrolling && enrollmentTag.isEmpty()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                "Enrollment tag not provided"
+                 LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_enrollmet_tag_not_provided)
             )
             stopAuthentication()
             return
         } else if (!isEnrolling && !hasEnrolledBiometric()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                "Biometric not registered"
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_not_registered)
             )
             stopAuthentication()
             return
@@ -345,14 +362,15 @@ class TensorFlowFaceUnlockManager(
         if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
-                "Look straight ahead"
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_look_straight_ahead)
             )
             return
         }
 
         // Lighting check
         if (!isBitmapBrightEnough(bitmap, 40)) {
-            authCallback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY, "Too dark")
+            authCallback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_too_dark))
             return
         }
         val laplaceScore =
@@ -362,7 +380,7 @@ class TensorFlowFaceUnlockManager(
             LogCat.log("FaceAuth", "Image too blurry: $laplaceScore")
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                "Image is blurry, hold still"
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_image_is_blurry)
             )
             return
         }
@@ -375,7 +393,7 @@ class TensorFlowFaceUnlockManager(
                 LogCat.log("FaceAuth", "Spoof attack detected! Score: $spoofScore")
                 authCallback?.onAuthenticationHelp(
                     CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                    "Fake face detected"
+                    LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_fake_face_detected)
                 )
                 return
             }
@@ -393,7 +411,7 @@ class TensorFlowFaceUnlockManager(
                         LogCat.log("FaceAuth", "Too many faces on picture")
                         authCallback?.onAuthenticationHelp(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            "Retry"
+                            LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_retry)
                         )
                         return
                     }
@@ -426,7 +444,7 @@ class TensorFlowFaceUnlockManager(
                         lastMatchedId = null
                         authCallback?.onAuthenticationHelp(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            "Retry"
+                            LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_retry)
                         )
                     }
                 }
