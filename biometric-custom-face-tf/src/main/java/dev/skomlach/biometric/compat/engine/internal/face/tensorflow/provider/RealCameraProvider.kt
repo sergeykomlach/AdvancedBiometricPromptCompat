@@ -75,8 +75,11 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(Manifest.permission.CAMERA)) {
             onError?.invoke(
                 AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_no_camera_permissions)
-               // "No Camera Permission"
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_no_camera_permissions
+                )
+                // "No Camera Permission"
             )
             return
         }
@@ -84,7 +87,10 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         val cameraId = getFrontFacingCameraId(cameraManager) ?: run {
             onError?.invoke(
                 AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_no_front_camera)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_no_front_camera
+                )
 //                "No front camera"
             )
             return
@@ -102,7 +108,10 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             if (validSizes.isEmpty()) {
                 onError?.invoke(
                     AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                    LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_camera_low_res)
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.tf_face_help_model_camera_low_res
+                    )
                 )
                 return
             }

@@ -20,6 +20,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature android:name="android.hardware.camera" />
@@ -27,6 +29,19 @@
             android:name="android.hardware.camera.autofocus"
             android:required="false" />
 
-    <application tools:overrideLibrary="com.google.mlkit.vision.face.bundled"/>
+    <application tools:overrideLibrary="com.google.mlkit.vision.face.bundled">
+        <receiver
+                android:name="dev.skomlach.biometric.compat.engine.internal.face.tensorflow.DeviceUnlockedReceiver"
+                android:enabled="true"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+    </application>
 
 </manifest>

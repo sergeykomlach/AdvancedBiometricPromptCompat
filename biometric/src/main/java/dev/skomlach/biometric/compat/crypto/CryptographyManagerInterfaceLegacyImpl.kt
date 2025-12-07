@@ -19,6 +19,7 @@
 package dev.skomlach.biometric.compat.crypto
 
 import android.util.Base64
+import androidx.core.content.edit
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -32,7 +33,6 @@ import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
-import androidx.core.content.edit
 
 class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private val KEYSTORE_FALLBACK_NAME: String
@@ -114,6 +114,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
             }
         }
     }
+
     @Throws(Exception::class)
     private fun keyExist(name: String): Boolean {
         return keyPairInFallback(name)

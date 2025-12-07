@@ -22,6 +22,7 @@ import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.storage.SharedPreferenceProvider.getCryptoPreferences
 import dev.skomlach.common.translate.LocalizationHelper
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.RuntimeFlavor
@@ -49,6 +50,72 @@ class TensorFlowFaceUnlockManager(
         private const val TF_OD_API_MODEL_FILE = "tf_bio/mobile_face_net.tflite"
         private const val TF_OD_API_LABELS_FILE = "file:///android_asset/tf_bio/labelmap.txt"
 
+        private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
+        private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
+        private const val KEY_PERMANENT_LOCKOUT_COUNT = "permanent_lockout_count"
+
+        private const val MAX_FAILED_ATTEMPTS_BEFORE_LOCKOUT = 5
+        private const val MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT = 5
+        private const val LOCKOUT_DURATION_MS = 30000L // 30 sec
+
+        fun resetLockoutCounters() {
+            getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName).edit()
+                .remove(KEY_FAILED_ATTEMPTS)
+                .remove(KEY_LOCKOUT_END_TIMESTAMP)
+                .remove(KEY_PERMANENT_LOCKOUT_COUNT)
+                .apply()
+        }
+
+        private fun checkLockoutState(): Int? {
+            val prefs = getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName)
+            val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
+
+            if (permanentLockoutCount >= MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT) {
+                return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+            }
+
+            val lockoutEndTime = prefs.getLong(KEY_LOCKOUT_END_TIMESTAMP, 0)
+            val currentTime = System.currentTimeMillis()
+
+            if (lockoutEndTime > currentTime) {
+                return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+            } else if (lockoutEndTime > 0) {
+                prefs.edit()
+                    .remove(KEY_LOCKOUT_END_TIMESTAMP)
+                    .remove(KEY_FAILED_ATTEMPTS)
+                    .apply()
+            }
+
+            return null
+        }
+
+        private fun handleFailedAttempt() {
+            val prefs = getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName)
+            var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
+            var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
+
+            val editor = prefs.edit()
+
+            if (failedAttempts >= MAX_FAILED_ATTEMPTS_BEFORE_LOCKOUT) {
+
+                permanentLockoutCount++
+                failedAttempts = 0
+
+                if (permanentLockoutCount >= MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT) {
+                    LogCat.log("FaceAuth", "Permanent Lockout Activated")
+                } else {
+                    val lockoutEnd = System.currentTimeMillis() + LOCKOUT_DURATION_MS
+                    editor.putLong(KEY_LOCKOUT_END_TIMESTAMP, lockoutEnd)
+                    LogCat.log("FaceAuth", "Temporary Lockout Activated for 30s")
+                }
+
+                editor.putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
+            }
+
+            editor.putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
+            editor.apply()
+        }
+
         private val activeSessionLock = Any()
 
         @SuppressLint("StaticFieldLeak")
@@ -73,6 +140,10 @@ class TensorFlowFaceUnlockManager(
                     currentActiveManager = null
                 }
             }
+        }
+
+        init {
+            DeviceUnlockedReceiver.registerListener()
         }
     }
 
@@ -182,7 +253,10 @@ class TensorFlowFaceUnlockManager(
         if (isSessionActive.get()) {
             authCallback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_CANCELED,
-                 LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_canceled_by_new_operation)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_canceled_by_new_operation
+                )
             )
         }
         stopAuthentication()
@@ -248,7 +322,24 @@ class TensorFlowFaceUnlockManager(
     ) {
 
         requestActiveSession(this)
+        val lockoutError = checkLockoutState()
+        if (lockoutError != null) {
+            val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_too_many_attempts_permanent
+                )
+            else
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_too_many_attempts_try_later
+                )
 
+            callback?.onAuthenticationError(lockoutError, msg)
+
+            releaseSession(this)
+            return
+        }
 
         isSessionActive.set(true)
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
@@ -259,7 +350,10 @@ class TensorFlowFaceUnlockManager(
         if (!isHardwareDetected()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_not_available)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_not_available
+                )
             )
             stopAuthentication()
             return
@@ -267,7 +361,10 @@ class TensorFlowFaceUnlockManager(
         if (SensorPrivacyCheck.isCameraBlocked()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_camera_disabled)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_camera_disabled
+                )
             )
             stopAuthentication()
             return
@@ -275,7 +372,10 @@ class TensorFlowFaceUnlockManager(
         if (SensorPrivacyCheck.isCameraInUse()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_camera_locked_out)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_camera_locked_out
+                )
             )
             stopAuthentication()
             return
@@ -283,14 +383,20 @@ class TensorFlowFaceUnlockManager(
         if (isEnrolling && enrollmentTag.isEmpty()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                 LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_enrollmet_tag_not_provided)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_enrollment_tag_not_provided
+                )
             )
             stopAuthentication()
             return
         } else if (!isEnrolling && !hasEnrolledBiometric()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_not_registered)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_not_registered
+                )
             )
             stopAuthentication()
             return
@@ -362,15 +468,20 @@ class TensorFlowFaceUnlockManager(
         if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_look_straight_ahead)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_look_straight_ahead
+                )
             )
             return
         }
 
         // Lighting check
         if (!isBitmapBrightEnough(bitmap, 40)) {
-            authCallback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_too_dark))
+            authCallback?.onAuthenticationHelp(
+                CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
+                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_too_dark)
+            )
             return
         }
         val laplaceScore =
@@ -380,7 +491,10 @@ class TensorFlowFaceUnlockManager(
             LogCat.log("FaceAuth", "Image too blurry: $laplaceScore")
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_image_is_blurry)
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_image_is_blurry
+                )
             )
             return
         }
@@ -391,9 +505,31 @@ class TensorFlowFaceUnlockManager(
 
             if (spoofScore > FaceAntiSpoofing.THRESHOLD) {
                 LogCat.log("FaceAuth", "Spoof attack detected! Score: $spoofScore")
+                handleFailedAttempt()
+
+                val lockoutError = checkLockoutState()
+                if (lockoutError != null) {
+                    val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.tf_face_help_too_many_attempts_permanent
+                        )
+                    else
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.tf_face_help_too_many_attempts_try_later
+                        )
+
+                    authCallback?.onAuthenticationError(lockoutError, msg)
+                    stopAuthentication()
+                    return
+                }
                 authCallback?.onAuthenticationHelp(
                     CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                    LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_fake_face_detected)
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.tf_face_help_model_fake_face_detected
+                    )
                 )
                 return
             }
@@ -411,7 +547,10 @@ class TensorFlowFaceUnlockManager(
                         LogCat.log("FaceAuth", "Too many faces on picture")
                         authCallback?.onAuthenticationHelp(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_retry)
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.tf_face_help_model_retry
+                            )
                         )
                         return
                     }
@@ -436,15 +575,38 @@ class TensorFlowFaceUnlockManager(
                         }
 
                         if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
+                            resetLockoutCounters()
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
                         }
                     } else {
                         consecutiveMatchCounter = 0
                         lastMatchedId = null
+                        handleFailedAttempt()
+
+                        val lockoutError = checkLockoutState()
+                        if (lockoutError != null) {
+                            val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
+                                LocalizationHelper.getLocalizedString(
+                                    context,
+                                    R.string.tf_face_help_too_many_attempts_permanent
+                                )
+                            else
+                                LocalizationHelper.getLocalizedString(
+                                    context,
+                                    R.string.tf_face_help_too_many_attempts_try_later
+                                )
+
+                            authCallback?.onAuthenticationError(lockoutError, msg)
+                            stopAuthentication()
+                            return
+                        }
                         authCallback?.onAuthenticationHelp(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_retry)
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.tf_face_help_model_retry
+                            )
                         )
                     }
                 }

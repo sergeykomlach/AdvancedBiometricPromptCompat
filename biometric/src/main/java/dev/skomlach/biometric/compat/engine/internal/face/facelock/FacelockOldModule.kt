@@ -202,7 +202,11 @@ class FacelockOldModule(private var listener: BiometricInitListener?) :
         } catch (e: Throwable) {
             e(e, "$name: authenticate failed unexpectedly")
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
+        listener?.onFailure(
+            tag(),
+            AuthenticationFailureReason.INTERNAL_ERROR,
+            "Can't start authenticate for $name"
+        )
     }
 
     fun setCallerView(targetView: SurfaceView?) {

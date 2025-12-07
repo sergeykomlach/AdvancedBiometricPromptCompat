@@ -26,6 +26,7 @@ import android.os.Build
 import android.security.KeyPairGeneratorSpec
 import android.util.Base64
 import androidx.annotation.RequiresApi
+import androidx.core.content.edit
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
@@ -48,7 +49,6 @@ import java.security.spec.X509EncodedKeySpec
 import java.util.Locale
 import javax.crypto.Cipher
 import javax.security.auth.x500.X500Principal
-import androidx.core.content.edit
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
 class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
@@ -248,7 +248,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
     private fun getPublicKeys(name: String): List<PublicKey?> {
         val list = ArrayList<PublicKey?>()
-        val localeBeforeFakingEnglishLocale = AndroidContext.systemLocale
+        AndroidContext.systemLocale
         try {
             keyStore.load(null)
             list.add(keyStore.getCertificate(name)?.publicKey)

@@ -55,6 +55,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         private var canAuthenticatePair =
             Pair<Long, Int>(0, BiometricManager.BIOMETRIC_STATUS_UNKNOWN)
     }
+
     private val biometricFeatures: ArrayList<String> by lazy {
         val list = ArrayList<String>()
         try {

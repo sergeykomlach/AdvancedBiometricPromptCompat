@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2025 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,14 +17,13 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.utils
+package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.BroadcastTools
@@ -33,11 +32,8 @@ import dev.skomlach.common.misc.ExecutorHelper
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
         private var isRegistered = false
-
-
-        fun registerDeviceUnlockListener() {
+        fun registerListener() {
             if (isRegistered) return
-
             try {
                 val filter = IntentFilter()
                 filter.addAction(Intent.ACTION_USER_PRESENT)
@@ -59,18 +55,7 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         ExecutorHelper.startOnBackground {
-            if (intent.action?.contains("boot", ignoreCase = true) == true) {
-                d("Device boot completed")
-                BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-            } else
-                if (!intent.action.isNullOrEmpty()) {
-                    d("Device unlocked completed")
-                    if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                        BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                    else
-                        BiometricLockoutFix.reset()
-                } else if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+            TensorFlowFaceUnlockManager.resetLockoutCounters()
         }
     }
 

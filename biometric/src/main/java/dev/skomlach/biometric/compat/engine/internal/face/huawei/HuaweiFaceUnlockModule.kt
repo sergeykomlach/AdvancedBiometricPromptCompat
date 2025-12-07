@@ -118,7 +118,11 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
+        listener?.onFailure(
+            tag(),
+            AuthenticationFailureReason.INTERNAL_ERROR,
+            "Can't start authenticate for $name"
+        )
         return
     }
 
@@ -187,7 +191,11 @@ class HuaweiFaceUnlockModule(listener: BiometricInitListener?) :
                 e(e, "$name: authenticate failed unexpectedly")
             }
         }
-        listener?.onFailure(tag(), AuthenticationFailureReason.INTERNAL_ERROR, "Can't start authenticate for $name")
+        listener?.onFailure(
+            tag(),
+            AuthenticationFailureReason.INTERNAL_ERROR,
+            "Can't start authenticate for $name"
+        )
     }
 
     private inner class AuthCallbackLegacy(

@@ -21,7 +21,7 @@
     <string name="tf_face_help_timeout">Authentication timed out</string>
     <string name="tf_face_help_canceled_by_new_operation">Cancelled by new operation</string>
     <string name="tf_face_help_model_not_available">Face detection models not available</string>
-    <string name="tf_face_help_model_enrollmet_tag_not_provided">Enrollment tag not provided</string>
+    <string name="tf_face_help_model_enrollment_tag_not_provided">Enrollment tag not provided</string>
     <string name="tf_face_help_model_not_registered">Biometric not registered</string>
     <string name="tf_face_help_model_image_is_blurry">Image is blurry, hold still</string>
     <string name="tf_face_help_model_fake_face_detected">Fake face detected</string>
@@ -33,4 +33,6 @@
     <string name="tf_face_help_model_camera_low_res">Camera resolution low</string>
     <string name="tf_face_help_model_camera_locked_out">Camera locked out</string>
     <string name="tf_face_help_model_camera_disabled">Camera disabled</string>
+    <string name="tf_face_help_too_many_attempts_try_later">Face Unlock is locked out. Try again later</string>
+    <string name="tf_face_help_too_many_attempts_permanent">Face Unlock is locked out permanently</string>
 </resources>

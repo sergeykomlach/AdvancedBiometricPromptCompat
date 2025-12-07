@@ -52,9 +52,10 @@ abstract class AbstractCustomBiometricManager {
 
     open fun getManagers(): Set<Any> = throw IllegalStateException("Not implemented")
 
-    open fun remove(extra: Bundle?){
+    open fun remove(extra: Bundle?) {
         throw IllegalStateException("Not implemented")
     }
+
     open fun authenticate(
         crypto: CryptoObject?,
         flags: Int,

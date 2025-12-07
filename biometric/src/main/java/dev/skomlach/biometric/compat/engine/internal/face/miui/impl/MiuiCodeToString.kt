@@ -77,7 +77,8 @@ object MiuiCodeToString {
                     if (msgArray != null && vendorCode < msgArray.size) {
                         return msgArray[vendorCode]
                     }
-                } catch (_: Exception){}
+                } catch (_: Exception) {
+                }
             }
 
             9 -> return SystemStringsHelper.getFromSystem(context, "face_error_lockout_permanent")
@@ -133,7 +134,8 @@ object MiuiCodeToString {
                     if (msgArray != null && vendorCode < msgArray.size) {
                         return msgArray[vendorCode]
                     }
-                } catch (_: Exception){}
+                } catch (_: Exception) {
+                }
             }
         }
         val stringBuilder = StringBuilder()
