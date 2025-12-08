@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
+import androidx.core.content.edit
 
 class TensorFlowFaceUnlockManager(
     private val context: Context,
@@ -59,11 +60,11 @@ class TensorFlowFaceUnlockManager(
         private const val LOCKOUT_DURATION_MS = 30000L // 30 sec
 
         fun resetLockoutCounters() {
-            getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName).edit()
-                .remove(KEY_FAILED_ATTEMPTS)
-                .remove(KEY_LOCKOUT_END_TIMESTAMP)
-                .remove(KEY_PERMANENT_LOCKOUT_COUNT)
-                .apply()
+            getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
+                remove(KEY_FAILED_ATTEMPTS)
+                    .remove(KEY_LOCKOUT_END_TIMESTAMP)
+                    .remove(KEY_PERMANENT_LOCKOUT_COUNT)
+            }
         }
 
         private fun checkLockoutState(): Int? {
@@ -80,10 +81,10 @@ class TensorFlowFaceUnlockManager(
             if (lockoutEndTime > currentTime) {
                 return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
             } else if (lockoutEndTime > 0) {
-                prefs.edit()
-                    .remove(KEY_LOCKOUT_END_TIMESTAMP)
-                    .remove(KEY_FAILED_ATTEMPTS)
-                    .apply()
+                prefs.edit {
+                    remove(KEY_LOCKOUT_END_TIMESTAMP)
+                        .remove(KEY_FAILED_ATTEMPTS)
+                    }
             }
 
             return null
@@ -94,26 +95,26 @@ class TensorFlowFaceUnlockManager(
             var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
             var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
 
-            val editor = prefs.edit()
+            prefs.edit {
 
-            if (failedAttempts >= MAX_FAILED_ATTEMPTS_BEFORE_LOCKOUT) {
+                if (failedAttempts >= MAX_FAILED_ATTEMPTS_BEFORE_LOCKOUT) {
 
-                permanentLockoutCount++
-                failedAttempts = 0
+                    permanentLockoutCount++
+                    failedAttempts = 0
 
-                if (permanentLockoutCount >= MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT) {
-                    LogCat.log("FaceAuth", "Permanent Lockout Activated")
-                } else {
-                    val lockoutEnd = System.currentTimeMillis() + LOCKOUT_DURATION_MS
-                    editor.putLong(KEY_LOCKOUT_END_TIMESTAMP, lockoutEnd)
-                    LogCat.log("FaceAuth", "Temporary Lockout Activated for 30s")
+                    if (permanentLockoutCount >= MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT) {
+                        LogCat.log("FaceAuth", "Permanent Lockout Activated")
+                    } else {
+                        val lockoutEnd = System.currentTimeMillis() + LOCKOUT_DURATION_MS
+                        putLong(KEY_LOCKOUT_END_TIMESTAMP, lockoutEnd)
+                        LogCat.log("FaceAuth", "Temporary Lockout Activated for 30s")
+                    }
+
+                    putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
                 }
 
-                editor.putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
+                putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
             }
-
-            editor.putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
-            editor.apply()
         }
 
         private val activeSessionLock = Any()
@@ -186,10 +187,10 @@ class TensorFlowFaceUnlockManager(
         try {
             var interpreterOptions: Interpreter.Options? = Interpreter.Options()
             try {
-                interpreterOptions?.addDelegate(GpuDelegateFactory().create(RuntimeFlavor.APPLICATION))
+                interpreterOptions?.addDelegate(GpuDelegateFactory().create(RuntimeFlavor.SYSTEM))
             } catch (e: Exception) {
                 try {
-                    interpreterOptions?.addDelegate(GpuDelegateFactory().create(RuntimeFlavor.SYSTEM))
+                    interpreterOptions?.addDelegate(GpuDelegateFactory().create(RuntimeFlavor.APPLICATION))
                 } catch (e2: Exception) {
                 }
             }
