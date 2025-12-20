@@ -48,3 +48,5 @@
 -keep interface dev.skomlach.biometric.compat.** { *; }
 -keep class org.chickenhook.restrictionbypass.** { *; }
 -keep interface org.chickenhook.restrictionbypass.** { *; }
+-keepnames class * implements dev.skomlach.biometric.compat.custom.CustomBiometricProvider
+-keep class META-INF.services.** { *; }

@@ -21,15 +21,20 @@ package dev.skomlach.biometric.compat.engine
 
 import android.app.Activity
 import android.app.admin.DevicePolicyManager
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceView
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricApi
+import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
@@ -65,7 +70,7 @@ import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-
+import java.util.ServiceLoader
 object BiometricAuthentication {
     private val moduleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
@@ -73,7 +78,7 @@ object BiometricAuthentication {
     private var initInProgress = AtomicBoolean(false)
     private var authInProgress = AtomicBoolean(false)
     private val customModuleHashMap = Collections
-        .synchronizedMap(HashMap<BiometricMethod, CustomBiometricProvider>())
+        .synchronizedMap(HashMap<BiometricMethod, AbstractCustomBiometricManager>())
 
     private val allMethods = ArrayList<BiometricMethod>().apply {
 
@@ -124,9 +129,46 @@ object BiometricAuthentication {
 
     }
 
-    fun registerCustomModule(
+    @Volatile
+    private var customLoaded = false
+    fun loadCustomModules(context: Context) {
+        d("BiometricAuthentication", "loadCustomModules called")
+        try {
+            if (customLoaded) return
+            customLoaded = true
+            val loader = ServiceLoader.load(CustomBiometricProvider::class.java)
+
+            for (provider in loader) {
+                try {
+                    d("BiometricAuthentication", "loadCustomModules provider ${provider.javaClass.simpleName}")
+                    val customManager = provider.getCustomManager(context)
+                    val targetType = customManager.biometricType
+
+                    val isAlreadyRegistered = customModuleHashMap.keys.any { method ->
+                        method.biometricType == targetType
+                    }
+
+                    if (!isAlreadyRegistered && !BiometricManagerCompat.isBiometricAvailable(BiometricAuthRequest(BiometricApi.AUTO, targetType))) {
+                        val newMethod = BiometricMethod.createCustomModule(customManager.hashCode(), targetType)
+                        registerCustomModule(newMethod, customManager)
+
+                        d("BiometricAuthentication", "Registered custom module: ${customManager.javaClass.simpleName}")
+                    } else {
+                        d("BiometricAuthentication", "Ignored custom module ${customManager.javaClass.simpleName} because $targetType is already handled")
+                    }
+                } catch (e: Throwable) {
+                    e("BiometricAuthentication", "Error loading custom module", e)
+                }
+            }
+        } catch (e: Throwable) {
+            e("BiometricAuthentication", "ServiceLoader failure", e)
+        } finally {
+            customLoaded = false
+        }
+    }
+    private fun registerCustomModule(
         biometricMethod: BiometricMethod,
-        provider: CustomBiometricProvider
+        provider: AbstractCustomBiometricManager
     ): Boolean {
         if (customModuleHashMap.any {
                 it.key.id == biometricMethod.id
@@ -241,8 +283,7 @@ object BiometricAuthentication {
                     BiometricMethod.CUSTOM ->
                         CustomBiometricModule(
                             method,
-                            customModuleHashMap[method]?.newCustomBiometricModule(method)
-                                ?: throw IllegalStateException("Unknown biometric type - $method"),
+                            customModuleHashMap[method] ?: throw IllegalStateException("Unknown biometric type - $method"),
                             initListener
                         )
 

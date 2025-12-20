@@ -213,26 +213,6 @@ object BiometricManagerCompat {
             .apply()
         return result
     }
-
-    @JvmStatic
-    fun registerCustomBiometric(
-        id: Int,
-        type: BiometricType,
-        provider: CustomBiometricProvider
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        if (isHardwareDetected(BiometricAuthRequest(type = type)))
-            return false
-
-        return BiometricAuthentication.registerCustomModule(
-            BiometricMethod.createCustomModule(
-                id,
-                type
-            ), provider
-        )
-    }
-
     @JvmStatic
     fun isSilentAuthAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(

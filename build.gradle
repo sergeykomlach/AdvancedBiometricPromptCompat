@@ -48,7 +48,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.1'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         //Dev Tools
         classpath "net.ltgt.gradle:gradle-errorprone-plugin:4.1.0"
         classpath "org.owasp:dependency-check-gradle:12.1.0"

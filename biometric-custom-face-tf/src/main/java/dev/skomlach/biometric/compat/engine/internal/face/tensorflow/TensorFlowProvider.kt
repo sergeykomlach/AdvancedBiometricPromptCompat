@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2025 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,13 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat.custom
-
+package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 import android.content.Context
+import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
+import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 
-abstract class CustomBiometricProvider {
-    abstract fun getCustomManager(context: Context): AbstractCustomBiometricManager
+class TensorFlowProvider : CustomBiometricProvider() {
+    override fun getCustomManager(context: Context): AbstractCustomBiometricManager {
+        return TensorFlowFaceUnlockManager(context)
+    }
 }

@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.custom
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
+import dev.skomlach.biometric.compat.BiometricType
 import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.Mac
@@ -47,26 +48,24 @@ abstract class AbstractCustomBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
     }
 
-    open fun isHardwareDetected(): Boolean = throw IllegalStateException("Not implemented")
-    open fun hasEnrolledBiometric(): Boolean = throw IllegalStateException("Not implemented")
+    abstract fun getPermissions(): List<String> 
 
-    open fun getManagers(): Set<Any> = throw IllegalStateException("Not implemented")
+    abstract val biometricType: BiometricType
+    abstract fun isHardwareDetected(): Boolean
+    abstract fun hasEnrolledBiometric(): Boolean
 
-    open fun remove(extra: Bundle?) {
-        throw IllegalStateException("Not implemented")
-    }
+    abstract fun getManagers(): Set<Any>
 
-    open fun authenticate(
+    abstract fun remove(extra: Bundle?)
+
+    abstract fun authenticate(
         crypto: CryptoObject?,
         flags: Int,
         cancel: CancellationSignal?,
         callback: AuthenticationCallback?,
         handler: Handler?,
         extra: Bundle?
-    ) {
-        throw IllegalStateException("Not implemented")
-    }
-
+    )
     abstract class AuthenticationCallback {
         open fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {}
         open fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {}

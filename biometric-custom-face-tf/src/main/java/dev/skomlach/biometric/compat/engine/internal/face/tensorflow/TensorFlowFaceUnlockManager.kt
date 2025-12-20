@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
@@ -32,13 +33,14 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
 import androidx.core.content.edit
+import dev.skomlach.biometric.compat.BiometricType
 
 class TensorFlowFaceUnlockManager(
-    private val context: Context,
-    private val config: TensorFlowFaceConfig = TensorFlowFaceConfig()
+    private val context: Context
 ) : AbstractCustomBiometricManager() {
 
     companion object {
+        private const val TAG = "TensorFlowFaceUnlockManager"
         const val IS_ENROLLMENT_KEY = "is_enrollment"
         const val ENROLLMENT_TAG_KEY = "enrollment_tag"
 
@@ -58,6 +60,10 @@ class TensorFlowFaceUnlockManager(
         private const val MAX_FAILED_ATTEMPTS_BEFORE_LOCKOUT = 5
         private const val MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT = 5
         private const val LOCKOUT_DURATION_MS = 30000L // 30 sec
+        private var config: TensorFlowFaceConfig = TensorFlowFaceConfig()
+        fun setTensorFlowFaceConfig(tensorFlowFaceConfig: TensorFlowFaceConfig) {
+            config = tensorFlowFaceConfig
+        }
 
         fun resetLockoutCounters() {
             getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
@@ -84,7 +90,7 @@ class TensorFlowFaceUnlockManager(
                 prefs.edit {
                     remove(KEY_LOCKOUT_END_TIMESTAMP)
                         .remove(KEY_FAILED_ATTEMPTS)
-                    }
+                }
             }
 
             return null
@@ -103,11 +109,11 @@ class TensorFlowFaceUnlockManager(
                     failedAttempts = 0
 
                     if (permanentLockoutCount >= MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT) {
-                        LogCat.log("FaceAuth", "Permanent Lockout Activated")
+                        LogCat.log(TAG, "Permanent Lockout Activated")
                     } else {
                         val lockoutEnd = System.currentTimeMillis() + LOCKOUT_DURATION_MS
                         putLong(KEY_LOCKOUT_END_TIMESTAMP, lockoutEnd)
-                        LogCat.log("FaceAuth", "Temporary Lockout Activated for 30s")
+                        LogCat.log(TAG, "Temporary Lockout Activated for 30s")
                     }
 
                     putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
@@ -128,7 +134,7 @@ class TensorFlowFaceUnlockManager(
             synchronized(activeSessionLock) {
                 val previous = currentActiveManager
                 if (previous != null && previous != newManager) {
-                    LogCat.log("FaceAuth", "🛑 Stopping previous active session")
+                    LogCat.log(TAG, "🛑 Stopping previous active session")
                     previous.cancelInternal()
                 }
                 currentActiveManager = newManager
@@ -179,7 +185,7 @@ class TensorFlowFaceUnlockManager(
         try {
             FaceAntiSpoofing(context.assets)
         } catch (e: Exception) {
-            LogCat.log("FaceAuth", "AntiSpoofing model init failed: ${e.message}")
+            LogCat.log(TAG, "AntiSpoofing model init failed: ${e.message}")
             null
         }
     }
@@ -240,7 +246,7 @@ class TensorFlowFaceUnlockManager(
     private val timeoutRunnable = Runnable {
         if (!isSessionActive.get()) return@Runnable
 
-        LogCat.log("FaceAuth", "Timeout reached")
+        LogCat.log(TAG, "Timeout reached")
         authCallback?.onAuthenticationError(
             CUSTOM_BIOMETRIC_ERROR_TIMEOUT,
             LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_timeout)
@@ -250,7 +256,7 @@ class TensorFlowFaceUnlockManager(
 
 
     private fun cancelInternal() {
-        LogCat.log("FaceAuth", "cancelInternal called for $this")
+        LogCat.log(TAG, "cancelInternal called for $this")
         if (isSessionActive.get()) {
             authCallback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_CANCELED,
@@ -269,7 +275,7 @@ class TensorFlowFaceUnlockManager(
             return
         }
 
-        LogCat.log("FaceAuth", "stopAuthentication called for $this")
+        LogCat.log(TAG, "stopAuthentication called for $this")
 
 
         timeoutHandler.removeCallbacks(timeoutRunnable)
@@ -295,20 +301,32 @@ class TensorFlowFaceUnlockManager(
         stopBackgroundThread()
     }
 
+    override fun getPermissions(): List<String> {
+        LogCat.log(TAG, "getPermissions")
+        return listOf(Manifest.permission.CAMERA)
+    }
+
+    override val biometricType: BiometricType = BiometricType.BIOMETRIC_FACE
     override fun isHardwareDetected(): Boolean {
         val result = !(detector == null || faceDetector == null)
-        LogCat.log("FaceAuth", "isHardwareDetected=$result")
+        LogCat.log(TAG, "isHardwareDetected=$result")
         return result
     }
 
     override fun hasEnrolledBiometric(): Boolean {
         val result = detector?.hasRegistered() == true
-        LogCat.log("FaceAuth", "hasEnrolledBiometric=$result")
+        LogCat.log(TAG, "hasEnrolledBiometric=$result")
         return result
     }
 
-    override fun remove(extra: Bundle?) {
+    override fun getManagers(): Set<Any> {
+        LogCat.log(TAG, "getManagers")
+        return emptySet()
+    }
 
+
+    override fun remove(extra: Bundle?) {
+        LogCat.log(TAG, "remove")
         stopAuthentication()
         detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
     }
@@ -321,7 +339,7 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-
+        LogCat.log(TAG, "authenticate")
         requestActiveSession(this)
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {
@@ -346,7 +364,7 @@ class TensorFlowFaceUnlockManager(
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
         enrollmentTag = extra?.getString(ENROLLMENT_TAG_KEY) ?: "face1"
 
-        LogCat.log("FaceAuth", "authenticate START for $this. Enrolling=$isEnrolling")
+        LogCat.log(TAG, "authenticate START for $this. Enrolling=$isEnrolling")
 
         if (!isHardwareDetected()) {
             callback?.onAuthenticationError(
@@ -408,7 +426,7 @@ class TensorFlowFaceUnlockManager(
 
 
         cancellationSignal?.setOnCancelListener {
-            LogCat.log("FaceAuth", "CancellationSignal received")
+            LogCat.log(TAG, "CancellationSignal received")
             if (isSessionActive.get()) {
                 authCallback?.onAuthenticationCancelled()
                 stopAuthentication()
@@ -429,7 +447,7 @@ class TensorFlowFaceUnlockManager(
                 },
                 { code, msg ->
                     if (isSessionActive.get()) {
-                        LogCat.log("FaceAuth", "Provider Error: $code, $msg")
+                        LogCat.log(TAG, "Provider Error: $code, $msg")
                         authCallback?.onAuthenticationError(code, msg)
                         stopAuthentication()
                     }
@@ -489,7 +507,7 @@ class TensorFlowFaceUnlockManager(
             antiSpoofing?.laplacian(bitmap) ?: FaceAntiSpoofing.LAPLACIAN_THRESHOLD
 
         if (laplaceScore < FaceAntiSpoofing.LAPLACIAN_THRESHOLD) {
-            LogCat.log("FaceAuth", "Image too blurry: $laplaceScore")
+            LogCat.log(TAG, "Image too blurry: $laplaceScore")
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                 LocalizationHelper.getLocalizedString(
@@ -502,10 +520,10 @@ class TensorFlowFaceUnlockManager(
         if (!isEnrolling) {
             val spoofScore =
                 antiSpoofing?.antiSpoofing(bitmap) ?: FaceAntiSpoofing.THRESHOLD
-            LogCat.log("FaceAuth", "Spoof Score: $spoofScore")
+            LogCat.log(TAG, "Spoof Score: $spoofScore")
 
             if (spoofScore > FaceAntiSpoofing.THRESHOLD) {
-                LogCat.log("FaceAuth", "Spoof attack detected! Score: $spoofScore")
+                LogCat.log(TAG, "Spoof attack detected! Score: $spoofScore")
                 handleFailedAttempt()
 
                 val lockoutError = checkLockoutState()
@@ -545,7 +563,7 @@ class TensorFlowFaceUnlockManager(
 
                 if (isEnrolling) {
                     if (results.size > 1) {
-                        LogCat.log("FaceAuth", "Too many faces on picture")
+                        LogCat.log(TAG, "Too many faces on picture")
                         authCallback?.onAuthenticationHelp(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                             LocalizationHelper.getLocalizedString(
@@ -555,7 +573,7 @@ class TensorFlowFaceUnlockManager(
                         )
                         return
                     }
-                    LogCat.log("FaceAuth", "Registered: $enrollmentTag")
+                    LogCat.log(TAG, "Registered: $enrollmentTag")
                     result.crop = alignedFace
                     detector?.register(enrollmentTag, result)
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
@@ -565,7 +583,7 @@ class TensorFlowFaceUnlockManager(
                     val id = result.id
                     val title = result.title
 
-                    LogCat.log("FaceAuth", "Match: $title, Dist: $distance")
+                    LogCat.log(TAG, "Match: $title, Dist: $distance")
 
                     if (distance < config.maxDistanceThresholds) {
                         if (id == lastMatchedId) {
