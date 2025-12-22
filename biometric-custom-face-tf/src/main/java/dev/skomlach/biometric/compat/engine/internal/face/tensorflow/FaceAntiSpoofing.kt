@@ -2,7 +2,6 @@ package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
-import android.util.Log
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.io.IOException
@@ -11,7 +10,8 @@ import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import kotlin.math.abs
-
+import androidx.core.graphics.scale
+import dev.skomlach.common.logging.LogCat
 /**
  * Wrapper for AntiSpooginf detection
 https://github.com/syaringan357/Android-MobileFaceNet-MTCNN-FaceAntiSpoofing/tree/master
@@ -66,12 +66,7 @@ class FaceAntiSpoofing(assetManager: AssetManager) {
      */
     fun antiSpoofing(bitmap: Bitmap): Float {
         // 1. Resize image to 256x256 as required by the model
-        val bitmapScale = Bitmap.createScaledBitmap(
-            bitmap,
-            INPUT_IMAGE_SIZE,
-            INPUT_IMAGE_SIZE,
-            true
-        )
+        val bitmapScale = bitmap.scale(INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE)
 
         // 2. Prepare ByteBuffer (Faster than multidimensional arrays)
         // Format: 1 (batch) * 256 (height) * 256 (width) * 3 (channels) * 4 (float bytes)
@@ -109,8 +104,8 @@ class FaceAntiSpoofing(assetManager: AssetManager) {
         interpreter.runForMultipleInputsOutputs(input, outputs)
 
         // Log results for debugging
-        Log.d(TAG, "ClssPred: ${clssPred[0].contentToString()}")
-        Log.d(TAG, "LeafNodeMask: ${leafNodeMask[0].contentToString()}")
+        LogCat.log(TAG, "ClssPred: ${clssPred[0].contentToString()}")
+        LogCat.log(TAG, "LeafNodeMask: ${leafNodeMask[0].contentToString()}")
 
         return calculateLeafScore(clssPred, leafNodeMask)
     }
@@ -155,12 +150,7 @@ class FaceAntiSpoofing(assetManager: AssetManager) {
      * @return Score (Higher means clearer/more edges)
      */
     fun laplacian(bitmap: Bitmap): Int {
-        val bitmapScale = Bitmap.createScaledBitmap(
-            bitmap,
-            INPUT_IMAGE_SIZE,
-            INPUT_IMAGE_SIZE,
-            true
-        )
+        val bitmapScale = bitmap.scale(INPUT_IMAGE_SIZE, INPUT_IMAGE_SIZE)
 
         // Standard 3x3 Laplacian kernel
         //  0  1  0

@@ -24,15 +24,15 @@ import androidx.annotation.IntRange
 
 data class TensorFlowFaceConfig(
     /*
-    The value for "how far two faces matched to each other"
-    Suggested to use range in 0.7-0.8 as compromised between usability and security
+    "How closely two faces resemble each other"
+    Suggested to use a range of 0.7-0.8 as a compromise between usability and security
     <=0.7 - more accurate, but slower
     >= 0.8 - less accurate, but faster
     */
     @FloatRange(from = 0.5, to = 1.0)
     val maxDistanceThresholds: Float = 0.75f,
     /*
-    Size of success matches chain
+    The number of success Consecutive Matches
     */
     @IntRange(from = 1)
     val requiredConsecutiveMatches: Int = 3
