@@ -48,7 +48,7 @@ abstract class AbstractCustomBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
     }
 
-    abstract fun getPermissions(): List<String> 
+    abstract fun getPermissions(): List<String>
 
     abstract val biometricType: BiometricType
     abstract fun isHardwareDetected(): Boolean
@@ -66,6 +66,7 @@ abstract class AbstractCustomBiometricManager {
         handler: Handler?,
         extra: Bundle?
     )
+
     abstract class AuthenticationCallback {
         open fun onAuthenticationError(errMsgId: Int, errString: CharSequence?) {}
         open fun onAuthenticationHelp(helpMsgId: Int, helpString: CharSequence?) {}

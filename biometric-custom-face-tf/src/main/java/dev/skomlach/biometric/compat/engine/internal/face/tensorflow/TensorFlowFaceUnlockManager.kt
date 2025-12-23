@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import android.os.HandlerThread
+import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
 import com.google.mlkit.vision.face.Face
@@ -16,6 +17,7 @@ import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.face.FaceLandmark
+import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
@@ -32,8 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
-import androidx.core.content.edit
-import dev.skomlach.biometric.compat.BiometricType
 
 class TensorFlowFaceUnlockManager(
     private val context: Context

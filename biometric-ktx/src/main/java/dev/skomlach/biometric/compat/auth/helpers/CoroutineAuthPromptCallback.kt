@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.auth.helpers
 
-import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.auth.AuthPromptCanceledException

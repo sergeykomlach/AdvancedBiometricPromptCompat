@@ -67,10 +67,11 @@ import dev.skomlach.common.misc.Utils.startActivity
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.util.Collections
+import java.util.ServiceLoader
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.ServiceLoader
+
 object BiometricAuthentication {
     private val moduleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
@@ -140,7 +141,10 @@ object BiometricAuthentication {
 
             for (provider in loader) {
                 try {
-                    d("BiometricAuthentication", "loadCustomModules provider ${provider.javaClass.simpleName}")
+                    d(
+                        "BiometricAuthentication",
+                        "loadCustomModules provider ${provider.javaClass.simpleName}"
+                    )
                     val customManager = provider.getCustomManager(context)
                     val targetType = customManager.biometricType
 
@@ -148,13 +152,23 @@ object BiometricAuthentication {
                         method.biometricType == targetType
                     }
 
-                    if (!isAlreadyRegistered && !BiometricManagerCompat.isBiometricAvailable(BiometricAuthRequest(BiometricApi.AUTO, targetType))) {
-                        val newMethod = BiometricMethod.createCustomModule(customManager.hashCode(), targetType)
+                    if (!isAlreadyRegistered && !BiometricManagerCompat.isBiometricAvailable(
+                            BiometricAuthRequest(BiometricApi.AUTO, targetType)
+                        )
+                    ) {
+                        val newMethod =
+                            BiometricMethod.createCustomModule(customManager.hashCode(), targetType)
                         registerCustomModule(newMethod, customManager)
 
-                        d("BiometricAuthentication", "Registered custom module: ${customManager.javaClass.simpleName}")
+                        d(
+                            "BiometricAuthentication",
+                            "Registered custom module: ${customManager.javaClass.simpleName}"
+                        )
                     } else {
-                        d("BiometricAuthentication", "Ignored custom module ${customManager.javaClass.simpleName} because $targetType is already handled")
+                        d(
+                            "BiometricAuthentication",
+                            "Ignored custom module ${customManager.javaClass.simpleName} because $targetType is already handled"
+                        )
                     }
                 } catch (e: Throwable) {
                     e("BiometricAuthentication", "Error loading custom module", e)
@@ -166,6 +180,7 @@ object BiometricAuthentication {
             customLoaded = false
         }
     }
+
     private fun registerCustomModule(
         biometricMethod: BiometricMethod,
         provider: AbstractCustomBiometricManager
@@ -283,7 +298,8 @@ object BiometricAuthentication {
                     BiometricMethod.CUSTOM ->
                         CustomBiometricModule(
                             method,
-                            customModuleHashMap[method] ?: throw IllegalStateException("Unknown biometric type - $method"),
+                            customModuleHashMap[method]
+                                ?: throw IllegalStateException("Unknown biometric type - $method"),
                             initListener
                         )
 

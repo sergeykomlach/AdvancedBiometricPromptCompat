@@ -18,9 +18,10 @@
  */
 
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
+
 import android.content.Context
-import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
+import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 
 class TensorFlowProvider : CustomBiometricProvider() {
     override fun getCustomManager(context: Context): AbstractCustomBiometricManager {

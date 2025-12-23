@@ -2,6 +2,8 @@ package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
+import dev.skomlach.common.logging.LogCat
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.io.IOException
@@ -10,8 +12,7 @@ import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import kotlin.math.abs
-import androidx.core.graphics.scale
-import dev.skomlach.common.logging.LogCat
+
 /**
  * Wrapper for AntiSpooginf detection
 https://github.com/syaringan357/Android-MobileFaceNet-MTCNN-FaceAntiSpoofing/tree/master

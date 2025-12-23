@@ -29,7 +29,6 @@ import android.database.Cursor
 import android.os.Build
 import android.provider.Settings
 import androidx.fragment.app.FragmentActivity
-import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -213,6 +212,7 @@ object BiometricManagerCompat {
             .apply()
         return result
     }
+
     @JvmStatic
     fun isSilentAuthAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
