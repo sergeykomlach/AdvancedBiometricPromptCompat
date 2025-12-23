@@ -21,12 +21,17 @@ package dev.skomlach.biometric.app
 
 import android.annotation.SuppressLint
 import android.app.ProgressDialog
+import android.content.Context
 import android.graphics.Color
 import android.os.AsyncTask
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.annotation.AttrRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -43,7 +48,18 @@ import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import androidx.core.view.updatePadding
+fun Context?.resolveColor(@AttrRes attrRes: Int): Int {
+    if (this == null) return Color.BLACK
 
+    val typesValue = TypedValue()
+
+    if (theme.resolveAttribute(attrRes, typesValue, true)) {
+        return ContextCompat.getColor(this, typesValue.resourceId)
+    }
+
+    return Color.BLACK
+}
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -79,6 +95,18 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(
+                left = insets.left,
+                top = insets.top,
+                right = insets.right,
+                bottom = insets.bottom
+            )
+            WindowInsetsCompat.CONSUMED
+        }
         setSupportActionBar(binding.toolbar)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -161,7 +189,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         val color = if (DarkLightThemes.isNightMode(this)) Color.WHITE else Color.BLACK
-        StatusBarTools.setNavBarAndStatusBarColors(window, color, Color.TRANSPARENT, color)
+        StatusBarTools.setNavBarAndStatusBarColors(window,
+            resolveColor(R.attr.colorSurface),
+            color,
+            resolveColor(R.attr.colorPrimary))
 
     }
 

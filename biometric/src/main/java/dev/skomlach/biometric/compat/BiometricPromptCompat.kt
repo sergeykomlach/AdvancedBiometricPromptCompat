@@ -218,29 +218,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 ) {
                 }
 
-                private fun postCustomInit(){
-                    BiometricAuthentication.init(object : BiometricInitListener {
-                        override fun initFinished(
-                            method: BiometricMethod,
-                            module: BiometricModule?
-                        ) {
-                        }
-
-                        override fun onBiometricReady() {
-                            BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")
-                            isBiometricInit.set(true)
-                            initInProgress.set(false)
-
-                            for (task in pendingTasks) {
-                                task?.let { ExecutorHelper.post(it) }
-                            }
-                            pendingTasks.clear()
-                        }
-                    })
-                }
                 override fun onBiometricReady() {
-                    BiometricAuthentication.loadCustomModules(AndroidContext.appContext)
-                    postCustomInit()
+                    BiometricLoggerImpl.e("BiometricPromptCompat initialized in ${System.currentTimeMillis() - initStart} ms")
+                    isBiometricInit.set(true)
+                    initInProgress.set(false)
+
+                    for (task in pendingTasks) {
+                        task?.let { ExecutorHelper.post(it) }
+                    }
+                    pendingTasks.clear()
                 }
             })
         }
