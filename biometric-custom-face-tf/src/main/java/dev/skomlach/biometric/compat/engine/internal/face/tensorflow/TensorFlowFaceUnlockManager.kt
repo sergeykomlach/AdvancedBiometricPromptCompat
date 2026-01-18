@@ -51,7 +51,6 @@ class TensorFlowFaceUnlockManager(
         private const val TF_OD_API_INPUT_SIZE = 112
         private const val TF_OD_API_IS_QUANTIZED = false
         private const val TF_OD_API_MODEL_FILE = "tf_bio/mobile_face_net.tflite"
-        private const val TF_OD_API_LABELS_FILE = "file:///android_asset/tf_bio/labelmap.txt"
 
         private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
         private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
@@ -204,7 +203,6 @@ class TensorFlowFaceUnlockManager(
             TFLiteObjectDetectionAPIModel.create(
                 context.assets,
                 TF_OD_API_MODEL_FILE,
-                TF_OD_API_LABELS_FILE,
                 TF_OD_API_INPUT_SIZE,
                 TF_OD_API_IS_QUANTIZED,
                 interpreterOptions

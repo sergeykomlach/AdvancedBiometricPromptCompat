@@ -131,12 +131,12 @@ object BiometricAuthentication {
     }
 
     @Volatile
-    private var customLoaded = false
+    private var customLoading = false
     fun loadCustomModules(context: Context) {
         d("BiometricAuthentication", "loadCustomModules called")
         try {
-            if (customLoaded) return
-            customLoaded = true
+            if (customLoading) return
+            customLoading = true
             val loader = ServiceLoader.load(CustomBiometricProvider::class.java)
 
             for (provider in loader) {
@@ -177,7 +177,7 @@ object BiometricAuthentication {
         } catch (e: Throwable) {
             e("BiometricAuthentication", "ServiceLoader failure", e)
         } finally {
-            customLoaded = false
+            customLoading = false
         }
     }
 
