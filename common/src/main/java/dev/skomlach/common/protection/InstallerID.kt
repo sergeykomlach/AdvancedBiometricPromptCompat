@@ -66,9 +66,11 @@ enum class InstallerID(private val text: String) {
     }
 
     companion object {
-        fun getInstallerId(context: Context, packageName: String): String? {
+        private val allValidIds: Set<String> by lazy {
+            entries.flatMap { it.toIDs() }.toSet()
+        }
 
-            val validInstallers = ArrayList<String>()
+        fun getInstallerId(context: Context, packageName: String): String? {
             val installer = try {
                 if (Utils.isAtLeastR)
                     context.packageManager.getInstallSourceInfo(packageName).installingPackageName.toString()
@@ -76,19 +78,16 @@ enum class InstallerID(private val text: String) {
                 else
                     context.packageManager.getInstallerPackageName(packageName)
             } catch (e: Throwable) {
-                return "com.android.vending" //unable to get InstallerPackageName
+                return null
             }
-            for (id in entries) {
-                validInstallers.addAll(id.toIDs())
-            }
-            return if (installer != null && validInstallers.contains(installer)) {
-                validInstallers[validInstallers.indexOf(installer)]
+
+            return if (allValidIds.contains(installer)) {
+                installer
             } else
                 null
         }
 
         fun verifyInstallerId(context: Context, packageName: String): Boolean {
-            val validInstallers = ArrayList<String>()
             val installer = try {
                 if (Utils.isAtLeastR)
                     context.packageManager.getInstallSourceInfo(packageName).installingPackageName.toString()
@@ -96,12 +95,9 @@ enum class InstallerID(private val text: String) {
                 else
                     context.packageManager.getInstallerPackageName(packageName)
             } catch (e: Throwable) {
-                return true //unable to get InstallerPackageName
+                return false //unable to get InstallerPackageName
             }
-            for (id in InstallerID.entries) {
-                validInstallers.addAll(id.toIDs())
-            }
-            return installer != null && validInstallers.contains(installer)
+            return allValidIds.contains(installer)
         }
 
     }

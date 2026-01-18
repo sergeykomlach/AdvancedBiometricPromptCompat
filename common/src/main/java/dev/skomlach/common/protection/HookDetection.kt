@@ -20,153 +20,132 @@
 package dev.skomlach.common.protection
 
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
+import java.io.File
 import java.io.FileReader
-
+import java.net.InetAddress
+import java.net.Socket
 
 object HookDetection {
     private var job: Job? = null
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     fun detect(listener: HookDetectionListener) {
         if (job?.isActive == true) return
-        job = GlobalScope.launch(Dispatchers.IO) {
-            try {
-                if (hooksDetection()) {
-                    listener.onDetected(true)
-                    return@launch
-                }
-            } catch (e: Throwable) {
-                LogCat.logError(
-                    "HookDetection",
-                    e.message, e
-                )
+        job = scope.launch {
+            val result = hooksDetection()
+            withContext(Dispatchers.Main) {
+                listener.onDetected(result)
             }
-            listener.onDetected(false)
         }
     }
 
     private fun hooksDetection(): Boolean {
-        return checkMethodsHooking() || checkMapping() || checkSelfMapping()
-    }
 
-    private fun checkMapping(): Boolean {
-        try {
-            val libraries: MutableSet<String> = mutableSetOf()
-            val mapsFilename = "/proc/" + android.os.Process.myPid() + "/maps"
-            val reader = BufferedReader(FileReader(mapsFilename))
-            var line: String = ""
-            while (reader.readLine()?.also { line = it } != null) {
-                if (line.endsWith(".so") || line.endsWith(".jar")) {
-                    val n = line.lastIndexOf(" ")
-                    libraries.add(line.substring(n + 1))
-                }
-            }
-            for (library in libraries) {
-                if (library.contains("re.frida.server") || library.contains("libfrida-gadget")) {
-                    LogCat.logError(
-                        "HookDetection",
-                        "Frida object found: $library"
-                    )
-                    return true
-                }
-                if (library.contains("com.saurik.substrate")) {
-                    LogCat.logError(
-                        "HookDetection",
-                        "Substrate shared object found: $library"
-                    )
-                    return true
-                }
-                if (library.contains("XposedBridge.jar")) {
-                    LogCat.logError(
-                        "HookDetection",
-                        "Xposed JAR found: $library"
-                    )
-                    return true
-                }
-            }
-            reader.close()
-        } catch (e: java.lang.Exception) {
-            LogCat.logError(
-                "HookDetection",
-                e
-            )
-        }
+        if (checkMemoryMappings()) return true
+
+        if (checkSuspiciousClasses()) return true
+
+        if (checkStackForHooks()) return true
+
+        if (checkFridaPorts()) return true
 
         return false
     }
 
-    private fun checkSelfMapping(): Boolean {
-        try {
-            val libraries: MutableSet<String> = mutableSetOf()
-            val mapsFilename = "/proc/self/maps"
-            val reader = BufferedReader(FileReader(mapsFilename))
-            var line: String = ""
-            while (reader.readLine()?.also { line = it } != null) {
-                if (line.endsWith(".so") || line.endsWith(".jar")) {
-                    val n = line.lastIndexOf(" ")
-                    libraries.add(line.substring(n + 1))
-                }
-            }
-            for (library in libraries) {
-                if (library.contains("re.frida.server") || library.contains("libfrida-gadget")) {
-                    LogCat.logError(
-                        "HookDetection",
-                        "Frida object found: $library"
-                    )
-                    return true
-                }
-                if (library.contains("com.saurik.substrate")) {
-                    LogCat.logError(
-                        "HookDetection",
-                        "Substrate shared object found: $library"
-                    )
-                    return true
-                }
-                if (library.contains("XposedBridge.jar")) {
-                    LogCat.logError(
-                        "HookDetection",
-                        "Xposed JAR found: $library"
-                    )
-                    return true
-                }
-            }
-            reader.close()
-        } catch (e: java.lang.Exception) {
-            LogCat.logError(
-                "HookDetection",
-                e
-            )
-        }
+    private fun checkMemoryMappings(): Boolean {
+        val filesToScan = arrayOf("/proc/self/maps")
+        for (filePath in filesToScan) {
+            try {
+                val file = File(filePath)
+                if (!file.exists()) continue
 
+                BufferedReader(FileReader(file)).use { reader ->
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        val mapLine = line?.lowercase() ?: continue
+
+                        if (mapLine.contains("frida") ||
+                            mapLine.contains("gum-js-loop") ||
+                            mapLine.contains("gmain") ||
+                            mapLine.contains("xposed") ||
+                            mapLine.contains("substrate") ||
+                            mapLine.contains("com.saurik.substrate")
+                        ) {
+                            LogCat.logError("HookDetection", "Found suspicious mapping: $mapLine")
+                            return true
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                LogCat.logError("HookDetection", "Mapping check error", e)
+            }
+        }
         return false
     }
 
-    private fun checkMethodsHooking(): Boolean {
+    private fun checkSuspiciousClasses(): Boolean {
+        val suspiciousClasses = arrayOf(
+            "de.robv.android.xposed.XposedBridge",
+            "de.robv.android.xposed.XposedHelpers",
+            "com.saurik.substrate.MS",
+            "org.meowcat.edxposed.manager.EdXposedApp",
+            "org.lsposed.lsposed.LSPosed",
+            "io.github.libxposed.api.XposedInterface"
+        )
+
+        for (className in suspiciousClasses) {
+            try {
+                Class.forName(className)
+                LogCat.logError("HookDetection", "Suspicious class found: $className")
+                return true
+            } catch (e: ClassNotFoundException) {
+                // Class not present, proceed
+            }
+        }
+        return false
+    }
+
+    private fun checkStackForHooks(): Boolean {
         try {
-            throw Exception()
+            throw Exception("Stack Trace Hook Detection")
         } catch (e: Exception) {
             for (stackTraceElement in e.stackTrace) {
-                if (stackTraceElement.className == "com.saurik.substrate.MS$2" && stackTraceElement.methodName == "invoked") {
+                val className = stackTraceElement.className
+                val methodName = stackTraceElement.methodName
+
+                if (className == "com.saurik.substrate.MS$2" && methodName == "invoked") return true
+                if (className == "de.robv.android.xposed.XposedBridge" && methodName == "handleHookedMethod") return true
+
+                if (className.contains("xposed.XposedBridge") || className.contains("lsposed.lsposed")) {
                     LogCat.logError(
                         "HookDetection",
-                        "A method on the stack trace has been hooked using Substrate."
-                    )
-                    return true
-                }
-                if (stackTraceElement.className == "de.robv.android.xposed.XposedBridge" && stackTraceElement.methodName == "handleHookedMethod") {
-                    LogCat.logError(
-                        "HookDetection",
-                        "A method on the stack trace has been hooked using Xposed."
+                        "Hooking method detected in stack: $className.$methodName"
                     )
                     return true
                 }
             }
         }
+        return false
+    }
 
+    private fun checkFridaPorts(): Boolean {
+        val fridaPorts = intArrayOf(27042, 27047)
+        for (port in fridaPorts) {
+            try {
+                Socket(InetAddress.getByName("localhost"), port).use {
+                    LogCat.logError("HookDetection", "Frida port $port is open")
+                    return true
+                }
+            } catch (e: Exception) {
+            }
+        }
         return false
     }
 

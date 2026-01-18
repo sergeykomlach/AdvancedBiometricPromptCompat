@@ -25,103 +25,172 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.content.res.XmlResourceParser
+import android.database.ContentObserver
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
-import android.text.TextUtils
 import android.view.accessibility.AccessibilityManager
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.SettingsHelper
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserException
-import org.xmlpull.v1.XmlPullParserFactory
-import java.io.IOException
-import java.io.StringReader
 
 object A11yDetection {
-    private val talkBackPackages =
-        listOf("com.google.android.marvin.talkback", "com.android.talkback")
+    private val trustedA11yPackages = setOf(
+        // Google / Stock Android
+        "com.google.android.marvin.talkback",
+        "com.android.talkback",
+        "com.google.android.apps.accessibility.voiceaccess",
+        "com.android.switchaccess",
+        "com.google.audio.asl",
+        "com.google.android.accessibility.utils",
 
-    fun hasWhiteListedService(cnt: Context): Boolean {
-        try {
-            val accessibilityEnabled =
-                SettingsHelper.getInt(cnt, Settings.Secure.ACCESSIBILITY_ENABLED)
-            val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
+        // Samsung
+        "com.samsung.android.accessibility.talkback",
+        "com.samsung.android.app.talkback",
 
-            if (accessibilityEnabled == 1) {
-                val settingValue = SettingsHelper.getString(
-                    cnt,
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                ) ?: return false
-                mStringColonSplitter.setString(settingValue)
-                val list = mutableListOf<ComponentName?>()
-                while (mStringColonSplitter.hasNext()) {
-                    val accessibilityService = mStringColonSplitter.next()
-                    list.add(ComponentName.unflattenFromString(accessibilityService))
-                }
-                LogCat.log(
-                    "A11yDetection",
-                    list
-                )
+        // Xiaomi
+        "com.miui.voiceassist",
 
-                return list.filterNotNull().any {
-                    talkBackPackages.contains(it.packageName)
-                }.also {
-                    LogCat.logError(
-                        "A11yDetection",
-                        "hasWhiteListedService=$it"
-                    )
-                }
-            }
-        } catch (e: Throwable) {
-            LogCat.logError(
-                "A11yDetection",
-                e.message, e
+        // Huawei / Honor / Jieshuo
+        "com.bjbyhd.voiceback",
+        "com.huawei.android.accessibility",
+
+        // Oppo / Realme / Vivo
+        "com.coloros.accessibility",
+        "com.oppo.accessibility",
+        "com.bbk.appstore",
+
+        // Third-party trusted
+        "com.prudence.screenreader",
+        "org.atrc.braille.brltty"
+    )
+
+    private var whiteListCache: Pair<Long, Boolean> = Pair(0, false)
+    private var trustedListCache: Pair<Long, Boolean> = Pair(0, false)
+    private const val CACHE_TTL_MS = 10_000L
+
+    class A11ySettingsObserver(handler: Handler, private val context: Context) :
+        ContentObserver(handler) {
+
+        fun register() {
+            context.contentResolver.registerContentObserver(
+                Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED),
+                false,
+                this
+            )
+            context.contentResolver.registerContentObserver(
+                Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES),
+                false,
+                this
             )
         }
-        return false.also {
-            LogCat.logError(
-                "A11yDetection",
-                "hasWhiteListedService=$it"
-            )
+
+        override fun onChange(selfChange: Boolean) {
+            super.onChange(selfChange)
+            clearCache()
+            LogCat.logError("A11yDetection", "Accessibility settings changed, cache cleared")
+        }
+
+        fun unregister() {
+            context.contentResolver.unregisterContentObserver(this)
+        }
+    }
+
+    init {
+        GlobalScope.launch {
+            try {
+                AndroidContext.appContext.let {
+                    A11ySettingsObserver(Handler(Looper.getMainLooper()), it).register()
+                }
+            } catch (_: Throwable) {
+            }
+        }
+    }
+
+    fun clearCache() {
+        whiteListCache = Pair(0, false)
+        trustedListCache = Pair(0, false)
+    }
+
+    fun hasWhiteListedService(cnt: Context): Boolean {
+        val now = System.currentTimeMillis()
+        if (now - whiteListCache.first <= CACHE_TTL_MS) {
+            return whiteListCache.second
+        }
+        try {
+
+            val am = cnt.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+            val enabledServices =
+                am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN)
+            return enabledServices.any { service ->
+                val packageName = service.resolveInfo.serviceInfo.packageName
+                (trustedA11yPackages.contains(packageName) || service.capabilities and AccessibilityServiceInfo.CAPABILITY_CAN_RETRIEVE_WINDOW_CONTENT != 0)
+                 && isSystemApp(cnt, packageName)
+            }.also {
+                whiteListCache = Pair(now, it)
+            }
+        } catch (e: Throwable) {
+            LogCat.logError("A11yDetection", e.message, e)
+            whiteListCache = Pair(now, false)
+            return false
+        }
+
+    }
+
+    private fun isSystemApp(context: Context, packageName: String): Boolean {
+        return try {
+            val ai = context.packageManager.getApplicationInfo(packageName, 0)
+            (ai.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+        } catch (e: Exception) {
+            false
         }
     }
 
     //isAccessibilityTool
     fun shouldWeTrustA11y(cnt: Context): Boolean {
+        val now = System.currentTimeMillis()
+        if (now - trustedListCache.first <= CACHE_TTL_MS) {
+            return trustedListCache.second
+        }
         try {
-            val accessibilityEnabled =
-                SettingsHelper.getInt(cnt, Settings.Secure.ACCESSIBILITY_ENABLED)
-            val mStringColonSplitter = TextUtils.SimpleStringSplitter(':')
 
-            if (accessibilityEnabled == 1) {
-                val settingValue = SettingsHelper.getString(
-                    cnt,
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                ) ?: return true
-                mStringColonSplitter.setString(settingValue)
-                val list = mutableListOf<ComponentName?>()
-                while (mStringColonSplitter.hasNext()) {
-                    val accessibilityService = mStringColonSplitter.next()
-                    list.add(ComponentName.unflattenFromString(accessibilityService))
-                }
-                LogCat.log(
-                    "A11yDetection",
-                    list
-                )
+            val am = cnt.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-                return list.filterNotNull().none {
-                    !(InstallerID.verifyInstallerId(cnt, it.packageName) && isAccessibilityTool(
-                        cnt,
-                        it
-                    ))
-                }
+            val enabledServices =
+                am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+            val list = enabledServices.map { service ->
+                ComponentName.unflattenFromString("${service.resolveInfo.serviceInfo.packageName}/${service.resolveInfo.serviceInfo.name}")
             }
+            LogCat.log(
+                "A11yDetection",
+                list
+            )
+
+            return list.filterNotNull().none {
+                val trustedSource =
+                    isSystemApp(cnt, it.packageName) || InstallerID.verifyInstallerId(
+                        cnt,
+                        it.packageName
+                    )
+                !(trustedSource && isAccessibilityTool(
+                    cnt,
+                    it
+                ))
+            }.also {
+                trustedListCache = Pair(now, it)
+            }
+
         } catch (e: Throwable) {
             LogCat.logError(
                 "A11yDetection",
                 e.message, e
             )
+            trustedListCache = Pair(now, false)
+            return false
         }
-        return true
     }
 
     private fun isAccessibilityTool(context: Context, componentName: ComponentName): Boolean {
@@ -132,7 +201,9 @@ object A11yDetection {
 
             list.forEach {
                 if ("${it.resolveInfo.serviceInfo.packageName}/${it.resolveInfo.serviceInfo.name}" == componentName.flattenToString()) {
-                    return AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool")
+                    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        it.isAccessibilityTool
+                    } else AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool")
                         .apply {
                             this.isAccessible = true
                         }.invoke(it) as Boolean
@@ -166,7 +237,6 @@ object A11yDetection {
                 "A11yDetection",
                 e.message
             )
-            return true
         } catch (e: Throwable) {
             LogCat.logError(
                 "A11yDetection",
@@ -177,145 +247,35 @@ object A11yDetection {
     }
 
     private class AssetsChecker(val resources: Resources) {
-        fun isAccessibilityTool(res: Int): Boolean {
+        fun isAccessibilityTool(resId: Int): Boolean {
+            var xrp: XmlResourceParser? = null
             try {
-                val xml = resources.getXml(res)
-                val factory = XmlPullParserFactory.newInstance()
-                factory.isNamespaceAware = true
-                val xpp = factory.newPullParser()
-                xpp.setInput(
-                    StringReader(
-                        getXMLText(xml, resources)
-                            .toString()
-                    )
-                )
-                xml.close()
-                while (xpp.eventType != XmlPullParser.END_DOCUMENT) {
-                    when (xpp.eventType) {
-                        XmlPullParser.START_TAG -> {
-                            var i = 0
-                            while (i < xpp.attributeCount) {
-                                LogCat.log(
-                                    "A11yDetection",
-                                    xpp.getAttributeName(i), xpp.getAttributeValue(i)
-                                )
-                                if (xpp.name.equals("accessibility-service", ignoreCase = true)
-                                    && xpp.getAttributeName(i).equals(
-                                        "isAccessibilityTool", ignoreCase = true
-                                    )
-                                ) {
-                                    return xpp.getAttributeValue(i) == "true"
-                                }
-                                i++
+                xrp = resources.getXml(resId)
+                var eventType = xrp.eventType
+
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    if (eventType == XmlPullParser.START_TAG && xrp.name == "accessibility-service") {
+                        val namespace = "http://schemas.android.com/apk/res/android"
+                        val attributeName = "isAccessibilityTool"
+                        val value = xrp.getAttributeValue(namespace, attributeName)
+
+                        if (value != null) {
+                            return value == "true"
+                        }
+                        for (i in 0 until xrp.attributeCount) {
+                            if (xrp.getAttributeName(i) == attributeName) {
+                                return xrp.getAttributeValue(i) == "true"
                             }
                         }
-
-                        XmlPullParser.START_DOCUMENT, XmlPullParser.END_TAG, XmlPullParser.TEXT -> {}
-                        else -> {}
                     }
-                    xpp.next()
+                    eventType = xrp.next()
                 }
             } catch (e: Throwable) {
-                LogCat.logError(
-                    "A11yDetection",
-                    e.message, e
-                )
+                LogCat.logError("A11yDetection", "Error parsing A11y XML direct: ${e.message}", e)
+            } finally {
+                xrp?.close()
             }
             return false
-        }
-
-        private fun insertSpaces(sb: StringBuilder?, num: Int) {
-            if (sb == null) {
-                return
-            }
-            for (i in 0 until num) {
-                sb.append(" ")
-            }
-        }
-
-        private fun getXMLText(
-            xrp: XmlResourceParser,
-            currentResources: Resources
-        ): CharSequence {
-            val sb = StringBuilder()
-            var indent = 0
-            try {
-                var eventType = xrp.eventType
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    // for sb
-                    when (eventType) {
-                        XmlPullParser.START_TAG -> {
-                            indent += 1
-                            sb.append("\n")
-                            insertSpaces(sb, indent)
-                            sb.append("<").append(xrp.name)
-                            sb.append(getAttribs(xrp, currentResources))
-                            sb.append(">")
-                        }
-
-                        XmlPullParser.END_TAG -> {
-                            indent -= 1
-                            sb.append("\n")
-                            insertSpaces(sb, indent)
-                            sb.append("</").append(xrp.name).append(">")
-                        }
-
-                        XmlPullParser.TEXT -> sb.append("").append(xrp.text)
-                        XmlPullParser.CDSECT -> sb.append("<!CDATA[").append(xrp.text).append("]]>")
-                        XmlPullParser.PROCESSING_INSTRUCTION -> sb.append("<?").append(xrp.text)
-                            .append("?>")
-
-                        XmlPullParser.COMMENT -> sb.append("<!--").append(xrp.text).append("-->")
-                    }
-                    eventType = xrp.nextToken()
-                }
-            } catch (e: IOException) {
-                LogCat.logError(
-                    "A11yDetection",
-                    e.message, e
-                )
-            } catch (e: XmlPullParserException) {
-                LogCat.logError(
-                    "A11yDetection",
-                    e.message, e
-                )
-            }
-            return sb
-        }
-
-        /**
-         * returns the value, resolving it through the provided resources if it
-         * appears to be a resource ID. Otherwise just returns what was provided.
-         *
-         * @param in String to resolve
-         * @param r  Context appropriate resource (system for system, package's for
-         * package)
-         * @return Resolved value, either the input, or some other string.
-         */
-        private fun resolveValue(str: String?, r: Resources?): String? {
-            return if (str == null || !str.startsWith("@") || r == null) {
-                str
-            } else try {
-                val num = str.substring(1).toInt()
-                r.getString(num)
-            } catch (e: NumberFormatException) {
-                str
-            } catch (e: RuntimeException) {
-                // formerly noted errors here, but simply not resolving works better
-                str
-            }
-        }
-
-        private fun getAttribs(
-            xrp: XmlResourceParser,
-            currentResources: Resources
-        ): CharSequence {
-            val sb = StringBuilder()
-            for (i in 0 until xrp.attributeCount) {
-                sb.append("\n").append(xrp.getAttributeName(i)).append("=\"")
-                    .append(resolveValue(xrp.getAttributeValue(i), currentResources)).append("\"")
-            }
-            return sb
         }
     }
 }
