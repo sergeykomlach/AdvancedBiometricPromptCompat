@@ -21,7 +21,6 @@ package dev.skomlach.biometric.compat.engine
 
 import android.app.Activity
 import android.app.admin.DevicePolicyManager
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -62,6 +61,7 @@ import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnl
 import dev.skomlach.biometric.compat.engine.internal.iris.samsung.SamsungIrisUnlockModule
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils.startActivity
 import java.lang.ref.SoftReference
@@ -81,6 +81,7 @@ object BiometricAuthentication {
     private val customModuleHashMap = Collections
         .synchronizedMap(HashMap<BiometricMethod, AbstractCustomBiometricManager>())
 
+    val customBiometricManagers = customModuleHashMap.values.toMutableList()
     private val allMethods = ArrayList<BiometricMethod>().apply {
 
         //any API
@@ -132,20 +133,37 @@ object BiometricAuthentication {
 
     @Volatile
     private var customLoading = false
-    fun loadCustomModules(context: Context) {
+    fun resetCustomModules() {
+        d("BiometricAuthentication", "resetCustomModules called")
+        try {
+            if (customLoading) return
+            customLoading = true
+            val registered = customModuleHashMap.keys.toMutableList()
+            customModuleHashMap.clear()
+            registered.forEach {
+                moduleHashMap.remove(it)
+            }
+        } catch (e: Throwable) {
+            e("BiometricAuthentication", "ServiceLoader failure", e)
+        } finally {
+            customLoading = false
+        }
+    }
+
+    fun loadCustomModules() {
         d("BiometricAuthentication", "loadCustomModules called")
         try {
             if (customLoading) return
             customLoading = true
             val loader = ServiceLoader.load(CustomBiometricProvider::class.java)
-
+            val customModules = HashMap<BiometricMethod, BiometricModule>()
             for (provider in loader) {
                 try {
                     d(
                         "BiometricAuthentication",
                         "loadCustomModules provider ${provider.javaClass.simpleName}"
                     )
-                    val customManager = provider.getCustomManager(context)
+                    val customManager = provider.getCustomManager(AndroidContext.appContext)
                     val targetType = customManager.biometricType
 
                     val isAlreadyRegistered = customModuleHashMap.keys.any { method ->
@@ -156,9 +174,19 @@ object BiometricAuthentication {
                             BiometricAuthRequest(BiometricApi.AUTO, targetType)
                         )
                     ) {
-                        val newMethod =
-                            BiometricMethod.createCustomModule(customManager.hashCode(), targetType)
-                        registerCustomModule(newMethod, customManager)
+                        val biometricMethod =
+                            BiometricMethod.createCustomModule(
+                                customManager::class.java.name.hashCode(),
+                                targetType
+                            )
+
+                        customModuleHashMap[biometricMethod] = customManager
+                        val module = CustomBiometricModule(
+                            biometricMethod,
+                            customManager,
+                            null
+                        )
+                        customModules[biometricMethod] = module
 
                         d(
                             "BiometricAuthentication",
@@ -174,23 +202,12 @@ object BiometricAuthentication {
                     e("BiometricAuthentication", "Error loading custom module", e)
                 }
             }
+            moduleHashMap.putAll(customModules)
         } catch (e: Throwable) {
             e("BiometricAuthentication", "ServiceLoader failure", e)
         } finally {
             customLoading = false
         }
-    }
-
-    private fun registerCustomModule(
-        biometricMethod: BiometricMethod,
-        provider: AbstractCustomBiometricManager
-    ): Boolean {
-        if (customModuleHashMap.any {
-                it.key.id == biometricMethod.id
-            }) return false
-
-        customModuleHashMap[biometricMethod] = provider
-        return true
     }
 
 
@@ -206,9 +223,6 @@ object BiometricAuthentication {
         e("BiometricAuthentication.init() - started")
         //main thread required
         val allMethodsCopy = allMethods.toMutableList()
-        customModuleHashMap.toMutableMap().forEach {
-            allMethodsCopy.add(it.key)
-        }
         val modulesMap = HashMap<BiometricMethod, BiometricModule?>()
         //launch in BG because for init needed about 2-3 seconds
         try {
@@ -264,9 +278,9 @@ object BiometricAuthentication {
     private fun initModule(method: BiometricMethod, initListener: BiometricInitListener) {
         ExecutorHelper.startOnBackground {
             e("BiometricAuthentication.check started for $method")
-            var biometricModule: BiometricModule? = null
+
             try {
-                biometricModule = when (method) {
+                when (method) {
                     BiometricMethod.DUMMY_BIOMETRIC -> DummyBiometricModule(initListener)
                     BiometricMethod.FACELOCK -> FacelockOldModule(initListener)
                     BiometricMethod.FACEUNLOCK_LAVA -> FaceunlockLavaModule(initListener)
@@ -295,19 +309,11 @@ object BiometricAuthentication {
                     BiometricMethod.FACE_ANDROIDAPI -> AndroidFaceUnlockModule(initListener)
                     BiometricMethod.IRIS_SAMSUNG -> SamsungIrisUnlockModule(initListener)
                     BiometricMethod.IRIS_ANDROIDAPI -> AndroidIrisUnlockModule(initListener)
-                    BiometricMethod.CUSTOM ->
-                        CustomBiometricModule(
-                            method,
-                            customModuleHashMap[method]
-                                ?: throw IllegalStateException("Unknown biometric type - $method"),
-                            initListener
-                        )
-
                     else -> throw IllegalStateException("Unknown biometric type - $method")
                 }
             } catch (e: Throwable) {
                 e(e, "BiometricAuthentication")
-                initListener.initFinished(method, biometricModule)
+                initListener.initFinished(method, null)
             }
         }
     }

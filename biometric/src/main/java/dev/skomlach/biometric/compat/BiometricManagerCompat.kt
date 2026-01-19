@@ -28,6 +28,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
 import android.provider.Settings
+import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricMethod
@@ -49,19 +50,6 @@ object BiometricManagerCompat {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
     @JvmStatic
-    fun shouldFallbackToDeviceCredentials(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        if (isBiometricReadyForUsage(api) || isBiometricReadyForEnroll(api))
-            return false
-
-        return isBiometricAvailable(api) && isDeviceSecureAvailable()
-    }
-
-    @JvmStatic
     fun isDeviceSecureAvailable(): Boolean {
         val context = AndroidContext.appContext
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
@@ -79,76 +67,20 @@ object BiometricManagerCompat {
     }
 
     @JvmStatic
-    fun hasPermissionsGranted(
+    fun shouldFallbackToDeviceCredentials(
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
         )
     ): Boolean {
+        if (isBiometricReadyForUsage(api) || isBiometricReadyForEnroll(api))
+            return false
 
-        val list = getUsedPermissions(api)
-        if (list.isEmpty()) return true
-        return if (api.type == BiometricType.BIOMETRIC_ANY) {
-            list.forEach {
-                if (!PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
-                    return false
-                }
-            }
-            true
-        } else {
-            PermissionUtils.INSTANCE.hasSelfPermissions(list)
-        }
+        return isBiometricAvailable(api) && isDeviceSecureAvailable()
     }
 
-    @JvmStatic
-    fun getUsedPermissions(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): List<String> {
 
-        val permission: MutableSet<String> = java.util.HashSet()
-
-        if (Build.VERSION.SDK_INT >= 28) {
-            permission.add("android.permission.USE_BIOMETRIC")
-        }
-
-        val biometricMethodList: MutableList<BiometricMethod> = ArrayList()
-        for (m in BiometricAuthentication.availableBiometricMethods) {
-            if (api.type == BiometricType.BIOMETRIC_ANY || api.type == m.biometricType) {
-                biometricMethodList.add(m)
-            }
-        }
-        for (method in biometricMethodList) {
-            when (method) {
-                BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
-                BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
-                BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
-                BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
-
-                BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add("com.hihonor.permission.USE_FACERECOGNITION")
-                BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D -> permission.add("com.huawei.permission.USE_FACERECOGNITION")
-                BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
-
-                BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
-                BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
-                BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
-                    "android.permission.USE_FINGERPRINT"
-                )
-
-                BiometricMethod.FINGERPRINT_FLYME -> permission.add("com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER")
-                BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
-                else -> {
-                    //no-op
-                }
-            }
-        }
-
-        return ArrayList(permission)
-    }
-
+    @Deprecated("Due to restrictions, this method does not guarantee proper work")
     @JvmStatic
     fun resetBiometricEnrollChanged(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -179,6 +111,7 @@ object BiometricManagerCompat {
         isBiometricEnrollChanged(api)
     }
 
+    @Deprecated("Due to restrictions, this method does not guarantee proper work")
     @JvmStatic
     fun isBiometricEnrollChanged(
         api: BiometricAuthRequest = BiometricAuthRequest(
@@ -208,8 +141,9 @@ object BiometricManagerCompat {
                 )
             ).isBiometricEnrollChanged
         BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricEnrollChanged for $api return $result")
-        preferences.edit().putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
-            .apply()
+        preferences.edit {
+            putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
+        }
         return result
     }
 
@@ -278,6 +212,295 @@ object BiometricManagerCompat {
 
         return list.isNotEmpty()
 
+    }
+
+
+    @JvmStatic
+    fun isBiometricAvailable(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        val isHardwareDetected = isHardwareDetected(api)
+        val hasEnrolled = hasEnrolled(api)
+        return isHardwareDetected && hasEnrolled
+    }
+
+    @JvmStatic
+    fun isBiometricReadyForUsage(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        return isBiometricAvailable(api) &&
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+    }
+
+    @JvmStatic
+    fun isBiometricReadyForEnroll(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        return isHardwareDetected(api) &&
+                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+    }
+
+    @JvmStatic
+    fun isBiometricSensorPermanentlyLocked(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        ),
+        ignoreCameraCheck: Boolean = true
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+        var result = false
+        if (api.api != BiometricApi.AUTO)
+            result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
+        else {
+            var total = 0
+            var counted = 0
+            for (s in BiometricType.entries) {
+                val v = BiometricAuthRequest(
+                    BiometricApi.AUTO,
+                    s
+                )
+                if (isBiometricAvailable(v)) {
+                    total++
+                    if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
+                        counted++
+                    }
+                }
+            }
+            result = total > 0 && (total == counted)
+        }
+        val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
+        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
+        return result || isCameraBlocked || !isBiometricAppEnabled()
+    }
+
+    @JvmStatic
+    fun isHardwareDetected(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+        if (!BiometricPromptCompat.isInitialized) {
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
+        }
+        val result = if (api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isHardwareAvailable
+        else
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isHardwareAvailable || HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isHardwareAvailable
+        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
+        preferences.edit { putBoolean("isHardwareDetected-${api.api}-${api.type}", result) }
+        return result
+    }
+
+    @JvmStatic
+    fun hasEnrolled(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+
+        if (!BiometricPromptCompat.isInitialized) {
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
+        }
+        val result = if (api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isBiometricEnrolled
+        else
+            HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isBiometricEnrolled || HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.BIOMETRIC_API,
+                    api.type
+                )
+            ).isBiometricEnrolled
+        BiometricLoggerImpl.d("BiometricManagerCompat.hasEnrolled for $api return $result")
+        preferences.edit { putBoolean("hasEnrolled-${api.api}-${api.type}", result) }
+        return result
+    }
+
+    @JvmStatic
+    fun isLockOut(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        ),
+        ignoreCameraCheck: Boolean = true
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+        if (!BiometricPromptCompat.isInitialized) {
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
+                "isLockOut-${api.api}-${api.type}",
+                false
+            )
+        }
+        val result = if (api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isLockedOut
+        else {
+            var isLockedOut = HardwareAccessImpl.getInstance(
+                BiometricAuthRequest(
+                    BiometricApi.LEGACY_API,
+                    api.type
+                )
+            ).isLockedOut
+            if (!isLockedOut)
+                isLockedOut = HardwareAccessImpl.getInstance(
+                    BiometricAuthRequest(
+                        BiometricApi.BIOMETRIC_API,
+                        api.type
+                    )
+                ).isLockedOut
+            isLockedOut
+        }
+        val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
+        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return $result  && $cameraInUse")
+        preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
+        return result || cameraInUse
+    }
+
+    @JvmStatic
+    fun requestPermissions(
+        activity: FragmentActivity,
+        usedPermissions: List<String>,
+        onComplete: Runnable? = null
+    ) {
+        PermissionsFragment.askForPermissions(
+            activity,
+            usedPermissions,
+            onComplete
+        )
+    }
+
+    @JvmStatic
+    fun openSettings(
+        activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        ), forced: Boolean = true
+    ): Boolean {
+        if (!BiometricPromptCompat.API_ENABLED)
+            return false
+
+        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInitialized && BiometricAuthentication.openSettings(
+                activity,
+                api.type
+            )
+        ) {
+            return true
+        }
+
+        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
+            return Utils.startActivity(
+                Intent(Settings.ACTION_SETTINGS), activity
+            )
+        }
+        return false
+    }
+
+
+    @JvmStatic
+    fun hasPermissionsGranted(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): Boolean {
+
+        val list = getUsedPermissions(api)
+        if (list.isEmpty()) return true
+        return if (api.type == BiometricType.BIOMETRIC_ANY) {
+            list.forEach {
+                if (!PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
+                    return false
+                }
+            }
+            true
+        } else {
+            PermissionUtils.INSTANCE.hasSelfPermissions(list)
+        }
+    }
+
+    @JvmStatic
+    fun getUsedPermissions(
+        api: BiometricAuthRequest = BiometricAuthRequest(
+            BiometricApi.AUTO,
+            BiometricType.BIOMETRIC_ANY
+        )
+    ): List<String> {
+
+        val permission: MutableSet<String> = java.util.HashSet()
+
+        if (Build.VERSION.SDK_INT >= 28) {
+            permission.add("android.permission.USE_BIOMETRIC")
+        }
+
+        val biometricMethodList: MutableList<BiometricMethod> = ArrayList()
+        for (m in BiometricAuthentication.availableBiometricMethods) {
+            if (api.type == BiometricType.BIOMETRIC_ANY || api.type == m.biometricType) {
+                biometricMethodList.add(m)
+            }
+        }
+        BiometricAuthentication.customBiometricManagers.forEach {
+            permission.addAll(it.getPermissions())
+        }
+        for (method in biometricMethodList) {
+            when (method) {
+                BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
+                BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
+                BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
+                BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
+
+                BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add("com.hihonor.permission.USE_FACERECOGNITION")
+                BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D -> permission.add("com.huawei.permission.USE_FACERECOGNITION")
+                BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
+
+                BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
+                BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
+                BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
+                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
+                    "android.permission.USE_FINGERPRINT"
+                )
+
+                BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
+                else -> {
+                    //no-op
+                }
+            }
+        }
+
+        return ArrayList(permission)
     }
 
     private fun isCameraNotAvailable(
@@ -361,221 +584,6 @@ object BiometricManagerCompat {
 
             return types.contains(BiometricType.BIOMETRIC_FACE) &&
                     SensorPrivacyCheck.isCameraInUse()
-        }
-        return false
-    }
-
-    @JvmStatic
-    fun isBiometricAvailable(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        val isHardwareDetected = isHardwareDetected(api)
-        val hasEnrolled = hasEnrolled(api)
-        return isHardwareDetected && hasEnrolled
-    }
-
-    @JvmStatic
-    fun isBiometricReadyForUsage(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        return isBiometricAvailable(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
-    }
-
-    @JvmStatic
-    fun isBiometricReadyForEnroll(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
-    }
-
-    @JvmStatic
-    fun isBiometricSensorPermanentlyLocked(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        ),
-        ignoreCameraCheck: Boolean = true
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        var result = false
-        if (api.api != BiometricApi.AUTO)
-            result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
-        else {
-            var total = 0
-            var counted = 0
-            for (s in BiometricType.entries) {
-                val v = BiometricAuthRequest(
-                    BiometricApi.AUTO,
-                    s
-                )
-                if (isBiometricAvailable(v)) {
-                    total++
-                    if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
-                        counted++
-                    }
-                }
-            }
-            result = total > 0 && (total == counted)
-        }
-        val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
-        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
-        return result || isCameraBlocked
-    }
-
-    @JvmStatic
-    fun isHardwareDetected(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        if (!BiometricPromptCompat.isInitialized) {
-            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
-        }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isHardwareAvailable
-        else
-            HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
-                    api.type
-                )
-            ).isHardwareAvailable || HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
-                    api.type
-                )
-            ).isHardwareAvailable
-        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
-        preferences.edit().putBoolean("isHardwareDetected-${api.api}-${api.type}", result).apply()
-        return result
-    }
-
-    @JvmStatic
-    fun hasEnrolled(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        if (!isBiometricAppEnabled())
-            return false
-        if (!BiometricPromptCompat.isInitialized) {
-            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
-        }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isBiometricEnrolled
-        else
-            HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
-                    api.type
-                )
-            ).isBiometricEnrolled || HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.BIOMETRIC_API,
-                    api.type
-                )
-            ).isBiometricEnrolled
-        BiometricLoggerImpl.d("BiometricManagerCompat.hasEnrolled for $api return $result")
-        preferences.edit().putBoolean("hasEnrolled-${api.api}-${api.type}", result).apply()
-        return result
-    }
-
-    @JvmStatic
-    fun isLockOut(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        ),
-        ignoreCameraCheck: Boolean = true
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        if (!BiometricPromptCompat.isInitialized) {
-            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
-                "isLockOut-${api.api}-${api.type}",
-                false
-            )
-        }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isLockedOut
-        else {
-            var isLockedOut = HardwareAccessImpl.getInstance(
-                BiometricAuthRequest(
-                    BiometricApi.LEGACY_API,
-                    api.type
-                )
-            ).isLockedOut
-            if (!isLockedOut)
-                isLockedOut = HardwareAccessImpl.getInstance(
-                    BiometricAuthRequest(
-                        BiometricApi.BIOMETRIC_API,
-                        api.type
-                    )
-                ).isLockedOut
-            isLockedOut
-        }
-        val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
-        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return ${result}  && ${cameraInUse}")
-        preferences.edit().putBoolean("isLockOut-${api.api}-${api.type}", result).apply()
-        return result || cameraInUse
-    }
-
-    @JvmStatic
-    fun requestPermissions(
-        activity: FragmentActivity,
-        usedPermissions: List<String>,
-        onComplete: Runnable? = null
-    ) {
-        PermissionsFragment.askForPermissions(
-            activity,
-            usedPermissions,
-            onComplete
-        )
-    }
-
-    @JvmStatic
-    fun openSettings(
-        activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        ), forced: Boolean = true
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-
-        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInitialized && BiometricAuthentication.openSettings(
-                activity,
-                api.type
-            )
-        ) {
-            return true
-        }
-
-        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            return Utils.startActivity(
-                Intent(Settings.ACTION_SETTINGS), activity
-            )
         }
         return false
     }

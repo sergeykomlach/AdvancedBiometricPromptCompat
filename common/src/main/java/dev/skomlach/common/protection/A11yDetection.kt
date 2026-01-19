@@ -164,11 +164,6 @@ object A11yDetection {
             val list = enabledServices.map { service ->
                 ComponentName.unflattenFromString("${service.resolveInfo.serviceInfo.packageName}/${service.resolveInfo.serviceInfo.name}")
             }
-            LogCat.log(
-                "A11yDetection",
-                list
-            )
-
             return list.filterNotNull().none {
                 val trustedSource =
                     isSystemApp(cnt, it.packageName) || InstallerID.verifyInstallerId(

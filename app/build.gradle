@@ -19,8 +19,6 @@
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
 android {
     lint {
         baseline = file("lint-baseline.xml")
@@ -91,11 +89,6 @@ dependencies {
 //    implementation 'com.readystatesoftware.chuck:library:1.1.0'
 
     implementation "com.squareup.okhttp3:okhttp:5.3.2"
-    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.3.0"
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
     implementation 'com.google.code.gson:gson:2.13.2'
-
-    implementation platform('com.google.firebase:firebase-bom:34.7.0')
-    implementation "com.google.firebase:firebase-perf"
-    implementation 'com.google.firebase:firebase-crashlytics'
-    implementation 'com.google.firebase:firebase-crashlytics-ndk'
 }

@@ -29,7 +29,7 @@
             android:name="android.hardware.camera.autofocus"
             android:required="false" />
 
-    <application tools:overrideLibrary="com.google.mlkit.vision.face.bundled">
+    <application>
         <receiver
                 android:name="dev.skomlach.biometric.compat.engine.internal.face.tensorflow.DeviceUnlockedReceiver"
                 android:enabled="true"
