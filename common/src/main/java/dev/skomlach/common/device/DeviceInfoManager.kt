@@ -254,7 +254,7 @@ object DeviceInfoManager {
         else
             result.toString().replace("\\s+".toRegex(), " ").trim()
     }
-
+    @Volatile
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
             if (field == null) {
