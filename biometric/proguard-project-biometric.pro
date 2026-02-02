@@ -1,4 +1,3 @@
--ignorewarnings
 -dontwarn android.hardware.biometrics.CryptoObject
 -dontwarn android.hardware.face.FaceManager$AuthenticationCallback
 -dontwarn android.hardware.face.FaceManager$AuthenticationResult
