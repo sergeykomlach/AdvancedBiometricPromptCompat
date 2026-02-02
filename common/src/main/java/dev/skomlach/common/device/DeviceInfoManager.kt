@@ -33,6 +33,7 @@ import dev.skomlach.common.translate.LocalizationHelper
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.Math.abs
+import java.lang.ref.WeakReference
 import java.nio.charset.Charset
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -163,13 +164,14 @@ object DeviceInfoManager {
     }
 
     @WorkerThread
-    fun getDeviceInfo(onDeviceInfoListener: OnDeviceInfoListener) {
+    fun getDeviceInfo(listener: OnDeviceInfoListener) {
         if (Looper.getMainLooper().thread === Thread.currentThread()) throw IllegalThreadStateException(
             "Worker thread required"
         )
+        val onDeviceInfoListener = WeakReference(listener)
         var deviceInfo = cachedDeviceInfo
         if (deviceInfo != null) {
-            onDeviceInfoListener.onReady(deviceInfo)
+            onDeviceInfoListener.get()?.onReady(deviceInfo)
             return
         }
         val names = getNames()
@@ -208,8 +210,8 @@ object DeviceInfoManager {
                     )
                     if (!deviceInfo?.sensors.isNullOrEmpty()) {
                         LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                        setCachedDeviceInfo(deviceInfo ?: continue, true)
-                        onDeviceInfoListener.onReady(deviceInfo)
+                        setCachedDeviceInfo(deviceInfo, true)
+                        onDeviceInfoListener.get()?.onReady(deviceInfo)
                         return
                     } else {
                         LogCat.log("DeviceInfoManager: no data for $first/$second")
@@ -219,11 +221,39 @@ object DeviceInfoManager {
                 LogCat.logException(e)
             }
         }
-        onDeviceInfoListener.onReady(getAnyDeviceInfo().also {
+        onDeviceInfoListener.get()?.onReady(getAnyDeviceInfo().also {
             setCachedDeviceInfo(it, false)
         })
     }
 
+    //Fix for case when DeviceName contains non-ASCII symbols
+    //Example: Motorola Edge 軽 7
+    private fun fixModelAsAscii(ua: String): String {
+        if (ua.isEmpty()) return ""
+
+        val result = StringBuilder(ua.length)
+        var lastWasSpace = false
+
+        for (c in ua) {
+            val isValid = c in '\u0020'..'\u007e'
+
+            if (isValid) {
+                val isCurrentSpace = (c == ' ')
+                if (!(isCurrentSpace && lastWasSpace)) {
+                    result.append(c)
+                    lastWasSpace = isCurrentSpace
+                }
+            } else {
+                if (!lastWasSpace) {
+                    result.append(' ')
+                    lastWasSpace = true
+                }
+            }
+        }
+        return if (result.isEmpty()) "Unknown"
+        else
+            result.toString().replace("\\s+".toRegex(), " ").trim()
+    }
 
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {
@@ -236,7 +266,7 @@ object DeviceInfoManager {
                     val sensors =
                         sharedPreferences.getStringSet("sensors", null)
                             ?: HashSet<String>()
-                    field = DeviceInfo(model, sensors)
+                    field = DeviceInfo(model, fixModelAsAscii(model), sensors)
                 }
             }
             return field
@@ -251,12 +281,16 @@ object DeviceInfoManager {
             ?.first
 
         return if (!name.isNullOrEmpty())
-            DeviceInfo(name, HashSet<String>()).also {
+            DeviceInfo(name, fixModelAsAscii(name), HashSet<String>()).also {
                 LogCat.log("DeviceInfoManager: (fallback 1) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
             }
         else
-            DeviceInfo(DeviceModel.model, HashSet<String>()).also {
+            DeviceInfo(
+                DeviceModel.model,
+                fixModelAsAscii(DeviceModel.model),
+                HashSet<String>()
+            ).also {
                 LogCat.log("DeviceInfoManager: (fallback 2) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
             }
@@ -317,8 +351,6 @@ object DeviceInfoManager {
         } catch (e: Throwable) {
             LogCat.logException(e, "DeviceInfoManager")
             return null
-        } finally {
-            System.gc()
         }
     }
 
@@ -346,11 +378,11 @@ object DeviceInfoManager {
                 ) && it.codename == codeName)
             ) {
                 LogCat.log("DeviceInfoManager: (1) $it")
-                return DeviceInfo(m, getSensors(it))
+                return DeviceInfo(m, fixModelAsAscii(m), getSensors(it))
             } else if (firstFound == null) {
                 if (it.name?.contains(model, ignoreCase = true) == true) {
                     LogCat.log("DeviceInfoManager: (2) $it")
-                    firstFound = DeviceInfo(m, getSensors(it))
+                    firstFound = DeviceInfo(m, fixModelAsAscii(m), getSensors(it))
                 } else {
                     val arr = splitString(model, " ")
                     var i = arr.size
@@ -361,7 +393,7 @@ object DeviceInfoManager {
                         val shortName = join(arr, " ", i)
                         if (it.name?.contains(shortName, ignoreCase = true) == true) {
                             LogCat.log("DeviceInfoManager: (3) $it")
-                            firstFound = DeviceInfo(m, getSensors(it))
+                            firstFound = DeviceInfo(m, fixModelAsAscii(m), getSensors(it))
                         }
                         i--
                     }
@@ -435,7 +467,7 @@ object DeviceInfoManager {
                 }
                 file.also {
                     if (it.exists()) {
-                        if (abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
+                        if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
                                 30
                             )
                         ) {
@@ -542,14 +574,8 @@ object DeviceInfoManager {
     }
 
     private fun capitalize(text: String?): String {
-        if (text.isNullOrEmpty()) {
-            return ""
-        }
-        return text
-            .split(" ")
-            .joinToString(" ") { word ->
-                word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            }.trim()
-
+        if (text.isNullOrEmpty()) return ""
+        return text.split(" ").filter { it.isNotEmpty() }
+            .joinToString(" ") { it.lowercase().replaceFirstChar { char -> char.uppercase() } }
     }
 }

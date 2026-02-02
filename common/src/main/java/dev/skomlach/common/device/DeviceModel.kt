@@ -40,7 +40,11 @@ object DeviceModel {
     private val loadingInProgress = AtomicBoolean(false)
     var brand = (Build.BRAND ?: "").replace("  ", " ")
         private set
-    var model = (Build.MODEL ?: "").replace("  ", " ")
+    var model = if (Build.MODEL.isNullOrEmpty()) {
+        SystemPropertiesProxy.get(appContext,"ro.product.model", "Unknown")
+    } else {
+        Build.MODEL
+    }.replace("  ", " ")
     var device = (Build.DEVICE ?: "").replace("  ", " ")
 
     private val list = ArrayList<Pair<String, String>>()
@@ -202,8 +206,6 @@ object DeviceModel {
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
-        } finally {
-            System.gc()
         }
         LogCat.log("AndroidModel.getNameFromAssets3 - null")
         return null
