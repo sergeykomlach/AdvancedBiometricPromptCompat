@@ -69,6 +69,7 @@ object LocalizationHelper {
                     "User-Agent",
                     agents[SecureRandom().nextInt(agents.size)]
                 )
+                urlConnection.instanceFollowRedirects = true
                 urlConnection.connect()
                 val responseCode = urlConnection.responseCode
                 val byteArrayOutputStream = ByteArrayOutputStream()
