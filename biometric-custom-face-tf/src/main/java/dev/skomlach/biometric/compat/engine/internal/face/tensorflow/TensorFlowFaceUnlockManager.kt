@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
@@ -176,7 +177,7 @@ class TensorFlowFaceUnlockManager(
                 .build()
             FaceDetection.getClient(options)
         } catch (e: Exception) {
-            e.printStackTrace()
+            LogCat.logException(e)
             null
         }
     }
@@ -208,7 +209,7 @@ class TensorFlowFaceUnlockManager(
                 interpreterOptions
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            LogCat.logException(e)
             null
         }
     }
@@ -282,7 +283,7 @@ class TensorFlowFaceUnlockManager(
         try {
             frameProvider.stop()
         } catch (e: Exception) {
-            e.printStackTrace()
+            LogCat.logException(e)
         }
 
         isProcessingFrame.set(false)
@@ -311,9 +312,21 @@ class TensorFlowFaceUnlockManager(
         return result
     }
 
+    /*
+    TensorFlowFaceUnlockManager, hasEnrolledBiometric=false java.lang.Throwable
+    at dev.skomlach.biometric.compat.engine.internal.face.tensorflow.TensorFlowFaceUnlockManager.hasEnrolledBiometric(TensorFlowFaceUnlockManager.kt:317)
+    at dev.skomlach.biometric.compat.engine.internal.CustomBiometricModule.getHasEnrolled(CustomBiometricModule.kt:79)
+    at dev.skomlach.biometric.compat.utils.hardware.LegacyHardware.isBiometricEnrolled(LegacyHardware.kt:44)
+    at dev.skomlach.biometric.compat.utils.HardwareAccessImpl.isBiometricEnrolled(HardwareAccessImpl.kt:51)
+    at dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled(BiometricManagerCompat.kt:334)
+    at dev.skomlach.biometric.app.utils.BiometricExtensionKt.startBiometric(BiometricExtension.kt:68)
+    at dev.skomlach.biometric.app.FirstFragment.fillList$lambda$0(FirstFragment.kt:165)
+    at dev.skomlach.biometric.app.FirstFragment.$r8$lambda$G8ffBRGfwwbWwrNhOZQ-7Eo-_bI(FirstFragment.kt:0)
+    at dev.skomlach.biometric.app.FirstFragment$$ExternalSyntheticLambda8.onClick(R8$$SyntheticClass:0) 
+    */
     override fun hasEnrolledBiometric(): Boolean {
         val result = detector?.hasRegistered() == true
-        LogCat.log(TAG, "hasEnrolledBiometric=$result")
+        LogCat.log(TAG, "hasEnrolledBiometric=$result " + Log.getStackTraceString(Throwable()))
         return result
     }
 
@@ -470,7 +483,7 @@ class TensorFlowFaceUnlockManager(
                     processFaces(fullBitmap, faces)
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                LogCat.logException(e)
             } finally {
                 isProcessingFrame.set(false)
             }

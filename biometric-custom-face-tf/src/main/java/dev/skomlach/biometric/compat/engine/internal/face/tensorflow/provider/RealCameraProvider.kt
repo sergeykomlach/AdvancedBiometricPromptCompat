@@ -18,6 +18,7 @@ import com.google.mlkit.vision.face.FaceDetector
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.ImageUtils
 import dev.skomlach.biometric.custom.face.tf.R
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.translate.LocalizationHelper
 import java.util.Collections
@@ -61,7 +62,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             cameraDevice?.close()
             imageReader?.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            LogCat.logException(e)
         } finally {
             captureSession = null
             cameraDevice = null
@@ -176,7 +177,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                                 backgroundHandler
                             )
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            LogCat.logException(e)
                         }
                     }
 
@@ -185,7 +186,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 backgroundHandler
             )
         } catch (e: Exception) {
-            e.printStackTrace()
+            LogCat.logException(e)
         }
     }
 
@@ -255,7 +256,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 onFrame?.invoke(finalBitmap, faces)
 
             } catch (e: Exception) {
-                e.printStackTrace()
+                LogCat.logException(e)
             } finally {
                 image.close()
                 isConverting.set(false)

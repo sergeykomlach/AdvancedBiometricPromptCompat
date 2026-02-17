@@ -30,6 +30,7 @@ import android.util.Pair
 import androidx.core.content.edit
 import dev.skomlach.biometric.custom.face.tf.BuildConfig
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.storage.SharedPreferenceProvider.getCryptoPreferences
 import org.json.JSONArray
 import org.json.JSONException
@@ -148,11 +149,11 @@ private constructor() : SimilarityClassifier {
                     val recognition = json2recognition(jsonObject)
                     map[name] = recognition
                 } catch (e: Throwable) {
-                    e.printStackTrace()
+                    LogCat.logException(e)
                 }
             }
         } catch (e: Throwable) {
-            e.printStackTrace()
+            LogCat.logException(e)
         }
         Log.e(javaClass.simpleName, "registered: size ${map.size}")
         map
@@ -262,7 +263,7 @@ private constructor() : SimilarityClassifier {
             try {
                 getCryptoPreferences(storageName).edit { clear() }
             } catch (e: Throwable) {
-                e.printStackTrace()
+                LogCat.logException(e)
             }
         } else {
             if (BuildConfig.DEBUG) {
@@ -280,7 +281,7 @@ private constructor() : SimilarityClassifier {
                 jsonObjectRoot.put(name, null)
                 sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
             } catch (e: Throwable) {
-                e.printStackTrace()
+                LogCat.logException(e)
             }
         }
         Log.e(javaClass.simpleName, "registered: size ${registered.size}")
@@ -305,7 +306,7 @@ private constructor() : SimilarityClassifier {
                         "${rec.title}-${rec.id}.png"
                     )
                 } catch (e: Throwable) {
-                    e.printStackTrace()
+                    LogCat.logException(e)
                 }
             }
         }
