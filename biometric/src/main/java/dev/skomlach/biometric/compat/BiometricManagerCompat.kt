@@ -50,6 +50,18 @@ object BiometricManagerCompat {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
     @JvmStatic
+    fun initNonHardwareBiometrics(): Boolean {
+        BiometricAuthentication.loadCustomModules()
+        return BiometricAuthentication.customBiometricManagers.isNotEmpty()
+    }
+
+    @JvmStatic
+    fun releaseNonHardwareBiometrics(): Boolean {
+        BiometricAuthentication.resetCustomModules()
+        return BiometricAuthentication.customBiometricManagers.isEmpty()
+    }
+
+    @JvmStatic
     fun isDeviceSecureAvailable(): Boolean {
         val context = AndroidContext.appContext
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false

@@ -73,136 +73,117 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 object BiometricAuthentication {
-    private val moduleHashMap = Collections
-        .synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
+    private val moduleHashMap =
+        Collections.synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
+    private val customModuleHashMap =
+        Collections.synchronizedMap(HashMap<BiometricMethod, AbstractCustomBiometricManager>())
 
-    private var initInProgress = AtomicBoolean(false)
-    private var authInProgress = AtomicBoolean(false)
-    private val customModuleHashMap = Collections
-        .synchronizedMap(HashMap<BiometricMethod, AbstractCustomBiometricManager>())
+    val customBiometricManagers : List<AbstractCustomBiometricManager>
+        get() = customModuleHashMap.values.toList()
 
-    val customBiometricManagers = customModuleHashMap.values.toMutableList()
-    private val allMethods = ArrayList<BiometricMethod>().apply {
-
-        //any API
-        this.add(BiometricMethod.DUMMY_BIOMETRIC)
-        this.add(BiometricMethod.FACELOCK)
-        this.add(BiometricMethod.FACEUNLOCK_LAVA)
-
-        //Samsung Pass on Kitkat-Marshmallow (4.4/5.x/6.x), then deprecated
-        if (Build.VERSION.SDK_INT in 19..23) {
-            this.add(BiometricMethod.FINGERPRINT_SAMSUNG)
-        }
-        //Meizu - Lollipop (5.0-5.1),then deprecated
-        if (Build.VERSION.SDK_INT in 21..22) {
-            this.add(BiometricMethod.FINGERPRINT_FLYME)
-        }
-        //Fingerprint API - Marshmallow (6.0)
-        if (Build.VERSION.SDK_INT >= 23) {
-            this.add(BiometricMethod.FINGERPRINT_SOTERAPI)
-            this.add(BiometricMethod.FINGERPRINT_API23)
-            this.add(BiometricMethod.FINGERPRINT_SUPPORT)
-        }
-        //Samsung Face/Iris - Nougat (7.0)+
-        if (Build.VERSION.SDK_INT >= 24) {
-            this.add(BiometricMethod.FACE_SOTERAPI)
-            this.add(BiometricMethod.FACE_SAMSUNG)
-            this.add(BiometricMethod.IRIS_SAMSUNG)
-        }
-        //Miui FaceUnlock - AOS7 - AOS13
-        if (Build.VERSION.SDK_INT in 24..33) {
-            this.add(BiometricMethod.FACE_MIUI)
-        }
-        //Honor and Huawei FaceUnlock - AOS5-AOS9
-        if (Build.VERSION.SDK_INT in 21..28) {
-            this.add(BiometricMethod.FACE_HUAWEI)
-            this.add(BiometricMethod.FACE_HIHONOR)
-        }
-        //Honor and Huawei official FaceUnlock - AOS10+
-        if (Build.VERSION.SDK_INT >= 29) {
-            this.add(BiometricMethod.FACE_HUAWEI3D)
-            this.add(BiometricMethod.FACE_HIHONOR3D)
-        }
-        //Android biometric - Pie (9.0)
-        if (Build.VERSION.SDK_INT >= 28) {
-            this.add(BiometricMethod.FACE_ANDROIDAPI)
-            this.add(BiometricMethod.IRIS_ANDROIDAPI)
-        }
-
-    }
+    private val initInProgress = AtomicBoolean(false)
+    private val authInProgress = AtomicBoolean(false)
 
     @Volatile
     private var customLoading = false
+
+    private val allMethods = Collections.synchronizedList(ArrayList<BiometricMethod>()).apply {
+        add(BiometricMethod.DUMMY_BIOMETRIC)
+        add(BiometricMethod.FACELOCK)
+        add(BiometricMethod.FACEUNLOCK_LAVA)
+
+        if (Build.VERSION.SDK_INT in 19..23) {
+            add(BiometricMethod.FINGERPRINT_SAMSUNG)
+        }
+        if (Build.VERSION.SDK_INT in 21..22) {
+            add(BiometricMethod.FINGERPRINT_FLYME)
+        }
+        if (Build.VERSION.SDK_INT >= 23) {
+            add(BiometricMethod.FINGERPRINT_SOTERAPI)
+            add(BiometricMethod.FINGERPRINT_API23)
+            add(BiometricMethod.FINGERPRINT_SUPPORT)
+        }
+        if (Build.VERSION.SDK_INT >= 24) {
+            add(BiometricMethod.FACE_SOTERAPI)
+            add(BiometricMethod.FACE_SAMSUNG)
+            add(BiometricMethod.IRIS_SAMSUNG)
+        }
+        if (Build.VERSION.SDK_INT in 24..33) {
+            add(BiometricMethod.FACE_MIUI)
+        }
+        if (Build.VERSION.SDK_INT in 21..28) {
+            add(BiometricMethod.FACE_HUAWEI)
+            add(BiometricMethod.FACE_HIHONOR)
+        }
+        if (Build.VERSION.SDK_INT >= 29) {
+            add(BiometricMethod.FACE_HUAWEI3D)
+            add(BiometricMethod.FACE_HIHONOR3D)
+        }
+        if (Build.VERSION.SDK_INT >= 28) {
+            add(BiometricMethod.FACE_ANDROIDAPI)
+            add(BiometricMethod.IRIS_ANDROIDAPI)
+        }
+    }
+
     fun resetCustomModules() {
+        if (customLoading) return
         d("BiometricAuthentication", "resetCustomModules called")
         try {
-            if (customLoading) return
             customLoading = true
-            val registered = customModuleHashMap.keys.toMutableList()
-            customModuleHashMap.clear()
-            registered.forEach {
-                moduleHashMap.remove(it)
+            val keysToRemove = synchronized(customModuleHashMap) {
+                val keys = customModuleHashMap.keys.toList()
+                customModuleHashMap.clear()
+                keys
+            }
+            synchronized(moduleHashMap) {
+                keysToRemove.forEach { moduleHashMap.remove(it) }
             }
         } catch (e: Throwable) {
-            e("BiometricAuthentication", "ServiceLoader failure", e)
+            e("BiometricAuthentication", "resetCustomModules failure", e)
         } finally {
             customLoading = false
         }
     }
 
     fun loadCustomModules() {
+        if (customLoading) return
         d("BiometricAuthentication", "loadCustomModules called")
         try {
-            if (customLoading) return
             customLoading = true
             val loader = ServiceLoader.load(CustomBiometricProvider::class.java)
-            val customModules = HashMap<BiometricMethod, BiometricModule>()
+            val newCustomModules = HashMap<BiometricMethod, BiometricModule>()
+
             for (provider in loader) {
                 try {
-                    d(
-                        "BiometricAuthentication",
-                        "loadCustomModules provider ${provider.javaClass.simpleName}"
-                    )
                     val customManager = provider.getCustomManager(AndroidContext.appContext)
                     val targetType = customManager.biometricType
 
-                    val isAlreadyRegistered = customModuleHashMap.keys.any { method ->
-                        method.biometricType == targetType
+                    val isAlreadyRegistered = synchronized(customModuleHashMap) {
+                        customModuleHashMap.values.any { it.biometricType == targetType }
                     }
 
                     if (!isAlreadyRegistered && !BiometricManagerCompat.isBiometricAvailable(
                             BiometricAuthRequest(BiometricApi.AUTO, targetType)
                         )
                     ) {
-                        val biometricMethod =
-                            BiometricMethod.createCustomModule(
-                                customManager::class.java.name.hashCode(),
-                                targetType
-                            )
+                        val biometricMethod = BiometricMethod.createCustomModule(
+                            customManager::class.java.name.hashCode(),
+                            targetType
+                        )
 
                         customModuleHashMap[biometricMethod] = customManager
-                        val module = CustomBiometricModule(
-                            biometricMethod,
-                            customManager,
-                            null
-                        )
-                        customModules[biometricMethod] = module
-
+                        newCustomModules[biometricMethod] =
+                            CustomBiometricModule(biometricMethod, customManager, null)
                         d(
                             "BiometricAuthentication",
                             "Registered custom module: ${customManager.javaClass.simpleName}"
-                        )
-                    } else {
-                        d(
-                            "BiometricAuthentication",
-                            "Ignored custom module ${customManager.javaClass.simpleName} because $targetType is already handled"
                         )
                     }
                 } catch (e: Throwable) {
                     e("BiometricAuthentication", "Error loading custom module", e)
                 }
             }
-            moduleHashMap.putAll(customModules)
+            moduleHashMap.putAll(newCustomModules)
         } catch (e: Throwable) {
             e("BiometricAuthentication", "ServiceLoader failure", e)
         } finally {
@@ -210,89 +191,79 @@ object BiometricAuthentication {
         }
     }
 
-
     @JvmOverloads
     fun init(
         globalInitListener: BiometricInitListener? = null,
         mlist: Collection<BiometricType>? = null
     ) {
-        if (initInProgress.get())
-            return
-        initInProgress.set(true)
+        if (!initInProgress.compareAndSet(false, true)) return
+
         val ts = System.currentTimeMillis()
         e("BiometricAuthentication.init() - started")
-        //main thread required
-        val allMethodsCopy = allMethods.toMutableList()
-        val modulesMap = HashMap<BiometricMethod, BiometricModule?>()
-        //launch in BG because for init needed about 2-3 seconds
-        try {
-            val list: MutableList<BiometricMethod>
-            if (mlist.isNullOrEmpty()) list = allMethodsCopy else {
-                list = ArrayList()
-                for (method in allMethodsCopy) {
-                    for (type in mlist) {
-                        if (method.biometricType == type) {
-                            list.add(method)
-                        }
-                    }
-                }
-            }
-            val counter = AtomicInteger(list.size)
-            val initListener: BiometricInitListener = object : BiometricInitListener {
-                override fun initFinished(method: BiometricMethod, module: BiometricModule?) {
-                    val moduleReady =
-                        module != null && module.isManagerAccessible && module.isHardwarePresent
-                    val remains = counter.decrementAndGet()
 
-                    if (moduleReady) {
+        val allMethodsCopy = synchronized(allMethods) { allMethods.toList() }
+        val modulesMap = Collections.synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
+
+        try {
+            val list = if (mlist.isNullOrEmpty()) {
+                allMethodsCopy
+            } else {
+                allMethodsCopy.filter { method -> mlist.any { it == method.biometricType } }
+            }
+
+            if (list.isEmpty()) {
+                finalizeInit(ts, modulesMap, globalInitListener)
+                return
+            }
+
+            val counter = AtomicInteger(list.size)
+            val initListener = object : BiometricInitListener {
+                override fun initFinished(method: BiometricMethod, module: BiometricModule?) {
+                    if (module?.isManagerAccessible == true && module.isHardwarePresent) {
                         modulesMap[method] = module
                     }
                     globalInitListener?.initFinished(method, module)
-                    if (remains == 0) {
-                        moduleHashMap.apply {
-                            clear()
-                            putAll(modulesMap)
-                        }
-                        initInProgress.set(false)
-                        e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
-                        globalInitListener?.onBiometricReady()
-
+                    if (counter.decrementAndGet() == 0) {
+                        finalizeInit(ts, modulesMap, globalInitListener)
                     }
                 }
 
                 override fun onBiometricReady() {}
             }
-            if (list.isEmpty()) {
-                initInProgress.set(false)
-                e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
-                globalInitListener?.onBiometricReady()
-            } else
-                for (method in list) {
-                    initModule(method, initListener)
-                }
+
+            for (method in list) {
+                initModule(method, initListener)
+            }
         } catch (e: Throwable) {
             e(e, "BiometricAuthentication")
+            initInProgress.set(false)
         }
+    }
+
+    private fun finalizeInit(
+        ts: Long,
+        modules: Map<BiometricMethod, BiometricModule>,
+        listener: BiometricInitListener?
+    ) {
+        synchronized(moduleHashMap) {
+            moduleHashMap.clear()
+            moduleHashMap.putAll(modules)
+        }
+        initInProgress.set(false)
+        e("BiometricAuthentication.init() - done; ts=${System.currentTimeMillis() - ts} ms")
+        listener?.onBiometricReady()
     }
 
     private fun initModule(method: BiometricMethod, initListener: BiometricInitListener) {
         ExecutorHelper.startOnBackground {
-            e("BiometricAuthentication.check started for $method")
-
             try {
                 when (method) {
                     BiometricMethod.DUMMY_BIOMETRIC -> DummyBiometricModule(initListener)
                     BiometricMethod.FACELOCK -> FacelockOldModule(initListener)
                     BiometricMethod.FACEUNLOCK_LAVA -> FaceunlockLavaModule(initListener)
                     BiometricMethod.FINGERPRINT_API23 -> API23FingerprintModule(initListener)
-                    BiometricMethod.FINGERPRINT_SUPPORT -> SupportFingerprintModule(
-                        initListener
-                    )
-
-                    BiometricMethod.FINGERPRINT_SAMSUNG -> SamsungFingerprintModule(
-                        initListener
-                    )
-
+                    BiometricMethod.FINGERPRINT_SUPPORT -> SupportFingerprintModule(initListener)
+                    BiometricMethod.FINGERPRINT_SAMSUNG -> SamsungFingerprintModule(initListener)
                     BiometricMethod.FINGERPRINT_FLYME -> FlymeFingerprintModule(initListener)
                     BiometricMethod.FINGERPRINT_SOTERAPI -> SoterFingerprintUnlockModule(
                         initListener
@@ -309,7 +280,7 @@ object BiometricAuthentication {
                     BiometricMethod.FACE_ANDROIDAPI -> AndroidFaceUnlockModule(initListener)
                     BiometricMethod.IRIS_SAMSUNG -> SamsungIrisUnlockModule(initListener)
                     BiometricMethod.IRIS_ANDROIDAPI -> AndroidIrisUnlockModule(initListener)
-                    else -> throw IllegalStateException("Unknown biometric type - $method")
+                    else -> initListener.initFinished(method, null)
                 }
             } catch (e: Throwable) {
                 e(e, "BiometricAuthentication")
@@ -319,75 +290,34 @@ object BiometricAuthentication {
     }
 
     fun updateBiometricEnrollChanged() {
-        for (method in availableBiometrics) {
-            val biometricModule = getAvailableBiometricModule(method)
-            if (biometricModule?.isBiometricEnrollChanged == true)
-                (biometricModule as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
+        availableBiometrics.forEach { type ->
+            (getAvailableBiometricModule(type) as? AbstractBiometricModule)?.updateBiometricEnrollChanged()
         }
     }
 
-    fun isEnrollChanged(): Boolean {
-        for (method in availableBiometrics) {
-            if (getAvailableBiometricModule(method)?.isBiometricEnrollChanged == true) return true
-        }
-        return false
-    }
+    fun isEnrollChanged(): Boolean =
+        availableBiometrics.any { getAvailableBiometricModule(it)?.isBiometricEnrollChanged == true }
 
-    val availableBiometrics: List<BiometricType?>
-        get() {
-            val biometricMethodListInternal = HashSet<BiometricType?>()
-            val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
-            for (method in moduleHashMap.keys) {
-                biometricMethodListInternal.add(method.biometricType)
-            }
-            return ArrayList(biometricMethodListInternal)
+    val availableBiometrics: List<BiometricType>
+        get() = synchronized(moduleHashMap) {
+            moduleHashMap.keys.map { it.biometricType }.distinct()
         }
+
     val availableBiometricMethods: List<BiometricMethod>
-        get() {
-            val biometricMethodListInternal = HashSet<BiometricMethod>()
-            val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
-            for (method in moduleHashMap.keys) {
-                biometricMethodListInternal.add(method)
-            }
-            return ArrayList(biometricMethodListInternal)
-        }
+        get() = synchronized(moduleHashMap) { moduleHashMap.keys.toList() }
+
     val isLockOut: Boolean
         get() {
-            var isLocked = availableBiometrics.isNotEmpty()
-            for (method in availableBiometrics) {
-                val module = getAvailableBiometricModule(method)
-                if (module != null && !module.isLockOut) {
-                    isLocked = false
-                }
-            }
-            return isLocked
+            val biometrics = availableBiometrics
+            if (biometrics.isEmpty()) return false
+            return biometrics.all { getAvailableBiometricModule(it)?.isLockOut == true }
         }
+
     val isHardwareDetected: Boolean
-        get() {
-            for (method in availableBiometrics) {
-                if (getAvailableBiometricModule(method)?.isHardwarePresent == true) return true
-            }
-            return false
-        }
+        get() = availableBiometrics.any { getAvailableBiometricModule(it)?.isHardwarePresent == true }
 
     val hasEnrolled: Boolean
-        get() {
-            for (method in availableBiometrics) {
-                if (getAvailableBiometricModule(method)?.hasEnrolled == true) return true
-            }
-            return false
-        }
-
-
-    fun authenticate(
-        biometricCryptographyPurpose: BiometricCryptographyPurpose?,
-        targetView: SurfaceView?,
-        method: BiometricType,
-        listener: BiometricAuthenticationListener,
-        bundle: Bundle?
-    ) {
-        authenticate(biometricCryptographyPurpose, targetView, listOf(method), listener, bundle)
-    }
+        get() = availableBiometrics.any { getAvailableBiometricModule(it)?.hasEnrolled == true }
 
     fun authenticate(
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
@@ -397,210 +327,157 @@ object BiometricAuthentication {
         bundle: Bundle?
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) return
+
         if (initInProgress.get()) {
-            val reference = WeakReference(targetView)
-            val startTime = System.currentTimeMillis()
-            var timeout = false
+            val viewRef = WeakReference(targetView)
+            val methodsRef = requestedMethods.filterNotNull()
             ExecutorHelper.startOnBackground {
-                while (initInProgress.get()) {
-                    timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
-                    if (timeout) {
-                        break
-                    }
-                    try {
-                        Thread.sleep(10)
-                    } catch (ignore: InterruptedException) {
-                    }
+                val start = System.currentTimeMillis()
+                while (initInProgress.get() && System.currentTimeMillis() - start < 5000) {
+                    Thread.sleep(50)
                 }
-                if (!initInProgress.get())
-                    ExecutorHelper.post {
-                        authenticate(
-                            biometricCryptographyPurpose,
-                            reference.get(),
-                            requestedMethods,
-                            listener,
-                            bundle
-                        )
-                    } else listener.onFailure(
-                    AuthenticationResult(
-                        requestedMethods.first(),
-                        null,
-                        AuthenticationFailureReason.INTERNAL_ERROR,
-                        "Can't start authenticate"
+                ExecutorHelper.post {
+                    authenticate(
+                        biometricCryptographyPurpose,
+                        viewRef.get(),
+                        methodsRef,
+                        listener,
+                        bundle
                     )
-                )
+                }
             }
             return
         }
-        d("BiometricAuthentication.authenticate")
-        var isAtLeastOneFired = false
-        val hashMap = HashMap<Int, BiometricType?>()
-        Core.cleanModules()
-        for (type in requestedMethods) {
-            val biometricModule = getAvailableBiometricModule(type)
-            if (biometricModule == null || !biometricModule.hasEnrolled) continue
-            Core.registerModule(biometricModule)
-            when (biometricModule) {
-                is SoterFaceUnlockModule -> {
-                    biometricModule.bundle = bundle
-                }
 
-                is SoterFingerprintUnlockModule -> {
-                    biometricModule.bundle = bundle
-                }
-//                is HuaweiFaceUnlockModule -> {
-//                    biometricModule.setCallerView(targetView)
-//                }
-//                is HihonorFaceUnlockModule -> {
-//                    biometricModule.setCallerView(targetView)
-//                }
-//                is SamsungFaceUnlockModule -> {
-//                    biometricModule.setCallerView(targetView)
-//                }
-//                is SamsungIrisUnlockModule -> {
-//                    biometricModule.setCallerView(targetView)
-//                }
-                is FacelockOldModule -> {
-                    biometricModule.setCallerView(targetView)
-                }
+        d("BiometricAuthentication.authenticate")
+        val activeModules = HashMap<Int, BiometricType>()
+        Core.cleanModules()
+
+        requestedMethods.filterNotNull().forEach { type ->
+            getAvailableBiometricModule(type)?.takeIf { it.hasEnrolled }?.let { module ->
+                Core.registerModule(module)
+                if (module is FacelockOldModule) module.setCallerView(targetView)
+                if (module is SoterFaceUnlockModule) module.bundle = bundle
+                if (module is SoterFingerprintUnlockModule) module.bundle = bundle
+                activeModules[module.tag()] = type
             }
-            hashMap[biometricModule.tag()] = type
-            isAtLeastOneFired = true
         }
-        if (!isAtLeastOneFired) {
+
+        if (activeModules.isEmpty()) {
             listener.onFailure(
                 AuthenticationResult(
-                    requestedMethods[0],
-                    reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
+                    requestedMethods.firstOrNull(),
+                    reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
                 )
             )
             return
-        } else {
-            authInProgress.set(true)
-            val ref = SoftReference(listener)
-            Core.authenticate(biometricCryptographyPurpose, object : AuthenticationListener {
-                override fun onHelp(msg: CharSequence?) {
-                    ref.get()?.onHelp(msg)
-                }
-
-                override fun onSuccess(
-                    moduleTag: Int,
-                    biometricCryptoObject: BiometricCryptoObject?
-                ) {
-                    ref.get()
-                        ?.onSuccess(AuthenticationResult(hashMap[moduleTag], biometricCryptoObject))
-                }
-
-                override fun onFailure(
-                    moduleTag: Int,
-                    reason: AuthenticationFailureReason?,
-                    description: CharSequence?
-                ) {
-                    ref.get()?.onFailure(
-                        AuthenticationResult(
-                            hashMap[moduleTag],
-                            reason = reason,
-                            description = description
-                        )
-                    )
-                }
-
-                override fun onCanceled(
-                    moduleTag: Int,
-                    reason: AuthenticationFailureReason?,
-                    description: CharSequence?
-                ) {
-                    ref.get()?.onCanceled(
-                        AuthenticationResult(
-                            hashMap[moduleTag],
-                            reason = reason,
-                            description = description
-                        )
-                    )
-                }
-            })
         }
+
+        authInProgress.set(true)
+        val listenerRef = SoftReference(listener)
+
+        Core.authenticate(biometricCryptographyPurpose, object : AuthenticationListener {
+            override fun onHelp(msg: CharSequence?) {
+                listenerRef.get()?.onHelp(msg)
+            }
+
+            override fun onSuccess(tag: Int, crypto: BiometricCryptoObject?) {
+                authInProgress.set(false)
+                listenerRef.get()?.onSuccess(AuthenticationResult(activeModules[tag], crypto))
+            }
+
+            override fun onFailure(
+                tag: Int,
+                reason: AuthenticationFailureReason?,
+                desc: CharSequence?
+            ) {
+                authInProgress.set(false)
+                listenerRef.get()?.onFailure(
+                    AuthenticationResult(
+                        activeModules[tag],
+                        reason = reason,
+                        description = desc
+                    )
+                )
+            }
+
+            override fun onCanceled(
+                tag: Int,
+                reason: AuthenticationFailureReason?,
+                desc: CharSequence?
+            ) {
+                authInProgress.set(false)
+                listenerRef.get()?.onCanceled(
+                    AuthenticationResult(
+                        activeModules[tag],
+                        reason = reason,
+                        description = desc
+                    )
+                )
+            }
+        })
     }
 
     fun cancelAuthentication() {
-        if (authInProgress.get()) {
-            authInProgress.set(false)
+        if (authInProgress.compareAndSet(true, false)) {
             d("BiometricAuthentication.cancelAuthentication")
             ExecutorHelper.startOnBackground {
-                for (method in availableBiometrics) {
-                    val biometricModule = getAvailableBiometricModule(method)
-                    if (biometricModule is FacelockOldModule) {
-                        biometricModule.stopAuth()
-                    }
-                    if (biometricModule is FaceunlockLavaModule) {
-                        biometricModule.stopAuth()
-                    }
+                availableBiometricMethods.forEach { method ->
+                    val module = moduleHashMap[method]
+                    if (module is FacelockOldModule) module.stopAuth()
+                    if (module is FaceunlockLavaModule) module.stopAuth()
                 }
                 Core.cancelAuthentication()
-
-                init(null, availableBiometrics.filterNotNull())
+                init(null, availableBiometrics)
             }
-
         }
     }
 
     fun openSettings(context: Activity, type: BiometricType): Boolean {
-        return if (availableBiometricMethods.isEmpty()) {
-            false
-        } else openSettings(
-            context,
-            type,
-            getAvailableBiometricModule(type)
-        )
-    }
+        val module = getAvailableBiometricModule(type) ?: return false
+        return try {
+            when (module) {
+                is SamsungFingerprintModule if type == BiometricType.BIOMETRIC_FINGERPRINT ->
+                    module.openSettings(context)
 
-    private fun openSettings(
-        context: Activity,
-        method: BiometricType,
-        biometricModule: BiometricModule?
-    ): Boolean {
-        if (biometricModule is SamsungFingerprintModule && method == BiometricType.BIOMETRIC_FINGERPRINT) {
-            if (biometricModule.openSettings(context)) return true
-        }
-        if (biometricModule is FacelockOldModule && method == BiometricType.BIOMETRIC_FACE &&
-            startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
-        ) {
-            return true
-        }
-        if (biometricModule is MiuiFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE && startActivity(
-                Intent().setClassName("com.android.settings", "com.android.settings.Settings")
-                    .putExtra(
-                        ":android:show_fragment",
-                        "com.android.settings.security.MiuiSecurityAndPrivacySettings"
-                    ),
-                context
-            )
-        ) {
-            return true
-        }
-        if (biometricModule is HuaweiFaceUnlockModule && method == BiometricType.BIOMETRIC_FACE && startActivity(
-                Intent().setClassName(
-                    "com.android.settings",
-                    "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"
-                ), context
-            )
-        ) {
-            return true
-        }
-        return false
-    }
+                is FacelockOldModule if type == BiometricType.BIOMETRIC_FACE ->
+                    startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
 
-    fun getAvailableBiometricModule(biometricMethod: BiometricType?): BiometricModule? {
-        var module: BiometricMethod? = null
-        //lowest  ID == highest priority
-        val moduleHashMap = HashMap<BiometricMethod, BiometricModule>(this.moduleHashMap)
-        for (m in moduleHashMap.keys) {
-            if (m.biometricType == biometricMethod) {
-                if (module == null) module = m else if (module.id > m.id) {
-                    module = m
-                }
+                is MiuiFaceUnlockModule if type == BiometricType.BIOMETRIC_FACE ->
+                    startActivity(
+                        Intent().setClassName(
+                            "com.android.settings",
+                            "com.android.settings.Settings"
+                        )
+                            .putExtra(
+                                ":android:show_fragment",
+                                "com.android.settings.security.MiuiSecurityAndPrivacySettings"
+                            ), context
+                    )
+
+                is HuaweiFaceUnlockModule if type == BiometricType.BIOMETRIC_FACE ->
+                    startActivity(
+                        Intent().setClassName(
+                            "com.android.settings",
+                            "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"
+                        ), context
+                    )
+
+                else -> false
             }
+        } catch (e: Throwable) {
+            e(e, "BiometricAuthentication.openSettings")
+            false
         }
-        return if (module == null) null else moduleHashMap[module]
+    }
+
+    fun getAvailableBiometricModule(biometricType: BiometricType?): BiometricModule? {
+        if (biometricType == null) return null
+        return synchronized(moduleHashMap) {
+            moduleHashMap.entries
+                .filter { it.key.biometricType == biometricType }
+                .minByOrNull { it.key.id }
+                ?.value
+        }
     }
 }
