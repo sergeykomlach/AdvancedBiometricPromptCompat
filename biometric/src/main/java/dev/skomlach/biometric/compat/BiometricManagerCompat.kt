@@ -43,22 +43,22 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object BiometricManagerCompat {
     private const val TAG = "BiometricManagerCompat"
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
-    @JvmStatic
-    fun initNonHardwareBiometrics(): Boolean {
+    suspend fun initNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
         BiometricAuthentication.loadCustomModules()
-        return BiometricAuthentication.customBiometricManagers.isNotEmpty()
+        return@withContext BiometricAuthentication.customBiometricManagers.isNotEmpty()
     }
 
-    @JvmStatic
-    fun releaseNonHardwareBiometrics(): Boolean {
+    suspend fun releaseNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
         BiometricAuthentication.resetCustomModules()
-        return BiometricAuthentication.customBiometricManagers.isEmpty()
+        return@withContext BiometricAuthentication.customBiometricManagers.isEmpty()
     }
 
     @JvmStatic

@@ -25,7 +25,12 @@ import androidx.multidex.MultiDexApplication
 import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class App : MultiDexApplication() {
     companion object {
@@ -54,12 +59,17 @@ class App : MultiDexApplication() {
 
     private fun checkForDeviceInfo() {
         if (BiometricPromptCompat.isInitialized && BiometricPromptCompat.deviceInfo != null) {
-            authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
-            for (listener in onInitListeners) {
-                listener.onFinished()
+            GlobalScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
+                    BiometricManagerCompat.initNonHardwareBiometrics()
+                }
+                authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
+                for (listener in onInitListeners) {
+                    listener.onFinished()
+                }
+                onInitListeners.clear()
+                isReady = true
             }
-            onInitListeners.clear()
-            isReady = true
         } else {
             Handler(Looper.getMainLooper()).postDelayed({
                 checkForDeviceInfo()
