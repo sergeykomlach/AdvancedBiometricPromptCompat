@@ -173,7 +173,9 @@ object BiometricAuthentication {
 
                         customModuleHashMap[biometricMethod] = customManager
                         newCustomModules[biometricMethod] =
-                            CustomBiometricModule(biometricMethod, customManager, null)
+                            CustomBiometricModule(biometricMethod, customManager, null).apply {
+                                bundle = customManager.getDefaultBundle()
+                            }
                         d(
                             "BiometricAuthentication",
                             "Registered custom module: ${customManager.javaClass.simpleName}"

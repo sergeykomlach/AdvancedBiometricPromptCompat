@@ -32,6 +32,6 @@ class DialogViewModel : ViewModel() {
         }
 
     fun dismissDialog() {
-        mutableLiveData.value = true
+        mutableLiveData.postValue(true)
     }
 }

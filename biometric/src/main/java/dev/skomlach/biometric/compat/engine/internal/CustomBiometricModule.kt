@@ -28,6 +28,7 @@ import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Compa
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC
+import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_SPACE
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
@@ -198,7 +199,8 @@ class CustomBiometricModule(
 
                 CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-
+                CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS -> failureReason =
+                    AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType
@@ -226,7 +228,7 @@ class CustomBiometricModule(
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                        listener?.onFailure(tag(), failureReason, errString)
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -253,7 +255,7 @@ class CustomBiometricModule(
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                    listener?.onFailure(tag(), failureReason, errString)
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -268,7 +270,7 @@ class CustomBiometricModule(
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                    listener?.onFailure(tag(), failureReason, errString)
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true

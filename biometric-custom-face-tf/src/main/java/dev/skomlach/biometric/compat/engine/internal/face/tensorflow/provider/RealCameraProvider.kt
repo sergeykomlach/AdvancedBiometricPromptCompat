@@ -75,7 +75,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
     private fun startCamera() {
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(Manifest.permission.CAMERA)) {
             onError?.invoke(
-                AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
                 LocalizationHelper.getLocalizedString(
                     context,
                     R.string.tf_face_help_model_no_camera_permissions

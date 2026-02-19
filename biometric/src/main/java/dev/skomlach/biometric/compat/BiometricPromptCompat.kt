@@ -402,10 +402,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
-//        if (!BiometricManagerCompat.hasPermissionsGranted(impl.builder.getBiometricAuthRequest())) {
-//            BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - missed permissions")
-//            return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
-//        } else
+        if (!BiometricManagerCompat.hasPermissionsGranted(impl.builder.getBiometricAuthRequest())) {
+            BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - missed permissions")
+            return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
+        } else
         if (!BiometricManagerCompat.isHardwareDetected(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE

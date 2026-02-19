@@ -41,6 +41,7 @@ abstract class AbstractCustomBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_LOCKOUT = 7
         const val CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT = 9
         const val CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC = 11
+        const val CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS = 13
         const val CUSTOM_BIOMETRIC_ERROR_NO_SPACE = 4
         const val CUSTOM_BIOMETRIC_ERROR_TIMEOUT = 3
         const val CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS = 2
@@ -57,6 +58,7 @@ abstract class AbstractCustomBiometricManager {
     abstract fun getManagers(): Set<Any>
 
     abstract fun remove(extra: Bundle?)
+    abstract fun getDefaultBundle(name: String? = null): Bundle
 
     abstract fun authenticate(
         crypto: CryptoObject?,

@@ -325,6 +325,9 @@ class TensorFlowFaceUnlockManager(
     at dev.skomlach.biometric.app.FirstFragment$$ExternalSyntheticLambda8.onClick(R8$$SyntheticClass:0) 
     */
     override fun hasEnrolledBiometric(): Boolean {
+        return isHardwareDetected()
+    }
+    private fun hasEnrolledBiometricInternal(): Boolean {
         val result = detector?.hasRegistered() == true
         LogCat.log(TAG, "hasEnrolledBiometric=$result " + Log.getStackTraceString(Throwable()))
         return result
@@ -340,6 +343,13 @@ class TensorFlowFaceUnlockManager(
         LogCat.log(TAG, "remove")
         stopAuthentication()
         detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
+    }
+
+    override fun getDefaultBundle(name: String?): Bundle {
+        return Bundle().apply {
+            putBoolean(IS_ENROLLMENT_KEY, !hasEnrolledBiometricInternal())
+            putString(ENROLLMENT_TAG_KEY, name?:"face1")
+        }
     }
 
     override fun authenticate(
@@ -420,7 +430,7 @@ class TensorFlowFaceUnlockManager(
             )
             stopAuthentication()
             return
-        } else if (!isEnrolling && !hasEnrolledBiometric()) {
+        } else if (!isEnrolling && !hasEnrolledBiometricInternal()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
                 LocalizationHelper.getLocalizedString(
