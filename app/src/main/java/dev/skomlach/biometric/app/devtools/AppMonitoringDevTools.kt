@@ -27,7 +27,10 @@ import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.util.Log
 import androidx.core.content.ContextCompat
-//import com.github.anrwatchdog.ANRWatchDog
+import com.github.anrwatchdog.ANRWatchDog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.reflect.Modifier
 import java.net.URL
@@ -37,8 +40,7 @@ import java.text.DecimalFormat
 class AppMonitoringDevTools(val app: Application) {
     private val threadPolicy = StrictMode.getThreadPolicy()
     private val vmPolicy = StrictMode.getVmPolicy()
-
-    //    private var anrWatchDog: ANRWatchDog? = null
+    private var anrWatchDog: ANRWatchDog? = null
     private var enable: Boolean = false
     private var fileObserver: FileObserver? = null
 
@@ -76,22 +78,28 @@ class AppMonitoringDevTools(val app: Application) {
 
             fileObserver = object : FileObserver(path, allExceptAccessFlags) {
                 override fun onEvent(event: Int, p: String?) {
-                    scanRecursivly(path, File(path))
+                    GlobalScope.launch(Dispatchers.IO) {
+                        scanRecursively(path, File(path))
+                    }
                 }
             }
         } catch (e: Throwable) {
-            Log.e("AppMonitoringDevTools", e.message, e)
+            Log.e(
+                "AppMonitoringDevTools",
+                e.message,
+                e
+            )
         }
     }
 
 
-    private fun scanRecursivly(path: String, fileOrDirectory: File?) {
+    private fun scanRecursively(path: String, fileOrDirectory: File?) {
         try {
             if (fileOrDirectory?.isDirectory == true) {
                 val files = fileOrDirectory.listFiles()
                 if (files != null && files.isNotEmpty()) {
                     for (child in files) {
-                        scanRecursivly(path, child)
+                        scanRecursively(path, child)
                     }
                 }
             } else {
@@ -107,13 +115,15 @@ class AppMonitoringDevTools(val app: Application) {
                 }
             }
         } catch (e: Throwable) {
-            e.printStackTrace()
+            Log.e("AppMonitoringDevTools", e.message, e)
         }
     }
 
     fun enableMonitoringTools(enable: Boolean) {
 
         this.enable = enable
+
+        LeakCanaryConfig.setup(enable)
         if (enable) {
             OkUrlFactory.setURLStreamHandlerFactory()
         } else {
@@ -121,39 +131,41 @@ class AppMonitoringDevTools(val app: Application) {
                 URL.setURLStreamHandlerFactory(it)
             }
         }
-
-//        LeakCanaryConfig.setup(enable)
-
         if (enable) {
-//            //Log ANR's, always
-//            if (anrWatchDog == null) {
-//                anrWatchDog = ANRWatchDog()
-//                    .setLogThreadsWithoutStackTrace(true)
-//                    .setIgnoreDebugger(true)
-//                    .setReportMainThreadOnly()
-//                    .setInterruptionListener { exception ->
-//                        Log.e(
-//                            "ANRWatchDog", "onInterrupted",
-//                            exception
-//                        )
-//                    }
-//                    .setANRListener { error ->
-//                        Log.e(
-//                            "ANRWatchDog", "onAppNotResponding",
-//                            error
-//                        )
-//                    }
-//            }
-//
-//            anrWatchDog?.start()
+            try {
+                anrWatchDog?.interrupt()
+                anrWatchDog = null
+            } catch (_: InterruptedException) {
+
+            }
+            if (anrWatchDog == null) {
+                anrWatchDog = ANRWatchDog()
+                    .setLogThreadsWithoutStackTrace(true)
+                    .setIgnoreDebugger(true)
+                    .setReportAllThreads()
+                    .setInterruptionListener { e ->
+                        Log.e(
+                            "ANRWatchDog.onInterrupted",
+                            e.message, e
+                        )
+                    }
+                    .setANRListener { e ->
+                        Log.e(
+                            "ANRWatchDog.onAppNotResponding",
+                            e.message, e
+                        )
+                    }
+            }
+
+            anrWatchDog?.start()
             fileObserver?.startWatching()
         } else {
-//            try {
-//                anrWatchDog?.interrupt()
-//                anrWatchDog = null
-//            } catch (ignore: InterruptedException) {
-//
-//            }
+            try {
+                anrWatchDog?.interrupt()
+                anrWatchDog = null
+            } catch (_: InterruptedException) {
+
+            }
             fileObserver?.stopWatching()
         }
 

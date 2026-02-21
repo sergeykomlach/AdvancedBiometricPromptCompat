@@ -22,6 +22,8 @@ import static okhttp3.internal._UtilJvmKt.UTC;
 
 import android.net.TrafficStats;
 
+import com.chuckerteam.chucker.api.ChuckerInterceptor;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 
 import dev.skomlach.biometric.app.devtools.internal.JavaNetHeaders;
 import dev.skomlach.biometric.app.devtools.internal.URLFilter;
+import dev.skomlach.common.contextprovider.AndroidContext;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Dispatcher;
@@ -477,10 +480,7 @@ public final class OkHttpURLConnection extends HttpURLConnection implements Call
         clientBuilder.networkInterceptors().clear();
         clientBuilder.networkInterceptors().add(networkInterceptor);
 
-//        ChuckInterceptor chuckInterceptor = new ChuckInterceptor(AndroidContext.INSTANCE.getAppContext());
-//        chuckInterceptor.showNotification(false);
-//        chuckInterceptor.retainDataFor(ChuckInterceptor.Period.ONE_HOUR);
-//        clientBuilder.interceptors().add(chuckInterceptor);
+        clientBuilder.interceptors().add(new ChuckerInterceptor(AndroidContext.INSTANCE.getAppContext()));
 
         // Use a separate dispatcher so that limits aren't impacted. But use the same executor service!
         clientBuilder.dispatcher(new Dispatcher(client.dispatcher().executorService()));

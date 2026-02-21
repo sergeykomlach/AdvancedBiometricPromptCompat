@@ -32,7 +32,7 @@ kotlin {
     jvmToolchain(javaVersion.ordinal() + 1)
 }
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation libs.androidx.appcompat
 }
 
 // Publishing

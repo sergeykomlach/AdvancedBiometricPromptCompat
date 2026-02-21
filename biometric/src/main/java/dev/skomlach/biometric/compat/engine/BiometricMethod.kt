@@ -25,12 +25,7 @@ enum class BiometricMethod(id: Int, biometricType: BiometricType) {
     CUSTOM(0, BiometricType.BIOMETRIC_ANY),
     FINGERPRINT_API23(100, BiometricType.BIOMETRIC_FINGERPRINT),
     FINGERPRINT_SUPPORT(101, BiometricType.BIOMETRIC_FINGERPRINT),
-    FINGERPRINT_SAMSUNG(102, BiometricType.BIOMETRIC_FINGERPRINT),
-    FINGERPRINT_FLYME(
-        103,
-        BiometricType.BIOMETRIC_FINGERPRINT
-    ), //http://open-wiki.flyme.cn/index.php?title=%E6%8C%87%E7%BA%B9%E8%AF%86%E5%88%ABAPI
-    FINGERPRINT_SOTERAPI(104, BiometricType.BIOMETRIC_FINGERPRINT),
+    FINGERPRINT_SOTERAPI(102, BiometricType.BIOMETRIC_FINGERPRINT),
 
     FACE_ANDROIDAPI(201, BiometricType.BIOMETRIC_FACE),
     FACE_SAMSUNG(

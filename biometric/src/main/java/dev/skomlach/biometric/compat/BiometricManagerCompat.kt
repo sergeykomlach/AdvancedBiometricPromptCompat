@@ -51,24 +51,21 @@ object BiometricManagerCompat {
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
-    suspend fun initNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun loadNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
         BiometricAuthentication.loadCustomModules()
         return@withContext BiometricAuthentication.customBiometricManagers.isNotEmpty()
     }
 
-    suspend fun releaseNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
-        BiometricAuthentication.resetCustomModules()
+    suspend fun unloadNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
+        BiometricAuthentication.unloadCustomModules()
         return@withContext BiometricAuthentication.customBiometricManagers.isEmpty()
     }
 
     @JvmStatic
     fun isDeviceSecureAvailable(): Boolean {
         val context = AndroidContext.appContext
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
         val keyguardManager =
             context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager?
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
-            return keyguardManager?.isKeyguardSecure == true
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_SECURE_LOCK_SCREEN)) {
                 keyguardManager?.isDeviceSecure == true || keyguardManager?.isKeyguardSecure == true
@@ -504,8 +501,6 @@ object BiometricManagerCompat {
                 BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
                     "android.permission.USE_FINGERPRINT"
                 )
-
-                BiometricMethod.FINGERPRINT_SAMSUNG -> permission.add("com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY")
                 else -> {
                     //no-op
                 }

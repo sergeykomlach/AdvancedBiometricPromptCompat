@@ -61,7 +61,7 @@ class App : MultiDexApplication() {
         if (BiometricPromptCompat.isInitialized && BiometricPromptCompat.deviceInfo != null) {
             GlobalScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
-                    BiometricManagerCompat.initNonHardwareBiometrics()
+                    BiometricManagerCompat.loadNonHardwareBiometrics()
                 }
                 authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
                 for (listener in onInitListeners) {

@@ -55,12 +55,8 @@
     <!--Samsung API's
     https://github.com/ixt/ManifestDestinyDB/blob/03c83d5bc732057b6532c8266d4659b73260dd09/manifests/com.sec.android.app.sbrowser.beta.json
      -->
-    <uses-permission android:name="com.samsung.android.providers.context.permission.WRITE_USE_APP_FEATURE_SURVEY" />
     <uses-permission android:name="com.samsung.android.camera.iris.permission.USE_IRIS" />
     <uses-permission android:name="com.samsung.android.bio.face.permission.USE_FACE" />
-
-    <!--Meizu API -->
-    <uses-permission android:name="com.fingerprints.service.ACCESS_FINGERPRINT_MANAGER" />
 
     <!--Android API's -->
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />

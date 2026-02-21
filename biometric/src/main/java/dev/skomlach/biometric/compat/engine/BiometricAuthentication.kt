@@ -53,8 +53,6 @@ import dev.skomlach.biometric.compat.engine.internal.face.oppo.OppoFaceUnlockMod
 import dev.skomlach.biometric.compat.engine.internal.face.samsung.SamsungFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.soter.SoterFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.API23FingerprintModule
-import dev.skomlach.biometric.compat.engine.internal.fingerprint.FlymeFingerprintModule
-import dev.skomlach.biometric.compat.engine.internal.fingerprint.SamsungFingerprintModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.SoterFingerprintUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.fingerprint.SupportFingerprintModule
 import dev.skomlach.biometric.compat.engine.internal.iris.android.AndroidIrisUnlockModule
@@ -68,7 +66,6 @@ import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.ServiceLoader
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -92,17 +89,10 @@ object BiometricAuthentication {
         add(BiometricMethod.FACELOCK)
         add(BiometricMethod.FACEUNLOCK_LAVA)
 
-        if (Build.VERSION.SDK_INT in 19..23) {
-            add(BiometricMethod.FINGERPRINT_SAMSUNG)
-        }
-        if (Build.VERSION.SDK_INT in 21..22) {
-            add(BiometricMethod.FINGERPRINT_FLYME)
-        }
-        if (Build.VERSION.SDK_INT >= 23) {
-            add(BiometricMethod.FINGERPRINT_SOTERAPI)
-            add(BiometricMethod.FINGERPRINT_API23)
-            add(BiometricMethod.FINGERPRINT_SUPPORT)
-        }
+        add(BiometricMethod.FINGERPRINT_SOTERAPI)
+        add(BiometricMethod.FINGERPRINT_API23)
+        add(BiometricMethod.FINGERPRINT_SUPPORT)
+
         if (Build.VERSION.SDK_INT >= 24) {
             add(BiometricMethod.FACE_SOTERAPI)
             add(BiometricMethod.FACE_SAMSUNG)
@@ -125,18 +115,21 @@ object BiometricAuthentication {
         }
     }
 
-    fun resetCustomModules() {
+    fun unloadCustomModules() {
         if (customLoading) return
         d("BiometricAuthentication", "resetCustomModules called")
         try {
             customLoading = true
             val keysToRemove = synchronized(customModuleHashMap) {
-                val keys = customModuleHashMap.keys.toList()
+                val keys = customModuleHashMap.toMutableMap()
                 customModuleHashMap.clear()
                 keys
             }
             synchronized(moduleHashMap) {
-                keysToRemove.forEach { moduleHashMap.remove(it) }
+                keysToRemove.forEach {
+                    it.value.remove(it.value.getDefaultBundle())
+                    moduleHashMap.remove(it.key)
+                }
             }
         } catch (e: Throwable) {
             e("BiometricAuthentication", "resetCustomModules failure", e)
@@ -265,8 +258,6 @@ object BiometricAuthentication {
                     BiometricMethod.FACEUNLOCK_LAVA -> FaceunlockLavaModule(initListener)
                     BiometricMethod.FINGERPRINT_API23 -> API23FingerprintModule(initListener)
                     BiometricMethod.FINGERPRINT_SUPPORT -> SupportFingerprintModule(initListener)
-                    BiometricMethod.FINGERPRINT_SAMSUNG -> SamsungFingerprintModule(initListener)
-                    BiometricMethod.FINGERPRINT_FLYME -> FlymeFingerprintModule(initListener)
                     BiometricMethod.FINGERPRINT_SOTERAPI -> SoterFingerprintUnlockModule(
                         initListener
                     )
@@ -439,9 +430,6 @@ object BiometricAuthentication {
         val module = getAvailableBiometricModule(type) ?: return false
         return try {
             when (module) {
-                is SamsungFingerprintModule if type == BiometricType.BIOMETRIC_FINGERPRINT ->
-                    module.openSettings(context)
-
                 is FacelockOldModule if type == BiometricType.BIOMETRIC_FACE ->
                     startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
 

@@ -17,7 +17,8 @@
   ~   limitations under the License.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="huawei.android.permission.MULTIWINDOW_SDK" />
     <!-- settings to enable as much devices as possible -->
@@ -103,7 +104,8 @@
                 android:exported="true"
                 android:label="@string/app_name"
                 android:resizeableActivity="true"
-                android:theme="@style/Theme.MyApplication">
+                android:theme="@style/Theme.MyApplication"
+                tools:targetApi="24">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
                 <action android:name="android.intent.action.MAIN" />

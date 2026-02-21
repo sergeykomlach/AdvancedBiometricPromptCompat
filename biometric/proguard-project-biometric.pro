@@ -30,13 +30,6 @@
 -dontwarn com.samsung.android.fingerprint.IFingerprintClient$Stub
 -dontwarn com.samsung.android.fingerprint.IFingerprintClient
 
-
--keep class com.samsung.** { *; }
--keep interface com.samsung.** { *; }
-
--keep class com.fingerprints.service.** { *; }
--keep interface com.fingerprints.service.** { *; }
-
 -keep class com.huawei.** { *; }
 -keep interface com.huawei.** { *; }
 
@@ -45,7 +38,5 @@
 
 -keep class dev.skomlach.biometric.compat.** { *; }
 -keep interface dev.skomlach.biometric.compat.** { *; }
--keep class org.chickenhook.restrictionbypass.** { *; }
--keep interface org.chickenhook.restrictionbypass.** { *; }
 -keepnames class * implements dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 -keep class META-INF.services.** { *; }

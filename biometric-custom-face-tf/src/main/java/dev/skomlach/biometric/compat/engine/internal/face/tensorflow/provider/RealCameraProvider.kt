@@ -255,8 +255,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
                 onFrame?.invoke(finalBitmap, faces)
 
-            } catch (e: Exception) {
-                LogCat.logException(e)
+            } catch (_: Exception) {
             } finally {
                 image.close()
                 isConverting.set(false)

@@ -70,25 +70,25 @@ dependencies {
     implementation project(":" + libArtifactId_biometric_custom_face_tf)
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
-    implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.17.0'
-    implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.google.android.material:material:1.13.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.9.6'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.9.6'
-    implementation 'org.smali:dexlib2:2.5.2'
+    implementation libs.androidx.multidex
+    implementation libs.kotlin.stdlib
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.navigation.fragment.ktx
+    implementation libs.androidx.navigation.ui.ktx
+    implementation libs.dexlib2
 
-    implementation 'com.google.iot.cbor:cbor:0.01.02'
 //    //DevTools
 //    //ANR's
-//    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
+    implementation libs.anrwatchdog
 //    //memory leaks
-//    implementation 'com.squareup.leakcanary:leakcanary-android:2.13'
-//    implementation 'com.readystatesoftware.chuck:library:1.1.0'
+    implementation libs.leakcanary.android
+    implementation(libs.chucker.library)
+    //releaseImplementation(libs.chucker.library.no.op)
 
-    implementation "com.squareup.okhttp3:okhttp:5.3.2"
-    implementation "com.squareup.okhttp3:okhttp-urlconnection:5.3.2"
-    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation libs.okhttp
+    implementation libs.okhttp.urlconnection
+    implementation libs.gson
 }

@@ -235,7 +235,6 @@ class TensorFlowFaceUnlockManager(
     private fun stopBackgroundThread() {
         backgroundThread?.quitSafely()
         try {
-            backgroundThread?.join()
             backgroundThread = null
             backgroundHandler = null
         } catch (e: InterruptedException) {

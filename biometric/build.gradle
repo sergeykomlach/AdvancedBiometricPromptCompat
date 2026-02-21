@@ -37,14 +37,14 @@ dependencies {
     implementation project(":" + libArtifactId_common)
     compileOnly project(":" + libArtifactId_biometric_api)
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.lifecycle:lifecycle-process:2.10.0'
-    implementation "androidx.biometric:biometric-ktx:1.2.0-alpha05"
-    implementation "androidx.appcompat:appcompat:1.7.1"
-    implementation 'androidx.vectordrawable:vectordrawable-animated:1.2.0'
-    implementation 'androidx.core:core-ktx:1.17.0'
-    implementation "androidx.palette:palette-ktx:1.0.0"
+    implementation libs.androidx.lifecycle.process
+    implementation libs.androidx.biometric.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.vectordrawable.animated
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.palette.ktx
     //noinspection GradleDependency
-    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation libs.gson
 }
 
 // Publishing

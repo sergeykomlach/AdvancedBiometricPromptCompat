@@ -19,7 +19,6 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = '2.2.21'
     ext.minSDK = 23
     ext.compileSDK = 36
     ext.targetSDK = 35
@@ -48,15 +47,15 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.2'
+        classpath libs.gradle
         //Dev Tools
-        classpath "net.ltgt.gradle:gradle-errorprone-plugin:4.1.0"
-        classpath "org.owasp:dependency-check-gradle:12.2.0"
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.6'
-        classpath 'com.google.gms:google-services:4.4.4'
-        classpath 'de.undercouch:gradle-download-task:5.7.0'
+        classpath libs.gradle.errorprone.plugin
+        classpath libs.gradle.nexus.staging.plugin
+        classpath libs.kotlin.gradle.plugin
+        classpath libs.firebase.crashlytics.gradle
+        classpath libs.google.services
+        classpath libs.gradle.download.task
+        classpath libs.detekt.gradle.plugin
     }
 }
 
@@ -67,7 +66,63 @@ allprojects {
         google()
 
     }
+    apply plugin: "io.gitlab.arturbosch.detekt"
+    dependencies {
+        detektPlugins libs.detekt.rules.libraries
+    }
 
+    def qualityProperties = new Properties()
+    def propsFile = rootProject.file("detekt.properties")
+    if (propsFile.exists()) {
+        propsFile.withReader("UTF-8") { qualityProperties.load(it) }
+    }
+    def runOncePerWeek = qualityProperties.getProperty("runOncePerWeek")?.toBoolean() ?: false
+    // Detekt
+    detekt {
+        autoCorrect = true
+        buildUponDefaultConfig = true
+        allRules = false
+        ignoreFailures = true
+        source = files("src/main/java", "src/main/kotlin")
+        reports {
+            html.required = true
+            html.outputLocation = file("$rootDir/reports/detekt/main.html")
+        }
+    }
+    tasks.register("codeQualityCheck") {
+        group = "verification"
+        description = "Running code quality checks"
+        dependsOn(tasks.matching { it.name == "detekt" })
+    }
+    tasks.register("codeQualityCheckOncePerWeek") {
+        group = "verification"
+        def timestampFile = file("$rootDir/detekt.timestamp")
+        doLast {
+            def now = System.currentTimeMillis()
+            def lastRun = timestampFile.exists() ? timestampFile.text.toLong() : 0
+            if (now - lastRun > 7 * 24 * 60 * 60 * 1000) {
+                println "Running weekly check..."
+                timestampFile.text = now.toString()
+            }
+        }
+    }
+
+    afterEvaluate {
+        def android = extensions.findByName("android")
+        if (android != null) {
+            def variants = android.hasProperty("applicationVariants") ?
+                    android.applicationVariants : android.libraryVariants
+
+            variants.configureEach { variant ->
+                if (variant.buildType.name == "debug") {
+                    variant.assembleProvider.configure {
+                        if (runOncePerWeek) finalizedBy("codeQualityCheckOncePerWeek")
+                        else finalizedBy("codeQualityCheck")
+                    }
+                }
+            }
+        }
+    }
 }
 
 subprojects { project ->

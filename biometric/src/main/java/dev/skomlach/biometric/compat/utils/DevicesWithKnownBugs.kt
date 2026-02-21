@@ -23,6 +23,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.biometric.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.Utils
@@ -64,7 +65,12 @@ object DevicesWithKnownBugs {
         }
 
     val systemDealWithBiometricPrompt: Boolean
-        get() = (isSamsung || Utils.isAtLeastU)//Up to AOS13 we are able to use multiple biometrics
+        get() {
+            return if (isSamsung || Utils.isAtLeastU)//Up to AOS13 we are able to use multiple biometrics
+            {
+                BiometricAuthentication.customBiometricManagers.isEmpty()
+            } else false
+        }
     private val isSamsung: Boolean
         get() {
             return checkForVendor("Samsung", ignoreCase = true)

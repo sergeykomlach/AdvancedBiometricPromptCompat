@@ -1,0 +1,85 @@
+[versions]
+androidDeviceNames = "2.1.1"
+anrwatchdog = "1.4.0"
+appcompat = "1.7.1"
+biometricKtx = "1.2.0-alpha05"
+concurrentFutures = "1.3.0"
+constraintlayout = "2.2.1"
+coreKtx = "1.17.0"
+detektGradlePlugin = "1.23.8"
+dexlib2 = "2.5.2"
+faceDetection = "16.1.7"
+firebaseCrashlyticsGradle = "3.0.6"
+googleServices = "4.4.4"
+gradle = "8.13.2"
+gradleDownloadTask = "5.7.0"
+gradleErrorpronePlugin = "4.1.0"
+gradleNexusStagingPlugin = "0.30.0"
+gson = "2.13.2"
+guava = "33.5.0-android"
+javaAesCrypto = "1.1.0"
+jsoup = "1.22.1"
+kotlinGradlePlugin = "2.3.10"
+kotlinStdlib = "2.3.10"
+leakcanaryAndroid = "2.14"
+chuckerLibrary = "4.3.0"
+lifecycleProcess = "2.10.0"
+litertSupport = "1.4.1"
+localbroadcastmanager = "1.1.0"
+material = "1.13.0"
+multidex = "2.0.1"
+navigationFragmentKtx = "2.9.7"
+okhttp = "5.3.2"
+paletteKtx = "1.0.0"
+re2j = "1.8"
+tensorflowLite = "2.17.0"
+vectordrawableAnimated = "1.2.0"
+versioncompare = "1.5.0"
+window = "1.5.1"
+detektVer = "1.23.8"
+
+[libraries]
+detekt-rules-libraries = { module = "io.gitlab.arturbosch.detekt:detekt-rules-libraries", version.ref = "detektVer" }
+android-device-names = { module = "com.jaredrummler:android-device-names", version.ref = "androidDeviceNames" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-biometric-ktx = { module = "androidx.biometric:biometric-ktx", version.ref = "biometricKtx" }
+androidx-concurrent-futures = { module = "androidx.concurrent:concurrent-futures", version.ref = "concurrentFutures" }
+androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycleProcess" }
+androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "localbroadcastmanager" }
+androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
+androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
+androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
+androidx-palette-ktx = { module = "androidx.palette:palette-ktx", version.ref = "paletteKtx" }
+androidx-vectordrawable-animated = { module = "androidx.vectordrawable:vectordrawable-animated", version.ref = "vectordrawableAnimated" }
+androidx-window = { module = "androidx.window:window", version.ref = "window" }
+anrwatchdog = { module = "com.github.anrwatchdog:anrwatchdog", version.ref = "anrwatchdog" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detektGradlePlugin" }
+dexlib2 = { module = "org.smali:dexlib2", version.ref = "dexlib2" }
+face-detection = { module = "com.google.mlkit:face-detection", version.ref = "faceDetection" }
+firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
+gradle-download-task = { module = "de.undercouch:gradle-download-task", version.ref = "gradleDownloadTask" }
+gradle-errorprone-plugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version.ref = "gradleErrorpronePlugin" }
+gradle-nexus-staging-plugin = { module = "io.codearte.gradle.nexus:gradle-nexus-staging-plugin", version.ref = "gradleNexusStagingPlugin" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+java-aes-crypto = { module = "com.github.tozny:java-aes-crypto", version.ref = "javaAesCrypto" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlinGradlePlugin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlinStdlib" }
+leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
+chucker-library = { module = "com.github.chuckerteam.chucker:library", version.ref = "chuckerLibrary" }
+chucker-library-no-op = { module = "com.github.chuckerteam.chucker:library-no-op", version.ref = "chuckerLibrary" }
+litert-gpu-api = { module = "com.google.ai.edge.litert:litert-gpu-api", version.ref = "litertSupport" }
+litert-support = { module = "com.google.ai.edge.litert:litert-support", version.ref = "litertSupport" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
+re2j = { module = "com.google.re2j:re2j", version.ref = "re2j" }
+tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
+versioncompare = { module = "io.github.g00fy2:versioncompare", version.ref = "versioncompare" }
+
+[plugins]
