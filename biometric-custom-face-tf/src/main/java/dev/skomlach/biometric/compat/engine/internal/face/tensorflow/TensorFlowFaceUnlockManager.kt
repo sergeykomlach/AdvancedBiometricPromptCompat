@@ -311,22 +311,7 @@ class TensorFlowFaceUnlockManager(
         return result
     }
 
-    /*
-    TensorFlowFaceUnlockManager, hasEnrolledBiometric=false java.lang.Throwable
-    at dev.skomlach.biometric.compat.engine.internal.face.tensorflow.TensorFlowFaceUnlockManager.hasEnrolledBiometric(TensorFlowFaceUnlockManager.kt:317)
-    at dev.skomlach.biometric.compat.engine.internal.CustomBiometricModule.getHasEnrolled(CustomBiometricModule.kt:79)
-    at dev.skomlach.biometric.compat.utils.hardware.LegacyHardware.isBiometricEnrolled(LegacyHardware.kt:44)
-    at dev.skomlach.biometric.compat.utils.HardwareAccessImpl.isBiometricEnrolled(HardwareAccessImpl.kt:51)
-    at dev.skomlach.biometric.compat.BiometricManagerCompat.hasEnrolled(BiometricManagerCompat.kt:334)
-    at dev.skomlach.biometric.app.utils.BiometricExtensionKt.startBiometric(BiometricExtension.kt:68)
-    at dev.skomlach.biometric.app.FirstFragment.fillList$lambda$0(FirstFragment.kt:165)
-    at dev.skomlach.biometric.app.FirstFragment.$r8$lambda$G8ffBRGfwwbWwrNhOZQ-7Eo-_bI(FirstFragment.kt:0)
-    at dev.skomlach.biometric.app.FirstFragment$$ExternalSyntheticLambda8.onClick(R8$$SyntheticClass:0) 
-    */
     override fun hasEnrolledBiometric(): Boolean {
-        return isHardwareDetected()
-    }
-    private fun hasEnrolledBiometricInternal(): Boolean {
         val result = detector?.hasRegistered() == true
         LogCat.log(TAG, "hasEnrolledBiometric=$result " + Log.getStackTraceString(Throwable()))
         return result
@@ -346,8 +331,8 @@ class TensorFlowFaceUnlockManager(
 
     override fun getDefaultBundle(name: String?): Bundle {
         return Bundle().apply {
-            putBoolean(IS_ENROLLMENT_KEY, !hasEnrolledBiometricInternal())
-            putString(ENROLLMENT_TAG_KEY, name?:"face1")
+            putBoolean(IS_ENROLLMENT_KEY, !hasEnrolledBiometric())
+            putString(ENROLLMENT_TAG_KEY, name ?: "face${(detector?.registeredCount() ?: 0) + 1}")
         }
     }
 
@@ -382,7 +367,8 @@ class TensorFlowFaceUnlockManager(
 
         isSessionActive.set(true)
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
-        enrollmentTag = extra?.getString(ENROLLMENT_TAG_KEY) ?: "face1"
+        enrollmentTag =
+            extra?.getString(ENROLLMENT_TAG_KEY) ?: "face${(detector?.registeredCount() ?: 0) + 1}"
 
         LogCat.log(TAG, "authenticate START for $this. Enrolling=$isEnrolling")
 
@@ -429,7 +415,7 @@ class TensorFlowFaceUnlockManager(
             )
             stopAuthentication()
             return
-        } else if (!isEnrolling && !hasEnrolledBiometricInternal()) {
+        } else if (!isEnrolling && !hasEnrolledBiometric()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
                 LocalizationHelper.getLocalizedString(

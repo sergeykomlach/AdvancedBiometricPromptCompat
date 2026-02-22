@@ -63,7 +63,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
-import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
@@ -404,7 +403,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
-        if (impl.builder.resolvePermissions && !BiometricManagerCompat.hasPermissionsGranted(impl.builder.getBiometricAuthRequest())) {
+        if (!BiometricManagerCompat.hasPermissionsGranted(impl.builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - missed permissions")
             return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
         } else
@@ -711,7 +710,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     builder.getActivity(),
                     BiometricNotificationManager.CHANNEL_ID,
                     {
-                        if (builder.resolvePermissions && !BiometricManagerCompat.hasPermissionsGranted(
+                        if (!BiometricManagerCompat.hasPermissionsGranted(
                                 builder.getBiometricAuthRequest()
                             )
                         ) {
@@ -729,7 +728,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     },
                     {
                         //continue anyway
-                        if (builder.resolvePermissions && !BiometricManagerCompat.hasPermissionsGranted(
+                        if (!BiometricManagerCompat.hasPermissionsGranted(
                                 builder.getBiometricAuthRequest()
                             )
                         ) {
@@ -749,7 +748,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
 
-        if (builder.resolvePermissions && !BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest())) {
+        if (!BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest())) {
             builder.getActivity()?.let {
                 val permissions =
                     BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())
@@ -1077,9 +1076,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = false
 
-        var resolvePermissions: Boolean = true
-            private set
-
         init {
 
             if (BiometricErrorLockoutPermanentFix.isRebootDetected())
@@ -1255,12 +1251,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun getMultiWindowSupport(): MultiWindowSupport {
             return multiWindowSupport
         }
-
-        fun setResolvePermissions(enabled: Boolean): Builder {
-            this.resolvePermissions = enabled
-            return this
-        }
-
         fun setCryptographyPurpose(
             biometricCryptographyPurpose: BiometricCryptographyPurpose
         ): Builder {

@@ -32,7 +32,6 @@ import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import dev.skomlach.common.translate.LocalizationHelper
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.lang.Math.abs
 import java.lang.ref.WeakReference
 import java.nio.charset.Charset
 import java.util.Locale
@@ -254,6 +253,7 @@ object DeviceInfoManager {
         else
             result.toString().replace("\\s+".toRegex(), " ").trim()
     }
+
     @Volatile
     private var cachedDeviceInfo: DeviceInfo? = null
         get() {

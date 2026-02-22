@@ -41,7 +41,7 @@ object DeviceModel {
     var brand = (Build.BRAND ?: "").replace("  ", " ")
         private set
     var model = if (Build.MODEL.isNullOrEmpty()) {
-        SystemPropertiesProxy.get(appContext,"ro.product.model", "Unknown")
+        SystemPropertiesProxy.get(appContext, "ro.product.model", "Unknown")
     } else {
         Build.MODEL
     }.replace("  ", " ")

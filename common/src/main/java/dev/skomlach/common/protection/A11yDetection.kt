@@ -128,7 +128,7 @@ object A11yDetection {
             return enabledServices.any { service ->
                 val packageName = service.resolveInfo.serviceInfo.packageName
                 (trustedA11yPackages.contains(packageName) || service.capabilities and AccessibilityServiceInfo.CAPABILITY_CAN_RETRIEVE_WINDOW_CONTENT != 0)
-                 && isSystemApp(cnt, packageName)
+                        && isSystemApp(cnt, packageName)
             }.also {
                 whiteListCache = Pair(now, it)
             }

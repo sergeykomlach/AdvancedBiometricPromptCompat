@@ -23,6 +23,7 @@ import android.graphics.RectF
 
 /** Generic interface for interacting with different recognition engines.  */
 interface SimilarityClassifier {
+    fun registeredCount(): Int
     fun hasRegistered(): Boolean
     fun delete(name: String?)
 

@@ -39,6 +39,7 @@ object SharedPreferenceProvider {
     fun getPreferences(name: String): SharedPreferences {
         return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
+
     fun getCryptoPreferences(name: String): SharedPreferences {
         return EncryptedSharedPreferences(appContext, name)
     }

@@ -166,9 +166,7 @@ object BiometricAuthentication {
 
                         customModuleHashMap[biometricMethod] = customManager
                         newCustomModules[biometricMethod] =
-                            CustomBiometricModule(biometricMethod, customManager, null).apply {
-                                bundle = customManager.getDefaultBundle()
-                            }
+                            CustomBiometricModule(biometricMethod, customManager, null)
                         d(
                             "BiometricAuthentication",
                             "Registered custom module: ${customManager.javaClass.simpleName}"
@@ -352,6 +350,7 @@ object BiometricAuthentication {
                 if (module is FacelockOldModule) module.setCallerView(targetView)
                 if (module is SoterFaceUnlockModule) module.bundle = bundle
                 if (module is SoterFingerprintUnlockModule) module.bundle = bundle
+                if (module is CustomBiometricModule) module.bundle = bundle
                 activeModules[module.tag()] = type
             }
         }
