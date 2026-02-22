@@ -429,6 +429,10 @@ object BiometricAuthentication {
         val module = getAvailableBiometricModule(type) ?: return false
         return try {
             when (module) {
+                is CustomBiometricModule -> {
+                    //Open BiometricDialog for registration
+                    false
+                }
                 is FacelockOldModule if type == BiometricType.BIOMETRIC_FACE ->
                     startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
 
