@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -42,12 +43,14 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.credentials.CredentialsRequestFragment
 import dev.skomlach.biometric.compat.impl.dialogs.UntrustedAccessibilityFragment
+import dev.skomlach.biometric.compat.impl.permissions.SensorBlockedFallbackFragment
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.BiometricTitle
 import dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.DialogMainColor
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
+import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.TruncatedTextFix
 import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
@@ -708,7 +711,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     }
                 }
-                authenticateInternal(callback)
+                checkPermissions(callback) {
+                    checkSensor(callback) {
+                        authenticateInternal(callback)
+                    }
+                }
+
             }
         }
         if (!builder.isSilentAuthEnabled()) {
@@ -718,56 +726,79 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     builder.getActivity(),
                     BiometricNotificationManager.CHANNEL_ID,
                     {
-                        if (!BiometricManagerCompat.hasPermissionsGranted(
-                                builder.getBiometricAuthRequest()
-                            )
-                        ) {
-                            builder.getActivity()?.let {
-                                val permissions =
-                                    BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())
-                                PermissionsFragment.askForPermissions(it, permissions) {
-                                    authTask.invoke()
-                                }
-                            } ?: run {
-                                authTask.invoke()
-                            }
-                        } else
-                            authTask.invoke()
+                        authTask.invoke()
                     },
                     {
-                        //continue anyway
-                        if (!BiometricManagerCompat.hasPermissionsGranted(
-                                builder.getBiometricAuthRequest()
-                            )
-                        ) {
-                            builder.getActivity()?.let {
-                                val permissions =
-                                    BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())
-                                PermissionsFragment.askForPermissions(it, permissions) {
-                                    authTask.invoke()
-                                }
-                            } ?: run {
-                                authTask.invoke()
-                            }
-                        } else
-                            authTask.invoke()
+                        authTask.invoke()
                     })
                 return
             }
         }
+        authTask.invoke()
+    }
 
-        if (!BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest())) {
+    private fun checkPermissions(callback: AuthenticationCallback, authTask: () -> Unit) {
+        BiometricLoggerImpl.d("BiometricPromptCompat.checkPermissions")
+        if (!BiometricManagerCompat.hasPermissionsGranted(
+                builder.getBiometricAuthRequest()
+            )
+        ) {
             builder.getActivity()?.let {
                 val permissions =
                     BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())
                 PermissionsFragment.askForPermissions(it, permissions) {
-                    authTask.invoke()
+                    if (BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest()))
+                        authTask.invoke()
+                    else
+                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+                            AuthenticationResult(
+                                t,
+                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                                description = "Required permissions not granted"
+                            )
+                        }.toSet())
                 }
             } ?: run {
-                authTask.invoke()
+                callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+                    AuthenticationResult(
+                        t,
+                        reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                        description = "Required permissions not granted"
+                    )
+                }.toSet())
             }
         } else
             authTask.invoke()
+    }
+
+    private fun checkSensor(callback: AuthenticationCallback, authTask: () -> Unit) {
+        BiometricLoggerImpl.d("BiometricPromptCompat.checkSensor")
+        if (BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest())
+                .contains(
+                    Manifest.permission.CAMERA
+                ) && SensorPrivacyCheck.isCameraBlocked()
+        ) {
+            SensorBlockedFallbackFragment.askForCameraUnblock {
+                if (BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest())
+                        .contains(
+                            Manifest.permission.CAMERA
+                        ) && SensorPrivacyCheck.isCameraBlocked()
+                ) {
+                    if (builder.getAllAvailableTypes().size == 1)
+                        callback.onCanceled(builder.getAllAvailableTypes().map {
+                            AuthenticationResult(
+                                it,
+                                reason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+                                description = "Camera sensor blocked by privacy toggle"
+                            )
+                        }.toSet())
+                    else authTask.invoke()
+                } else
+                    authTask.invoke()
+            }
+        } else {
+            authTask.invoke()
+        }
     }
 
 
@@ -1276,6 +1307,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun getMultiWindowSupport(): MultiWindowSupport {
             return multiWindowSupport
         }
+
         fun setCryptographyPurpose(
             biometricCryptographyPurpose: BiometricCryptographyPurpose
         ): Builder {

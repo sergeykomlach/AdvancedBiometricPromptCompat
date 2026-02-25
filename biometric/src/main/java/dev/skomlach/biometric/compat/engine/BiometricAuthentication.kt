@@ -155,7 +155,7 @@ object BiometricAuthentication {
                         customModuleHashMap.values.any { it.biometricType == targetType }
                     }
 
-                    if (!isAlreadyRegistered && !BiometricManagerCompat.isHardwareDetected(
+                    if (!isAlreadyRegistered && !BiometricManagerCompat.isBiometricAvailable(
                             BiometricAuthRequest(BiometricApi.AUTO, targetType)
                         )
                     ) {

@@ -17,6 +17,7 @@ import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetector
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.ImageUtils
+import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.permissions.PermissionUtils
@@ -68,6 +69,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             cameraDevice = null
             imageReader = null
             isConverting.set(false)
+            SensorPrivacyCheck.notifySelfCameraClosed()
         }
     }
 
@@ -130,16 +132,22 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
             cameraManager.openCamera(cameraId, object : CameraDevice.StateCallback() {
                 override fun onOpened(camera: CameraDevice) {
+                    SensorPrivacyCheck.notifySelfCameraOpened()
                     cameraDevice = camera
                     createCaptureSession()
                 }
-
+                override fun onClosed(camera: CameraDevice) {
+                    SensorPrivacyCheck.notifySelfCameraClosed()
+                    super.onClosed(camera)
+                }
                 override fun onDisconnected(camera: CameraDevice) {
+                    SensorPrivacyCheck.notifySelfCameraClosed()
                     camera.close()
                     cameraDevice = null
                 }
 
                 override fun onError(camera: CameraDevice, error: Int) {
+                    SensorPrivacyCheck.notifySelfCameraClosed()
                     camera.close()
                     cameraDevice = null
                     onError?.invoke(
@@ -193,7 +201,9 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
     override fun onImageAvailable(reader: ImageReader?) {
 
         if (isConverting.get() || backgroundHandler == null) {
-            reader?.acquireLatestImage()?.close()
+            try {
+                reader?.acquireLatestImage()?.close()
+            } catch (_: Exception){}
             return
         }
 

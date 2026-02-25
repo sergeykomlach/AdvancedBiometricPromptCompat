@@ -19,25 +19,29 @@
 
 package dev.skomlach.biometric.compat.impl.permissions
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import dev.skomlach.biometric.compat.utils.activityView.ActiveWindow
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.BroadcastTools
+import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
+import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.SystemStringsHelper
-import dev.skomlach.common.misc.Utils
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicBoolean
 
 
 class SensorBlockedFallbackFragment : Fragment() {
@@ -49,87 +53,103 @@ class SensorBlockedFallbackFragment : Fragment() {
 //   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
 //   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
 //   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
-        private val isFallbackFragmentShown = AtomicBoolean(false)
+
         private const val TITLE = "title"
         private const val MESSAGE = "message"
-        fun isUnblockDialogShown(): Boolean {
-            if (isFallbackFragmentShown.get())//fallback shown
-                return true
-            else {
-                val activity = AndroidContext.activity
-                if (activity is FragmentActivity) {
-                    val windowDoNotLoseFocus = try {
-                        ActiveWindow.getActiveWindow(
-                            ActiveWindow.getActiveWindows(activity).toMutableList()
-                        )?.hasWindowFocus() == true
-                    } catch (e: Throwable) {
-                        false
-                    }
-                    return !windowDoNotLoseFocus
-                }
-            }
-
-            return false
-        }
-
-        fun askForCameraUnblock() {
+        private const val INTENT_KEY = "SensorBlockedFallbackFragment.intent_key"
+        fun askForCameraUnblock(callback: () -> Unit?) {
             showFragment(
                 SystemStringsHelper.getFromSystem(
                     appContext,
                     "sensor_privacy_start_use_camera_notification_content_title"
                 ),
-                SystemStringsHelper.getFromSystem(appContext, "face_sensor_privacy_enabled")
+                SystemStringsHelper.getFromSystem(appContext, "face_sensor_privacy_enabled"),
+                callback
             )
         }
 
-        fun askForMicUnblock() {
+        fun askForMicUnblock(callback: () -> Unit?) {
             showFragment(
                 SystemStringsHelper.getFromSystem(
                     appContext,
                     "sensor_privacy_start_use_mic_notification_content_title"
-                ), null
+                ), null, callback
             )
         }
 
-        private fun showFragment(title: String?, msg: String?) {
-            if (title.isNullOrEmpty())
+        private fun showFragment(title: String?, msg: String?, callback: () -> Unit?) {
+            LogCat.log("SensorBlockedFragment", "showFragment")
+            if (title.isNullOrEmpty()) {
+                callback.invoke()
                 return
-            ExecutorHelper.postDelayed(
-                {
-                    val tag =
-                        "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
-                    val activity = AndroidContext.activity
-                    if (activity is FragmentActivity) {
-                        if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
-                            return@postDelayed
-                        val windowDoNotLoseFocus = try {
-                            ActiveWindow.getActiveWindow(
-                                ActiveWindow.getActiveWindows(activity).toMutableList()
-                            )?.hasWindowFocus() == true
+            }
+
+
+            val tag =
+                "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
+            val activity = AndroidContext.activity
+            if (activity is FragmentActivity) {
+                if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
+                    return
+                registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
+                    override fun onReceive(context: Context, intent: Intent) {
+                        callback.invoke()
+                        try {
+                            unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {
-                            false
-                        }
-                        if (windowDoNotLoseFocus) {
-                            activity
-                                .supportFragmentManager.beginTransaction()
-                                .add(SensorBlockedFallbackFragment().apply {
-                                    this.arguments = Bundle().apply {
-                                        putString(TITLE, title)
-                                        putString(MESSAGE, msg)
-                                    }
-                                }, tag)
-                                .commitAllowingStateLoss()
+                            LogCat.logException(e)
                         }
                     }
-                },
-                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                    .toLong() * 2
-            )
-
+                }, IntentFilter(INTENT_KEY))
+                activity
+                    .supportFragmentManager.beginTransaction()
+                    .add(SensorBlockedFallbackFragment().apply {
+                        this.arguments = Bundle().apply {
+                            putString(TITLE, title)
+                            putString(MESSAGE, msg)
+                        }
+                    }, tag)
+                    .commitAllowingStateLoss()
+            } else callback.invoke()
         }
+
 
     }
 
+    private fun closeFragment() {
+        LogCat.log("SensorBlockedFragment", "closeFragment")
+        activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
+        try {
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.remove(this@SensorBlockedFallbackFragment)
+                ?.commitNowAllowingStateLoss()
+        } catch (e: Throwable) {
+            e("SensorBlockedFragment", e.message, e)
+        } finally {
+            BroadcastTools.sendGlobalBroadcastIntent(
+                appContext, Intent(
+                    INTENT_KEY
+                )
+            )
+        }
+    }
+
+    private val startForResult: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            closeFragment()
+        }
+
+    override fun onDestroyView() {
+        LogCat.log("SensorBlockedFragment", "onDestroyView")
+        super.onDestroyView()
+        startForResult.unregister()
+    }
+
+    private fun intentCanBeResolved(intent: Intent): Boolean {
+        val pm = context?.packageManager
+        val pkgAppsList = pm?.queryIntentActivities(intent, 0) ?: emptyList()
+        return pkgAppsList.isNotEmpty()
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -143,37 +163,26 @@ class SensorBlockedFallbackFragment : Fragment() {
                                 dialog.setMessage(it)
                             }
                         }
-                        .setNegativeButton(android.R.string.cancel, null)
+                        .setNegativeButton(
+                            android.R.string.cancel
+                        ) { dialog, which -> closeFragment() }
                         .setPositiveButton(
                             SystemStringsHelper.getFromSystem(
                                 appContext,
                                 "sensor_privacy_start_use_dialog_turn_on_button"
                             ) ?: getString(android.R.string.ok)
                         ) { p0, _ ->
-                            if (Utils.startActivity(
-                                    Intent(Settings.ACTION_PRIVACY_SETTINGS),
-                                    context
-                                )
-                            ) else {
-                                Utils.startActivity(
-                                    Intent(Settings.ACTION_SETTINGS), context
-                                )
-                            }
                             p0.dismiss()
+                            val intent =
+                                if (intentCanBeResolved(Intent(Settings.ACTION_PRIVACY_SETTINGS)))
+                                    Intent(Settings.ACTION_PRIVACY_SETTINGS)
+                                else Intent(Settings.ACTION_SETTINGS)
+
+                            startForResult.launch(intent)
+
                         }
-                        .setOnDismissListener {
-                            try {
-                                activity?.supportFragmentManager?.beginTransaction()
-                                    ?.remove(this@SensorBlockedFallbackFragment)
-                                    ?.commitNowAllowingStateLoss()
-                            } catch (e: Throwable) {
-                                e("SensorBlockedFragment", e.message, e)
-                            } finally {
-                                isFallbackFragmentShown.set(false)
-                            }
-                        }
+
                     alert.show()
-                    isFallbackFragmentShown.set(true)
                 } catch (ignore: Throwable) {
                     try {
                         activity?.supportFragmentManager?.beginTransaction()
@@ -182,7 +191,11 @@ class SensorBlockedFallbackFragment : Fragment() {
                     } catch (e: Throwable) {
                         e("SensorBlockedFragment", e.message, e)
                     } finally {
-                        isFallbackFragmentShown.set(false)
+                        BroadcastTools.sendGlobalBroadcastIntent(
+                            appContext, Intent(
+                                INTENT_KEY
+                            )
+                        )
                     }
                 }
             }

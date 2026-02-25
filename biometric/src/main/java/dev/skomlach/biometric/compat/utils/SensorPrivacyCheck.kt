@@ -21,15 +21,12 @@ package dev.skomlach.biometric.compat.utils
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.content.Context
 import android.hardware.SensorPrivacyManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.os.Build
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
-import dev.skomlach.biometric.compat.impl.permissions.SensorBlockedFallbackFragment
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
@@ -37,57 +34,55 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressLint("NewApi")
 object SensorPrivacyCheck {
-    const val CHECK_TIMEOUT = 5_000L
+    const val CHECK_TIMEOUT = 1_000L
 
-    private var isCameraInUseTime = AtomicLong(0)
-    private var isCameraInUse = AtomicBoolean(false)
 
-    //Workaround that allow do not spam the user
-    private var isUiRequested = AtomicBoolean(false)
-    private var lastCheckedTime = AtomicLong(0)
-    private var lastKnownState = AtomicBoolean(false)
-    fun isCameraInUse(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            if (System.currentTimeMillis() - isCameraInUseTime.get() <= CHECK_TIMEOUT) {
-                return isCameraInUse.get()
-            }
-            val ts = System.currentTimeMillis()
-            val delay =
-                appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                    .toLong()
-            val isDone = AtomicBoolean(false)
-            //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
-            ExecutorHelper.startOnBackground {
-                try {
-
-                    val cameraManager =
-                        appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-                    cameraManager.registerAvailabilityCallback(
-                        ExecutorHelper.backgroundExecutor,
-                        getCameraCallback(cameraManager, isDone)
-                    )
-
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
-            }
-            while (!isDone.get() && System.currentTimeMillis() - ts <= delay) {
-                try {
-                    Thread.sleep(10)
-                } catch (ignore: InterruptedException) {
-                }
-            }
-        }
-        isCameraInUseTime.set(System.currentTimeMillis())
-        return isCameraInUse.get()
+    private var isCameraInUse = Pair(0L, false)
+    private var isCameraBlocked = Pair(0L, false)
+    private val selfCamUse = AtomicInteger(0)
+    fun notifySelfCameraOpened() = selfCamUse.incrementAndGet()
+    fun notifySelfCameraClosed() {
+        if (selfCamUse.decrementAndGet() < 0) selfCamUse.set(0)
     }
 
+    fun isCameraInUse(): Boolean = selfCamUse.get() == 0 && isCameraInUseInternal()
+    private fun isCameraInUseInternal(): Boolean {
+        if (System.currentTimeMillis() - isCameraInUse.first <= CHECK_TIMEOUT) {
+            return isCameraInUse.second
+        }
+        val ts = System.currentTimeMillis()
+        val delay =
+            CHECK_TIMEOUT
+        val isDone = AtomicBoolean(false)
+        //Fix for `Non-fatal Exception: java.lang.IllegalArgumentException: No handler given, and current thread has no looper!`
+        ExecutorHelper.startOnBackground {
+            try {
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+                val cameraManager =
+                    appContext.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                cameraManager.registerAvailabilityCallback(
+                    ExecutorHelper.backgroundExecutor,
+                    getCameraCallback(cameraManager, isDone)
+                )
+
+            } catch (e: Throwable) {
+                BiometricLoggerImpl.e(e)
+            }
+        }
+        while (!isDone.get() && System.currentTimeMillis() - ts <= delay) {
+            try {
+                Thread.sleep(10)
+            } catch (ignore: InterruptedException) {
+            }
+        }
+
+        return isCameraInUse.second
+    }
+
     private fun getCameraCallback(
         cameraManager: CameraManager?,
         isDone: AtomicBoolean
@@ -104,8 +99,7 @@ object SensorPrivacyCheck {
                             isDone.set(true)
                         }
                     },
-                    appContext.resources.getInteger(android.R.integer.config_longAnimTime)
-                        .toLong()
+                    CHECK_TIMEOUT
                 )
             }
 
@@ -128,7 +122,7 @@ object SensorPrivacyCheck {
                     cameraManager?.getCameraCharacteristics(cameraId)?.let {
                         if (it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
                             try {
-                                isCameraInUse.set(false)
+                                isCameraInUse = Pair(System.currentTimeMillis(), false)
                             } finally {
                                 unregisterListener()
                             }
@@ -149,10 +143,14 @@ object SensorPrivacyCheck {
             override fun onCameraUnavailable(cameraId: String) {
                 try {
                     super.onCameraUnavailable(cameraId)
+                    if (selfCamUse.get() > 0) {
+                        unregisterListener()
+                        return
+                    }
                     cameraManager?.getCameraCharacteristics(cameraId)?.let {
                         if (it.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT) {
                             try {
-                                isCameraInUse.set(true)
+                                isCameraInUse = Pair(System.currentTimeMillis(), true)
                             } finally {
                                 unregisterListener()
                             }
@@ -172,38 +170,21 @@ object SensorPrivacyCheck {
         }
     }
 
-    //Android 12 stuff
     fun isCameraBlocked(): Boolean {
-        return if (Utils.isAtLeastS && !DevicesWithKnownBugs.systemDealWithBiometricPrompt)
-            checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
-        else
+        return selfCamUse.get() == 0 && if (Utils.isAtLeastS && !DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
+            if (System.currentTimeMillis() - isCameraBlocked.first <= CHECK_TIMEOUT) {
+                return isCameraBlocked.second
+            }
+            val isBlocked = checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
+            isCameraBlocked = Pair(System.currentTimeMillis(), isBlocked)
+            isBlocked
+        } else
             false
     }
 
-    @TargetApi(Build.VERSION_CODES.S)
+
     private fun checkIsPrivacyToggled(sensor: Int): Boolean {
         try {
-            if (System.currentTimeMillis() - lastCheckedTime.get() <= CHECK_TIMEOUT) {
-                return if (isUiRequested.get() &&
-                    SensorBlockedFallbackFragment.isUnblockDialogShown()
-                )
-                    lastKnownState.get()
-                else {
-                    if (sensor == SensorPrivacyManager.Sensors.CAMERA)
-                        SensorBlockedFallbackFragment.askForCameraUnblock()
-                    else
-                        SensorBlockedFallbackFragment.askForMicUnblock()
-                    lastKnownState.get()
-                }
-            } else if (isUiRequested.get() &&
-                SensorBlockedFallbackFragment.isUnblockDialogShown()
-            ) {
-                lastKnownState.set(true)
-                lastCheckedTime.set(System.currentTimeMillis())
-                return lastKnownState.get()
-            }
-
-            isUiRequested.set(false)
             val sensorPrivacyManager: SensorPrivacyManager? =
                 appContext.getSystemService(SensorPrivacyManager::class.java)
             if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
@@ -215,31 +196,20 @@ object SensorPrivacyCheck {
                         ) ?: return false
 
                     val noteOp: Int = try {
-                        AppOpsManagerCompat.noteOpNoThrow(
+                        AppOpsManagerCompat.checkOrNoteProxyOp(
                             appContext,
+                            Process.myUid(),
+                            permissionToOp,
+                            appContext.packageName
+                        )
+                    } catch (_: Throwable) {
+                        PermissionUtils.INSTANCE.appOpPermissionsCheckMiui(
                             permissionToOp,
                             Process.myUid(),
                             appContext.packageName
                         )
-                    } catch (ignored: Throwable) {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                            PermissionUtils.INSTANCE.appOpPermissionsCheckMiui(
-                                permissionToOp,
-                                Process.myUid(),
-                                appContext.packageName
-                            ) else AppOpsManagerCompat.MODE_IGNORED
                     }
-                    return (noteOp != AppOpsManagerCompat.MODE_ALLOWED).also {
-                        lastKnownState.set(it)
-                        lastCheckedTime.set(System.currentTimeMillis())
-                        if (it) {
-                            isUiRequested.set(true)
-                            if (sensor == SensorPrivacyManager.Sensors.CAMERA)
-                                SensorBlockedFallbackFragment.askForCameraUnblock()
-                            else
-                                SensorBlockedFallbackFragment.askForMicUnblock()
-                        }
-                    }
+                    return noteOp != AppOpsManagerCompat.MODE_ALLOWED
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                 }

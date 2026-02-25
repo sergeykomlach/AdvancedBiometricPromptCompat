@@ -164,10 +164,10 @@ class PermissionUtils internal constructor() {
                 return granted
             }
             val noteOp: Int = try {
-                AppOpsManagerCompat.noteOpNoThrow(
+                AppOpsManagerCompat.checkOrNoteProxyOp(
                     AndroidContext.appContext,
-                    permissionToOp,
                     Process.myUid(),
+                    permissionToOp,
                     AndroidContext.appContext.packageName
                 )
             } catch (_: Throwable) {
@@ -379,14 +379,13 @@ class PermissionUtils internal constructor() {
             }
         }
 
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
     fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
         try {
             val manager =
                 AndroidContext.appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val clazz: Class<*> = AppOpsManager::class.java
             val dispatchMethod = clazz.getMethod(
-                "noteOpNoThrow",
+                "checkOpNoThrow",
                 String::class.java,
                 Int::class.javaPrimitiveType,
                 String::class.java
