@@ -290,7 +290,7 @@ object BiometricManagerCompat {
         }
         val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
         BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
-        return result || isCameraBlocked || !isBiometricAppEnabled()
+        return result || isCameraBlocked
     }
 
     @JvmStatic
@@ -322,7 +322,7 @@ object BiometricManagerCompat {
             ).isHardwareAvailable
         BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
         preferences.edit { putBoolean("isHardwareDetected-${api.api}-${api.type}", result) }
-        return result
+        return result  && isBiometricAppEnabled()
     }
 
     @JvmStatic
@@ -599,7 +599,7 @@ object BiometricManagerCompat {
     //user need to enable "Identity verification in apps" feature in device settings
     //NOTE: On newer AOS14 builds this case already handled properly
     @SuppressLint("Range")
-    fun isBiometricAppEnabled(): Boolean {
+    private fun isBiometricAppEnabled(): Boolean {
         val contentResolver = AndroidContext.appContext.contentResolver
         val c: Cursor? =
             contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)
