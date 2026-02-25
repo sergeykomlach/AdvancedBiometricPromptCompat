@@ -40,8 +40,13 @@ object SharedPreferenceProvider {
         return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
 
-    fun getCryptoPreferences(name: String): SharedPreferences {
-        return EncryptedSharedPreferences(appContext, name)
+    fun getProtectedPreferences(name: String): SharedPreferences {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && appContext.isDeviceProtectedStorage) {
+            appContext.createDeviceProtectedStorageContext()
+                .getSharedPreferences(name, Context.MODE_PRIVATE)
+        } else {
+            EncryptedSharedPreferences(appContext, name)
+        }
     }
 
     data class EncryptionConfig(val password: ByteArray, val salt: ByteArray) {

@@ -22,6 +22,7 @@ package dev.skomlach.common.storage
 import android.content.Context
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import android.util.Base64
 import android.util.Pair
 import androidx.collection.ArraySet
 import com.tozny.crypto.android.AesCbcWithIntegrity
@@ -31,8 +32,57 @@ import java.nio.charset.StandardCharsets
 import java.security.GeneralSecurityException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.crypto.Cipher
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.SecretKeySpec
 import kotlin.text.Charsets.UTF_8
 
+class KeyNameCipher(
+    private val aesKey32: ByteArray,
+    private val nonce12: ByteArray
+) {
+
+    private val aad = "FNv1".toByteArray(UTF_8)
+
+    fun encryptName(realName: String): String {
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.ENCRYPT_MODE,
+            SecretKeySpec(aesKey32, "AES"),
+            GCMParameterSpec(128, nonce12)
+        )
+        cipher.updateAAD(aad)
+        val ct = cipher.doFinal(realName.toByteArray(UTF_8))
+
+        val packed = ByteArray(nonce12.size + ct.size)
+        System.arraycopy(nonce12, 0, packed, 0, nonce12.size)
+        System.arraycopy(ct, 0, packed, nonce12.size, ct.size)
+
+        val b64 =
+            Base64.encodeToString(packed, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        return "e_$b64"
+    }
+
+    fun decryptName(encName: String): String? {
+        if (!encName.startsWith("e_")) return null
+        val packed = Base64.decode(encName.substring(2), Base64.URL_SAFE)
+        if (packed.size < 12 + 16) return null // nonce + tag
+
+        val nonce = packed.copyOfRange(0, 12)
+        val ct = packed.copyOfRange(12, packed.size)
+
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            SecretKeySpec(aesKey32, "AES"),
+            GCMParameterSpec(128, nonce)
+        )
+        cipher.updateAAD(aad)
+
+        val pt = cipher.doFinal(ct)
+        return String(pt, UTF_8)
+    }
+}
 class EncryptedSharedPreferences(
     private val context: Context,
     private val sharedPrefFilename: String? = null
@@ -46,6 +96,14 @@ class EncryptedSharedPreferences(
         AesCbcWithIntegrity.generateKeyFromPassword(
             String(config.password.reversedArray()),
             config.salt.reversedArray()
+        )
+    }
+    private val reversibleFileNameCipher by lazy {
+        val config = SharedPreferenceProvider.EncryptionConfig.instance
+        KeyNameCipher(
+            (config.password + config.salt).copyOf(32).reversedArray(),
+            (config.password.reversedArray() + config.salt.reversedArray()).copyOf(12)
+                .reversedArray()
         )
     }
 
@@ -68,14 +126,14 @@ class EncryptedSharedPreferences(
         if (ciphertext.isNullOrEmpty()) {
             return ciphertext
         }
-        return null
+        return reversibleFileNameCipher.decryptName(ciphertext)
     }
 
     private fun encryptString(cleartext: String?): String? {
         if (cleartext.isNullOrEmpty()) {
             return cleartext
         }
-        return null
+        return reversibleFileNameCipher.encryptName(cleartext)
     }
 
     private fun decrypt(ciphertext: String?): ByteArray? {

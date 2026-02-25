@@ -31,7 +31,7 @@ import androidx.core.content.edit
 import dev.skomlach.biometric.custom.face.tf.BuildConfig
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.storage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -138,7 +138,7 @@ private constructor() : SimilarityClassifier {
     private val registered: HashMap<String?, SimilarityClassifier.Recognition?> by lazy {
         val map = HashMap<String?, SimilarityClassifier.Recognition?>()
         try {
-            val sharedPreferences = getCryptoPreferences(storageName)
+            val sharedPreferences = getProtectedPreferences(storageName)
             val jsonString = sharedPreferences.getString(PREF_NAME, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             val keys = jsonObjectRoot.keys()
@@ -264,7 +264,7 @@ private constructor() : SimilarityClassifier {
             }
             registered.clear()
             try {
-                getCryptoPreferences(storageName).edit { clear() }
+                getProtectedPreferences(storageName).edit { clear() }
             } catch (e: Throwable) {
                 LogCat.logException(e)
             }
@@ -276,7 +276,7 @@ private constructor() : SimilarityClassifier {
             }
             registered.remove(name)
             try {
-                val sharedPreferences = getCryptoPreferences(storageName)
+                val sharedPreferences = getProtectedPreferences(storageName)
                 val jsonString = sharedPreferences.getString(PREF_NAME, null)
                 val jsonObjectRoot =
                     if (jsonString == null) JSONObject() else JSONObject(jsonString)
@@ -292,7 +292,7 @@ private constructor() : SimilarityClassifier {
 
     override fun register(name: String, rec: SimilarityClassifier.Recognition) {
         registered[name] = rec
-        val sharedPreferences = getCryptoPreferences(storageName)
+        val sharedPreferences = getProtectedPreferences(storageName)
         val jsonString = sharedPreferences.getString(PREF_NAME, null)
         val jsonObjectRoot =
             if (jsonString == null) JSONObject() else JSONObject(jsonString)

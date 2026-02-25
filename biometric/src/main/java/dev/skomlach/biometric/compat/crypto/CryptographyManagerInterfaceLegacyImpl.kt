@@ -48,7 +48,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private val context = AndroidContext.appContext
     override fun deleteKey(keyName: String) {
         val sharedPreferences =
-            SharedPreferenceProvider.getCryptoPreferences(
+            SharedPreferenceProvider.getProtectedPreferences(
                 "$KEYSTORE_FALLBACK_NAME-$keyName"
             )
 
@@ -140,7 +140,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private fun keyPairInFallback(name: String): Boolean {
         return try {
             val sharedPreferences =
-                SharedPreferenceProvider.getCryptoPreferences(
+                SharedPreferenceProvider.getProtectedPreferences(
                     "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
@@ -155,7 +155,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
     private fun getKeyPairFromFallback(name: String): KeyPair? {
         try {
             val sharedPreferences =
-                SharedPreferenceProvider.getCryptoPreferences(
+                SharedPreferenceProvider.getProtectedPreferences(
                     "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             if (sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
@@ -187,7 +187,7 @@ class CryptographyManagerInterfaceLegacyImpl : CryptographyManagerInterface {
             val rsaPrivateKey = RsaPrivateKey.fromRsaKey(keyPair.private as RSAPrivateCrtKey)
             val rsaPublicKey = RsaPublicKey.fromRsaKey(keyPair.public as RSAPublicKey)
             val sharedPreferences =
-                SharedPreferenceProvider.getCryptoPreferences(
+                SharedPreferenceProvider.getProtectedPreferences(
                     "$KEYSTORE_FALLBACK_NAME-$name"
                 )
             sharedPreferences.edit {

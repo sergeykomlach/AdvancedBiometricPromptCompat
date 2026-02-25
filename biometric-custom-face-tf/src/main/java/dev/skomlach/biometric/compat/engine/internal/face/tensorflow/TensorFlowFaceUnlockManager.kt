@@ -26,7 +26,7 @@ import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.storage.SharedPreferenceProvider.getCryptoPreferences
+import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import dev.skomlach.common.translate.LocalizationHelper
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.RuntimeFlavor
@@ -66,7 +66,7 @@ class TensorFlowFaceUnlockManager(
         }
 
         fun resetLockoutCounters() {
-            getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
                 remove(KEY_FAILED_ATTEMPTS)
                     .remove(KEY_LOCKOUT_END_TIMESTAMP)
                     .remove(KEY_PERMANENT_LOCKOUT_COUNT)
@@ -74,7 +74,7 @@ class TensorFlowFaceUnlockManager(
         }
 
         private fun checkLockoutState(): Int? {
-            val prefs = getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName)
+            val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName)
             val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
 
             if (permanentLockoutCount >= MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT) {
@@ -97,7 +97,7 @@ class TensorFlowFaceUnlockManager(
         }
 
         private fun handleFailedAttempt() {
-            val prefs = getCryptoPreferences(TFLiteObjectDetectionAPIModel.storageName)
+            val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName)
             var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
             var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
 
