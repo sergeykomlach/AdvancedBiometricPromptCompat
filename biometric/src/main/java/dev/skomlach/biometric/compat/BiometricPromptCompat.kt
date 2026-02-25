@@ -711,12 +711,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     }
                 }
-                checkPermissions(callback) {
-                    checkSensor(callback) {
-                        authenticateInternal(callback)
-                    }
-                }
+                authenticateInternal(callback)
+            }
+        }
 
+        val callsChain = {
+            checkPermissions(callbackOuter) {
+                checkSensor(callbackOuter) {
+                    authTask.invoke()
+                }
             }
         }
         if (!builder.isSilentAuthEnabled()) {
@@ -726,57 +729,56 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     builder.getActivity(),
                     BiometricNotificationManager.CHANNEL_ID,
                     {
-                        authTask.invoke()
+                        callsChain.invoke()
                     },
                     {
-                        authTask.invoke()
+                        callsChain.invoke()
                     })
                 return
             }
         }
-        authTask.invoke()
+        callsChain.invoke()
     }
 
     private fun checkPermissions(callback: AuthenticationCallback, authTask: () -> Unit) {
         BiometricLoggerImpl.d("BiometricPromptCompat.checkPermissions")
-        if (!BiometricManagerCompat.hasPermissionsGranted(
-                builder.getBiometricAuthRequest()
-            )
-        ) {
-            builder.getActivity()?.let {
-                val permissions =
-                    BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())
-                PermissionsFragment.askForPermissions(it, permissions) {
-                    if (BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest()))
-                        authTask.invoke()
-                    else
-                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-                            AuthenticationResult(
-                                t,
-                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                                description = "Required permissions not granted"
-                            )
-                        }.toSet())
-                }
-            } ?: run {
-                callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-                    AuthenticationResult(
-                        t,
-                        reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                        description = "Required permissions not granted"
-                    )
-                }.toSet())
-            }
-        } else
+//        if (!BiometricManagerCompat.hasPermissionsGranted(
+//                builder.getBiometricAuthRequest()
+//            )
+//        ) {
+//            builder.getActivity()?.let {
+//                PermissionsFragment.askForPermissions(it, BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())) {
+//                    if (BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest()))
+//                        authTask.invoke()
+//                    else {
+//                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+//                            AuthenticationResult(
+//                                t,
+//                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+//                                description = "Required permissions not granted"
+//                            )
+//                        }.toSet())
+//                        authFlowInProgress.set(false)
+//                    }
+//                }
+//            } ?: run {
+//                callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+//                    AuthenticationResult(
+//                        t,
+//                        reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+//                        description = "Required permissions not granted"
+//                    )
+//                }.toSet())
+//                authFlowInProgress.set(false)
+//            }
+//        } else
             authTask.invoke()
     }
 
     private fun checkSensor(callback: AuthenticationCallback, authTask: () -> Unit) {
         BiometricLoggerImpl.d("BiometricPromptCompat.checkSensor")
         if (BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest())
-                .contains(
-                    Manifest.permission.CAMERA
-                ) && SensorPrivacyCheck.isCameraBlocked()
+                .contains(Manifest.permission.CAMERA) && SensorPrivacyCheck.isCameraBlocked()
         ) {
             SensorBlockedFallbackFragment.askForCameraUnblock {
                 if (BiometricManagerCompat.getUsedPermissions(impl.builder.getBiometricAuthRequest())
@@ -784,7 +786,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             Manifest.permission.CAMERA
                         ) && SensorPrivacyCheck.isCameraBlocked()
                 ) {
-                    if (builder.getAllAvailableTypes().size == 1)
+                    if (builder.getAllAvailableTypes().size == 1) {
                         callback.onCanceled(builder.getAllAvailableTypes().map {
                             AuthenticationResult(
                                 it,
@@ -792,6 +794,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 description = "Camera sensor blocked by privacy toggle"
                             )
                         }.toSet())
+                        authFlowInProgress.set(false)
+                    }
                     else authTask.invoke()
                 } else
                     authTask.invoke()
