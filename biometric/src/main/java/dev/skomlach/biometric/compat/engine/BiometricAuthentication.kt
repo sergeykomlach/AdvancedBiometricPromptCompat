@@ -75,7 +75,7 @@ object BiometricAuthentication {
     private val customModuleHashMap =
         Collections.synchronizedMap(HashMap<BiometricMethod, AbstractCustomBiometricManager>())
 
-    val customBiometricManagers : List<AbstractCustomBiometricManager>
+    val customBiometricManagers: List<AbstractCustomBiometricManager>
         get() = customModuleHashMap.values.toList()
 
     private val initInProgress = AtomicBoolean(false)
@@ -340,12 +340,17 @@ object BiometricAuthentication {
             return
         }
 
-        d("BiometricAuthentication.authenticate")
+
         val activeModules = HashMap<Int, BiometricType>()
         Core.cleanModules()
 
         requestedMethods.filterNotNull().forEach { type ->
-            getAvailableBiometricModule(type)?.takeIf { it.hasEnrolled }?.let { module ->
+            getAvailableBiometricModule(type)?.takeIf {
+                (bundle?.getBoolean(
+                    "registration",
+                    false
+                ) == true && it is CustomBiometricModule) || it.hasEnrolled
+            }?.let { module ->
                 Core.registerModule(module)
                 if (module is FacelockOldModule) module.setCallerView(targetView)
                 if (module is SoterFaceUnlockModule) module.bundle = bundle
@@ -354,7 +359,7 @@ object BiometricAuthentication {
                 activeModules[module.tag()] = type
             }
         }
-
+        d("BiometricAuthentication.authenticate $activeModules")
         if (activeModules.isEmpty()) {
             listener.onFailure(
                 AuthenticationResult(
@@ -429,10 +434,6 @@ object BiometricAuthentication {
         val module = getAvailableBiometricModule(type) ?: return false
         return try {
             when (module) {
-                is CustomBiometricModule -> {
-                    //Open BiometricDialog for registration
-                    false
-                }
                 is FacelockOldModule if type == BiometricType.BIOMETRIC_FACE ->
                     startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
 

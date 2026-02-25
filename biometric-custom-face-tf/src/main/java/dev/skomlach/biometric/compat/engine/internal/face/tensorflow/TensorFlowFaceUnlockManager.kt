@@ -313,7 +313,7 @@ class TensorFlowFaceUnlockManager(
 
     override fun hasEnrolledBiometric(): Boolean {
         val result = detector?.hasRegistered() == true
-        LogCat.log(TAG, "hasEnrolledBiometric=$result " + Log.getStackTraceString(Throwable()))
+        LogCat.log(TAG, "hasEnrolledBiometric=$result")
         return result
     }
 
@@ -344,7 +344,7 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-        LogCat.log(TAG, "authenticate")
+        LogCat.log(TAG, "authenticate $extra")
         requestActiveSession(this)
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {
@@ -579,7 +579,7 @@ class TensorFlowFaceUnlockManager(
                         )
                         return
                     }
-                    LogCat.log(TAG, "Registered: $enrollmentTag")
+                    LogCat.log(TAG, "Registered: ${result.title}")
                     result.crop = alignedFace
                     detector?.register(enrollmentTag, result)
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
@@ -601,6 +601,7 @@ class TensorFlowFaceUnlockManager(
 
                         if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
                             resetLockoutCounters()
+                            LogCat.log(TAG, "Authorized: $title")
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
                         }

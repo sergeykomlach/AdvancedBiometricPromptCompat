@@ -29,6 +29,7 @@ object BundleBuilder {
         val subtitle = biometricBuilderCompat.getSubtitle()?.toString()
         val description = biometricBuilderCompat.getDescription()?.toString()
         return Bundle().apply {
+            putBoolean("registration", biometricBuilderCompat.registration)
             title?.let { this.putString("prompt_title", it) }
             subtitle?.let { this.putString("prompt_subtitle", it) }
             description?.let { this.putString("prompt_description", it) }

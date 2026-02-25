@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.engine.internal
 
+import android.os.Bundle
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -158,7 +159,7 @@ class CustomBiometricModule(
                     signalObject,
                     callback,
                     ExecutorHelper.handler,
-                    bundle ?: throw IllegalArgumentException("Bundle should be not NULL")
+                    convertBundleToCustom() ?: throw IllegalArgumentException("Bundle should be not NULL")
                 )
                 return
             } catch (e: Throwable) {
@@ -171,6 +172,10 @@ class CustomBiometricModule(
             "Can't start authenticate for $name"
         )
         return
+    }
+
+    private fun convertBundleToCustom(): Bundle?{
+        return if (bundle?.getBoolean("registration", false) == true) manager?.getDefaultBundle() else bundle
     }
 
     internal inner class AuthCallback(
