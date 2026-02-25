@@ -1135,25 +1135,31 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             //Due to limitations, applicable only for Fingerprint
             //https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/issues/305
-            return if (biometricCryptographyPurpose?.purpose == null && deviceInfo?.model?.startsWith(
+            return when (biometricCryptographyPurpose?.purpose) {
+                null if deviceInfo?.model?.startsWith(
                     "OnePlus 9",
                     ignoreCase = true
                 ) == true &&
-                Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.S_V2 &&
-                getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
-            ) {
-                biometricCryptographyPurpose =
-                    BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
-                true
-            } else if (biometricCryptographyPurpose?.purpose == BiometricCryptographyPurpose.ENCRYPT && deviceInfo?.model?.startsWith(
+                        Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.S_V2 &&
+                        getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
+                    -> {
+                    biometricCryptographyPurpose =
+                        BiometricCryptographyPurpose(BiometricCryptographyPurpose.ENCRYPT)
+                    true
+                }
+
+                BiometricCryptographyPurpose.ENCRYPT if deviceInfo?.model?.startsWith(
                     "OnePlus 9",
                     ignoreCase = true
                 ) == true &&
-                Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.S_V2 &&
-                getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
-            ) {
-                true
-            } else false
+                        Build.VERSION.SDK_INT in Build.VERSION_CODES.S..Build.VERSION_CODES.S_V2 &&
+                        getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
+                    -> {
+                    true
+                }
+
+                else -> false
+            }
         }
 
         fun getTitle(): CharSequence? {
@@ -1318,13 +1324,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return negativeButtonText
         }
 
-        @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!! Not actual deprecated")
+        @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!")
         fun setNegativeButtonText(text: CharSequence?): Builder {
             negativeButtonText = text
             return this
         }
 
-        @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!! Not actual deprecated")
+        @Deprecated("BiometricPromptCompat.setNegativeButtonText may not work properly on some devices!")
         fun setNegativeButtonText(@StringRes res: Int): Builder {
             negativeButtonText = (getActivity() ?: getContext()).getString(res)
             return this
