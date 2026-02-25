@@ -598,8 +598,11 @@ object BiometricManagerCompat {
     //Special case for Pixel and probable others -
     //user need to enable "Identity verification in apps" feature in device settings
     //NOTE: On newer AOS14 builds this case already handled properly
+    private var isBiometricAppEnabledCache = Pair<Long, Boolean>(0, false)
     @SuppressLint("Range")
     private fun isBiometricAppEnabled(): Boolean {
+        if (System.currentTimeMillis() - isBiometricAppEnabledCache.first <= 5_000)
+            return isBiometricAppEnabledCache.second
         val contentResolver = AndroidContext.appContext.contentResolver
         val c: Cursor? =
             contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)
@@ -617,11 +620,13 @@ object BiometricManagerCompat {
                 }
                 if (!value) {
                     c.close()
+                    isBiometricAppEnabledCache = Pair(System.currentTimeMillis(), false)
                     return false
                 }
             }
         }
         c?.close()
+        isBiometricAppEnabledCache = Pair(System.currentTimeMillis(), true)
         return true
 
     }
