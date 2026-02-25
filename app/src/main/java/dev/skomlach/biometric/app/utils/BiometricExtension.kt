@@ -47,7 +47,8 @@ fun Fragment.startBiometric(
     biometricAuthRequest: BiometricAuthRequest,
     silentAuth: Boolean,
     crypto: Boolean,
-    allowCredentials: Boolean
+    allowCredentials: Boolean,
+    isRegister: Boolean
 ) {
 
 
@@ -121,7 +122,7 @@ fun Fragment.startBiometric(
         .build()
 
 
-    biometricPromptCompat.authenticate(object : BiometricPromptCompat.AuthenticationCallback() {
+    val callback = object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             super.onSucceeded(confirmed)
             var cryptoText = "Crypto doesn't work or disabled"
@@ -219,7 +220,10 @@ fun Fragment.startBiometric(
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
             Toast.makeText(AndroidContext.appContext.getFixedContext(), "onUIClosed", Toast.LENGTH_SHORT).show()
         }
-    })
+    }
+    if (isRegister) biometricPromptCompat.registration(callback)
+    else
+    biometricPromptCompat.authenticate(callback)
     Toast.makeText(
         AndroidContext.appContext.getFixedContext(),
         "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}",

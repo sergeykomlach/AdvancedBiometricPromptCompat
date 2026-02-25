@@ -274,14 +274,13 @@ private constructor() : SimilarityClassifier {
                     ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
                 }
             }
-            registered[name] = null
+            registered.remove(name)
             try {
                 val sharedPreferences = getCryptoPreferences(storageName)
                 val jsonString = sharedPreferences.getString(PREF_NAME, null)
                 val jsonObjectRoot =
                     if (jsonString == null) JSONObject() else JSONObject(jsonString)
-
-                jsonObjectRoot.put(name, null)
+                jsonObjectRoot.remove(name)
                 sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
             } catch (e: Throwable) {
                 LogCat.logException(e)

@@ -128,6 +128,21 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                 inflater.inflate(R.layout.button, buttonsList, false) as FrameLayout
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
+            button.setOnLongClickListener {
+                startBiometric(
+                    authRequest,
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("silent", false),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean("crypto", false),
+                    SharedPreferenceProvider.getPreferences("app_settings")
+                        .getBoolean(
+                            "allowDeviceCredentials",
+                            BiometricManagerCompat.isDeviceSecureAvailable()
+                        ), true
+                )
+                true
+            }
             button.setOnClickListener {
                 startBiometric(
                     authRequest,
@@ -139,7 +154,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                         .getBoolean(
                             "allowDeviceCredentials",
                             BiometricManagerCompat.isDeviceSecureAvailable()
-                        )
+                        ), false
                 )
             }
             buttonsList.addView(container)
