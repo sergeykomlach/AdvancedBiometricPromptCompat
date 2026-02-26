@@ -599,36 +599,51 @@ object BiometricManagerCompat {
     //user need to enable "Identity verification in apps" feature in device settings
     //NOTE: On newer AOS14 builds this case already handled properly
     private var isBiometricAppEnabledCache = Pair<Long, Boolean>(0, false)
+
     @SuppressLint("Range")
     private fun isBiometricAppEnabled(): Boolean {
-        if (System.currentTimeMillis() - isBiometricAppEnabledCache.first <= 5_000)
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - isBiometricAppEnabledCache.first <= 5_000) {
             return isBiometricAppEnabledCache.second
+        }
+
         val contentResolver = AndroidContext.appContext.contentResolver
-        val c: Cursor? =
-            contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)
-        while (c?.moveToNext() == true) {
-            val key = c.getString(c.getColumnIndex(Settings.System.NAME))?.lowercase()
-            if (key?.equals("biometric_app_enabled") == true || //old one
-                (key?.contains("biometric_") == true && key.contains("_enable"))
-            ) {
-                val value = try {
-                    val biometricAppEnabled: Int =
-                        SettingsHelper.getInt(AndroidContext.appContext, key, 1)
-                    biometricAppEnabled == 1
-                } catch (e: Throwable) {
-                    true
-                }
-                if (!value) {
-                    c.close()
-                    isBiometricAppEnabledCache = Pair(System.currentTimeMillis(), false)
-                    return false
+        var isEnabled = true
+
+        try {
+            val directValue = Settings.Secure.getInt(contentResolver, "biometric_app_enabled", -1)
+            if (directValue == 0) {
+                isEnabled = false
+            } else if (directValue == -1) {
+                contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(Settings.Secure.NAME)
+                    val valueIndex = cursor.getColumnIndex(Settings.Secure.VALUE)
+
+                    if (nameIndex != -1 && valueIndex != -1) {
+                        while (cursor.moveToNext()) {
+                            val key = cursor.getString(nameIndex)?.lowercase() ?: continue
+                            if (key == "biometric_app_enabled" ||
+                                (key.startsWith("biometric_") && key.endsWith("_enabled"))
+                            ) {
+                                val valueStr = cursor.getString(valueIndex)
+                                val value = valueStr?.toIntOrNull() ?: 1
+
+                                if (value == 0) {
+                                    BiometricLoggerImpl.d("BiometricCheck", "Blocked by key: $key = ${0}")
+                                    isEnabled = false
+                                    break
+                                }
+                            }
+                        }
+                    }
                 }
             }
+        } catch (e: Exception) {
+            BiometricLoggerImpl.e("BiometricCheck", "Error checking biometric settings", e)
+            isEnabled = true
         }
-        c?.close()
-        isBiometricAppEnabledCache = Pair(System.currentTimeMillis(), true)
-        return true
-
+        isBiometricAppEnabledCache = Pair(currentTime, isEnabled)
+        return isEnabled
     }
 
 }

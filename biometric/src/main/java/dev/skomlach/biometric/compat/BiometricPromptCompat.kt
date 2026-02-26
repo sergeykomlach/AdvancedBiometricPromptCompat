@@ -742,36 +742,37 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private fun checkPermissions(callback: AuthenticationCallback, authTask: () -> Unit) {
         BiometricLoggerImpl.d("BiometricPromptCompat.checkPermissions")
-//        if (!BiometricManagerCompat.hasPermissionsGranted(
-//                builder.getBiometricAuthRequest()
-//            )
-//        ) {
-//            builder.getActivity()?.let {
-//                PermissionsFragment.askForPermissions(it, BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())) {
-//                    if (BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest()))
-//                        authTask.invoke()
-//                    else {
-//                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-//                            AuthenticationResult(
-//                                t,
-//                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-//                                description = "Required permissions not granted"
-//                            )
-//                        }.toSet())
-//                        authFlowInProgress.set(false)
-//                    }
-//                }
-//            } ?: run {
-//                callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-//                    AuthenticationResult(
-//                        t,
-//                        reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-//                        description = "Required permissions not granted"
-//                    )
-//                }.toSet())
-//                authFlowInProgress.set(false)
-//            }
-//        } else
+        if (!BiometricManagerCompat.hasPermissionsGranted(
+                builder.getBiometricAuthRequest()
+            )
+        ) {
+            BiometricLoggerImpl.d("BiometricPromptCompat.checkPermissions - request permissions ${BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())}")
+            builder.getActivity()?.let {
+                PermissionsFragment.askForPermissions(it, BiometricManagerCompat.getUsedPermissions(builder.getBiometricAuthRequest())) {
+                    if (BiometricManagerCompat.hasPermissionsGranted(builder.getBiometricAuthRequest()))
+                        authTask.invoke()
+                    else {
+                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+                            AuthenticationResult(
+                                t,
+                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                                description = "Required permissions not granted"
+                            )
+                        }.toSet())
+                        authFlowInProgress.set(false)
+                    }
+                }
+            } ?: run {
+                callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+                    AuthenticationResult(
+                        t,
+                        reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                        description = "Required permissions not granted"
+                    )
+                }.toSet())
+                authFlowInProgress.set(false)
+            }
+        } else
             authTask.invoke()
     }
 
