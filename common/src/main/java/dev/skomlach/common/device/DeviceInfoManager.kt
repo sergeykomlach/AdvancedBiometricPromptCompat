@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.device
 
+import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import com.google.gson.Gson
@@ -34,134 +35,37 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.ref.WeakReference
 import java.nio.charset.Charset
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
 
 object DeviceInfoManager {
-    val PREF_NAME = "BiometricCompat_DeviceInfo-V6"
+    val PREF_NAME = "BiometricCompat_DeviceInfo-V7"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
+    private fun buildEmulatorReadableName(kind: EmulatorKind): String {
+        val brand = (Build.BRAND ?: Build.MANUFACTURER ?: "Android").trim()
+        val model = (Build.MODEL ?: "Emulator").trim()
 
-    fun hasBiometricSensors(deviceInfo: DeviceInfo?): Boolean {
-        return hasFingerprint(deviceInfo) || hasFaceID(deviceInfo) || hasIrisScanner(deviceInfo) || hasPalmID(
-            deviceInfo
-        ) || hasVoiceID(deviceInfo) || hasHeartrateID(deviceInfo)
-    }
+        // Keep the full marketing-looking model (e.g., "Pixel Tablet") and just add an emulator suffix.
+        val base = if (model.startsWith(
+                brand,
+                ignoreCase = true
+            )
+        ) model else "${capitalize(brand)} ${model}".trim()
 
-    fun hasFingerprint(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains("fingerprint")) {
-                return true
-            }
+        val suffix = when (kind) {
+            EmulatorKind.ANDROID_EMULATOR -> " (Emulator)"
+            EmulatorKind.GENYMOTION -> " (Genymotion)"
+            EmulatorKind.BLUESTACKS -> " (BlueStacks)"
+            EmulatorKind.NOX -> " (Nox)"
+            EmulatorKind.MEMU -> " (MEmu)"
+            EmulatorKind.LDPLAYER -> " (LDPlayer)"
+            EmulatorKind.ANDY -> " (Andy)"
+            EmulatorKind.UNKNOWN -> " (Emulator)"
         }
-        return false
+        return (base + suffix).trim()
     }
-
-    fun hasUnderDisplayFingerprint(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains("fingerprint") && (s.contains(" display") || s.contains(" screen"))) {
-                return true
-            }
-        }
-        return false
-    }
-
-    fun hasIrisScanner(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
-                    " unlock"
-                ) || s.contains(
-                    " auth"
-                )
-            ) {
-                if (s.contains("iris")) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    fun hasFaceID(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
-                    " unlock"
-                ) || s.contains(
-                    " auth"
-                )
-            ) {
-                if (s.contains("face")) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    fun hasVoiceID(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
-                    " unlock"
-                ) || s.contains(
-                    " auth"
-                )
-            ) {
-                if (s.contains("voice")) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    fun hasPalmID(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
-                    " unlock"
-                ) || s.contains(
-                    " auth"
-                )
-            ) {
-                if (s.contains("palm")) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    fun hasHeartrateID(deviceInfo: DeviceInfo?): Boolean {
-        if (deviceInfo?.sensors == null) return false
-        for (str in deviceInfo.sensors) {
-            val s = str.lowercase(Locale.ROOT)
-            if (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
-                    " unlock"
-                ) || s.contains(
-                    " auth"
-                )
-            ) {
-                if (s.contains("heartrate")) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     @WorkerThread
     fun getDeviceInfo(listener: OnDeviceInfoListener) {
         if (Looper.getMainLooper().thread === Thread.currentThread()) throw IllegalThreadStateException(
@@ -173,6 +77,20 @@ object DeviceInfoManager {
             onDeviceInfoListener.get()?.onReady(deviceInfo)
             return
         }
+
+        // Emulator detection should run BEFORE any DB/network-backed model mapping.
+        // Many emulators (Pixel Tablet, BlueStacks, Genymotion, etc.) may have "brand/manufacturer" values that look real,
+        // but their secondary build fields (fingerprint/hardware/product) are generic. If we don't short-circuit here,
+        // fuzzy matching may collapse e.g. "Pixel Tablet" into "Google Pixel".
+        detectEmulatorKind()?.let { kind ->
+            val modelName = buildEmulatorReadableName(kind)
+            deviceInfo = DeviceInfo(modelName, fixModelAsAscii(modelName), emptySet())
+            cachedDeviceInfo = deviceInfo
+            onDeviceInfoListener.get()?.onReady(deviceInfo)
+            return
+        }
+
+
         val names = getNames()
         val devicesList = (try {
             Gson().fromJson(
@@ -195,8 +113,7 @@ object DeviceInfoManager {
                 val first = m.first
                 val secondArray = splitString(m.second, " ")
                 val spaceCount = m.second.count { it == ' ' }
-                for (i in secondArray.indices - 1) {
-                    val limit = secondArray.size - i
+                for (limit in secondArray.size downTo 2) {
                     if (limit < (spaceCount - 2).coerceAtLeast(2))//Device should have at least brand + model
                         break
                     val second = join(secondArray, " ", limit)
@@ -361,48 +278,132 @@ object DeviceInfoManager {
         codeName: String
     ): DeviceInfo? {
         LogCat.log("DeviceInfoManager: findDeviceInfo(total=${devicesList.size}, brand=$brand, model=$model, codeName=$codeName)")
-        var firstFound: DeviceInfo? = null
-        devicesList.forEach {
-            var m = if (it.name?.startsWith(
-                    it.brand ?: "",
-                    ignoreCase = true
-                ) == true
-            ) capitalize(it.name) else capitalize(it.brand) + " " + capitalize(it.name)
-            (it.brand ?: brand).let { b ->
-                m = m.replace(b, b, ignoreCase = true)
+
+        // Normalize once
+        val qBrand = brand.trim()
+        val qModel = model.trim()
+        val qTokens = tokenize(qModel)
+        val qDigits = qTokens.filter { it.all(Char::isDigit) }.toSet()
+
+        var bestScore = Int.MIN_VALUE
+        var best: DeviceInfo? = null
+
+        for (spec in devicesList) {
+            val specBrand = (spec.brand ?: "").trim()
+            val specName = (spec.name ?: "").trim()
+            if (specName.isEmpty()) continue
+
+            val fullName = buildReadableName(spec, qBrand)
+
+            // Fast-path exact matches
+            if (specName.equals(qModel, ignoreCase = true)) {
+                val di = DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec))
+                LogCat.log("DeviceInfoManager: (exact) $spec")
+                return di
+            }
+            if (spec.codename == codeName && specBrand.equals(qBrand, ignoreCase = true)) {
+                val di = DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec))
+                LogCat.log("DeviceInfoManager: (codename+brand) $spec")
+                return di
             }
 
-            if (it.name.equals(model, ignoreCase = true) || (brand.contains(
-                    it.brand.toString(),
-                    ignoreCase = true
-                ) && it.codename == codeName)
-            ) {
-                LogCat.log("DeviceInfoManager: (1) $it")
-                return DeviceInfo(m, fixModelAsAscii(m), getSensors(it))
-            } else if (firstFound == null) {
-                if (it.name?.contains(model, ignoreCase = true) == true) {
-                    LogCat.log("DeviceInfoManager: (2) $it")
-                    firstFound = DeviceInfo(m, fixModelAsAscii(m), getSensors(it))
-                } else {
-                    val arr = splitString(model, " ")
-                    var i = arr.size
-                    val spaceCount = model.count { it == ' ' }
-                    for (s in arr) {
-                        if (i < (spaceCount - 2).coerceAtLeast(2)) //Device should have at least brand + model
-                            break
-                        val shortName = join(arr, " ", i)
-                        if (it.name?.contains(shortName, ignoreCase = true) == true) {
-                            LogCat.log("DeviceInfoManager: (3) $it")
-                            firstFound = DeviceInfo(m, fixModelAsAscii(m), getSensors(it))
-                        }
-                        i--
-                    }
+            // Score candidate
+            val score = scoreCandidate(
+                qBrand = qBrand,
+                qTokens = qTokens,
+                qDigits = qDigits,
+                specBrand = specBrand,
+                specName = specName,
+                fullName = fullName,
+                codename = spec.codename ?: "",
+                qCodename = codeName
+            )
 
-                }
+            if (score > bestScore) {
+                bestScore = score
+                best = DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec))
             }
         }
 
-        return firstFound
+        // Threshold to avoid terrible "Galaxy" / "9" style false positives.
+        // If we have digits in the query, we demand at least one strong digit-aware match.
+        val threshold = if (qDigits.isNotEmpty()) 650 else 450
+        return if (bestScore >= threshold) best else null
+    }
+
+    private fun buildReadableName(spec: DeviceSpec, fallbackBrand: String): String {
+        var m = if (spec.name?.startsWith(spec.brand ?: "", ignoreCase = true) == true) {
+            capitalize(spec.name)
+        } else {
+            capitalize(spec.brand ?: fallbackBrand) + " " + capitalize(spec.name)
+        }
+        (spec.brand ?: fallbackBrand).let { b ->
+            // Keep original casing of vendor name as in source
+            m = m.replace(b, b, ignoreCase = true)
+        }
+        return m.trim()
+    }
+
+    private fun tokenize(s: String): List<String> {
+        // Keep digits as tokens; split on anything else.
+        return s.lowercase()
+            .replace("[^a-z0-9]+".toRegex(), " ")
+            .trim()
+            .split("\\s+".toRegex())
+            .filter { it.isNotBlank() }
+    }
+
+    private fun scoreCandidate(
+        qBrand: String,
+        qTokens: List<String>,
+        qDigits: Set<String>,
+        specBrand: String,
+        specName: String,
+        fullName: String,
+        codename: String,
+        qCodename: String
+    ): Int {
+        var score = 0
+
+        val nameTokens = tokenize(specName)
+        val fullTokens = tokenize(fullName)
+
+        // Brand alignment
+        if (specBrand.equals(qBrand, ignoreCase = true)) score += 300
+        else if (specBrand.isNotEmpty() && qBrand.isNotEmpty()) score -= 150
+
+        // Codename bonus (but don't allow it to override wrong brand)
+        if (qCodename.isNotEmpty() && codename == qCodename) score += 400
+
+        // Digit guard: if query has digits, require candidate to contain them
+        if (qDigits.isNotEmpty()) {
+            val candidateDigits = (nameTokens + fullTokens).filter { it.all(Char::isDigit) }.toSet()
+            val missing = qDigits - candidateDigits
+            if (missing.isNotEmpty()) return Int.MIN_VALUE / 4 // hard reject
+            score += 250
+        }
+
+        // Token overlap
+        val tokenSet = (nameTokens + fullTokens).toSet()
+        var overlap = 0
+        for (t in qTokens) {
+            if (t in tokenSet) overlap += if (t.all(Char::isDigit)) 50 else 20
+        }
+        score += overlap
+
+        // Substring alignment (useful for minor formatting differences)
+        if (specName.contains(qBrand, ignoreCase = true)) score += 20
+        if (fullName.contains(qBrand, ignoreCase = true)) score += 20
+
+        // Penalize overly short / generic matches
+        val qLen = qTokens.sumOf { it.length }.coerceAtLeast(1)
+        val nLen = tokenize(specName).sumOf { it.length }.coerceAtLeast(1)
+        if (nLen < qLen / 2) score -= 100
+
+        // Prefer longer, more specific names when scores tie
+        score += (specName.length.coerceAtMost(60))
+
+        return score
     }
 
     private fun getSensors(spec: DeviceSpec): Set<String> {
@@ -573,9 +574,5 @@ object DeviceInfoManager {
         return list.toTypedArray()
     }
 
-    private fun capitalize(text: String?): String {
-        if (text.isNullOrEmpty()) return ""
-        return text.split(" ").filter { it.isNotEmpty() }
-            .joinToString(" ") { it.lowercase().replaceFirstChar { char -> char.uppercase() } }
-    }
+
 }

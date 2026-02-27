@@ -26,9 +26,11 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.device.DeviceInfoManager
+import dev.skomlach.common.device.hasUnderDisplayFingerprint
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.lang.reflect.Modifier
+import androidx.core.content.edit
 
 object DevicesWithKnownBugs {
 
@@ -125,19 +127,18 @@ object DevicesWithKnownBugs {
             val ts = "hasUnderDisplayFingerprint-${Build.FINGERPRINT}"
             var cached = prefs.getString(ts, null)
             if (cached == null) {
-                val edit = prefs.edit()
-                prefs.all.map {
-                    it.key
-                }.forEach {
-                    if (it.startsWith("hasUnderDisplayFingerprint-"))
-                        edit.remove(it)
+                prefs.edit {
+                    prefs.all.map {
+                        it.key
+                    }.forEach {
+                        if (it.startsWith("hasUnderDisplayFingerprint-"))
+                            remove(it)
+                    }
+                    val value =
+                        BiometricPromptCompat.deviceInfo?.hasUnderDisplayFingerprint() == true || guessingHasUnderDisplayFingerprint
+                    cached = "$value"
+                    putString(ts, cached)
                 }
-                val value =
-                    DeviceInfoManager.hasUnderDisplayFingerprint(
-                        BiometricPromptCompat.deviceInfo ?: return false
-                    ) || guessingHasUnderDisplayFingerprint
-                cached = "$value"
-                edit.putString(ts, cached).apply()
             }
 
             return cached == "true"

@@ -64,6 +64,16 @@ object DeviceModel {
         if (list.isNotEmpty())
             return list
 
+        // If we are running on an emulator/virtualized environment, prefer raw Build.BRAND/MODEL.
+        // This avoids "database" heuristics collapsing specific devices (e.g. "Pixel Tablet") into generic series names.
+        if (detectEmulatorKind() != null) {
+            val base = getName(brand, model)
+            val pretty = ("$base (Emulator)").trim()
+            val clean = pretty.filter { c -> c.isLetterOrDigit() || c.isWhitespace() }
+            return listOf(pretty to clean)
+        }
+
+
         val strings = HashMap<String, String>()
         getNameFromAssets()?.let {
             for (s in it) {
@@ -107,7 +117,7 @@ object DeviceModel {
         }
         set.removeAll(toRemove)
         val l = set.toMutableList().also {
-            it.sortWith { p0, p1 -> p0.length.compareTo(p1.length) }
+            it.sortWith { a, b -> b.length.compareTo(a.length) } // Prefer longest (most specific) names first
         }
         val list = ArrayList<Pair<String, String>>()
         for (s in l) {
