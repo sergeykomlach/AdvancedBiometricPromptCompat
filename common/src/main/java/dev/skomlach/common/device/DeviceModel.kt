@@ -146,6 +146,9 @@ object DeviceModel {
     }
 
     private fun getSimpleDeviceName(): String? {
+        if (detectEmulatorKind == EmulatorKind.ANDROID_EMULATOR) {
+            buildEmulatorMarketingName()?.let { return it }
+        }
         SystemPropertiesProxy.get(appContext, "ro.config.marketing_name").let {
             if (it.isNotEmpty())
                 return getName(brand, it)
@@ -156,7 +159,38 @@ object DeviceModel {
         }
         return null
     }
+    private fun buildEmulatorMarketingName(): String? {
+        val product = (Build.PRODUCT ?: "").trim()
+        if (product.isEmpty()) return null
+        val model = (Build.MODEL ?: "").trim()
+        if (model.startsWith("Pixel", ignoreCase = true)) {
+            return null
+        }
+        val arch = when {
+            product.contains("x86_64", true) -> "x86_64"
+            product.contains("x86", true) -> "x86"
+            product.contains("arm64", true) -> "arm64"
+            product.contains("arm", true) -> "arm"
+            else -> null
+        }
+        val has16k = product.contains("16k", ignoreCase = true)
+        val isResizableAvd = product.contains("resizable", true)
+        if (product.startsWith("sdk_", ignoreCase = true) || product.contains("emulator", true)) {
+            val parts = ArrayList<String>(4)
+            if (isResizableAvd) parts += "Resizable"
+            if (arch != null) parts += arch
+            if (has16k) parts += "16KB pages"
 
+            val suffix = parts.joinToString(", ")
+            return if (suffix.isNotEmpty()) {
+                "Google Android Emulator ($suffix)"
+            } else {
+                "Google Android Emulator"
+            }
+        }
+
+        return null
+    }
     @WorkerThread
     private fun getNameFromAssets(): Set<String>? {
 
