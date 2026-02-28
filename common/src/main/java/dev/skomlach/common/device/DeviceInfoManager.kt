@@ -43,28 +43,10 @@ object DeviceInfoManager {
     val PREF_NAME = "BiometricCompat_DeviceInfo-V7"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
-    private fun buildEmulatorReadableName(kind: EmulatorKind): String {
-        val brand = (Build.BRAND ?: Build.MANUFACTURER ?: "Android").trim()
-        val model = (Build.MODEL ?: "Emulator").trim()
-
-        // Keep the full marketing-looking model (e.g., "Pixel Tablet") and just add an emulator suffix.
-        val base = if (model.startsWith(
-                brand,
-                ignoreCase = true
-            )
-        ) model else "${capitalize(brand)} ${model}".trim()
-
-        val suffix = when (kind) {
-            EmulatorKind.ANDROID_EMULATOR -> " (Emulator)"
-            EmulatorKind.GENYMOTION -> " (Genymotion)"
-            EmulatorKind.BLUESTACKS -> " (BlueStacks)"
-            EmulatorKind.NOX -> " (Nox)"
-            EmulatorKind.MEMU -> " (MEmu)"
-            EmulatorKind.LDPLAYER -> " (LDPlayer)"
-            EmulatorKind.ANDY -> " (Andy)"
-            EmulatorKind.UNKNOWN -> " (Emulator)"
-        }
-        return (base + suffix).trim()
+    init {
+       getPreferences(PREF_NAME).apply {
+           edit().clear().commit()
+       }
     }
     @WorkerThread
     fun getDeviceInfo(listener: OnDeviceInfoListener) {
@@ -77,19 +59,6 @@ object DeviceInfoManager {
             onDeviceInfoListener.get()?.onReady(deviceInfo)
             return
         }
-
-        // Emulator detection should run BEFORE any DB/network-backed model mapping.
-        // Many emulators (Pixel Tablet, BlueStacks, Genymotion, etc.) may have "brand/manufacturer" values that look real,
-        // but their secondary build fields (fingerprint/hardware/product) are generic. If we don't short-circuit here,
-        // fuzzy matching may collapse e.g. "Pixel Tablet" into "Google Pixel".
-        detectEmulatorKind()?.let { kind ->
-            val modelName = buildEmulatorReadableName(kind)
-            deviceInfo = DeviceInfo(modelName, fixModelAsAscii(modelName), emptySet())
-            cachedDeviceInfo = deviceInfo
-            onDeviceInfoListener.get()?.onReady(deviceInfo)
-            return
-        }
-
 
         val names = getNames()
         val devicesList = (try {
@@ -106,8 +75,9 @@ object DeviceInfoManager {
             addAll(getDeviceSpecCompat())
         }.toTypedArray()
 
-
-
+        // Detect emulator/virtualized environment once. This must NOT change the model string,
+        // because model-based matching is used to obtain sensors list.
+        val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind() }.getOrNull()
         for (m in names) {
             try {
                 val first = m.first
@@ -122,13 +92,21 @@ object DeviceInfoManager {
                         first,
                         second,
                         DeviceModel.brand,
-                        DeviceModel.device
+                        DeviceModel.device,
+                        emulatorKind
                     )
-                    if (!deviceInfo?.sensors.isNullOrEmpty()) {
-                        LogCat.log("DeviceInfoManager: " + deviceInfo?.model + " -> " + deviceInfo)
-                        setCachedDeviceInfo(deviceInfo, true)
-                        onDeviceInfoListener.get()?.onReady(deviceInfo)
-                        return
+                    if (deviceInfo != null) {
+                        val hasSensors = deviceInfo.sensors.isNotEmpty()
+                        val isMostSpecificAttempt = (limit == secondArray.size)
+                        val acceptEvenWithoutSensors = emulatorKind != null || isMostSpecificAttempt
+                        if (hasSensors || acceptEvenWithoutSensors) {
+                            LogCat.log("DeviceInfoManager: " + deviceInfo.model + " -> " + deviceInfo)
+                            setCachedDeviceInfo(deviceInfo, true)
+                            onDeviceInfoListener.get()?.onReady(deviceInfo)
+                            return
+                        } else {
+                            LogCat.log("DeviceInfoManager: matched but empty sensors for $first/$second (will try shorter)")
+                        }
                     } else {
                         LogCat.log("DeviceInfoManager: no data for $first/$second")
                     }
@@ -137,7 +115,7 @@ object DeviceInfoManager {
                 LogCat.logException(e)
             }
         }
-        onDeviceInfoListener.get()?.onReady(getAnyDeviceInfo().also {
+        onDeviceInfoListener.get()?.onReady(getAnyDeviceInfo(emulatorKind).also {
             setCachedDeviceInfo(it, false)
         })
     }
@@ -183,13 +161,16 @@ object DeviceInfoManager {
                     val sensors =
                         sharedPreferences.getStringSet("sensors", null)
                             ?: HashSet<String>()
-                    field = DeviceInfo(model, fixModelAsAscii(model), sensors)
+                    val emu = sharedPreferences.getString("emulatorKind", null)
+                    val emulatorKind =
+                        emu?.let { runCatching { EmulatorKind.valueOf(it) }.getOrNull() }
+                    field = DeviceInfo(model, fixModelAsAscii(model), sensors, emulatorKind)
                 }
             }
             return field
         }
 
-    fun getAnyDeviceInfo(): DeviceInfo {
+    fun getAnyDeviceInfo(emulatorKind: EmulatorKind? = null): DeviceInfo {
         cachedDeviceInfo?.let {
             return it
         }
@@ -198,7 +179,7 @@ object DeviceInfoManager {
             ?.first
 
         return if (!name.isNullOrEmpty())
-            DeviceInfo(name, fixModelAsAscii(name), HashSet<String>()).also {
+            DeviceInfo(name, fixModelAsAscii(name), HashSet<String>(), emulatorKind).also {
                 LogCat.log("DeviceInfoManager: (fallback 1) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
             }
@@ -206,7 +187,8 @@ object DeviceInfoManager {
             DeviceInfo(
                 DeviceModel.model,
                 fixModelAsAscii(DeviceModel.model),
-                HashSet<String>()
+                HashSet<String>(),
+                emulatorKind
             ).also {
                 LogCat.log("DeviceInfoManager: (fallback 2) " + it.model + " -> " + it)
                 cachedDeviceInfo = it
@@ -222,6 +204,7 @@ object DeviceInfoManager {
             sharedPreferences
                 .putStringSet("sensors", deviceInfo.sensors)
                 .putString("model", deviceInfo.model)
+                .putString("emulatorKind", deviceInfo.emulatorKind?.name)
                 .putBoolean("checked", true)
                 .putBoolean("strictMatch", strictMatch)
                 .apply()
@@ -235,7 +218,8 @@ object DeviceInfoManager {
         modelReadableName: String,
         model: String,
         brand: String,
-        codeName: String
+        codeName: String,
+        emulatorKind: EmulatorKind?
     ): DeviceInfo? {
         LogCat.log("DeviceInfoManager: loadDeviceInfo(total=${devicesList.size}, modelReadableName=$modelReadableName, brand=$brand, model=$model, codeName=$codeName)")
         try {
@@ -245,7 +229,8 @@ object DeviceInfoManager {
                         devicesList,
                         model.substring(brand.length).trim(),
                         brand,
-                        codeName
+                        codeName,
+                        emulatorKind
                     )
                 if (info != null)
                     return info
@@ -255,16 +240,17 @@ object DeviceInfoManager {
                     devicesList,
                     modelReadableName.substring(brand.length).trim(),
                     brand,
-                    codeName
+                    codeName,
+                    emulatorKind
                 )
                 if (info != null)
                     return info
             }
-            val info = findDeviceInfo(devicesList, model, brand, codeName)
+            val info = findDeviceInfo(devicesList, model, brand, codeName, emulatorKind)
             if (info != null)
                 return info
 
-            return findDeviceInfo(devicesList, modelReadableName, brand, codeName)
+            return findDeviceInfo(devicesList, modelReadableName, brand, codeName, emulatorKind)
         } catch (e: Throwable) {
             LogCat.logException(e, "DeviceInfoManager")
             return null
@@ -275,7 +261,8 @@ object DeviceInfoManager {
         devicesList: Array<DeviceSpec>,
         model: String,
         brand: String,
-        codeName: String
+        codeName: String,
+        emulatorKind: EmulatorKind?
     ): DeviceInfo? {
         LogCat.log("DeviceInfoManager: findDeviceInfo(total=${devicesList.size}, brand=$brand, model=$model, codeName=$codeName)")
 
@@ -297,12 +284,14 @@ object DeviceInfoManager {
 
             // Fast-path exact matches
             if (specName.equals(qModel, ignoreCase = true)) {
-                val di = DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec))
+                val di =
+                    DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec), emulatorKind)
                 LogCat.log("DeviceInfoManager: (exact) $spec")
                 return di
             }
             if (spec.codename == codeName && specBrand.equals(qBrand, ignoreCase = true)) {
-                val di = DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec))
+                val di =
+                    DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec), emulatorKind)
                 LogCat.log("DeviceInfoManager: (codename+brand) $spec")
                 return di
             }
@@ -321,7 +310,8 @@ object DeviceInfoManager {
 
             if (score > bestScore) {
                 bestScore = score
-                best = DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec))
+                best =
+                    DeviceInfo(fullName, fixModelAsAscii(fullName), getSensors(spec), emulatorKind)
             }
         }
 
@@ -332,16 +322,19 @@ object DeviceInfoManager {
     }
 
     private fun buildReadableName(spec: DeviceSpec, fallbackBrand: String): String {
-        var m = if (spec.name?.startsWith(spec.brand ?: "", ignoreCase = true) == true) {
-            capitalize(spec.name)
-        } else {
-            capitalize(spec.brand ?: fallbackBrand) + " " + capitalize(spec.name)
+        val bRaw = (spec.brand ?: fallbackBrand).trim()
+        val nRaw = (spec.name ?: "").trim()
+
+        val b = smartCapitalize(bRaw)
+        val n = smartCapitalize(nRaw)
+
+        val combined = when {
+            n.isBlank() -> b
+            b.isBlank() -> n
+            n.startsWith(b, ignoreCase = true) -> n
+            else -> "$b $n"
         }
-        (spec.brand ?: fallbackBrand).let { b ->
-            // Keep original casing of vendor name as in source
-            m = m.replace(b, b, ignoreCase = true)
-        }
-        return m.trim()
+        return combined.trim()
     }
 
     private fun tokenize(s: String): List<String> {

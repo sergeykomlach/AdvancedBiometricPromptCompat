@@ -35,7 +35,13 @@ data class DeviceInfo(
     @PotentialNonAsciiContent
     val model: String,
     val modelAsAscii: String,
-    val sensors: Set<String>
+    val sensors: Set<String>,
+    /**
+     * If not null, the app is running inside an emulator / virtualized Android environment.
+     * This flag is intentionally separated from [model] to avoid breaking model-based lookups
+     * (e.g. sensors DB / device matching).
+     */
+    val emulatorKind: EmulatorKind? = null
 )
 
 

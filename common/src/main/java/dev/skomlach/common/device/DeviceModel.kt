@@ -50,30 +50,36 @@ object DeviceModel {
     private val list = ArrayList<Pair<String, String>>()
 
     init {
-        if (brand == "Amazon") {
-            SystemPropertiesProxy.get(appContext, "ro.build.characteristics").let {
-                if (it == "tablet")
-                    brand = "$brand Kindle"
-            }
+        if (isAmazonKindleDevice()) {
+            brand = "Amazon Kindle"
         }
         //[AndroidModel.names brand=samsung; model=SM-A566B; device=a56x;]
         LogCat.log("AndroidModel.names brand=$brand; model=$model; device=$device;")
     }
+    private fun isAmazonKindleDevice(): Boolean {
+        val manu = (Build.MANUFACTURER ?: "").trim()
+        val b = (brand).trim()
+        val product = (Build.PRODUCT ?: "").trim()
+        val dev = (Build.DEVICE ?: "").trim()
+        val characteristics = SystemPropertiesProxy.get(appContext, "ro.build.characteristics", "")
 
+        val isAmazon = manu.equals("Amazon", true) || b.equals("Amazon", true) || b.contains("amazon", true)
+        if (!isAmazon) return false
+
+        val isTablet = characteristics.equals("tablet", true) || characteristics.contains("tablet", true)
+
+        val looksLikeKindle = model.startsWith("KF", true) ||
+                product.startsWith("KF", true) ||
+                dev.startsWith("KF", true) ||
+                model.contains("kindle", true) ||
+                product.contains("kindle", true) ||
+                dev.contains("kindle", true)
+
+        return isTablet || looksLikeKindle
+    }
     fun getNames(): List<Pair<String, String>> {
         if (list.isNotEmpty())
             return list
-
-        // If we are running on an emulator/virtualized environment, prefer raw Build.BRAND/MODEL.
-        // This avoids "database" heuristics collapsing specific devices (e.g. "Pixel Tablet") into generic series names.
-        if (detectEmulatorKind() != null) {
-            val base = getName(brand, model)
-            val pretty = ("$base (Emulator)").trim()
-            val clean = pretty.filter { c -> c.isLetterOrDigit() || c.isWhitespace() }
-            return listOf(pretty to clean)
-        }
-
-
         val strings = HashMap<String, String>()
         getNameFromAssets()?.let {
             for (s in it) {
