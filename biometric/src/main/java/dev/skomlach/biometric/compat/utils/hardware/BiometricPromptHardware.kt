@@ -28,7 +28,6 @@ import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -47,6 +46,14 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import androidx.core.content.edit
+import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.common.device.hasFaceID
+import dev.skomlach.common.device.hasFingerprint
+import dev.skomlach.common.device.hasHeartrateID
+import dev.skomlach.common.device.hasIrisScanner
+import dev.skomlach.common.device.hasPalmID
+import dev.skomlach.common.device.hasVoiceID
 
 @TargetApi(Build.VERSION_CODES.P)
 
@@ -157,7 +164,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
                 BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> false //no biometric
-                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> BiometricAuthentication.hasEnrolled
+                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> false
                 //sensor temporary unavailable; fallback to legacy
                 else -> false
             }
@@ -212,6 +219,19 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent == true
             )
                 return true
+            BiometricPromptCompat.deviceInfo?.let {
+                if (it.sensors.isNotEmpty()) {
+                    return when (type) {
+                        BiometricType.BIOMETRIC_FACE -> it.hasFaceID()
+                        BiometricType.BIOMETRIC_IRIS -> it.hasIrisScanner()
+                        BiometricType.BIOMETRIC_FINGERPRINT -> it.hasFingerprint()
+                        BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID()
+                        BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID()
+                        BiometricType.BIOMETRIC_PALMPRINT -> it.hasPalmID()
+                        else -> false
+                    }
+                }
+            }
             //legacy
             val packageManager = appContext.packageManager
             for (f in biometricFeatures) {

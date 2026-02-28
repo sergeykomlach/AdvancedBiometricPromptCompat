@@ -200,7 +200,7 @@ object DevicesWithKnownBugs {
             else
                 if (isChromeBook) return true
                 else if (isSamsung) {
-                    val model = DeviceInfoManager.getAnyDeviceInfo().model
+                    val model = BiometricPromptCompat.deviceInfo?.model?:return false
                     return model.contains("Flip") || model.contains("Fold")
                 }
 

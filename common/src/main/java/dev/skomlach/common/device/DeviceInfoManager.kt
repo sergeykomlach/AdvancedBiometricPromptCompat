@@ -169,7 +169,7 @@ object DeviceInfoManager {
             return field
         }
 
-    fun getAnyDeviceInfo(emulatorKind: EmulatorKind? = null): DeviceInfo {
+    private fun getAnyDeviceInfo(emulatorKind: EmulatorKind?): DeviceInfo {
         cachedDeviceInfo?.let {
             return it
         }

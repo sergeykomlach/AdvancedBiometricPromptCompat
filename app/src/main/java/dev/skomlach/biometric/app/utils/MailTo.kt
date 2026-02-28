@@ -26,6 +26,7 @@ import android.os.AsyncTask
 import android.os.Build
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
+import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.logging.LogCat
@@ -156,7 +157,7 @@ object MailTo {
             val dir = File(ctx.filesDir, "zipfiles").also {
                 if (!it.exists()) it.mkdirs()
             }
-            val file = File(dir, DeviceInfoManager.getAnyDeviceInfo().model + "_biometric_log.zip")
+            val file = File(dir, BiometricPromptCompat.deviceInfo?.model + "_biometric_log.zip")
             zip(list.map { it.absolutePath }.toTypedArray(), file)
             val fileUri: Uri? = try {
                 FileProvider.getUriForFile(
