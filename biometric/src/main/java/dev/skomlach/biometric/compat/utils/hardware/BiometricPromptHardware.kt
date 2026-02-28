@@ -46,6 +46,7 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import androidx.core.content.edit
 
 @TargetApi(Build.VERSION_CODES.P)
 
@@ -381,8 +382,9 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 try {
                     cipher.init(Cipher.ENCRYPT_MODE, secretKey)
                     SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                        .edit()
-                        .putBoolean("isBiometricConfirmed", true).apply()
+                        .edit {
+                            putBoolean("isBiometricConfirmed", true)
+                        }
                 } catch (e: KeyPermanentlyInvalidatedException) {
                     return true
                 } catch (e: InvalidKeyException) {
@@ -391,7 +393,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             } catch (e: Throwable) {
                 if (e.message?.contains("User changed or deleted their auth credentials") == true)
                     return true
-                else if (e.message?.contains("At least one biometric must be enrolled") == true)
+                else if (e.message?.contains("At least one") == true && e.message?.contains("must be enrolled to create keys") == true)
                     return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
                         .getBoolean("isBiometricConfirmed", false)
                 else

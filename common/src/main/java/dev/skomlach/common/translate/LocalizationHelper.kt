@@ -80,11 +80,16 @@ object LocalizationHelper {
                     inputStream = urlConnection.inputStream
                 } else {
                     //Redirect happen
-                    if (responseCode >= HttpURLConnection.HTTP_MULT_CHOICE && responseCode < HttpURLConnection.HTTP_BAD_REQUEST) {
-                        var target = urlConnection.getHeaderField("Location")
-                        if (target != null && !NetworkApi.isWebUrl(target)) {
-                            target = "https://$target"
+                    if (responseCode in HttpURLConnection.HTTP_MULT_CHOICE until HttpURLConnection.HTTP_BAD_REQUEST) {
+                        val location = urlConnection.getHeaderField("Location") ?: return null
+
+                        val target = when {
+                            location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
+                            NetworkApi.isWebUrl(location) -> location                                      // absolute
+                            else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)          // relative (/path or path)
                         }
+
+                        urlConnection.disconnect()
                         return fetchFromWeb(target)
                     }
                     inputStream = urlConnection.inputStream ?: urlConnection.errorStream

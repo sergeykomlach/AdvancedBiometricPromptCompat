@@ -167,12 +167,14 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
 
                 if (getCode in HttpURLConnection.HTTP_MULT_CHOICE until HttpURLConnection.HTTP_BAD_REQUEST) {
-                    var target = urlConnection.getHeaderField("Location")
-                    if (target != null && !isWebUrl(target)) {
-                        target = "https://$target"
+                    val location = urlConnection.getHeaderField("Location") ?: throw IOException("Location missed in redirect")
+                    val target = when {
+                        location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
+                        NetworkApi.isWebUrl(location) -> location                                      // absolute
+                        else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)          // relative (/path or path)
                     }
                     //Some providers show "dummy" page, lets compare with target URL
-                    if (target != null && !matchesUrl(uri.toString(), target)) {
+                    if (!matchesUrl(uri.toString(), target)) {
                         throw IOException("Unable to connect to $host")
                     }
                 }
