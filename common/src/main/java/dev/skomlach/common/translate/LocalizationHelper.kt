@@ -53,56 +53,66 @@ object LocalizationHelper {
     )
 
     fun fetchFromWeb(url: String): String? {
-        LogCat.logError("translate fetchFromWeb $url")
-        if (NetworkApi.hasInternet() && url.isNotEmpty())
-            try {
-                val urlConnection =
-                    NetworkApi.createConnection(
-                        url,
-                        TimeUnit.SECONDS.toMillis(30).toInt()
-                    )
+        return fetchFromWebWithRedirects(url, 0)
+    }
 
-                urlConnection.requestMethod = "GET"
-                urlConnection.setRequestProperty("Content-Language", "en-US")
-                urlConnection.setRequestProperty("Accept-Language", "en-US")
-                urlConnection.setRequestProperty(
-                    "User-Agent",
-                    agents[SecureRandom().nextInt(agents.size)]
-                )
-                urlConnection.instanceFollowRedirects = true
-                urlConnection.connect()
-                val responseCode = urlConnection.responseCode
-                val byteArrayOutputStream = ByteArrayOutputStream()
-                val inputStream: InputStream
+    private fun fetchFromWebWithRedirects(url: String, redirectCount: Int): String? {
+        if (redirectCount > 5) {
+            LogCat.logError("Too many redirects for URL: $url")
+            return null
+        }
 
-                //if any 2XX response code
-                if (responseCode >= HttpURLConnection.HTTP_OK && responseCode < HttpURLConnection.HTTP_MULT_CHOICE) {
-                    inputStream = urlConnection.inputStream
-                } else {
-                    //Redirect happen
-                    if (responseCode in HttpURLConnection.HTTP_MULT_CHOICE until HttpURLConnection.HTTP_BAD_REQUEST) {
-                        val location = urlConnection.getHeaderField("Location") ?: return null
+        var urlConnection: HttpURLConnection? = null
+        try {
+            urlConnection = NetworkApi.createConnection(url, 5000)
+            urlConnection.requestMethod = "GET"
+            urlConnection.instanceFollowRedirects = true
 
-                        val target = when {
-                            location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
-                            NetworkApi.isWebUrl(location) -> location                                      // absolute
-                            else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)          // relative (/path or path)
-                        }
+            urlConnection.setRequestProperty(
+                "User-Agent",
+                agents[SecureRandom().nextInt(agents.size)]
+            )
+            urlConnection.connect()
 
-                        urlConnection.disconnect()
-                        return fetchFromWeb(target)
-                    }
-                    inputStream = urlConnection.inputStream ?: urlConnection.errorStream
+            val responseCode = urlConnection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                responseCode == 307 || responseCode == 308) {
+
+                val location = urlConnection.getHeaderField("Location")?:return null
+
+                val target = when {
+                    location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
+                    NetworkApi.isWebUrl(location) -> location                                      // absolute
+                    else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)          // relative (/path or path)
                 }
-                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-                inputStream.close()
-                val data = byteArrayOutputStream.toByteArray()
-                byteArrayOutputStream.close()
+
+                LogCat.log("Redirecting to: $target")
                 urlConnection.disconnect()
-                return String(data, Charset.forName("UTF-8"))
-            } catch (e: Throwable) {
-                LogCat.logException(e, "LocalizationHelper")
+                return fetchFromWebWithRedirects(target, redirectCount + 1)
             }
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                urlConnection.inputStream.use { inputStream ->
+                    ByteArrayOutputStream().use { result ->
+                        val buffer = ByteArray(1024)
+                        var length: Int
+                        while (inputStream.read(buffer).also { length = it } != -1) {
+                            result.write(buffer, 0, length)
+                        }
+                        return result.toString("UTF-8")
+                    }
+                }
+            } else {
+                val errorMsg = urlConnection.errorStream?.bufferedReader()?.use { it.readText() }
+                LogCat.logError("Server returned code: $responseCode for URL: $url. Error: $errorMsg")
+            }
+
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        } finally {
+            urlConnection?.disconnect()
+        }
         return null
     }
 

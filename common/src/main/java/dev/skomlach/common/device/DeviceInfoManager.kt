@@ -19,7 +19,6 @@
 
 package dev.skomlach.common.device
 
-import android.os.Build
 import android.os.Looper
 import androidx.annotation.WorkerThread
 import com.google.gson.Gson
@@ -43,11 +42,11 @@ object DeviceInfoManager {
     val PREF_NAME = "BiometricCompat_DeviceInfo-V7"
     private val pattern = Pattern.compile("\\((.*?)\\)+")
     private val loadingInProgress = AtomicBoolean(false)
-    init {
-       getPreferences(PREF_NAME).apply {
-           edit().clear().commit()
-       }
-    }
+//    init {
+//       getPreferences(PREF_NAME).apply {
+//           edit().clear().commit()
+//       }
+//    }
     @WorkerThread
     fun getDeviceInfo(listener: OnDeviceInfoListener) {
         if (Looper.getMainLooper().thread === Thread.currentThread()) throw IllegalThreadStateException(
@@ -77,7 +76,7 @@ object DeviceInfoManager {
 
         // Detect emulator/virtualized environment once. This must NOT change the model string,
         // because model-based matching is used to obtain sensors list.
-        val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind() }.getOrNull()
+        val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
         for (m in names) {
             try {
                 val first = m.first

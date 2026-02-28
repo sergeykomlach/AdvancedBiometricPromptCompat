@@ -78,7 +78,9 @@ internal fun smartCapitalize(text: String?): String {
  * Returns emulator kind if this runtime looks like an emulator/virtualized environment.
  * Covers Android Studio emulator, Genymotion, BlueStacks, Nox, MEmu, LDPlayer, Andy, etc.
  */
-fun detectEmulatorKind(): EmulatorKind? = EmulatorDetector.detect()
+val detectEmulatorKind: EmulatorKind? by lazy {
+    EmulatorDetector.detect()
+}
 
 enum class EmulatorKind {
     ANDROID_EMULATOR, GENYMOTION, BLUESTACKS, NOX, MEMU, LDPLAYER, ANDY, VIRTUAL_MACHINE
