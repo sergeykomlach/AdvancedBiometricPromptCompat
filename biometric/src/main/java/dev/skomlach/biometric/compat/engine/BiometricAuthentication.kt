@@ -33,6 +33,7 @@ import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -127,7 +128,7 @@ object BiometricAuthentication {
             }
             synchronized(moduleHashMap) {
                 keysToRemove.forEach {
-                    it.value.remove(it.value.getDefaultBundle())
+                    it.value.remove(it.value.getRegistrationBundle())
                     moduleHashMap.remove(it.key)
                 }
             }
@@ -347,7 +348,7 @@ object BiometricAuthentication {
         requestedMethods.filterNotNull().forEach { type ->
             getAvailableBiometricModule(type)?.takeIf {
                 (bundle?.getBoolean(
-                    "registration",
+                    BundleBuilder.REGISTRATION,
                     false
                 ) == true && it is CustomBiometricModule) || it.hasEnrolled
             }?.let { module ->

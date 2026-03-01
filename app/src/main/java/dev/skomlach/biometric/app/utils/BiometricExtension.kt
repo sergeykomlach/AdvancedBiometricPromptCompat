@@ -221,14 +221,26 @@ fun Fragment.startBiometric(
             Toast.makeText(AndroidContext.appContext.getFixedContext(), "onUIClosed", Toast.LENGTH_SHORT).show()
         }
     }
-    if (isRegister) biometricPromptCompat.registration(callback)
-    else
-    biometricPromptCompat.authenticate(callback)
-    Toast.makeText(
-        AndroidContext.appContext.getFixedContext(),
-        "Start biometric ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-        Toast.LENGTH_SHORT
-    ).show()
+    if (isRegister) {
+        biometricPromptCompat.registration(callback)
+
+
+        Toast.makeText(
+            AndroidContext.appContext.getFixedContext(),
+            "Start registration ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+    else {
+        biometricPromptCompat.authenticate(callback)
+
+
+        Toast.makeText(
+            AndroidContext.appContext.getFixedContext(),
+            "Start authenticate ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 }
 
 private fun showAlertDialog(context: Context, msg: String) {

@@ -22,6 +22,10 @@ package dev.skomlach.biometric.compat
 import android.os.Bundle
 
 object BundleBuilder {
+    const val REGISTRATION = "registration"
+    const val TITLE = "prompt_title"
+    const val SUBTITLE = "prompt_subtitle"
+    const val DESCRIPTION = "prompt_description"
     fun create(
         biometricBuilderCompat: BiometricPromptCompat.Builder
     ): Bundle {
@@ -29,10 +33,10 @@ object BundleBuilder {
         val subtitle = biometricBuilderCompat.getSubtitle()?.toString()
         val description = biometricBuilderCompat.getDescription()?.toString()
         return Bundle().apply {
-            putBoolean("registration", biometricBuilderCompat.registration)
-            title?.let { this.putString("prompt_title", it) }
-            subtitle?.let { this.putString("prompt_subtitle", it) }
-            description?.let { this.putString("prompt_description", it) }
+            putBoolean(REGISTRATION, biometricBuilderCompat.registration)
+            title?.let { this.putString(TITLE, it) }
+            subtitle?.let { this.putString(SUBTITLE, it) }
+            description?.let { this.putString(DESCRIPTION, it) }
         }
     }
 }

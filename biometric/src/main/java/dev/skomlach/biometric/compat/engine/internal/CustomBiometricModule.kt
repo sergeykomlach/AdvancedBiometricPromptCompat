@@ -23,6 +23,7 @@ import android.os.Bundle
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
+import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT
 import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
@@ -175,7 +176,7 @@ class CustomBiometricModule(
     }
 
     private fun convertBundleToCustom(): Bundle?{
-        return if (bundle?.getBoolean("registration", false) == true) manager?.getDefaultBundle() else bundle
+        return if (bundle?.getBoolean(BundleBuilder.REGISTRATION, false) == true) manager?.getRegistrationBundle() else bundle
     }
 
     internal inner class AuthCallback(

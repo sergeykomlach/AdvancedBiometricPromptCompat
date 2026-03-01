@@ -39,6 +39,7 @@ class TensorFlowProvider : CustomBiometricProvider() {
                 R.string.tf_face_help_model_not_available, //Face detection models not available
                 R.string.tf_face_help_model_enrollment_tag_not_provided, //Enrollment tag not provided
                 R.string.tf_face_help_model_not_registered, //Biometric not registered
+                R.string.tf_face_help_model_already_registered, //This face is already registered
                 R.string.tf_face_help_model_image_is_blurry, //Image is blurry, hold still
                 R.string.tf_face_help_model_fake_face_detected, //Fake face detected
                 R.string.tf_face_help_model_retry, //Retry

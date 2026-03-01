@@ -35,4 +35,5 @@
     <string name="tf_face_help_model_camera_disabled">Camera disabled</string>
     <string name="tf_face_help_too_many_attempts_try_later">Face Unlock is locked out. Try again later</string>
     <string name="tf_face_help_too_many_attempts_permanent">Face Unlock is locked out permanently</string>
+    <string name="tf_face_help_model_already_registered">This face is already registered</string>
 </resources>

@@ -217,7 +217,7 @@ class TensorFlowFaceUnlockManager(
     private var authCallback: AuthenticationCallback? = null
     private var cancellationSignal: CancellationSignal? = null
     private var isEnrolling: Boolean = false
-    private var enrollmentTag: String = "face1"
+    private var enrollmentTag: String = ""
 
     fun setFrameProvider(provider: IFrameProvider) {
         this.frameProvider = provider
@@ -329,9 +329,9 @@ class TensorFlowFaceUnlockManager(
         detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
     }
 
-    override fun getDefaultBundle(name: String?): Bundle {
+    override fun getRegistrationBundle(name: String?): Bundle {
         return Bundle().apply {
-            putBoolean(IS_ENROLLMENT_KEY, !hasEnrolledBiometric())
+            putBoolean(IS_ENROLLMENT_KEY, true)
             putString(ENROLLMENT_TAG_KEY, name ?: "face${(detector?.registeredCount() ?: 0) + 1}")
         }
     }
@@ -566,6 +566,23 @@ class TensorFlowFaceUnlockManager(
 
             if (!results.isNullOrEmpty()) {
                 val result = results[0]
+
+                // Enrollment duplicate protection:
+                // if the captured face is already close enough to an existing registered face,
+                // we refuse enrollment to prevent registering the same person multiple times.
+                if (isEnrolling && detector?.hasRegistered() == true) {
+                    val dist = result.distance ?: Float.MAX_VALUE
+                    if (dist < config.maxDistanceThresholds) {
+                        authCallback?.onAuthenticationHelp(
+                            CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.tf_face_help_model_already_registered
+                            )
+                        )
+                        return
+                    }
+                }
 
                 if (isEnrolling) {
                     if (results.size > 1) {

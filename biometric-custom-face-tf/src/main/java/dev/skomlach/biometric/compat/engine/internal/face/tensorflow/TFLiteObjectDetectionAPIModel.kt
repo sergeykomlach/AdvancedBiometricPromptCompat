@@ -218,18 +218,20 @@ private constructor() : SimilarityClassifier {
         rect.put("right", rec.getLocation().right.toDouble())
         jsonObject.put("location", rect)
         jsonObject.put("distance", rec.distance?.toDouble())
-        val extra = rec.extra as Array<FloatArray>
-        val topArray = JSONArray()
-        for (i in extra.indices) {
-            val top = extra[i]
-            val innerArray = JSONArray()
-            for (j in top.indices) {
-                val inner = extra[i][j]
-                innerArray.put(inner.toDouble())
+        val extra = rec.extra as? Array<FloatArray>
+        if (extra != null) {
+            val topArray = JSONArray()
+            for (i in extra.indices) {
+                val top = extra[i]
+                val innerArray = JSONArray()
+                for (j in top.indices) {
+                    val inner = extra[i][j]
+                    innerArray.put(inner.toDouble())
+                }
+                topArray.put(innerArray)
             }
-            topArray.put(innerArray)
+            jsonObject.put("extra", topArray)
         }
-        jsonObject.put("extra", topArray)
         jsonObject.put("title", rec.title)
 
         val crop = rec.crop
