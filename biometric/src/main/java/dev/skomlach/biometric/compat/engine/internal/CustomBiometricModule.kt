@@ -67,24 +67,25 @@ class CustomBiometricModule(
     override val isHardwarePresent: Boolean
         get() {
 
-            try {
-                return manager?.isHardwareDetected() == true
+            val result = try {
+                manager?.isHardwareDetected() == true
             } catch (e: Throwable) {
-
+                false
             }
-            return false
+            e( "$name: isHardwareDetected=$result")
+            return result
         }
 
     override val hasEnrolled: Boolean
         get() {
 
-            try {
-                return manager?.hasEnrolledBiometric() == true
+            val result = try {
+                manager?.hasEnrolledBiometric() == true
             } catch (e: Throwable) {
-
+                false
             }
-
-            return false
+            e( "$name: hasEnrolled=$result")
+            return result
         }
 
     @Throws(SecurityException::class)

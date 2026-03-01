@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.KeyguardManager
@@ -320,9 +321,10 @@ object BiometricManagerCompat {
                     api.type
                 )
             ).isHardwareAvailable
-        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
+        val isBiometricAppEnabled = isBiometricAppEnabled()
+        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result isBiometricAppEnabled $isBiometricAppEnabled")
         preferences.edit { putBoolean("isHardwareDetected-${api.api}-${api.type}", result) }
-        return result && isBiometricAppEnabled()
+        return result && isBiometricAppEnabled
     }
 
     @JvmStatic
@@ -398,20 +400,6 @@ object BiometricManagerCompat {
         preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
         return result || cameraInUse
     }
-
-    @JvmStatic
-    fun requestPermissions(
-        activity: FragmentActivity,
-        usedPermissions: List<String>,
-        onComplete: Runnable? = null
-    ) {
-        PermissionsFragment.askForPermissions(
-            activity,
-            usedPermissions,
-            onComplete
-        )
-    }
-
     @JvmStatic
     fun openSettings(
         activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
@@ -498,7 +486,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (ignoreCameraCheck)
             return false
-        if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE) {
+        if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraBlocked()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
             val types = HashSet<BiometricType>()
@@ -524,7 +512,7 @@ object BiometricManagerCompat {
             }
 
 
-            if (types.contains(BiometricType.BIOMETRIC_FACE) &&
+            if (getUsedPermissions(types).contains(Manifest.permission.CAMERA) &&
                 SensorPrivacyCheck.isCameraBlocked()
             )
                 return true
@@ -541,7 +529,7 @@ object BiometricManagerCompat {
     ): Boolean {
         if (ignoreCameraCheck)
             return false
-        if (biometricAuthRequest.type == BiometricType.BIOMETRIC_FACE) {
+        if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraInUse()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
             val types = HashSet<BiometricType>()
@@ -568,7 +556,7 @@ object BiometricManagerCompat {
             }
 
 
-            return types.contains(BiometricType.BIOMETRIC_FACE) &&
+            return getUsedPermissions(types).contains(Manifest.permission.CAMERA) &&
                     SensorPrivacyCheck.isCameraInUse()
         }
         return false

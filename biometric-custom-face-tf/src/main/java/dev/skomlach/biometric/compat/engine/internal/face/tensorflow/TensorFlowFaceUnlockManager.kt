@@ -383,7 +383,7 @@ class TensorFlowFaceUnlockManager(
             stopAuthentication()
             return
         }
-        if (SensorPrivacyCheck.isCameraBlocked()) {
+        if (frameProvider is RealCameraProvider && SensorPrivacyCheck.isCameraBlocked()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
                 LocalizationHelper.getLocalizedString(
