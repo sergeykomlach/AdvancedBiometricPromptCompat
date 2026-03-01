@@ -43,7 +43,7 @@ object SharedPreferenceProvider {
     fun getProtectedPreferences(name: String): SharedPreferences {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && appContext.isDeviceProtectedStorage) {
             appContext.createDeviceProtectedStorageContext()
-                .getSharedPreferences(name, Context.MODE_PRIVATE)
+                .getSharedPreferences(name.ifEmpty { appContext.packageName }, Context.MODE_PRIVATE)
         } else {
             EncryptedSharedPreferences(appContext, name)
         }
