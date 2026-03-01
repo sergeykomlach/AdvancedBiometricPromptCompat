@@ -222,40 +222,45 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             BiometricPromptCompat.deviceInfo?.let {
                 if (it.sensors.isNotEmpty()) {
                     return when (type) {
-                        BiometricType.BIOMETRIC_FACE -> it.hasFaceID()
-                        BiometricType.BIOMETRIC_IRIS -> it.hasIrisScanner()
-                        BiometricType.BIOMETRIC_FINGERPRINT -> it.hasFingerprint()
-                        BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID()
-                        BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID()
-                        BiometricType.BIOMETRIC_PALMPRINT -> it.hasPalmID()
+                        BiometricType.BIOMETRIC_FACE -> it.hasFaceID() && checkDeviceFeature("face")
+                        BiometricType.BIOMETRIC_IRIS -> it.hasIrisScanner() && checkDeviceFeature("iris")
+                        BiometricType.BIOMETRIC_FINGERPRINT -> it.hasFingerprint() && checkDeviceFeature(
+                            "fingerprint"
+                        )
+
+                        BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() && checkDeviceFeature("voice")
+                        BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID() && checkDeviceFeature(
+                            "heartrate"
+                        )
+
+                        BiometricType.BIOMETRIC_PALMPRINT -> it.hasPalmID() && checkDeviceFeature("palm")
                         else -> false
                     }
                 }
-            }
-            //legacy
-            val packageManager = appContext.packageManager
-            for (f in biometricFeatures) {
-                if (packageManager.hasSystemFeature(f)) {
-                    if ((f.endsWith(".fingerprint") || f.contains(".fingerprint.")) &&
-                        type == BiometricType.BIOMETRIC_FINGERPRINT
-                    ) return true
-                    if ((f.endsWith(".face") || f.contains(".face.")) &&
-                        type == BiometricType.BIOMETRIC_FACE
-                    ) return true
-                    if ((f.endsWith(".iris") || f.contains(".iris.")) &&
-                        type == BiometricType.BIOMETRIC_IRIS
-                    ) return true
-                    if ((f.endsWith(".palm") || f.contains(".palm.")) &&
-                        type == BiometricType.BIOMETRIC_PALMPRINT
-                    ) return true
-                    if ((f.endsWith(".voice") || f.contains(".voice.")) &&
-                        type == BiometricType.BIOMETRIC_VOICE
-                    ) return true
-                    if ((f.endsWith(".heartrate") || f.contains(".heartrate.")) &&
-                        type == BiometricType.BIOMETRIC_HEARTRATE
-                    ) return true
+            } ?: run {
+                return when (type) {
+                    BiometricType.BIOMETRIC_FACE -> checkDeviceFeature("face")
+                    BiometricType.BIOMETRIC_IRIS -> checkDeviceFeature("iris")
+                    BiometricType.BIOMETRIC_FINGERPRINT -> checkDeviceFeature("fingerprint")
+                    BiometricType.BIOMETRIC_VOICE -> checkDeviceFeature("voice")
+                    BiometricType.BIOMETRIC_HEARTRATE -> checkDeviceFeature("heartrate")
+                    BiometricType.BIOMETRIC_PALMPRINT -> checkDeviceFeature("palm")
+                    else -> false
                 }
             }
+            //legacy
+        }
+        return false
+    }
+
+    private fun checkDeviceFeature(alias: String): Boolean {
+        val packageManager = appContext.packageManager
+        for (f in biometricFeatures) {
+            if ((f.endsWith(".$alias") || f.contains(".$alias.")) &&
+                packageManager.hasSystemFeature(f)
+            )
+
+                return true
 
         }
         return false
