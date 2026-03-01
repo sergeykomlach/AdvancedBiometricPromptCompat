@@ -77,6 +77,21 @@ object DeviceModel {
 
         return isTablet || looksLikeKindle
     }
+private fun normalizeForMatch(s: String): String {
+    // Keep letters/digits, turn everything else (including '_' and punctuation) into spaces.
+    // This prevents "x86_64" -> "x8664" merges that ruin token-based matching.
+    val sb = StringBuilder(s.length)
+    for (ch in s) {
+        when {
+            ch.isLetterOrDigit() -> sb.append(ch)
+            ch.isWhitespace() -> sb.append(' ')
+            else -> sb.append(' ')
+        }
+    }
+    return sb.toString()
+        .replace("\\s+".toRegex(), " ")
+        .trim()
+}
     fun getNames(): List<Pair<String, String>> {
         if (list.isNotEmpty())
             return list
@@ -85,18 +100,14 @@ object DeviceModel {
             for (s in it) {
                 val str = fixVendorName(s)
                 if (str.trim().isNotEmpty())
-                    strings.put(str, str.filter { c ->
-                        c.isLetterOrDigit() || c.isWhitespace()
-                    })
+                    strings[str] = normalizeForMatch(str)
             }
         }
         if (strings.isEmpty())
             getSimpleDeviceName()?.let {
                 val str = fixVendorName(it)
                 if (str.trim().isNotEmpty())
-                    strings.put(str, str.filter { c ->
-                        c.isLetterOrDigit() || c.isWhitespace()
-                    })
+                    strings[str] = normalizeForMatch(str)
             }
         //Obsolete DB, use it as last chance
         if (strings.isEmpty())
@@ -104,9 +115,7 @@ object DeviceModel {
                 for (s in it) {
                     val str = fixVendorName(s ?: continue)
                     if (str.trim().isNotEmpty())
-                        strings.put(str, str.filter { c ->
-                            c.isLetterOrDigit() || c.isWhitespace()
-                        })
+                        strings[str] = normalizeForMatch(str)
                 }
             }
 
