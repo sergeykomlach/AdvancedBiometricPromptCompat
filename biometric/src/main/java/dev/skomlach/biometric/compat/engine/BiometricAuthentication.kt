@@ -426,7 +426,6 @@ object BiometricAuthentication {
                     if (module is FaceunlockLavaModule) module.stopAuth()
                 }
                 Core.cancelAuthentication()
-                init(null, availableBiometrics)
             }
         }
     }
