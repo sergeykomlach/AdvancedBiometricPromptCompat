@@ -16,10 +16,7 @@ object NotificationPermissionsHelper {
                     context, channelId, runnableOk, runnableFailed
                 )
             }) {
-                runnableFailed?.let {
-                    it.run()
-                }
-
+                runnableFailed?.run()
             }
         } else {
             checkNotificationChannelPermissions(context, channelId, runnableOk, runnableFailed)
@@ -34,9 +31,7 @@ object NotificationPermissionsHelper {
                 context,
                 channelId,
                 { runnableOk.run() }) {
-                runnableFailed?.let {
-                    it.run()
-                }
+                runnableFailed?.run()
             }
         } else {
             runnableOk.run()

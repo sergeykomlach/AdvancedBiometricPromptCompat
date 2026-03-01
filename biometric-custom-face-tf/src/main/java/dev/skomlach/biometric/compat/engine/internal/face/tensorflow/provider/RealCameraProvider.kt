@@ -73,6 +73,14 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         }
     }
 
+    override fun isHardwareSupported(): Boolean {
+        return try {
+            !getFrontFacingCameraId(cameraManager).isNullOrEmpty()
+        } catch (_: Exception){
+            false
+        }
+    }
+
     @SuppressLint("MissingPermission")
     private fun startCamera() {
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(Manifest.permission.CAMERA)) {

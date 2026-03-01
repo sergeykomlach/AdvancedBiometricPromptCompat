@@ -33,4 +33,5 @@ interface IFrameProvider {
     )
 
     fun stop()
+    fun isHardwareSupported(): Boolean
 }

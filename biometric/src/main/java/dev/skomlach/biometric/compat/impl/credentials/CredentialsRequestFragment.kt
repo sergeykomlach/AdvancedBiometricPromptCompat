@@ -158,7 +158,9 @@ class CredentialsRequestFragment : Fragment() {
                         null
                     }
                     startForResult.launch(intent ?: run {
-                        closeFragment()
+                        ExecutorHelper.postDelayed({
+                            closeFragment()
+                        }, 250)
                         return@repeatOnLifecycle
                     })
                 } catch (e: Throwable) {

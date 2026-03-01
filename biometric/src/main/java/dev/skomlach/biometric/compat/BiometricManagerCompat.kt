@@ -322,7 +322,7 @@ object BiometricManagerCompat {
             ).isHardwareAvailable
         BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
         preferences.edit { putBoolean("isHardwareDetected-${api.api}-${api.type}", result) }
-        return result  && isBiometricAppEnabled()
+        return result && isBiometricAppEnabled()
     }
 
     @JvmStatic
@@ -438,71 +438,50 @@ object BiometricManagerCompat {
         return false
     }
 
-
-    @JvmStatic
-    fun hasPermissionsGranted(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
-    ): Boolean {
-
-        val list = getUsedPermissions(api)
-        if (list.isEmpty()) return true
-        return if (api.type == BiometricType.BIOMETRIC_ANY) {
-            list.forEach {
-                if (!PermissionUtils.INSTANCE.hasSelfPermissions(it)) {
-                    return false
-                }
-            }
-            true
-        } else {
-            PermissionUtils.INSTANCE.hasSelfPermissions(list)
-        }
-    }
-
     @JvmStatic
     fun getUsedPermissions(
-        api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        )
+        types: Collection<BiometricType>
     ): List<String> {
 
         val permission: MutableSet<String> = java.util.HashSet()
+        types.forEach {
+            if (Build.VERSION.SDK_INT >= 28 && (it == BiometricType.BIOMETRIC_ANY || it == BiometricType.BIOMETRIC_FINGERPRINT)) {
+                permission.add("android.permission.USE_BIOMETRIC")
+            } else {
+                for (m in BiometricAuthentication.availableBiometricMethods) {
+                    if (it == m.biometricType) {
+                        when (m) {
+                            BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
+                            BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
+                            BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
+                            BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
 
-        if (Build.VERSION.SDK_INT >= 28) {
-            permission.add("android.permission.USE_BIOMETRIC")
-        }
+                            BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add(
+                                "com.hihonor.permission.USE_FACERECOGNITION"
+                            )
 
-        val biometricMethodList: MutableList<BiometricMethod> = ArrayList()
-        for (m in BiometricAuthentication.availableBiometricMethods) {
-            if (api.type == BiometricType.BIOMETRIC_ANY || api.type == m.biometricType) {
-                biometricMethodList.add(m)
-            }
-        }
-        BiometricAuthentication.customBiometricManagers.forEach {
-            permission.addAll(it.getPermissions())
-        }
-        for (method in biometricMethodList) {
-            when (method) {
-                BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
-                BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
-                BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
-                BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
+                            BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D -> permission.add(
+                                "com.huawei.permission.USE_FACERECOGNITION"
+                            )
 
-                BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add("com.hihonor.permission.USE_FACERECOGNITION")
-                BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D -> permission.add("com.huawei.permission.USE_FACERECOGNITION")
-                BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
+                            BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
 
-                BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
-                BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
-                BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
-                    "android.permission.USE_FINGERPRINT"
-                )
-                else -> {
-                    //no-op
+                            BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
+                            BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
+                            BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
+                            BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
+                                "android.permission.USE_FINGERPRINT"
+                            )
+
+                            else -> {
+                                //no-op
+                            }
+                        }
+                    }
+                }
+                BiometricAuthentication.customBiometricManagers.forEach { customBiometricManager ->
+                    if (it == customBiometricManager.biometricType)
+                        permission.addAll(customBiometricManager.getPermissions())
                 }
             }
         }
@@ -615,28 +594,32 @@ object BiometricManagerCompat {
             if (directValue == 0) {
                 isEnabled = false
             } else if (directValue == -1) {
-                contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)?.use { cursor ->
-                    val nameIndex = cursor.getColumnIndex(Settings.Secure.NAME)
-                    val valueIndex = cursor.getColumnIndex(Settings.Secure.VALUE)
+                contentResolver.query(Settings.Secure.CONTENT_URI, null, null, null, null)
+                    ?.use { cursor ->
+                        val nameIndex = cursor.getColumnIndex(Settings.Secure.NAME)
+                        val valueIndex = cursor.getColumnIndex(Settings.Secure.VALUE)
 
-                    if (nameIndex != -1 && valueIndex != -1) {
-                        while (cursor.moveToNext()) {
-                            val key = cursor.getString(nameIndex)?.lowercase() ?: continue
-                            if (key == "biometric_app_enabled" ||
-                                (key.startsWith("biometric_") && key.endsWith("_enabled"))
-                            ) {
-                                val valueStr = cursor.getString(valueIndex)
-                                val value = valueStr?.toIntOrNull() ?: 1
+                        if (nameIndex != -1 && valueIndex != -1) {
+                            while (cursor.moveToNext()) {
+                                val key = cursor.getString(nameIndex)?.lowercase() ?: continue
+                                if (key == "biometric_app_enabled" ||
+                                    (key.startsWith("biometric_") && key.endsWith("_enabled"))
+                                ) {
+                                    val valueStr = cursor.getString(valueIndex)
+                                    val value = valueStr?.toIntOrNull() ?: 1
 
-                                if (value == 0) {
-                                    BiometricLoggerImpl.d("BiometricCheck", "Blocked by key: $key = ${0}")
-                                    isEnabled = false
-                                    break
+                                    if (value == 0) {
+                                        BiometricLoggerImpl.d(
+                                            "BiometricCheck",
+                                            "Blocked by key: $key = ${0}"
+                                        )
+                                        isEnabled = false
+                                        break
+                                    }
                                 }
                             }
                         }
                     }
-                }
             }
         } catch (e: Exception) {
             BiometricLoggerImpl.e("BiometricCheck", "Error checking biometric settings", e)

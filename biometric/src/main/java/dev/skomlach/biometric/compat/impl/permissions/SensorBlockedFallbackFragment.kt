@@ -40,6 +40,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemStringsHelper
 import kotlinx.coroutines.launch
 
@@ -136,7 +137,9 @@ class SensorBlockedFallbackFragment : Fragment() {
 
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            closeFragment()
+            ExecutorHelper.postDelayed({
+                closeFragment()
+            }, 250)
         }
 
     override fun onDestroyView() {

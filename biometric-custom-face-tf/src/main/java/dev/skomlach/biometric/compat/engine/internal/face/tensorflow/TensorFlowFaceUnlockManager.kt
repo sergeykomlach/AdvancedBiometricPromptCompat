@@ -306,7 +306,7 @@ class TensorFlowFaceUnlockManager(
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_FACE
     override fun isHardwareDetected(): Boolean {
-        val result = !(detector == null || faceDetector == null)
+        val result = (!(detector == null || faceDetector == null)) && frameProvider.isHardwareSupported()
         LogCat.log(TAG, "isHardwareDetected=$result")
         return result
     }

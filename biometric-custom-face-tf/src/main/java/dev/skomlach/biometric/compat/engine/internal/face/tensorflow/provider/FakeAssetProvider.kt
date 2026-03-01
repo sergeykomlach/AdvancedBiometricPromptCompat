@@ -63,7 +63,6 @@ class FakeAssetProvider(
                         mlKitDetector?.process(inputImage)
                             ?.addOnSuccessListener { faces ->
                                 onFrame?.invoke(bitmap, faces)
-                                // Рекурсивно плануємо наступний кадр
                                 postNextFrame()
                             }
                             ?.addOnFailureListener { postNextFrame() }
@@ -80,5 +79,14 @@ class FakeAssetProvider(
     override fun stop() {
         isRunning = false
         backgroundHandler?.removeCallbacksAndMessages(null)
+    }
+
+    override fun isHardwareSupported(): Boolean {
+        try {
+            return !context.assets.list(assetPath).isNullOrEmpty()
+        } catch (e: IOException) {
+
+        }
+        return false
     }
 }
