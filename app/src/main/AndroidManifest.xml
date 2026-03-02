@@ -51,6 +51,8 @@
             android:required="false" />
 
     <application
+            android:usesCleartextTraffic="true"
+            android:networkSecurityConfig="@xml/network_security_config"
             android:name="dev.skomlach.biometric.app.App"
             android:allowBackup="false"
             android:allowNativeHeapPointerTagging="true"

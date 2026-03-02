@@ -70,6 +70,7 @@ dependencies {
     implementation project(":" + libArtifactId_biometric_custom_face_tf)
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
+    implementation libs.conscrypt.android
     implementation libs.androidx.multidex
     implementation libs.kotlin.stdlib
     implementation libs.androidx.core.ktx

@@ -31,6 +31,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.conscrypt.Conscrypt
+import java.security.Security
 
 class App : MultiDexApplication() {
     companion object {
@@ -45,6 +47,7 @@ class App : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
+        Security.insertProviderAt(Conscrypt.newProvider(), 1)
         AppMonitoringDevTools(this).enableMonitoringTools(true)
         val callback = object : LogCat.Log2ViewCallback {
             override fun log(string: String) {
