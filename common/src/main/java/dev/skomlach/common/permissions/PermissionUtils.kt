@@ -31,10 +31,13 @@ import android.os.Build.VERSION
 import android.os.Process
 import android.provider.Settings
 import androidx.annotation.RequiresApi
+import androidx.collection.LruCache
 import androidx.core.app.AppOpsManagerCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat.logError
 import dev.skomlach.common.logging.LogCat.logException
 import dev.skomlach.common.misc.ExecutorHelper
@@ -43,7 +46,7 @@ import dev.skomlach.common.misc.Utils
 class PermissionUtils internal constructor() {
 
     companion object {
-        private val appOpCache: MutableMap<String, Boolean> = HashMap()
+        private val appOpCache = LruCache<String, Boolean>(10)
 
         @JvmField
         var INSTANCE = PermissionUtils()
@@ -138,75 +141,74 @@ class PermissionUtils internal constructor() {
     }
 
     /**
-     * Determine context has access to the given permission.
+     * Determine whether the app has the given permission *as a manifest/runtime permission*.
      *
-     *
-     * This is a workaround for RuntimeException of Parcel#readException.
-     * For more detail, check this issue https://github.com/hotchemi/PermissionsDispatcher/issues/107
-     *
-     * @param permission permission
-     * @return returns true if context has access to the given permission, false otherwise.
-     * @see .hasSelfPermissions
+     * IMPORTANT:
+     * - For NORMAL permissions we rely on ContextCompat.checkSelfPermission().
+     * - For DANGEROUS runtime permissions we rely ONLY on the runtime grant state.
+     *   (Do NOT mix in AppOps here, otherwise privacy toggles / device policy may incorrectly look like
+     *   "permission not granted".)
+     * - For APPOP-only permissions (protection flag APPOP) we rely on AppOps.
      */
     private fun isPermissionGranted(permission: String): Boolean {
-        var granted: Boolean
+        // Default fallback
+        fun runtimeGranted(): Boolean = ContextCompat.checkSelfPermission(
+            appContext,
+            permission
+        ) == PermissionChecker.PERMISSION_GRANTED
+
         try {
-            val permissionToOp: String =
-                AppOpCompatConstants.getAppOpFromPermission(permission) ?: ""
-            //below Android 6
-            if (permissionToOp.isEmpty()) {
-                // in case of normal permissions(e.g. INTERNET)
-                granted = PermissionChecker.checkSelfPermission(
-                    AndroidContext.appContext,
-                    permission
-                ) == PermissionChecker.PERMISSION_GRANTED
+            val permissionToOp = AppOpCompatConstants.getAppOpFromPermission(permission)
+
+            // No associated app-op => treat as normal permission.
+            if (permissionToOp.isNullOrEmpty()) {
+                val granted = runtimeGranted()
                 logError("PermissionUtils.isPermissionGranted - normal permission - $permission - $granted")
                 return granted
             }
-            val noteOp: Int = try {
-                AppOpsManagerCompat.checkOrNoteProxyOp(
-                    AndroidContext.appContext,
-                    Process.myUid(),
-                    permissionToOp,
-                    AndroidContext.appContext.packageName
-                )
-            } catch (_: Throwable) {
-                appOpPermissionsCheckMiui(
-                    permissionToOp,
-                    Process.myUid(),
-                    AndroidContext.appContext.packageName
-                )
-            }
-            var appOpAllowed = noteOp == AppOpsManagerCompat.MODE_ALLOWED
-            val appOpIgnored = noteOp == AppOpsManagerCompat.MODE_IGNORED
-            if (appOpIgnored && appOpCache.containsKey(permission)) {
-                appOpCache[permission]?.let {
-                    appOpAllowed = it
+
+            // APPOP-only permission: check AppOps (maybe denied even if no runtime prompt exists).
+            if (isAppOpPermission(permission)) {
+                val mode = getAppOpModeCompat(permissionToOp)
+                var appOpAllowed = mode == AppOpsManagerCompat.MODE_ALLOWED
+                val appOpIgnored = mode == AppOpsManagerCompat.MODE_IGNORED
+                val cached = appOpCache[permission]
+                if (appOpIgnored && cached != null) {
+                    appOpAllowed = cached
+                } else {
+                    appOpCache.put(permission, appOpAllowed)
                 }
-            } else {
-                appOpCache[permission] = appOpAllowed
+                logError("PermissionUtils.isPermissionGranted - appOp permission - $permission - $permissionToOp - mode=$mode - allowed=$appOpAllowed")
+                return appOpAllowed
             }
-            return if (isAppOpPermission(permission)) {
-                granted = appOpAllowed
-                logError("PermissionUtils.isPermissionGranted - appOp permission - $permission - $permissionToOp - $granted")
-                granted
-            } else {
-                granted = appOpAllowed && PermissionChecker.checkSelfPermission(
-                    AndroidContext.appContext,
-                    permission
-                ) == PermissionChecker.PERMISSION_GRANTED
-                logError("PermissionUtils.isPermissionGranted - danger permission - $permission - $permissionToOp - $granted")
-                granted
-            }
+
+            // Dangerous/runtime permission: rely ONLY on runtime grant state.
+            // AppOps for CAMERA/MIC/LOCATION may be impacted by privacy toggles, enterprise policy, OEM managers, etc.
+            val granted = runtimeGranted()
+            logError("PermissionUtils.isPermissionGranted - dangerous permission - $permission - $permissionToOp - $granted")
+            return granted
         } catch (t: Throwable) {
             logException(t)
         }
-        granted = PermissionChecker.checkSelfPermission(
-            AndroidContext.appContext,
-            permission
-        ) == PermissionChecker.PERMISSION_GRANTED
-        logError("PermissionUtils.isPermissionGranted - normal permission - $permission - $granted")
+
+        val granted = runtimeGranted()
+        logError("PermissionUtils.isPermissionGranted - fallback - $permission - $granted")
         return granted
+    }
+
+    /**
+     * Returns the current AppOps mode for the provided op name (e.g. "android:camera").
+     *
+     * This is intentionally separated from isPermissionGranted() so callers can explicitly decide
+     * whether they want to interpret AppOps as "operationally blocked" (privacy toggle / policy / OEM),
+     * rather than "permission not granted".
+     */
+    internal fun getAppOpModeCompat(appOp: String): Int {
+        return appOpPermissionsCheck(
+            appOp,
+            Process.myUid(),
+            appContext.packageName
+        )
     }
 
     private fun isAppOpPermission(manifestPermission: String): Boolean {
@@ -379,24 +381,18 @@ class PermissionUtils internal constructor() {
             }
         }
 
-    fun appOpPermissionsCheckMiui(opCode: String?, uid: Int, pkg: String): Int {
-        try {
+    fun appOpPermissionsCheck(opCode: String, uid: Int, pkg: String): Int {
+        return try {
             val manager =
-                AndroidContext.appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-            val clazz: Class<*> = AppOpsManager::class.java
-            val dispatchMethod = clazz.getMethod(
-                "checkOpNoThrow",
-                String::class.java,
-                Int::class.javaPrimitiveType,
-                String::class.java
-            )
-            return dispatchMethod.invoke(manager, *arrayOf<Any?>(opCode, uid, pkg)) as Int
+                appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+            manager.checkOpNoThrow(opCode, uid, pkg)
         } catch (e: Exception) {
-            if (e.cause is IllegalArgumentException) {
-                return AppOpsManagerCompat.MODE_ALLOWED
-            }
-            logException(e)
+            AppOpsManagerCompat.checkOrNoteProxyOp(
+                appContext,
+                Process.myUid(),
+                opCode,
+                appContext.packageName
+            )
         }
-        return AppOpsManagerCompat.MODE_IGNORED
     }
 }

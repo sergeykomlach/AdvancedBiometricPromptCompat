@@ -202,20 +202,11 @@ object SensorPrivacyCheck {
                                 Manifest.permission.CAMERA else Manifest.permission.RECORD_AUDIO
                         ) ?: return false
 
-                    val noteOp: Int = try {
-                        AppOpsManagerCompat.checkOrNoteProxyOp(
-                            appContext,
-                            Process.myUid(),
-                            permissionToOp,
-                            appContext.packageName
-                        )
-                    } catch (_: Throwable) {
-                        PermissionUtils.INSTANCE.appOpPermissionsCheckMiui(
+                    val noteOp: Int = PermissionUtils.INSTANCE.appOpPermissionsCheck(
                             permissionToOp,
                             Process.myUid(),
                             appContext.packageName
                         )
-                    }
                     return noteOp != AppOpsManagerCompat.MODE_ALLOWED
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)

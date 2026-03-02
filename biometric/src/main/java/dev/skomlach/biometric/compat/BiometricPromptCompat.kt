@@ -723,7 +723,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         checkNotificationPermissions {
             checkSensor(callbackOuter) {
                 checkPermissions(callbackOuter) {
-
                     authTask.invoke()
                 }
             }
