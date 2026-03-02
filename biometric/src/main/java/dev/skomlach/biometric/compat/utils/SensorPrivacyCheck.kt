@@ -22,11 +22,13 @@ package dev.skomlach.biometric.compat.utils
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.SensorPrivacyManager
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
+import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
@@ -175,7 +177,7 @@ object SensorPrivacyCheck {
             if (System.currentTimeMillis() - isCameraBlocked.first <= CHECK_TIMEOUT) {
                 return isCameraBlocked.second
             }
-            val isBlocked = checkIsPrivacyToggled(SensorPrivacyManager.Sensors.CAMERA)
+            val isBlocked = isSensorOperationallyBlocked(SensorPrivacyManager.Sensors.CAMERA)
             isCameraBlocked = Pair(System.currentTimeMillis(), isBlocked)
             isBlocked
         } else
@@ -183,11 +185,16 @@ object SensorPrivacyCheck {
     }
 
 
-    private fun checkIsPrivacyToggled(sensor: Int): Boolean {
+    private fun isSensorOperationallyBlocked(sensor: Int): Boolean {
         try {
+            val permissionGranted = ContextCompat.checkSelfPermission(
+                appContext, if (sensor == SensorPrivacyManager.Sensors.CAMERA)
+                    Manifest.permission.CAMERA else Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
             val sensorPrivacyManager: SensorPrivacyManager? =
                 appContext.getSystemService(SensorPrivacyManager::class.java)
-            if (sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
+            //Privacy toggle supported and sensor has granted permissions
+            if (permissionGranted && sensorPrivacyManager?.supportsSensorToggle(sensor) == true) {
                 try {
                     val permissionToOp: String =
                         AppOpCompatConstants.getAppOpFromPermission(
