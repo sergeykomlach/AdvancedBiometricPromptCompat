@@ -15,6 +15,7 @@
  */
 package dev.skomlach.biometric.app.devtools
 
+import android.os.Build
 import dev.skomlach.biometric.app.devtools.internal.huc.OkHttpURLConnection
 import dev.skomlach.biometric.app.devtools.internal.huc.OkHttpsURLConnection
 import dev.skomlach.biometric.app.devtools.tls_fix.NoSSLv3Fix
@@ -115,7 +116,15 @@ class OkUrlFactory(private val client: OkHttpClient) : URLStreamHandlerFactory, 
             NoSSLv3Fix.setFix()
             HttpURLConnection.setFollowRedirects(true)
         }
+        fun shouldByPassSsl(): Boolean {
+            return Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 || isVendorSpecificIssue()
+        }
 
+        private fun isVendorSpecificIssue(): Boolean {
+            val manufacturer = Build.MANUFACTURER.lowercase()
+            return (manufacturer.contains("huawei") || manufacturer.contains("honor"))
+                    && Build.VERSION.SDK_INT <= Build.VERSION_CODES.O
+        }
         fun setURLStreamHandlerFactory() {
 
             //avoid double call
@@ -123,7 +132,7 @@ class OkUrlFactory(private val client: OkHttpClient) : URLStreamHandlerFactory, 
                 run {
                     try {
                         val javaNetAuthenticator = JavaNetAuthenticator()
-                        val clientBuilder: OkHttpClient.Builder = OkHttpClient.Builder()
+                        val clientBuilder: OkHttpClient.Builder = (if(shouldByPassSsl())UnsafeOkHttpClient.getUnsafeOkHttpClient() else OkHttpClient.Builder())
                             .proxyAuthenticator(javaNetAuthenticator)
                             .authenticator(javaNetAuthenticator)
                             .cookieJar(
