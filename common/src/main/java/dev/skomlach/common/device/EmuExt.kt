@@ -52,7 +52,7 @@ internal fun smartCapitalize(text: String?): String {
         .filter { it.isNotBlank() }
         .joinToString(" ") { token ->
             val t = token.trim()
-            val isAcronym = t.length in 2..5 && t.all { it.isLetter() && it.uppercaseChar() == it }
+            val isAcronym = t.length in 2..5 && t.all { it.isLetterOrDigit() && it.uppercaseChar() == it }
             when {
                 isAcronym -> t
                 t.equals("asus", true) -> "ASUS"
