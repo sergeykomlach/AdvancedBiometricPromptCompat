@@ -26,6 +26,8 @@ import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.device.hasBiometricSensors
+import dev.skomlach.common.device.hasFingerprint
 import dev.skomlach.common.device.hasUnderDisplayFingerprint
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -134,7 +136,10 @@ object DevicesWithKnownBugs {
                             remove(it)
                     }
                     val value =
-                        BiometricPromptCompat.deviceInfo?.hasUnderDisplayFingerprint() == true || guessingHasUnderDisplayFingerprint
+                        if (BiometricPromptCompat.deviceInfo?.hasBiometricSensors() == true)
+                            BiometricPromptCompat.deviceInfo?.hasUnderDisplayFingerprint() == true
+                        else
+                            guessingHasUnderDisplayFingerprint
                     cached = "$value"
                     putString(ts, cached)
                 }
