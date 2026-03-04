@@ -157,22 +157,26 @@ object DeviceModelManager {
                 DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
                     ?: return null
             )
+            val list = mutableListOf<String>()
             for (key in json.keys()) {
-                if (!rawBrand.equals(
-                        key,
-                        ignoreCase = true
-                    )
-                ) continue
                 val details = json.getJSONArray(key)
                 for (i in 0 until details.length()) {
                     val jsonObject = details.getJSONObject(i)
                     val m = jsonObject.getString("model")
                     if (m.equals(rawModel, ignoreCase = true)) {
-                        return getName(key, jsonObject.getString("name")).also {
-                            LogCat.log("DeviceModel.getNameFromAssets< $it")
-                        }
+                        val name = getName(key, jsonObject.getString("name"))
+                        //if brand matched - set the highest priority
+                        if (rawBrand.equals(key, ignoreCase = true)) list.add(
+                            0,
+                            name
+                        )
+                        else
+                            list.add(name)
                     }
                 }
+            }
+            return list.firstOrNull().also {
+                LogCat.log("DeviceModel.getNameFromAssets< $it")
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
