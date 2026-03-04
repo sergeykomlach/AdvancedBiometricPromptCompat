@@ -25,13 +25,12 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.RenderEffect
 import android.graphics.Shader
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.widget.ImageView
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnAttach
 import androidx.lifecycle.Lifecycle
@@ -90,6 +89,12 @@ class WindowForegroundBlurring(
                 typesList
             } else
                 typesList.filter {
+                    if (compatBuilder.registration) BiometricManagerCompat.isBiometricReadyForEnroll(
+                        BiometricAuthRequest(
+                            compatBuilder.getBiometricAuthRequest().api,
+                            type = it
+                        )
+                    ) else
                     BiometricManagerCompat.isBiometricReadyForUsage(
                         BiometricAuthRequest(
                             compatBuilder.getBiometricAuthRequest().api,
@@ -144,7 +149,7 @@ class WindowForegroundBlurring(
                             )
                     contentView?.setRenderEffect(renderEffect)
                 } else
-                    ViewCompat.setBackground(this, ColorDrawable(Color.TRANSPARENT))
+                    ViewCompat.setBackground(this, Color.TRANSPARENT.toDrawable())
             }
 
     }
@@ -195,7 +200,7 @@ class WindowForegroundBlurring(
                             )
                     contentView?.setRenderEffect(renderEffect)
                 } else
-                    ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
+                    ViewCompat.setBackground(it, bm?.toDrawable(it.resources))
             }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)

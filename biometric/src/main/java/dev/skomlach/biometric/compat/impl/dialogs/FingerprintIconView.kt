@@ -27,7 +27,6 @@ import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
 import android.os.Build
@@ -39,6 +38,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -105,7 +105,7 @@ class FingerprintIconView @JvmOverloads constructor(
                 }
             }
         } else {
-            val prevDrawable = drawable ?: ColorDrawable(Color.TRANSPARENT)
+            val prevDrawable = drawable ?: Color.TRANSPARENT.toDrawable()
             val resId = getDrawable(this.state, state, false)
             if (resId == 0) {
                 setImageDrawable(null)

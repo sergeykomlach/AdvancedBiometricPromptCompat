@@ -171,12 +171,15 @@ object BiometricManagerCompat {
                         api,
                         type
                     )
-                    if (isBiometricReadyForUsage(request)) {
+                    if (isBiometricReadyForUsage(request) || isBiometricReadyForEnroll(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (isBiometricReadyForUsage(biometricAuthRequest))
+                if (isBiometricReadyForUsage(biometricAuthRequest) || isBiometricReadyForEnroll(
+                        biometricAuthRequest
+                    )
+                )
                     types.add(biometricAuthRequest.type)
             }
             types
@@ -192,12 +195,15 @@ object BiometricManagerCompat {
                             BiometricApi.LEGACY_API,
                             type
                         )
-                        if (isBiometricReadyForUsage(request)) {
+                        if (isBiometricReadyForUsage(request) || isBiometricReadyForEnroll(request)) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (isBiometricReadyForUsage(biometricAuthRequest))
+                    if (isBiometricReadyForUsage(biometricAuthRequest) || isBiometricReadyForEnroll(
+                            biometricAuthRequest
+                        )
+                    )
                         types.add(biometricAuthRequest.type)
                 }
                 types.removeAll(primaryAvailableTypes)

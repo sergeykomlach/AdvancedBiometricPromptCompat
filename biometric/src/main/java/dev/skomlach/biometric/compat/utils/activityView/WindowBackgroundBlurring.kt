@@ -23,11 +23,11 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.RenderEffect
 import android.graphics.Shader
-import android.graphics.drawable.BitmapDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.doOnAttach
 import androidx.lifecycle.Lifecycle
@@ -107,7 +107,7 @@ class WindowBackgroundBlurring(
                             )
                     contentView?.setRenderEffect(renderEffect)
                 } else
-                    ViewCompat.setBackground(it, BitmapDrawable(it.resources, bm))
+                    ViewCompat.setBackground(it, bm?.toDrawable(it.resources))
             } ?: run {
                 v = LayoutInflater.from(parentView.context)
                     .inflate(R.layout.blurred_screen, null, false).apply {
@@ -130,7 +130,7 @@ class WindowBackgroundBlurring(
                                     )
                             contentView?.setRenderEffect(renderEffect)
                         } else
-                            ViewCompat.setBackground(this, BitmapDrawable(this.resources, bm))
+                            ViewCompat.setBackground(this, bm?.toDrawable(this.resources))
                         parentView.addView(this)
 
                     }

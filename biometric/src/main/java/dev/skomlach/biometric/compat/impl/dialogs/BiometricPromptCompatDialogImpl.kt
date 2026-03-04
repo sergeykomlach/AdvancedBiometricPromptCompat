@@ -152,6 +152,11 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
+                    if (compatBuilder.registration && BiometricManagerCompat.isBiometricReadyForEnroll(
+                            request
+                        )
+                    )
+                    else
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request))
                         list.add(type)
                 }
@@ -162,6 +167,11 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
+                    if (compatBuilder.registration && BiometricManagerCompat.isBiometricReadyForEnroll(
+                            request
+                        )
+                    )
+                    else
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request))
                         list.add(type)
                 }
