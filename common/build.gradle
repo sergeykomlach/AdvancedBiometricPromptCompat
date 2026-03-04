@@ -89,7 +89,7 @@ ext.gsmarenaScrapeAndCopy = { ->
     if (!assetsDir.exists() && !assetsDir.mkdirs())
         throw new GradleException("Failed to create assets dir")
 
-    File outFile = new File(assetsDir, "gsmarena_specifications.json")
+    File outFile = new File(assetsDir, "specifications.json")
 
     println("Copying ${result.absolutePath}")
     println("To ${outFile.absolutePath}")

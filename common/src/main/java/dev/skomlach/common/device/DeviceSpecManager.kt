@@ -38,7 +38,7 @@ object DeviceSpecManager {
     //tools
     fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec? {
         val json = DataProviders.getOrCacheJSON(
-            "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/gsmarena_specifications.json?raw=true"
+            "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"
         ) ?: return null
 
         val list = parseGsmarenaSpecsJson(json).toMutableList()
