@@ -41,7 +41,8 @@ object DeviceSpecManager {
             "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/gsmarena_specifications.json?raw=true"
         ) ?: return null
 
-        val list = parseGsmarenaSpecsJson(json)
+        val list = parseGsmarenaSpecsJson(json).toMutableList()
+
         if (list.isEmpty()) return null
 
         val brand = deviceModel.brand
@@ -66,7 +67,20 @@ object DeviceSpecManager {
                 }
             ) return rec
         }
-
+        DataProviders.getOrCacheJSON(
+            "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
+        )?.let {
+            val devices = DeviceParser.parse(it)
+            devices.forEach { rec ->
+                val phoneNameNorm = DeviceModelManager.getName(rec.brand ?: "", rec.name ?: "")
+                if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName)
+                    return DeviceSpec(phoneNameNorm, mutableMapOf<String, String>().apply {
+                        rec.specs?.sensors?.let { sensors ->
+                            put("Sensors", sensors)
+                        }
+                    }, emptyMap())
+            }
+        }
         return null
     }
 
