@@ -36,6 +36,7 @@ data class DeviceInfo(
     val model: String,
     val modelAsAscii: String,
     val sensors: Set<String>,
+    val timeStamp: Long,
     /**
      * If not null, the app is running inside an emulator / virtualized Android environment.
      * This flag is intentionally separated from [model] to avoid breaking model-based lookups

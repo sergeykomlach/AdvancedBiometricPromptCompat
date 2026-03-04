@@ -44,7 +44,7 @@ class AppMonitoringDevTools(val app: Application) {
     private var enable: Boolean = false
     private var fileObserver: FileObserver? = null
 
-    private val FILE_SIZE_LIMIT = 524288
+    private val FILE_SIZE_LIMIT = 2524288
 
     private var oldURLStreamHandlerFactory: URLStreamHandlerFactory? = null
 

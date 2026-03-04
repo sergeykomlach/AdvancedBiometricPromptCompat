@@ -1,3 +1,7 @@
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
@@ -43,43 +47,147 @@ dependencies {
     implementation libs.androidx.concurrent.futures
     implementation libs.versioncompare
 }
+//https://github.com/allendavis-official/gsmarena-scraper
+ext.gsmarenaScrapeAndCopy = { ->
+    File projectRoot = project.projectDir
+
+    File reviewScript = new File(projectRoot, "phone_review_url_scraper.py")
+    File specsScript = new File(projectRoot, "phone_specs_scraper.py")
+
+    if (!reviewScript.exists())
+        throw new GradleException("Missing script: ${reviewScript}")
+
+    if (!specsScript.exists())
+        throw new GradleException("Missing script: ${specsScript}")
+
+    println("Running GSMArena scraper...")
+
+    String python = System.getProperty("os.name").toLowerCase().contains("win") ? "python" : "python3"
+
+    // ---- run review scraper ----
+    exec {
+        workingDir projectRoot
+        environment "PYTHONIOENCODING", "utf-8"
+        commandLine python, "-X", "utf8", reviewScript.absolutePath
+    }
+
+    // ---- run specs scraper ----
+    exec {
+        workingDir projectRoot
+        environment "PYTHONIOENCODING", "utf-8"
+        commandLine python, "-X", "utf8", specsScript.absolutePath
+    }
+
+    // ---- copy result ----
+    File result = new File(projectRoot, "gsmarena_specifications.json")
+
+    if (!result.exists())
+        throw new GradleException("gsmarena_specifications.json not generated")
+
+    File assetsDir = file("${project.projectDir}/src/main/assets/devices")
+
+    if (!assetsDir.exists() && !assetsDir.mkdirs())
+        throw new GradleException("Failed to create assets dir")
+
+    File outFile = new File(assetsDir, "gsmarena_specifications.json")
+
+    println("Copying ${result.absolutePath}")
+    println("To ${outFile.absolutePath}")
+
+    Files.copy(
+            result.toPath(),
+            outFile.toPath(),
+            StandardCopyOption.REPLACE_EXISTING
+    )
+
+    if (!outFile.exists() || outFile.length() == 0)
+        throw new GradleException("Copied file invalid: ${outFile}")
+
+    return outFile
+}
+ext.downloadToAssetsByUrl = { String urlStr ->
+    if (!urlStr) throw new GradleException("URL is empty")
+
+    URI uri
+    try {
+        uri = new URI(urlStr)
+    } catch (Exception e) {
+        throw new GradleException("Invalid URL: ${urlStr}", e)
+    }
+
+    // ---- Extract file name from URL ----
+    // 1) If URL has query param like ?filename=... (rare, but supported)
+    // 2) Otherwise take last segment of path
+    // 3) Validate fallback
+    String fileName = null
+
+    // Try query-based filename (optional)
+    if (uri.query) {
+        def params = uri.query.split("&").collectEntries { kv ->
+            def p = kv.split("=", 2)
+            [(URLDecoder.decode(p[0], "UTF-8")): (p.size() > 1 ? URLDecoder.decode(p[1], "UTF-8") : "")]
+        }
+        // common keys (you can add more if needed)
+        fileName = params["filename"] ?: params["file"] ?: params["name"]
+    }
+
+    if (!fileName) {
+        // Last path segment
+        String path = uri.path ?: ""
+        // remove trailing slashes
+        path = path.replaceAll("/+\$", "")
+        if (!path) throw new GradleException("Could not extract path from URL: ${urlStr}")
+        fileName = path.tokenize("/").last()
+    }
+
+    // Basic sanity: if still empty or looks like a directory
+    if (!fileName || fileName.trim().isEmpty()) {
+        throw new GradleException("Could not extract file name from URL: ${urlStr}")
+    }
+
+    File assetsDir = file("${project.projectDir}/src/main/assets/devices")
+    File outFile = new File(assetsDir, fileName)
+
+    // Ensure assets dir exists
+    if (!assetsDir.exists() && !assetsDir.mkdirs()) {
+        throw new GradleException("Failed to create assets dir: ${assetsDir.absolutePath}")
+    }
+
+    // Delete old file if exists
+    if (outFile.exists() && !outFile.delete()) {
+        throw new GradleException("Failed to delete existing file: ${outFile.absolutePath}")
+    }
+
+    println("Downloading: ${urlStr}")
+    println("To: ${outFile.absolutePath}")
+
+    URLConnection conn = new URL(urlStr).openConnection()
+    conn.connectTimeout = 20_000
+    conn.readTimeout = 60_000
+    conn.setRequestProperty("User-Agent", "Gradle")
+
+    try {
+        conn.inputStream.withCloseable { input ->
+            Files.copy(input, outFile.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
+    } catch (Exception e) {
+        throw new GradleException("Download failed: ${urlStr} -> ${outFile.absolutePath}", e)
+    }
+
+    if (!outFile.exists() || outFile.length() == 0) {
+        throw new GradleException("Downloaded file is missing or empty: ${outFile.absolutePath}")
+    }
+
+    return outFile
+}
 
 afterEvaluate {
     android.libraryVariants.configureEach { v ->
         if (v.buildType.name == "release") {
             v.assemble.doFirst {
-                def device = new File("$projectDir/src/main/assets/devices.json")
-                println("Path" + device.absolutePath)
-                if (device.exists()) {
-                    device.delete()
-                }
-                new URL("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
-                        .withInputStream { i -> device.withOutputStream { it << i } }
-
-                if (!device.exists()) {
-                    throw IllegalStateException("Device spec are missing")
-                }
-                def by_brand = new File("$projectDir/src/main/assets/by_brand.json")
-                println("Path" + by_brand.absolutePath)
-                if (by_brand.exists()) {
-                    by_brand.delete()
-                }
-                new URL("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
-                        .withInputStream { i -> by_brand.withOutputStream { it << i } }
-                if (!by_brand.exists()) {
-                    throw IllegalStateException("Brand spec are missing")
-                }
-
-                def products_infos = new File("$projectDir/src/main/assets/products_infos.json")
-                println("Path" + products_infos.absolutePath)
-                if (products_infos.exists()) {
-                    products_infos.delete()
-                }
-                new URL("https://github.com/milephm/phonedata_crawler/releases/download/data/products_infos_gsmarena.json")
-                        .withInputStream { i -> products_infos.withOutputStream { it << i } }
-                if (!products_infos.exists()) {
-                    throw IllegalStateException("Products infos are missing")
-                }
+                //Devices list (updated once per day)
+                downloadToAssetsByUrl("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
+                gsmarenaScrapeAndCopy()
             }
         }
     }
