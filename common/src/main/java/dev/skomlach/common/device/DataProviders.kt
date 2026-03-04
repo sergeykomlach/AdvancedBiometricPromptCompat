@@ -96,7 +96,7 @@ object DataProviders {
                 file.also {
                     if (it.exists()) {
                         if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
-                                DeviceInfoManager.OUTDATE_TIME_DAYS
+                                DeviceInfoManager.OUTDATE_TIME_DAYS_MINUS_ONE
                             )
                         ) {
                             reload = true

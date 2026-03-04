@@ -32,9 +32,8 @@ import java.util.concurrent.TimeUnit
 object DeviceInfoManager {
     val PREF_NAME = "BiometricCompat_DeviceInfo-V8"
     const val OUTDATE_TIME_DAYS = 30L
+    const val OUTDATE_TIME_DAYS_MINUS_ONE = OUTDATE_TIME_DAYS - 1
 
-//
-//
 //    init {
 //        getPreferences(PREF_NAME).apply {
 //            edit().clear().commit()
