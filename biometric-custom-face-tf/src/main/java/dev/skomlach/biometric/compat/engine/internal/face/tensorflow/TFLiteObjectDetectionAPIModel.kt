@@ -245,10 +245,12 @@ private constructor() : SimilarityClassifier {
         }
         return jsonObject
     }
+
     override fun registeredCount(): Int {
         Log.i(javaClass.simpleName, "registeredCount: size ${registered.size}")
         return registered.size
     }
+
     override fun hasRegistered(): Boolean {
         Log.i(javaClass.simpleName, "hasRegistered:  ${registered.isNotEmpty()}")
         return registered.isNotEmpty()

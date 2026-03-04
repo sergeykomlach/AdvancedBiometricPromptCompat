@@ -26,11 +26,9 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -39,10 +37,7 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.misc.SettingsHelper
 import dev.skomlach.common.misc.Utils
-import dev.skomlach.common.permissions.PermissionUtils
-import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -400,6 +395,7 @@ object BiometricManagerCompat {
         preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
         return result || cameraInUse
     }
+
     @JvmStatic
     fun openSettings(
         activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(

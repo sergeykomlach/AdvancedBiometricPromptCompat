@@ -22,15 +22,14 @@ package dev.skomlach.biometric.compat.utils
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.biometric.R
+import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.device.hasUnderDisplayFingerprint
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.lang.reflect.Modifier
-import androidx.core.content.edit
 
 object DevicesWithKnownBugs {
 
@@ -200,7 +199,7 @@ object DevicesWithKnownBugs {
             else
                 if (isChromeBook) return true
                 else if (isSamsung) {
-                    val model = BiometricPromptCompat.deviceInfo?.model?:return false
+                    val model = BiometricPromptCompat.deviceInfo?.model ?: return false
                     return model.contains("Flip") || model.contains("Fold")
                 }
 

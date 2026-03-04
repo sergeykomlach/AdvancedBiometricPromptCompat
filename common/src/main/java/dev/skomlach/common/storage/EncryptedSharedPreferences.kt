@@ -83,6 +83,7 @@ class KeyNameCipher(
         return String(pt, UTF_8)
     }
 }
+
 class EncryptedSharedPreferences(
     private val context: Context,
     private val sharedPrefFilename: String? = null

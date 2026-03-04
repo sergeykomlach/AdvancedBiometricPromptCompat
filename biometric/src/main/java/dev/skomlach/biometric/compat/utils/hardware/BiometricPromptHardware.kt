@@ -26,13 +26,22 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
+import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.device.hasFaceID
+import dev.skomlach.common.device.hasFingerprint
+import dev.skomlach.common.device.hasHeartrateID
+import dev.skomlach.common.device.hasIrisScanner
+import dev.skomlach.common.device.hasPalmID
+import dev.skomlach.common.device.hasVoiceID
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -45,15 +54,6 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import androidx.core.content.edit
-import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
-import dev.skomlach.common.device.hasFaceID
-import dev.skomlach.common.device.hasFingerprint
-import dev.skomlach.common.device.hasHeartrateID
-import dev.skomlach.common.device.hasIrisScanner
-import dev.skomlach.common.device.hasPalmID
-import dev.skomlach.common.device.hasVoiceID
 
 @TargetApi(Build.VERSION_CODES.P)
 

@@ -76,7 +76,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
     override fun isHardwareSupported(): Boolean {
         return try {
             !getFrontFacingCameraId(cameraManager).isNullOrEmpty()
-        } catch (_: Exception){
+        } catch (_: Exception) {
             false
         }
     }
@@ -144,10 +144,12 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                     cameraDevice = camera
                     createCaptureSession()
                 }
+
                 override fun onClosed(camera: CameraDevice) {
                     SensorPrivacyCheck.notifySelfCameraClosed()
                     super.onClosed(camera)
                 }
+
                 override fun onDisconnected(camera: CameraDevice) {
                     SensorPrivacyCheck.notifySelfCameraClosed()
                     camera.close()
@@ -211,7 +213,8 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         if (isConverting.get() || backgroundHandler == null) {
             try {
                 reader?.acquireLatestImage()?.close()
-            } catch (_: Exception){}
+            } catch (_: Exception) {
+            }
             return
         }
 

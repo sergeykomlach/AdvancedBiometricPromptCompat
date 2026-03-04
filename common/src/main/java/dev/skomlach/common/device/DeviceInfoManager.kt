@@ -34,7 +34,7 @@ object DeviceInfoManager {
     const val OUTDATE_TIME_DAYS = 30L
     const val OUTDATE_TIME_DAYS_MINUS_ONE = OUTDATE_TIME_DAYS - 1
 
-//    init {
+    //    init {
 //        getPreferences(PREF_NAME).apply {
 //            edit().clear().commit()
 //        }
@@ -131,11 +131,11 @@ object DeviceInfoManager {
             fixModelAsAscii(deviceName),
             deviceSpec.getSensors(),
             Date().time,
-                emulatorKind
-            ).also {
+            emulatorKind
+        ).also {
             LogCat.log("DeviceInfoManager: " + it.model + " -> " + it)
-                cachedDeviceInfo = it
-            }
+            cachedDeviceInfo = it
+        }
     }
 
     private fun setCachedDeviceInfo(deviceInfo: DeviceInfo) {

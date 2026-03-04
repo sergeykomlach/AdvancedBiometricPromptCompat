@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
@@ -306,7 +305,8 @@ class TensorFlowFaceUnlockManager(
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_FACE
     override fun isHardwareDetected(): Boolean {
-        val result = (!(detector == null || faceDetector == null)) && frameProvider.isHardwareSupported()
+        val result =
+            (!(detector == null || faceDetector == null)) && frameProvider.isHardwareSupported()
         LogCat.log(TAG, "isHardwareDetected=$result")
         return result
     }

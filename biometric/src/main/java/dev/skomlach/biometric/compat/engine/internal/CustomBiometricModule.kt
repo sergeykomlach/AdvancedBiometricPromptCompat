@@ -72,7 +72,7 @@ class CustomBiometricModule(
             } catch (e: Throwable) {
                 false
             }
-            e( "$name: isHardwareDetected=$result")
+            e("$name: isHardwareDetected=$result")
             return result
         }
 
@@ -84,7 +84,7 @@ class CustomBiometricModule(
             } catch (e: Throwable) {
                 false
             }
-            e( "$name: hasEnrolled=$result")
+            e("$name: hasEnrolled=$result")
             return result
         }
 
@@ -161,7 +161,8 @@ class CustomBiometricModule(
                     signalObject,
                     callback,
                     ExecutorHelper.handler,
-                    convertBundleToCustom() ?: throw IllegalArgumentException("Bundle should be not NULL")
+                    convertBundleToCustom()
+                        ?: throw IllegalArgumentException("Bundle should be not NULL")
                 )
                 return
             } catch (e: Throwable) {
@@ -176,8 +177,12 @@ class CustomBiometricModule(
         return
     }
 
-    private fun convertBundleToCustom(): Bundle?{
-        return if (bundle?.getBoolean(BundleBuilder.REGISTRATION, false) == true) manager?.getRegistrationBundle() else bundle
+    private fun convertBundleToCustom(): Bundle? {
+        return if (bundle?.getBoolean(
+                BundleBuilder.REGISTRATION,
+                false
+            ) == true
+        ) manager?.getRegistrationBundle() else bundle
     }
 
     internal inner class AuthCallback(
@@ -206,8 +211,10 @@ class CustomBiometricModule(
 
                 CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> failureReason =
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+
                 CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS -> failureReason =
                     AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
+
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> {
                     BiometricErrorLockoutPermanentFix.setBiometricSensorPermanentlyLocked(
                         biometricMethod.biometricType

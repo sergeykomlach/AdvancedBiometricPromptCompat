@@ -48,10 +48,14 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
         private const val MAX_BODY_BYTES = 16 * 1024 // 16KiB
     }
 
-    @Volatile private var nextAllowedCheckAtMs: Long = 0L
-    @Volatile private var lastCheckAtMs: Long = 0L
-    @Volatile private var lastKnownState: Boolean = false
-    @Volatile private var consecutiveFailures: Int = 0
+    @Volatile
+    private var nextAllowedCheckAtMs: Long = 0L
+    @Volatile
+    private var lastCheckAtMs: Long = 0L
+    @Volatile
+    private var lastKnownState: Boolean = false
+    @Volatile
+    private var consecutiveFailures: Int = 0
     private val running = java.util.concurrent.atomic.AtomicBoolean(false)
 
     private var job: Runnable? = null
@@ -133,7 +137,11 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 LogCat.log("ping(HEAD): $headCode=${urlConnection.responseMessage}")
 
                 if (headCode in HttpURLConnection.HTTP_OK until HttpURLConnection.HTTP_BAD_REQUEST) {
-                    val finalUrl = try { urlConnection.url?.toString() } catch (_: Throwable) { null }
+                    val finalUrl = try {
+                        urlConnection.url?.toString()
+                    } catch (_: Throwable) {
+                        null
+                    }
                     if (finalUrl == null || matchesUrl(uri.toString(), finalUrl)) {
                         onPingResult(true)
                         return
@@ -141,7 +149,10 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
 
                 // 2) fallback: GET + HTML
-                try { urlConnection.disconnect() } catch (_: Throwable) {}
+                try {
+                    urlConnection.disconnect()
+                } catch (_: Throwable) {
+                }
                 urlConnection = NetworkApi.createConnection(
                     uri.toString(),
                     TimeUnit.SECONDS.toMillis(PingConfig.pingTimeoutSec).toInt()
@@ -167,11 +178,15 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
 
                 if (getCode in HttpURLConnection.HTTP_MULT_CHOICE until HttpURLConnection.HTTP_BAD_REQUEST) {
-                    val location = urlConnection.getHeaderField("Location") ?: throw IOException("Location missed in redirect")
+                    val location = urlConnection.getHeaderField("Location")
+                        ?: throw IOException("Location missed in redirect")
                     val target = when {
                         location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
                         NetworkApi.isWebUrl(location) -> location                                      // absolute
-                        else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)          // relative (/path or path)
+                        else -> NetworkApi.resolveUrl(
+                            urlConnection.url.toString(),
+                            location
+                        )          // relative (/path or path)
                     }
                     //Some providers show "dummy" page, lets compare with target URL
                     if (!matchesUrl(uri.toString(), target)) {
@@ -233,9 +248,16 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 total += read
             }
         } finally {
-            try { inputStream.close() } catch (_: Throwable) {}
+            try {
+                inputStream.close()
+            } catch (_: Throwable) {
+            }
         }
-        return try { String(out.toByteArray()) } catch (_: Throwable) { "" }
+        return try {
+            String(out.toByteArray())
+        } catch (_: Throwable) {
+            ""
+        }
     }
 
 

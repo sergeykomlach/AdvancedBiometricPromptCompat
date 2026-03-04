@@ -52,7 +52,8 @@ internal fun smartCapitalize(text: String?): String {
         .filter { it.isNotBlank() }
         .joinToString(" ") { token ->
             val t = token.trim()
-            val isAcronym = t.length in 2..5 && t.all { it.isLetterOrDigit() && it.uppercaseChar() == it }
+            val isAcronym =
+                t.length in 2..5 && t.all { it.isLetterOrDigit() && it.uppercaseChar() == it }
             when {
                 isAcronym -> t
                 t.equals("asus", true) -> "ASUS"
@@ -195,7 +196,8 @@ object EmulatorDetector {
 
     private fun isSensorAnomaly(): Boolean {
         return try {
-            val sm = AndroidContext.appContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            val sm =
+                AndroidContext.appContext.getSystemService(Context.SENSOR_SERVICE) as SensorManager
             val hasProximity = sm.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null
             val sensorList = sm.getSensorList(Sensor.TYPE_ALL)
             sensorList.size < 5 || (!hasProximity && !Build.MODEL.contains("Tablet", true))
@@ -214,7 +216,11 @@ object EmulatorDetector {
             ) to EmulatorKind.MEMU,
 
             // Nox
-            arrayOf("/system/bin/nox-prop", "/dev/nox_temp", "/system/bin/nox-vbox-guest") to EmulatorKind.NOX,
+            arrayOf(
+                "/system/bin/nox-prop",
+                "/dev/nox_temp",
+                "/system/bin/nox-vbox-guest"
+            ) to EmulatorKind.NOX,
 
             // LDPlayer
             arrayOf("/system/bin/ld_prop", "/system/bin/ldplayer-prop") to EmulatorKind.LDPLAYER,
@@ -350,7 +356,8 @@ object NetworkEmulatorDetector {
     private fun checkDefaultGateway(ip: String): Boolean {
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("ip", "route", "show"))
-            val output = BufferedReader(InputStreamReader(process.inputStream)).use { it.readText() }
+            val output =
+                BufferedReader(InputStreamReader(process.inputStream)).use { it.readText() }
             output.contains(ip)
         } catch (_: Throwable) {
             false

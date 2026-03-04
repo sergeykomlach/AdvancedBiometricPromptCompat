@@ -33,13 +33,10 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URLEncoder
-import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 object LocalizationHelper {
     val agents = arrayOf(
@@ -78,14 +75,18 @@ object LocalizationHelper {
             if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
                 responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
                 responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
-                responseCode == 307 || responseCode == 308) {
+                responseCode == 307 || responseCode == 308
+            ) {
 
-                val location = urlConnection.getHeaderField("Location")?:return null
+                val location = urlConnection.getHeaderField("Location") ?: return null
 
                 val target = when {
                     location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
                     NetworkApi.isWebUrl(location) -> location                                      // absolute
-                    else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)          // relative (/path or path)
+                    else -> NetworkApi.resolveUrl(
+                        urlConnection.url.toString(),
+                        location
+                    )          // relative (/path or path)
                 }
 
                 LogCat.log("Redirecting to: $target")

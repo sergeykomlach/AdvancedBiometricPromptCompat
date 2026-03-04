@@ -203,10 +203,10 @@ object SensorPrivacyCheck {
                         ) ?: return false
 
                     val noteOp: Int = PermissionUtils.INSTANCE.appOpPermissionsCheck(
-                            permissionToOp,
-                            Process.myUid(),
-                            appContext.packageName
-                        )
+                        permissionToOp,
+                        Process.myUid(),
+                        appContext.packageName
+                    )
                     return noteOp != AppOpsManagerCompat.MODE_ALLOWED
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
