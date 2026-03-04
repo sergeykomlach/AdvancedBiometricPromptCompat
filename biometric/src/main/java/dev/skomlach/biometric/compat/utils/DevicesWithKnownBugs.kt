@@ -117,10 +117,9 @@ object DevicesWithKnownBugs {
     private val guessingHasUnderDisplayFingerprint: Boolean
         get() {
             //Foldable mostly do not have under display sensors
-            if (isFoldable) return false
-            else if (CheckBiometricUI.hasSomethingFrontSensor(appContext)) return true
-            else if (Utils.isAtLeastT && BiometricPromptCompat.deviceInfo?.sensors.isNullOrEmpty()) return true
-            return false
+            return if (isFoldable) false
+            else if (CheckBiometricUI.hasSomethingFrontSensor(appContext)) true
+            else Utils.isAtLeastT
         }
     val hasUnderDisplayFingerprint: Boolean
         get() {
