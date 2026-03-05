@@ -62,6 +62,9 @@ class TensorFlowFaceUnlockManager(
         private const val MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT = 5
         private const val LOCKOUT_DURATION_MS = 30000L // 30 sec
         private var config: TensorFlowFaceConfig = TensorFlowFaceConfig()
+
+        private val spoofScoresWindow = ArrayDeque<Float>()
+
         fun setTensorFlowFaceConfig(tensorFlowFaceConfig: TensorFlowFaceConfig) {
             config = tensorFlowFaceConfig
         }
@@ -490,7 +493,8 @@ class TensorFlowFaceUnlockManager(
             }
         }
     }
-    private val spoofScoresWindow = ArrayDeque<Float>()
+
+
 
     private fun analyzeAntiSpoofing(bitmap: Bitmap): Boolean {
         try {
@@ -507,7 +511,7 @@ class TensorFlowFaceUnlockManager(
             val averageScore = spoofScoresWindow.average().toFloat()
 
             LogCat.logError(TAG, "Window Average Score: $averageScore, Current: $currentScore")
-            return averageScore >= FaceAntiSpoofing.THRESHOLD
+            return averageScore > FaceAntiSpoofing.THRESHOLD
         } catch (e: Throwable) {
             LogCat.logException(e, TAG)
             return false
@@ -557,34 +561,34 @@ class TensorFlowFaceUnlockManager(
 
         if (analyzeAntiSpoofing(bitmap)) {
             LogCat.log(TAG, "Spoof attack detected!")
-                handleFailedAttempt()
+            handleFailedAttempt()
 
-                val lockoutError = checkLockoutState()
-                if (lockoutError != null) {
-                    val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.tf_face_help_too_many_attempts_permanent
-                        )
-                    else
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.tf_face_help_too_many_attempts_try_later
-                        )
-
-                    authCallback?.onAuthenticationError(lockoutError, msg)
-                    stopAuthentication()
-                    return
-                }
-                authCallback?.onAuthenticationHelp(
-                    CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+            val lockoutError = checkLockoutState()
+            if (lockoutError != null) {
+                val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
                     LocalizationHelper.getLocalizedString(
                         context,
-                        R.string.tf_face_help_model_fake_face_detected
+                        R.string.tf_face_help_too_many_attempts_permanent
                     )
-                )
+                else
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.tf_face_help_too_many_attempts_try_later
+                    )
+
+                authCallback?.onAuthenticationError(lockoutError, msg)
+                stopAuthentication()
                 return
             }
+            authCallback?.onAuthenticationHelp(
+                CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.tf_face_help_model_fake_face_detected
+                )
+            )
+            return
+        }
 
         val alignedFace = getAlignedFace(bitmap, face) ?: return
 
