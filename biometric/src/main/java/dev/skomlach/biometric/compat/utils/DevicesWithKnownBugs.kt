@@ -62,13 +62,10 @@ object DevicesWithKnownBugs {
                     return true
                 }
             }
-            return (systemDealWithBiometricPrompt || (isOnePlus && Utils.isAtLeastS)) && hasUnderDisplayFingerprint
+            return isOnePlus && Utils.isAtLeastS && hasUnderDisplayFingerprint
         }
 
-    val systemDealWithBiometricPrompt: Boolean
-        get() {
-            return (isSamsung || Utils.isAtLeastU)
-        }
+
     private val isSamsung: Boolean
         get() {
             return checkForVendor("Samsung", ignoreCase = true)

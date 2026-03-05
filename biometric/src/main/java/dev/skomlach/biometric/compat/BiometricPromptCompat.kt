@@ -286,7 +286,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private var startTsImpl = 0L
     fun registration(callbackOuter: AuthenticationCallback) {
         builder.registration = true
-        builder.getBiometricAuthRequest().confirmation = BiometricConfirmation.ALL
         authenticate(callbackOuter)
     }
 
@@ -593,6 +592,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
                             ExecutorHelper.post { callbackOuter.onCanceled(canceled) }
                             onUIClosed()
+                            //TODO:
+//                            ExecutorHelper.startOnBackground {
+//                                BiometricManagerCompat.unregisterNonHardwareBiometrics()
+//                            }
                         }
                     }
 
@@ -628,6 +631,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                             }
                             onUIClosed()
+                            //TODO:
+//                            if (builder.registration){
+//                                ExecutorHelper.startOnBackground {
+//                                    BiometricManagerCompat.unregisterNonHardwareBiometrics()
+//                                }
+//                            }
                         }
                     }
 
@@ -1058,16 +1067,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         api,
                         type
                     )
-                    if (registration && BiometricAuthentication.customBiometricManagers.any { it.biometricType == type && it.isHardwareDetected() }) {
-                        types.add(type)
-                    } else if (BiometricManagerCompat.isBiometricAvailable(request)) {
+                    if (BiometricManagerCompat.isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (registration && BiometricAuthentication.customBiometricManagers.any { it.biometricType == biometricAuthRequest.type && it.isHardwareDetected() }) {
-                    types.add(biometricAuthRequest.type)
-                } else if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
+                if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
 
             }

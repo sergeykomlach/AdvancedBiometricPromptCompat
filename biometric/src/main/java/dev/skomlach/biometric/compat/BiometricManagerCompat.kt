@@ -52,6 +52,11 @@ object BiometricManagerCompat {
         return@withContext BiometricAuthentication.customBiometricManagers.isNotEmpty()
     }
 
+    fun unregisterNonHardwareBiometrics() {
+        BiometricAuthentication.customBiometricManagers.forEach {
+            it.remove(null)
+        }
+    }
     suspend fun unloadNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
         BiometricAuthentication.unloadCustomModules()
         return@withContext BiometricAuthentication.customBiometricManagers.isEmpty()
