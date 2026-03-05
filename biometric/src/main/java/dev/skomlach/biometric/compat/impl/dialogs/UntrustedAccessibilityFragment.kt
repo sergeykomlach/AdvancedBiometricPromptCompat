@@ -91,10 +91,12 @@ class UntrustedAccessibilityFragment : Fragment() {
         }
     }
 
+    private var alert : AlertDialog? = null
     override fun onAttach(context: Context) {
         super.onAttach(context)
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                if (alert == null)
                 try {
                     val title = try {
                         val appInfo =
@@ -134,12 +136,9 @@ class UntrustedAccessibilityFragment : Fragment() {
                         LogCat.logException(e)
                     }
 
-                    val alert = AlertDialog.Builder(requireActivity())
+                    alert = AlertDialog.Builder(requireActivity())
                         .setTitle(title)
                         .setMessage(str)
-                        .setOnDismissListener {
-                            closeFragment(false)
-                        }
                         .setCancelable(false)
                         .setNegativeButton(android.R.string.cancel) { p0, _ ->
                             closeFragment(false)
@@ -148,9 +147,7 @@ class UntrustedAccessibilityFragment : Fragment() {
                             android.R.string.ok
                         ) { p0, _ ->
                             closeFragment(true)
-                        }
-
-                    alert.show()
+                        }.show()
                 } catch (e: Throwable) {
                     closeFragment(false)
                 }
@@ -159,6 +156,8 @@ class UntrustedAccessibilityFragment : Fragment() {
     }
 
     private fun closeFragment(ok: Boolean) {
+        alert?.dismiss()
+        alert = null
         val tag = "${UntrustedAccessibilityFragment::class.java.name}"
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {

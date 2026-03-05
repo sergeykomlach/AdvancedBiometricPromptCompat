@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl.permissions
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -116,8 +117,10 @@ class SensorBlockedFallbackFragment : Fragment() {
 
 
     }
-
+    private var alert : AlertDialog? = null
     private fun closeFragment() {
+        alert?.dismiss()
+        alert = null
         LogCat.log("SensorBlockedFragment", "closeFragment")
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
@@ -137,6 +140,7 @@ class SensorBlockedFallbackFragment : Fragment() {
 
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            LogCat.log("SensorBlockedFragment", "startForResult")
             ExecutorHelper.postDelayed({
                 closeFragment()
             }, 250)
@@ -148,6 +152,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         startForResult.unregister()
     }
 
+    @SuppressLint("QueryPermissionsNeeded")
     private fun intentCanBeResolved(intent: Intent): Boolean {
         val pm = context?.packageManager
         val pkgAppsList = pm?.queryIntentActivities(intent, 0) ?: emptyList()
@@ -159,8 +164,9 @@ class SensorBlockedFallbackFragment : Fragment() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                if (alert == null)
                 try {
-                    val alert = AlertDialog.Builder(requireActivity())
+                    alert = AlertDialog.Builder(requireActivity())
                         .setTitle(arguments?.getString(TITLE)).also { dialog ->
                             arguments?.getString(MESSAGE)?.let {
                                 dialog.setMessage(it)
@@ -168,14 +174,13 @@ class SensorBlockedFallbackFragment : Fragment() {
                         }
                         .setNegativeButton(
                             android.R.string.cancel
-                        ) { dialog, which -> closeFragment() }
+                        ) { _, _ -> closeFragment() }
                         .setPositiveButton(
                             SystemStringsHelper.getFromSystem(
                                 appContext,
                                 "sensor_privacy_start_use_dialog_turn_on_button"
                             ) ?: getString(android.R.string.ok)
                         ) { p0, _ ->
-                            p0.dismiss()
                             val intent =
                                 if (intentCanBeResolved(Intent(Settings.ACTION_PRIVACY_SETTINGS)))
                                     Intent(Settings.ACTION_PRIVACY_SETTINGS)
@@ -183,9 +188,7 @@ class SensorBlockedFallbackFragment : Fragment() {
 
                             startForResult.launch(intent)
 
-                        }
-
-                    alert.show()
+                        }.show()
                 } catch (ignore: Throwable) {
                     try {
                         activity?.supportFragmentManager?.beginTransaction()
