@@ -46,6 +46,8 @@ class TensorFlowFaceUnlockManager(
 
         private const val TIMEOUT_MS = 30000L
 
+        private const val ANTISPOOFING_WINDOW_SIZE = 5
+        private const val ANTISPOOFING_MIN_FRAMES_TO_DECIDE = 3
 
         private const val MAX_ANGLE = 25f
         private const val TF_OD_API_INPUT_SIZE = 112
@@ -274,6 +276,7 @@ class TensorFlowFaceUnlockManager(
 
         LogCat.log(TAG, "stopAuthentication called for $this")
 
+        spoofScoresWindow.clear()
 
         timeoutHandler.removeCallbacks(timeoutRunnable)
 
@@ -366,6 +369,9 @@ class TensorFlowFaceUnlockManager(
         }
 
         isSessionActive.set(true)
+
+        spoofScoresWindow.clear()
+
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
         enrollmentTag =
             extra?.getString(ENROLLMENT_TAG_KEY) ?: "face${(detector?.registeredCount() ?: 0) + 1}"
@@ -484,7 +490,29 @@ class TensorFlowFaceUnlockManager(
             }
         }
     }
+    private val spoofScoresWindow = ArrayDeque<Float>()
 
+    private fun analyzeAntiSpoofing(bitmap: Bitmap): Boolean {
+        try {
+            val currentScore =
+                antiSpoofing?.antiSpoofing(bitmap) ?: FaceAntiSpoofing.THRESHOLD
+            spoofScoresWindow.addLast(currentScore)
+            if (spoofScoresWindow.size > ANTISPOOFING_WINDOW_SIZE) {
+                spoofScoresWindow.removeFirst()
+            }
+
+            if (spoofScoresWindow.size < ANTISPOOFING_MIN_FRAMES_TO_DECIDE) {
+                return false
+            }
+            val averageScore = spoofScoresWindow.average().toFloat()
+
+            LogCat.logError(TAG, "Window Average Score: $averageScore, Current: $currentScore")
+            return averageScore >= FaceAntiSpoofing.THRESHOLD
+        } catch (e: Throwable) {
+            LogCat.logException(e, TAG)
+            return false
+        }
+    }
     private fun processFaces(bitmap: Bitmap, faces: List<Face>) {
         if (faces.isEmpty()) return
 
@@ -523,13 +551,12 @@ class TensorFlowFaceUnlockManager(
             )
             return
         }
-        if (!isEnrolling) {
-            val spoofScore =
-                antiSpoofing?.antiSpoofing(bitmap) ?: FaceAntiSpoofing.THRESHOLD
-            LogCat.log(TAG, "Spoof Score: $spoofScore")
 
-            if (spoofScore > FaceAntiSpoofing.THRESHOLD) {
-                LogCat.log(TAG, "Spoof attack detected! Score: $spoofScore")
+
+
+
+        if (analyzeAntiSpoofing(bitmap)) {
+            LogCat.log(TAG, "Spoof attack detected!")
                 handleFailedAttempt()
 
                 val lockoutError = checkLockoutState()
@@ -558,7 +585,7 @@ class TensorFlowFaceUnlockManager(
                 )
                 return
             }
-        }
+
         val alignedFace = getAlignedFace(bitmap, face) ?: return
 
         try {
@@ -601,6 +628,7 @@ class TensorFlowFaceUnlockManager(
                     detector?.register(enrollmentTag, result)
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                     stopAuthentication()
+                    resetLockoutCounters()
                 } else {
                     val distance = result.distance ?: Float.MAX_VALUE
                     val id = result.id
@@ -617,10 +645,10 @@ class TensorFlowFaceUnlockManager(
                         }
 
                         if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
-                            resetLockoutCounters()
                             LogCat.log(TAG, "Authorized: $title")
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
+                            resetLockoutCounters()
                         }
                     } else {
                         consecutiveMatchCounter = 0
