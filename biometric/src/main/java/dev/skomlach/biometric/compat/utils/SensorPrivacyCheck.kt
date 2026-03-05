@@ -32,7 +32,6 @@ import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
 import java.util.concurrent.atomic.AtomicBoolean
@@ -173,15 +172,15 @@ object SensorPrivacyCheck {
     }
 
     fun isCameraBlocked(): Boolean {
-        return selfCamUse.get() == 0 && if (Utils.isAtLeastS && !DevicesWithKnownBugs.systemDealWithBiometricPrompt) {
-            if (System.currentTimeMillis() - isCameraBlocked.first <= CHECK_TIMEOUT) {
-                return isCameraBlocked.second
-            }
-            val isBlocked = isSensorOperationallyBlocked(SensorPrivacyManager.Sensors.CAMERA)
-            isCameraBlocked = Pair(System.currentTimeMillis(), isBlocked)
-            isBlocked
-        } else
-            false
+        if (selfCamUse.get() > 0) return false
+
+        if (System.currentTimeMillis() - isCameraBlocked.first <= CHECK_TIMEOUT) {
+            return isCameraBlocked.second
+        }
+        val isBlocked = isSensorOperationallyBlocked(SensorPrivacyManager.Sensors.CAMERA)
+        isCameraBlocked = Pair(System.currentTimeMillis(), isBlocked)
+        return isBlocked
+
     }
 
 
