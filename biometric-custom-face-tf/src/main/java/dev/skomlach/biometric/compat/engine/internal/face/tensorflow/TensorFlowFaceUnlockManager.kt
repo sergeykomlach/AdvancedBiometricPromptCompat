@@ -617,6 +617,12 @@ class TensorFlowFaceUnlockManager(
                                 R.string.tf_face_help_model_already_registered
                             )
                         )
+                        timeoutHandler.postDelayed({
+                            authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
+                            stopAuthentication()
+                            resetPermanentLockOut()
+                        }, 2500L)
+
                         return
                     }
                 }
