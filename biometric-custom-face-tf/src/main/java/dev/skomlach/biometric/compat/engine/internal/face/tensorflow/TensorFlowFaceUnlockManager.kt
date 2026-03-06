@@ -69,13 +69,6 @@ class TensorFlowFaceUnlockManager(
             config = tensorFlowFaceConfig
         }
 
-        fun resetLockoutCounters() {
-            getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
-                remove(KEY_FAILED_ATTEMPTS)
-                    .remove(KEY_LOCKOUT_END_TIMESTAMP)
-                    .remove(KEY_PERMANENT_LOCKOUT_COUNT)
-            }
-        }
 
         private fun checkLockoutState(): Int? {
             val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName)
@@ -151,10 +144,6 @@ class TensorFlowFaceUnlockManager(
                     currentActiveManager = null
                 }
             }
-        }
-
-        init {
-            DeviceUnlockedReceiver.registerListener()
         }
     }
 
@@ -302,6 +291,19 @@ class TensorFlowFaceUnlockManager(
         isEnrolling = false
 
         stopBackgroundThread()
+    }
+    override fun resetLockOut() {
+        getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
+            remove(KEY_LOCKOUT_END_TIMESTAMP)
+            .remove(KEY_FAILED_ATTEMPTS)
+        }
+    }
+    override fun resetPermanentLockOut() {
+        getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
+            remove(KEY_FAILED_ATTEMPTS)
+                .remove(KEY_LOCKOUT_END_TIMESTAMP)
+                .remove(KEY_PERMANENT_LOCKOUT_COUNT)
+        }
     }
 
     override fun getPermissions(): List<String> {
@@ -632,7 +634,7 @@ class TensorFlowFaceUnlockManager(
                     detector?.register(enrollmentTag, result)
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                     stopAuthentication()
-                    resetLockoutCounters()
+                    resetPermanentLockOut()
                 } else {
                     val distance = result.distance ?: Float.MAX_VALUE
                     val id = result.id
@@ -652,7 +654,7 @@ class TensorFlowFaceUnlockManager(
                             LogCat.log(TAG, "Authorized: $title")
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
-                            resetLockoutCounters()
+                            resetPermanentLockOut()
                         }
                     } else {
                         consecutiveMatchCounter = 0

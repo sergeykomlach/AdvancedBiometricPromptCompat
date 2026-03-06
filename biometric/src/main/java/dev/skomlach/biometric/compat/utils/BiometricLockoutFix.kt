@@ -21,10 +21,12 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.SharedPreferences
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
+import androidx.core.content.edit
 
 object BiometricLockoutFix {
     //LockOut behavior emulated, because for example Meizu API allow to enroll fingerprint unlimited times
@@ -36,7 +38,10 @@ object BiometricLockoutFix {
     fun reset() {
         try {
             lock.runCatching { this.lock() }
-            preferences.edit().clear().apply()
+            preferences.edit { clear() }
+            BiometricAuthentication.customBiometricManagers.forEach {
+                it.resetLockOut()
+            }
         } finally {
             lock.runCatching {
                 this.unlock()

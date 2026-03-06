@@ -49,6 +49,8 @@ abstract class AbstractCustomBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
     }
 
+    abstract fun resetLockOut()
+    abstract fun resetPermanentLockOut()
     abstract fun getPermissions(): List<String>
 
     abstract val biometricType: BiometricType
