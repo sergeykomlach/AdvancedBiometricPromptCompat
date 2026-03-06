@@ -52,7 +52,7 @@ object BiometricManagerCompat {
         return@withContext BiometricAuthentication.customBiometricManagers.isNotEmpty()
     }
 
-    fun unregisterNonHardwareBiometrics() {
+    fun unregisterAllNonHardwareBiometrics() {
         BiometricAuthentication.customBiometricManagers.forEach {
             it.remove(null)
         }
