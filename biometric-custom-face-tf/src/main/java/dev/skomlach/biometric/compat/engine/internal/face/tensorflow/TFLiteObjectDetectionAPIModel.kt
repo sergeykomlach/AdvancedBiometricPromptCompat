@@ -256,6 +256,11 @@ private constructor() : SimilarityClassifier {
         return registered.isNotEmpty()
     }
 
+    override fun getEnrolls(): Set<String> {
+        Log.i(javaClass.simpleName, "getEnrolls:  ${registered.keys}")
+        return registered.keys.filterNotNull().toSet()
+    }
+
     override fun delete(name: String?) {
         if (name == null) {
             if (BuildConfig.DEBUG) {

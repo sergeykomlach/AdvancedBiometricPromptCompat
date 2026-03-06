@@ -62,6 +62,8 @@ abstract class AbstractCustomBiometricManager {
     abstract fun remove(extra: Bundle?)
     abstract fun getRegistrationBundle(name: String? = null): Bundle
 
+    abstract fun getEnrolls(): Collection<String>
+
     abstract fun authenticate(
         crypto: CryptoObject?,
         flags: Int,

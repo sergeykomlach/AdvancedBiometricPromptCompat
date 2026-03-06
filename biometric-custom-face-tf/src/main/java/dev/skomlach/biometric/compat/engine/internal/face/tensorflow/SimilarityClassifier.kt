@@ -25,6 +25,7 @@ import android.graphics.RectF
 interface SimilarityClassifier {
     fun registeredCount(): Int
     fun hasRegistered(): Boolean
+    fun getEnrolls(): Set<String>
     fun delete(name: String?)
 
     /**

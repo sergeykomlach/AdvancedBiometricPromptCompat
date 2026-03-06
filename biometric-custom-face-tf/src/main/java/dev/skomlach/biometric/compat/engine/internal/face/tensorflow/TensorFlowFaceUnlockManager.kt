@@ -344,6 +344,10 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
+    override fun getEnrolls(): Collection<String> {
+        return detector?.getEnrolls()?:emptyList()
+    }
+
     override fun authenticate(
         crypto: CryptoObject?,
         flags: Int,
