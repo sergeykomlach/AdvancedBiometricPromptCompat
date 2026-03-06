@@ -128,7 +128,6 @@ object BiometricAuthentication {
             }
             synchronized(moduleHashMap) {
                 keysToRemove.forEach {
-                    it.value.remove(null)
                     moduleHashMap.remove(it.key)
                 }
             }
