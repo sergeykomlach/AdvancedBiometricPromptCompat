@@ -592,10 +592,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
                             ExecutorHelper.post { callbackOuter.onCanceled(canceled) }
                             onUIClosed()
-                            //TODO:
-//                            ExecutorHelper.startOnBackground {
-//                                BiometricManagerCompat.unregisterNonHardwareBiometrics()
-//                            }
+                            if (builder.registration) {
+                                ExecutorHelper.startOnBackground {
+                                    BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onCanceled >>>> rollbackLastEnroll")
+                                    BiometricAuthentication.rollbackLastEnroll()
+                                }
+                            }
                         }
                     }
 
@@ -631,12 +633,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                             }
                             onUIClosed()
-                            //TODO:
-//                            if (builder.registration){
-//                                ExecutorHelper.startOnBackground {
-//                                    BiometricManagerCompat.unregisterNonHardwareBiometrics()
-//                                }
-//                            }
+                            if (builder.registration) {
+                                ExecutorHelper.startOnBackground {
+                                    BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed >>>> rollbackLastEnroll")
+                                    BiometricAuthentication.rollbackLastEnroll()
+                                }
+                            }
                         }
                     }
 

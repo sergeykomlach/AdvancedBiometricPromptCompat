@@ -534,11 +534,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun cancelAuth() {
         try {
-            val success =
-                authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-            e("BiometricPromptApi28Impl.cancelAuth(): $success")
-            if (success != null)
-                return
+            e("BiometricPromptApi28Impl.cancelAuth()")
             callback?.onCanceled(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,

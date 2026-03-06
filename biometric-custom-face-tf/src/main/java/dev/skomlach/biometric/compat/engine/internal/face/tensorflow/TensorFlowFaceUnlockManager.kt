@@ -332,7 +332,7 @@ class TensorFlowFaceUnlockManager(
 
 
     override fun remove(extra: Bundle?) {
-        LogCat.log(TAG, "remove")
+        LogCat.log(TAG, "rollbackEnroll $extra")
         stopAuthentication()
         detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
     }

@@ -116,6 +116,14 @@ object BiometricAuthentication {
         }
     }
 
+    fun rollbackLastEnroll(){
+        d("BiometricAuthentication", "rollbackLastEnroll")
+        synchronized(moduleHashMap) {
+            moduleHashMap.values.forEach { module ->
+                    if (module is CustomBiometricModule) module.rollbackLastEnroll()
+            }
+        }
+    }
     fun unloadCustomModules() {
         if (customLoading) return
         d("BiometricAuthentication", "resetCustomModules called")

@@ -53,8 +53,15 @@ class CustomBiometricModule(
 ) :
     AbstractBiometricModule(method) {
 
+    private var registrationBundle: Bundle? = null
+
     init {
         listener?.initFinished(biometricMethod, this@CustomBiometricModule)
+    }
+
+    fun rollbackLastEnroll() {
+        d("$name: rollbackLastEnroll $registrationBundle")
+        manager?.remove(registrationBundle ?: return)
     }
 
     override fun getManagers(): Set<Any> {
@@ -178,11 +185,19 @@ class CustomBiometricModule(
     }
 
     private fun convertBundleToCustom(): Bundle? {
-        return if (bundle?.getBoolean(
+
+        var extras = bundle
+
+        if (bundle?.getBoolean(
                 BundleBuilder.REGISTRATION,
                 false
             ) == true
-        ) manager?.getRegistrationBundle() else bundle
+        ) {
+            extras = manager?.getRegistrationBundle()
+            registrationBundle = extras
+        } else registrationBundle = null
+
+        return extras
     }
 
     internal inner class AuthCallback(
