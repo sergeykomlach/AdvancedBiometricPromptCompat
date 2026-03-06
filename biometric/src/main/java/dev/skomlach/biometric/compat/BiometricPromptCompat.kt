@@ -285,6 +285,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     private var startTs = 0L
     private var startTsImpl = 0L
     fun registration(callbackOuter: AuthenticationCallback) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.registration")
         builder.registration = true
         authenticate(callbackOuter)
     }
