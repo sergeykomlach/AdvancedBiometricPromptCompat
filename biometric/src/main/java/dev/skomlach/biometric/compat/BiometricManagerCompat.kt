@@ -400,33 +400,6 @@ object BiometricManagerCompat {
         preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
         return result || cameraInUse
     }
-
-    @JvmStatic
-    fun openSettings(
-        activity: Activity, api: BiometricAuthRequest = BiometricAuthRequest(
-            BiometricApi.AUTO,
-            BiometricType.BIOMETRIC_ANY
-        ), forced: Boolean = true
-    ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-
-        if (BiometricType.BIOMETRIC_ANY != api.type && BiometricPromptCompat.isInitialized && BiometricAuthentication.openSettings(
-                activity,
-                api.type
-            )
-        ) {
-            return true
-        }
-
-        if (BiometricType.BIOMETRIC_ANY == api.type || forced) {
-            return Utils.startActivity(
-                Intent(Settings.ACTION_SETTINGS), activity
-            )
-        }
-        return false
-    }
-
     @JvmStatic
     fun getUsedPermissions(
         types: Collection<BiometricType>
