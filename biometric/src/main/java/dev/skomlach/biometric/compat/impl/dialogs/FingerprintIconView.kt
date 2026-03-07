@@ -154,7 +154,11 @@ class FingerprintIconView @JvmOverloads constructor(
                         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                     }
             } catch (ex: Throwable) {
-                dr = null
+                val options = BitmapFactory.Options()
+                options.inPreferredConfig = format
+                options.outConfig = format
+                val bm = BitmapFactory.decodeResource(context.resources, resId, options)
+                dr = BitmapDrawable(bm)
             }
             return dr
         }
