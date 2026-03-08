@@ -18,7 +18,7 @@ import com.google.mlkit.vision.face.FaceDetector
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.face.FaceLandmark
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IFrameProvider
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
@@ -37,7 +37,7 @@ import kotlin.math.sqrt
 
 class TensorFlowFaceUnlockManager(
     private val context: Context
-) : AbstractCustomBiometricManager() {
+) : AbstractSoftwareBiometricManager() {
 
     companion object {
         private const val TAG = "TensorFlowFaceUnlockManager"
@@ -337,7 +337,7 @@ class TensorFlowFaceUnlockManager(
         detector?.delete(extra?.getString(ENROLLMENT_TAG_KEY))
     }
 
-    override fun getRegistrationBundle(name: String?): Bundle {
+    override fun getEnrollBundle(name: String?): Bundle {
         return Bundle().apply {
             putBoolean(IS_ENROLLMENT_KEY, true)
             putString(ENROLLMENT_TAG_KEY, name ?: "face${(detector?.registeredCount() ?: 0) + 1}")

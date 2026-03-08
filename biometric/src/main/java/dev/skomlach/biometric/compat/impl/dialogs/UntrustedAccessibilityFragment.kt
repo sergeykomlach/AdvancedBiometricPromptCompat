@@ -149,6 +149,9 @@ class UntrustedAccessibilityFragment : Fragment() {
                             closeFragment(true)
                         }.show()
                 } catch (e: Throwable) {
+                    LogCat.logException(
+                        e, "UntrustedAccessibilityFragment", e.message
+                    )
                     closeFragment(false)
                 }
             }

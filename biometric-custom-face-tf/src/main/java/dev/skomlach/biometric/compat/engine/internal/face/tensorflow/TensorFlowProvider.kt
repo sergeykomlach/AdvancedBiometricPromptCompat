@@ -20,8 +20,8 @@
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
 import android.content.Context
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
-import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.translate.LocalizationHelper
@@ -29,7 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class TensorFlowProvider : CustomBiometricProvider() {
+class TensorFlowProvider : SoftwareBiometricProvider() {
     init {
         GlobalScope.launch(Dispatchers.IO) {
             LocalizationHelper.prefetch(
@@ -56,7 +56,7 @@ class TensorFlowProvider : CustomBiometricProvider() {
         }
     }
 
-    override fun getCustomManager(context: Context): AbstractCustomBiometricManager {
+    override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
         return TensorFlowFaceUnlockManager(context)
     }
 }

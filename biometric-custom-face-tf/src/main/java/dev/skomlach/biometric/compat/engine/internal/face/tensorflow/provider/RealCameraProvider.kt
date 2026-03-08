@@ -15,7 +15,7 @@ import android.os.Handler
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetector
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.ImageUtils
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.custom.face.tf.R
@@ -85,7 +85,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
     private fun startCamera() {
         if (!PermissionUtils.INSTANCE.hasSelfPermissions(Manifest.permission.CAMERA)) {
             onError?.invoke(
-                AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
                 LocalizationHelper.getLocalizedString(
                     context,
                     R.string.tf_face_help_model_no_camera_permissions
@@ -97,7 +97,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
         val cameraId = getFrontFacingCameraId(cameraManager) ?: run {
             onError?.invoke(
-                AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 LocalizationHelper.getLocalizedString(
                     context,
                     R.string.tf_face_help_model_no_front_camera
@@ -118,7 +118,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
             if (validSizes.isEmpty()) {
                 onError?.invoke(
-                    AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                    AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                     LocalizationHelper.getLocalizedString(
                         context,
                         R.string.tf_face_help_model_camera_low_res
@@ -161,7 +161,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                     camera.close()
                     cameraDevice = null
                     onError?.invoke(
-                        AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                        AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
                         "Camera Error: $error"
                     )
                 }
@@ -169,7 +169,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
         } catch (e: Exception) {
             onError?.invoke(
-                AbstractCustomBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 e.message ?: "Error"
             )
         }

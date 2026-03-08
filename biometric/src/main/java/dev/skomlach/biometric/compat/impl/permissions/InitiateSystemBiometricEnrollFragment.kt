@@ -28,12 +28,14 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import androidx.core.os.BundleCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -42,53 +44,21 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.SystemStringsHelper
 import kotlinx.coroutines.launch
 
 
-class SensorBlockedFallbackFragment : Fragment() {
+class InitiateSystemBiometricEnrollFragment : Fragment() {
     companion object {
+        private const val INTENT_KEY = "InitiateSystemBiometricEnrollFragment.intent_key"
 
-
-        //Just a references to system resources
-//   [`sensor_privacy_start_use_camera_notification_content_title`->`Unblock device camera`]
-//   [`sensor_privacy_start_use_dialog_turn_on_button`->`Unblock`]
-//   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
-//   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
-
-        private const val TITLE = "title"
-        private const val MESSAGE = "message"
-        private const val INTENT_KEY = "SensorBlockedFallbackFragment.intent_key"
-        fun askForCameraUnblock(callback: () -> Unit?) {
-            showFragment(
-                SystemStringsHelper.getFromSystem(
-                    appContext,
-                    "sensor_privacy_start_use_camera_notification_content_title"
-                ),
-                SystemStringsHelper.getFromSystem(appContext, "face_sensor_privacy_enabled"),
-                callback
-            )
-        }
-
-        fun askForMicUnblock(callback: () -> Unit?) {
-            showFragment(
-                SystemStringsHelper.getFromSystem(
-                    appContext,
-                    "sensor_privacy_start_use_mic_notification_content_title"
-                ), null, callback
-            )
-        }
-
-        private fun showFragment(title: String?, msg: String?, callback: () -> Unit?) {
-            LogCat.log("SensorBlockedFragment", "showFragment")
-            if (title.isNullOrEmpty()) {
-                callback.invoke()
-                return
-            }
-
+        fun showFragment(
+            biometricAuthRequest: BiometricAuthRequest,
+            callback: () -> Unit?
+        ) {
+            LogCat.log("InitiateSystemBiometricEnrollFragment", "showFragment")
 
             val tag =
-                "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
+                "${InitiateSystemBiometricEnrollFragment.javaClass.name}"
             val activity = AndroidContext.activity
             if (activity is FragmentActivity) {
                 if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
@@ -105,10 +75,9 @@ class SensorBlockedFallbackFragment : Fragment() {
                 }, IntentFilter(INTENT_KEY))
                 activity
                     .supportFragmentManager.beginTransaction()
-                    .add(SensorBlockedFallbackFragment().apply {
-                        this.arguments = Bundle().apply {
-                            putString(TITLE, title)
-                            putString(MESSAGE, msg)
+                    .add(InitiateSystemBiometricEnrollFragment().apply {
+                        arguments = Bundle().apply {
+                            putParcelable("request", biometricAuthRequest)
                         }
                     }, tag)
                     .commitAllowingStateLoss()
@@ -117,18 +86,16 @@ class SensorBlockedFallbackFragment : Fragment() {
 
 
     }
-    private var alert : AlertDialog? = null
+
     private fun closeFragment() {
-        alert?.dismiss()
-        alert = null
-        LogCat.log("SensorBlockedFragment", "closeFragment")
+        LogCat.log("InitiateSystemBiometricEnrollFragment", "closeFragment")
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()
-                ?.remove(this@SensorBlockedFallbackFragment)
+                ?.remove(this@InitiateSystemBiometricEnrollFragment)
                 ?.commitNowAllowingStateLoss()
         } catch (e: Throwable) {
-            e("SensorBlockedFragment", e.message, e)
+            e("InitiateSystemBiometricEnrollFragment", e.message, e)
         } finally {
             BroadcastTools.sendGlobalBroadcastIntent(
                 appContext, Intent(
@@ -140,14 +107,14 @@ class SensorBlockedFallbackFragment : Fragment() {
 
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            LogCat.log("SensorBlockedFragment", "startForResult")
+            LogCat.log("InitiateSystemBiometricEnrollFragment", "startForResult")
             ExecutorHelper.postDelayed({
                 closeFragment()
             }, 250)
         }
 
     override fun onDestroyView() {
-        LogCat.log("SensorBlockedFragment", "onDestroyView")
+        LogCat.log("InitiateSystemBiometricEnrollFragment", "onDestroyView")
         super.onDestroyView()
         startForResult.unregister()
     }
@@ -164,34 +131,21 @@ class SensorBlockedFallbackFragment : Fragment() {
 
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                if (alert == null)
+
                 try {
-                    alert = AlertDialog.Builder(requireActivity())
-                        .setTitle(arguments?.getString(TITLE)).also { dialog ->
-                            arguments?.getString(MESSAGE)?.let {
-                                dialog.setMessage(it)
-                            }
-                        }
-                        .setNegativeButton(
-                            android.R.string.cancel
-                        ) { _, _ -> closeFragment() }
-                        .setPositiveButton(
-                            SystemStringsHelper.getFromSystem(
-                                appContext,
-                                "sensor_privacy_start_use_dialog_turn_on_button"
-                            ) ?: getString(android.R.string.ok)
-                        ) { p0, _ ->
-                            val intent =
-                                if (intentCanBeResolved(Intent(Settings.ACTION_PRIVACY_SETTINGS)))
-                                    Intent(Settings.ACTION_PRIVACY_SETTINGS)
-                                else Intent(Settings.ACTION_SETTINGS)
-
-                            startForResult.launch(intent)
-
-                        }.show()
+                    val biometricRequest: BiometricAuthRequest = BundleCompat.getParcelable(
+                        arguments ?: return@repeatOnLifecycle,
+                        "request",
+                        BiometricAuthRequest::class.java
+                    ) ?: return@repeatOnLifecycle
+                    val intent =
+                        BiometricAuthentication.getSettingsIntent(biometricRequest.type) ?: Intent(
+                            Settings.ACTION_SETTINGS
+                        )
+                    startForResult.launch(intent)
                 } catch (e: Throwable) {
                     LogCat.logException(
-                        e, "SensorBlockedFallbackFragment", e.message
+                        e, "InitiateSystemBiometricEnrollFragment", e.message
                     )
                     closeFragment()
                 }

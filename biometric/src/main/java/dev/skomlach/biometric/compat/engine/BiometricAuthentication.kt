@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.engine
 
-import android.app.Activity
 import android.app.admin.DevicePolicyManager
 import android.content.Intent
 import android.os.Build
@@ -34,14 +33,14 @@ import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
-import dev.skomlach.biometric.compat.custom.CustomBiometricProvider
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
-import dev.skomlach.biometric.compat.engine.internal.CustomBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.face.android.AndroidFaceUnlockModule
 import dev.skomlach.biometric.compat.engine.internal.face.facelock.FacelockOldModule
 import dev.skomlach.biometric.compat.engine.internal.face.hihonor.Hihonor3DFaceUnlockModule
@@ -62,7 +61,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils.startActivity
 import java.lang.ref.SoftReference
 import java.lang.ref.WeakReference
 import java.util.Collections
@@ -74,9 +72,9 @@ object BiometricAuthentication {
     private val moduleHashMap =
         Collections.synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
     private val customModuleHashMap =
-        Collections.synchronizedMap(HashMap<BiometricMethod, AbstractCustomBiometricManager>())
+        Collections.synchronizedMap(HashMap<BiometricMethod, AbstractSoftwareBiometricManager>())
 
-    val customBiometricManagers: List<AbstractCustomBiometricManager>
+    val customBiometricManagers: List<AbstractSoftwareBiometricManager>
         get() = customModuleHashMap.values.toList()
 
     private val initInProgress = AtomicBoolean(false)
@@ -116,17 +114,26 @@ object BiometricAuthentication {
         }
     }
 
-    fun rollbackLastEnroll(){
+    fun rollbackLastEnrollInSoftwareModules() {
         d("BiometricAuthentication", "rollbackLastEnroll")
         synchronized(moduleHashMap) {
             moduleHashMap.values.forEach { module ->
-                    if (module is CustomBiometricModule) module.rollbackLastEnroll()
+                if (module is SoftwareBiometricModule) module.rollbackLastEnroll()
             }
         }
     }
-    fun unloadCustomModules() {
+
+    fun unregisterAllNonHardwareBiometrics() {
+        synchronized(customBiometricManagers) {
+            customBiometricManagers.forEach {
+                it.remove(null)
+            }
+        }
+    }
+
+    fun unloadSoftwareModules() {
         if (customLoading) return
-        d("BiometricAuthentication", "resetCustomModules called")
+        d("BiometricAuthentication", "resetSoftwareModules called")
         try {
             customLoading = true
             val keysToRemove = synchronized(customModuleHashMap) {
@@ -140,19 +147,19 @@ object BiometricAuthentication {
                 }
             }
         } catch (e: Throwable) {
-            e("BiometricAuthentication", "resetCustomModules failure", e)
+            e("BiometricAuthentication", "resetSoftwareModules failure", e)
         } finally {
             customLoading = false
         }
     }
 
-    fun loadCustomModules() {
+    fun loadSoftwareModules() {
         if (customLoading) return
-        d("BiometricAuthentication", "loadCustomModules called")
+        d("BiometricAuthentication", "loadSoftwareModules called")
         try {
             customLoading = true
-            val loader = ServiceLoader.load(CustomBiometricProvider::class.java)
-            val newCustomModules = HashMap<BiometricMethod, BiometricModule>()
+            val loader = ServiceLoader.load(SoftwareBiometricProvider::class.java)
+            val newSoftwareModules = HashMap<BiometricMethod, BiometricModule>()
 
             for (provider in loader) {
                 try {
@@ -173,8 +180,8 @@ object BiometricAuthentication {
                         )
 
                         customModuleHashMap[biometricMethod] = customManager
-                        newCustomModules[biometricMethod] =
-                            CustomBiometricModule(biometricMethod, customManager, null)
+                        newSoftwareModules[biometricMethod] =
+                            SoftwareBiometricModule(biometricMethod, customManager, null)
                         d(
                             "BiometricAuthentication",
                             "Registered custom module: ${customManager.javaClass.simpleName}"
@@ -184,7 +191,7 @@ object BiometricAuthentication {
                     e("BiometricAuthentication", "Error loading custom module", e)
                 }
             }
-            moduleHashMap.putAll(newCustomModules)
+            moduleHashMap.putAll(newSoftwareModules)
         } catch (e: Throwable) {
             e("BiometricAuthentication", "ServiceLoader failure", e)
         } finally {
@@ -355,15 +362,15 @@ object BiometricAuthentication {
         requestedMethods.filterNotNull().forEach { type ->
             getAvailableBiometricModule(type)?.takeIf {
                 (bundle?.getBoolean(
-                    BundleBuilder.REGISTRATION,
+                    BundleBuilder.ENROLL,
                     false
-                ) == true && it is CustomBiometricModule) || it.hasEnrolled
+                ) == true && it is SoftwareBiometricModule) || it.hasEnrolled
             }?.let { module ->
                 Core.registerModule(module)
                 if (module is FacelockOldModule) module.setCallerView(targetView)
                 if (module is SoterFaceUnlockModule) module.bundle = bundle
                 if (module is SoterFingerprintUnlockModule) module.bundle = bundle
-                if (module is CustomBiometricModule) module.bundle = bundle
+                if (module is SoftwareBiometricModule) module.bundle = bundle
                 activeModules[module.tag()] = type
             }
         }
@@ -437,38 +444,34 @@ object BiometricAuthentication {
         }
     }
 
-    fun openSettings(context: Activity, type: BiometricType): Boolean {
-        val module = getAvailableBiometricModule(type) ?: return false
+    fun getSettingsIntent(type: BiometricType): Intent? {
+        val module = getAvailableBiometricModule(type) ?: return null
         return try {
             when (module) {
                 is FacelockOldModule if type == BiometricType.BIOMETRIC_FACE ->
-                    startActivity(Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD), context)
+                    return Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD)
 
                 is MiuiFaceUnlockModule if type == BiometricType.BIOMETRIC_FACE ->
-                    startActivity(
-                        Intent().setClassName(
-                            "com.android.settings",
-                            "com.android.settings.Settings"
-                        )
-                            .putExtra(
-                                ":android:show_fragment",
-                                "com.android.settings.security.MiuiSecurityAndPrivacySettings"
-                            ), context
+                    return Intent().setClassName(
+                        "com.android.settings",
+                        "com.android.settings.Settings"
                     )
+                        .putExtra(
+                            ":android:show_fragment",
+                            "com.android.settings.security.MiuiSecurityAndPrivacySettings"
+                        )
 
                 is HuaweiFaceUnlockModule if type == BiometricType.BIOMETRIC_FACE ->
-                    startActivity(
-                        Intent().setClassName(
-                            "com.android.settings",
-                            "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"
-                        ), context
+                    return Intent().setClassName(
+                        "com.android.settings",
+                        "com.android.settings.facechecker.unlock.FaceUnLockSettingsActivity"
                     )
 
-                else -> false
+                else -> null
             }
         } catch (e: Throwable) {
             e(e, "BiometricAuthentication.openSettings")
-            false
+            null
         }
     }
 

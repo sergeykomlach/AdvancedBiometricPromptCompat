@@ -27,7 +27,7 @@ import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.Mac
 
-abstract class AbstractCustomBiometricManager {
+abstract class AbstractSoftwareBiometricManager {
     companion object {
         const val CUSTOM_BIOMETRIC_ACQUIRED_GOOD = 0
         const val CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY = 3
@@ -60,7 +60,7 @@ abstract class AbstractCustomBiometricManager {
     abstract fun getManagers(): Set<Any>
 
     abstract fun remove(extra: Bundle?)
-    abstract fun getRegistrationBundle(name: String? = null): Bundle
+    abstract fun getEnrollBundle(name: String? = null): Bundle
 
     abstract fun getEnrolls(): Collection<String>
 

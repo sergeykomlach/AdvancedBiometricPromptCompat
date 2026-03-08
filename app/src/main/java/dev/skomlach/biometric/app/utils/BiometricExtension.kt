@@ -265,12 +265,12 @@ fun Fragment.startBiometric(
         }
     }
     if (isRegister) {
-        biometricPromptCompat.registration(callback)
+        biometricPromptCompat.setupBiometric(callback)
 
 
         Toast.makeText(
             AndroidContext.appContext.getFixedContext(),
-            "Start registration ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            "Start setup ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
             Toast.LENGTH_SHORT
         ).show()
     } else {

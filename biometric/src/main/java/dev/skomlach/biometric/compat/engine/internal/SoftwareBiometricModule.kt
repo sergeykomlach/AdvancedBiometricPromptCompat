@@ -24,17 +24,17 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BundleBuilder
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_SPACE
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
-import dev.skomlach.biometric.compat.custom.AbstractCustomBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_USER_CANCELED
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_NO_SPACE
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
+import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_USER_CANCELED
 import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -46,22 +46,22 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class CustomBiometricModule(
+class SoftwareBiometricModule(
     private val method: BiometricMethod,
-    private val manager: AbstractCustomBiometricManager?,
+    private val manager: AbstractSoftwareBiometricManager?,
     private val listener: BiometricInitListener?
 ) :
     AbstractBiometricModule(method) {
 
-    private var registrationBundle: Bundle? = null
+    private var enrollBundle: Bundle? = null
 
     init {
-        listener?.initFinished(biometricMethod, this@CustomBiometricModule)
+        listener?.initFinished(biometricMethod, this@SoftwareBiometricModule)
     }
 
     fun rollbackLastEnroll() {
-        d("$name: rollbackLastEnroll $registrationBundle")
-        manager?.remove(registrationBundle ?: return)
+        d("$name: rollbackLastEnroll $enrollBundle")
+        manager?.remove(enrollBundle ?: return)
     }
 
     override fun getManagers(): Set<Any> {
@@ -140,7 +140,7 @@ class CustomBiometricModule(
                 val signalObject =
                     (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
                         ?: throw IllegalArgumentException("CancellationSignal cann't be null")
-                val callback: AbstractCustomBiometricManager.AuthenticationCallback =
+                val callback: AbstractSoftwareBiometricManager.AuthenticationCallback =
                     AuthCallback(
                         biometricCryptoObject,
                         restartPredicate,
@@ -151,11 +151,11 @@ class CustomBiometricModule(
                 // Occasionally, an NPE will bubble up out of FingerprintManager.authenticate
                 val crypto = if (biometricCryptoObject == null) null else {
                     if (biometricCryptoObject.cipher != null)
-                        AbstractCustomBiometricManager.CryptoObject(biometricCryptoObject.cipher)
+                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.cipher)
                     else if (biometricCryptoObject.mac != null)
-                        AbstractCustomBiometricManager.CryptoObject(biometricCryptoObject.mac)
+                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.mac)
                     else if (biometricCryptoObject.signature != null)
-                        AbstractCustomBiometricManager.CryptoObject(biometricCryptoObject.signature)
+                        AbstractSoftwareBiometricManager.CryptoObject(biometricCryptoObject.signature)
                     else
                         null
                 }
@@ -189,13 +189,13 @@ class CustomBiometricModule(
         var extras = bundle
 
         if (bundle?.getBoolean(
-                BundleBuilder.REGISTRATION,
+                BundleBuilder.ENROLL,
                 false
             ) == true
         ) {
-            extras = manager?.getRegistrationBundle()
-            registrationBundle = extras
-        } else registrationBundle = null
+            extras = manager?.getEnrollBundle()
+            enrollBundle = extras
+        } else enrollBundle = null
 
         return extras
     }
@@ -205,7 +205,7 @@ class CustomBiometricModule(
         private val restartPredicate: RestartPredicate?,
         private val cancellationSignal: CancellationSignal?,
         private val listener: AuthenticationListener?
-    ) : AbstractCustomBiometricManager.AuthenticationCallback() {
+    ) : AbstractSoftwareBiometricManager.AuthenticationCallback() {
         private var errorTs = 0L
         private val skipTimeout =
             context.resources.getInteger(android.R.integer.config_shortAnimTime)
@@ -266,7 +266,7 @@ class CustomBiometricModule(
                                     AuthenticationFailureReason.CANCELED,
                                     null
                                 )
-                                Core.cancelAuthentication(this@CustomBiometricModule)
+                                Core.cancelAuthentication(this@SoftwareBiometricModule)
                             }
                         }
                     }
@@ -304,7 +304,7 @@ class CustomBiometricModule(
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
                             listener?.onCanceled(tag(), AuthenticationFailureReason.CANCELED, null)
-                            Core.cancelAuthentication(this@CustomBiometricModule)
+                            Core.cancelAuthentication(this@SoftwareBiometricModule)
                         }
                     }
                 }
@@ -315,7 +315,7 @@ class CustomBiometricModule(
             listener?.onHelp(helpString)
         }
 
-        override fun onAuthenticationSucceeded(result: AbstractCustomBiometricManager.AuthenticationResult?) {
+        override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)

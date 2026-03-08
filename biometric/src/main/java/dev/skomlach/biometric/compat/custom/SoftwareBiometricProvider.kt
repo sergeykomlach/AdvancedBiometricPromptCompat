@@ -17,16 +17,10 @@
  *   limitations under the License.
  */
 
-package dev.skomlach.biometric.compat
+package dev.skomlach.biometric.compat.custom
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import android.content.Context
 
-
-@Parcelize
-data class BiometricAuthRequest(
-    val api: BiometricApi = BiometricApi.AUTO,
-    val type: BiometricType = BiometricType.BIOMETRIC_ANY,
-    val confirmation: BiometricConfirmation = BiometricConfirmation.ANY,
-    val provider: BiometricProviderType = BiometricProviderType.MIXED
-) : Parcelable
+abstract class SoftwareBiometricProvider {
+    abstract fun getCustomManager(context: Context): AbstractSoftwareBiometricManager
+}

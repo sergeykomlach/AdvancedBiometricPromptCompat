@@ -43,6 +43,7 @@ import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
 import dev.skomlach.biometric.compat.impl.IBiometricPromptImpl
 import dev.skomlach.biometric.compat.impl.credentials.CredentialsRequestFragment
 import dev.skomlach.biometric.compat.impl.dialogs.UntrustedAccessibilityFragment
+import dev.skomlach.biometric.compat.impl.permissions.InitiateSystemBiometricEnrollFragment
 import dev.skomlach.biometric.compat.impl.permissions.SensorBlockedFallbackFragment
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.BiometricTitle
@@ -284,10 +285,34 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
     private var startTs = 0L
     private var startTsImpl = 0L
-    fun registration(callbackOuter: AuthenticationCallback) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.registration")
-        builder.registration = true
-        authenticate(callbackOuter)
+
+
+    fun setupBiometric(
+        callbackOuter: AuthenticationCallback,
+        enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isBiometricReadyForEnroll(
+            builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.HARDWARE)
+        ) && !BiometricManagerCompat.hasEnrolled(
+            builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.HARDWARE)
+        )
+    ) {
+        BiometricLoggerImpl.e("BiometricPromptCompat.enroll $enrollNewHardwareBiometric")
+
+        val softwareSetup = {
+            builder.enroll = true
+            authenticate(callbackOuter)
+        }
+        if (enrollNewHardwareBiometric) {
+            builder.getActivity()?.let {
+                InitiateSystemBiometricEnrollFragment.showFragment(
+                    builder.getBiometricAuthRequest(),
+                    softwareSetup
+                )
+            } ?: run {
+                softwareSetup.invoke()
+            }
+        } else
+            softwareSetup.invoke()
+
     }
 
     fun authenticate(callbackOuter: AuthenticationCallback) {
@@ -416,7 +441,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (!BiometricManagerCompat.isHardwareDetected(builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
-        } else if (!(builder.registration && BiometricAuthentication.customBiometricManagers.all {
+        } else if (!(builder.enroll && BiometricAuthentication.customBiometricManagers.all {
                 builder.getAllAvailableTypes()
                     .contains(it.biometricType) && it.isHardwareDetected()
             }) && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())) {
@@ -593,10 +618,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
                             ExecutorHelper.post { callbackOuter.onCanceled(canceled) }
                             onUIClosed()
-                            if (builder.registration) {
+                            if (builder.enroll) {
                                 ExecutorHelper.startOnBackground {
                                     BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onCanceled >>>> rollbackLastEnroll")
-                                    BiometricAuthentication.rollbackLastEnroll()
+                                    BiometricAuthentication.rollbackLastEnrollInSoftwareModules()
                                 }
                             }
                         }
@@ -634,10 +659,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 )
                             }
                             onUIClosed()
-                            if (builder.registration) {
+                            if (builder.enroll) {
                                 ExecutorHelper.startOnBackground {
                                     BiometricLoggerImpl.e("BiometricPromptCompat.AuthenticationCallback.onFailed >>>> rollbackLastEnroll")
-                                    BiometricAuthentication.rollbackLastEnroll()
+                                    BiometricAuthentication.rollbackLastEnrollInSoftwareModules()
                                 }
                             }
                         }
@@ -1060,8 +1085,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
         private val primaryAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
+            val isNewBiometric =
+                HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi
             val api =
-                if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
+                if (isNewBiometric) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
             if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
                 for (type in BiometricType.entries) {
                     if (type == BiometricType.BIOMETRIC_ANY)
@@ -1070,12 +1097,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         api,
                         type
                     )
-                    if (BiometricManagerCompat.isBiometricAvailable(request)) {
+                    if (!isNewBiometric && enroll && BiometricAuthentication.customBiometricManagers.any { it.biometricType == type && it.isHardwareDetected() }) {
+                        types.add(type)
+                    } else if (BiometricManagerCompat.isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
+                if (!isNewBiometric && enroll && BiometricAuthentication.customBiometricManagers.any { it.biometricType == biometricAuthRequest.type && it.isHardwareDetected() }) {
+                    types.add(biometricAuthRequest.type)
+                } else if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
 
             }
@@ -1092,14 +1123,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricApi.LEGACY_API,
                             type
                         )
-                        if (registration && BiometricAuthentication.customBiometricManagers.any { it.biometricType == type && it.isHardwareDetected() }) {
+                        if (enroll && BiometricAuthentication.customBiometricManagers.any { it.biometricType == type && it.isHardwareDetected() }) {
                             types.add(type)
                         } else if (BiometricManagerCompat.isBiometricAvailable(request)) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (registration && BiometricAuthentication.customBiometricManagers.any { it.biometricType == biometricAuthRequest.type && it.isHardwareDetected() }) {
+                    if (enroll && BiometricAuthentication.customBiometricManagers.any { it.biometricType == biometricAuthRequest.type && it.isHardwareDetected() }) {
                         types.add(biometricAuthRequest.type)
                     } else if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
                         types.add(biometricAuthRequest.type)
@@ -1153,7 +1184,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = false
-        internal var registration: Boolean = false
+        internal var enroll: Boolean = false
 
         init {
 

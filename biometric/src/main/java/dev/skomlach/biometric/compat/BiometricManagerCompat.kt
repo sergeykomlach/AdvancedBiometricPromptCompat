@@ -21,10 +21,8 @@ package dev.skomlach.biometric.compat
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.KeyguardManager
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
@@ -37,29 +35,23 @@ import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
-import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 object BiometricManagerCompat {
     private const val TAG = "BiometricManagerCompat"
     private val preferences =
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
-    suspend fun loadNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
-        BiometricAuthentication.loadCustomModules()
-        return@withContext BiometricAuthentication.customBiometricManagers.isNotEmpty()
+    fun loadNonHardwareBiometrics() {
+        BiometricAuthentication.loadSoftwareModules()
     }
 
     fun unregisterAllNonHardwareBiometrics() {
-        BiometricAuthentication.customBiometricManagers.forEach {
-            it.remove(null)
-        }
+        BiometricAuthentication.unregisterAllNonHardwareBiometrics()
     }
-    suspend fun unloadNonHardwareBiometrics(): Boolean = withContext(Dispatchers.IO) {
-        BiometricAuthentication.unloadCustomModules()
-        return@withContext BiometricAuthentication.customBiometricManagers.isEmpty()
+
+    fun unloadNonHardwareBiometrics() {
+        BiometricAuthentication.unloadSoftwareModules()
     }
 
     @JvmStatic

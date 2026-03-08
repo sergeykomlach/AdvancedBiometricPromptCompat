@@ -152,7 +152,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (compatBuilder.registration && BiometricManagerCompat.isBiometricReadyForEnroll(
+                    if (compatBuilder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request
                         )
                     )
@@ -167,7 +167,7 @@ class BiometricPromptCompatDialogImpl(
                         type,
                         compatBuilder.getBiometricAuthRequest().confirmation
                     )
-                    if (compatBuilder.registration && BiometricManagerCompat.isBiometricReadyForEnroll(
+                    if (compatBuilder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request
                         )
                     )
