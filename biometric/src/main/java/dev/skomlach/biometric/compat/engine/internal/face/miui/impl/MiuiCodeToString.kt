@@ -26,7 +26,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.SystemStringsHelper
 import java.lang.reflect.Field
 
-@SuppressLint("StaticFieldLeak")
+@SuppressLint("StaticFieldLeak", "PrivateApi")
 object MiuiCodeToString {
 
     private var stringArrayFields: Array<Field>? = null

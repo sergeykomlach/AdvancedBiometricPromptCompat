@@ -256,7 +256,8 @@ object BiometricManagerCompat {
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        )
+        ),
+        ignoreCameraCheck: Boolean = true
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
@@ -280,7 +281,7 @@ object BiometricManagerCompat {
             }
             result = total > 0 && (total == counted)
         }
-        val isCameraBlocked = isCameraNotAvailable(api)
+        val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
         BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
         return result || isCameraBlocked
     }
@@ -356,13 +357,14 @@ object BiometricManagerCompat {
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        )
+        ),
+        ignoreCameraCheck: Boolean = true
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return isCameraInUse(api) || preferences.getBoolean(
+            return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
                 "isLockOut-${api.api}-${api.type}",
                 false
             )
@@ -385,7 +387,7 @@ object BiometricManagerCompat {
                 ).isLockedOut
             isLockedOut
         }
-        val cameraInUse = isCameraInUse(api)
+        val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
         BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return $result  && $cameraInUse")
         preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
         return result || cameraInUse
@@ -442,8 +444,11 @@ object BiometricManagerCompat {
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        )
+        ),
+        ignoreCameraCheck: Boolean
     ): Boolean {
+        if (ignoreCameraCheck)
+            return false
         if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraBlocked()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
@@ -482,8 +487,11 @@ object BiometricManagerCompat {
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        )
+        ),
+        ignoreCameraCheck: Boolean
     ): Boolean {
+        if (ignoreCameraCheck)
+            return false
         if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraInUse()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {

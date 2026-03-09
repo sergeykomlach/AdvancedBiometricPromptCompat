@@ -34,7 +34,6 @@ import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
@@ -48,6 +47,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
         private const val INTENT_KEY = "InitiateSystemBiometricEnrollFragment.intent_key"
 
         fun showFragment(
+            activity: FragmentActivity,
             biometricAuthRequest: BiometricAuthRequest,
             callback: () -> Unit?
         ) {
@@ -55,9 +55,9 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
 
             val tag =
                 "${InitiateSystemBiometricEnrollFragment.javaClass.name}"
-            val activity = AndroidContext.activity
-            if (activity is FragmentActivity) {
-                if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
+
+
+            if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                     return
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
@@ -77,7 +77,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                         }
                     }, tag)
                     .commitAllowingStateLoss()
-            } else callback.invoke()
+
         }
 
 

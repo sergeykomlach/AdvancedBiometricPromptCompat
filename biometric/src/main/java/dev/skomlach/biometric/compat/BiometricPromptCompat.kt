@@ -304,6 +304,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (enrollNewHardwareBiometric) {
             builder.getActivity()?.let {
                 InitiateSystemBiometricEnrollFragment.showFragment(
+                    it,
                     builder.getBiometricAuthRequest(),
                     softwareSetup
                 )
@@ -456,13 +457,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - missed permissions")
             return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
         } else if (BiometricManagerCompat.isLockOut(
-                builder.getBiometricAuthRequest()
+                builder.getBiometricAuthRequest(), false
             )
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isLockOut")
             return AuthenticationFailureReason.LOCKED_OUT
         } else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                builder.getBiometricAuthRequest()
+                builder.getBiometricAuthRequest(), false
             )
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isBiometricSensorPermanentlyLocked")
@@ -837,9 +838,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             builder.getAllAvailableTypes()
         )
         if (permissions.contains(Manifest.permission.CAMERA) && SensorPrivacyCheck.isCameraBlocked()) {
-            SensorBlockedFallbackFragment.askForCameraUnblock {
+            SensorBlockedFallbackFragment.askForCameraUnblock(builder.getActivity() ?: run {
+                BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor activity is NULL")
+                authTask.invoke()
+                return
+            }) {
                 if (SensorPrivacyCheck.isCameraBlocked()) {
                     if (builder.getAllAvailableTypes().size == 1) {
+                        BiometricLoggerImpl.d("BiometricPromptCompat.checkSensor > onCanceled")
                         callback.onCanceled(builder.getAllAvailableTypes().map {
                             AuthenticationResult(
                                 it,
@@ -1078,7 +1084,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val types = HashSet<BiometricType>()
             types.addAll(primaryAvailableTypes)
             types.addAll(secondaryAvailableTypes)
-            BiometricLoggerImpl.e("BiometricPromptCompat.allAvailableTypes - $types")
+            BiometricLoggerImpl.e("BiometricPromptCompat.allAvailableTypes - $primaryAvailableTypes $secondaryAvailableTypes")
             types
         }
         private val primaryAvailableTypes: HashSet<BiometricType> by lazy {

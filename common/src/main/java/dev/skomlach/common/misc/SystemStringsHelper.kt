@@ -19,11 +19,13 @@
 
 package dev.skomlach.common.misc
 
+import android.annotation.SuppressLint
 import android.content.Context
 import dev.skomlach.common.logging.LogCat
 
 
 object SystemStringsHelper {
+    @SuppressLint("PrivateApi")
     fun getFromSystem(context: Context, alias: String): String? {
         try {
             val fields = Class.forName("com.android.internal.R\$string").declaredFields
@@ -38,6 +40,7 @@ object SystemStringsHelper {
                             throw RuntimeException("String value must be different from key")
                         if (s.isEmpty())
                             throw RuntimeException("String is empty")
+                        LogCat.log("SystemStringsHelper", "$alias -> $s")
                         s
                     } finally {
                         if (!isAccessible) field.isAccessible = false
@@ -47,6 +50,7 @@ object SystemStringsHelper {
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
+        LogCat.log("SystemStringsHelper", "$alias -> null")
         return null
     }
 
