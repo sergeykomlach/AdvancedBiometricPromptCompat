@@ -27,8 +27,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.edit
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
@@ -43,15 +43,15 @@ object BiometricManagerCompat {
         SharedPreferenceProvider.getPreferences("BiometricCompat_ManagerCompat")
 
     fun loadNonHardwareBiometrics() {
-        BiometricAuthentication.loadSoftwareModules()
+        LegacyBiometric.loadSoftwareModules()
     }
 
     fun unregisterAllNonHardwareBiometrics() {
-        BiometricAuthentication.unregisterAllNonHardwareBiometrics()
+        LegacyBiometric.unregisterAllNonHardwareBiometrics()
     }
 
     fun unloadNonHardwareBiometrics() {
-        BiometricAuthentication.unloadSoftwareModules()
+        LegacyBiometric.unloadSoftwareModules()
     }
 
     @JvmStatic
@@ -256,8 +256,7 @@ object BiometricManagerCompat {
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        ),
-        ignoreCameraCheck: Boolean = true
+        )
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
@@ -281,7 +280,7 @@ object BiometricManagerCompat {
             }
             result = total > 0 && (total == counted)
         }
-        val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
+        val isCameraBlocked = isCameraNotAvailable(api)
         BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
         return result || isCameraBlocked
     }
@@ -357,14 +356,13 @@ object BiometricManagerCompat {
         api: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        ),
-        ignoreCameraCheck: Boolean = true
+        )
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
+            return isCameraInUse(api) || preferences.getBoolean(
                 "isLockOut-${api.api}-${api.type}",
                 false
             )
@@ -387,7 +385,7 @@ object BiometricManagerCompat {
                 ).isLockedOut
             isLockedOut
         }
-        val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
+        val cameraInUse = isCameraInUse(api)
         BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return $result  && $cameraInUse")
         preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
         return result || cameraInUse
@@ -402,7 +400,7 @@ object BiometricManagerCompat {
             if (Build.VERSION.SDK_INT >= 28 && (it == BiometricType.BIOMETRIC_ANY || it == BiometricType.BIOMETRIC_FINGERPRINT)) {
                 permission.add("android.permission.USE_BIOMETRIC")
             } else {
-                for (m in BiometricAuthentication.availableBiometricMethods) {
+                for (m in LegacyBiometric.availableBiometricMethods) {
                     if (it == m.biometricType) {
                         when (m) {
                             BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
@@ -433,10 +431,7 @@ object BiometricManagerCompat {
                         }
                     }
                 }
-                BiometricAuthentication.customBiometricManagers.forEach { customBiometricManager ->
-                    if (it == customBiometricManager.biometricType)
-                        permission.addAll(customBiometricManager.getPermissions())
-                }
+                permission.addAll(LegacyBiometric.getSoftwareModulePermissions())
             }
         }
 
@@ -447,11 +442,8 @@ object BiometricManagerCompat {
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        ),
-        ignoreCameraCheck: Boolean
+        )
     ): Boolean {
-        if (ignoreCameraCheck)
-            return false
         if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraBlocked()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
@@ -490,11 +482,8 @@ object BiometricManagerCompat {
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(
             BiometricApi.AUTO,
             BiometricType.BIOMETRIC_ANY
-        ),
-        ignoreCameraCheck: Boolean
+        )
     ): Boolean {
-        if (ignoreCameraCheck)
-            return false
         if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraInUse()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {

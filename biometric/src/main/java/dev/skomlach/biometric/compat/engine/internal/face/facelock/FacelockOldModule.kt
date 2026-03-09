@@ -28,8 +28,8 @@ import android.view.View
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -41,7 +41,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
 
 
-class FacelockOldModule(private var listener: BiometricInitListener?) :
+class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACELOCK) {
     private var faceLockHelper: FaceLockHelper? = null
     private var facelockProxyListener: ProxyListener? = null

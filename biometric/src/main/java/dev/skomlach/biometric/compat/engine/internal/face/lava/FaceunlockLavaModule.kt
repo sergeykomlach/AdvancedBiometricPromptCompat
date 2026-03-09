@@ -25,8 +25,8 @@ import android.content.pm.PackageManager
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -37,7 +37,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class FaceunlockLavaModule(private var listener: BiometricInitListener?) :
+class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACEUNLOCK_LAVA) {
     private var faceLockHelper: FaceVerifyManager? = null
     private var facelockProxyListener: ProxyListener? = null

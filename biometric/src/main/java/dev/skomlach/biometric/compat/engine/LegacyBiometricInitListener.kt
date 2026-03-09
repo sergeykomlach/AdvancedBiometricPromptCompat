@@ -19,21 +19,9 @@
 
 package dev.skomlach.biometric.compat.engine
 
-import androidx.annotation.WorkerThread
-import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 
-interface BiometricAuthenticationListener {
-    //user identity confirmed in module
-    @WorkerThread
-    fun onSuccess(result: AuthenticationResult)
-
-    @WorkerThread
-    fun onHelp(msg: CharSequence?)
-
-    //failure happens in module
-    @WorkerThread
-    fun onFailure(result: AuthenticationResult)
-
-    @WorkerThread
-    fun onCanceled(result: AuthenticationResult)
+interface LegacyBiometricInitListener {
+    fun initFinished(method: BiometricMethod, module: BiometricModule?)
+    fun onBiometricReady()
 }

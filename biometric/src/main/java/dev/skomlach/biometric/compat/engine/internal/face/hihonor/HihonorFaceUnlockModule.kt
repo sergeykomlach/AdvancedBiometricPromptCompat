@@ -25,8 +25,8 @@ import android.view.View
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -40,7 +40,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
 
 
-class HihonorFaceUnlockModule(listener: BiometricInitListener?) :
+class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_HIHONOR) {
     //EMUI 10.1.0
     private var hihonorFaceManagerLegacy: HihonorFaceManager? = null

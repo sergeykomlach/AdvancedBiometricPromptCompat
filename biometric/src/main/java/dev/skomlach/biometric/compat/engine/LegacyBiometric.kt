@@ -68,14 +68,11 @@ import java.util.ServiceLoader
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-object BiometricAuthentication {
+object LegacyBiometric {
     private val moduleHashMap =
         Collections.synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
     private val customModuleHashMap =
         Collections.synchronizedMap(HashMap<BiometricMethod, AbstractSoftwareBiometricManager>())
-
-    val customBiometricManagers: List<AbstractSoftwareBiometricManager>
-        get() = customModuleHashMap.values.toList()
 
     private val initInProgress = AtomicBoolean(false)
     private val authInProgress = AtomicBoolean(false)
@@ -114,6 +111,34 @@ object BiometricAuthentication {
         }
     }
 
+    fun resetSoftwarePermanentLockOut() {
+        synchronized(customModuleHashMap) {
+            customModuleHashMap.values.forEach { module ->
+                module.resetPermanentLockOut()
+
+            }
+        }
+    }
+
+    fun resetSoftwareLockOut() {
+        synchronized(customModuleHashMap) {
+            customModuleHashMap.values.forEach { module ->
+                module.resetLockOut()
+
+            }
+        }
+    }
+
+    fun getSoftwareModulePermissions(): List<String> {
+        val permission = mutableListOf<String>()
+        synchronized(customModuleHashMap) {
+            customModuleHashMap.values.forEach { module ->
+                permission.addAll(module.getPermissions())
+
+            }
+        }
+        return permission
+    }
     fun rollbackLastEnrollInSoftwareModules() {
         d("BiometricAuthentication", "rollbackLastEnroll")
         synchronized(moduleHashMap) {
@@ -124,8 +149,8 @@ object BiometricAuthentication {
     }
 
     fun unregisterAllNonHardwareBiometrics() {
-        synchronized(customBiometricManagers) {
-            customBiometricManagers.forEach {
+        synchronized(customModuleHashMap) {
+            customModuleHashMap.values.forEach {
                 it.remove(null)
             }
         }
@@ -201,7 +226,7 @@ object BiometricAuthentication {
 
     @JvmOverloads
     fun init(
-        globalInitListener: BiometricInitListener? = null,
+        globalInitListener: LegacyBiometricInitListener? = null,
         mlist: Collection<BiometricType>? = null
     ) {
         if (!initInProgress.compareAndSet(false, true)) return
@@ -225,7 +250,7 @@ object BiometricAuthentication {
             }
 
             val counter = AtomicInteger(list.size)
-            val initListener = object : BiometricInitListener {
+            val initListener = object : LegacyBiometricInitListener {
                 override fun initFinished(method: BiometricMethod, module: BiometricModule?) {
                     if (module?.isManagerAccessible == true && module.isHardwarePresent) {
                         modulesMap[method] = module
@@ -251,7 +276,7 @@ object BiometricAuthentication {
     private fun finalizeInit(
         ts: Long,
         modules: Map<BiometricMethod, BiometricModule>,
-        listener: BiometricInitListener?
+        listener: LegacyBiometricInitListener?
     ) {
         synchronized(moduleHashMap) {
             moduleHashMap.clear()
@@ -262,7 +287,7 @@ object BiometricAuthentication {
         listener?.onBiometricReady()
     }
 
-    private fun initModule(method: BiometricMethod, initListener: BiometricInitListener) {
+    private fun initModule(method: BiometricMethod, initListener: LegacyBiometricInitListener) {
         ExecutorHelper.startOnBackground {
             try {
                 when (method) {
@@ -329,7 +354,7 @@ object BiometricAuthentication {
         biometricCryptographyPurpose: BiometricCryptographyPurpose?,
         targetView: SurfaceView?,
         requestedMethods: List<BiometricType?>,
-        listener: BiometricAuthenticationListener,
+        listener: LegacyBiometricAuthenticationListener,
         bundle: Bundle?
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) return

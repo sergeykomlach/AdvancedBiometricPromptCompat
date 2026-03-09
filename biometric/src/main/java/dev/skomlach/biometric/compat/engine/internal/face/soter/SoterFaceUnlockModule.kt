@@ -25,8 +25,8 @@ import com.tencent.soter.core.biometric.BiometricManagerCompat
 import com.tencent.soter.core.model.ConstantsSoter
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -36,7 +36,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private val listener: BiometricInitListener?) :
+class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private val listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_SOTERAPI) {
     private var manager: BiometricManagerCompat? = null
 

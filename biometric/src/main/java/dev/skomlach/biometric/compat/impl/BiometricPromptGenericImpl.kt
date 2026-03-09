@@ -25,8 +25,8 @@ import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
-import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
+import dev.skomlach.biometric.compat.engine.LegacyBiometric
+import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInstantly
@@ -41,8 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger
 class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
     private var dialog: BiometricPromptCompatDialogImpl? = null
-    private val fmAuthCallback: BiometricAuthenticationListener =
-        BiometricAuthenticationCallbackImpl()
+    private val fmAuthCallback: LegacyBiometricAuthenticationListener =
+        LegacyBiometricAuthenticationCallbackImpl()
     private var callback: BiometricPromptCompat.AuthenticationCallback? = null
     private val isFingerprint = AtomicBoolean(false)
     private val authFinished: MutableMap<BiometricType?, AuthResult> =
@@ -88,7 +88,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         val types: List<BiometricType?> = ArrayList(
             builder.getAllAvailableTypes()
         )
-        BiometricAuthentication.authenticate(
+        LegacyBiometric.authenticate(
             builder.getCryptographyPurpose(),
             dialog?.authPreview,
             types,
@@ -99,7 +99,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
     override fun stopAuth() {
         d("BiometricPromptGenericImpl.stopAuth():")
-        BiometricAuthentication.cancelAuthentication()
+        LegacyBiometric.cancelAuthentication()
     }
 
     override fun cancelAuth() {
@@ -219,7 +219,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         }
     }
 
-    private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
+    private inner class LegacyBiometricAuthenticationCallbackImpl :
+        LegacyBiometricAuthenticationListener {
 
         override fun onSuccess(module: AuthenticationResult) {
             checkAuthResult(module, AuthResult.AuthResultState.SUCCESS)

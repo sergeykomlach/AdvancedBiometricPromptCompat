@@ -35,8 +35,8 @@ import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Com
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_TIMEOUT
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_USER_CANCELED
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -49,7 +49,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 class SoftwareBiometricModule(
     private val method: BiometricMethod,
     private val manager: AbstractSoftwareBiometricManager?,
-    private val listener: BiometricInitListener?
+    private val listener: LegacyBiometricInitListener?
 ) :
     AbstractBiometricModule(method) {
 

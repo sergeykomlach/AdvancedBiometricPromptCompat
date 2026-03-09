@@ -44,8 +44,8 @@ import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
-import dev.skomlach.biometric.compat.engine.BiometricAuthenticationListener
+import dev.skomlach.biometric.compat.engine.LegacyBiometric
+import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
@@ -163,8 +163,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     @SuppressLint("RestrictedApi")
     private var biometricFragment: AtomicReference<BiometricFragment?> =
         AtomicReference<BiometricFragment?>(null)
-    private val fmAuthCallback: BiometricAuthenticationListener =
-        BiometricAuthenticationCallbackImpl()
+    private val fmAuthCallback: LegacyBiometricAuthenticationListener =
+        LegacyBiometricAuthenticationCallbackImpl()
     private val failureCounter = AtomicInteger(0)
     private val authCallback: BiometricPrompt.AuthenticationCallback =
         object : BiometricPrompt.AuthenticationCallback() {
@@ -426,7 +426,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
             ExecutorHelper.post{
-                BiometricAuthentication.authenticate(
+                LegacyBiometric.authenticate(
                     builder.getCryptographyPurpose(),
                     null,
                     secondary,
@@ -523,7 +523,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun stopAuth() {
         e("BiometricPromptApi28Impl.stopAuth():")
-        BiometricAuthentication.cancelAuthentication()
+        LegacyBiometric.cancelAuthentication()
         biometricFragment.get()?.let {
             CancellationHelper.forceCancel(it)
         } ?: run {
@@ -800,7 +800,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         }
     }
 
-    private inner class BiometricAuthenticationCallbackImpl : BiometricAuthenticationListener {
+    private inner class LegacyBiometricAuthenticationCallbackImpl :
+        LegacyBiometricAuthenticationListener {
 
         override fun onSuccess(module: AuthenticationResult) {
             checkAuthResultForSecondary(module, AuthResult.AuthResultState.SUCCESS)

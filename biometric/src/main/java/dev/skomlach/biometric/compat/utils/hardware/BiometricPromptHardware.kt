@@ -30,7 +30,7 @@ import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -216,7 +216,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
         if (isAnyHardwareAvailable) {
             if (type == BiometricType.BIOMETRIC_FINGERPRINT &&
-                BiometricAuthentication.getAvailableBiometricModule(type)?.isHardwarePresent == true
+                LegacyBiometric.getAvailableBiometricModule(type)?.isHardwarePresent == true
             )
                 return true
             BiometricPromptCompat.deviceInfo?.let {
@@ -273,7 +273,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     private fun isBiometricEnrolledForType(type: BiometricType): Boolean {
         if (isAnyBiometricEnrolled) {
             if (type == BiometricType.BIOMETRIC_FINGERPRINT)
-                return BiometricAuthentication.getAvailableBiometricModule(type)?.hasEnrolled == true
+                return LegacyBiometric.getAvailableBiometricModule(type)?.hasEnrolled == true
 
             //https://source.android.com/docs/security/features/biometric#device-specific-strings
             val biometricManager = BiometricManager.from(appContext)
@@ -291,7 +291,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 biometricManager.getStrings(BiometricManager.Authenticators.BIOMETRIC_WEAK)?.buttonLabel
 
             BiometricLoggerImpl.d("probablyFingerprintLabel=$probablyFingerprintLabel; probablyOtherLabel=$probablyOtherLabel")
-            if (BiometricAuthentication.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)?.hasEnrolled == true) {
+            if (LegacyBiometric.getAvailableBiometricModule(BiometricType.BIOMETRIC_FINGERPRINT)?.hasEnrolled == true) {
                 if (!probablyFingerprintLabel.isNullOrEmpty() && !probablyOtherLabel.isNullOrEmpty()) {
                     return probablyFingerprintLabel != probablyOtherLabel
                 }

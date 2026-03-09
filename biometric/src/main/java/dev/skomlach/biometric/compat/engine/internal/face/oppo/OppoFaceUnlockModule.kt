@@ -26,8 +26,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -38,7 +38,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
+class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_OPPO) {
     companion object {
         const val BIOMETRIC_ERROR_NO_DEVICE_CREDENTIAL = 14

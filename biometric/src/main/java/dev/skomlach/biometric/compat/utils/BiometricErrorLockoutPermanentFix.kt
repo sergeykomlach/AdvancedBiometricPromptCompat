@@ -22,7 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import android.content.SharedPreferences
 import android.os.SystemClock
 import dev.skomlach.biometric.compat.BiometricType
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.util.concurrent.locks.ReentrantLock
 
@@ -70,9 +70,7 @@ object BiometricErrorLockoutPermanentFix {
         try {
             lock.runCatching { this.lock() }
             sharedPreferences.edit().clear().apply()
-            BiometricAuthentication.customBiometricManagers.forEach {
-                it.resetPermanentLockOut()
-            }
+            LegacyBiometric.resetSoftwarePermanentLockOut()
         } finally {
             lock.runCatching {
                 this.unlock()

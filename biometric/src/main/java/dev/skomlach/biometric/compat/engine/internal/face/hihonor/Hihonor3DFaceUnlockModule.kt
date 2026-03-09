@@ -24,8 +24,8 @@ import com.hihonor.android.facerecognition.FaceManager
 import com.hihonor.android.facerecognition.HwFaceManagerFactory
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -36,7 +36,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
 
-class Hihonor3DFaceUnlockModule(listener: BiometricInitListener?) :
+class Hihonor3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_HIHONOR3D) {
     private var hihonor3DFaceManager: FaceManager? = null
 

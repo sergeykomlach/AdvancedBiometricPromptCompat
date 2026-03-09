@@ -27,8 +27,8 @@ import androidx.core.os.CancellationSignal
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
-import dev.skomlach.biometric.compat.engine.BiometricInitListener
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -39,7 +39,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
 
 
-class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: BiometricInitListener?) :
+class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: LegacyBiometricInitListener?) :
     AbstractBiometricModule(BiometricMethod.FACE_SAMSUNG) {
     companion object {
         const val FACE_ACQUIRED_FAKE = 4

@@ -35,7 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.engine.BiometricAuthentication
+import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -139,7 +139,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                         BiometricAuthRequest::class.java
                     ) ?: return@repeatOnLifecycle
                     val intent =
-                        BiometricAuthentication.getSettingsIntent(biometricRequest.type) ?: Intent(
+                        LegacyBiometric.getSettingsIntent(biometricRequest.type) ?: Intent(
                             Settings.ACTION_SETTINGS
                         )
                     startForResult.launch(intent)
