@@ -83,21 +83,7 @@ class NotificationPermissionsFragment : Fragment() {
                     (context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile") ||
                             context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile_lite"))
         }
-        init {
-            preloadTranslations()
-        }
-        fun preloadTranslations() {
-            ExecutorHelper.startOnBackground {
-                LocalizationHelper.prefetch(
-                    AndroidContext.appContext,
-                    R.string.biometriccompat_channel_id,
-                    R.string.biometriccompat_request_perm,
-                    R.string.biometriccompat_allow_notifications_perm,
-                    R.string.biometriccompat_allow_notifications_channel_perm,
-                    R.string.biometriccompat_permissions_request_failed
-                )
-            }
-        }
+
 
         fun askForPermissions(
             activity: FragmentActivity,

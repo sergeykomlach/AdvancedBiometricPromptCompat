@@ -36,15 +36,15 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
 import androidx.core.content.PackageManagerCompat
 import androidx.core.content.UnusedAppRestrictionsConstants
+import androidx.core.content.edit
 import androidx.core.text.TextUtilsCompat
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.common.util.concurrent.ListenableFuture
+import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
@@ -52,11 +52,10 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
-import kotlinx.coroutines.launch
+import dev.skomlach.common.translate.LocalizationHelper
 
 class PermissionsFragment : Fragment() {
     companion object {
@@ -257,8 +256,9 @@ class PermissionsFragment : Fragment() {
                     it
                 )
             }) {
-            SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit()
-                .putBoolean("denied", true).apply()
+            SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit {
+                putBoolean("denied", true)
+            }
             showPermissionDeniedDialog(permissions)
             return
         } else {
@@ -286,7 +286,10 @@ class PermissionsFragment : Fragment() {
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR
         val textStart =
-            SystemStringsHelper.getFromSystem(appContext, "grant_permissions_header_text")
+            LocalizationHelper.getLocalizedString(
+                appContext,
+                R.string.grant_permissions_header_text
+            )
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
@@ -305,7 +308,7 @@ class PermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             "Unknown"
         }
-        if (textEnd.isNullOrEmpty() || textStart.isNullOrEmpty() || title.isNullOrEmpty()) {
+        if (textEnd.isNullOrEmpty() || title.isEmpty()) {
             closeFragment()
         }
         AlertDialog.Builder(
@@ -333,12 +336,17 @@ class PermissionsFragment : Fragment() {
     private fun showMandatoryPermissionsNeedDialog(permissions: List<String>) {
 
         val button =
-            SystemStringsHelper.getFromSystem(appContext, "turn_on_magnification_settings_action")
-                ?: SystemStringsHelper.getFromSystem(appContext, "global_action_settings")
+            LocalizationHelper.getLocalizedString(
+                appContext,
+                R.string.turn_on_magnification_settings_action
+            )
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR
         val textStart =
-            SystemStringsHelper.getFromSystem(appContext, "error_message_change_not_allowed")
+            LocalizationHelper.getLocalizedString(
+                appContext,
+                R.string.error_message_change_not_allowed
+            )
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
@@ -357,7 +365,7 @@ class PermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             "Unknown"
         }
-        if (textEnd.isNullOrEmpty() || textStart.isNullOrEmpty() || title.isNullOrEmpty() || button.isNullOrEmpty()) {
+        if (textEnd.isNullOrEmpty() || title.isEmpty()) {
             try {
                 val future: ListenableFuture<Int> =
                     PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())

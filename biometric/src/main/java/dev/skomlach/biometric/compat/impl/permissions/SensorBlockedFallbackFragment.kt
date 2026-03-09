@@ -32,6 +32,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
@@ -39,7 +40,7 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.SystemStringsHelper
+import dev.skomlach.common.translate.LocalizationHelper
 
 
 class SensorBlockedFallbackFragment : Fragment() {
@@ -58,11 +59,14 @@ class SensorBlockedFallbackFragment : Fragment() {
         fun askForCameraUnblock(activity: FragmentActivity, callback: () -> Unit?) {
             showFragment(
                 activity,
-                SystemStringsHelper.getFromSystem(
+                LocalizationHelper.getLocalizedString(
                     appContext,
-                    "sensor_privacy_start_use_camera_notification_content_title"
+                    R.string.sensor_privacy_start_use_camera_notification_content_title
                 ),
-                SystemStringsHelper.getFromSystem(appContext, "face_sensor_privacy_enabled"),
+                LocalizationHelper.getLocalizedString(
+                    appContext,
+                    R.string.face_sensor_privacy_enabled
+                ),
                 callback
             )
         }
@@ -70,9 +74,9 @@ class SensorBlockedFallbackFragment : Fragment() {
         fun askForMicUnblock(activity: FragmentActivity, callback: () -> Unit?) {
             showFragment(
                 activity,
-                SystemStringsHelper.getFromSystem(
+                LocalizationHelper.getLocalizedString(
                     appContext,
-                    "sensor_privacy_start_use_mic_notification_content_title"
+                    R.string.sensor_privacy_start_use_mic_notification_content_title
                 ), null, callback
             )
         }
@@ -179,10 +183,10 @@ class SensorBlockedFallbackFragment : Fragment() {
                             android.R.string.cancel
                         ) { _, _ -> closeFragment() }
                         .setPositiveButton(
-                            SystemStringsHelper.getFromSystem(
+                            LocalizationHelper.getLocalizedString(
                                 appContext,
-                                "sensor_privacy_start_use_dialog_turn_on_button"
-                            ) ?: getString(android.R.string.ok)
+                                R.string.sensor_privacy_start_use_dialog_turn_on_button
+                            )
                         ) { p0, _ ->
                             val intent =
                                 if (intentCanBeResolved(Intent(Settings.ACTION_PRIVACY_SETTINGS)))

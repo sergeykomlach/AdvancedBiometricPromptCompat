@@ -22,7 +22,6 @@ package dev.skomlach.common.misc
 import android.annotation.SuppressLint
 import android.content.Context
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.translate.LocalizationHelper
 
 
 object SystemStringsHelper {
@@ -43,29 +42,6 @@ object SystemStringsHelper {
                             throw RuntimeException("String is empty")
                         LogCat.log("SystemStringsHelper", "$alias -> $s")
                         s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
-        } catch (e: Throwable) {
-
-        }
-        try {
-            val fields = Class.forName("${context.packageName}.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name == alias) {
-                    LogCat.log("SystemStringsHelper", field.name)
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = context.resources.getString(field[null] as Int)
-                        if (s == alias)
-                            throw RuntimeException("String value must be different from key")
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        LogCat.log("SystemStringsHelper", "$alias -> $s")
-                        LocalizationHelper.getLocalizedString(context, field[null] as Int)
                     } finally {
                         if (!isAccessible) field.isAccessible = false
                     }

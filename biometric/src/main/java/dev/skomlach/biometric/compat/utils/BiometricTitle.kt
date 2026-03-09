@@ -21,9 +21,12 @@ package dev.skomlach.biometric.compat.utils
 
 import android.content.Context
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.SystemStringsHelper
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.translate.LocalizationHelper
+
 
 object BiometricTitle {
     fun getRelevantTitle(context: Context, types: Set<BiometricType>): String {
@@ -32,21 +35,29 @@ object BiometricTitle {
             remove(BiometricType.BIOMETRIC_ANY)
         }
         if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FACE)) {
-            getSystemTitle(context, "face")?.let {
-                return it
+            return try {
+                context
+                    .getString(androidx.biometric.R.string.face_prompt_message)
+            } catch (_: Exception) {
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometric_dialog_default_subtitle
+                )
             }
-            return context
-                .getString(androidx.biometric.R.string.face_prompt_message)
         } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
             getSystemTitle(context, "iris")?.let {
                 return it
             }
         else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FINGERPRINT)) {
-            getSystemTitle(context, "fingerprint")?.let {
-                return it
-            }
-            return context
+            return try {
+                context
                 .getString(androidx.biometric.R.string.fingerprint_prompt_message)
+            } catch (_: Exception) {
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.fingerprint_dialog_default_subtitle
+                )
+            }
         } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
             getSystemTitle(context, "voice")?.let {
                 return it
@@ -83,13 +94,17 @@ object BiometricTitle {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
-
-        getSystemTitle(context, "biometric")?.let {
-            return it
-        }
         //Give up
-        return context
+
+        return try {
+            context
             .getString(androidx.biometric.R.string.biometric_prompt_message)
+        } catch (_: Exception) {
+            LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometric_dialog_default_subtitle
+            )
+        }
     }
 
     private fun getSystemTitle(context: Context, alias: String): String? {

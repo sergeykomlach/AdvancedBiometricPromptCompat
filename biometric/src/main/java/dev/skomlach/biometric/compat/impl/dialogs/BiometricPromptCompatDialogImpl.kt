@@ -41,6 +41,7 @@ import dev.skomlach.biometric.compat.utils.BiometricTitle
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -66,12 +67,24 @@ class BiometricPromptCompatDialogImpl(
             compatBuilder.getActivity() ?: compatBuilder.getContext(),
             compatBuilder.getAllAvailableTypes()
         )
-        too_many_attempts =
+        too_many_attempts = try {
             compatBuilder.getContext()
                 .getString(androidx.biometric.R.string.fingerprint_error_lockout)
-        not_recognized =
+        } catch (_: Exception) {
+            LocalizationHelper.getLocalizedString(
+                compatBuilder.getContext(),
+                R.string.fingerprint_error_lockout
+            )
+        }
+        not_recognized = try {
             compatBuilder.getContext()
                 .getString(androidx.biometric.R.string.fingerprint_not_recognized)
+        } catch (_: Exception) {
+            LocalizationHelper.getLocalizedString(
+                compatBuilder.getContext(),
+                R.string.fingerprint_not_recognized
+            )
+        }
         animateHandler = AnimateHandler(Looper.getMainLooper())
         dialog = BiometricPromptCompatDialog.getFragment(isInScreen)
         dialog.setOnDismissListener {

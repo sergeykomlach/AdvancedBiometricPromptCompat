@@ -69,7 +69,6 @@ import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
-import dev.skomlach.common.permissionui.notification.NotificationPermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
 import dev.skomlach.common.protection.A11yDetection
 import dev.skomlach.common.protection.HookDetection
@@ -210,7 +209,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ExecutorHelper.startOnBackground {
                         DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     }
-                    NotificationPermissionsFragment.preloadTranslations()
+                    try {
+                        Utils.prefetchStrings()
+                    } catch (e: Throwable) {
+                        LogCat.logException(e)
+                    }
                     try {
                         val stringIds: Array<Int> = R.string::class.java
                             .fields
@@ -331,7 +334,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.HARDWARE)
         )
     ) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.enroll $enrollNewHardwareBiometric")
+        BiometricLoggerImpl.e(
+            "BiometricPromptCompat.enroll $enrollNewHardwareBiometric ${
+                BiometricManagerCompat.isHardwareDetected(
+                    builder.getBiometricAuthRequest()
+                        .copy(provider = BiometricProviderType.HARDWARE)
+                )
+            } && ${
+                BiometricManagerCompat.isHardwareDetected(
+                    builder.getBiometricAuthRequest()
+                        .copy(provider = BiometricProviderType.SOFTWARE)
+                )
+            }"
+        )
 
         val softwareSetup = {
             builder.enroll = true

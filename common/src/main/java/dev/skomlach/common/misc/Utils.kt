@@ -20,12 +20,58 @@
 package dev.skomlach.common.misc
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
 import androidx.core.os.BuildCompat
+import dev.skomlach.common.R
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object Utils {
+    init {
+        prefetchStrings()
+    }
+
+    fun prefetchStrings() {
+        try {
+            val stringIds: Array<Int> = R.string::class.java
+                .fields
+                .filter { it.type == Int::class.javaPrimitiveType }
+                .mapNotNull { field ->
+                    try {
+                        field.getInt(null)
+                    } catch (_: Throwable) {
+                        null
+                    }
+                }
+                .toTypedArray()
+            LogCat.log("BiometricPromptCompat", "LocalizationHelper.prefetch")
+
+            GlobalScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO) {
+                    LocalizationHelper.prefetch(
+                        AndroidContext.appContext,
+                        *stringIds
+                    )
+                }
+                AndroidContext.configurationLiveData.observeForever {
+                    LogCat.log(
+                        "BiometricPromptCompat",
+                        "observeForever -> LocalizationHelper.prefetch"
+                    )
+                    LocalizationHelper.prefetch(
+                        AndroidContext.appContext,
+                        *stringIds
+                    )
+                }
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+    }
     val isAtLeastU: Boolean
         @SuppressLint("UnsafeOptInUsageError")
         get() = BuildCompat.isAtLeastU()
@@ -38,33 +84,4 @@ object Utils {
 
     val isAtLeastS: Boolean
         get() = BuildCompat.isAtLeastS()
-
-    fun startActivity(intent: Intent, context: Context): Boolean {
-        try {
-            if (intentCanBeResolved(intent, context)) {
-                context.startActivity(
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                )
-                return true
-            }
-        } catch (throwable: Throwable) {
-            LogCat.logException(throwable)
-        }
-        return false
-    }
-
-    fun intentCanBeResolved(intent: Intent, context: Context): Boolean {
-        val pm = context.packageManager
-        val pkgAppsList = pm.queryIntentActivities(intent, 0)
-        return pkgAppsList.size > 0
-    }
-
-
-    fun checkClass(className: String): Boolean {
-        try {
-            return Class.forName(className) != null
-        } catch (e: Throwable) {
-        }
-        return false
-    }
 }
