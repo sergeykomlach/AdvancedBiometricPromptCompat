@@ -12,6 +12,7 @@ import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraManager
 import android.media.ImageReader
 import android.os.Handler
+import android.os.HandlerThread
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetector
@@ -39,17 +40,21 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
     private var imageReader: ImageReader? = null
     private var captureSession: CameraCaptureSession? = null
     private var sensorOrientation: Int = 0
-
+    private var backgroundThread: HandlerThread? = null
 
     private val isConverting = AtomicBoolean(false)
 
     override fun start(
-        handler: Handler,
         faceDetector: FaceDetector,
         frameListener: (bitmap: Bitmap, faces: List<Face>) -> Unit,
         errorListener: (code: Int, message: String) -> Unit
     ) {
-        this.backgroundHandler = handler
+        if (backgroundThread == null) {
+            backgroundThread = HandlerThread("FakeAssetProvider").apply {
+                start()
+                backgroundHandler = Handler(looper)
+            }
+        }
         this.mlKitDetector = faceDetector
         this.onFrame = frameListener
         this.onError = errorListener
@@ -58,16 +63,26 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
     override fun stop() {
         try {
-            captureSession?.stopRepeating()
+            imageReader?.setOnImageAvailableListener(null, null)
+            try {
+                captureSession?.stopRepeating()
+                captureSession?.abortCaptures()
+            } catch (e: Exception) {
+                LogCat.logException(e)
+            }
             captureSession?.close()
+            captureSession = null
             cameraDevice?.close()
+            cameraDevice = null
             imageReader?.close()
+            imageReader = null
+            backgroundHandler?.removeCallbacksAndMessages(null)
+            backgroundHandler = null
+            backgroundThread?.quitSafely()
+            backgroundThread = null
         } catch (e: Exception) {
             LogCat.logException(e)
         } finally {
-            captureSession = null
-            cameraDevice = null
-            imageReader = null
             isConverting.set(false)
             SensorPrivacyCheck.notifySelfCameraClosed()
         }

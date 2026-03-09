@@ -75,6 +75,10 @@ import dev.skomlach.common.protection.A11yDetection
 import dev.skomlach.common.protection.HookDetection
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
 import java.util.Collections
 import java.util.concurrent.TimeUnit
@@ -206,9 +210,41 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ExecutorHelper.startOnBackground {
                         DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     }
-                    AndroidContext.configurationLiveData.observeForever {
-                        NotificationPermissionsFragment.preloadTranslations()
-                        UntrustedAccessibilityFragment.preloadTranslations()
+                    NotificationPermissionsFragment.preloadTranslations()
+                    try {
+                        val stringIds: Array<Int> = R.string::class.java
+                            .fields
+                            .filter { it.type == Int::class.javaPrimitiveType }
+                            .mapNotNull { field ->
+                                try {
+                                    field.getInt(null)
+                                } catch (_: Throwable) {
+                                    null
+                                }
+                            }
+                            .toTypedArray()
+                        LogCat.log("BiometricPromptCompat", "LocalizationHelper.prefetch")
+
+                        GlobalScope.launch(Dispatchers.Main) {
+                            withContext(Dispatchers.IO) {
+                                LocalizationHelper.prefetch(
+                                    AndroidContext.appContext,
+                                    *stringIds
+                                )
+                            }
+                            AndroidContext.configurationLiveData.observeForever {
+                                LogCat.log(
+                                    "BiometricPromptCompat",
+                                    "observeForever -> LocalizationHelper.prefetch"
+                                )
+                                LocalizationHelper.prefetch(
+                                    AndroidContext.appContext,
+                                    *stringIds
+                                )
+                            }
+                        }
+                    } catch (e: Throwable) {
+                        LogCat.logException(e)
                     }
                 }
             }
@@ -346,14 +382,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
                 IllegalStateException(),
-                "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                LocalizationHelper.getLocalizedString(
+                    builder.getContext(),
+                    R.string.biometriccompat_window_error
+                )
 
             )
             callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                    description = LocalizationHelper.getLocalizedString(
+                        builder.getContext(),
+                        R.string.biometriccompat_window_error
+                    )
                 )
             }.toSet())
             authFlowInProgress.set(false)
@@ -369,7 +411,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AuthenticationResult(
                         it,
                         reason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                        description = "WideGamut prevent from proper optical sensor work"
+                        description = LocalizationHelper.getLocalizedString(
+                            builder.getContext(),
+                            R.string.biometriccompat_widegamut_error
+                        )
                     )
                 }.toSet()
             )
@@ -420,7 +465,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         AuthenticationResult(
                             it,
                             reason = AuthenticationFailureReason.NOT_INITIALIZED_ERROR,
-                            description = "Error initialization takes too long"
+                            description = LocalizationHelper.getLocalizedString(
+                                builder.getContext(),
+                                R.string.biometriccompat_long_init_error
+                            )
                         )
                     }.toSet())
                     authFlowInProgress.set(false)
@@ -478,14 +526,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
                 IllegalStateException(),
-                "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                LocalizationHelper.getLocalizedString(
+                    builder.getContext(),
+                    R.string.biometriccompat_window_error
+                )
 
             )
             callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                    description = LocalizationHelper.getLocalizedString(
+                        builder.getContext(),
+                        R.string.biometriccompat_window_error
+                    )
                 )
             }.toSet())
             authFlowInProgress.set(false)
@@ -495,13 +549,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             if (builder.getActivity() == null) {
                 BiometricLoggerImpl.e(
                     IllegalStateException(),
-                    "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                    LocalizationHelper.getLocalizedString(
+                        builder.getContext(),
+                        R.string.biometriccompat_window_error
+                    )
                 )
                 callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
                     AuthenticationResult(
                         it,
                         reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                        description = "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                        description = LocalizationHelper.getLocalizedString(
+                            builder.getContext(),
+                            R.string.biometriccompat_window_error
+                        )
                     )
                 }.toSet())
                 authFlowInProgress.set(false)
@@ -568,7 +628,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         AuthenticationResult(
                                             it,
                                             reason = AuthenticationFailureReason.CRYPTO_ERROR,
-                                            description = "Error occurred during Cryptography verification"
+                                            description = LocalizationHelper.getLocalizedString(
+                                                builder.getContext(),
+                                                R.string.biometriccompat_cryptography_failed_error
+                                            )
                                         )
                                     }.toSet())
                                     return
@@ -811,7 +874,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 AuthenticationResult(
                                     t,
                                     reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                                    description = "Required permissions not granted"
+                                    description = LocalizationHelper.getLocalizedString(
+                                        builder.getContext(),
+                                        R.string.biometriccompat_permissions_request_failed
+                                    )
                                 )
                             }.toSet())
                             authFlowInProgress.set(false)
@@ -823,7 +889,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AuthenticationResult(
                         t,
                         reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                        description = "Required permissions not granted"
+                        description = LocalizationHelper.getLocalizedString(
+                            builder.getContext(),
+                            R.string.biometriccompat_permissions_request_failed
+                        )
                     )
                 }.toSet())
                 authFlowInProgress.set(false)
@@ -850,7 +919,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             AuthenticationResult(
                                 it,
                                 reason = AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
-                                description = "Camera sensor blocked by privacy toggle"
+                                description = LocalizationHelper.getLocalizedString(
+                                    builder.getContext(),
+                                    R.string.biometriccompat_camera_blocked
+                                )
                             )
                         }.toSet())
                         authFlowInProgress.set(false)
@@ -871,14 +943,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
                 IllegalStateException(),
-                "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                LocalizationHelper.getLocalizedString(
+                    builder.getContext(),
+                    R.string.biometriccompat_window_error
+                )
 
             )
             callback.onCanceled(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                    description = LocalizationHelper.getLocalizedString(
+                        builder.getContext(),
+                        R.string.biometriccompat_window_error
+                    )
                 )
             }.toSet())
             authFlowInProgress.set(false)
@@ -900,7 +978,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         AuthenticationResult(
                             it,
                             reason = AuthenticationFailureReason.CRYPTO_ERROR,
-                            description = "Cryptography not supported with DeviceCredential fallback"
+                            description = LocalizationHelper.getLocalizedString(
+                                builder.getContext(),
+                                R.string.biometriccompat_cryptography_not_supported_error
+                            )
                         )
                     }.toSet())
                     return
@@ -942,14 +1023,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         val activity = builder.getActivity()
                         if (activity == null) {
                             BiometricLoggerImpl.e(
-                                "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed",
+                                LocalizationHelper.getLocalizedString(
+                                    builder.getContext(),
+                                    R.string.biometriccompat_window_error
+                                ),
                                 IllegalStateException()
                             )
                             callback.onCanceled(builder.getAllAvailableTypes().map {
                                 AuthenticationResult(
                                     it,
                                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                                    description = "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                                    description = LocalizationHelper.getLocalizedString(
+                                        builder.getContext(),
+                                        R.string.biometriccompat_window_error
+                                    )
                                 )
                             }.toSet())
                         } else {
@@ -971,7 +1058,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                         AuthenticationResult(
                                             it,
                                             reason = AuthenticationFailureReason.CANCELED_BY_USER,
-                                            description = "Credentials requested, but user cancel verification"
+                                            description = LocalizationHelper.getLocalizedString(
+                                                builder.getContext(),
+                                                R.string.biometriccompat_credentials_error
+                                            )
                                         )
                                     }.toSet())
                                 }
@@ -989,7 +1079,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 AuthenticationResult(
                                     it,
                                     reason = AuthenticationFailureReason.CANCELED_BY_USER,
-                                    description = "Insecure accessibility service(s) detected, user decide to interrupt biometric"
+                                    description = LocalizationHelper.getLocalizedString(
+                                        builder.getContext(),
+                                        R.string.biometriccompat_untrusted_a11y_error
+                                    )
                                 )
                             }.toSet())
                         }

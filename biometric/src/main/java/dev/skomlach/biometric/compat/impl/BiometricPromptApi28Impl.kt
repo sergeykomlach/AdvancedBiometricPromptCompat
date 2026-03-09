@@ -62,6 +62,7 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
+import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -416,7 +417,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = "Unable to start BiometricPromptCompat.authenticate() cause of Activity destroyed"
+                    description = LocalizationHelper.getLocalizedString(
+                        builder.getContext(),
+                        R.string.biometriccompat_camera_blocked
+                    )
                 )
             }.toSet())
             return

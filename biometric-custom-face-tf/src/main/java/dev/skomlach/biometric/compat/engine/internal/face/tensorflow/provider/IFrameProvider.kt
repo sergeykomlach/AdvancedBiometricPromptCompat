@@ -20,13 +20,11 @@
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider
 
 import android.graphics.Bitmap
-import android.os.Handler
 import com.google.mlkit.vision.face.Face
 
 
 interface IFrameProvider {
     fun start(
-        handler: Handler,
         faceDetector: com.google.mlkit.vision.face.FaceDetector,
         frameListener: (bitmap: Bitmap, faces: List<Face>) -> Unit,
         errorListener: (code: Int, message: String) -> Unit

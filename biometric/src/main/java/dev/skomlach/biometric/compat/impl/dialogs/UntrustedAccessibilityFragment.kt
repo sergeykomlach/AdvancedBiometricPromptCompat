@@ -48,15 +48,6 @@ class UntrustedAccessibilityFragment : Fragment() {
         private const val TAG = "UntrustedAccessibilityFragment"
         private const val INTENT_KEY = "UntrustedAccessibilityFragment.intent_key"
         private const val INTENT_RESULT = "UntrustedAccessibilityFragment.result"
-        fun preloadTranslations() {
-            ExecutorHelper.startOnBackground {
-                LocalizationHelper.prefetch(
-                    AndroidContext.appContext,
-                    R.string.biometriccompat_use_devicecredentials,
-                    R.string.biometriccompat_untrusted_a11y
-                )
-            }
-        }
 
         fun askForTrust(
             activity: FragmentActivity,

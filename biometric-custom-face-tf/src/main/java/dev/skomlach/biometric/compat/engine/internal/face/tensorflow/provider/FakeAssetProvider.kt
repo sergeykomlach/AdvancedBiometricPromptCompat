@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Handler
+import android.os.HandlerThread
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetector
@@ -21,14 +22,19 @@ class FakeAssetProvider(
     private var isRunning = false
     private val assetFiles = mutableListOf<String>()
     private var currentIndex = 0
+    private var backgroundThread: HandlerThread? = null
 
     override fun start(
-        handler: Handler,
         faceDetector: FaceDetector,
         frameListener: (bitmap: Bitmap, faces: List<Face>) -> Unit,
         errorListener: (code: Int, message: String) -> Unit
     ) {
-        this.backgroundHandler = handler
+        if (backgroundThread == null) {
+            backgroundThread = HandlerThread("FakeAssetProvider").apply {
+                start()
+                backgroundHandler = Handler(looper)
+            }
+        }
         this.mlKitDetector = faceDetector
         this.onFrame = frameListener
         this.onError = errorListener
@@ -79,6 +85,9 @@ class FakeAssetProvider(
     override fun stop() {
         isRunning = false
         backgroundHandler?.removeCallbacksAndMessages(null)
+        backgroundHandler = null
+        backgroundThread?.quitSafely()
+        backgroundThread = null
     }
 
     override fun isHardwareSupported(): Boolean {

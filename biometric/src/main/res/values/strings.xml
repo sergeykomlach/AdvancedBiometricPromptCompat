@@ -20,4 +20,13 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Biometric sensors are not available right now.\nPlease, use your PIN, graphic key, or device password to confirm your identity.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nWarning: %2$s could not verify the security of one of the accessibility services - it may record your PIN, graphic key, or device password.\nContinue only if you are completely sure that your actions are safe.</string>
+    <string name="biometriccompat_widegamut_error">WideGamut prevent from proper optical sensor work</string>
+    <string name="biometriccompat_permession_error">Required permissions not granted</string>
+    <string name="biometriccompat_camera_blocked">Camera sensor blocked by privacy toggle</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Cryptography not supported with DeviceCredential fallback</string>
+    <string name="biometriccompat_credentials_error">Credentials requested, but user cancel verification</string>
+    <string name="biometriccompat_cryptography_failed_error">Error occurred during Cryptography verification</string>
+    <string name="biometriccompat_long_init_error">Initialization takes too long</string>
+    <string name="biometriccompat_untrusted_a11y_error">Suspicious accessibility service detected, the user decides to interrupt the biometric</string>
+    <string name="biometriccompat_window_error">Unable to start biometric authentication cause of app window is not in the foreground</string>
 </resources>

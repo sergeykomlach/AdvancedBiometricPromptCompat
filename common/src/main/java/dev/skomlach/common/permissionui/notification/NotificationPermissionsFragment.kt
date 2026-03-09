@@ -83,7 +83,9 @@ class NotificationPermissionsFragment : Fragment() {
                     (context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile") ||
                             context.packageManager.hasSystemFeature("com.samsung.feature.samsung_experience_mobile_lite"))
         }
-
+        init {
+            preloadTranslations()
+        }
         fun preloadTranslations() {
             ExecutorHelper.startOnBackground {
                 LocalizationHelper.prefetch(

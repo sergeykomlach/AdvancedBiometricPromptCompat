@@ -23,10 +23,15 @@ import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.IF
 import dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider.RealCameraProvider
 import dev.skomlach.biometric.compat.utils.SensorPrivacyCheck
 import dev.skomlach.biometric.custom.face.tf.R
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.RuntimeFlavor
 import org.tensorflow.lite.gpu.GpuDelegateFactory
@@ -64,6 +69,44 @@ class TensorFlowFaceUnlockManager(
         private var config: TensorFlowFaceConfig = TensorFlowFaceConfig()
 
         private val spoofScoresWindow = ArrayDeque<Float>()
+
+        init {
+            try {
+                val stringIds: Array<Int> = R.string::class.java
+                    .fields
+                    .filter { it.type == Int::class.javaPrimitiveType }
+                    .mapNotNull { field ->
+                        try {
+                            field.getInt(null)
+                        } catch (_: Throwable) {
+                            null
+                        }
+                    }
+                    .toTypedArray()
+                LogCat.log("TensorFlowProvider", "LocalizationHelper.prefetch")
+
+                GlobalScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO) {
+                        LocalizationHelper.prefetch(
+                            AndroidContext.appContext,
+                            *stringIds
+                        )
+                    }
+                    AndroidContext.configurationLiveData.observeForever {
+                        LogCat.log(
+                            "TensorFlowProvider",
+                            "observeForever -> LocalizationHelper.prefetch"
+                        )
+                        LocalizationHelper.prefetch(
+                            AndroidContext.appContext,
+                            *stringIds
+                        )
+                    }
+                }
+            } catch (e: Throwable) {
+                LogCat.logException(e)
+            }
+        }
 
         fun setTensorFlowFaceConfig(tensorFlowFaceConfig: TensorFlowFaceConfig) {
             config = tensorFlowFaceConfig
@@ -152,7 +195,6 @@ class TensorFlowFaceUnlockManager(
     private var backgroundHandler: Handler? = null
     private val timeoutHandler = Handler(ExecutorHelper.handler.looper)
 
-
     private val isProcessingFrame = AtomicBoolean(false)
 
     private val isSessionActive = AtomicBoolean(false)
@@ -211,7 +253,16 @@ class TensorFlowFaceUnlockManager(
     private var cancellationSignal: CancellationSignal? = null
     private var isEnrolling: Boolean = false
     private var enrollmentTag: String = ""
-
+    private fun Handler?.safePost(action: Runnable) {
+        this?.let {
+            val looper = it.looper
+            if (looper.thread.isAlive) {
+                it.post(action)
+            } else {
+                LogCat.logError(TAG, "Skipping post: Handler thread is dead")
+            }
+        }
+    }
     fun setFrameProvider(provider: IFrameProvider) {
         this.frameProvider = provider
     }
@@ -226,12 +277,9 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun stopBackgroundThread() {
+        backgroundHandler = null
         backgroundThread?.quitSafely()
-        try {
-            backgroundThread = null
-            backgroundHandler = null
-        } catch (e: InterruptedException) {
-        }
+        backgroundThread = null
     }
 
     private val timeoutRunnable = Runnable {
@@ -456,26 +504,22 @@ class TensorFlowFaceUnlockManager(
 
         startBackgroundThread()
 
-        backgroundHandler?.let { bgHandler ->
-            frameProvider.start(
-                bgHandler,
-                faceDetector!!,
-                { bitmap, faces ->
+        frameProvider.start(
+            faceDetector!!,
+            { bitmap, faces ->
 
-                    if (isSessionActive.get()) {
-                        onFrameReceived(bitmap, faces)
-                    }
-                },
-                { code, msg ->
-                    if (isSessionActive.get()) {
-                        LogCat.log(TAG, "Provider Error: $code, $msg")
-                        authCallback?.onAuthenticationError(code, msg)
-                        stopAuthentication()
-                    }
+                if (isSessionActive.get()) {
+                    onFrameReceived(bitmap, faces)
                 }
-            )
-        }
-
+            },
+            { code, msg ->
+                if (isSessionActive.get()) {
+                    LogCat.log(TAG, "Provider Error: $code, $msg")
+                    authCallback?.onAuthenticationError(code, msg)
+                    stopAuthentication()
+                }
+            }
+        )
         timeoutHandler.postDelayed(timeoutRunnable, TIMEOUT_MS)
     }
 
@@ -487,7 +531,7 @@ class TensorFlowFaceUnlockManager(
             return
         }
 
-        backgroundHandler?.post {
+        backgroundHandler?.safePost {
             try {
                 if (isSessionActive.get()) {
                     processFaces(fullBitmap, faces)
