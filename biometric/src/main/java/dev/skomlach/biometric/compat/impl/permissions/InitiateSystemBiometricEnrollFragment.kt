@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.impl.permissions
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -31,9 +30,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.BundleCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -44,7 +41,6 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import kotlinx.coroutines.launch
 
 
 class InitiateSystemBiometricEnrollFragment : Fragment() {
@@ -105,6 +101,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
         }
     }
 
+
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             LogCat.log("InitiateSystemBiometricEnrollFragment", "startForResult")
@@ -118,30 +115,25 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
         super.onDestroyView()
         startForResult.unregister()
     }
-
-    @SuppressLint("QueryPermissionsNeeded")
-    private fun intentCanBeResolved(intent: Intent): Boolean {
-        val pm = context?.packageManager
-        val pkgAppsList = pm?.queryIntentActivities(intent, 0) ?: emptyList()
-        return pkgAppsList.isNotEmpty()
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
-
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-
+        LogCat.log("InitiateSystemBiometricEnrollFragment", "onAttach $arguments")
+        lifecycleScope.launchWhenResumed {
                 try {
                     val biometricRequest: BiometricAuthRequest = BundleCompat.getParcelable(
-                        arguments ?: return@repeatOnLifecycle,
+                        arguments ?: return@launchWhenResumed,
                         "request",
                         BiometricAuthRequest::class.java
-                    ) ?: return@repeatOnLifecycle
+                    ) ?: return@launchWhenResumed
+
                     val intent =
                         LegacyBiometric.getSettingsIntent(biometricRequest.type) ?: Intent(
                             Settings.ACTION_SETTINGS
                         )
+                    LogCat.logError(
+                        "InitiateSystemBiometricEnrollFragment",
+                        "$biometricRequest -> $intent"
+                    )
                     startForResult.launch(intent)
                 } catch (e: Throwable) {
                     LogCat.logException(
@@ -150,7 +142,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                     closeFragment()
                 }
             }
-        }
+
     }
 
 }

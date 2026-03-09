@@ -31,9 +31,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -43,7 +41,6 @@ import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.SystemStringsHelper
-import kotlinx.coroutines.launch
 
 
 class SensorBlockedFallbackFragment : Fragment() {
@@ -162,8 +159,7 @@ class SensorBlockedFallbackFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
 
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+        lifecycleScope.launchWhenResumed {
                 if (alert == null)
                 try {
                     alert = AlertDialog.Builder(requireActivity())
@@ -195,7 +191,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                     )
                     closeFragment()
                 }
-            }
+
         }
     }
 

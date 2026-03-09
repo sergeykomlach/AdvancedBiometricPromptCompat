@@ -34,17 +34,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
-import kotlinx.coroutines.launch
 
 
 class CredentialsRequestFragment : Fragment() {
@@ -137,8 +134,7 @@ class CredentialsRequestFragment : Fragment() {
     override fun onAttach(context: Context) {
         LogCat.log("CredentialsRequestFragment", "onAttach")
         super.onAttach(context)
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+        lifecycleScope.launchWhenResumed {
                 try {
                     //Create an intent to open device screen lock screen to authenticate
                     //Pass the Screen Lock screen Title and Description
@@ -161,7 +157,7 @@ class CredentialsRequestFragment : Fragment() {
                         ExecutorHelper.postDelayed({
                             closeFragment()
                         }, 250)
-                        return@repeatOnLifecycle
+                        return@launchWhenResumed
                     })
                 } catch (e: Throwable) {
                     LogCat.logException(
@@ -170,7 +166,7 @@ class CredentialsRequestFragment : Fragment() {
                     closeFragment()
                 }
             }
-        }
+
     }
 
     private fun closeFragment() {
