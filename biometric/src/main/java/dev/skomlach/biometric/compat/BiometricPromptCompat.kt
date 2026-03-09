@@ -442,7 +442,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
         } else if (!(builder.enroll && BiometricManagerCompat.isHardwareDetected(
-                builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.HARDWARE)
+                builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.SOFTWARE)
             )) && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - hasEnrolled")
@@ -1096,7 +1096,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         type
                     )
                     if (!isNewBiometric && enroll && BiometricManagerCompat.isHardwareDetected(
-                            request.copy(provider = BiometricProviderType.HARDWARE)
+                            request.copy(provider = BiometricProviderType.SOFTWARE)
                         )
                     ) {
                         types.add(type)
@@ -1106,7 +1106,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             } else {
                 if (!isNewBiometric && enroll && BiometricManagerCompat.isHardwareDetected(
-                        biometricAuthRequest.copy(provider = BiometricProviderType.HARDWARE)
+                        biometricAuthRequest.copy(provider = BiometricProviderType.SOFTWARE)
                     )
                 ) {
                     types.add(biometricAuthRequest.type)
@@ -1128,7 +1128,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             type
                         )
                         if (enroll && BiometricManagerCompat.isHardwareDetected(
-                                request.copy(provider = BiometricProviderType.HARDWARE)
+                                request.copy(provider = BiometricProviderType.SOFTWARE)
                             )
                         ) {
                             types.add(type)
@@ -1138,7 +1138,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 } else {
                     if (enroll && BiometricManagerCompat.isHardwareDetected(
-                            biometricAuthRequest.copy(provider = BiometricProviderType.HARDWARE)
+                            biometricAuthRequest.copy(provider = BiometricProviderType.SOFTWARE)
                         )
                     ) {
                         types.add(biometricAuthRequest.type)
