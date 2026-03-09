@@ -167,8 +167,7 @@ class PermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        lifecycleScope.launch {
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+        lifecycleScope.launchWhenResumed{
                 val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
                 if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(
                         permissions
@@ -184,7 +183,7 @@ class PermissionsFragment : Fragment() {
                     closeFragment()
                 }
             }
-        }
+
     }
 
     private fun unusedAppRestrictionsDisabled() {

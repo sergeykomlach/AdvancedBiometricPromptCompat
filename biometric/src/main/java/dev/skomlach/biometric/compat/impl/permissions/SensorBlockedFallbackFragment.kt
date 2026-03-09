@@ -95,32 +95,33 @@ class SensorBlockedFallbackFragment : Fragment() {
 
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
-                    return
-                registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
-                    override fun onReceive(context: Context, intent: Intent) {
-                        callback.invoke()
-                        try {
-                            unregisterGlobalBroadcastIntent(appContext, this)
-                        } catch (e: Throwable) {
-                            LogCat.logException(e)
-                        }
+                return
+            registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    callback.invoke()
+                    try {
+                        unregisterGlobalBroadcastIntent(appContext, this)
+                    } catch (e: Throwable) {
+                        LogCat.logException(e)
                     }
-                }, IntentFilter(INTENT_KEY))
-                activity
-                    .supportFragmentManager.beginTransaction()
-                    .add(SensorBlockedFallbackFragment().apply {
-                        this.arguments = Bundle().apply {
-                            putString(TITLE, title)
-                            putString(MESSAGE, msg)
-                        }
-                    }, tag)
-                    .commitAllowingStateLoss()
+                }
+            }, IntentFilter(INTENT_KEY))
+            activity
+                .supportFragmentManager.beginTransaction()
+                .add(SensorBlockedFallbackFragment().apply {
+                    this.arguments = Bundle().apply {
+                        putString(TITLE, title)
+                        putString(MESSAGE, msg)
+                    }
+                }, tag)
+                .commitAllowingStateLoss()
 
         }
 
 
     }
-    private var alert : AlertDialog? = null
+
+    private var alert: AlertDialog? = null
     private fun closeFragment() {
         alert?.dismiss()
         alert = null
@@ -166,7 +167,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         super.onAttach(context)
 
         lifecycleScope.launchWhenResumed {
-                if (alert == null)
+            if (alert == null)
                 try {
                     alert = AlertDialog.Builder(requireActivity())
                         .setTitle(arguments?.getString(TITLE)).also { dialog ->

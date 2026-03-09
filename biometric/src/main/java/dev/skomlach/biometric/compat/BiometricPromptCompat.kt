@@ -325,7 +325,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun setupBiometric(
         callbackOuter: AuthenticationCallback,
-        enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isBiometricReadyForEnroll(
+        enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isHardwareDetected(
             builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.HARDWARE)
         ) && !BiometricManagerCompat.hasEnrolled(
             builder.getBiometricAuthRequest().copy(provider = BiometricProviderType.HARDWARE)

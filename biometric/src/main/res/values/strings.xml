@@ -29,4 +29,26 @@
     <string name="biometriccompat_long_init_error">Initialization takes too long</string>
     <string name="biometriccompat_untrusted_a11y_error">Suspicious accessibility service detected, the user decides to interrupt the biometric</string>
     <string name="biometriccompat_window_error">Unable to start biometric authentication cause of app window is not in the foreground</string>
+
+    <string name="sensor_privacy_start_use_mic_notification_content_title">Unblock device microphone</string>
+    <string name="sensor_privacy_start_use_camera_notification_content_title">Unblock device camera</string>
+    <string name="sensor_privacy_start_use_dialog_turn_on_button">Unblock</string>
+    <string name="face_sensor_privacy_enabled">To use Face Unlock, turn on <b>Camera access</b> in Settings > Privacy</string>
+    <string name="face_error_canceled">Face operation canceled.</string>
+    <string name="face_error_hw_not_available">Can’t verify face. Hardware not available.</string>
+    <string name="face_error_hw_not_present">Face Unlock isn’t supported on this device</string>
+    <string name="face_error_lockout">Too many attempts. Try again later.</string>
+    <string name="face_error_lockout_permanent">Too many attempts. Face Unlock unavailable.</string>
+    <string name="face_error_lockout_screen_lock">Too many attempts. Enter screen lock instead.</string>
+    <string name="face_error_no_space">Can’t store new face data. Delete an old one first.</string>
+    <string name="face_error_not_enrolled">You haven’t set up Face Unlock</string>
+    <string name="face_error_security_update_required">Sensor temporarily disabled.</string>
+    <string name="face_error_timeout">Try Face Unlock again</string>
+    <string name="face_error_unable_to_process">Can’t verify face. Try again.</string>
+    <string name="face_error_user_canceled">Face Unlock canceled by user</string>
+    <string name="face_error_vendor_unknown">Something went wrong. Try again.</string>
+    <string name="biometric_dialog_default_title">Verify it\u2019s you</string>
+    <string name="biometric_dialog_default_subtitle">Use your biometric to continue</string>
+    <string name="fingerprint_dialog_default_subtitle">Use your fingerprint to continue</string>
+    <string name="face_dialog_default_subtitle">Use your face to continue</string>
 </resources>
