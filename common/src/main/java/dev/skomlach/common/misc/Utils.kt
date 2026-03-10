@@ -27,6 +27,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -48,24 +49,28 @@ object Utils {
                     }
                 }
                 .toTypedArray()
-            LogCat.log("BiometricPromptCompat", "LocalizationHelper.prefetch")
+            LogCat.log("Utils", "LocalizationHelper.prefetch")
 
+            var prefech: Job? = null
+            prefech = GlobalScope.launch(Dispatchers.IO) {
+                LocalizationHelper.prefetch(
+                    AndroidContext.appContext,
+                    *stringIds
+                )
+            }
             GlobalScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
-                    LocalizationHelper.prefetch(
-                        AndroidContext.appContext,
-                        *stringIds
-                    )
-                }
                 AndroidContext.configurationLiveData.observeForever {
                     LogCat.log(
-                        "BiometricPromptCompat",
+                        "Utils",
                         "observeForever -> LocalizationHelper.prefetch"
                     )
-                    LocalizationHelper.prefetch(
-                        AndroidContext.appContext,
-                        *stringIds
-                    )
+                    prefech?.cancel()
+                    prefech = GlobalScope.launch(Dispatchers.IO) {
+                        LocalizationHelper.prefetch(
+                            AndroidContext.appContext,
+                            *stringIds
+                        )
+                    }
                 }
             }
         } catch (e: Throwable) {

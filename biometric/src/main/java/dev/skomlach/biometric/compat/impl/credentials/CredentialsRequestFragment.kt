@@ -97,9 +97,7 @@ class CredentialsRequestFragment : Fragment() {
             LogCat.log("CredentialsRequestFragment", it)
             if (it.resultCode == Activity.RESULT_OK) {
                 success = true
-                ExecutorHelper.postDelayed({
-                    closeFragment()
-                }, 250)
+                closeFragment()
 
             } else { //workaround
                 success = false
@@ -112,9 +110,7 @@ class CredentialsRequestFragment : Fragment() {
                         }
                         if (waitForResume && t == activity) {
                             AndroidContext.resumedActivityLiveData.removeObserver(this)
-                            ExecutorHelper.postDelayed({
-                                closeFragment()
-                            }, 250)
+                            closeFragment()
                         }
 
 
@@ -164,9 +160,7 @@ class CredentialsRequestFragment : Fragment() {
                         description
                     )
                     startForResult.launch(intent ?: run {
-                        ExecutorHelper.postDelayed({
-                            closeFragment()
-                        }, 250)
+                        closeFragment()
                         return@launchWhenResumed
                     })
                 } catch (e: Throwable) {

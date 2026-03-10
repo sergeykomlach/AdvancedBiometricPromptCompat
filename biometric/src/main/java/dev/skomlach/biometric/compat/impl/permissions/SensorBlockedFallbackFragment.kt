@@ -83,20 +83,14 @@ class SensorBlockedFallbackFragment : Fragment() {
 
         private fun showFragment(
             activity: FragmentActivity,
-            title: String?,
+            title: String,
             msg: String?,
             callback: () -> Unit?
         ) {
             LogCat.log("SensorBlockedFragment", "showFragment $title $msg")
-            if (title.isNullOrEmpty()) {
-                callback.invoke()
-                return
-            }
-
 
             val tag =
-                "${SensorBlockedFallbackFragment.javaClass.name}-${title.hashCode()}-${msg?.hashCode()}"
-
+                "${SensorBlockedFallbackFragment.javaClass.name}"
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                 return
@@ -149,9 +143,7 @@ class SensorBlockedFallbackFragment : Fragment() {
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             LogCat.log("SensorBlockedFragment", "startForResult")
-            ExecutorHelper.postDelayed({
-                closeFragment()
-            }, 250)
+            closeFragment()
         }
 
     override fun onDestroyView() {

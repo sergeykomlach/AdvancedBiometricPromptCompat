@@ -95,9 +95,7 @@ class PermissionsFragment : Fragment() {
         ) {
             LogCat.log("PermissionsFragment.askForPermissions()")
             if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
-                val tag = "${PermissionsFragment::class.java.name}-${
-                    permissions.joinToString(",").hashCode()
-                }"
+                val tag = "${PermissionsFragment::class.java.name}"
                 if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                     return
                 val fragment = PermissionsFragment()
@@ -125,16 +123,12 @@ class PermissionsFragment : Fragment() {
 
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            ExecutorHelper.postDelayed({
-                closeFragment()
-            }, 250)
+            closeFragment()
         }
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                ExecutorHelper.postDelayed({
-                    closeFragment()
-                }, 250)
+                closeFragment()
 
             } else { //workaround
                 val observer = object : Observer<Activity?> {
@@ -146,9 +140,7 @@ class PermissionsFragment : Fragment() {
                         }
                         if (waitForResume && t == activity) {
                             AndroidContext.resumedActivityLiveData.removeObserver(this)
-                            ExecutorHelper.postDelayed({
-                                closeFragment()
-                            }, 250)
+                            closeFragment()
                         }
 
 

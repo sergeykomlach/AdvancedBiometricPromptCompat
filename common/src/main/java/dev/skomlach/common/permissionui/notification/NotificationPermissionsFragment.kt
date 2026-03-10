@@ -125,24 +125,18 @@ class NotificationPermissionsFragment : Fragment() {
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             if (!PermissionUtils.INSTANCE.hasSelfPermissions("android.permission.POST_NOTIFICATIONS")) {
-                ExecutorHelper.postDelayed({
-                    closeFragment()
-                }, 250)
+                closeFragment()
             } else if (!PermissionUtils.INSTANCE.isAllowedNotificationsPermission) {
                 generalNotification.invoke()
             } else {
-                ExecutorHelper.postDelayed({
-                    closeFragment()
-                }, 250)
+                closeFragment()
             }
 
         }
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == Activity.RESULT_OK) {
-                ExecutorHelper.postDelayed({
-                    closeFragment()
-                }, 250)
+                closeFragment()
 
             } else { //workaround
                 val observer = object : Observer<Activity?> {
@@ -154,9 +148,7 @@ class NotificationPermissionsFragment : Fragment() {
                         }
                         if (waitForResume && t == activity) {
                             AndroidContext.resumedActivityLiveData.removeObserver(this)
-                            ExecutorHelper.postDelayed({
-                                closeFragment()
-                            }, 250)
+                            closeFragment()
                         }
 
 

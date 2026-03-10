@@ -105,9 +105,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             LogCat.log("InitiateSystemBiometricEnrollFragment", "startForResult")
-            ExecutorHelper.postDelayed({
-                closeFragment()
-            }, 250)
+            closeFragment()
         }
 
     override fun onDestroyView() {
