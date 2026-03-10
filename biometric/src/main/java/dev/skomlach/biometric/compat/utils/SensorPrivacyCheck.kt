@@ -21,20 +21,15 @@ package dev.skomlach.biometric.compat.utils
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
-import android.hardware.SensorPrivacyManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Process
 import androidx.core.app.AppOpsManagerCompat
-import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.permissions.AppOpCompatConstants
 import dev.skomlach.common.permissions.PermissionUtils
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -93,10 +88,6 @@ object SensorPrivacyCheck {
 
     private fun isSensorOperationallyBlocked(permission: String): Boolean {
         try {
-            val permissionGranted = ContextCompat.checkSelfPermission(
-                appContext, permission
-            ) == PackageManager.PERMISSION_GRANTED
-            if (permissionGranted) {
                 try {
                     val permissionToOp: String =
                         AppOpCompatConstants.getAppOpFromPermission(permission) ?: return false
@@ -110,7 +101,6 @@ object SensorPrivacyCheck {
                 } catch (e: Throwable) {
                     BiometricLoggerImpl.e(e)
                 }
-            }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }

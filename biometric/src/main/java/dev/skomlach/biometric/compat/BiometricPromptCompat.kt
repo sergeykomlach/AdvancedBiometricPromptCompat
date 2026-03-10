@@ -124,9 +124,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         for (type in BiometricType.entries) {
                             if (type == BiometricType.BIOMETRIC_ANY)
                                 continue
-                            biometricAuthRequest = BiometricAuthRequest.default().withApi(api).withType(type)
+                            biometricAuthRequest =
+                                BiometricAuthRequest.default().withApi(api).withType(type)
                             if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {
-                                field.add(BiometricAuthRequest.default().withApi(BiometricApi.AUTO).withType(type))
+                                field.add(
+                                    BiometricAuthRequest.default().withApi(BiometricApi.AUTO)
+                                        .withType(type)
+                                )
                                 field.add(biometricAuthRequest)
                             }
                         }
@@ -295,7 +299,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ) {
                         var found = false
                         for (v in builder.getPrimaryAvailableTypes()) {
-                            val request = builder.getBiometricAuthRequest().withApi(BiometricApi.BIOMETRIC_API).withType(v)
+                            val request = builder.getBiometricAuthRequest()
+                                .withApi(BiometricApi.BIOMETRIC_API).withType(v)
                             if (BiometricManagerCompat.isBiometricAvailable(request)) {
                                 found = true
                                 break
@@ -333,9 +338,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun setupBiometric(
         callbackOuter: AuthenticationCallback,
         enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isHardwareDetected(
-            builder.getBiometricAuthRequest().withProvider(provider = BiometricProviderType.HARDWARE)
+            builder.getBiometricAuthRequest()
+                .withProvider(provider = BiometricProviderType.HARDWARE)
         ) && !BiometricManagerCompat.hasEnrolled(
-            builder.getBiometricAuthRequest().withProvider(provider = BiometricProviderType.HARDWARE)
+            builder.getBiometricAuthRequest()
+                .withProvider(provider = BiometricProviderType.HARDWARE)
         )
     ) {
         BiometricLoggerImpl.e(
@@ -510,7 +517,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
         } else if (!(builder.enroll && BiometricManagerCompat.isHardwareDetected(
-                builder.getBiometricAuthRequest().withProvider(provider = BiometricProviderType.SOFTWARE)
+                builder.getBiometricAuthRequest()
+                    .withProvider(provider = BiometricProviderType.SOFTWARE)
             )) && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - hasEnrolled")
@@ -675,12 +683,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 } else {
                                     HardwareAccessImpl.getInstance(
                                         builder.getBiometricAuthRequest().withApi(
-                                            BiometricApi.BIOMETRIC_API)
+                                            BiometricApi.BIOMETRIC_API
+                                        )
                                     )
                                         .updateBiometricEnrollChanged()
                                     HardwareAccessImpl.getInstance(
                                         builder.getBiometricAuthRequest().withApi(
-                                            BiometricApi.LEGACY_API)
+                                            BiometricApi.LEGACY_API
+                                        )
                                     )
                                         .updateBiometricEnrollChanged()
                                 }
@@ -836,8 +846,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
         checkNotificationPermissions {
-            checkSensor(callbackOuter) {
-                checkPermissions(callbackOuter) {
+            checkPermissions(callbackOuter) {
+                checkSensor(callbackOuter) {
                     authTask.invoke()
                 }
             }
@@ -917,10 +927,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkSensor(callback: AuthenticationCallback, authTask: () -> Unit) {
-        BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor")
+
         val permissions = BiometricManagerCompat.getUsedPermissions(
             builder.getAllAvailableTypes()
         )
+        BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor isCameraBlocked=${SensorPrivacyCheck.isCameraBlocked()}; $permissions")
         if (permissions.contains(Manifest.permission.CAMERA) && SensorPrivacyCheck.isCameraBlocked()) {
             SensorBlockedFallbackFragment.askForCameraUnblock(builder.getActivity() ?: run {
                 BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor activity is NULL")
@@ -941,11 +952,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             )
                         }.toSet())
                         authFlowInProgress.set(false)
-                    } else authTask.invoke()
-                } else
+                    } else {
+                        BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor is blocked, but skipped")
+                        authTask.invoke()
+                    }
+                } else {
+                    BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor is unblocked")
                     authTask.invoke()
+                }
             }
         } else {
+            BiometricLoggerImpl.e("BiometricPromptCompat.checkSensor is not blocked")
             authTask.invoke()
         }
     }
@@ -1234,7 +1251,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     for (type in BiometricType.entries) {
                         if (type == BiometricType.BIOMETRIC_ANY)
                             continue
-                        val request = biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
+                        val request =
+                            biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
                         if (enroll && BiometricManagerCompat.isHardwareDetected(
                                 request.withProvider(provider = BiometricProviderType.SOFTWARE)
                             )
