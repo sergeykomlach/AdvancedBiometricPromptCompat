@@ -56,7 +56,7 @@ class FingerprintIconView @JvmOverloads constructor(
     private var color: Int? = R.color.material_blue_500
 
     init {
-        setLayerType(LAYER_TYPE_HARDWARE, null)
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
         setState(state, false, type)
     }
 
