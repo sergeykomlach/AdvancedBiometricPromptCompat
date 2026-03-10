@@ -113,7 +113,7 @@ object DeviceSpecManager {
                 list.add(capitalize(s.trim { it <= ' ' }))
             }
         }
-        return list
+        return list.filter { !it.equals("Not found", ignoreCase = true) }.toSet()
     }
 
     private fun splitString(str: String, delimiter: String): Array<String> {
