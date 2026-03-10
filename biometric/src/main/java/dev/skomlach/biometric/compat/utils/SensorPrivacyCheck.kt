@@ -88,19 +88,19 @@ object SensorPrivacyCheck {
 
     private fun isSensorOperationallyBlocked(permission: String): Boolean {
         try {
-                try {
-                    val permissionToOp: String =
-                        AppOpCompatConstants.getAppOpFromPermission(permission) ?: return false
+            //If permission not granted - AppOpp always blocked
+            if (!PermissionUtils.INSTANCE.hasSelfPermissions(permission)) return false
 
-                    val noteOp: Int = PermissionUtils.INSTANCE.appOpPermissionsCheck(
-                        permissionToOp,
-                        Process.myUid(),
-                        appContext.packageName
-                    )
-                    return noteOp != AppOpsManagerCompat.MODE_ALLOWED
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                }
+            val permissionToOp: String =
+                AppOpCompatConstants.getAppOpFromPermission(permission) ?: return false
+
+            val noteOp: Int = PermissionUtils.INSTANCE.appOpPermissionsCheck(
+                permissionToOp,
+                Process.myUid(),
+                appContext.packageName
+            )
+            return noteOp != AppOpsManagerCompat.MODE_ALLOWED
+
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
