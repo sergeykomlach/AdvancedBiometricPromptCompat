@@ -24,17 +24,30 @@ import kotlinx.parcelize.Parcelize
 
 
 @Parcelize
-data class BiometricAuthRequest(
-    val api: BiometricApi = BiometricApi.AUTO,
-    val type: BiometricType = BiometricType.BIOMETRIC_ANY,
-    val confirmation: BiometricConfirmation = BiometricConfirmation.ANY,
-    val provider: BiometricProviderType = BiometricProviderType.COMBINED
+data class BiometricAuthRequest
+@Deprecated("Instead of a direct constructor call, preferred to use BiometricAuthRequest.default().withXXX()")
+constructor(
+    val api: BiometricApi,
+    val type: BiometricType,
+    val confirmation: BiometricConfirmation,
+    val provider: BiometricProviderType
 ) : Parcelable {
     fun withApi(api: BiometricApi) = this.copy(api = api)
 
     fun withType(type: BiometricType) = this.copy(type = type)
 
-    fun withConfirmation(confirmation: BiometricConfirmation) = this.copy(confirmation = confirmation)
+    fun withConfirmation(confirmation: BiometricConfirmation) =
+        this.copy(confirmation = confirmation)
 
     fun withProvider(provider: BiometricProviderType) = this.copy(provider = provider)
+
+    companion object {
+        @JvmStatic
+        fun default() = BiometricAuthRequest(
+            api = BiometricApi.AUTO,
+            type = BiometricType.BIOMETRIC_ANY,
+            confirmation = BiometricConfirmation.ANY,
+            provider = BiometricProviderType.COMBINED
+        )
+    }
 }

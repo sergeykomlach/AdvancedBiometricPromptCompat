@@ -30,6 +30,6 @@ data class BiometricAuthRequestData(
     val enableSilent: Boolean = false,
     val allowDeviceCredentialsFallback: Boolean = false,
     val authWindow: Int = 30,
-    val biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(),
+    val biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default(),
     val cryptographyPurpose: BiometricCryptographyPurpose? = null
 )

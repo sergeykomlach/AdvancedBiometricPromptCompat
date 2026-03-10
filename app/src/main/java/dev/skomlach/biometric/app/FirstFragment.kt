@@ -163,7 +163,7 @@ class FirstFragment : Fragment() {
             button.text = "${authRequest.api}/${authRequest.type}"
             button.setOnLongClickListener {
                 startBiometric(
-                    BiometricAuthRequest(authRequest.api, authRequest.type),
+                    BiometricAuthRequest.default().withApi(authRequest.api).withType(authRequest.type),
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("silent", false),
                     SharedPreferenceProvider.getPreferences("app_settings")
@@ -178,7 +178,7 @@ class FirstFragment : Fragment() {
             }
             button.setOnClickListener {
                 startBiometric(
-                    BiometricAuthRequest(authRequest.api, authRequest.type),
+                    BiometricAuthRequest.default().withApi(authRequest.api).withType(authRequest.type),
                     SharedPreferenceProvider.getPreferences("app_settings")
                         .getBoolean("silent", false),
                     SharedPreferenceProvider.getPreferences("app_settings")

@@ -196,7 +196,7 @@ object LegacyBiometric {
                     }
 
                     if (!isAlreadyRegistered && !BiometricManagerCompat.isHardwareDetected(
-                            BiometricAuthRequest().withApi(BiometricApi.AUTO).withType(targetType)
+                            BiometricAuthRequest.default().withApi(BiometricApi.AUTO).withType(targetType)
                         )
                     ) {
                         val biometricMethod = BiometricMethod.createCustomModule(

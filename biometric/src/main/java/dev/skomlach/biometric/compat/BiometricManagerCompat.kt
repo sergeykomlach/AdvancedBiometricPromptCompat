@@ -70,7 +70,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun shouldFallbackToDeviceCredentials(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         if (isBiometricReadyForEnroll(api))
             return false
@@ -82,7 +82,7 @@ object BiometricManagerCompat {
     @Deprecated("Due to restrictions, this method does not guarantee proper work")
     @JvmStatic
     fun resetBiometricEnrollChanged(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ) {
         if (api.api != BiometricApi.AUTO) {
             HardwareAccessImpl.getInstance(api)
@@ -104,7 +104,7 @@ object BiometricManagerCompat {
     @Deprecated("Due to restrictions, this method does not guarantee proper work")
     @JvmStatic
     fun isBiometricEnrollChanged(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
@@ -130,7 +130,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isSilentAuthAvailable(
-        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest()
+        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         val primaryAvailableTypes: java.util.HashSet<BiometricType> by lazy {
             val types = java.util.HashSet<BiometricType>()
@@ -189,7 +189,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isBiometricAvailable(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         val isHardwareDetected = isHardwareDetected(api)
         val hasEnrolled = hasEnrolled(api)
@@ -198,7 +198,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isBiometricReadyForUsage(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         return isBiometricAvailable(api) &&
                 !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
@@ -206,7 +206,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isBiometricReadyForEnroll(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         return isHardwareDetected(api) &&
                 !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
@@ -214,7 +214,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isBiometricSensorPermanentlyLocked(
-        api: BiometricAuthRequest = BiometricAuthRequest(),
+        api: BiometricAuthRequest = BiometricAuthRequest.default(),
         ignoreCameraCheck: Boolean = true
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
@@ -243,7 +243,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isHardwareDetected(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
@@ -267,7 +267,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun hasEnrolled(
-        api: BiometricAuthRequest = BiometricAuthRequest()
+        api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
             return false
@@ -291,7 +291,7 @@ object BiometricManagerCompat {
 
     @JvmStatic
     fun isLockOut(
-        api: BiometricAuthRequest = BiometricAuthRequest(),
+        api: BiometricAuthRequest = BiometricAuthRequest.default(),
         ignoreCameraCheck: Boolean = true
     ): Boolean {
         if (!BiometricPromptCompat.API_ENABLED)
@@ -369,7 +369,7 @@ object BiometricManagerCompat {
     }
 
     private fun isCameraNotAvailable(
-        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(),
+        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default(),
         ignoreCameraCheck: Boolean
     ): Boolean {
         if (ignoreCameraCheck)
@@ -403,7 +403,7 @@ object BiometricManagerCompat {
     }
 
     private fun isCameraInUse(
-        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest(),
+        biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default(),
         ignoreCameraCheck: Boolean
     ): Boolean {
         if (ignoreCameraCheck)
