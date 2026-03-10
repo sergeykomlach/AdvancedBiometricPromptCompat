@@ -337,7 +337,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun setupBiometric(
         callbackOuter: AuthenticationCallback,
-        enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isHardwareDetected(
+        enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isBiometricReadyForEnroll(
             builder.getBiometricAuthRequest()
                 .withProvider(provider = BiometricProviderType.HARDWARE)
         ) && !BiometricManagerCompat.hasEnrolled(
@@ -347,12 +347,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     ) {
         BiometricLoggerImpl.e(
             "BiometricPromptCompat.enroll $enrollNewHardwareBiometric ${
-                BiometricManagerCompat.isHardwareDetected(
+                BiometricManagerCompat.isBiometricReadyForEnroll(
                     builder.getBiometricAuthRequest()
                         .withProvider(provider = BiometricProviderType.HARDWARE)
                 )
             } && ${
-                BiometricManagerCompat.isHardwareDetected(
+                BiometricManagerCompat.isBiometricReadyForEnroll(
                     builder.getBiometricAuthRequest()
                         .withProvider(provider = BiometricProviderType.SOFTWARE)
                 )
@@ -516,7 +516,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (!BiometricManagerCompat.isHardwareDetected(builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
-        } else if (!(builder.enroll && BiometricManagerCompat.isHardwareDetected(
+        } else if (!(builder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                 builder.getBiometricAuthRequest()
                     .withProvider(provider = BiometricProviderType.SOFTWARE)
             )) && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())
@@ -1223,7 +1223,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = biometricAuthRequest.withApi(api).withType(type)
-                    if (!isNewBiometric && enroll && BiometricManagerCompat.isHardwareDetected(
+                    if (!isNewBiometric && enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request.withProvider(provider = BiometricProviderType.SOFTWARE)
                         )
                     ) {
@@ -1233,7 +1233,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
             } else {
-                if (!isNewBiometric && enroll && BiometricManagerCompat.isHardwareDetected(
+                if (!isNewBiometric && enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                         biometricAuthRequest.withProvider(provider = BiometricProviderType.SOFTWARE)
                     )
                 ) {
@@ -1253,7 +1253,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             continue
                         val request =
                             biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
-                        if (enroll && BiometricManagerCompat.isHardwareDetected(
+                        if (enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                                 request.withProvider(provider = BiometricProviderType.SOFTWARE)
                             )
                         ) {
@@ -1263,7 +1263,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         }
                     }
                 } else {
-                    if (enroll && BiometricManagerCompat.isHardwareDetected(
+                    if (enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             biometricAuthRequest.withProvider(provider = BiometricProviderType.SOFTWARE)
                         )
                     ) {

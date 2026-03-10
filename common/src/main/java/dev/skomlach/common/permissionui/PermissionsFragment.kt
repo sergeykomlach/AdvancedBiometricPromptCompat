@@ -60,6 +60,7 @@ import dev.skomlach.common.translate.LocalizationHelper
 class PermissionsFragment : Fragment() {
     companion object {
 
+        private const val TAG = "PermissionsFragment"
         private const val LIST_KEY = "permissions_list"
         private const val INTENT_KEY = "PermissionsFragment.intent_key"
 
@@ -95,7 +96,7 @@ class PermissionsFragment : Fragment() {
         ) {
             LogCat.log("PermissionsFragment.askForPermissions()")
             if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
-                val tag = "${PermissionsFragment::class.java.name}"
+                val tag = PermissionsFragment.TAG
                 if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                     return
                 val fragment = PermissionsFragment()
@@ -123,6 +124,7 @@ class PermissionsFragment : Fragment() {
 
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            LogCat.log("PermissionsFragment.ActivityResult()")
             closeFragment()
         }
     private val startForResult: ActivityResultLauncher<Intent> =
@@ -399,10 +401,8 @@ class PermissionsFragment : Fragment() {
 
 
     private fun closeFragment() {
-        val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-        val tag = "${PermissionsFragment::class.java.name}-${
-            permissions.joinToString(",").hashCode()
-        }"
+        LogCat.logError("PermissionsFragment", "closeFragment")
+        val tag = PermissionsFragment.TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

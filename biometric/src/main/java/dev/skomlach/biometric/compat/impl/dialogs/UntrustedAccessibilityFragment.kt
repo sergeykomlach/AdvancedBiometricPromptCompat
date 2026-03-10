@@ -38,7 +38,6 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.translate.LocalizationHelper
 
@@ -55,7 +54,7 @@ class UntrustedAccessibilityFragment : Fragment() {
         ) {
             LogCat.log("UntrustedAccessibilityFragment.askForPermissions()")
 
-            val tag = "${UntrustedAccessibilityFragment::class.java.name}"
+            val tag = UntrustedAccessibilityFragment.TAG
             val oldFragment = activity.supportFragmentManager.findFragmentByTag(tag)
             val fragment = UntrustedAccessibilityFragment()
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
@@ -148,7 +147,7 @@ class UntrustedAccessibilityFragment : Fragment() {
     private fun closeFragment(ok: Boolean) {
         alert?.dismiss()
         alert = null
-        val tag = "${UntrustedAccessibilityFragment::class.java.name}"
+        val tag = UntrustedAccessibilityFragment.TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

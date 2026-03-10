@@ -93,7 +93,7 @@ class NotificationPermissionsFragment : Fragment() {
         ) {
             LogCat.log("NotificationPermissionsFragment.askForPermissions()")
 
-            val tag = "${NotificationPermissionsFragment::class.java.name}-${type.name}-$channelId"
+            val tag = NotificationPermissionsFragment.TAG
             val oldFragment = activity.supportFragmentManager.findFragmentByTag(tag)
             val fragment = NotificationPermissionsFragment()
             val bundle = Bundle()
@@ -371,11 +371,7 @@ class NotificationPermissionsFragment : Fragment() {
     }
 
     private fun closeFragment() {
-        val channelId = arguments?.getString(CHANNEL_ID)
-        val type = PermissionRequestController.PermissionType.entries.firstOrNull {
-            it.name == arguments?.getString(PERMISSION_KEY)
-        }
-        val tag = "${NotificationPermissionsFragment::class.java.name}-${type?.name}-$channelId"
+        val tag = NotificationPermissionsFragment.TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

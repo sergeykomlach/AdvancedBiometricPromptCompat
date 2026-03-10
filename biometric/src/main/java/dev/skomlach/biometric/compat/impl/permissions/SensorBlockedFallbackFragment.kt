@@ -39,7 +39,6 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.translate.LocalizationHelper
 
 
@@ -53,6 +52,7 @@ class SensorBlockedFallbackFragment : Fragment() {
 //   [`sensor_privacy_start_use_mic_notification_content_title`->`Unblock device microphone`]
 //   [`face_sensor_privacy_enabled`->`To use Face Unlock, turn on Camera access in Settings > Privacy`]
 
+        private const val TAG = "SensorBlockedFallbackFragment"
         private const val TITLE = "title"
         private const val MESSAGE = "message"
         private const val INTENT_KEY = "SensorBlockedFallbackFragment.intent_key"
@@ -89,8 +89,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         ) {
             LogCat.log("SensorBlockedFragment", "showFragment $title $msg")
 
-            val tag =
-                "${SensorBlockedFallbackFragment.javaClass.name}"
+            val tag = SensorBlockedFallbackFragment.TAG
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                 return
@@ -124,6 +123,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         alert?.dismiss()
         alert = null
         LogCat.log("SensorBlockedFragment", "closeFragment")
+        val tag = SensorBlockedFallbackFragment.TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

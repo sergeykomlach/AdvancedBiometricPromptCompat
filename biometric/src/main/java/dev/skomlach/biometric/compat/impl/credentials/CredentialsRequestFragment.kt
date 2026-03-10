@@ -48,6 +48,7 @@ import dev.skomlach.common.translate.LocalizationHelper
 class CredentialsRequestFragment : Fragment() {
     companion object {
 
+        private const val TAG = "CredentialsRequestFragment"
         private const val INTENT_KEY = "CredentialsRequestFragment.intent_key"
 
         fun showFragment(
@@ -56,7 +57,7 @@ class CredentialsRequestFragment : Fragment() {
             description: CharSequence?,
             validator: (Boolean) -> Unit?,
         ) {
-            val tag = "${CredentialsRequestFragment::class.java.name}"
+            val tag = CredentialsRequestFragment.TAG
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                 return
             val fragment = CredentialsRequestFragment()
@@ -174,6 +175,7 @@ class CredentialsRequestFragment : Fragment() {
     }
 
     private fun closeFragment() {
+        val tag = CredentialsRequestFragment.TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         LogCat.log("CredentialsRequestFragment", "closeFragment")
         try {

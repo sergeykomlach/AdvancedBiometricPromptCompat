@@ -39,13 +39,13 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
-import dev.skomlach.common.misc.ExecutorHelper
 
 
 class InitiateSystemBiometricEnrollFragment : Fragment() {
     companion object {
         private const val INTENT_KEY = "InitiateSystemBiometricEnrollFragment.intent_key"
 
+        private const val TAG = "InitiateSystemBiometricEnrollFragment"
         fun showFragment(
             activity: FragmentActivity,
             biometricAuthRequest: BiometricAuthRequest,
@@ -53,8 +53,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
         ) {
             LogCat.log("InitiateSystemBiometricEnrollFragment", "showFragment")
 
-            val tag =
-                "${InitiateSystemBiometricEnrollFragment.javaClass.name}"
+            val tag = InitiateSystemBiometricEnrollFragment.TAG
 
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
@@ -85,6 +84,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
 
     private fun closeFragment() {
         LogCat.log("InitiateSystemBiometricEnrollFragment", "closeFragment")
+        val tag = InitiateSystemBiometricEnrollFragment.TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()
