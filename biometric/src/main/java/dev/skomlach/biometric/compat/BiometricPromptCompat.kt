@@ -346,17 +346,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         )
     ) {
         BiometricLoggerImpl.e(
-            "BiometricPromptCompat.enroll $enrollNewHardwareBiometric ${
-                BiometricManagerCompat.isBiometricReadyForEnroll(
-                    builder.getBiometricAuthRequest()
-                        .withProvider(provider = BiometricProviderType.HARDWARE)
-                )
-            } && ${
-                BiometricManagerCompat.isBiometricReadyForEnroll(
-                    builder.getBiometricAuthRequest()
-                        .withProvider(provider = BiometricProviderType.SOFTWARE)
-                )
-            }"
+            "BiometricPromptCompat.enroll $enrollNewHardwareBiometric"
         )
 
         val softwareSetup = {

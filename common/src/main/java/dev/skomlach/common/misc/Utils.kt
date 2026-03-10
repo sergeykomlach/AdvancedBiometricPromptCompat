@@ -29,7 +29,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 object Utils {
     init {
@@ -77,6 +76,7 @@ object Utils {
             LogCat.logException(e)
         }
     }
+
     val isAtLeastU: Boolean
         @SuppressLint("UnsafeOptInUsageError")
         get() = BuildCompat.isAtLeastU()

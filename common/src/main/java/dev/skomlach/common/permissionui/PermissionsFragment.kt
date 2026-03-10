@@ -160,22 +160,22 @@ class PermissionsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        lifecycleScope.launchWhenResumed{
-                val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
-                if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(
-                        permissions
-                    )
-                ) {
+        lifecycleScope.launchWhenResumed {
+            val permissions: List<String> = arguments?.getStringArrayList(LIST_KEY) ?: listOf()
+            if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(
+                    permissions
+                )
+            ) {
 
-                    try {
-                        requestPermissions(permissions)
-                    } catch (e: Throwable) {
-                        closeFragment()
-                    }
-                } else {
+                try {
+                    requestPermissions(permissions)
+                } catch (e: Throwable) {
                     closeFragment()
                 }
+            } else {
+                closeFragment()
             }
+        }
 
     }
 

@@ -50,10 +50,13 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
 
     @Volatile
     private var nextAllowedCheckAtMs: Long = 0L
+
     @Volatile
     private var lastCheckAtMs: Long = 0L
+
     @Volatile
     private var lastKnownState: Boolean = false
+
     @Volatile
     private var consecutiveFailures: Int = 0
     private val running = java.util.concurrent.atomic.AtomicBoolean(false)
