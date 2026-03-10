@@ -160,30 +160,30 @@ class BiometricPromptCompatDialogImpl(
             val list = mutableListOf<BiometricType>()
             if (compatBuilder.getSecondaryAvailableTypes().isEmpty()) {
                 for (type in compatBuilder.getPrimaryAvailableTypes()) {
-                    val request = BiometricAuthRequest(
-                        compatBuilder.getBiometricAuthRequest().api,
-                        type,
-                        compatBuilder.getBiometricAuthRequest().confirmation
+                    val request = compatBuilder.getBiometricAuthRequest().withType(
+                        type
                     )
                     if (compatBuilder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request
                         )
-                    )
+                    ){
+                        //No-op
+                    }
                     else
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request))
                         list.add(type)
                 }
             } else {
                 for (type in compatBuilder.getSecondaryAvailableTypes()) {
-                    val request = BiometricAuthRequest(
-                        compatBuilder.getBiometricAuthRequest().api,
-                        type,
-                        compatBuilder.getBiometricAuthRequest().confirmation
+                    val request = compatBuilder.getBiometricAuthRequest().withType(
+                        type
                     )
                     if (compatBuilder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request
                         )
-                    )
+                    ){
+                        //No-op
+                    }
                     else
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request))
                         list.add(type)

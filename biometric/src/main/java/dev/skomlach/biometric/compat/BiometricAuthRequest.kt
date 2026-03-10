@@ -28,5 +28,13 @@ data class BiometricAuthRequest(
     val api: BiometricApi = BiometricApi.AUTO,
     val type: BiometricType = BiometricType.BIOMETRIC_ANY,
     val confirmation: BiometricConfirmation = BiometricConfirmation.ANY,
-    val provider: BiometricProviderType = BiometricProviderType.MIXED
-) : Parcelable
+    val provider: BiometricProviderType = BiometricProviderType.COMBINED
+) : Parcelable {
+    fun withApi(api: BiometricApi) = this.copy(api = api)
+
+    fun withType(type: BiometricType) = this.copy(type = type)
+
+    fun withConfirmation(confirmation: BiometricConfirmation) = this.copy(confirmation = confirmation)
+
+    fun withProvider(provider: BiometricProviderType) = this.copy(provider = provider)
+}

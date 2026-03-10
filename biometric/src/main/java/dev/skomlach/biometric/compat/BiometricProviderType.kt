@@ -21,5 +21,5 @@ package dev.skomlach.biometric.compat
 enum class BiometricProviderType {
     HARDWARE,
     SOFTWARE,
-    MIXED
+    COMBINED
 }

@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
 
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
@@ -50,17 +51,21 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                         biometricModule?.isHardwarePresent == true
                     }
 
-                    BiometricProviderType.MIXED -> {
+                    BiometricProviderType.COMBINED -> {
                         biometricModule?.isHardwarePresent == true
                     }
 
                     else -> false
                 }
 
-                if (result) return true
+                if (result) return true.also {
+                    e("LegacyHardware - isHardwareAvailable=$it; $biometricAuthRequest")
+                }
             }
 
-            return false
+            return false.also {
+                e("LegacyHardware - isHardwareAvailable=$it $biometricAuthRequest")
+            }
         }
     override val isBiometricEnrolled: Boolean
         get() {
@@ -83,17 +88,21 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                         biometricModule?.hasEnrolled == true
                     }
 
-                    BiometricProviderType.MIXED -> {
+                    BiometricProviderType.COMBINED -> {
                         biometricModule?.hasEnrolled == true
                     }
 
                     else -> false
                 }
 
-                if (result) return true
+                if (result) return true.also {
+                    e("LegacyHardware - isBiometricEnrolled=$it $biometricAuthRequest")
+                }
             }
 
-            return false
+            return false.also {
+                e("LegacyHardware - isBiometricEnrolled=$it $biometricAuthRequest")
+            }
         }
     override val isLockedOut: Boolean
         get() {
@@ -117,7 +126,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                         biometricModule?.isLockOut == true
                     }
 
-                    BiometricProviderType.MIXED -> {
+                    BiometricProviderType.COMBINED -> {
                         biometricModule?.isLockOut == true
                     }
 
@@ -145,7 +154,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                     biometricModule?.isBiometricEnrollChanged == true
                 }
 
-                BiometricProviderType.MIXED -> {
+                BiometricProviderType.COMBINED -> {
                     biometricModule?.isBiometricEnrollChanged == true
                 }
 

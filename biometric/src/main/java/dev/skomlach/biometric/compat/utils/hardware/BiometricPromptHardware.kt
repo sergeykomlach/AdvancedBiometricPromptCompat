@@ -153,6 +153,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> true //sensor Ok, just biometric data missing
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable
                 else -> false
+            }.also {
+                e("Android28Hardware - isAnyHardwareAvailable=$it")
             }
         }
     private val isAnyBiometricEnrolled: Boolean
@@ -167,6 +169,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> false
                 //sensor temporary unavailable; fallback to legacy
                 else -> false
+            }.also {
+                e("Android28Hardware - isAnyBiometricEnrolled=$it")
             }
         }
 
