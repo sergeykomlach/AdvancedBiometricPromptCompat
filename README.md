@@ -72,13 +72,11 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 #### Supported types of biometric authentication
 
 | Type                                          | Details                             | Tested on                                           |
-|-----------------------------------------------|-------------------------------------|-----------------------------------------------------|  
+|-----------------------------------------------|-------------------------------------|-----------------------------------------------------| 
+| TensorFlow FaceUnlock (with anti-spoofing)    | Android 6+                          | Wide range of devices                               |  
 | BiometricPrompt API                           | Android 9+                          | Xiaomi POCO F1, OnePlus 8T                          |  
-| Samsung IrisID                                | Android 7+ and Samsung devices      | Samsung Galaxy S10                                  |   
-| Samsung Pass Fingerprint                      | Android 4.4-6.0 and Samsung devices | Samsung Galaxy S5                                   |  
-| Fingerprint                                   | Android 6 - 13                      | Xiaomi POCO F1                                      |
-| In-screen Fingerprint                         | Android 8+                          | OnePlus 6T/OnePlus 7 Pro                            | 
-| Meizu Fingerprint                             | Android 5.0-5.1 and Meizu devices   | Meizu Pro 5                                         | 
+| Samsung IrisID                                | Android 7+ and Samsung devices      | Samsung Galaxy S10                                  |
+| Fingerprint (include Under Display)           | Android 6 - 17                      | Xiaomi POCO F1                                      |
 | Face Unlock (aka TrustedFaces)                | Android 4.1+                        | Prestigio PAP3400                                   |  
 | Huawei/Honor FaceID                           | Android 8 - 9 and Huawei devices    | Huawei/Honor 8 Lite, Honor Magic 5 Lite             |
 | Huawei/Honor Face3D                           | Android 10+ and Huawei devices      | Huawei MatePad T8, Huawei P30,Huawei Mate 30 Pro    |
@@ -90,11 +88,13 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 
 ## Recent changes (last 3 month)
 
-September 23 2025
+March 10 2026
 
-**Improvement**  Library aligned with Android 16; Removed "hiddenbypass" API; Per-app Locale support added, etc.
-
-**Bugfix**  Cumulative fixes for numerous bugs
+**MAJOR UPDATE version 2.4.rc-01**  
+- Removed obsolete biometric implementations (Meizu and Samsung Pass)
+- Refactored DeviceInfo - now much more accurate and faster
+- Software biometric introduced. First one - TensorFlow FaceUnlock - just include **biometric-custom-face-tf** dependency to make it work
+- Refactored API and behavior to make consistent with new features
 
 
 ## Test app

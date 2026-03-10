@@ -25,8 +25,9 @@ buildscript {
     ext.javaVersion = JavaVersion.VERSION_17
 
 
-    ext.libsMajorVersion = '2.3'
-    ext.libsMinorVersion = 6
+    ext.libsMajorVersion = '2.4'
+    ext.libsMinorVersion = "rc-01"
+    ext.libsVersionCode = 240
     ext.libsGroupId = "dev.skomlach"
     ext.libArtifactId_biometric = 'biometric'
     ext.libArtifactId_common = 'common'

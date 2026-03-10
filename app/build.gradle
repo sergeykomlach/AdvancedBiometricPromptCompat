@@ -30,7 +30,7 @@ android {
         minSdkVersion minSDK
         //targetSdkPreview targetSDK
         targetSdkVersion targetSDK
-        versionCode libsMinorVersion
+        versionCode libsVersionCode
         versionName libsMajorVersion
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
