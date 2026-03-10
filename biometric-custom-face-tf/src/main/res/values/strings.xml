@@ -23,7 +23,7 @@
     <string name="tf_face_help_model_not_available">Face detection models not available</string>
     <string name="tf_face_help_model_enrollment_tag_not_provided">Enrollment tag not provided</string>
     <string name="tf_face_help_model_not_registered">Biometric not registered</string>
-    <string name="tf_face_help_model_image_is_blurry">Image is blurry, hold still</string>
+    <string name="tf_face_help_model_image_is_blurry">Face is blurry, hold still</string>
     <string name="tf_face_help_model_fake_face_detected">Fake face detected</string>
     <string name="tf_face_help_model_retry">Retry</string>
     <string name="tf_face_help_model_look_straight_ahead">Look straight ahead</string>
