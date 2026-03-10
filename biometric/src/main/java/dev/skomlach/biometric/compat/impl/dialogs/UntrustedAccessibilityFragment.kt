@@ -78,11 +78,11 @@ class UntrustedAccessibilityFragment : Fragment() {
         }
     }
 
-    private var alert : AlertDialog? = null
+    private var alert: AlertDialog? = null
     override fun onAttach(context: Context) {
         super.onAttach(context)
         lifecycleScope.launchWhenResumed {
-                if (alert == null)
+            if (alert == null)
                 try {
                     val title = try {
                         val appInfo =
@@ -140,7 +140,7 @@ class UntrustedAccessibilityFragment : Fragment() {
                     )
                     closeFragment(false)
                 }
-            }
+        }
 
     }
 

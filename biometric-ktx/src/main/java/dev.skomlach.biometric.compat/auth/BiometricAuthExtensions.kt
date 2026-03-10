@@ -27,6 +27,50 @@ import dev.skomlach.biometric.compat.auth.helpers.BiometricAuthRequestData
 import dev.skomlach.biometric.compat.auth.helpers.CoroutineAuthPromptCallback
 import kotlinx.coroutines.suspendCancellableCoroutine
 
+fun FragmentActivity.startSetupBiometricAuthentication(
+    biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(),
+    callback: BiometricPromptCompat.AuthenticationCallback
+): BiometricPromptCompat {
+    return startSetupBiometricAuthenticationInternal(
+        AuthPromptHost(this),
+        biometricAuthRequestData,
+        callback
+    )
+}
+
+suspend fun FragmentActivity.setupWithBiometrics(
+    biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(),
+): Set<AuthenticationResult> {
+    val authPrompt = buildBiometricAuthPrompt(
+        AuthPromptHost(this),
+        biometricAuthRequestData
+    )
+
+    return authPrompt.setup()
+}
+
+fun Fragment.startSetupBiometricAuthentication(
+    biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(),
+    callback: BiometricPromptCompat.AuthenticationCallback
+): BiometricPromptCompat {
+    return startSetupBiometricAuthenticationInternal(
+        AuthPromptHost(this),
+        biometricAuthRequestData,
+        callback
+    )
+}
+
+suspend fun Fragment.setupWithBiometrics(
+    biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(),
+): Set<AuthenticationResult> {
+    val authPrompt = buildBiometricAuthPrompt(
+        AuthPromptHost(this),
+        biometricAuthRequestData
+    )
+
+    return authPrompt.setup()
+}
+
 fun FragmentActivity.startBiometricAuthentication(
     biometricAuthRequestData: BiometricAuthRequestData = BiometricAuthRequestData(),
     callback: BiometricPromptCompat.AuthenticationCallback
@@ -70,7 +114,14 @@ suspend fun Fragment.authenticateWithBiometrics(
 
     return authPrompt.authenticate()
 }
-
+private suspend fun BiometricPromptCompat.setup(): Set<AuthenticationResult> {
+    return suspendCancellableCoroutine { continuation ->
+        this.setupBiometric(CoroutineAuthPromptCallback(continuation))
+        continuation.invokeOnCancellation {
+            this.cancelAuthentication()
+        }
+    }
+}
 private suspend fun BiometricPromptCompat.authenticate(): Set<AuthenticationResult> {
     return suspendCancellableCoroutine { continuation ->
         this.authenticate(CoroutineAuthPromptCallback(continuation))
@@ -79,7 +130,19 @@ private suspend fun BiometricPromptCompat.authenticate(): Set<AuthenticationResu
         }
     }
 }
+private fun startSetupBiometricAuthenticationInternal(
+    host: AuthPromptHost,
+    biometricAuthRequestData: BiometricAuthRequestData,
+    callback: BiometricPromptCompat.AuthenticationCallback
+): BiometricPromptCompat {
+    val prompt = buildBiometricAuthPrompt(
+        host,
+        biometricAuthRequestData
+    )
 
+    prompt.setupBiometric(callback)
+    return prompt
+}
 private fun startBiometricAuthenticationInternal(
     host: AuthPromptHost,
     biometricAuthRequestData: BiometricAuthRequestData,

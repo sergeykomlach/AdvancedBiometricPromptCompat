@@ -26,6 +26,6 @@
             android:name="android.hardware.camera.autofocus"
             android:required="false" />
 
-    <application/>
+    <application />
 
 </manifest>

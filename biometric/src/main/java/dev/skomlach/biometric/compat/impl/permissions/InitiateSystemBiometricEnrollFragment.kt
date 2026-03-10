@@ -57,25 +57,25 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
 
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
-                    return
-                registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
-                    override fun onReceive(context: Context, intent: Intent) {
-                        callback.invoke()
-                        try {
-                            unregisterGlobalBroadcastIntent(appContext, this)
-                        } catch (e: Throwable) {
-                            LogCat.logException(e)
-                        }
+                return
+            registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    callback.invoke()
+                    try {
+                        unregisterGlobalBroadcastIntent(appContext, this)
+                    } catch (e: Throwable) {
+                        LogCat.logException(e)
                     }
-                }, IntentFilter(INTENT_KEY))
-                activity
-                    .supportFragmentManager.beginTransaction()
-                    .add(InitiateSystemBiometricEnrollFragment().apply {
-                        arguments = Bundle().apply {
-                            putParcelable("request", biometricAuthRequest)
-                        }
-                    }, tag)
-                    .commitAllowingStateLoss()
+                }
+            }, IntentFilter(INTENT_KEY))
+            activity
+                .supportFragmentManager.beginTransaction()
+                .add(InitiateSystemBiometricEnrollFragment().apply {
+                    arguments = Bundle().apply {
+                        putParcelable("request", biometricAuthRequest)
+                    }
+                }, tag)
+                .commitAllowingStateLoss()
 
         }
 
@@ -113,33 +113,34 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
         super.onDestroyView()
         startForResult.unregister()
     }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         LogCat.log("InitiateSystemBiometricEnrollFragment", "onAttach $arguments")
         lifecycleScope.launchWhenResumed {
-                try {
-                    val biometricRequest: BiometricAuthRequest = BundleCompat.getParcelable(
-                        arguments ?: return@launchWhenResumed,
-                        "request",
-                        BiometricAuthRequest::class.java
-                    ) ?: return@launchWhenResumed
+            try {
+                val biometricRequest: BiometricAuthRequest = BundleCompat.getParcelable(
+                    arguments ?: return@launchWhenResumed,
+                    "request",
+                    BiometricAuthRequest::class.java
+                ) ?: return@launchWhenResumed
 
-                    val intent =
-                        LegacyBiometric.getSettingsIntent(biometricRequest.type) ?: Intent(
-                            Settings.ACTION_SETTINGS
-                        )
-                    LogCat.logError(
-                        "InitiateSystemBiometricEnrollFragment",
-                        "$biometricRequest -> $intent"
+                val intent =
+                    LegacyBiometric.getSettingsIntent(biometricRequest.type) ?: Intent(
+                        Settings.ACTION_SETTINGS
                     )
-                    startForResult.launch(intent)
-                } catch (e: Throwable) {
-                    LogCat.logException(
-                        e, "InitiateSystemBiometricEnrollFragment", e.message
-                    )
-                    closeFragment()
-                }
+                LogCat.logError(
+                    "InitiateSystemBiometricEnrollFragment",
+                    "$biometricRequest -> $intent"
+                )
+                startForResult.launch(intent)
+            } catch (e: Throwable) {
+                LogCat.logException(
+                    e, "InitiateSystemBiometricEnrollFragment", e.message
+                )
+                closeFragment()
             }
+        }
 
     }
 

@@ -32,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.RuntimeFlavor
 import org.tensorflow.lite.gpu.GpuDelegateFactory
@@ -268,6 +267,7 @@ class TensorFlowFaceUnlockManager(
             }
         }
     }
+
     fun setFrameProvider(provider: IFrameProvider) {
         this.frameProvider = provider
     }
@@ -345,12 +345,14 @@ class TensorFlowFaceUnlockManager(
 
         stopBackgroundThread()
     }
+
     override fun resetLockOut() {
         getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
             remove(KEY_LOCKOUT_END_TIMESTAMP)
-            .remove(KEY_FAILED_ATTEMPTS)
+                .remove(KEY_FAILED_ATTEMPTS)
         }
     }
+
     override fun resetPermanentLockOut() {
         getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
             remove(KEY_FAILED_ATTEMPTS)
@@ -398,7 +400,7 @@ class TensorFlowFaceUnlockManager(
     }
 
     override fun getEnrolls(): Collection<String> {
-        return detector?.getEnrolls()?:emptyList()
+        return detector?.getEnrolls() ?: emptyList()
     }
 
     override fun authenticate(
@@ -550,7 +552,6 @@ class TensorFlowFaceUnlockManager(
     }
 
 
-
     private fun analyzeAntiSpoofing(bitmap: Bitmap): Boolean {
         try {
             val currentScore =
@@ -572,6 +573,7 @@ class TensorFlowFaceUnlockManager(
             return false
         }
     }
+
     private fun processFaces(bitmap: Bitmap, faces: List<Face>) {
         if (faces.isEmpty()) return
 
