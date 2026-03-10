@@ -90,12 +90,12 @@ class WindowForegroundBlurring(
             } else
                 typesList.filter {
                     if (compatBuilder.enroll) BiometricManagerCompat.isBiometricReadyForEnroll(
-                        compatBuilder.getBiometricAuthRequest.default().withType(
+                        compatBuilder.getBiometricAuthRequest().withType(
                             type = it
                         )
                     ) else
                     BiometricManagerCompat.isBiometricReadyForUsage(
-                        compatBuilder.getBiometricAuthRequest.default().withType(
+                        compatBuilder.getBiometricAuthRequest().withType(
                             type = it
                         )
                     )

@@ -161,14 +161,14 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             builder.getAllAvailableTypes()
         )
         allList.removeAll(authFinishedList)
-        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest.default()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
+        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
         val error =
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
         val success =
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest.default()}: $error/$success")
-        if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest.default().confirmation == BiometricConfirmation.ANY) ||
-            (builder.getBiometricAuthRequest.default().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
+        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
+        if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
+            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
 
             if (success != null) {
