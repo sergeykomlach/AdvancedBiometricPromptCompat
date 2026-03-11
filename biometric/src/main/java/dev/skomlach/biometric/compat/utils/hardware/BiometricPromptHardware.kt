@@ -112,7 +112,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     }
                 else canAuthenticatePair.second
             } catch (e: Throwable) {
-                e(e, "Android28Hardware - canAuthenticate")
+                e(e, "BiometricPromptHardware - canAuthenticate")
                 return canAuthenticatePair.second
             }
         }
@@ -137,7 +137,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         } catch (e: Throwable) {
             e(e)
         } finally {
-            e("Android28Hardware - canAuthenticate=$code")
+            e("BiometricPromptHardware - canAuthenticate=$code")
         }
         return code
     }
@@ -153,8 +153,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> true //sensor Ok, just biometric data missing
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable
                 else -> false
-            }.also {
-                e("Android28Hardware - isAnyHardwareAvailable=$it")
             }
         }
     private val isAnyBiometricEnrolled: Boolean
@@ -169,8 +167,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> false
                 //sensor temporary unavailable; fallback to legacy
                 else -> false
-            }.also {
-                e("Android28Hardware - isAnyBiometricEnrolled=$it")
             }
         }
 
