@@ -92,6 +92,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             private set
 
         init {
+            ExecutorHelper.startOnBackground {
+                DeviceInfoManager.getDeviceInfo(object :
+                    DeviceInfoManager.OnDeviceInfoListener {
+                    override fun onReady(info: DeviceInfo?) {
+                        deviceInfo = info
+                    }
+                })
+            }
             if (API_ENABLED) {
 
                 if (!AppCompatDelegate.isCompatVectorFromResourcesEnabled())
@@ -164,6 +172,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
+        @Volatile
         var deviceInfo: DeviceInfo? = null
             private set
         private var authFlowInProgress = AtomicBoolean(false)
@@ -202,14 +211,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                     }
                     startBiometricInit()
-                    ExecutorHelper.startOnBackground {
-                        DeviceInfoManager.getDeviceInfo(object :
-                            DeviceInfoManager.OnDeviceInfoListener {
-                            override fun onReady(info: DeviceInfo?) {
-                                deviceInfo = info
-                            }
-                        })
-                    }
                     ExecutorHelper.startOnBackground {
                         DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     }
