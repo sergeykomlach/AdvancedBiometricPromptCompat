@@ -19,11 +19,7 @@
 
 package dev.skomlach.common.device
 
-import java.util.regex.Pattern
-
 object DeviceSpecManager {
-
-    private val pattern = Pattern.compile("\\((.*?)\\)+")
 
     fun DeviceSpec?.getSensors(): Set<String> {
         if (this == null) return emptySet()
@@ -99,21 +95,13 @@ object DeviceSpecManager {
 
 
     private fun stringToArray(data: String): Set<String> {
-        var name = data
-        val list = mutableSetOf<String>()
-
-        if (name.isNotEmpty()) {
-            val matcher = pattern.matcher(name)
-            while (matcher.find()) {
-                val s = matcher.group()
-                name = name.replace(s, s.replace(",", ";"))
-            }
-            val split = splitString(name, ",")
-            for (s in split) {
-                list.add(capitalize(s.trim { it <= ' ' }))
-            }
-        }
-        return list.filter { !it.equals("Not found", ignoreCase = true) }.toSet()
+        if (data.isBlank()) return emptySet()
+        return data.split(",")
+            .asSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !it.equals("Not found", ignoreCase = true) }
+            .map { capitalize(it) }
+            .toSet()
     }
 
     private fun splitString(str: String, delimiter: String): Array<String> {

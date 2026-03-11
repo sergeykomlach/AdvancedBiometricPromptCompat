@@ -112,7 +112,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         private val availableAuthRequests = HashSet<BiometricAuthRequest>()
             get() {
-                if (field.isEmpty()) {
+                if (API_ENABLED && field.isEmpty()) {
                     //Add default first
                     var biometricAuthRequest = BiometricAuthRequest.default()
                     if (BiometricManagerCompat.isHardwareDetected(biometricAuthRequest)) {

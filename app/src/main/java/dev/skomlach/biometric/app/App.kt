@@ -21,6 +21,7 @@ package dev.skomlach.biometric.app
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.multidex.MultiDexApplication
 import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
@@ -45,6 +46,7 @@ class App : MultiDexApplication() {
             private set
     }
 
+    private var ts = System.currentTimeMillis()
     override fun onCreate() {
         super.onCreate()
         Security.insertProviderAt(Conscrypt.newProvider(), 1)
@@ -53,7 +55,10 @@ class App : MultiDexApplication() {
             override fun log(string: String) {
                 LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
-                BiometricPromptCompat.init { checkForDeviceInfo() }
+                ts = System.currentTimeMillis()
+                BiometricPromptCompat.init {
+                    checkForDeviceInfo()
+                }
             }
         }
         LogCat.setLog2ViewCallback(callback)
@@ -72,11 +77,12 @@ class App : MultiDexApplication() {
                 }
                 onInitListeners.clear()
                 isReady = true
+                Log.d("BiometricPromptCompat", "checkForDeviceInfo=${System.currentTimeMillis() - ts}ms")
             }
         } else {
             Handler(Looper.getMainLooper()).postDelayed({
                 checkForDeviceInfo()
-            }, 500)
+            }, 50)
         }
     }
 

@@ -25,6 +25,7 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.Build
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.misc.SystemPropertiesProxy
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -271,6 +272,8 @@ object EmulatorDetector {
     }
 
     private fun getProp(propName: String): String {
+        val property = SystemPropertiesProxy.get(AndroidContext.appContext, propName) ?: ""
+        if (property.isNotEmpty()) return property
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("getprop", propName))
             val out = BufferedReader(InputStreamReader(process.inputStream)).use { it.readText() }
@@ -354,6 +357,8 @@ object NetworkEmulatorDetector {
     }
 
     private fun checkDefaultGateway(ip: String): Boolean {
+        val gateway = SystemPropertiesProxy.get(AndroidContext.appContext, "net.eth0.gw") ?: ""
+        if (gateway.contains(ip)) return true
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("ip", "route", "show"))
             val output =

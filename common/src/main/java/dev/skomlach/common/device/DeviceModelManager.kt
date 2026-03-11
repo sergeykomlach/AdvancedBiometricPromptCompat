@@ -38,8 +38,9 @@ data class DeviceModel(
 
 object DeviceModelManager {
 
-    private val rawBrand: String =
+    private val rawBrand: String by lazy {
         if (isAmazonKindleDevice()) "Amazon Kindle" else Build.BRAND ?: Build.MANUFACTURER ?: ""
+    }
     private val rawModel: String by lazy {
         if (Build.MODEL.isNullOrEmpty()) {
             SystemPropertiesProxy.get(appContext, "ro.product.model", Build.MODEL)
@@ -51,7 +52,7 @@ object DeviceModelManager {
     }
 
     init {
-        LogCat.log("DeviceModel.names brand=$rawBrand; model=$rawModel; marketingName=${marketingNameString}")
+        LogCat.log("DeviceModel.names brand=$rawBrand; model=$rawModel;")
     }
 
     fun getDeviceModel() =
@@ -148,31 +149,28 @@ object DeviceModelManager {
 
         return null
     }
-
     @WorkerThread
     private fun getNameFromAssets(): String? {
         LogCat.log("DeviceModel.getNameFromAssets > ")
         try {
-            val json = JSONObject(
-                DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
-                    ?: return null
-            )
+            val jsonString =  DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
+                ?: return null
+            val json = JSONObject(jsonString)//Blocker
             val list = mutableListOf<String>()
             for (key in json.keys()) {
+                if (!key.equals(rawModel, ignoreCase = true)) continue
                 val details = json.getJSONArray(key)
                 for (i in 0 until details.length()) {
                     val jsonObject = details.getJSONObject(i)
-                    val m = jsonObject.getString("model")
-                    if (m.equals(rawModel, ignoreCase = true)) {
-                        val name = getName(key, jsonObject.getString("name"))
-                        //if brand matched - set the highest priority
-                        if (rawBrand.equals(key, ignoreCase = true)) list.add(
-                            0,
-                            name
-                        )
-                        else
-                            list.add(name)
-                    }
+                    val brand = jsonObject.getString("brand")
+                    val name = getName(brand, jsonObject.getString("name"))
+                    //if brand matched - set the highest priority
+                    if (rawBrand.equals(brand, ignoreCase = true)) list.add(
+                        0,
+                        name
+                    )
+                    else
+                        list.add(name)
                 }
             }
             return list.firstOrNull().also {

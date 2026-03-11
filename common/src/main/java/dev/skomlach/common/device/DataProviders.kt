@@ -25,16 +25,37 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.translate.LocalizationHelper
-import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.net.URI
 import java.net.URLDecoder
-import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
 object DataProviders {
 
 
+    private fun readJsonFast(file: File): String {
+        FileInputStream(file).use { fis ->
+            val channel = fis.channel
+            val sizeLong = channel.size()
+            require(sizeLong <= Int.MAX_VALUE) { "File too large: $sizeLong" }
+
+            val size = sizeLong.toInt()
+            val bytes = ByteArray(size)
+
+            var offset = 0
+            while (offset < size) {
+                val read = fis.read(bytes, offset, size - offset)
+                if (read < 0) break
+                offset += read
+            }
+
+            return String(bytes, 0, offset, StandardCharsets.UTF_8)
+        }
+    }
     private fun extractFileNameFromUrl(urlStr: String?): String {
         require(!urlStr.isNullOrBlank()) { "URL is empty" }
 
@@ -76,7 +97,7 @@ object DataProviders {
         }
 
         // ---- 3. Validate ----
-        if (fileName.isNullOrBlank()) {
+        if (fileName.isBlank()) {
             throw IllegalArgumentException("Could not extract file name from URL: $urlStr")
         }
 
@@ -101,9 +122,7 @@ object DataProviders {
                         ) {
                             reload = true
                         }
-                        return it.readText(
-                            Charset.forName("UTF-8")
-                        )
+                        return readJsonFast(it)
                     } else {
                         reload = true
                     }
@@ -112,16 +131,15 @@ object DataProviders {
                 LogCat.logException(e)
             }
             try {
-                val inputStream =
-                    AndroidContext.appContext.assets.open("devices/$fileName")
-                val byteArrayOutputStream = ByteArrayOutputStream()
-                NetworkApi.fastCopy(inputStream, byteArrayOutputStream)
-                inputStream.close()
-                byteArrayOutputStream.close()
-                val data = byteArrayOutputStream.toByteArray()
-                return String(data, Charset.forName("UTF-8")).also { data ->
-                    saveToCache(data, fileName)
-                }
+                AndroidContext.appContext.assets.open("devices/$fileName")
+                    .use { input ->
+                        val bytes = input.readBytes()
+                        return String(bytes, Charsets.UTF_8).also {
+                            ExecutorHelper.startOnBackground {
+                                saveToCache(it, fileName)
+                            }
+                        }
+                    }
             } catch (e: Throwable) {
                 reload = true
                 LogCat.logException(e)
@@ -150,16 +168,26 @@ object DataProviders {
 
     private fun saveToCache(data: String, name: String) {
         try {
-            val file = File(AndroidContext.appContext.cacheDir, name)
-            if (file.parentFile?.exists() == false) {
-                file.parentFile?.mkdirs()
+            val cacheDir = AndroidContext.appContext.cacheDir
+            val file = File(cacheDir, name)
+            val parent = file.parentFile
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs()
             }
-            file.also {
-                it.delete()
-                it.writeText(
-                    data,
-                    Charset.forName("UTF-8")
-                )
+
+            val tmpFile = File(file.absolutePath + ".tmp")
+
+            FileOutputStream(tmpFile).use { fos ->
+                OutputStreamWriter(fos, StandardCharsets.UTF_8).buffered(64 * 1024).use { writer ->
+                    writer.write(data)
+                    writer.flush()
+                }
+                fos.fd.sync()
+            }
+
+            if (!tmpFile.renameTo(file)) {
+                tmpFile.delete()
+                throw IllegalStateException("Failed to rename ${tmpFile.absolutePath} to ${file.absolutePath}")
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
