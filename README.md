@@ -9,11 +9,11 @@ Advanced BiometricPromptCompat
 
 [Help/Discussing chat](https://t.me/advancedbiometric)
 
-## License
+## 📄 License
 
 Apache License 2.0
 
-## Contact author
+## 🤝 Contact author
 
 Telegram: [@SergeyKomlach](https://t.me/SerghiiKomlach)
 
@@ -25,7 +25,7 @@ Twitter: [@SergejKomlach](https://twitter.com/SergejKomlach)
 </p>
 
 
-## Introduction
+## 🚀 Introduction
 
 #### What is `BiometricPrompt API`?
 
@@ -48,7 +48,7 @@ Unfortunately, this simplification hides a number of problems.
 - On Android 12 and devices with FaceUnlock (like Pixel 4), when user disable Camera via
   QuickSettings, Face setup and FaceUnlock stop working and no API to handle this case
 
-#### How to use BiometricPromptCompat?
+#### 📦 How to use BiometricPromptCompat?
 
 BiometricPromptCompat is designed to be compatible with the largest number of Android devices.  
 Its interface is very close to the original `BiometricPrompt`.  
@@ -69,7 +69,7 @@ Latest supported Android OS version: **Android 15 VanillaIceCream**
 - DynamicColors (MaterialYou/Monet) theming supported
 
 
-#### Supported types of biometric authentication
+#### 🛡 Supported types of biometric authentication
 
 | Type                                          | Details                             | Tested on                                           |
 |-----------------------------------------------|-------------------------------------|-----------------------------------------------------| 
@@ -148,7 +148,7 @@ Add dependency to Gradle
  implementation 'dev.skomlach:biometric-ktx:${VERSION}' 
 ```  
 
-## Usage
+## 🛠 Usage
 
 **BiometricPromptCompat API**
 
@@ -297,7 +297,7 @@ Helper tool to check some biometric-related stuff in device specification
 `fun hasFaceID(DeviceInfo): Boolean`
 
 
-## Minimal code example:
+## 🖹 Minimal code example:
 
 ```kotlin
 private fun startBioAuth() {
@@ -387,7 +387,7 @@ private fun startBioAuth() {
 }
 
 ```
-## False-positive and/or False-negative detection
+## ❗️ False-positive and/or False-negative detection
 
 On **pure** API28 implementation (built-in BiometricPrompt API) is no way to get '
 isBiometricEnrolled' results for specific biometric, like Iris/Face, etc. So, some tricks have used
@@ -404,7 +404,7 @@ general cases when you
 use ```BiometricApi.AUTO/LEGACY_API + BiometricType.BIOMETRIC_FACE/BIOMETRIC_IRIS``` all should work
 fine.
 
-## I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?
+## ❓ I have a device that can be unlocked using Fingerprint/Face/Iris and(or) I can use this biometric type in pre-installed apps. But it doesn't work on 3rd party apps. Can  you help?
 
 Yes, this is, unfortunately, happening very often. Many functions demanded by the market are often
 implemented by device manufacturers before the same API appears in the official Android SDK.
@@ -417,40 +417,9 @@ banking applications, password managers, and other third-party applications cann
 And unfortunately, sometimes manufacturers create such implementations that it is impossible to
 access using any known technic.
 
-Anyway, research and testing are required for each case, so feel free to create issues or contact
-directly with me.
-
-
-## R8 warnings
-
-For RELEASE builds you can get in the console warnings like below:
-```
-AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
-AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
-AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
-AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
-AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
-AGPBI: {"kind":"warning","text":"Expected stack map table for method with non-linear control flow. In later version of R8, the method may be assumed not reachable.","sources":[{"file":"~\\biometric-2.2.3-runtime.jar"}],"tool":"R8"}
-```
-
-This warnings - just an information that classes from **Samsung_pass-v1.2.6.jar** and **Samsung_sdk-v1.0.0.jar** compiled with Class File Version **50**, when recent Gradle expect Class File Version **51**
-
-Library still works properly, so, no worries
-
+But now you can use TensorFlow FaceUnlock feature - it's an software solution with anti-spoofing and
+data encryption that emulate hardware FaceUnlock
 
 ## Some docs
 
 [DRAFT.md](https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/DRAFT.md)
-
-## Code security checks
-
-- FindBugs
-
-- Find Security Bugs
-
-- OWAPS dependencies check
-
-- Snyk
-
-- Sonatype-Lift
-
