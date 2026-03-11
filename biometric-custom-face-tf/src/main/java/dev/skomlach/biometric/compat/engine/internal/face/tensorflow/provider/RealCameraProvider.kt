@@ -260,6 +260,11 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
     }
 
     private fun processImageToBitmap(image: android.media.Image, faces: List<Face>) {
+        if (isConverting.getAndSet(true)) {
+            image.close()
+            return
+        }
+
         backgroundHandler?.post {
             try {
                 val width = image.width
@@ -274,11 +279,15 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 val uData = ByteArray(uBuffer.remaining()).apply { uBuffer.get(this) }
                 val vData = ByteArray(vBuffer.remaining()).apply { vBuffer.get(this) }
 
+                val yRowStride = planes[0].rowStride
+                val uvRowStride = planes[1].rowStride
+                val uvPixelStride = planes[1].pixelStride
+                image.close()
                 val pixels = IntArray(width * height)
                 ImageUtils.convertYUV420ToARGB8888(
                     yData, uData, vData,
                     width, height,
-                    planes[0].rowStride, planes[1].rowStride, planes[1].pixelStride,
+                    yRowStride, uvRowStride, uvPixelStride,
                     pixels
                 )
 
@@ -293,7 +302,10 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
             } catch (_: Exception) {
             } finally {
-                image.close()
+                try {
+                    image.close()
+                } catch (_: Exception) {
+                }
                 isConverting.set(false)
             }
         }
