@@ -188,7 +188,7 @@ afterEvaluate {
                 //Devices list (updated once per day)
                 downloadToAssetsByUrl("https://github.com/androidtrackers/certified-android-devices/blob/master/by_brand.json?raw=true")
                 downloadToAssetsByUrl("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
-                gsmarenaScrapeAndCopy()
+//                gsmarenaScrapeAndCopy()
             }
         }
     }

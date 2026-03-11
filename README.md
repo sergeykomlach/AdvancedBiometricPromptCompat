@@ -154,7 +154,7 @@ Add dependency to Gradle
 
 ##
 
-**BiometricPromptCompat.Companion:**
+**BiometricPromptCompat:**
 
 
 `fun getAvailableAuthRequests(): List<BiometricAuthRequest>` - return the list with all Biometrics, supported on this device
@@ -178,7 +178,7 @@ For development purpose only:
 Allows you to configure the type of target biometrics.  
 It can be any combination of BiometricApi, BiometricConfirmation and BiometricType;  
 Default
-is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY)`
+is `BiometricAuthRequest(BiometricApi.AUTO, BiometricType.BIOMETRIC_ANY, BiometricConfirmation.ANY, BiometricProviderType.COMBINED)`
 
 **BiometricConfirmation:**
 
@@ -205,6 +205,15 @@ and custom UI
 
 `BiometricType.BIOMETRIC_ANY` - use any available biometric (multiple types supported)
 
+**BiometricProviderType:**
+
+`BiometricProviderType.HARDWARE` - Use only hardware biometric
+
+`BiometricProviderType.SOFTWARE` - Use only software biometric (like TF FaceUnlock)
+
+`BiometricProviderType.COMBINED` - Use both, hardware is favor
+
+
 ##     
 
 **BiometricManagerCompat**
@@ -225,13 +234,21 @@ a) specified biometric temporarily locked (Usually need to wait for 30 seconds a
 
 b) hardware temporary locked by 3rd party app
 
-`fun openSettings(Activity): Boolean` - returns `true` if open the "Enroll biometric" settings
-screen for specified biometric
+`fun isSilentAuthAvailable(): Boolean` - returns `true` if silent auth available
 
-`fun registerCustomBiometric(): Boolean` - returns `true` provided biometric can be registered. Useful when you need to implement non-hadrware functions like AWS VoiceID etc.
+`fun loadNonHardwareBiometrics() / unloadNonHardwareBiometrics` - Register/Unregister software biometric modules (if dependency added to the list).
 
+The preferred way to proper software biometric initialization:
 
-`fun isSilentAuthAvailable(): Boolean` - returns `true` if silent auth available.
+```kotlin  
+BiometricPromptCompat.init { 
+    appScope.launch { 
+        BiometricManagerCompat.loadNonHardwareBiometrics()
+    }
+}
+```
+
+`fun unregisterAllNonHardwareBiometrics()` - Erase all previously enrolled biometric data for software biometric
 
 ##
 **BiometricPromptCompat.Builder**
@@ -246,6 +263,9 @@ Simplest builder:
 
 `fun authenticate(BiometricPromptCompat.AuthenticationCallback)` - start biometric
 auth workflow
+
+`fun setupBiometric(BiometricPromptCompat.AuthenticationCallback, enrollNewHardware : Boolean)` - start biometric
+enroll flow. Passing `enrollNewHardware=true` will force to system settings opening, in other case autodetection fired
 
 `fun cancelAuthentication()` - cancel active biometric auth workflow
 
@@ -264,7 +284,7 @@ AuthenticationFailureReason*
 
 
 
-**DeviceInfoManager:**
+**DeviceInfo:**
 
 Helper tool to check some biometric-related stuff in device specification
 
