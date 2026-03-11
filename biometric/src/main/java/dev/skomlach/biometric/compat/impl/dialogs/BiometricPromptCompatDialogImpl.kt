@@ -157,6 +157,7 @@ class BiometricPromptCompatDialogImpl(
 
     private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
         get() {
+            e("BiometricPromptGenericImpl.primaryBiometricType - ${compatBuilder.getAllAvailableTypes()}")
             val list = mutableListOf<BiometricType>()
             if (compatBuilder.getSecondaryAvailableTypes().isEmpty()) {
                 for (type in compatBuilder.getPrimaryAvailableTypes()) {
@@ -167,7 +168,7 @@ class BiometricPromptCompatDialogImpl(
                             request
                         )
                     ){
-                        //No-op
+                        list.add(type)
                     }
                     else
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request))
@@ -182,7 +183,7 @@ class BiometricPromptCompatDialogImpl(
                             request
                         )
                     ){
-                        //No-op
+                        list.add(type)
                     }
                     else
                     if (BiometricManagerCompat.isBiometricReadyForUsage(request))
