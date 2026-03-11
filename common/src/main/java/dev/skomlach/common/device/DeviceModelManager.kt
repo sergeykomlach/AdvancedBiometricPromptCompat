@@ -162,8 +162,8 @@ object DeviceModelManager {
                 val details = json.getJSONArray(key)
                 for (i in 0 until details.length()) {
                     val jsonObject = details.getJSONObject(i)
-                    val brand = jsonObject.getString("brand").takeIf { it.isNotEmpty() }?:continue
-                    val name = getName(brand, jsonObject.getString("name").takeIf { it.isNotEmpty() }?:continue)
+                    val brand = jsonObject.getString("brand")
+                    val name = getName(brand, jsonObject.getString("name"))
                     //if brand matched - set the highest priority
                     if (rawBrand.equals(brand, ignoreCase = true)) list.add(
                         0,
@@ -203,8 +203,8 @@ object DeviceModelManager {
 
     fun getName(vendor: String, model: String): String {
         if (model.startsWith(vendor, true))
-            return model
-        return "$vendor $model"
+            return model.trim()
+        return "$vendor $model".trim()
     }
 
 }
