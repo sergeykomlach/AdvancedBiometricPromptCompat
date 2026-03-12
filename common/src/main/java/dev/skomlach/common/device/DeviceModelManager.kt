@@ -47,16 +47,20 @@ object DeviceModelManager {
         } else
             Build.MODEL
     }
-    private val marketingNameString: String by lazy {
-        getMarketingName() ?: getNameFromAssets() ?: getNameFromDatabase() ?: rawModel
+    private val dm: DeviceModel by lazy {
+        DeviceModel(
+            deviceName = getMarketingName() ?: getNameFromAssets()?: getNameFromDatabase()
+            ?: getName(
+                rawBrand,
+                rawModel
+            ), brand = rawBrand, model = rawModel
+        )
     }
 
     init {
         LogCat.log("DeviceModel.names brand=$rawBrand; model=$rawModel;")
     }
-
-    fun getDeviceModel() =
-        DeviceModel(deviceName = marketingNameString, brand = rawBrand, model = rawModel)
+    fun getDeviceModel() = dm
 
     private fun isAmazonKindleDevice(): Boolean {
         val manu = (Build.MANUFACTURER ?: "").trim()
@@ -155,7 +159,7 @@ object DeviceModelManager {
         try {
             val jsonString =  DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
                 ?: return null
-            val json = JSONObject(jsonString)//Blocker
+            val json = JSONObject(jsonString)//Slow parsing!!!!
             val list = mutableListOf<String>()
             for (key in json.keys()) {
                 if (!key.equals(rawModel, ignoreCase = true)) continue

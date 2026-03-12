@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.device
 
+import androidx.annotation.Keep
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
@@ -32,6 +33,7 @@ object DeviceParser {
     }
 }
 
+@Keep
 data class Device(
     val brand: String? = null,
     val codename: String? = null,

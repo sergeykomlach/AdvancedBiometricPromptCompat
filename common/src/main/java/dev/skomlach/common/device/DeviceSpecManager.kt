@@ -69,7 +69,7 @@ object DeviceSpecManager {
             val devices = DeviceParser.parse(it)
             devices.forEach { rec ->
                 val phoneNameNorm = DeviceModelManager.getName(rec.brand ?: "", rec.name ?: "")
-                if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName)
+                if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName || rec.codename == model)
                     return DeviceSpec(phoneNameNorm, mutableMapOf<String, String>().apply {
                         rec.specs?.sensors?.let { sensors ->
                             put("Sensors", sensors)
