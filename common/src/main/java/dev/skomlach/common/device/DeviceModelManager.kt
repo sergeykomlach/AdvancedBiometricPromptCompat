@@ -27,7 +27,7 @@ import com.jaredrummler.android.device.DeviceName
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.SystemPropertiesProxy
-import org.json.JSONObject
+import org.json.JSONArray
 
 @Keep
 data class DeviceModel(
@@ -157,23 +157,31 @@ object DeviceModelManager {
     private fun getNameFromAssets(): String? {
         LogCat.log("DeviceModel.getNameFromAssets > ")
         try {
-            val jsonString =  DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
+            val fullJson =
+                DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
                 ?: return null
-            val json = JSONObject(jsonString)//Slow parsing!!!!
             val list = mutableListOf<String>()
-            for (key in json.keys()) {
-                if (!key.equals(rawModel, ignoreCase = true)) continue
-                val details = json.getJSONArray(key)
-                for (i in 0 until details.length()) {
-                    val jsonObject = details.getJSONObject(i)
-                    val brand = jsonObject.getString("brand")
-                    val name = getName(brand, jsonObject.getString("name"))
-                    //if brand matched - set the highest priority
-                    if (rawBrand.equals(brand, ignoreCase = true)) list.add(
-                        0,
-                        name
-                    )
-                    else
+
+            val searchKey = "\"$rawModel\":"
+            val startIndex = fullJson.indexOf(searchKey)
+
+            if (startIndex == -1) return null
+
+            val arrayStart = fullJson.indexOf("[", startIndex + searchKey.length)
+            if (arrayStart == -1) return null
+
+            val arrayContent = extractJsonFragment(fullJson, arrayStart, '[', ']') ?: return null
+
+
+            val jsonArray = JSONArray(arrayContent)
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                val brand = obj.optString("brand")
+                val name = getName(brand, obj.optString("name"))
+
+                if (rawBrand.equals(brand, ignoreCase = true)) {
+                    list.add(0, name)
+                } else {
                         list.add(name)
                 }
             }
@@ -187,6 +195,30 @@ object DeviceModelManager {
         return null
     }
 
+    private fun extractJsonFragment(
+        text: String,
+        startIndex: Int,
+        openChar: Char,
+        closeChar: Char
+    ): String? {
+        var balance = 0
+        var foundStart = false
+
+        for (i in startIndex until text.length) {
+            val char = text[i]
+            if (char == openChar) {
+                balance++
+                foundStart = true
+            } else if (char == closeChar) {
+                balance--
+            }
+
+            if (foundStart && balance == 0) {
+                return text.substring(startIndex, i + 1)
+            }
+        }
+        return null
+    }
     @WorkerThread
     private fun getNameFromDatabase(): String? {
         val info = DeviceName
