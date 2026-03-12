@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import com.google.gson.JsonParser
 import java.lang.reflect.Type
 
 @Keep
@@ -21,31 +20,6 @@ fun gsonForGsmarena(): Gson =
         .registerTypeAdapter(DeviceSpec::class.java, DeviceSpecDeserializer())
         .create()
 
-fun parseGsmarenaSpecsJson(json: String): List<DeviceSpec> {
-    val gson = gsonForGsmarena()
-
-    val root = try {
-        JsonParser.parseString(json)
-    } catch (_: Throwable) {
-        return emptyList()
-    }
-
-    if (!root.isJsonArray) return emptyList()
-
-    val out = ArrayList<DeviceSpec>(root.asJsonArray.size())
-    var skipped = 0
-
-    for (el in root.asJsonArray) {
-        val rec = runCatching { gson.fromJson(el, DeviceSpec::class.java) }.getOrNull()
-        if (rec == null || rec.phoneName.isBlank()) {
-            skipped++
-            continue
-        }
-        out.add(rec)
-    }
-
-    return out
-}
 
 class DeviceSpecDeserializer : JsonDeserializer<DeviceSpec> {
 

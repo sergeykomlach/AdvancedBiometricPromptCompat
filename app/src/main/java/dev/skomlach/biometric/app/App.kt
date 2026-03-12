@@ -82,7 +82,7 @@ class App : MultiDexApplication() {
         } else {
             Handler(Looper.getMainLooper()).postDelayed({
                 checkForDeviceInfo()
-            }, 100)
+            }, 500)
         }
     }
 

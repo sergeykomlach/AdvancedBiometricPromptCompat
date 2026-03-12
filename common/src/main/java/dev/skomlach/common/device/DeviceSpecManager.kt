@@ -36,53 +36,75 @@ object DeviceSpecManager {
         val json = DataProviders.getOrCacheJSON(
             "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"
         ) ?: return null
-
-        val list = parseGsmarenaSpecsJson(json).toMutableList()
-
-        if (list.isEmpty()) return null
-
-        val brand = deviceModel.brand
-        val model = deviceModel.model
-        val deviceName = deviceModel.deviceName
-
-        val rawDeviceName = DeviceModelManager.getName(brand, model)
-
-        // marketing model without vendor (case-insensitive remove)
-        val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
-
-        for (rec in list) {
-            val phoneNameNorm = rec.phoneName
-
-            if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName) return rec
-
-            val modelsNorm = rec.getModels()
-
-            if (modelsNorm.any { m ->
-                    m == model ||
-                            (marketingModelNoBrand.isNotEmpty() && m == marketingModelNoBrand)
-                }
-            ) return rec
+        findGsmarenaSpec(json,deviceModel)?.let {
+            return it
         }
+
         DataProviders.getOrCacheJSON(
             "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
         )?.let {
-            val devices = DeviceParser.parse(it)
-            devices.forEach { rec ->
-                val phoneNameNorm = DeviceModelManager.getName(rec.brand ?: "", rec.name ?: "")
-                if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName || rec.codename == model)
-                    return DeviceSpec(phoneNameNorm, mutableMapOf<String, String>().apply {
-                        rec.specs?.sensors?.let { sensors ->
-                            put("Sensors", sensors)
+            return DeviceParser.findDeviceSpecInJson(it, deviceModel)
+        }
+        return null
+    }
+    private fun findGsmarenaSpec(
+        json: String,
+        deviceModel: DeviceModel
+    ): DeviceSpec? {
+        val brand = deviceModel.brand
+        val model = deviceModel.model
+        val deviceName = deviceModel.deviceName
+        val rawDeviceName = DeviceModelManager.getName(brand, model)
+        val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
+
+        val searchTerms = mutableSetOf<String>().apply {
+            add("\"phone_name\":\"$deviceName\"")
+            add("\"phone_name\":\"$rawDeviceName\"")
+            if (model.isNotEmpty()) add(model)
+            if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand)
+        }
+
+        val gson = gsonForGsmarena()
+
+        for (term in searchTerms) {
+            var lastIndex = 0
+            while (true) {
+                val index = json.indexOf(term, lastIndex)
+                if (index == -1) break
+                val objectStart = json.lastIndexOf('{', index)
+                if (objectStart != -1) {
+                    val fragment = extractJsonFragment(json, objectStart, '{', '}')
+                    if (fragment != null) {
+                        try {
+                            val rec = gson.fromJson(fragment, DeviceSpec::class.java)
+
+                            val phoneNameNorm = rec.phoneName
+                            if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName) {
+                                return rec
+                            }
+
+                            val modelsNorm = rec.getModels()
+                            if (modelsNorm.any { m ->
+                                    m == model || (marketingModelNoBrand.isNotEmpty() && m == marketingModelNoBrand)
+                                }
+                            ) {
+                                return rec
+                            }
+                        } catch (e: Exception) {
+
                         }
-                    }, emptyMap())
+                    }
+                }
+                lastIndex = index + term.length
             }
         }
         return null
     }
 
+
 // --- helpers ---
 
-    private fun removeBrandPrefixIgnoreCase(name: String, brand: String): String {
+    fun removeBrandPrefixIgnoreCase(name: String, brand: String): String {
         if (brand.isBlank()) return name.trim()
         val n = name.trim()
         val b = brand.trim()
@@ -103,21 +125,4 @@ object DeviceSpecManager {
             .map { capitalize(it) }
             .toSet()
     }
-
-    private fun splitString(str: String, delimiter: String): Array<String> {
-        if (str.isEmpty() || delimiter.isEmpty()) {
-            return arrayOf(str)
-        }
-        val list = ArrayList<String>()
-        var start = 0
-        var end = str.indexOf(delimiter, start)
-        while (end != -1) {
-            list.add(str.substring(start, end))
-            start = end + delimiter.length
-            end = str.indexOf(delimiter, start)
-        }
-        list.add(str.substring(start))
-        return list.toTypedArray()
-    }
-
 }

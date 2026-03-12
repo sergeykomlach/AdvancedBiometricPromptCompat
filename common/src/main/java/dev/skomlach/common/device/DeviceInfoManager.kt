@@ -34,27 +34,19 @@ object DeviceInfoManager {
     const val OUTDATE_TIME_DAYS = 30L
     const val OUTDATE_TIME_DAYS_MINUS_ONE = OUTDATE_TIME_DAYS - 1
 
+    //
 //    init {
 //        getPreferences(PREF_NAME).apply {
 //            edit().clear().commit()
 //        }
 //    }
-    @WorkerThread
-    fun getDeviceInfo(listener: OnDeviceInfoListener) {
-        if (Looper.getMainLooper().thread === Thread.currentThread()) throw IllegalThreadStateException(
-            "Worker thread required"
-        )
-        val onDeviceInfoListener = WeakReference(listener)
-        var deviceInfo = cachedDeviceInfo
-        if (deviceInfo != null) {
-            onDeviceInfoListener.get()?.onReady(deviceInfo)
-            return
+    fun getDeviceInfo(): DeviceInfo {
+        return cachedDeviceInfo ?: run {
+            val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
+            getCurrentDeviceInfo(emulatorKind).also {
+                setCachedDeviceInfo(it)
+            }
         }
-        val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
-        deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
-            setCachedDeviceInfo(it)
-        }
-        onDeviceInfoListener.get()?.onReady(deviceInfo)
     }
 
     //Fix for case when DeviceName contains non-ASCII symbols
@@ -150,10 +142,5 @@ object DeviceInfoManager {
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
-    }
-
-
-    interface OnDeviceInfoListener {
-        fun onReady(deviceInfo: DeviceInfo?)
     }
 }

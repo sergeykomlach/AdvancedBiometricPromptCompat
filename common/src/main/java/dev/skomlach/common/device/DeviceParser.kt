@@ -23,13 +23,90 @@ import androidx.annotation.Keep
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
-
+import dev.skomlach.common.device.DeviceSpecManager.removeBrandPrefixIgnoreCase
+import dev.skomlach.common.logging.LogCat
+fun extractJsonFragment(text: String, startIndex: Int, openChar: Char, closeChar: Char): String? {
+    var balance = 0
+    var foundStart = false
+    for (i in startIndex until text.length) {
+        val char = text[i]
+        if (char == openChar) {
+            balance++
+            foundStart = true
+        } else if (char == closeChar) {
+            balance--
+        }
+        if (foundStart && balance == 0) {
+            return text.substring(startIndex, i + 1)
+        }
+    }
+    return null
+}
 object DeviceParser {
 
-    private val gson = Gson()
-    fun parse(json: String): List<Device> {
-        val type = object : TypeToken<List<Device>>() {}.type
-        return gson.fromJson(json, type)
+    fun findDeviceSpecInJson(
+        fullJson: String,
+        deviceModel: DeviceModel
+    ): DeviceSpec? {
+        val brand = deviceModel.brand
+        val model = deviceModel.model
+        val deviceName = deviceModel.deviceName
+        val rawDeviceName = DeviceModelManager.getName(brand, model)
+        val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
+
+        val searchTerms = mutableSetOf<String>().apply {
+            add(deviceName)
+            add(rawDeviceName)
+            if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand)
+        }
+
+        val searchPattern = "\"codename\":\"$model\""
+        var startIndex = fullJson.indexOf(searchPattern)
+
+        if (startIndex == -1) {
+            searchTerms.forEach {
+                if (startIndex != -1) return@forEach
+                val namePattern = "\"name\":\"$it\""
+                startIndex = fullJson.indexOf(namePattern)
+            }
+        }
+
+        if (startIndex == -1){
+            LogCat.logError("findDeviceSpecInJson < startIndex == -1")
+            return null
+        }
+
+        val objectStart = fullJson.lastIndexOf('{', startIndex)
+        if (objectStart == -1) {
+            LogCat.logError("findDeviceSpecInJson < objectStart == -1")
+            return null
+        }
+
+        val jsonObjectString = extractJsonFragment(fullJson, objectStart, '{', '}') ?: run {
+
+                LogCat.logError("findDeviceSpecInJson < jsonObjectString is null")
+                return null
+        }
+
+        try {
+
+            val rec = Gson().fromJson(jsonObjectString, Device::class.java)
+            LogCat.logError("findDeviceSpecInJson $rec")
+            val phoneNameNorm = DeviceModelManager.getName(rec.brand ?: "", rec.name ?: "")
+            if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName || rec.codename == model) {
+                return DeviceSpec(
+                    phoneName = phoneNameNorm,
+                    specs = mutableMapOf<String, String>().apply {
+                        rec.specs?.sensors?.let { sensors -> put("Sensors", sensors) }
+                    },
+                    metadata = emptyMap()
+                )
+            }
+        } catch (e: Exception) {
+            LogCat.logException(e)
+        }
+        LogCat.logError("findDeviceSpecInJson null")
+        return null
     }
 }
 

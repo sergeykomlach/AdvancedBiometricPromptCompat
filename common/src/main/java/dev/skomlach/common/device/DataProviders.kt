@@ -134,11 +134,7 @@ object DataProviders {
                 AndroidContext.appContext.assets.open("devices/$fileName")
                     .use { input ->
                         val bytes = input.readBytes()
-                        return String(bytes, Charsets.UTF_8).also {
-                            ExecutorHelper.startOnBackground {
-                                saveToCache(it, fileName)
-                            }
-                        }
+                        return String(bytes, Charsets.UTF_8)
                     }
             } catch (e: Throwable) {
                 reload = true

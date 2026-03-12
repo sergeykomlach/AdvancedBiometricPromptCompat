@@ -194,31 +194,6 @@ object DeviceModelManager {
         LogCat.log("DeviceModel.getNameFromAssets < null")
         return null
     }
-
-    private fun extractJsonFragment(
-        text: String,
-        startIndex: Int,
-        openChar: Char,
-        closeChar: Char
-    ): String? {
-        var balance = 0
-        var foundStart = false
-
-        for (i in startIndex until text.length) {
-            val char = text[i]
-            if (char == openChar) {
-                balance++
-                foundStart = true
-            } else if (char == closeChar) {
-                balance--
-            }
-
-            if (foundStart && balance == 0) {
-                return text.substring(startIndex, i + 1)
-            }
-        }
-        return null
-    }
     @WorkerThread
     private fun getNameFromDatabase(): String? {
         val info = DeviceName
