@@ -180,7 +180,7 @@ object DeviceModelManager {
                 val name = getName(brand, obj.optString("name"))
 
                 if (rawBrand.equals(brand, ignoreCase = true)) {
-                    list.add(0, name)
+                       return name
                 } else {
                         list.add(name)
                 }
