@@ -19,6 +19,10 @@
 
 package dev.skomlach.common.device
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+
 object DeviceSpecManager {
 
     fun DeviceSpec?.getSensors(): Set<String> {
@@ -32,20 +36,30 @@ object DeviceSpecManager {
     }
 
     //tools
-    fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec? {
-        val json = DataProviders.getOrCacheJSON(
-            "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"
-        ) ?: return null
-        findGsmarenaSpec(json,deviceModel)?.let {
-            return it
+    fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec? = runBlocking {
+        val gsmarenaDeferred = async(Dispatchers.IO) {
+            DataProviders.getOrCacheJSON(
+                "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"
+            )?.let { json ->
+                findGsmarenaSpec(json, deviceModel)
+            }
         }
 
-        DataProviders.getOrCacheJSON(
-            "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
-        )?.let {
-            return DeviceParser.findDeviceSpecInJson(it, deviceModel)
+        val devicesDeferred = async(Dispatchers.IO) {
+            DataProviders.getOrCacheJSON(
+                "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
+            )?.let { json ->
+                DeviceParser.findDeviceSpecInJson(json, deviceModel)
+            }
         }
-        return null
+
+        val first = gsmarenaDeferred.await()
+        if (first != null) {
+            devicesDeferred.cancel()
+            return@runBlocking first
+        }
+
+        devicesDeferred.await()
     }
     private fun findGsmarenaSpec(
         json: String,

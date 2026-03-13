@@ -34,19 +34,27 @@ object DeviceInfoManager {
     const val OUTDATE_TIME_DAYS = 30L
     const val OUTDATE_TIME_DAYS_MINUS_ONE = OUTDATE_TIME_DAYS - 1
 
-    //
-//    init {
-//        getPreferences(PREF_NAME).apply {
-//            edit().clear().commit()
-//        }
-//    }
-    fun getDeviceInfo(): DeviceInfo {
-        return cachedDeviceInfo ?: run {
-            val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
-            getCurrentDeviceInfo(emulatorKind).also {
-                setCachedDeviceInfo(it)
-            }
+        init {
+        getPreferences(PREF_NAME).apply {
+            edit().clear().commit()
         }
+    }
+    @WorkerThread
+    fun getDeviceInfo(listener: OnDeviceInfoListener) {
+        if (Looper.getMainLooper().thread === Thread.currentThread()) throw IllegalThreadStateException(
+            "Worker thread required"
+        )
+        val onDeviceInfoListener = WeakReference(listener)
+        var deviceInfo = cachedDeviceInfo
+        if (deviceInfo != null) {
+            onDeviceInfoListener.get()?.onReady(deviceInfo)
+            return
+        }
+        val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
+        deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
+            setCachedDeviceInfo(it)
+        }
+        onDeviceInfoListener.get()?.onReady(deviceInfo)
     }
 
     //Fix for case when DeviceName contains non-ASCII symbols
@@ -112,12 +120,15 @@ object DeviceInfoManager {
         cachedDeviceInfo?.let {
             return it
         }
+        var ts = System.currentTimeMillis()
         val deviceModel = DeviceModelManager.getDeviceModel()
+        LogCat.log("DeviceInfoManager: ts=${System.currentTimeMillis() - ts}; deviceModel=$deviceModel")
+        ts = System.currentTimeMillis()
         val deviceSpec = DeviceSpecManager.getDeviceSpecCompat(deviceModel)
-        LogCat.log("DeviceInfoManager: deviceSpec=$deviceSpec")
-
+        LogCat.log("DeviceInfoManager: ts=${System.currentTimeMillis() - ts}; deviceSpec=$deviceSpec")
+        ts = System.currentTimeMillis()
         val deviceName = deviceSpec?.phoneName ?: deviceModel.deviceName
-        LogCat.log("DeviceInfoManager: name=$deviceName")
+
         return DeviceInfo(
             deviceName,
             fixModelAsAscii(deviceName),
@@ -125,7 +136,7 @@ object DeviceInfoManager {
             Date().time,
             emulatorKind
         ).also {
-            LogCat.log("DeviceInfoManager: " + it.model + " -> " + it)
+            LogCat.log("DeviceInfoManager: ts=${System.currentTimeMillis() - ts}; DeviceInfo=$it")
             cachedDeviceInfo = it
         }
     }
@@ -142,5 +153,10 @@ object DeviceInfoManager {
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
+    }
+
+
+    interface OnDeviceInfoListener {
+        fun onReady(deviceInfo: DeviceInfo?)
     }
 }
