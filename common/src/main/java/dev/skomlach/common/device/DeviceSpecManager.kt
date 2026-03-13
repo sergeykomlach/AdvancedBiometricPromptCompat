@@ -78,7 +78,7 @@ object DeviceSpecManager {
             if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand)
         }
 
-        val gson = gsonForGsmarena()
+
 
         for (term in searchTerms) {
             var lastIndex = 0
@@ -90,7 +90,7 @@ object DeviceSpecManager {
                     val fragment = extractJsonFragment(json, objectStart, '{', '}')
                     if (fragment != null) {
                         try {
-                            val rec = gson.fromJson(fragment, DeviceSpec::class.java)
+                            val rec = manualParseDeviceSpec(fragment)
 
                             val phoneNameNorm = rec.phoneName
                             if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName) {
