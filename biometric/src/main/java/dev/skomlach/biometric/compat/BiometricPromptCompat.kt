@@ -92,14 +92,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             private set
 
         init {
-            ExecutorHelper.startOnBackground {
-                DeviceInfoManager.getDeviceInfo(object :
-                    DeviceInfoManager.OnDeviceInfoListener {
-                    override fun onReady(info: DeviceInfo?) {
-                        deviceInfo = info
-                    }
-                })
-            }
             if (API_ENABLED) {
 
                 if (!AppCompatDelegate.isCompatVectorFromResourcesEnabled())
@@ -200,6 +192,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     pendingTasks.add(execute)
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
                     reference.set(false)
+                    ExecutorHelper.startOnBackground {
+                        DeviceInfoManager.getDeviceInfo(object :
+                            DeviceInfoManager.OnDeviceInfoListener {
+                            override fun onReady(info: DeviceInfo?) {
+                                deviceInfo = info
+                            }
+                        })
+                    }
                     HookDetection.detect(object : HookDetection.HookDetectionListener {
                         override fun onDetected(flag: Boolean) {
                             reference.set(flag)

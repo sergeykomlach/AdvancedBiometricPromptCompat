@@ -20,16 +20,14 @@
 package dev.skomlach.common.network
 
 import android.net.TrafficStats
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
-import java.nio.ByteBuffer
-import java.nio.channels.Channels
-import java.nio.channels.ReadableByteChannel
-import java.nio.channels.WritableByteChannel
 import java.util.Locale
 import javax.net.ssl.HttpsURLConnection
 
@@ -68,25 +66,22 @@ object NetworkApi {
     }
 
     @Throws(IOException::class)
-    fun fastCopy(src: InputStream?, dest: OutputStream?) {
-        val inputChannel = Channels.newChannel(src)
-        val outputChannel = Channels.newChannel(dest)
-        fastCopy(inputChannel, outputChannel)
-        inputChannel.close()
-        outputChannel.close()
-    }
-
-    @Throws(IOException::class)
-    fun fastCopy(src: ReadableByteChannel, dest: WritableByteChannel) {
-        val buffer = ByteBuffer.allocateDirect(16 * 1024)
-        while (src.read(buffer) != -1) {
-            buffer.flip()
-            dest.write(buffer)
-            buffer.compact()
+    fun fastCopy(src: InputStream, dest: OutputStream) {
+        if (src is FileInputStream && dest is FileOutputStream) {
+            val inChannel = src.channel
+            val outChannel = dest.channel
+            val size = inChannel.size()
+            var position: Long = 0
+            while (position < size) {
+                position += inChannel.transferTo(position, size - position, outChannel)
+            }
+            return
         }
-        buffer.flip()
-        while (buffer.hasRemaining()) {
-            dest.write(buffer)
+        val size = src.available()
+        val buffer = ByteArray(if (size > 0) size else 512 * 1024)
+        var bytesRead: Int
+        while (src.read(buffer).also { bytesRead = it } != -1) {
+            dest.write(buffer, 0, bytesRead)
         }
     }
 

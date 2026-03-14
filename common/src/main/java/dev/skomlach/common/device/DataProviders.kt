@@ -25,6 +25,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.translate.LocalizationHelper
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -111,9 +112,6 @@ object DataProviders {
         try {
             try {
                 val file = File(AndroidContext.appContext.cacheDir, fileName)
-                if (file.parentFile?.exists() == false) {
-                    file.parentFile?.mkdirs()
-                }
                 file.also {
                     if (it.exists()) {
                         if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
@@ -131,11 +129,11 @@ object DataProviders {
                 LogCat.logException(e)
             }
             try {
-                AndroidContext.appContext.assets.open("devices/$fileName")
-                    .use { input ->
-                        val bytes = input.readBytes()
-                        return String(bytes, Charsets.UTF_8)
-                    }
+                return AndroidContext.appContext.assets.open("devices/$fileName").use { stream ->
+                    val out = ByteArrayOutputStream()
+                    NetworkApi.fastCopy(stream, out)
+                    String(out.toByteArray(), StandardCharsets.UTF_8)
+                }
             } catch (e: Throwable) {
                 reload = true
                 LogCat.logException(e)
@@ -174,7 +172,7 @@ object DataProviders {
             val tmpFile = File(file.absolutePath + ".tmp")
 
             FileOutputStream(tmpFile).use { fos ->
-                OutputStreamWriter(fos, StandardCharsets.UTF_8).buffered(64 * 1024).use { writer ->
+                OutputStreamWriter(fos, StandardCharsets.UTF_8).buffered(512 * 1024).use { writer ->
                     writer.write(data)
                     writer.flush()
                 }
