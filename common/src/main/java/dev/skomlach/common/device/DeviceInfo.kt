@@ -24,17 +24,17 @@ import java.util.Locale
 
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,
-    message = "This field may contain Unicode characters. If you are using it for User-Agent or HTTP headers, it is better to use 'modelAsAscii' or clean it of non-ASCII characters to avoid IllegalArgumentException/Crash"
+    message = "This field may contain Unicode characters. If you are using it for User-Agent or HTTP headers, it is better to use 'modelAsAnsi' or clean it of non-ASCII characters to avoid IllegalArgumentException/Crash"
 )
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
-annotation class PotentialNonAsciiContent
+annotation class PotentialNonAnsiiContent
 
 @Keep
 data class DeviceInfo(
-    @PotentialNonAsciiContent
+    @PotentialNonAnsiiContent
     val model: String,
-    val modelAsAscii: String,
+    val modelAsAnsi: String,
     val sensors: Set<String>,
     val timeStamp: Long,
     /**

@@ -32,7 +32,7 @@ import org.json.JSONArray
 @Keep
 data class DeviceModel(
     val deviceName: String,
-    val deviceNameAsAnsii: String,
+    val deviceNameAsAnsi: String,
     val brand: String,
     val model: String
 )
@@ -55,7 +55,7 @@ object DeviceModelManager {
         )
         DeviceModel(
             deviceName = name,
-            deviceNameAsAnsii = fixModelAsAscii(name),
+            deviceNameAsAnsi = fixModelAsAnsi(name),
             brand = rawBrand,
             model = rawModel
         )

@@ -26,9 +26,9 @@ import dev.skomlach.common.device.DeviceSpecManager.removeBrandPrefixIgnoreCase
 import dev.skomlach.common.logging.LogCat
 
 
-//Fix for case when DeviceName contains non-ASCII symbols
+//Fix for case when DeviceName contains non-ANSI symbols
 //Example: Motorola Edge 軽 7
-fun fixModelAsAscii(ua: String): String {
+fun fixModelAsAnsi(ua: String): String {
     if (ua.isEmpty()) return ""
 
     val result = StringBuilder(ua.length)

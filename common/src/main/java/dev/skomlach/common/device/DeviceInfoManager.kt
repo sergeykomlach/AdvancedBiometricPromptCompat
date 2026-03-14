@@ -76,7 +76,7 @@ object DeviceInfoManager {
                     val emulatorKind =
                         emu?.let { runCatching { EmulatorKind.valueOf(it) }.getOrNull() }
                     field =
-                        DeviceInfo(model, fixModelAsAscii(model), sensors, checked, emulatorKind)
+                        DeviceInfo(model, fixModelAsAnsi(model), sensors, checked, emulatorKind)
                 }
             } else {
                 if (Date().time - (field?.timeStamp ?: 0) >= TimeUnit.DAYS.toMillis(
@@ -104,7 +104,7 @@ object DeviceInfoManager {
 
         return DeviceInfo(
             deviceName,
-            fixModelAsAscii(deviceName),
+            fixModelAsAnsi(deviceName),
             deviceSpec.getSensors(),
             Date().time,
             emulatorKind
