@@ -164,7 +164,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
-        internal var deviceInfo: DeviceInfo? = null
+        var deviceInfo: DeviceInfo? = null
         private var authFlowInProgress = AtomicBoolean(false)
         var initStart = System.currentTimeMillis()
 

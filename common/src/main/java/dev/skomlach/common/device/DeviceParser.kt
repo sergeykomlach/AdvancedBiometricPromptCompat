@@ -25,6 +25,35 @@ import com.google.gson.annotations.SerializedName
 import dev.skomlach.common.device.DeviceSpecManager.removeBrandPrefixIgnoreCase
 import dev.skomlach.common.logging.LogCat
 
+
+//Fix for case when DeviceName contains non-ASCII symbols
+//Example: Motorola Edge 軽 7
+fun fixModelAsAscii(ua: String): String {
+    if (ua.isEmpty()) return ""
+
+    val result = StringBuilder(ua.length)
+    var lastWasSpace = false
+
+    for (c in ua) {
+        val isValid = c in '\u0020'..'\u007e'
+
+        if (isValid) {
+            val isCurrentSpace = (c == ' ')
+            if (!(isCurrentSpace && lastWasSpace)) {
+                result.append(c)
+                lastWasSpace = isCurrentSpace
+            }
+        } else {
+            if (!lastWasSpace) {
+                result.append('?')
+                lastWasSpace = true
+            }
+        }
+    }
+    return if (result.isEmpty()) "Unknown"
+    else
+        result.toString().replace("\\s+".toRegex(), " ").trim()
+}
 fun extractJsonFragment(text: String, startIndex: Int, openChar: Char, closeChar: Char): String? {
     var balance = 0
     var foundStart = false

@@ -32,6 +32,7 @@ import org.json.JSONArray
 @Keep
 data class DeviceModel(
     val deviceName: String,
+    val deviceNameAsAnsii: String,
     val brand: String,
     val model: String
 )
@@ -48,12 +49,15 @@ object DeviceModelManager {
             Build.MODEL
     }
     private val dm: DeviceModel by lazy {
+        val name = getMarketingName() ?: getNameFromAssets() ?: getNameFromDatabase() ?: getName(
+            rawBrand,
+            rawModel
+        )
         DeviceModel(
-            deviceName = getMarketingName() ?: getNameFromAssets() ?: getNameFromDatabase()
-            ?: getName(
-                rawBrand,
-                rawModel
-            ), brand = rawBrand, model = rawModel
+            deviceName = name,
+            deviceNameAsAnsii = fixModelAsAscii(name),
+            brand = rawBrand,
+            model = rawModel
         )
     }
 

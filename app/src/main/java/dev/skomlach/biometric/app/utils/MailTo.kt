@@ -158,7 +158,7 @@ object MailTo {
             val dir = File(ctx.filesDir, "zipfiles").also {
                 if (!it.exists()) it.mkdirs()
             }
-            val file = File(dir, DeviceModelManager.getDeviceModel().deviceName + "_biometric_log.zip")
+            val file = File(dir, (BiometricPromptCompat.deviceInfo?.model?:DeviceModelManager.getDeviceModel().deviceName) + "_biometric_log.zip")
             zip(list.map { it.absolutePath }.toTypedArray(), file)
             val fileUri: Uri? = try {
                 FileProvider.getUriForFile(

@@ -58,34 +58,6 @@ object DeviceInfoManager {
         onDeviceInfoListener.get()?.onReady(deviceInfo)
     }
 
-    //Fix for case when DeviceName contains non-ASCII symbols
-    //Example: Motorola Edge 軽 7
-    private fun fixModelAsAscii(ua: String): String {
-        if (ua.isEmpty()) return ""
-
-        val result = StringBuilder(ua.length)
-        var lastWasSpace = false
-
-        for (c in ua) {
-            val isValid = c in '\u0020'..'\u007e'
-
-            if (isValid) {
-                val isCurrentSpace = (c == ' ')
-                if (!(isCurrentSpace && lastWasSpace)) {
-                    result.append(c)
-                    lastWasSpace = isCurrentSpace
-                }
-            } else {
-                if (!lastWasSpace) {
-                    result.append('?')
-                    lastWasSpace = true
-                }
-            }
-        }
-        return if (result.isEmpty()) "Unknown"
-        else
-            result.toString().replace("\\s+".toRegex(), " ").trim()
-    }
 
     @Volatile
     private var cachedDeviceInfo: DeviceInfo? = null
