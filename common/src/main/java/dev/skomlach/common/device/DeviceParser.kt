@@ -54,20 +54,20 @@ object DeviceParser {
         val rawDeviceName = DeviceModelManager.getName(brand, model)
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 
-        val searchTerms = mutableSetOf<String>().apply {
-            add(deviceName)
-            add(rawDeviceName)
-            if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand)
+        val searchTerms = mutableMapOf<String, Boolean>().apply {
+            put(deviceName, false)
+            put(rawDeviceName, false)
+            if (marketingModelNoBrand.isNotEmpty()) put(marketingModelNoBrand, true)
         }
 
         val searchPattern = "\"codename\":\"$model\""
         var startIndex = fullJson.indexOf(searchPattern)
 
         if (startIndex == -1) {
-            searchTerms.forEach {
-                if (startIndex != -1) return@forEach
-                val namePattern = "\"name\":\"$it\""
-                startIndex = fullJson.indexOf(namePattern)
+            for ((term, ignore) in searchTerms) {
+                val namePattern = "\"name\":\"$term\""
+                startIndex = fullJson.indexOf(namePattern, ignoreCase = ignore)
+                if (startIndex != -1) break
             }
         }
 

@@ -157,9 +157,13 @@ object DeviceModelManager {
     private fun getNameFromAssets(): String? {
         LogCat.log("DeviceModel.getNameFromAssets > ")
         try {
+            var ts = System.currentTimeMillis()
             val fullJson =
                 DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
                 ?: return null
+
+            LogCat.log("DeviceModel.getNameFromAssets fullJson load time ${System.currentTimeMillis() - ts}ms")
+            ts = System.currentTimeMillis()
             val list = mutableListOf<String>()
 
             val searchKey = "\"$rawModel\":"
@@ -169,10 +173,13 @@ object DeviceModelManager {
 
             val arrayStart = fullJson.indexOf("[", startIndex + searchKey.length)
             if (arrayStart == -1) return null
+            LogCat.log("DeviceModel.getNameFromAssets find indexes time ${System.currentTimeMillis() - ts}ms")
+            ts = System.currentTimeMillis()
 
             val arrayContent = extractJsonFragment(fullJson, arrayStart, '[', ']') ?: return null
 
-
+            LogCat.log("DeviceModel.getNameFromAssets arrayContent time ${System.currentTimeMillis() - ts}ms")
+            ts = System.currentTimeMillis()
             val jsonArray = JSONArray(arrayContent)
             for (i in 0 until jsonArray.length()) {
                 val obj = jsonArray.getJSONObject(i)
@@ -185,6 +192,8 @@ object DeviceModelManager {
                         list.add(name)
                 }
             }
+            LogCat.log("DeviceModel.getNameFromAssets result ready time ${System.currentTimeMillis() - ts}ms")
+            ts = System.currentTimeMillis()
             return list.firstOrNull().also {
                 LogCat.log("DeviceModel.getNameFromAssets< $it")
             }

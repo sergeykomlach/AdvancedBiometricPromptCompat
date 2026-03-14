@@ -27,12 +27,12 @@ object DeviceSpecManager {
 
     fun DeviceSpec?.getSensors(): Set<String> {
         if (this == null) return emptySet()
-        return stringToArray(specs["Sensors"] ?: "")
+        return stringToArray(specs["Sensors"] ?: specs["sensors"] ?:"")
     }
 
     fun DeviceSpec?.getModels(): Set<String> {
         if (this == null) return emptySet()
-        return stringToArray(specs["Models"] ?: "")
+        return stringToArray(specs["Models"] ?: specs["models"] ?: "")
     }
 
     //tools
@@ -71,19 +71,19 @@ object DeviceSpecManager {
         val rawDeviceName = DeviceModelManager.getName(brand, model)
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 
-        val searchTerms = mutableSetOf<String>().apply {
-            add("\"phone_name\":\"$deviceName\"")
-            add("\"phone_name\":\"$rawDeviceName\"")
-            if (model.isNotEmpty()) add(model)
-            if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand)
+        val searchTerms = mutableMapOf<String, Boolean>().apply {
+            put("\"phone_name\":\"$deviceName\"" , false)
+            put("\"phone_name\":\"$rawDeviceName\"" , false)
+            if (model.isNotEmpty()) put(model , true)
+            if (marketingModelNoBrand.isNotEmpty()) put(marketingModelNoBrand , true)
         }
 
 
 
-        for (term in searchTerms) {
+        for ((term, ignore) in searchTerms) {
             var lastIndex = 0
             while (true) {
-                val index = json.indexOf(term, lastIndex)
+                val index = json.indexOf(term, lastIndex, ignoreCase = ignore)
                 if (index == -1) break
                 val objectStart = json.lastIndexOf('{', index)
                 if (objectStart != -1) {
