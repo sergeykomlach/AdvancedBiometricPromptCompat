@@ -158,7 +158,7 @@ class FirstFragment : Fragment() {
         ExecutorHelper.startOnBackground {
             DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
                 override fun onReady(deviceInfo: DeviceInfo?) {
-                    binding?.text?.post {
+                    ExecutorHelper.post {
                         binding?.text?.text = deviceInfo.toString()
                     }
 

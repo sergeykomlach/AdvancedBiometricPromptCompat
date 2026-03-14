@@ -124,7 +124,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         ExecutorHelper.startOnBackground {
             DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
                 override fun onReady(deviceInfo: DeviceInfo?) {
-                    view?.post {
+                    ExecutorHelper.post {
                         view?.findViewById<TextView>(R.id.text)?.text = deviceInfo.toString()
                     }
 

@@ -31,10 +31,11 @@ import dev.skomlach.common.misc.ExecutorHelper
 class BiometricInitProvider : ContentProvider() {
 
     override fun onCreate(): Boolean {
+
         try {
             BiometricPromptCompat.init()
         } catch (e: Throwable) {
-            ContextCompat.getMainExecutor(context?:return false).execute {
+            ContextCompat.getMainExecutor(context ?: return false).execute {
                 try {
                     BiometricPromptCompat.init()
                 } catch (e: Throwable) {
