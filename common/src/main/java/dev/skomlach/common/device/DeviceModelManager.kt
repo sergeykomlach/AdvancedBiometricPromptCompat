@@ -49,7 +49,7 @@ object DeviceModelManager {
     }
     private val dm: DeviceModel by lazy {
         DeviceModel(
-            deviceName = getMarketingName() ?: getNameFromAssets()?: getNameFromDatabase()
+            deviceName = getMarketingName() ?: getNameFromAssets() ?: getNameFromDatabase()
             ?: getName(
                 rawBrand,
                 rawModel
@@ -60,6 +60,7 @@ object DeviceModelManager {
     init {
         LogCat.log("DeviceModel.names brand=$rawBrand; model=$rawModel;")
     }
+
     fun getDeviceModel() = dm
 
     private fun isAmazonKindleDevice(): Boolean {
@@ -153,6 +154,7 @@ object DeviceModelManager {
 
         return null
     }
+
     @WorkerThread
     private fun getNameFromAssets(): String? {
         LogCat.log("DeviceModel.getNameFromAssets > ")
@@ -160,7 +162,7 @@ object DeviceModelManager {
             var ts = System.currentTimeMillis()
             val fullJson =
                 DataProviders.getOrCacheJSON("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
-                ?: return null
+                    ?: return null
 
             LogCat.log("DeviceModel.getNameFromAssets fullJson load time ${System.currentTimeMillis() - ts}ms")
             ts = System.currentTimeMillis()
@@ -187,9 +189,9 @@ object DeviceModelManager {
                 val name = getName(brand, obj.optString("name"))
 
                 if (rawBrand.equals(brand, ignoreCase = true)) {
-                       return name
+                    return name
                 } else {
-                        list.add(name)
+                    list.add(name)
                 }
             }
             LogCat.log("DeviceModel.getNameFromAssets result ready time ${System.currentTimeMillis() - ts}ms")
@@ -203,6 +205,7 @@ object DeviceModelManager {
         LogCat.log("DeviceModel.getNameFromAssets < null")
         return null
     }
+
     @WorkerThread
     private fun getNameFromDatabase(): String? {
         val info = DeviceName

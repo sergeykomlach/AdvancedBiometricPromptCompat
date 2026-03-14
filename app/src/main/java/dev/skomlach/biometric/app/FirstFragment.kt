@@ -28,6 +28,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
@@ -36,6 +37,9 @@ import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.device.DeviceInfo
+import dev.skomlach.common.device.DeviceInfoManager
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 //import leakcanary.LeakCanary
@@ -151,8 +155,16 @@ class FirstFragment : Fragment() {
     }
 
     private fun checkDeviceInfo() {
-        val deviceInfo = BiometricPromptCompat.deviceInfo
-        binding?.text?.text = deviceInfo.toString()
+        ExecutorHelper.startOnBackground {
+            DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
+                override fun onReady(deviceInfo: DeviceInfo?) {
+                    binding?.text?.post {
+                        binding?.text?.text = deviceInfo.toString()
+                    }
+
+                }
+            })
+        }
     }
 
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout?) {

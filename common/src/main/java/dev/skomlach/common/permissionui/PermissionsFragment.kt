@@ -96,7 +96,7 @@ class PermissionsFragment : Fragment() {
         ) {
             LogCat.log("PermissionsFragment.askForPermissions()")
             if (permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
-                val tag = PermissionsFragment.TAG
+                val tag = TAG
                 if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                     return
                 val fragment = PermissionsFragment()
@@ -402,7 +402,7 @@ class PermissionsFragment : Fragment() {
 
     private fun closeFragment() {
         LogCat.logError("PermissionsFragment", "closeFragment")
-        val tag = PermissionsFragment.TAG
+        val tag = TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

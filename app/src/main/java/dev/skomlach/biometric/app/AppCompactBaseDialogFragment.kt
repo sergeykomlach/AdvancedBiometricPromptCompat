@@ -34,6 +34,9 @@ import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext
+import dev.skomlach.common.device.DeviceInfo
+import dev.skomlach.common.device.DeviceInfoManager
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 
@@ -118,8 +121,16 @@ class AppCompactBaseDialogFragment : DialogFragment() {
     }
 
     private fun checkDeviceInfo() {
-        val deviceInfo = BiometricPromptCompat.deviceInfo
-        view?.findViewById<TextView>(R.id.text)?.text = deviceInfo.toString()
+        ExecutorHelper.startOnBackground {
+            DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
+                override fun onReady(deviceInfo: DeviceInfo?) {
+                    view?.post {
+                        view?.findViewById<TextView>(R.id.text)?.text = deviceInfo.toString()
+                    }
+
+                }
+            })
+        }
     }
 
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout) {

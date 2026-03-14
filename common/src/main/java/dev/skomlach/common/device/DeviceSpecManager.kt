@@ -19,7 +19,6 @@
 
 package dev.skomlach.common.device
 
-import dev.skomlach.common.logging.LogCat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -28,7 +27,7 @@ object DeviceSpecManager {
 
     fun DeviceSpec?.getSensors(): Set<String> {
         if (this == null) return emptySet()
-        return stringToArray(specs["Sensors"] ?: specs["sensors"] ?:"")
+        return stringToArray(specs["Sensors"] ?: specs["sensors"] ?: "")
     }
 
     fun DeviceSpec?.getModels(): Set<String> {
@@ -62,6 +61,7 @@ object DeviceSpecManager {
 
         devicesDeferred.await()
     }
+
     private fun findGsmarenaSpec(
         json: String,
         deviceModel: DeviceModel
@@ -77,10 +77,10 @@ object DeviceSpecManager {
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 
         val searchTerms = mutableMapOf<String, Boolean>().apply {
-            put("\"phone_name\":\"$deviceName\"" , false)
-            put("\"phone_name\":\"$rawDeviceName\"" , false)
-            if (model.isNotEmpty()) put(model , true)
-            if (marketingModelNoBrand.isNotEmpty()) put(marketingModelNoBrand , true)
+            put("\"phone_name\":\"$deviceName\"", false)
+            put("\"phone_name\":\"$rawDeviceName\"", false)
+            if (model.isNotEmpty()) put(model, true)
+            if (marketingModelNoBrand.isNotEmpty()) put(marketingModelNoBrand, true)
         }
 
 

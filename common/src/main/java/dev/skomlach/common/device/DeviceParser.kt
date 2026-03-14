@@ -22,9 +22,9 @@ package dev.skomlach.common.device
 import androidx.annotation.Keep
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
-import com.google.gson.reflect.TypeToken
 import dev.skomlach.common.device.DeviceSpecManager.removeBrandPrefixIgnoreCase
 import dev.skomlach.common.logging.LogCat
+
 fun extractJsonFragment(text: String, startIndex: Int, openChar: Char, closeChar: Char): String? {
     var balance = 0
     var foundStart = false
@@ -42,6 +42,7 @@ fun extractJsonFragment(text: String, startIndex: Int, openChar: Char, closeChar
     }
     return null
 }
+
 object DeviceParser {
 
     fun findDeviceSpecInJson(
@@ -75,7 +76,7 @@ object DeviceParser {
             }
         }
 
-        if (startIndex == -1){
+        if (startIndex == -1) {
             LogCat.logError("findDeviceSpecInJson < startIndex == -1")
             return null
         }
@@ -88,8 +89,8 @@ object DeviceParser {
 
         val jsonObjectString = extractJsonFragment(fullJson, objectStart, '{', '}') ?: run {
 
-                LogCat.logError("findDeviceSpecInJson < jsonObjectString is null")
-                return null
+            LogCat.logError("findDeviceSpecInJson < jsonObjectString is null")
+            return null
         }
 
         try {

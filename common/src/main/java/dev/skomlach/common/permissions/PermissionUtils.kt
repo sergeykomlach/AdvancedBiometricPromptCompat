@@ -76,11 +76,11 @@ class PermissionUtils internal constructor() {
     fun isEnabledDontKeepActivities(context: Context): Boolean {
         try {
             return Settings.System.getInt(
-                AndroidContext.appContext.contentResolver,
+                appContext.contentResolver,
                 Settings.System.ALWAYS_FINISH_ACTIVITIES,
                 0
             ) != 0 || (Settings.Global.getInt(
-                AndroidContext.appContext.contentResolver,
+                appContext.contentResolver,
                 Settings.Global.ALWAYS_FINISH_ACTIVITIES,
                 0
             ) != 0)
@@ -121,12 +121,12 @@ class PermissionUtils internal constructor() {
 
     private fun isPermissionExistsInTheSystem(permission: String): Boolean {
         try {
-            val lstGroups = AndroidContext.appContext.packageManager.getAllPermissionGroups(0)
+            val lstGroups = appContext.packageManager.getAllPermissionGroups(0)
             lstGroups.add(null) // ungrouped permissions
             for (pgi: PermissionGroupInfo? in lstGroups) {
                 pgi?.name?.let {
                     val lstPermissions =
-                        AndroidContext.appContext.packageManager.queryPermissionsByGroup(it, 0)
+                        appContext.packageManager.queryPermissionsByGroup(it, 0)
                     for (pi: PermissionInfo in lstPermissions) {
                         if ((pi.name == permission)) {
                             return true
@@ -213,7 +213,7 @@ class PermissionUtils internal constructor() {
 
     private fun isAppOpPermission(manifestPermission: String): Boolean {
         try {
-            val info = AndroidContext.appContext.packageManager.getPermissionInfo(
+            val info = appContext.packageManager.getPermissionInfo(
                 manifestPermission,
                 PackageManager.GET_META_DATA
             )
@@ -236,13 +236,13 @@ class PermissionUtils internal constructor() {
         }
         val permissionsList = HashMap<String, String>()
         try {
-            val manifestPermissions = AndroidContext.appContext.packageManager.getPackageInfo(
-                AndroidContext.appContext.packageName,
+            val manifestPermissions = appContext.packageManager.getPackageInfo(
+                appContext.packageName,
                 PackageManager.GET_PERMISSIONS
             ).requestedPermissions ?: emptyArray()
             for (manifestPermission: String in manifestPermissions) try {
                 if (!targetPermissionsKes.contains(manifestPermission)) continue
-                val info = AndroidContext.appContext.packageManager.getPermissionInfo(
+                val info = appContext.packageManager.getPermissionInfo(
                     manifestPermission,
                     PackageManager.GET_META_DATA
                 )
@@ -254,7 +254,7 @@ class PermissionUtils internal constructor() {
                 if (hasSelfPermissions(manifestPermission)) {
                     continue
                 }
-                val permName = info.loadLabel(AndroidContext.appContext.packageManager).toString()
+                val permName = info.loadLabel(appContext.packageManager).toString()
                 permissionsList[manifestPermission] = permName
             } catch (_: Throwable) {
             }
@@ -268,10 +268,10 @@ class PermissionUtils internal constructor() {
     val isAllowedNotificationsPermission: Boolean
         get() = if (Utils.isAtLeastT)
             hasSelfPermissions("android.permission.POST_NOTIFICATIONS") && NotificationManagerCompat.from(
-                AndroidContext.appContext
+                appContext
             ).areNotificationsEnabled()
         else
-            NotificationManagerCompat.from(AndroidContext.appContext).areNotificationsEnabled()
+            NotificationManagerCompat.from(appContext).areNotificationsEnabled()
 
     //Notification channel permissions
     fun isAllowedNotificationsChannelPermission(channelId: String?): Boolean {
@@ -279,7 +279,7 @@ class PermissionUtils internal constructor() {
             return true
         }
         return try {
-            val notificationManager = AndroidContext.appContext.getSystemService(
+            val notificationManager = appContext.getSystemService(
                 NotificationManager::class.java
             )
 
@@ -326,7 +326,7 @@ class PermissionUtils internal constructor() {
         get() {
             return if (VERSION.SDK_INT >= 23) {
                 hasSelfPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW) || Settings.canDrawOverlays(
-                    AndroidContext.appContext
+                    appContext
                 )
             } else {
                 hasSelfPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
@@ -339,8 +339,8 @@ class PermissionUtils internal constructor() {
             try {
                 val permissionToOp = AppOpCompatConstants.getAppOpFromPermission(permission) ?: ""
                 val appOpsManager =
-                    AndroidContext.appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-                val pkgName = AndroidContext.appContext.packageName
+                    appContext.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+                val pkgName = appContext.packageName
                 appOpsManager.startWatchingMode(
                     (permissionToOp),
                     pkgName

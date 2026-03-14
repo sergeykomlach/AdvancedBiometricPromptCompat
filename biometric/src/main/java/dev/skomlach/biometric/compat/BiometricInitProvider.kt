@@ -22,6 +22,10 @@ package dev.skomlach.biometric.compat
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
+import androidx.core.content.ContextCompat
+import dev.skomlach.biometric.compat.BiometricPromptCompat.Companion.deviceInfo
+import dev.skomlach.common.device.DeviceInfo
+import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.ExecutorHelper
 
 class BiometricInitProvider : ContentProvider() {
@@ -30,11 +34,20 @@ class BiometricInitProvider : ContentProvider() {
         try {
             BiometricPromptCompat.init()
         } catch (e: Throwable) {
-            ExecutorHelper.post {
+            ContextCompat.getMainExecutor(context?:return false).execute {
                 try {
                     BiometricPromptCompat.init()
                 } catch (e: Throwable) {
                 }
+            }
+        } finally {
+            ExecutorHelper.startOnBackground {
+                DeviceInfoManager.getDeviceInfo(object :
+                    DeviceInfoManager.OnDeviceInfoListener {
+                    override fun onReady(_deviceInfo: DeviceInfo?) {
+                        deviceInfo = _deviceInfo
+                    }
+                })
             }
         }
 

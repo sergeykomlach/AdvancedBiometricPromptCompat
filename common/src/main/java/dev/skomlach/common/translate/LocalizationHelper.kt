@@ -54,7 +54,11 @@ object LocalizationHelper {
         return fetchFromWebWithRedirects(url, 0)
     }
 
-    private fun fetchFromWebWithRedirects(url: String, redirectCount: Int, retryCount: Int = 0): String? {
+    private fun fetchFromWebWithRedirects(
+        url: String,
+        redirectCount: Int,
+        retryCount: Int = 0
+    ): String? {
         if (redirectCount > 5) {
             LogCat.logError("Too many redirects for URL: $url")
             return null
@@ -90,27 +94,27 @@ object LocalizationHelper {
                 }
                 return fetchFromWebWithRedirects(url, redirectCount, retryCount + 1)
             } else
-            if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-                responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-                responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
-                responseCode == 307 || responseCode == 308
-            ) {
+                if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                    responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                    responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                    responseCode == 307 || responseCode == 308
+                ) {
 
-                val location = urlConnection.getHeaderField("Location") ?: return null
+                    val location = urlConnection.getHeaderField("Location") ?: return null
 
-                val target = when {
-                    location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
-                    NetworkApi.isWebUrl(location) -> location                                      // absolute
-                    else -> NetworkApi.resolveUrl(
-                        urlConnection.url.toString(),
-                        location
-                    )          // relative (/path or path)
+                    val target = when {
+                        location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
+                        NetworkApi.isWebUrl(location) -> location                                      // absolute
+                        else -> NetworkApi.resolveUrl(
+                            urlConnection.url.toString(),
+                            location
+                        )          // relative (/path or path)
+                    }
+
+                    LogCat.log("Redirecting to: $target")
+                    urlConnection.disconnect()
+                    return fetchFromWebWithRedirects(target, redirectCount + 1)
                 }
-
-                LogCat.log("Redirecting to: $target")
-                urlConnection.disconnect()
-                return fetchFromWebWithRedirects(target, redirectCount + 1)
-            }
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 urlConnection.inputStream.use { inputStream ->
                     ByteArrayOutputStream().use { result ->

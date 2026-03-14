@@ -164,14 +164,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             get() = isBiometricInit.get()
             private set
         private var initInProgress = AtomicBoolean(false)
-        var deviceInfo: DeviceInfo? = null
-            private set
+        internal var deviceInfo: DeviceInfo? = null
         private var authFlowInProgress = AtomicBoolean(false)
         var initStart = System.currentTimeMillis()
 
-        @MainThread
-        @JvmStatic
-        fun init(execute: Runnable? = null) {
+        internal fun init(execute: Runnable? = null) {
             if (!API_ENABLED)
                 return
             if (Looper.getMainLooper().thread !== Thread.currentThread())
@@ -192,14 +189,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     pendingTasks.add(execute)
                     BiometricLoggerImpl.d("BiometricPromptCompat.init() for ${AndroidContext.appContext.packageName}")
                     reference.set(false)
-                    ExecutorHelper.startOnBackground {
-                        DeviceInfoManager.getDeviceInfo(object :
-                            DeviceInfoManager.OnDeviceInfoListener {
-                            override fun onReady(info: DeviceInfo?) {
-                                deviceInfo = info
-                            }
-                        })
-                    }
                     HookDetection.detect(object : HookDetection.HookDetectionListener {
                         override fun onDetected(flag: Boolean) {
                             reference.set(flag)

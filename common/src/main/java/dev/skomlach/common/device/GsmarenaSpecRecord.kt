@@ -1,15 +1,9 @@
 package dev.skomlach.common.device
 
-import androidx.annotation.Keep
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonDeserializationContext
-import com.google.gson.JsonDeserializer
-import com.google.gson.JsonElement
-import java.lang.reflect.Type
-
 import android.util.JsonReader
+import androidx.annotation.Keep
 import java.io.StringReader
+
 @Keep
 data class DeviceSpec(
     val phoneName: String,
@@ -36,6 +30,7 @@ fun manualParseDeviceSpec(json: String): DeviceSpec {
                     }
                     reader.endObject()
                 }
+
                 reader.peek() == android.util.JsonToken.BEGIN_OBJECT -> {
                     reader.beginObject()
                     while (reader.hasNext()) {
@@ -43,6 +38,7 @@ fun manualParseDeviceSpec(json: String): DeviceSpec {
                     }
                     reader.endObject()
                 }
+
                 else -> reader.skipValue()
             }
         }

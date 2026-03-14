@@ -56,17 +56,15 @@ class App : MultiDexApplication() {
                 LogCat.setLog2ViewCallback(null)
                 BiometricPromptCompat.logging(true)
                 ts = System.currentTimeMillis()
-                BiometricPromptCompat.init {
-                    checkForDeviceInfo()
-                }
+                checkInit()
             }
         }
         LogCat.setLog2ViewCallback(callback)
         LogCat.start()
     }
 
-    private fun checkForDeviceInfo() {
-        if (BiometricPromptCompat.isInitialized && BiometricPromptCompat.deviceInfo != null) {
+    private fun checkInit() {
+        if (BiometricPromptCompat.isInitialized) {
             GlobalScope.launch(Dispatchers.Main) {
                 withContext(Dispatchers.IO) {
                     BiometricManagerCompat.loadNonHardwareBiometrics()
@@ -77,11 +75,11 @@ class App : MultiDexApplication() {
                 }
                 onInitListeners.clear()
                 isReady = true
-                Log.d("BiometricPromptCompat", "checkForDeviceInfo=${System.currentTimeMillis() - ts}ms")
+                Log.d("BiometricPromptCompat", "checkInit=${System.currentTimeMillis() - ts}ms")
             }
         } else {
             Handler(Looper.getMainLooper()).postDelayed({
-                checkForDeviceInfo()
+                checkInit()
             }, 500)
         }
     }
