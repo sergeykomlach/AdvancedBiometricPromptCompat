@@ -51,6 +51,10 @@ object DeviceParser {
         val brand = deviceModel.brand
         val model = deviceModel.model
         val deviceName = deviceModel.deviceName
+        if (fullJson.indexOf(deviceName) == -1 &&
+            fullJson.indexOf(model) == -1
+        ) return null
+
         val rawDeviceName = DeviceModelManager.getName(brand, model)
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 

@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.device
 
+import dev.skomlach.common.logging.LogCat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
@@ -68,6 +69,10 @@ object DeviceSpecManager {
         val brand = deviceModel.brand
         val model = deviceModel.model
         val deviceName = deviceModel.deviceName
+        if (json.indexOf(deviceName) == -1 &&
+            json.indexOf(model) == -1
+        ) return null
+
         val rawDeviceName = DeviceModelManager.getName(brand, model)
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 

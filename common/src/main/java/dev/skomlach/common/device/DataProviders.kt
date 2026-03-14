@@ -37,26 +37,6 @@ import java.util.concurrent.TimeUnit
 
 object DataProviders {
 
-
-    private fun readJsonFast(file: File): String {
-        FileInputStream(file).use { fis ->
-            val channel = fis.channel
-            val sizeLong = channel.size()
-            require(sizeLong <= Int.MAX_VALUE) { "File too large: $sizeLong" }
-
-            val size = sizeLong.toInt()
-            val bytes = ByteArray(size)
-
-            var offset = 0
-            while (offset < size) {
-                val read = fis.read(bytes, offset, size - offset)
-                if (read < 0) break
-                offset += read
-            }
-
-            return String(bytes, 0, offset, StandardCharsets.UTF_8)
-        }
-    }
     private fun extractFileNameFromUrl(urlStr: String?): String {
         require(!urlStr.isNullOrBlank()) { "URL is empty" }
 
@@ -112,18 +92,22 @@ object DataProviders {
         try {
             try {
                 val file = File(AndroidContext.appContext.cacheDir, fileName)
-                file.also {
-                    if (it.exists()) {
+                if (file.exists()) {
+                    file.also {
                         if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
                                 DeviceInfoManager.OUTDATE_TIME_DAYS_MINUS_ONE
                             )
                         ) {
                             reload = true
                         }
-                        return readJsonFast(it)
-                    } else {
-                        reload = true
+                        FileInputStream(it).use { fis ->
+                            val out = ByteArrayOutputStream()
+                            NetworkApi.fastCopy(fis, out)
+                            return String(out.toByteArray(), StandardCharsets.UTF_8)
+                        }
                     }
+                } else {
+                    reload = true
                 }
             } catch (e: Throwable) {
                 LogCat.logException(e)
