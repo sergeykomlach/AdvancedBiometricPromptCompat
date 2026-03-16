@@ -181,6 +181,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             }, backgroundHandler)
 
         } catch (e: Exception) {
+            LogCat.logException(e)
             onError?.invoke(
                 AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 e.message ?: "Error"
@@ -248,21 +249,18 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                     }
                 }
                 ?.addOnFailureListener {
+                    LogCat.logException(it)
                     image.close()
                     isConverting.set(false)
                 }
         } catch (e: Exception) {
+            LogCat.logException(e)
             image.close()
             isConverting.set(false)
         }
     }
 
     private fun processImageToBitmap(image: android.media.Image, faces: List<Face>) {
-        if (isConverting.getAndSet(true)) {
-            image.close()
-            return
-        }
-
         backgroundHandler?.post {
             try {
                 val width = image.width
@@ -298,7 +296,8 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
                 onFrame?.invoke(finalBitmap, faces)
 
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                LogCat.logException(e)
             } finally {
                 try {
                     image.close()

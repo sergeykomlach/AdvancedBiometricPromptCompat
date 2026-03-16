@@ -467,7 +467,7 @@ class TensorFlowFaceUnlockManager(
             stopAuthentication()
             return
         }
-        if (SensorPrivacyCheck.isCameraInUse()) {
+        if (frameProvider is RealCameraProvider && SensorPrivacyCheck.isCameraInUse()) {
             callback?.onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
                 LocalizationHelper.getLocalizedString(
@@ -534,6 +534,10 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun onFrameReceived(fullBitmap: Bitmap, faces: List<Face>) {
+        LogCat.log(
+            TAG,
+            "onFrameReceived: isSessionActive=${isSessionActive.get()}, isProcessingFrame=${isProcessingFrame.get()}"
+        )
 
         if (!isSessionActive.get()) return
 
@@ -651,9 +655,10 @@ class TensorFlowFaceUnlockManager(
         }
 
         val alignedFace = getAlignedFace(bitmap, face) ?: return
-
         try {
             val results = detector?.recognizeImage(alignedFace, isEnrolling)
+
+            LogCat.log(TAG, "processFaces: results=${results}")
 
             if (!results.isNullOrEmpty()) {
                 val result = results[0]
