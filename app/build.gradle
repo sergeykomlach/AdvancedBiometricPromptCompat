@@ -39,12 +39,22 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            shrinkResources true
+            jniDebuggable false
+            debuggable false
+            //renderscriptDebuggable false
+            proguardFile "proguard-rules.pro"
+            proguardFile getDefaultProguardFile("proguard-android-optimize.txt")
         }
 
         debug {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            shrinkResources true
+            jniDebuggable false
+            debuggable true
+            //renderscriptDebuggable false
+            proguardFile "proguard-rules.pro"
+            proguardFile getDefaultProguardFile("proguard-android-optimize.txt")
         }
     }
     buildFeatures {

@@ -142,7 +142,7 @@ class CredentialsRequestFragment : Fragment() {
                         } catch (_: Exception) {
                             LocalizationHelper.getLocalizedString(
                                 context,
-                                R.string.use_screen_lock_label
+                                R.string.biometriccompat_use_screen_lock_label
                             )
                         }
                     val description = arguments?.getCharSequence("description")
@@ -151,7 +151,7 @@ class CredentialsRequestFragment : Fragment() {
                         } catch (_: Exception) {
                             LocalizationHelper.getLocalizedString(
                                 context,
-                                R.string.screen_lock_prompt_message
+                                R.string.biometriccompat_screen_lock_prompt_message
                             )
                         }
                     val keyguardManager =

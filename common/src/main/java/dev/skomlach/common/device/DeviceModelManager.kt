@@ -63,6 +63,8 @@ object DeviceModelManager {
 
     init {
         LogCat.log("DeviceModel.names brand=$rawBrand; model=$rawModel;")
+
+
     }
 
     fun getDeviceModel() = dm

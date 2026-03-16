@@ -74,7 +74,9 @@ class TensorFlowFaceUnlockManager(
             try {
                 val stringIds: Array<Int> = R.string::class.java
                     .fields
+                    .asSequence()
                     .filter { it.type == Int::class.javaPrimitiveType }
+                    .filter { it.name.startsWith("biometriccompat_") }
                     .mapNotNull { field ->
                         try {
                             field.getInt(null)
@@ -82,6 +84,7 @@ class TensorFlowFaceUnlockManager(
                             null
                         }
                     }
+                    .toList()
                     .toTypedArray()
                 LogCat.log("TensorFlowProvider", "LocalizationHelper.prefetch")
 
@@ -293,7 +296,7 @@ class TensorFlowFaceUnlockManager(
         LogCat.log(TAG, "Timeout reached")
         authCallback?.onAuthenticationError(
             CUSTOM_BIOMETRIC_ERROR_TIMEOUT,
-            LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_timeout)
+            LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_timeout)
         )
         stopAuthentication()
     }
@@ -306,7 +309,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_CANCELED,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_canceled_by_new_operation
+                    R.string.biometriccompat_tf_face_help_canceled_by_new_operation
                 )
             )
         }
@@ -418,12 +421,12 @@ class TensorFlowFaceUnlockManager(
             val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_too_many_attempts_permanent
+                    R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
                 )
             else
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_too_many_attempts_try_later
+                    R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
                 )
 
             callback?.onAuthenticationError(lockoutError, msg)
@@ -447,7 +450,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_not_available
+                    R.string.biometriccompat_tf_face_help_model_not_available
                 )
             )
             stopAuthentication()
@@ -458,7 +461,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_camera_disabled
+                    R.string.biometriccompat_tf_face_help_model_camera_disabled
                 )
             )
             stopAuthentication()
@@ -469,7 +472,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_camera_locked_out
+                    R.string.biometriccompat_tf_face_help_model_camera_locked_out
                 )
             )
             stopAuthentication()
@@ -480,7 +483,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_enrollment_tag_not_provided
+                    R.string.biometriccompat_tf_face_help_model_enrollment_tag_not_provided
                 )
             )
             stopAuthentication()
@@ -490,7 +493,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_not_registered
+                    R.string.biometriccompat_tf_face_help_model_not_registered
                 )
             )
             stopAuthentication()
@@ -584,7 +587,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_look_straight_ahead
+                    R.string.biometriccompat_tf_face_help_model_look_straight_ahead
                 )
             )
             return
@@ -594,7 +597,7 @@ class TensorFlowFaceUnlockManager(
         if (!isBitmapBrightEnough(bitmap, 40)) {
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
-                LocalizationHelper.getLocalizedString(context, R.string.tf_face_help_model_too_dark)
+                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_too_dark)
             )
             return
         }
@@ -607,7 +610,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_image_is_blurry
+                    R.string.biometriccompat_tf_face_help_model_image_is_blurry
                 )
             )
             return
@@ -625,12 +628,12 @@ class TensorFlowFaceUnlockManager(
                 val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
                     LocalizationHelper.getLocalizedString(
                         context,
-                        R.string.tf_face_help_too_many_attempts_permanent
+                        R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
                     )
                 else
                     LocalizationHelper.getLocalizedString(
                         context,
-                        R.string.tf_face_help_too_many_attempts_try_later
+                        R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
                     )
 
                 authCallback?.onAuthenticationError(lockoutError, msg)
@@ -641,7 +644,7 @@ class TensorFlowFaceUnlockManager(
                 CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_fake_face_detected
+                    R.string.biometriccompat_tf_face_help_model_fake_face_detected
                 )
             )
             return
@@ -665,7 +668,7 @@ class TensorFlowFaceUnlockManager(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                             LocalizationHelper.getLocalizedString(
                                 context,
-                                R.string.tf_face_help_model_already_registered
+                                R.string.biometriccompat_tf_face_help_model_already_registered
                             )
                         )
                         timeoutHandler.postDelayed({
@@ -685,7 +688,7 @@ class TensorFlowFaceUnlockManager(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                             LocalizationHelper.getLocalizedString(
                                 context,
-                                R.string.tf_face_help_model_retry
+                                R.string.biometriccompat_tf_face_help_model_retry
                             )
                         )
                         return
@@ -727,12 +730,12 @@ class TensorFlowFaceUnlockManager(
                             val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
                                 LocalizationHelper.getLocalizedString(
                                     context,
-                                    R.string.tf_face_help_too_many_attempts_permanent
+                                    R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
                                 )
                             else
                                 LocalizationHelper.getLocalizedString(
                                     context,
-                                    R.string.tf_face_help_too_many_attempts_try_later
+                                    R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
                                 )
 
                             authCallback?.onAuthenticationError(lockoutError, msg)
@@ -743,7 +746,7 @@ class TensorFlowFaceUnlockManager(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                             LocalizationHelper.getLocalizedString(
                                 context,
-                                R.string.tf_face_help_model_retry
+                                R.string.biometriccompat_tf_face_help_model_retry
                             )
                         )
                     }

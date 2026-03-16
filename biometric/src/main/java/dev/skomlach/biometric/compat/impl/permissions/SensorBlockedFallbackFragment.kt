@@ -61,11 +61,11 @@ class SensorBlockedFallbackFragment : Fragment() {
                 activity,
                 LocalizationHelper.getLocalizedString(
                     appContext,
-                    R.string.sensor_privacy_start_use_camera_notification_content_title
+                    R.string.biometriccompat_sensor_privacy_start_use_camera_notification_content_title
                 ),
                 LocalizationHelper.getLocalizedString(
                     appContext,
-                    R.string.face_sensor_privacy_enabled
+                    R.string.biometriccompat_face_sensor_privacy_enabled
                 ),
                 callback
             )
@@ -76,7 +76,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                 activity,
                 LocalizationHelper.getLocalizedString(
                     appContext,
-                    R.string.sensor_privacy_start_use_mic_notification_content_title
+                    R.string.biometriccompat_sensor_privacy_start_use_mic_notification_content_title
                 ), null, callback
             )
         }
@@ -177,7 +177,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                         .setPositiveButton(
                             LocalizationHelper.getLocalizedString(
                                 appContext,
-                                R.string.sensor_privacy_start_use_dialog_turn_on_button
+                                R.string.biometriccompat_sensor_privacy_start_use_dialog_turn_on_button
                             )
                         ) { p0, _ ->
                             val intent =

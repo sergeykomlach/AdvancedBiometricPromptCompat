@@ -19,45 +19,94 @@
 
 package dev.skomlach.common.device
 
-import android.os.Looper
-import androidx.annotation.WorkerThread
 import androidx.core.content.edit
 import dev.skomlach.common.device.DeviceSpecManager.getSensors
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
-import java.lang.ref.WeakReference
+import java.util.Collections
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
+
 
 object DeviceInfoManager {
-    val PREF_NAME = "BiometricCompat_DeviceInfo-V8"
+    val PREF_NAME = "BiometricCompat_DeviceInfo"
     const val OUTDATE_TIME_DAYS = 30L
     const val OUTDATE_TIME_DAYS_MINUS_ONE = OUTDATE_TIME_DAYS - 1
 
-    //
-//        init {
+    private var running = AtomicBoolean(false)
+
+    private val listeners =
+        Collections.synchronizedList<OnDeviceInfoListener?>(mutableListOf<OnDeviceInfoListener?>())
+
+//    init {
 //        getPreferences(PREF_NAME).apply {
 //            edit().clear().commit()
 //        }
 //    }
-    @WorkerThread
-    fun getDeviceInfo(listener: OnDeviceInfoListener) {
-        if (Looper.getMainLooper().thread === Thread.currentThread()) throw IllegalThreadStateException(
-            "Worker thread required"
-        )
-        val onDeviceInfoListener = WeakReference(listener)
-        var deviceInfo = cachedDeviceInfo
-        if (deviceInfo != null) {
-            onDeviceInfoListener.get()?.onReady(deviceInfo)
+
+    fun getDeviceInfo(listener: OnDeviceInfoListener?) {
+        if (running.get()) {
+            synchronized(listeners) {
+                listeners.add(listener)
+            }
             return
         }
-        val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
-        deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
-            setCachedDeviceInfo(it)
+        running.set(true)
+        checkCache()
+        var deviceInfo = cachedDeviceInfo
+        if (deviceInfo != null) {
+            ExecutorHelper.post {
+                synchronized(listeners) {
+                    val list = listeners.toMutableList()
+                    listeners.clear()
+                    running.set(false)
+                    list.forEach {
+                        it?.onReady(deviceInfo)
+                    }
+                }
+
+            }
+            return
         }
-        onDeviceInfoListener.get()?.onReady(deviceInfo)
+        ExecutorHelper.startOnBackground {
+            val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
+            deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
+                setCachedDeviceInfo(it)
+            }
+            ExecutorHelper.post {
+                synchronized(listeners) {
+                    val list = listeners.toMutableList()
+                    listeners.clear()
+                    running.set(false)
+                    list.forEach {
+                        it?.onReady(deviceInfo)
+                    }
+                }
+            }
+        }
     }
 
+    private fun checkCache() {
+        val sharedPreferences = getPreferences(PREF_NAME)
+        val checked = sharedPreferences.getLong("timestampCache", 0)
+        if (Date().time - checked <= TimeUnit.DAYS.toMillis(1)) {
+            return
+        }
+        ExecutorHelper.startOnBackground {
+            DataProviders.checkCache("https://github.com/androidtrackers/certified-android-devices/blob/master/by_model.json?raw=true")
+        }
+        ExecutorHelper.startOnBackground {
+            DataProviders.checkCache("https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true")
+        }
+        ExecutorHelper.startOnBackground {
+            DataProviders.checkCache("https://github.com/nowrom/devices/blob/main/devices.json?raw=true")
+        }
+        sharedPreferences.edit {
+            putLong("timestampCache", Date().time)
+        }
+    }
 
     @Volatile
     private var cachedDeviceInfo: DeviceInfo? = null

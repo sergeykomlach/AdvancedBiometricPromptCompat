@@ -68,18 +68,33 @@ object MiuiCodeToString {
         when (errMsg) {
             1 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_error_hw_not_available
+                R.string.biometriccompat_face_error_hw_not_available
             )
 
             2 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_error_unable_to_process
+                R.string.biometriccompat_face_error_unable_to_process
             )
 
-            3 -> return LocalizationHelper.getLocalizedString(context, R.string.face_error_timeout)
-            4 -> return LocalizationHelper.getLocalizedString(context, R.string.face_error_no_space)
-            5 -> return LocalizationHelper.getLocalizedString(context, R.string.face_error_canceled)
-            7 -> return LocalizationHelper.getLocalizedString(context, R.string.face_error_lockout)
+            3 -> return LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_face_error_timeout
+            )
+
+            4 -> return LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_face_error_no_space
+            )
+
+            5 -> return LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_face_error_canceled
+            )
+
+            7 -> return LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_face_error_lockout
+            )
             8 -> {
                 try {
                     val msgArray = getStringArray("face_error_vendor")
@@ -90,28 +105,28 @@ object MiuiCodeToString {
                 }
                 return LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.face_error_vendor_unknown
+                    R.string.biometriccompat_face_error_vendor_unknown
                 )
             }
 
             9 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_error_lockout_permanent
+                R.string.biometriccompat_face_error_lockout_permanent
             )
 
             10 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_error_user_canceled
+                R.string.biometriccompat_face_error_user_canceled
             )
 
             11 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_error_not_enrolled
+                R.string.biometriccompat_face_error_not_enrolled
             )
 
             12 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_error_hw_not_present
+                R.string.biometriccompat_face_error_hw_not_present
             )
         }
         val stringBuilder = StringBuilder()
@@ -129,102 +144,102 @@ object MiuiCodeToString {
             0 -> return null
             1 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_insufficient
+                R.string.biometriccompat_face_acquired_insufficient
             )
 
             2 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_bright
+                R.string.biometriccompat_face_acquired_too_bright
             )
 
             3 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_dark
+                R.string.biometriccompat_face_acquired_too_dark
             )
 
             4 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_close
+                R.string.biometriccompat_face_acquired_too_close
             )
 
             5 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_far
+                R.string.biometriccompat_face_acquired_too_far
             )
 
             6 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_high
+                R.string.biometriccompat_face_acquired_too_high
             )
 
             7 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_low
+                R.string.biometriccompat_face_acquired_too_low
             )
 
             8 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_right
+                R.string.biometriccompat_face_acquired_too_right
             )
 
             9 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_left
+                R.string.biometriccompat_face_acquired_too_left
             )
 
             10 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_poor_gaze
+                R.string.biometriccompat_face_acquired_poor_gaze
             )
 
             11 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_not_detected
+                R.string.biometriccompat_face_acquired_not_detected
             )
 
             12 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_much_motion
+                R.string.biometriccompat_face_acquired_too_much_motion
             )
 
             13 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_recalibrate
+                R.string.biometriccompat_face_acquired_recalibrate
             )
 
             14 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_different
+                R.string.biometriccompat_face_acquired_too_different
             )
 
             15 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_too_similar
+                R.string.biometriccompat_face_acquired_too_similar
             )
 
             16 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_pan_too_extreme
+                R.string.biometriccompat_face_acquired_pan_too_extreme
             )
 
             17 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_tilt_too_extreme
+                R.string.biometriccompat_face_acquired_tilt_too_extreme
             )
 
             18 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_roll_too_extreme
+                R.string.biometriccompat_face_acquired_roll_too_extreme
             )
 
             19 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_obscured
+                R.string.biometriccompat_face_acquired_obscured
             )
             20 -> return null
             21 -> return LocalizationHelper.getLocalizedString(
                 context,
-                R.string.face_acquired_sensor_dirty
+                R.string.biometriccompat_face_acquired_sensor_dirty
             )
             22 -> {
                 try {

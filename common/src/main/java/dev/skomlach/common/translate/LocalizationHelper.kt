@@ -142,15 +142,20 @@ object LocalizationHelper {
     fun prefetch(context: Context, vararg formatArgs: Any?) {
         try {
             formatArgs.toList().forEach {
+                var name = try {
+                    context.resources.getResourceEntryName(it as Int)
+                } catch (_: Exception) {
+                    it.toString()
+                }
                 try {
                     if (getTranslatedStringFromResources(context, it as Int).isNullOrEmpty())
                         invoke(
-                            getStringForLocale(context, it as Int, Locale.US),
+                            getStringForLocale(context, it, Locale.US),
                             Locale.US,
                             AndroidContext.appLocale
                         )
                 } catch (e: Throwable) {
-                    LogCat.logException(e, "LocalizationHelper")
+                    LogCat.logException(e, "LocalizationHelper $name")
                 }
             }
         } catch (e: Throwable) {

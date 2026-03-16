@@ -61,7 +61,6 @@ import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationMan
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
-import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
@@ -208,17 +207,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         LogCat.logException(e)
                     }
                     try {
-                        val stringIds: Array<Int> = R.string::class.java
+                        val stringIds: Array<Int> =
+                            R.string::class.java
                             .fields
-                            .filter { it.type == Int::class.javaPrimitiveType }
-                            .mapNotNull { field ->
-                                try {
-                                    field.getInt(null)
-                                } catch (_: Throwable) {
-                                    null
+                                .asSequence()
+                                .filter { it.type == Int::class.javaPrimitiveType }
+                                .filter { it.name.startsWith("biometriccompat_") }
+                                .mapNotNull { field ->
+                                    try {
+                                        field.getInt(null)
+                                    } catch (_: Throwable) {
+                                        null
+                                    }
                                 }
-                            }
-                            .toTypedArray()
+                                .toList()
+                                .toTypedArray()
                         LogCat.log("BiometricPromptCompat", "LocalizationHelper.prefetch")
 
                         var prefech: Job? = null

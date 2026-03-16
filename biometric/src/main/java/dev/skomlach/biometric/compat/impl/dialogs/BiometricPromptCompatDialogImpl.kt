@@ -30,7 +30,6 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
-import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -73,7 +72,7 @@ class BiometricPromptCompatDialogImpl(
         } catch (_: Exception) {
             LocalizationHelper.getLocalizedString(
                 compatBuilder.getContext(),
-                R.string.fingerprint_error_lockout
+                R.string.biometriccompat_fingerprint_error_lockout
             )
         }
         not_recognized = try {
@@ -82,7 +81,7 @@ class BiometricPromptCompatDialogImpl(
         } catch (_: Exception) {
             LocalizationHelper.getLocalizedString(
                 compatBuilder.getContext(),
-                R.string.fingerprint_not_recognized
+                R.string.biometriccompat_fingerprint_not_recognized
             )
         }
         animateHandler = AnimateHandler(Looper.getMainLooper())

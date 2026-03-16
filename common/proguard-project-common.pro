@@ -1,3 +1,4 @@
 -keep class dev.skomlach.common.themes.monet.colors.** { *; }
 -keep class dev.skomlach.common.device.** { *; }
+-keep interface dev.skomlach.common.device.** { *; }
 -keep class dev.skomlach.common.blur.** { *; }

@@ -25,8 +25,8 @@
     <string name="biometriccompat_request_perm">%1$s needs the following permission:\n%2$s</string>
 
 
-    <string name="grant_permissions_header_text">Access request</string>
-    <string name="global_action_settings">Settings</string>
-    <string name="turn_on_magnification_settings_action">Turn on in Settings</string>
-    <string name="error_message_change_not_allowed">This change isn\'t allowed by your admin</string>
+    <string name="biometriccompat_grant_permissions_header_text">Access request</string>
+    <string name="biometriccompat_global_action_settings">Settings</string>
+    <string name="biometriccompat_turn_on_settings_action">Turn on in Settings</string>
+    <string name="biometriccompat_error_message_change_not_allowed">This change isn\'t allowed by your admin</string>
 </resources>

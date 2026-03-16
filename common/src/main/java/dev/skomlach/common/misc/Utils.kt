@@ -39,7 +39,9 @@ object Utils {
         try {
             val stringIds: Array<Int> = R.string::class.java
                 .fields
+                .asSequence()
                 .filter { it.type == Int::class.javaPrimitiveType }
+                .filter { it.name.startsWith("biometriccompat_") }
                 .mapNotNull { field ->
                     try {
                         field.getInt(null)
@@ -47,6 +49,7 @@ object Utils {
                         null
                     }
                 }
+                .toList()
                 .toTypedArray()
             LogCat.log("Utils", "LocalizationHelper.prefetch")
 

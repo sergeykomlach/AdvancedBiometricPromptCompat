@@ -41,7 +41,7 @@ object BiometricTitle {
             } catch (_: Exception) {
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.biometric_dialog_default_subtitle
+                    R.string.biometriccompat_biometric_dialog_default_subtitle
                 )
             }
         } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
@@ -55,7 +55,7 @@ object BiometricTitle {
             } catch (_: Exception) {
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.fingerprint_dialog_default_subtitle
+                    R.string.biometriccompat_fingerprint_dialog_default_subtitle
                 )
             }
         } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
@@ -102,7 +102,7 @@ object BiometricTitle {
         } catch (_: Exception) {
             LocalizationHelper.getLocalizedString(
                 context,
-                R.string.biometric_dialog_default_subtitle
+                R.string.biometriccompat_biometric_dialog_default_subtitle
             )
         }
     }

@@ -155,16 +155,12 @@ class FirstFragment : Fragment() {
     }
 
     private fun checkDeviceInfo() {
-        ExecutorHelper.startOnBackground {
-            DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
-                override fun onReady(deviceInfo: DeviceInfo?) {
-                    ExecutorHelper.post {
-                        binding?.text?.text = deviceInfo.toString()
-                    }
+        DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
+            override fun onReady(deviceInfo: DeviceInfo?) {
+                binding?.text?.text = deviceInfo.toString()
 
-                }
-            })
-        }
+            }
+        })
     }
 
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout?) {

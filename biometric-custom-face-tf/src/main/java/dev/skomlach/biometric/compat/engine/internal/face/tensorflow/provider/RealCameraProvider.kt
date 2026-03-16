@@ -103,7 +103,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_no_camera_permissions
+                    R.string.biometriccompat_tf_face_help_model_no_camera_permissions
                 )
                 // "No Camera Permission"
             )
@@ -115,7 +115,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 LocalizationHelper.getLocalizedString(
                     context,
-                    R.string.tf_face_help_model_no_front_camera
+                    R.string.biometriccompat_tf_face_help_model_no_front_camera
                 )
 //                "No front camera"
             )
@@ -136,7 +136,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                     AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                     LocalizationHelper.getLocalizedString(
                         context,
-                        R.string.tf_face_help_model_camera_low_res
+                        R.string.biometriccompat_tf_face_help_model_camera_low_res
                     )
                 )
                 return

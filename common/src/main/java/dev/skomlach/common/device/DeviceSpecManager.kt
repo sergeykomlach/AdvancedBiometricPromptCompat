@@ -24,7 +24,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 object DeviceSpecManager {
-
     fun DeviceSpec?.getSensors(): Set<String> {
         if (this == null) return emptySet()
         return stringToArray(specs["Sensors"] ?: specs["sensors"] ?: "")

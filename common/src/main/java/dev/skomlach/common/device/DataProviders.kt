@@ -86,62 +86,69 @@ object DataProviders {
     }
 
     private val loadingInProgress = LruCache<String, Boolean>(50)
-    fun getOrCacheJSON(url: String): String? {
-        var reload = false
+    fun checkCache(url: String) {
         val fileName = extractFileNameFromUrl(url)
+        var reload = false
         try {
-            try {
-                val file = File(AndroidContext.appContext.cacheDir, fileName)
-                if (file.exists()) {
-                    file.also {
-                        if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
-                                DeviceInfoManager.OUTDATE_TIME_DAYS_MINUS_ONE
-                            )
-                        ) {
-                            reload = true
-                        }
-                        FileInputStream(it).use { fis ->
-                            val out = ByteArrayOutputStream()
-                            NetworkApi.fastCopy(fis, out)
-                            return String(out.toByteArray(), StandardCharsets.UTF_8)
-                        }
+            val file = File(AndroidContext.appContext.cacheDir, fileName)
+            if (file.exists()) {
+                file.also {
+                    if (kotlin.math.abs(System.currentTimeMillis() - it.lastModified()) >= TimeUnit.DAYS.toMillis(
+                            DeviceInfoManager.OUTDATE_TIME_DAYS_MINUS_ONE
+                        )
+                    ) {
+                        reload = true
                     }
-                } else {
-                    reload = true
                 }
-            } catch (e: Throwable) {
-                LogCat.logException(e)
-            }
-            try {
-                return AndroidContext.appContext.assets.open("devices/$fileName").use { stream ->
-                    val out = ByteArrayOutputStream()
-                    NetworkApi.fastCopy(stream, out)
-                    String(out.toByteArray(), StandardCharsets.UTF_8)
-                }
-            } catch (e: Throwable) {
+            } else {
                 reload = true
-                LogCat.logException(e)
             }
-            return null
-        } finally {
-            if (reload && loadingInProgress[url] != true) {
-                loadingInProgress.put(url, true)
-                ExecutorHelper.startOnBackground {
-                    if (NetworkApi.hasInternet()) {
-                        try {
-                            val data =
-                                LocalizationHelper.fetchFromWeb(url)
-                            saveToCache(data ?: return@startOnBackground, fileName)
-                        } catch (e: Throwable) {
-                            LogCat.logException(e)
-                        } finally {
-                            loadingInProgress.put(url, false)
-                        }
-                    } else
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+        if (reload && loadingInProgress[url] != true) {
+            loadingInProgress.put(url, true)
+            ExecutorHelper.startOnBackground {
+                if (NetworkApi.hasInternet()) {
+                    try {
+                        val data =
+                            LocalizationHelper.fetchFromWeb(url)
+                        saveToCache(data ?: return@startOnBackground, fileName)
+                    } catch (e: Throwable) {
+                        LogCat.logException(e)
+                    } finally {
                         loadingInProgress.put(url, false)
-                }
+                    }
+                } else
+                    loadingInProgress.put(url, false)
             }
         }
+    }
+
+    fun getOrCacheJSON(url: String): String? {
+        val fileName = extractFileNameFromUrl(url)
+        try {
+            val file = File(AndroidContext.appContext.cacheDir, fileName)
+            if (file.exists()) {
+                FileInputStream(file).use { fis ->
+                    val out = ByteArrayOutputStream()
+                    NetworkApi.fastCopy(fis, out)
+                    return String(out.toByteArray(), StandardCharsets.UTF_8)
+                }
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+        try {
+            return AndroidContext.appContext.assets.open("devices/$fileName").use { stream ->
+                val out = ByteArrayOutputStream()
+                NetworkApi.fastCopy(stream, out)
+                String(out.toByteArray(), StandardCharsets.UTF_8)
+            }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
+        return null
     }
 
     private fun saveToCache(data: String, name: String) {
@@ -160,7 +167,7 @@ object DataProviders {
                     writer.write(data)
                     writer.flush()
                 }
-                fos.fd.sync()
+                //fos.fd.sync()
             }
 
             if (!tmpFile.renameTo(file)) {

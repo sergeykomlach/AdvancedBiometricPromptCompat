@@ -282,7 +282,7 @@ class PermissionsFragment : Fragment() {
         val textStart =
             LocalizationHelper.getLocalizedString(
                 appContext,
-                R.string.grant_permissions_header_text
+                R.string.biometriccompat_grant_permissions_header_text
             )
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
@@ -332,14 +332,14 @@ class PermissionsFragment : Fragment() {
         val button =
             LocalizationHelper.getLocalizedString(
                 appContext,
-                R.string.turn_on_magnification_settings_action
+                R.string.biometriccompat_turn_on_settings_action
             )
         val isLeftToRight =
             TextUtilsCompat.getLayoutDirectionFromLocale(AndroidContext.systemLocale) == ViewCompat.LAYOUT_DIRECTION_LTR
         val textStart =
             LocalizationHelper.getLocalizedString(
                 appContext,
-                R.string.error_message_change_not_allowed
+                R.string.biometriccompat_error_message_change_not_allowed
             )
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
