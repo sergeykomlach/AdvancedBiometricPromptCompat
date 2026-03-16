@@ -355,16 +355,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             )
             authFlowInProgress.set(false)
             return
-        } else
-            if (builder.getAllAvailableTypes().isEmpty()) {
-                callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
-                    AuthenticationResult(
-                        it,
-                        reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                    )
-                }.toSet())
-                return
-            }
+        }
         val softwareSetup = {
             builder.enroll = true
             authFlowInProgress.set(false)
@@ -411,17 +402,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             )
             authFlowInProgress.set(false)
             return
-        } else
-            if (builder.getAllAvailableTypes().isEmpty()) {
-                callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
-                    AuthenticationResult(
-                        it,
-                        reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
-                    )
-                }.toSet())
-                return
-            }
-
+        }
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
                 IllegalStateException(),
