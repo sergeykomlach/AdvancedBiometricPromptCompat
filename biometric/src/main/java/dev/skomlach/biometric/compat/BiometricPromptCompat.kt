@@ -202,7 +202,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     try {
                         val stringIds: Array<Int> =
                             R.string::class.java
-                            .fields
+                                .fields
                                 .asSequence()
                                 .filter { it.type == Int::class.javaPrimitiveType }
                                 .filter { it.name.startsWith("biometriccompat_") }
@@ -333,9 +333,41 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         BiometricLoggerImpl.e(
             "BiometricPromptCompat.enroll $enrollNewHardwareBiometric"
         )
-
+        if (authFlowInProgress.get()) {
+            callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+                AuthenticationResult(
+                    it,
+                    reason = AuthenticationFailureReason.BIOMETRIC_ALREADY_STARTED
+                )
+            }.toSet())
+            return
+        }
+        authFlowInProgress.set(true)
+        if (!API_ENABLED) {
+            callbackOuter.onFailed(
+                builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.NO_HARDWARE,
+                        description = "API disabled"
+                    )
+                }.toSet()
+            )
+            authFlowInProgress.set(false)
+            return
+        } else
+            if (builder.getAllAvailableTypes().isEmpty()) {
+                callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                    )
+                }.toSet())
+                return
+            }
         val softwareSetup = {
             builder.enroll = true
+            authFlowInProgress.set(false)
             authenticate(callbackOuter)
         }
         if (enrollNewHardwareBiometric) {
@@ -379,7 +411,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             )
             authFlowInProgress.set(false)
             return
-        }
+        } else
+            if (builder.getAllAvailableTypes().isEmpty()) {
+                callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
+                    )
+                }.toSet())
+                return
+            }
+
         if (builder.getActivity() == null) {
             BiometricLoggerImpl.e(
                 IllegalStateException(),
