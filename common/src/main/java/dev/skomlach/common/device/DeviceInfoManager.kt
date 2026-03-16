@@ -33,7 +33,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 object DeviceInfoManager {
     val PREF_NAME = "BiometricCompat_DeviceInfo"
     const val OUTDATE_TIME_DAYS = 30L
-    const val OUTDATE_TIME_DAYS_MINUS_ONE = OUTDATE_TIME_DAYS - 1
+    const val OUTDATE_TIME_CACHE_DAYS = 7L
+    const val OUTDATE_TIME_DAYS_FILES = OUTDATE_TIME_DAYS - OUTDATE_TIME_CACHE_DAYS
 
     private var running = AtomicBoolean(false)
 
@@ -47,51 +48,60 @@ object DeviceInfoManager {
 //    }
 
     fun getDeviceInfo(listener: OnDeviceInfoListener?) {
-        if (running.get()) {
-            synchronized(listeners) {
-                listeners.add(listener)
+        synchronized(listeners) {
+            listeners.add(listener)
+            if (running.getAndSet(true)) {
+                return
             }
-            return
         }
         running.set(true)
+        listeners.add(listener)
         checkCache()
-        var deviceInfo = cachedDeviceInfo
-        if (deviceInfo != null) {
+        cachedDeviceInfo?.let { deviceInfo ->
             ExecutorHelper.post {
                 synchronized(listeners) {
                     val list = listeners.toMutableList()
                     listeners.clear()
-                    running.set(false)
                     list.forEach {
                         it?.onReady(deviceInfo)
                     }
+                    running.set(false)
                 }
 
             }
             return
         }
         ExecutorHelper.startOnBackground {
-            val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
-            deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
-                setCachedDeviceInfo(it)
-            }
-            ExecutorHelper.post {
-                synchronized(listeners) {
-                    val list = listeners.toMutableList()
-                    listeners.clear()
-                    running.set(false)
-                    list.forEach {
-                        it?.onReady(deviceInfo)
-                    }
+            try {
+                val emulatorKind: EmulatorKind? = runCatching { detectEmulatorKind }.getOrNull()
+                val deviceInfo = getCurrentDeviceInfo(emulatorKind).also {
+                    setCachedDeviceInfo(it)
                 }
+                notifyListeners(deviceInfo)
+            } catch (e: Exception) {
+
+                running.set(false)
             }
+        }
+    }
+
+    private fun notifyListeners(deviceInfo: DeviceInfo) {
+        ExecutorHelper.post {
+            val listToNotify = synchronized(listeners) {
+                val copy = listeners.toList()
+                listeners.clear()
+                running.set(false)
+                copy
+            }
+
+            listToNotify.forEach { l -> l.onReady(deviceInfo) }
         }
     }
 
     private fun checkCache() {
         val sharedPreferences = getPreferences(PREF_NAME)
         val checked = sharedPreferences.getLong("timestampCache", 0)
-        if (Date().time - checked <= TimeUnit.DAYS.toMillis(1)) {
+        if (Date().time - checked <= TimeUnit.DAYS.toMillis(OUTDATE_TIME_CACHE_DAYS)) {
             return
         }
         ExecutorHelper.startOnBackground {

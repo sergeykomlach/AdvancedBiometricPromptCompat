@@ -22,38 +22,28 @@ package dev.skomlach.biometric.compat
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
-import androidx.core.content.ContextCompat
-import dev.skomlach.biometric.compat.BiometricPromptCompat.Companion.deviceInfo
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
-import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.logging.LogCat
 
 class BiometricInitProvider : ContentProvider() {
 
     override fun onCreate(): Boolean {
-
-        try {
-            BiometricPromptCompat.init{
-                BiometricManagerCompat.loadNonHardwareBiometrics()
-            }
-        } catch (e: Throwable) {
-            ContextCompat.getMainExecutor(context ?: return false).execute {
+        DeviceInfoManager.getDeviceInfo(object :
+            DeviceInfoManager.OnDeviceInfoListener {
+            override fun onReady(deviceInfo: DeviceInfo?) {
                 try {
-                    BiometricPromptCompat.init{
+                    LogCat.logError("BiometricInitProvider: DeviceInfo=$deviceInfo")
+                    BiometricPromptCompat.deviceInfo = deviceInfo
+                    BiometricPromptCompat.init {
                         BiometricManagerCompat.loadNonHardwareBiometrics()
                     }
                 } catch (e: Throwable) {
+                    BiometricLoggerImpl.e(e)
                 }
             }
-        } finally {
-            DeviceInfoManager.getDeviceInfo(object :
-                DeviceInfoManager.OnDeviceInfoListener {
-                override fun onReady(_deviceInfo: DeviceInfo?) {
-                    deviceInfo = _deviceInfo
-                }
-            })
-        }
-
+        })
         return false
     }
 

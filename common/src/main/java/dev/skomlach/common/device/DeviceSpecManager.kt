@@ -19,9 +19,7 @@
 
 package dev.skomlach.common.device
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import dev.skomlach.common.logging.LogCat
 
 object DeviceSpecManager {
     fun DeviceSpec?.getSensors(): Set<String> {
@@ -35,69 +33,75 @@ object DeviceSpecManager {
     }
 
     //tools
-    fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec? = runBlocking {
-        val gsmarenaDeferred = async(Dispatchers.IO) {
+    fun getDeviceSpecCompat(deviceModel: DeviceModel): DeviceSpec? {
+        var timestamp = System.currentTimeMillis()
+        try {
+            var ts = System.currentTimeMillis()
             DataProviders.getOrCacheJSON(
                 "https://github.com/sergeykomlach/AdvancedBiometricPromptCompat/blob/main/common/src/main/assets/devices/specifications.json?raw=true"
             )?.let { json ->
-                findGsmarenaSpec(json, deviceModel)
+                LogCat.log("getDeviceSpecCompat findGsmarenaSpec load time ${System.currentTimeMillis() - ts}ms")
+                ts = System.currentTimeMillis()
+                findGsmarenaSpec(json, deviceModel).also {
+                    LogCat.log("getDeviceSpecCompat findGsmarenaSpec lookup time ${System.currentTimeMillis() - ts}ms")
+                }?.let {
+                    return it
+                }
             }
-        }
-
-        val devicesDeferred = async(Dispatchers.IO) {
+            ts = System.currentTimeMillis()
             DataProviders.getOrCacheJSON(
                 "https://github.com/nowrom/devices/blob/main/devices.json?raw=true"
             )?.let { json ->
-                DeviceParser.findDeviceSpecInJson(json, deviceModel)
+                LogCat.log("getDeviceSpecCompat findDeviceSpecInJson load time ${System.currentTimeMillis() - ts}ms")
+                ts = System.currentTimeMillis()
+                DeviceParser.findDeviceSpecInJson(json, deviceModel).also {
+                    LogCat.log("getDeviceSpecCompat findDeviceSpecInJson lookup time ${System.currentTimeMillis() - ts}ms")
+                }?.let {
+                    return it
+                }
             }
+            return null
+        } finally {
+            LogCat.log("getDeviceSpecCompat time ${System.currentTimeMillis() - timestamp}ms")
         }
-
-        val first = gsmarenaDeferred.await()
-        if (first != null) {
-            devicesDeferred.cancel()
-            return@runBlocking first
-        }
-
-        devicesDeferred.await()
     }
 
     private fun findGsmarenaSpec(
-        json: String,
+        fullJson: String,
         deviceModel: DeviceModel
     ): DeviceSpec? {
         val brand = deviceModel.brand
         val model = deviceModel.model
         val deviceName = deviceModel.deviceName
-        if (json.indexOf(deviceName) == -1 &&
-            json.indexOf(model) == -1
-        ) return null
+
 
         val rawDeviceName = DeviceModelManager.getName(brand, model)
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 
-        val searchTerms = mutableMapOf<String, Boolean>().apply {
-            put("\"phone_name\":\"$deviceName\"", false)
-            put("\"phone_name\":\"$rawDeviceName\"", false)
-            if (model.isNotEmpty()) put(model, true)
-            if (marketingModelNoBrand.isNotEmpty()) put(marketingModelNoBrand, true)
+        val searchTerms = mutableSetOf<String>().apply {
+            if (model.isNotEmpty()) add(model.lowercase())
+            add(rawDeviceName.lowercase())
+            if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand.lowercase())
         }
 
 
-
-        for ((term, ignore) in searchTerms) {
+        LogCat.log("getDeviceSpecCompat searchTerms=$searchTerms")
+        val lowerCasedFullJson = fullJson.lowercase()
+        for (term in searchTerms) {
             var lastIndex = 0
             while (true) {
-                val index = json.indexOf(term, lastIndex, ignoreCase = ignore)
+                val index = lowerCasedFullJson.indexOf(term, lastIndex)
                 if (index == -1) break
-                val objectStart = json.lastIndexOf('{', index)
+                val objectStart = lowerCasedFullJson.lastIndexOf('{', index)
                 if (objectStart != -1) {
-                    val fragment = extractJsonFragment(json, objectStart, '{', '}')
+                    val fragment = extractJsonFragment(lowerCasedFullJson, objectStart, '{', '}')
                     if (fragment != null) {
                         try {
                             val rec = manualParseDeviceSpec(fragment)
 
                             val phoneNameNorm = rec.phoneName
                             if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName) {
+                                LogCat.log("getDeviceSpecCompat $term; fired phoneNameNorm=$phoneNameNorm")
                                 return rec
                             }
 
@@ -106,6 +110,7 @@ object DeviceSpecManager {
                                     m == model || (marketingModelNoBrand.isNotEmpty() && m == marketingModelNoBrand)
                                 }
                             ) {
+                                LogCat.log("getDeviceSpecCompat $term; fired modelsNorm=$modelsNorm")
                                 return rec
                             }
                         } catch (e: Exception) {

@@ -92,15 +92,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         init {
             if (API_ENABLED) {
-
                 if (!AppCompatDelegate.isCompatVectorFromResourcesEnabled())
                     AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-                ExecutorHelper.post {
-                    try {
-                        init()
-                    } catch (e: Throwable) {
-                    }
-                }
             }
         }
 

@@ -81,28 +81,21 @@ object DeviceParser {
         val brand = deviceModel.brand
         val model = deviceModel.model
         val deviceName = deviceModel.deviceName
-        if (fullJson.indexOf(deviceName) == -1 &&
-            fullJson.indexOf(model) == -1
-        ) return null
 
         val rawDeviceName = DeviceModelManager.getName(brand, model)
         val marketingModelNoBrand = removeBrandPrefixIgnoreCase(deviceName, brand)
 
-        val searchTerms = mutableMapOf<String, Boolean>().apply {
-            put(deviceName, false)
-            put(rawDeviceName, false)
-            if (marketingModelNoBrand.isNotEmpty()) put(marketingModelNoBrand, true)
+        val searchTerms = mutableSetOf<String>().apply {
+            if (model.isNotEmpty()) add(model.lowercase())
+            add(rawDeviceName.lowercase())
+            if (marketingModelNoBrand.isNotEmpty()) add(marketingModelNoBrand.lowercase())
         }
 
-        val searchPattern = "\"codename\":\"$model\""
-        var startIndex = fullJson.indexOf(searchPattern)
-
-        if (startIndex == -1) {
-            for ((term, ignore) in searchTerms) {
-                val namePattern = "\"name\":\"$term\""
-                startIndex = fullJson.indexOf(namePattern, ignoreCase = ignore)
-                if (startIndex != -1) break
-            }
+        val lowerCasedFullJson = fullJson.lowercase()
+        var startIndex = -1
+        for (term in searchTerms) {
+            startIndex = lowerCasedFullJson.indexOf(term)
+            if (startIndex != -1) break
         }
 
         if (startIndex == -1) {
@@ -110,7 +103,7 @@ object DeviceParser {
             return null
         }
 
-        val objectStart = fullJson.lastIndexOf('{', startIndex)
+        val objectStart = lowerCasedFullJson.lastIndexOf('{', startIndex)
         if (objectStart == -1) {
             LogCat.logError("findDeviceSpecInJson < objectStart == -1")
             return null
@@ -127,7 +120,7 @@ object DeviceParser {
             val rec = Gson().fromJson(jsonObjectString, Device::class.java)
             LogCat.logError("findDeviceSpecInJson $rec")
             val phoneNameNorm = DeviceModelManager.getName(rec.brand ?: "", rec.name ?: "")
-            if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName || rec.codename == model) {
+            if (phoneNameNorm == deviceName || phoneNameNorm == rawDeviceName) {
                 return DeviceSpec(
                     phoneName = phoneNameNorm,
                     specs = mutableMapOf<String, String>().apply {
@@ -147,86 +140,12 @@ object DeviceParser {
 @Keep
 data class Device(
     val brand: String? = null,
-    val codename: String? = null,
     val name: String? = null,
-    val recoveries: List<Recovery>? = null,
-    val roms: List<Rom>? = null,
     val specs: Specs? = null
 )
 
-data class Recovery(
-    val id: String? = null,
-    val supported: Boolean? = null,
-
-    @SerializedName("xdathread")
-    val xdaThread: String? = null,
-
-    val maintainer: String? = null
-)
-
-data class Rom(
-    val id: String? = null,
-
-    val cpu: String? = null,
-    val ram: String? = null,
-    val wifi: String? = null,
-
-    val url: String? = null,
-    val download: String? = null,
-    val group: String? = null,
-    val photo: String? = null,
-    val recovery: String? = null,
-    val gapps: String? = null,
-
-    @SerializedName("telegram_url")
-    val telegramUrl: String? = null,
-
-    @SerializedName("xda_thread")
-    val xdaThread: String? = null,
-
-    val maintainer: String? = null,
-    val changelog: String? = null,
-    val active: Boolean? = null,
-
-    @SerializedName("maintainer_url")
-    val maintainerUrl: String? = null,
-
-    @SerializedName("maintainer_name")
-    val maintainerName: String? = null,
-
-    @SerializedName("supported_versions")
-    val supportedVersions: List<SupportedVersion>? = null,
-
-    // "repostories"
-    @SerializedName("repostories")
-    val repositories: List<String>? = null,
-
-    val romtype: String? = null,
-    val version: String? = null,
-    val developer: String? = null
-)
-
-data class SupportedVersion(
-    @SerializedName("version_code")
-    val versionCode: String? = null,
-
-    @SerializedName("xda_thread")
-    val xdaThread: String? = null,
-
-    val stable: Boolean? = null,
-    val deprecated: Boolean? = null
-)
-
+@Keep
 data class Specs(
-    val cpu: String? = null,
-    val weight: String? = null,
-    val year: String? = null,
-    val os: String? = null,
-    val chipset: String? = null,
-    val gpu: String? = null,
     val sensors: String? = null,
-    val batlife: String? = null,
 
-    @SerializedName("internalmemory")
-    val internalMemory: String? = null
 )
