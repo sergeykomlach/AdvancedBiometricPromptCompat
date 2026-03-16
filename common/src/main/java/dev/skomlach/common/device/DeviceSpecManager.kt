@@ -94,7 +94,7 @@ object DeviceSpecManager {
                 if (index == -1) break
                 val objectStart = lowerCasedFullJson.lastIndexOf('{', index)
                 if (objectStart != -1) {
-                    val fragment = extractJsonFragment(lowerCasedFullJson, objectStart, '{', '}')
+                    val fragment = extractJsonFragment(fullJson, objectStart, '{', '}')
                     if (fragment != null) {
                         try {
                             val rec = manualParseDeviceSpec(fragment)
