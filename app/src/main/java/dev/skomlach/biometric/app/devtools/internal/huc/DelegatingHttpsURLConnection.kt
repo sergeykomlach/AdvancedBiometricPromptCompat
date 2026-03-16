@@ -201,7 +201,7 @@ abstract class DelegatingHttpsURLConnection(private val delegate: HttpURLConnect
         delegate.addRequestProperty(field, newValue)
     }
 
-    override fun getHeaderField(key: String): String {
+    override fun getHeaderField(key: String): String? {
         return delegate.getHeaderField(key)
     }
 
