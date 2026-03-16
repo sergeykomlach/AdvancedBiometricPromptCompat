@@ -66,9 +66,6 @@ class App : MultiDexApplication() {
     private fun checkInit() {
         if (BiometricPromptCompat.isInitialized) {
             GlobalScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
-                    BiometricManagerCompat.loadNonHardwareBiometrics()
-                }
                 authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
                 for (listener in onInitListeners) {
                     listener.onFinished()
