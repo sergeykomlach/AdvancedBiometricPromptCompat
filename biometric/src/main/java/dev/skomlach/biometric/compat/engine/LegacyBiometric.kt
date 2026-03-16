@@ -179,7 +179,7 @@ object LegacyBiometric {
     }
 
     fun loadSoftwareModules() {
-        if (customLoading) return
+        if (customLoading || customModuleHashMap.isNotEmpty()) return
         d("BiometricAuthentication", "loadSoftwareModules called")
         try {
             customLoading = true

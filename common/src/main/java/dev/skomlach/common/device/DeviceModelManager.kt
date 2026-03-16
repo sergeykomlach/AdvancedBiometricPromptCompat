@@ -175,13 +175,17 @@ object DeviceModelManager {
             val list = mutableListOf<String>()
 
             val searchKey = "\"$rawModel\":"
-            val startIndex = fullJson.indexOf(searchKey)
+            LogCat.log("DeviceModel.getNameFromAssets calculate searchKey time ${System.currentTimeMillis() - ts}ms")
+            ts = System.currentTimeMillis()
 
+            val startIndex = fullJson.indexOf(searchKey)
+            LogCat.log("DeviceModel.getNameFromAssets find start index time ${System.currentTimeMillis() - ts}ms")
+            ts = System.currentTimeMillis()
             if (startIndex == -1) return null
 
             val arrayStart = fullJson.indexOf("[", startIndex + searchKey.length)
             if (arrayStart == -1) return null
-            LogCat.log("DeviceModel.getNameFromAssets find indexes time ${System.currentTimeMillis() - ts}ms")
+            LogCat.log("DeviceModel.getNameFromAssets find end index time ${System.currentTimeMillis() - ts}ms")
             ts = System.currentTimeMillis()
 
             val arrayContent = extractJsonFragment(fullJson, arrayStart, '[', ']') ?: return null

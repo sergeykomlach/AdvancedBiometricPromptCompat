@@ -33,23 +33,25 @@ class BiometricInitProvider : ContentProvider() {
     override fun onCreate(): Boolean {
 
         try {
-            BiometricPromptCompat.init()
+            BiometricPromptCompat.init{
+                BiometricManagerCompat.loadNonHardwareBiometrics()
+            }
         } catch (e: Throwable) {
             ContextCompat.getMainExecutor(context ?: return false).execute {
                 try {
-                    BiometricPromptCompat.init()
+                    BiometricPromptCompat.init{
+                        BiometricManagerCompat.loadNonHardwareBiometrics()
+                    }
                 } catch (e: Throwable) {
                 }
             }
         } finally {
-            ExecutorHelper.startOnBackground {
-                DeviceInfoManager.getDeviceInfo(object :
-                    DeviceInfoManager.OnDeviceInfoListener {
-                    override fun onReady(_deviceInfo: DeviceInfo?) {
-                        deviceInfo = _deviceInfo
-                    }
-                })
-            }
+            DeviceInfoManager.getDeviceInfo(object :
+                DeviceInfoManager.OnDeviceInfoListener {
+                override fun onReady(_deviceInfo: DeviceInfo?) {
+                    deviceInfo = _deviceInfo
+                }
+            })
         }
 
         return false
