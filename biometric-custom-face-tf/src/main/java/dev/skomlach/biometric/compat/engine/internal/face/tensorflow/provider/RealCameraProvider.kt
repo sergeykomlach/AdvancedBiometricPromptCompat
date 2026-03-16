@@ -166,13 +166,11 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 }
 
                 override fun onDisconnected(camera: CameraDevice) {
-                    SensorPrivacyCheck.notifySelfCameraClosed()
                     camera.close()
                     cameraDevice = null
                 }
 
                 override fun onError(camera: CameraDevice, error: Int) {
-                    SensorPrivacyCheck.notifySelfCameraClosed()
                     camera.close()
                     cameraDevice = null
                     onError?.invoke(
