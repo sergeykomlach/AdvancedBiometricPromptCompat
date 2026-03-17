@@ -154,9 +154,12 @@ object AndroidContext {
                     it.registerComponentCallbacks(object : ComponentCallbacks {
                         override fun onConfigurationChanged(newConfig: Configuration) {
                             LogCat.logError("AndroidContext", "onConfigurationChanged $newConfig")
-                            if (configurationRelay.get()?.get()?.diff(newConfig) == 0) return
-                            configurationRelay.set(SoftReference(newConfig))
-                            configurationMutableLiveData.postValue(Unit)
+                            if (configurationRelay.get()?.get() != null &&
+                                configurationRelay.get()?.get()?.diff(newConfig) == 0) return
+                            else {
+                                configurationRelay.set(SoftReference(newConfig))
+                                configurationMutableLiveData.postValue(Unit)
+                            }
                         }
 
                         override fun onLowMemory() {}
@@ -171,21 +174,24 @@ object AndroidContext {
                                 "AndroidContext",
                                 "onConfigurationChanged ${activity.resources.configuration}"
                             )
-                            if (configurationRelay.get()?.get()
-                                    ?.diff(activity.resources.configuration) == 0
-                            ) return
-                            configurationRelay.set(SoftReference(activity.resources.configuration))
-                            configurationMutableLiveData.postValue(Unit)
+                            if (configurationRelay.get()?.get() != null &&
+                                configurationRelay.get()?.get()?.diff(activity.resources.configuration) == 0) return
+                            else {
+                                configurationRelay.set(SoftReference(activity.resources.configuration))
+                                configurationMutableLiveData.postValue(Unit)
+                            }
                         }
 
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
-                            if (configurationRelay.get()?.get()
-                                    ?.diff(activity.resources.configuration) == 0
-                            ) return
-                            configurationRelay.set(SoftReference(activity.resources.configuration))
-                            configurationMutableLiveData.postValue(Unit)
                             _resumedActivityLiveData.postValue(SoftReference(activity))
+                            if (configurationRelay.get()?.get() != null &&
+                                configurationRelay.get()?.get()?.diff(activity.resources.configuration) == 0) return
+                            else {
+                                configurationRelay.set(SoftReference(activity.resources.configuration))
+                                configurationMutableLiveData.postValue(Unit)
+                            }
+
                         }
 
                         override fun onActivityPaused(activity: Activity) {
