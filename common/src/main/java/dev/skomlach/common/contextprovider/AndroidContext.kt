@@ -45,7 +45,7 @@ import java.util.concurrent.locks.ReentrantLock
 object AndroidContext {
     private val _resumedActivityLiveData = MutableLiveData<Reference<Activity?>>()
     val resumedActivityLiveData = MutableLiveData<Activity?>()
-    private val configurationRelay = AtomicReference<Reference<Configuration?>?>(null)
+    private val configurationRelay = AtomicReference<Configuration?>(null)
     private val configurationMutableLiveData = MutableLiveData<Unit>(null)
     val configurationLiveData = configurationMutableLiveData
 
@@ -73,7 +73,7 @@ object AndroidContext {
 
     var appConfiguration: Configuration? = null
         get() {
-            return configurationRelay.get()?.get() ?: appContext.resources.configuration
+            return configurationRelay.get() ?: appContext.resources.configuration
         }
         private set
     var systemConfiguration: Configuration? = null
@@ -149,15 +149,18 @@ object AndroidContext {
         appRef.set(
             SoftReference<Application?>(
                 getApplicationContext()?.also {
-                    configurationRelay.set(SoftReference(it.resources.configuration))
-                    configurationMutableLiveData.postValue(Unit)
+                    it.resources.configuration?.let{
+                        configurationRelay.set(Configuration(it))
+                        configurationMutableLiveData.postValue(Unit)
+                    }
+
                     it.registerComponentCallbacks(object : ComponentCallbacks {
                         override fun onConfigurationChanged(newConfig: Configuration) {
                             LogCat.logError("AndroidContext", "onConfigurationChanged $newConfig")
-                            if (configurationRelay.get()?.get() != null &&
-                                configurationRelay.get()?.get()?.diff(newConfig) == 0) return
+                            if (configurationRelay.get() != null &&
+                                configurationRelay.get()?.diff(newConfig) == 0) return
                             else {
-                                configurationRelay.set(SoftReference(newConfig))
+                                configurationRelay.set(Configuration(newConfig?:return))
                                 configurationMutableLiveData.postValue(Unit)
                             }
                         }
@@ -174,10 +177,10 @@ object AndroidContext {
                                 "AndroidContext",
                                 "onConfigurationChanged ${activity.resources.configuration}"
                             )
-                            if (configurationRelay.get()?.get() != null &&
-                                configurationRelay.get()?.get()?.diff(activity.resources.configuration) == 0) return
+                            if (configurationRelay.get() != null &&
+                                configurationRelay.get()?.diff(activity.resources.configuration) == 0) return
                             else {
-                                configurationRelay.set(SoftReference(activity.resources.configuration))
+                                configurationRelay.set(Configuration(activity.resources.configuration?:return))
                                 configurationMutableLiveData.postValue(Unit)
                             }
                         }
@@ -185,10 +188,10 @@ object AndroidContext {
                         override fun onActivityStarted(activity: Activity) {}
                         override fun onActivityResumed(activity: Activity) {
                             _resumedActivityLiveData.postValue(SoftReference(activity))
-                            if (configurationRelay.get()?.get() != null &&
-                                configurationRelay.get()?.get()?.diff(activity.resources.configuration) == 0) return
+                            if (configurationRelay.get() != null &&
+                                configurationRelay.get()?.diff(activity.resources.configuration) == 0) return
                             else {
-                                configurationRelay.set(SoftReference(activity.resources.configuration))
+                                configurationRelay.set(Configuration(activity.resources.configuration?:return))
                                 configurationMutableLiveData.postValue(Unit)
                             }
 
