@@ -43,6 +43,7 @@ import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 class FingerprintIconView @JvmOverloads constructor(
     context: Context,
@@ -80,11 +81,13 @@ class FingerprintIconView @JvmOverloads constructor(
     }
 
     fun setState(state: State, animate: Boolean, type: BiometricType) {
+        BiometricLoggerImpl.e("FingerprintIconView.setState($state, $animate, $type)")
         if (state == this.state) return
         setTint(state)
         if (type == BiometricType.BIOMETRIC_FINGERPRINT || type == BiometricType.BIOMETRIC_ANY) {
             @DrawableRes val resId = getDrawable(this.state, state, animate)
             if (resId == 0) {
+                BiometricLoggerImpl.e("FingerprintIconView.setImageDrawable for $type NULL")
                 setImageDrawable(null)
             } else {
                 var icon: Drawable? = null
@@ -98,7 +101,7 @@ class FingerprintIconView @JvmOverloads constructor(
                 if (icon == null) {
                     icon = getDrawable(context, resId, context.theme)
                 }
-
+                BiometricLoggerImpl.e("FingerprintIconView.setImageDrawable for $type $icon")
                 setImageDrawable(icon)
                 if (icon is Animatable) {
                     (icon as Animatable).start()
@@ -108,6 +111,7 @@ class FingerprintIconView @JvmOverloads constructor(
             val prevDrawable = drawable ?: Color.TRANSPARENT.toDrawable()
             val resId = getDrawable(this.state, state, false)
             if (resId == 0) {
+                BiometricLoggerImpl.e("FingerprintIconView.setImageDrawable for $type NULL")
                 setImageDrawable(null)
             } else {
                 val currentImage = if (state == State.ON)
@@ -122,6 +126,7 @@ class FingerprintIconView @JvmOverloads constructor(
                     )
                 )
                 transitionDrawable.isCrossFadeEnabled = true
+                BiometricLoggerImpl.e("FingerprintIconView.setImageDrawable for $type $transitionDrawable")
                 setImageDrawable(transitionDrawable)
                 transitionDrawable.startTransition(context.resources.getInteger(android.R.integer.config_shortAnimTime))
             }
@@ -154,11 +159,14 @@ class FingerprintIconView @JvmOverloads constructor(
                         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                     }
             } catch (ex: Throwable) {
-                val options = BitmapFactory.Options()
-                options.inPreferredConfig = format
-                options.outConfig = format
-                val bm = BitmapFactory.decodeResource(context.resources, resId, options)
-                dr = BitmapDrawable(bm)
+                try {
+                    val options = BitmapFactory.Options()
+                    options.inPreferredConfig = format
+                    options.outConfig = format
+                    val bm = BitmapFactory.decodeResource(context.resources, resId, options)
+                    dr = BitmapDrawable(bm)
+                } catch (_: Exception) {
+                }
             }
             return dr
         }

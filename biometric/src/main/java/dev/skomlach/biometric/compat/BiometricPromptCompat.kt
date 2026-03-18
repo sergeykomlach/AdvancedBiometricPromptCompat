@@ -330,8 +330,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 .withProvider(provider = BiometricProviderType.HARDWARE)
         )
     ) {
+        //WARNING: Set this first!!!!!!!!!!!!
+        builder.enroll = true
+
         BiometricLoggerImpl.e(
-            "BiometricPromptCompat.enroll $enrollNewHardwareBiometric"
+            "BiometricPromptCompat.enroll enrollNewHardwareBiometric=$enrollNewHardwareBiometric; list=${builder.getAllAvailableTypes()}"
         )
         if (authFlowInProgress.get()) {
             callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
@@ -356,10 +359,48 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        val softwareSetup = {
-            builder.enroll = true
+        if (builder.getAllAvailableTypes().isEmpty()) {
+            callbackOuter.onFailed(
+                builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.NO_HARDWARE,
+                        description = "Request for empty biometric list"
+                    )
+                }.toSet()
+            )
             authFlowInProgress.set(false)
-            authenticate(callbackOuter)
+            return
+        }
+        val softwareSetup = {
+            authFlowInProgress.set(false)
+            if (enrollNewHardwareBiometric) {
+                val newHardwareEnroll = BiometricManagerCompat.isBiometricReadyForEnroll(
+                    builder.getBiometricAuthRequest()
+                        .withProvider(provider = BiometricProviderType.HARDWARE)
+                ) && !BiometricManagerCompat.hasEnrolled(
+                    builder.getBiometricAuthRequest()
+                        .withProvider(provider = BiometricProviderType.HARDWARE)
+                )
+                if (!builder.getSecondaryAvailableTypes().isEmpty()) {
+                    authenticate(callbackOuter)
+                } else if (!newHardwareEnroll) {
+                    callbackOuter.onSucceeded(builder.getAllAvailableTypes().map {
+                        AuthenticationResult(
+                            it
+                        )
+                    }.toSet())
+                } else {
+                    callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+                        AuthenticationResult(
+                            it,
+                            reason = AuthenticationFailureReason.CANCELED_BY_USER
+                        )
+                    }.toSet())
+                }
+            } else {
+                authenticate(callbackOuter)
+            }
         }
         if (enrollNewHardwareBiometric) {
             builder.getActivity()?.let {
@@ -397,6 +438,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         it,
                         reason = AuthenticationFailureReason.NO_HARDWARE,
                         description = "API disabled"
+                    )
+                }.toSet()
+            )
+            authFlowInProgress.set(false)
+            return
+        }
+        if (!builder.enroll && builder.getAllAvailableTypes().isEmpty()) {
+            callbackOuter.onFailed(
+                builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
+                        description = "Request for empty biometric list"
                     )
                 }.toSet()
             )
@@ -511,13 +565,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
+        val ignoreMissedSoftwareBiometric =
+            builder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
+                builder.getBiometricAuthRequest()
+                    .withProvider(provider = BiometricProviderType.SOFTWARE)
+            )
+
         if (!BiometricManagerCompat.isHardwareDetected(builder.getBiometricAuthRequest())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
-        } else if (!(builder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                builder.getBiometricAuthRequest()
-                    .withProvider(provider = BiometricProviderType.SOFTWARE)
-            )) && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())
+        } else if (!ignoreMissedSoftwareBiometric && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - hasEnrolled")
             return AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
@@ -1207,7 +1264,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             val types = HashSet<BiometricType>()
             types.addAll(primaryAvailableTypes)
             types.addAll(secondaryAvailableTypes)
-            BiometricLoggerImpl.e("BiometricPromptCompat.allAvailableTypes - $primaryAvailableTypes $secondaryAvailableTypes")
             types
         }
         private val primaryAvailableTypes: HashSet<BiometricType> by lazy {
@@ -1221,21 +1277,36 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (type == BiometricType.BIOMETRIC_ANY)
                         continue
                     val request = biometricAuthRequest.withApi(api).withType(type)
-                    if (!isNewBiometric && enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                            request.withProvider(provider = BiometricProviderType.SOFTWARE)
-                        )
-                    ) {
-                        types.add(type)
+                    if (enroll) {
+                        if (!isNewBiometric && BiometricManagerCompat.isBiometricReadyForEnroll(
+                                request.withProvider(provider = BiometricProviderType.COMBINED)
+                            )
+                        ) {
+                            types.add(type)
+                        } else if (BiometricManagerCompat.isBiometricReadyForEnroll(
+                                request.withProvider(
+                                    provider = BiometricProviderType.HARDWARE
+                                )
+                            )
+                        ) {
+                            types.add(type)
+                        }
                     } else if (BiometricManagerCompat.isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
             } else {
-                if (!isNewBiometric && enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                        biometricAuthRequest.withProvider(provider = BiometricProviderType.SOFTWARE)
+                if (enroll) {
+                    if (!isNewBiometric && BiometricManagerCompat.isBiometricReadyForEnroll(
+                            biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
+                        )
+                    ) {
+                        types.add(biometricAuthRequest.type)
+                    } else if (BiometricManagerCompat.isBiometricReadyForEnroll(
+                            biometricAuthRequest.withProvider(provider = BiometricProviderType.HARDWARE)
+                        )
                     )
-                ) {
-                    types.add(biometricAuthRequest.type)
+                        types.add(biometricAuthRequest.type)
                 } else if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
                     types.add(biometricAuthRequest.type)
 
@@ -1252,7 +1323,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         val request =
                             biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
                         if (enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                                request.withProvider(provider = BiometricProviderType.SOFTWARE)
+                                request.withProvider(provider = BiometricProviderType.COMBINED)
                             )
                         ) {
                             types.add(type)
@@ -1262,7 +1333,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 } else {
                     if (enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                            biometricAuthRequest.withProvider(provider = BiometricProviderType.SOFTWARE)
+                            biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
                         )
                     ) {
                         types.add(biometricAuthRequest.type)

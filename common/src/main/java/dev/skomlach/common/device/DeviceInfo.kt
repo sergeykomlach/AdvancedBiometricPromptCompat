@@ -76,8 +76,10 @@ fun DeviceInfo.hasIrisScanner(): Boolean {
     val deviceInfo = this
     for (str in deviceInfo.sensors) {
         val s = str.lowercase(Locale.ROOT)
-        if (s.contains("iris") && (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+        if (s.contains("iris") && (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains(
                 " unlock"
+            ) || s.contains(
+                " lock"
             ) || s.contains(
                 " auth"
             )
@@ -95,8 +97,10 @@ fun DeviceInfo.hasFaceID(): Boolean {
     val deviceInfo = this
     for (str in deviceInfo.sensors) {
         val s = str.lowercase(Locale.ROOT)
-        if (s.contains("face") && (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+        if (s.contains("face") && (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains(
                 " unlock"
+            ) || s.contains(
+                " lock"
             ) || s.contains(
                 " auth"
             )
@@ -114,8 +118,10 @@ fun DeviceInfo.hasVoiceID(): Boolean {
     val deviceInfo = this
     for (str in deviceInfo.sensors) {
         val s = str.lowercase(Locale.ROOT)
-        if (s.contains("voice") && (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+        if (s.contains("voice") && (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains(
                 " unlock"
+            ) || s.contains(
+                " lock"
             ) || s.contains(
                 " auth"
             )
@@ -133,8 +139,10 @@ fun DeviceInfo.hasPalmID(): Boolean {
     val deviceInfo = this
     for (str in deviceInfo.sensors) {
         val s = str.lowercase(Locale.ROOT)
-        if (s.contains("palm") && (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+        if (s.contains("palm") && (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains(
                 " unlock"
+            ) || s.contains(
+                " lock"
             ) || s.contains(
                 " auth"
             )
@@ -152,8 +160,10 @@ fun DeviceInfo.hasHeartrateID(): Boolean {
     val deviceInfo = this
     for (str in deviceInfo.sensors) {
         val s = str.lowercase(Locale.ROOT)
-        if (s.contains("heartrate") && (s.contains(" id") || s.contains(" scanner") || s.contains(" recognition") || s.contains(
+        if (s.contains("heartrate") && (s.contains(" id") || s.contains(" scan") || s.contains(" recognition") || s.contains(
                 " unlock"
+            ) || s.contains(
+                " lock"
             ) || s.contains(
                 " auth"
             )

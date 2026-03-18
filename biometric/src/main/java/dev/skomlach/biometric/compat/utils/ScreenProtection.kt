@@ -32,6 +32,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityNodeProvider
 import androidx.core.os.BuildCompat
 import androidx.core.view.ViewCompat
+import dev.skomlach.biometric.compat.BuildConfig
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.permissions.PermissionUtils
@@ -100,12 +101,11 @@ object ScreenProtection {
     //Android Oreo autofill in the app
 
     private fun applyProtectionInWindowInternal(
-        window: Window?,
+        window: Window,
         disableWindow: Boolean = true,
         includeHostActivity: Boolean = false
     ) {
         try {
-            if (window == null) return
             if (disableWindow) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 window.context?.let {
@@ -151,6 +151,7 @@ object ScreenProtection {
         includeHostActivity: Boolean = false
     ) {
         try {
+            if (window == null || BuildConfig.DEBUG) return
             applyProtectionInWindowInternal(
                 window,
                 disableWindow,
@@ -172,6 +173,7 @@ object ScreenProtection {
         disableView: Boolean = true
     ) {
         try {
+            if (BuildConfig.DEBUG) return
             if (A11yDetection.hasWhiteListedService(view.context))
                 return
 

@@ -154,9 +154,13 @@ class BiometricPromptCompatDialogImpl(
         }
     }
 
-    private var primaryBiometricType: BiometricType = BiometricType.BIOMETRIC_ANY
+    private var cachedPrimary = Pair<Long, BiometricType>(0, BiometricType.BIOMETRIC_ANY)
+    private val primaryBiometricType: BiometricType
         get() {
-            e("BiometricPromptGenericImpl.primaryBiometricType - ${compatBuilder.getAllAvailableTypes()}")
+            if (System.currentTimeMillis() - cachedPrimary.first <= 1000)
+                return cachedPrimary.second
+
+            e("BiometricPromptGenericImpl.primaryBiometricType > ${compatBuilder.getAllAvailableTypes()}")
             val list = mutableListOf<BiometricType>()
             if (compatBuilder.getSecondaryAvailableTypes().isEmpty()) {
                 for (type in compatBuilder.getPrimaryAvailableTypes()) {
@@ -166,12 +170,11 @@ class BiometricPromptCompatDialogImpl(
                     if (compatBuilder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request
                         )
-                    ){
+                    ) {
                         list.add(type)
-                    }
-                    else
-                    if (BiometricManagerCompat.isBiometricReadyForUsage(request))
-                        list.add(type)
+                    } else
+                        if (BiometricManagerCompat.isBiometricReadyForUsage(request))
+                            list.add(type)
                 }
             } else {
                 for (type in compatBuilder.getSecondaryAvailableTypes()) {
@@ -181,18 +184,19 @@ class BiometricPromptCompatDialogImpl(
                     if (compatBuilder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
                             request
                         )
-                    ){
+                    ) {
                         list.add(type)
-                    }
-                    else
-                    if (BiometricManagerCompat.isBiometricReadyForUsage(request))
-                        list.add(type)
+                    } else
+                        if (BiometricManagerCompat.isBiometricReadyForUsage(request))
+                            list.add(type)
                 }
             }
             list.removeAll(authFinishedCopy.keys)
             list.sortWith { o1, o2 -> o1.ordinal.compareTo(o2.ordinal) }
-            e("BiometricPromptGenericImpl.primaryBiometricType - $list")
-            return if (list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]
+            e("BiometricPromptGenericImpl.primaryBiometricType < ${if (list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]}")
+            return (if (list.isEmpty()) BiometricType.BIOMETRIC_ANY else list[0]).also {
+                cachedPrimary = Pair(System.currentTimeMillis(), it)
+            }
         }
     private val onGlobalLayoutListener = OnGlobalLayoutListener {
         e("BiometricPromptGenericImpl.onGlobalLayout - fallback dialog")
