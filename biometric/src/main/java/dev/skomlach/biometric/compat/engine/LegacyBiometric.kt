@@ -139,6 +139,7 @@ object LegacyBiometric {
         }
         return permission
     }
+
     fun rollbackLastEnrollInSoftwareModules() {
         d("BiometricAuthentication", "rollbackLastEnroll")
         synchronized(moduleHashMap) {
@@ -196,7 +197,8 @@ object LegacyBiometric {
                     }
 
                     if (!isAlreadyRegistered && !BiometricManagerCompat.isHardwareDetected(
-                            BiometricAuthRequest.default().withApi(BiometricApi.AUTO).withType(targetType)
+                            BiometricAuthRequest.default().withApi(BiometricApi.AUTO)
+                                .withType(targetType)
                         )
                     ) {
                         val biometricMethod = BiometricMethod.createCustomModule(

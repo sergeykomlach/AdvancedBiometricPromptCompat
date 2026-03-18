@@ -51,7 +51,7 @@ object BiometricTitle {
         else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FINGERPRINT)) {
             return try {
                 context
-                .getString(androidx.biometric.R.string.fingerprint_prompt_message)
+                    .getString(androidx.biometric.R.string.fingerprint_prompt_message)
             } catch (_: Exception) {
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -98,7 +98,7 @@ object BiometricTitle {
 
         return try {
             context
-            .getString(androidx.biometric.R.string.biometric_prompt_message)
+                .getString(androidx.biometric.R.string.biometric_prompt_message)
         } catch (_: Exception) {
             LocalizationHelper.getLocalizedString(
                 context,

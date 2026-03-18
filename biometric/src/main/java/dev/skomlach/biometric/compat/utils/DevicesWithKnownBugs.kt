@@ -25,7 +25,6 @@ import androidx.biometric.R
 import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import dev.skomlach.common.device.DeviceModel
 import dev.skomlach.common.device.DeviceModelManager
 import dev.skomlach.common.device.hasBiometricSensors
 import dev.skomlach.common.device.hasUnderDisplayFingerprint
@@ -197,7 +196,8 @@ object DevicesWithKnownBugs {
             else
                 if (isChromeBook) return true
                 else if (isSamsung) {
-                    val model = BiometricPromptCompat.deviceInfo?.model?:DeviceModelManager.getDeviceModel().deviceName
+                    val model = BiometricPromptCompat.deviceInfo?.model
+                        ?: DeviceModelManager.getDeviceModel().deviceName
                     return model.contains("Flip") || model.contains("Fold")
                 }
 

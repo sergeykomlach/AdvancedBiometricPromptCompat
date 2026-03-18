@@ -57,7 +57,7 @@ class CredentialsRequestFragment : Fragment() {
             description: CharSequence?,
             validator: (Boolean) -> Unit?,
         ) {
-            val tag = CredentialsRequestFragment.TAG
+            val tag = TAG
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                 return
             val fragment = CredentialsRequestFragment()
@@ -133,49 +133,49 @@ class CredentialsRequestFragment : Fragment() {
         LogCat.log("CredentialsRequestFragment", "onAttach")
         super.onAttach(context)
         lifecycleScope.launchWhenResumed {
-                try {
-                    //Create an intent to open device screen lock screen to authenticate
-                    //Pass the Screen Lock screen Title and Description
-                    val title = arguments?.getCharSequence("title")
-                        ?: try {
-                            resources.getString(androidx.biometric.R.string.use_screen_lock_label)
-                        } catch (_: Exception) {
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_use_screen_lock_label
-                            )
-                        }
-                    val description = arguments?.getCharSequence("description")
-                        ?: try {
-                            resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
-                        } catch (_: Exception) {
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_screen_lock_prompt_message
-                            )
-                        }
-                    val keyguardManager =
-                        requireActivity().getSystemService(KEYGUARD_SERVICE) as KeyguardManager?
-                    val intent = keyguardManager?.createConfirmDeviceCredentialIntent(
-                        title,
-                        description
-                    )
-                    startForResult.launch(intent ?: run {
-                        closeFragment()
-                        return@launchWhenResumed
-                    })
-                } catch (e: Throwable) {
-                    LogCat.logException(
-                        e, "CredentialsRequestFragment", e.message
-                    )
+            try {
+                //Create an intent to open device screen lock screen to authenticate
+                //Pass the Screen Lock screen Title and Description
+                val title = arguments?.getCharSequence("title")
+                    ?: try {
+                        resources.getString(androidx.biometric.R.string.use_screen_lock_label)
+                    } catch (_: Exception) {
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_use_screen_lock_label
+                        )
+                    }
+                val description = arguments?.getCharSequence("description")
+                    ?: try {
+                        resources.getString(androidx.biometric.R.string.screen_lock_prompt_message)
+                    } catch (_: Exception) {
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_screen_lock_prompt_message
+                        )
+                    }
+                val keyguardManager =
+                    requireActivity().getSystemService(KEYGUARD_SERVICE) as KeyguardManager?
+                val intent = keyguardManager?.createConfirmDeviceCredentialIntent(
+                    title,
+                    description
+                )
+                startForResult.launch(intent ?: run {
                     closeFragment()
-                }
+                    return@launchWhenResumed
+                })
+            } catch (e: Throwable) {
+                LogCat.logException(
+                    e, "CredentialsRequestFragment", e.message
+                )
+                closeFragment()
             }
+        }
 
     }
 
     private fun closeFragment() {
-        val tag = CredentialsRequestFragment.TAG
+        val tag = TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         LogCat.log("CredentialsRequestFragment", "closeFragment")
         try {

@@ -67,6 +67,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptGenericImpl,
+                !builder.enroll && //HOTFIX need to determinate properly
                 isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
             )
             dialog?.showDialog()

@@ -67,7 +67,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.text.ifEmpty
 
 @TargetApi(Build.VERSION_CODES.P)
 
@@ -393,7 +392,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptApi28Impl,
-                isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
+                !builder.enroll && //HOTFIX need to determinate properly
+                        isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
             )
             dialog?.showDialog()
         } else {
@@ -430,7 +430,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
         showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
-            ExecutorHelper.post{
+            ExecutorHelper.post {
                 LegacyBiometric.authenticate(
                     builder.getCryptographyPurpose(),
                     null,
@@ -637,7 +637,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("BiometricPromptApi28Impl.checkAuthResult.authFinished << ${builder.getBiometricAuthRequest()}: $error/$success")
         if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
-            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL &&  allList.isEmpty())
+            (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
             if (success != null) {
                 val onlySuccess = authFinished.filter {
@@ -707,6 +707,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             dialog?.showDialog()
         }
     }
+
     private inner class LegacyBiometricAuthenticationCallbackImpl :
         LegacyBiometricAuthenticationListener {
 

@@ -38,7 +38,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
-import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
@@ -94,11 +93,11 @@ class WindowForegroundBlurring(
                             type = it
                         )
                     ) else
-                    BiometricManagerCompat.isBiometricReadyForUsage(
-                        compatBuilder.getBiometricAuthRequest().withType(
-                            type = it
+                        BiometricManagerCompat.isBiometricReadyForUsage(
+                            compatBuilder.getBiometricAuthRequest().withType(
+                                type = it
+                            )
                         )
-                    )
                 }
         }
     private val onDrawListener = ViewTreeObserver.OnPreDrawListener {

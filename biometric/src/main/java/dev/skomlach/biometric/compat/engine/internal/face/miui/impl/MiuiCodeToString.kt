@@ -95,6 +95,7 @@ object MiuiCodeToString {
                 context,
                 R.string.biometriccompat_face_error_lockout
             )
+
             8 -> {
                 try {
                     val msgArray = getStringArray("face_error_vendor")
@@ -236,11 +237,13 @@ object MiuiCodeToString {
                 context,
                 R.string.biometriccompat_face_acquired_obscured
             )
+
             20 -> return null
             21 -> return LocalizationHelper.getLocalizedString(
                 context,
                 R.string.biometriccompat_face_acquired_sensor_dirty
             )
+
             22 -> {
                 try {
                     val msgArray = getStringArray("face_acquired_vendor")

@@ -54,7 +54,7 @@ class UntrustedAccessibilityFragment : Fragment() {
         ) {
             LogCat.log("UntrustedAccessibilityFragment.askForPermissions()")
 
-            val tag = UntrustedAccessibilityFragment.TAG
+            val tag = TAG
             val oldFragment = activity.supportFragmentManager.findFragmentByTag(tag)
             val fragment = UntrustedAccessibilityFragment()
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
@@ -147,7 +147,7 @@ class UntrustedAccessibilityFragment : Fragment() {
     private fun closeFragment(ok: Boolean) {
         alert?.dismiss()
         alert = null
-        val tag = UntrustedAccessibilityFragment.TAG
+        val tag = TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

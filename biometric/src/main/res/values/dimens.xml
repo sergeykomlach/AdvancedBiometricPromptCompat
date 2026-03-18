@@ -18,8 +18,8 @@
   -->
 
 <resources>
-    <item name="bio_tag_screen_protection_state" type="id"/>
-    <item name="bio_tag_screen_protection_applied" type="id"/>
+    <item name="bio_tag_screen_protection_state" type="id" />
+    <item name="bio_tag_screen_protection_applied" type="id" />
 
     <dimen name="fingerprint_status_layout_margin_vertical_inscreen">128dp</dimen>
     <dimen name="fingerprint_icon_size_compat">64dp</dimen>

@@ -53,7 +53,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
         ) {
             LogCat.log("InitiateSystemBiometricEnrollFragment", "showFragment")
 
-            val tag = InitiateSystemBiometricEnrollFragment.TAG
+            val tag = TAG
 
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
@@ -84,7 +84,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
 
     private fun closeFragment() {
         LogCat.log("InitiateSystemBiometricEnrollFragment", "closeFragment")
-        val tag = InitiateSystemBiometricEnrollFragment.TAG
+        val tag = TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

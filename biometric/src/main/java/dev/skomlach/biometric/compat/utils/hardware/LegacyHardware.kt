@@ -38,7 +38,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                 }
                 else listOf(
                     LegacyBiometric.getAvailableBiometricModule(
-                biometricAuthRequest.type
+                        biometricAuthRequest.type
                     )
                 )
             for (biometricModule in biometricModules) {
@@ -75,7 +75,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                 }
                 else listOf(
                     LegacyBiometric.getAvailableBiometricModule(
-                biometricAuthRequest.type
+                        biometricAuthRequest.type
                     )
                 )
             for (biometricModule in biometricModules) {
@@ -113,7 +113,7 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                 }
                 else listOf(
                     LegacyBiometric.getAvailableBiometricModule(
-                    biometricAuthRequest.type
+                        biometricAuthRequest.type
                     )
                 )
             for (biometricModule in biometricModules) {

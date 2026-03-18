@@ -89,7 +89,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         ) {
             LogCat.log("SensorBlockedFragment", "showFragment $title $msg")
 
-            val tag = SensorBlockedFallbackFragment.TAG
+            val tag = TAG
 
             if (activity.supportFragmentManager.findFragmentByTag(tag) != null)
                 return
@@ -123,7 +123,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         alert?.dismiss()
         alert = null
         LogCat.log("SensorBlockedFragment", "closeFragment")
-        val tag = SensorBlockedFallbackFragment.TAG
+        val tag = TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

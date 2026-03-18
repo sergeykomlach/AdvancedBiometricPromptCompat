@@ -158,7 +158,8 @@ object BiometricManagerCompat {
                     for (type in BiometricType.entries) {
                         if (type == BiometricType.BIOMETRIC_ANY)
                             continue
-                        val request = biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
+                        val request =
+                            biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
                         if (isBiometricReadyForEnroll(request)) {
                             types.add(type)
                         }
@@ -317,6 +318,7 @@ object BiometricManagerCompat {
         preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
         return result || cameraInUse
     }
+
     @JvmStatic
     fun getUsedPermissions(
         types: Collection<BiometricType>
@@ -377,13 +379,15 @@ object BiometricManagerCompat {
             val types = HashSet<BiometricType>()
             for (type in BiometricType.entries) {
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
-                    val request = biometricAuthRequest.withApi(BiometricApi.BIOMETRIC_API).withType(type)
+                    val request =
+                        biometricAuthRequest.withApi(BiometricApi.BIOMETRIC_API).withType(type)
                     if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.LEGACY_API) {
-                    val request = biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
+                    val request =
+                        biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
                     if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
@@ -412,13 +416,15 @@ object BiometricManagerCompat {
 
             for (type in BiometricType.entries) {
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
-                    val request = biometricAuthRequest.withApi(BiometricApi.BIOMETRIC_API).withType(type)
+                    val request =
+                        biometricAuthRequest.withApi(BiometricApi.BIOMETRIC_API).withType(type)
                     if (isBiometricAvailable(request)) {
                         types.add(type)
                     }
                 }
                 if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.LEGACY_API) {
-                    val request = biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
+                    val request =
+                        biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
                     if (isBiometricAvailable(request)) {
                         types.add(type)
                     }

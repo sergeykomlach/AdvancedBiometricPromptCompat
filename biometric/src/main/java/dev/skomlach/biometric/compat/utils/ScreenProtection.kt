@@ -187,8 +187,10 @@ object ScreenProtection {
             BiometricLoggerImpl.e("ScreenProtection", e)
         }
     }
+
     private fun protectView(view: View) {
-        val alreadyApplied = view.getTag(R.id.bio_tag_screen_protection_applied) as? Boolean ?: false
+        val alreadyApplied =
+            view.getTag(R.id.bio_tag_screen_protection_applied) as? Boolean ?: false
 
         if (!alreadyApplied) {
             saveOriginalState(view)
@@ -215,10 +217,11 @@ object ScreenProtection {
     }
 
     private fun rollbackView(view: View) {
-        val state = view.getTag(R.id.bio_tag_screen_protection_state) as? ProtectedViewState ?: run {
-            view.setTag(R.id.bio_tag_screen_protection_applied, false)
-            return
-        }
+        val state =
+            view.getTag(R.id.bio_tag_screen_protection_state) as? ProtectedViewState ?: run {
+                view.setTag(R.id.bio_tag_screen_protection_applied, false)
+                return
+            }
 
         ViewCompat.setImportantForAccessibility(view, state.importantForAccessibility)
 
@@ -250,7 +253,7 @@ object ScreenProtection {
             },
             originalAccessibilityDelegate = getCurrentAccessibilityDelegateCompat(view),
             accessibilityDataSensitive = if (BuildCompat.isAtLeastU()) {
-                if(view.isAccessibilityDataSensitive) View.ACCESSIBILITY_DATA_SENSITIVE_YES else View.ACCESSIBILITY_DATA_SENSITIVE_NO
+                if (view.isAccessibilityDataSensitive) View.ACCESSIBILITY_DATA_SENSITIVE_YES else View.ACCESSIBILITY_DATA_SENSITIVE_NO
             } else {
                 null
             }
@@ -258,6 +261,7 @@ object ScreenProtection {
 
         view.setTag(R.id.bio_tag_screen_protection_state, state)
     }
+
     @Suppress("DiscouragedPrivateApi", "PrivateApi")
     private fun getCurrentAccessibilityDelegateCompat(view: View): View.AccessibilityDelegate? {
         return try {
