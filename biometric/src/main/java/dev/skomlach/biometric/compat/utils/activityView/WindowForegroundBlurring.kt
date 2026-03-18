@@ -38,8 +38,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
+import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.DialogMainColor
@@ -80,10 +82,21 @@ class WindowForegroundBlurring(
 
     private val biometricTypesList: List<BiometricType>
         get() {
-            val typesList =
-                (if (compatBuilder.isBackgroundBiometricIconsEnabled()) ArrayList<BiometricType>(
-                    compatBuilder.getAllAvailableTypes()
-                ) else emptyList())
+            val typesList = if (compatBuilder.isBackgroundBiometricIconsEnabled()) {
+                if (compatBuilder.enroll) {
+                    val skipHardwareList = compatBuilder.getAllAvailableTypes().filter {
+                        BiometricManagerCompat.isHardwareDetected(
+                            BiometricAuthRequest.default().withType(it).withProvider(
+                                BiometricProviderType.HARDWARE
+                            )
+                        )
+                    }
+                    val filtered = compatBuilder.getAllAvailableTypes().toMutableList()
+                    filtered.removeAll(skipHardwareList)
+                    filtered
+                } else compatBuilder.getAllAvailableTypes().toMutableList()
+            } else emptyList()
+
             return if (!isBlurViewAttachedToHost) {
                 typesList
             } else

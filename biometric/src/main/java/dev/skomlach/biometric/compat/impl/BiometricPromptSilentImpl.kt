@@ -21,8 +21,11 @@ package dev.skomlach.biometric.compat.impl
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
@@ -59,9 +62,19 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     }
 
     init {
-        isFingerprint.set(
-            builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
-        )
+        if(builder.enroll){
+            val skipHardwareList =  builder.getAllAvailableTypes().filter {
+                BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withType(it).withProvider(
+                    BiometricProviderType.HARDWARE))
+            }
+            val filtered = builder.getAllAvailableTypes().toMutableList()
+            filtered.removeAll(skipHardwareList)
+            isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+        }
+        else
+            isFingerprint.set(
+                builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
+            )
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
