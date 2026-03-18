@@ -21,8 +21,11 @@ package dev.skomlach.biometric.compat.impl
 
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
@@ -52,6 +55,16 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val canceled = HashSet<AuthenticationResult>()
 
     init {
+        if(builder.enroll){
+            val skipHardwareList =  builder.getAllAvailableTypes().filter {
+                BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withType(it).withProvider(
+                    BiometricProviderType.HARDWARE))
+            }
+            val filtered = builder.getAllAvailableTypes().toMutableList()
+            filtered.removeAll(skipHardwareList)
+            isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+        }
+        else
         isFingerprint.set(
             builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
         )
@@ -67,7 +80,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptGenericImpl,
-                !builder.enroll && //HOTFIX need to determinate properly
+
                 isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
             )
             dialog?.showDialog()

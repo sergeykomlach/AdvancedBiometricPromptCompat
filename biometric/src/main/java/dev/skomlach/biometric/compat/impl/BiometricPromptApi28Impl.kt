@@ -35,10 +35,13 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.R
@@ -364,7 +367,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     init {
-        isFingerprint.set(
+        if(builder.enroll){
+            val skipHardwareList =  builder.getPrimaryAvailableTypes().filter {
+                BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withType(it).withProvider(
+                    BiometricProviderType.HARDWARE))
+            }
+            val filtered = builder.getPrimaryAvailableTypes().toMutableList()
+            filtered.removeAll(skipHardwareList)
+            isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+        }
+        else isFingerprint.set(
             builder.getPrimaryAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
         )
     }
@@ -392,7 +404,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptApi28Impl,
-                !builder.enroll && //HOTFIX need to determinate properly
                         isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
             )
             dialog?.showDialog()
