@@ -359,19 +359,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        if (builder.getAllAvailableTypes().isEmpty()) {
-            callbackOuter.onFailed(
-                builder.getAllAvailableTypes().map {
-                    AuthenticationResult(
-                        it,
-                        reason = AuthenticationFailureReason.NO_HARDWARE,
-                        description = "Request for empty biometric list"
-                    )
-                }.toSet()
-            )
-            authFlowInProgress.set(false)
-            return
-        }
         val softwareSetup = {
             authFlowInProgress.set(false)
             if (enrollNewHardwareBiometric) {
@@ -438,19 +425,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         it,
                         reason = AuthenticationFailureReason.NO_HARDWARE,
                         description = "API disabled"
-                    )
-                }.toSet()
-            )
-            authFlowInProgress.set(false)
-            return
-        }
-        if (!builder.enroll && builder.getAllAvailableTypes().isEmpty()) {
-            callbackOuter.onFailed(
-                builder.getAllAvailableTypes().map {
-                    AuthenticationResult(
-                        it,
-                        reason = AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED,
-                        description = "Request for empty biometric list"
                     )
                 }.toSet()
             )
