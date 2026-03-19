@@ -201,7 +201,7 @@ if __name__ == "__main__":
     START_PAGE = 1      # Start from page 1
 #    MAX_PAGES = 5       # Set to None to scrape all pages, or a number to limit
     MAX_PAGES = None
-    DELAY = 3           # Delay in seconds between requests (be respectful!)
+    DELAY = 2           # Delay in seconds between requests (be respectful!)
     
     print(f"\nConfiguration:")
     print(f"  Base URL: {BASE_URL}")

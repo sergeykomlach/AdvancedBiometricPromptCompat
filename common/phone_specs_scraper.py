@@ -318,7 +318,7 @@ if __name__ == "__main__":
     OUTPUT_JSON = "gsmarena_specifications.json"
     OUTPUT_CSV = "gsmarena_specifications.csv"
     MAX_PHONES = None       # Set to None to scrape all phones
-    DELAY = 3            # Delay in seconds between requests
+    DELAY = 2            # Delay in seconds between requests
     START_FROM = 0       # Start from this index
     
     print(f"\nConfiguration:")
