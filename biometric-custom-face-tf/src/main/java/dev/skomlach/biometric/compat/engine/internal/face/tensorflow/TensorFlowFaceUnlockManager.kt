@@ -680,7 +680,7 @@ class TensorFlowFaceUnlockManager(
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
                             resetPermanentLockOut()
-                        }, 2000L)
+                        }, 2500L)
 
                         return
                     }
