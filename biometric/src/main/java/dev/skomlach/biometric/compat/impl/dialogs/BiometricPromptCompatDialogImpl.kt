@@ -325,13 +325,11 @@ class BiometricPromptCompatDialogImpl(
         ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
-            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ERROR, primaryBiometricType)
+            dialog.fingerprintIcon?.setState(FingerprintIconView.State.ON, primaryBiometricType)
 
             dialog.status?.text = msg
             dialog.status?.setTextColor(
-                ContextCompat.getColor(
-                    compatBuilder.getContext(), R.color.material_red_500
-                )
+                originalColor
             )
             animateHandler.sendEmptyMessageDelayed(
                 WHAT_RESTORE_NORMAL_STATE,
