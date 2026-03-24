@@ -181,27 +181,6 @@ class BiometricPromptCompatDialog : DialogFragment() {
             container,
             false
         )
-        var lastKnownFocus: Boolean? = null
-        containerView?.viewTreeObserver?.addOnGlobalLayoutListener {
-            d("WindowFocusChangedListenerDialog.OnGlobalLayoutListener called")
-            val root = findViewById<View>(Window.ID_ANDROID_CONTENT)
-            val hasFocus = root?.hasWindowFocus()
-            if (hasFocus == lastKnownFocus)
-                return@addOnGlobalLayoutListener
-            lastKnownFocus = hasFocus
-            e("WindowFocusChangedListenerDialog.hasFocus(1) - $hasFocus")
-            if (focusListener != null) {
-                if (root != null) {
-                    if (ViewCompat.isAttachedToWindow(root)) {
-                        focusListener?.hasFocus(root.hasWindowFocus())
-                    }
-                }
-            }
-            root?.context?.let {
-                updateMonetColorsInternal(it)
-            }
-
-        }
         rootView = containerView?.findViewById(R.id.dialogContent)
         rootView?.doOnAttach {
             rootView?.findViewTreeLifecycleOwner()?.lifecycle?.addObserver(object :
@@ -316,7 +295,7 @@ class BiometricPromptCompatDialog : DialogFragment() {
         return dialog?.findViewById<T>(id)
     }
 
-    private fun updateMonetColorsInternal(context: Context) {
+    internal fun updateMonetColorsInternal(context: Context) {
         if (Utils.isAtLeastT) {
 //            E: [MonetColor api33_finger_bg = neutral1[700]; distance=0.02147931470032775]
 //            E: [MonetColor api33_finger_lines = accent1[100]; distance=0.03441162299750387]

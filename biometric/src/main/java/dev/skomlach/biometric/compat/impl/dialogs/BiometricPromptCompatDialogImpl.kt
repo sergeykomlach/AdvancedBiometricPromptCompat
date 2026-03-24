@@ -40,6 +40,7 @@ import dev.skomlach.biometric.compat.utils.BiometricTitle
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -140,7 +141,6 @@ class BiometricPromptCompatDialogImpl(
             }
 
             dialog.status?.text = promptText
-            originalColor = dialog.status?.textColors
 
             dialog.fingerprintIcon?.setState(
                 FingerprintIconView.State.ON,
@@ -227,7 +227,7 @@ class BiometricPromptCompatDialogImpl(
                 }
             }
         }
-    private var originalColor: ColorStateList? = null
+
 
     private fun attachWindowListeners() {
         try {
@@ -322,6 +322,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onHelp(msg: CharSequence?) {
+        e("BiometricPromptGenericImpl.onHelp - $msg")
         ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
@@ -330,7 +331,7 @@ class BiometricPromptCompatDialogImpl(
             dialog.status?.text = msg
             dialog.status?.setTextColor(
                 ContextCompat.getColor(
-                    compatBuilder.getContext(), R.color.material_deep_teal_500
+                    dialog.status!!.context, if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
                 )
             )
             animateHandler.sendEmptyMessageDelayed(
@@ -341,6 +342,7 @@ class BiometricPromptCompatDialogImpl(
     }
 
     fun onFailure(isLockout: Boolean) {
+        e("BiometricPromptGenericImpl.onFailure - $isLockout")
         ExecutorHelper.post {
             animateHandler.removeMessages(WHAT_RESTORE_NORMAL_STATE)
 
@@ -349,7 +351,7 @@ class BiometricPromptCompatDialogImpl(
             dialog.status?.text = if (isLockout) too_many_attempts else not_recognized
             dialog.status?.setTextColor(
                 ContextCompat.getColor(
-                    compatBuilder.getContext(), R.color.material_red_500
+                    dialog.status!!.context, R.color.material_red_500
                 )
             )
             animateHandler.sendEmptyMessageDelayed(
@@ -363,12 +365,14 @@ class BiometricPromptCompatDialogImpl(
         override fun handleMessage(msg: Message) {
             when (msg.what) {
                 WHAT_RESTORE_NORMAL_STATE -> {
+                    e("BiometricPromptGenericImpl.AnimateHandler")
                     dialog.fingerprintIcon?.setState(
                         FingerprintIconView.State.ON,
                         primaryBiometricType
                     )
                     dialog.status?.text = promptText
-                    dialog.status?.setTextColor(originalColor)
+                    dialog.status?.setTextColor(ContextCompat.getColor(dialog.status!!.context, R.color.textColor))
+                    dialog.updateMonetColorsInternal(dialog.status!!.context)
                 }
             }
         }

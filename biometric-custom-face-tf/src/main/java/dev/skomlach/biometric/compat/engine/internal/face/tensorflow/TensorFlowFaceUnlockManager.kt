@@ -208,6 +208,7 @@ class TensorFlowFaceUnlockManager(
 
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
+    private var pendingExit = false
 
     // --- MLKit & TFLite ---
     private val faceDetector: FaceDetector? by lazy {
@@ -583,7 +584,7 @@ class TensorFlowFaceUnlockManager(
 
     private fun processFaces(bitmap: Bitmap, faces: List<Face>) {
         if (faces.isEmpty()) return
-
+        if (pendingExit) return
         val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() } ?: return
 
         if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
@@ -669,6 +670,7 @@ class TensorFlowFaceUnlockManager(
                 if (isEnrolling && detector?.hasRegistered() == true) {
                     val dist = result.distance ?: Float.MAX_VALUE
                     if (dist < config.maxDistanceThresholds) {
+                        pendingExit = true
                         authCallback?.onAuthenticationHelp(
                             CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
                             LocalizationHelper.getLocalizedString(
@@ -680,7 +682,8 @@ class TensorFlowFaceUnlockManager(
                             authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                             stopAuthentication()
                             resetPermanentLockOut()
-                        }, 2500L)
+                            pendingExit = false
+                        }, 2000L)
 
                         return
                     }
