@@ -329,7 +329,9 @@ class BiometricPromptCompatDialogImpl(
 
             dialog.status?.text = msg
             dialog.status?.setTextColor(
-                originalColor
+                ContextCompat.getColor(
+                    compatBuilder.getContext(), R.color.material_deep_teal_500
+                )
             )
             animateHandler.sendEmptyMessageDelayed(
                 WHAT_RESTORE_NORMAL_STATE,
