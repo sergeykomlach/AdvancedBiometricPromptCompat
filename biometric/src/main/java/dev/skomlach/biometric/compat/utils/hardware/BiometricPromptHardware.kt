@@ -227,7 +227,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                         type
                     )
 
-                    BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() || checkDeviceFeature(type)
+                    BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() && checkDeviceFeature(type)
                     BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID() && checkDeviceFeature(
                         type
                     )
