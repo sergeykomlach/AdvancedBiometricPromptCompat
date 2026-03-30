@@ -238,7 +238,7 @@ class SoftwareBiometricModule(
                 }
 
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 CUSTOM_BIOMETRIC_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED

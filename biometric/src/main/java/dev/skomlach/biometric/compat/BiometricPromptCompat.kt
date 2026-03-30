@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -64,7 +65,6 @@ import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
-import dev.skomlach.common.misc.isActivityFinished
 import dev.skomlach.common.multiwindow.MultiWindowSupport
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.permissionui.PermissionsFragment
@@ -1358,8 +1358,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var isTruncateChecked: Boolean? = null
 
 
-        private val currentActivity = activity ?: (AndroidContext.activity as? FragmentActivity
-            ?: throw java.lang.IllegalStateException("No activity on screen"))
 
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = false
@@ -1518,14 +1516,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getActivity(): FragmentActivity? {
-            if (isActivityFinished(currentActivity)) {
-                BiometricLoggerImpl.e(
-                    "BiometricPromptCompat.getActivity",
-                    IllegalStateException("No activity on screen")
-                )
-                return null
-            }
-            return currentActivity
+           return AndroidContext.activity as? FragmentActivity
         }
 
         fun getContext(): Context {
