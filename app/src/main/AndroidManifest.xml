@@ -65,6 +65,9 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.MyApplication">
+        <meta-data
+                android:name="android.security.net.config"
+                android:resource="@xml/network_security_config" />
         <!--
       https://android-developers.googleblog.com/2018/11/get-your-app-ready-for-foldable-phones.html
       https://developer.samsung.com/galaxy/foldable

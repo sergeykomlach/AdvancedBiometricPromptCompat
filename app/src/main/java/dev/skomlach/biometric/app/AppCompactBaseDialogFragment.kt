@@ -37,6 +37,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 
@@ -72,6 +73,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             })
         } else {
             fillList(inflater, buttonsList)
+            checkDeviceInfo()
         }
         view.findViewById<CheckBox>(R.id.checkboxWindowSecure).isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
@@ -123,7 +125,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
     private fun checkDeviceInfo() {
         DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
             override fun onReady(deviceInfo: DeviceInfo?) {
-                view?.findViewById<TextView>(R.id.text)?.text = deviceInfo.toString()
+                view?.findViewById<TextView>(R.id.text)?.text = "Network: ${NetworkApi.hasInternet()}\n"+ deviceInfo.toString()
             }
         })
     }

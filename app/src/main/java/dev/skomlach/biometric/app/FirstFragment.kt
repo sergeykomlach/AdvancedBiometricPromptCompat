@@ -40,6 +40,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
 //import leakcanary.LeakCanary
@@ -157,7 +158,7 @@ class FirstFragment : Fragment() {
     private fun checkDeviceInfo() {
         DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
             override fun onReady(deviceInfo: DeviceInfo?) {
-                binding?.text?.text = deviceInfo.toString()
+                binding?.text?.text ="Network: ${NetworkApi.hasInternet()}\n"+ deviceInfo.toString()
 
             }
         })
