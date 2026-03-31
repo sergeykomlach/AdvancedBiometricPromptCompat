@@ -25,7 +25,8 @@
     <string name="biometriccompat_tf_face_help_model_not_registered">Biometric not registered</string>
     <string name="biometriccompat_tf_face_help_model_image_is_blurry">Face is blurry, hold still</string>
     <string name="biometriccompat_tf_face_help_model_fake_face_detected">Fake face detected</string>
-    <string name="biometriccompat_tf_face_help_model_retry">Retry</string>
+    <string name="biometriccompat_tf_face_help_model_retry">Face not recognized. Try again</string>
+    <string name="biometriccompat_tf_face_help_model_too_many_faces">Too many faces. There should only be one face</string>
     <string name="biometriccompat_tf_face_help_model_look_straight_ahead">Look straight ahead</string>
     <string name="biometriccompat_tf_face_help_model_too_dark">Too dark</string>
     <string name="biometriccompat_tf_face_help_model_no_camera_permissions">No Camera Permission</string>
@@ -36,4 +37,5 @@
     <string name="biometriccompat_tf_face_help_too_many_attempts_try_later">Face Unlock is locked out. Try again later</string>
     <string name="biometriccompat_tf_face_help_too_many_attempts_permanent">Face Unlock is locked out permanently</string>
     <string name="biometriccompat_tf_face_help_model_already_registered">This face is already registered</string>
+    <string name="biometriccompat_tf_face_help_model_not_detected">Can\u2019t see your face. Hold your phone at eye level</string>
 </resources>
