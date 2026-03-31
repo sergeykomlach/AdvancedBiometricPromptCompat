@@ -12,6 +12,7 @@ import android.os.HandlerThread
 import androidx.core.content.edit
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
+import androidx.core.graphics.scale
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetector
@@ -51,10 +52,15 @@ class TensorFlowFaceUnlockManager(
 
         private const val TIMEOUT_MS = 30000L
 
-        private const val ANTISPOOFING_WINDOW_SIZE = 5
-        private const val ANTISPOOFING_MIN_FRAMES_TO_DECIDE = 3
+        private const val ANTISPOOFING_WINDOW_SIZE = 7
+        private const val ANTISPOOFING_MIN_FRAMES_TO_DECIDE = 4
+        private const val ANTISPOOFING_SCORE_THRESHOLD = 0.28f
 
         private const val MAX_ANGLE = 25f
+        private const val MIN_FACE_SIZE_PX = 140
+        private const val MIN_BRIGHTNESS_LUMA = 45
+        private const val RECOGNITION_CROP_SCALE = 1.35f
+        private const val LIVENESS_CROP_SCALE = 1.75f
         private const val TF_OD_API_INPUT_SIZE = 112
         private const val TF_OD_API_IS_QUANTIZED = false
         private const val TF_OD_API_MODEL_FILE = "tf_bio/mobile_face_net.tflite"
@@ -86,7 +92,7 @@ class TensorFlowFaceUnlockManager(
                     }
                     .toList()
                     .toTypedArray()
-                LogCat.log("TensorFlowProvider", "LocalizationHelper.prefetch")
+                LogCat.log(TAG, "LocalizationHelper.prefetch")
 
                 var prefech: Job? = null
                 prefech = GlobalScope.launch(Dispatchers.IO) {
@@ -98,7 +104,7 @@ class TensorFlowFaceUnlockManager(
                 GlobalScope.launch(Dispatchers.Main) {
                     AndroidContext.configurationLiveData.observeForever {
                         LogCat.log(
-                            "TensorFlowProvider",
+                            TAG,
                             "observeForever -> LocalizationHelper.prefetch"
                         )
                         prefech?.cancel()
@@ -208,7 +214,7 @@ class TensorFlowFaceUnlockManager(
 
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
-    private var pendingExit = false
+    private var isErrorActive = AtomicBoolean(false)
 
     // --- MLKit & TFLite ---
     private val faceDetector: FaceDetector? by lazy {
@@ -295,9 +301,12 @@ class TensorFlowFaceUnlockManager(
         if (!isSessionActive.get()) return@Runnable
 
         LogCat.log(TAG, "Timeout reached")
-        authCallback?.onAuthenticationError(
+        onAuthenticationError(
             CUSTOM_BIOMETRIC_ERROR_TIMEOUT,
-            LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_timeout)
+            LocalizationHelper.getLocalizedString(
+                context,
+                R.string.biometriccompat_tf_face_help_timeout
+            )
         )
         stopAuthentication()
     }
@@ -306,7 +315,8 @@ class TensorFlowFaceUnlockManager(
     private fun cancelInternal() {
         LogCat.log(TAG, "cancelInternal called for $this")
         if (isSessionActive.get()) {
-            authCallback?.onAuthenticationError(
+
+            onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_CANCELED,
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -430,7 +440,7 @@ class TensorFlowFaceUnlockManager(
                     R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
                 )
 
-            callback?.onAuthenticationError(lockoutError, msg)
+            onAuthenticationError(lockoutError, msg)
 
             releaseSession(this)
             return
@@ -447,7 +457,8 @@ class TensorFlowFaceUnlockManager(
         LogCat.log(TAG, "authenticate START for $this. Enrolling=$isEnrolling")
 
         if (!isHardwareDetected()) {
-            callback?.onAuthenticationError(
+
+            onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -458,7 +469,8 @@ class TensorFlowFaceUnlockManager(
             return
         }
         if (frameProvider is RealCameraProvider && SensorPrivacyCheck.isCameraBlocked()) {
-            callback?.onAuthenticationError(
+
+            onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -469,7 +481,8 @@ class TensorFlowFaceUnlockManager(
             return
         }
         if (frameProvider is RealCameraProvider && SensorPrivacyCheck.isCameraInUse()) {
-            callback?.onAuthenticationError(
+
+            onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -480,7 +493,8 @@ class TensorFlowFaceUnlockManager(
             return
         }
         if (isEnrolling && enrollmentTag.isEmpty()) {
-            callback?.onAuthenticationError(
+
+            onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -490,7 +504,8 @@ class TensorFlowFaceUnlockManager(
             stopAuthentication()
             return
         } else if (!isEnrolling && !hasEnrolledBiometric()) {
-            callback?.onAuthenticationError(
+
+            onAuthenticationError(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
                 LocalizationHelper.getLocalizedString(
                     context,
@@ -526,7 +541,8 @@ class TensorFlowFaceUnlockManager(
             { code, msg ->
                 if (isSessionActive.get()) {
                     LogCat.log(TAG, "Provider Error: $code, $msg")
-                    authCallback?.onAuthenticationError(code, msg)
+
+                    onAuthenticationError(code, msg)
                     stopAuthentication()
                 }
             }
@@ -535,10 +551,10 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun onFrameReceived(fullBitmap: Bitmap, faces: List<Face>) {
-        LogCat.log(
-            TAG,
-            "onFrameReceived: isSessionActive=${isSessionActive.get()}, isProcessingFrame=${isProcessingFrame.get()}"
-        )
+//        LogCat.log(
+//            TAG,
+//            "onFrameReceived: isSessionActive=${isSessionActive.get()}, isProcessingFrame=${isProcessingFrame.get()}"
+//        )
 
         if (!isSessionActive.get()) return
 
@@ -560,34 +576,102 @@ class TensorFlowFaceUnlockManager(
     }
 
 
+    private fun clearAntiSpoofingWindow() {
+        spoofScoresWindow.clear()
+    }
+
     private fun analyzeAntiSpoofing(bitmap: Bitmap): Boolean {
         try {
-            val currentScore =
-                antiSpoofing?.antiSpoofing(bitmap) ?: FaceAntiSpoofing.THRESHOLD
+            val currentScore = antiSpoofing?.antiSpoofing(bitmap) ?: return false
             spoofScoresWindow.addLast(currentScore)
-            if (spoofScoresWindow.size > ANTISPOOFING_WINDOW_SIZE) {
+            while (spoofScoresWindow.size > ANTISPOOFING_WINDOW_SIZE) {
                 spoofScoresWindow.removeFirst()
             }
 
             if (spoofScoresWindow.size < ANTISPOOFING_MIN_FRAMES_TO_DECIDE) {
+                LogCat.log(
+                    TAG,
+                    "AntiSpoofing warming up: score=$currentScore, samples=${spoofScoresWindow.size}"
+                )
                 return false
             }
-            val averageScore = spoofScoresWindow.average().toFloat()
 
-            LogCat.logError(TAG, "Window Average Score: $averageScore, Current: $currentScore")
-            return averageScore > FaceAntiSpoofing.THRESHOLD
+            val averageScore = spoofScoresWindow.average().toFloat()
+            val highScores = spoofScoresWindow.count { it >= ANTISPOOFING_SCORE_THRESHOLD }
+
+            LogCat.log(
+                TAG,
+                "AntiSpoofing: avg=$averageScore current=$currentScore highScores=$highScores/${spoofScoresWindow.size}"
+            )
+
+            return averageScore >= ANTISPOOFING_SCORE_THRESHOLD &&
+                    currentScore >= ANTISPOOFING_SCORE_THRESHOLD &&
+                    highScores >= ANTISPOOFING_MIN_FRAMES_TO_DECIDE
         } catch (e: Throwable) {
             LogCat.logException(e, TAG)
             return false
         }
     }
 
+    private fun onAuthenticationError(code: Int, msg: String) {
+        if (isErrorActive.get()) return
+        isErrorActive.set(true)
+        authCallback?.onAuthenticationError(
+            code,
+            msg
+        )
+        timeoutHandler.postDelayed({ isErrorActive.set(false) }, 2000)
+    }
+
     private fun processFaces(bitmap: Bitmap, faces: List<Face>) {
-        if (faces.isEmpty()) return
-        if (pendingExit) return
+        if (isErrorActive.get()) {
+            LogCat.logError(TAG, "Error on screen")
+            return
+        }
+        if (faces.isEmpty()) {
+            clearAntiSpoofingWindow()
+            LogCat.logError(TAG, "No faces")
+
+            onAuthenticationError(
+                CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_tf_face_help_model_not_detected
+                )
+            )
+            return
+        }
+
+        if (faces.size > 1) {
+            clearAntiSpoofingWindow()
+            LogCat.log(TAG, "Too many faces on picture")
+
+            onAuthenticationError(
+                CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_tf_face_help_model_too_many_faces
+                )
+            )
+            return
+        }
+
         val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() } ?: return
 
+        if (face.boundingBox.width() < MIN_FACE_SIZE_PX || face.boundingBox.height() < MIN_FACE_SIZE_PX) {
+            clearAntiSpoofingWindow()
+            authCallback?.onAuthenticationHelp(
+                CUSTOM_BIOMETRIC_ACQUIRED_TOO_FAST,
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_tf_face_help_model_look_straight_ahead
+                )
+            )
+            return
+        }
+
         if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
+            clearAntiSpoofingWindow()
             authCallback?.onAuthenticationHelp(
                 CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
                 LocalizationHelper.getLocalizedString(
@@ -598,214 +682,259 @@ class TensorFlowFaceUnlockManager(
             return
         }
 
-        // Lighting check
-        if (!isBitmapBrightEnough(bitmap, 40)) {
-            authCallback?.onAuthenticationHelp(
-                CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
-                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_too_dark)
-            )
+        val livenessCrop = createScaledFaceCrop(
+            originalBitmap = bitmap,
+            face = face,
+            cropScale = LIVENESS_CROP_SCALE,
+            outputSize = FaceAntiSpoofing.INPUT_IMAGE_SIZE
+        ) ?: run {
+            clearAntiSpoofingWindow()
+            LogCat.logError(TAG, "Unable to create liveness crop")
             return
         }
-        val laplaceScore =
-            antiSpoofing?.laplacian(bitmap) ?: FaceAntiSpoofing.LAPLACIAN_THRESHOLD
 
-        if (laplaceScore < FaceAntiSpoofing.LAPLACIAN_THRESHOLD) {
-            LogCat.log(TAG, "Image too blurry: $laplaceScore")
-            authCallback?.onAuthenticationHelp(
-                CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_image_is_blurry
+        val alignedFace = getAlignedFace(
+            originalBitmap = bitmap,
+            face = face,
+            cropScale = RECOGNITION_CROP_SCALE
+        ) ?: run {
+            livenessCrop.recycle()
+            clearAntiSpoofingWindow()
+            LogCat.logError(TAG, "Unable to create recognition crop")
+            return
+        }
+
+        try {
+            if (!isBitmapBrightEnough(livenessCrop, MIN_BRIGHTNESS_LUMA)) {
+                clearAntiSpoofingWindow()
+                authCallback?.onAuthenticationHelp(
+                    CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_too_dark
+                    )
                 )
-            )
-            return
-        }
-
-
-
-
-        if (analyzeAntiSpoofing(bitmap)) {
-            LogCat.log(TAG, "Spoof attack detected!")
-            handleFailedAttempt()
-
-            val lockoutError = checkLockoutState()
-            if (lockoutError != null) {
-                val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
-                    LocalizationHelper.getLocalizedString(
-                        context,
-                        R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
-                    )
-                else
-                    LocalizationHelper.getLocalizedString(
-                        context,
-                        R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
-                    )
-
-                authCallback?.onAuthenticationError(lockoutError, msg)
-                stopAuthentication()
                 return
             }
-            authCallback?.onAuthenticationHelp(
-                CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_fake_face_detected
+
+            val laplaceScore =
+                antiSpoofing?.laplacian(livenessCrop) ?: FaceAntiSpoofing.LAPLACIAN_THRESHOLD
+
+            if (laplaceScore < FaceAntiSpoofing.LAPLACIAN_THRESHOLD) {
+                clearAntiSpoofingWindow()
+                LogCat.log(TAG, "Image too blurry: $laplaceScore")
+                authCallback?.onAuthenticationHelp(
+                    CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_image_is_blurry
+                    )
                 )
-            )
-            return
-        }
+                return
+            }
 
-        val alignedFace = getAlignedFace(bitmap, face) ?: return
-        try {
+            val spoofDetected = analyzeAntiSpoofing(livenessCrop)
+            if (spoofDetected) {
+                LogCat.logError(TAG, "Spoofing detected")
+                consecutiveMatchCounter = 0
+                lastMatchedId = null
+
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                    )
+                )
+                return
+            }
+
             val results = detector?.recognizeImage(alignedFace, isEnrolling)
+            LogCat.logError(TAG, "processFaces: results=$results")
 
-            LogCat.log(TAG, "processFaces: results=${results}")
+            if (results.isNullOrEmpty()) {
+                clearAntiSpoofingWindow()
 
-            if (!results.isNullOrEmpty()) {
-                val result = results[0]
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_not_detected
+                    )
+                )
+                return
+            }
 
-                // Enrollment duplicate protection:
-                // if the captured face is already close enough to an existing registered face,
-                // we refuse enrollment to prevent registering the same person multiple times.
-                if (isEnrolling && detector?.hasRegistered() == true) {
-                    val dist = result.distance ?: Float.MAX_VALUE
-                    if (dist < config.maxDistanceThresholds) {
-                        pendingExit = true
-                        authCallback?.onAuthenticationHelp(
-                            CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_already_registered
-                            )
-                        )
-                        timeoutHandler.postDelayed({
-                            authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
-                            stopAuthentication()
-                            resetPermanentLockOut()
-                            pendingExit = false
-                        }, 2000L)
+            val result = results.first()
+            if (isEnrolling) {
+                LogCat.log(TAG, "Registered: ${result.title}")
+                result.crop = alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
+                detector?.register(enrollmentTag, result)
+                authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
+                stopAuthentication()
+                resetPermanentLockOut()
+                return
+            }
 
-                        return
-                    }
+            val distance = result.distance ?: return
+            val id = result.id
+            val title = result.title
+
+            if (distance < config.maxDistanceThresholds) {
+                LogCat.log(TAG, "Authorized Match: $title, Dist: $distance")
+                if (id == lastMatchedId) {
+                    consecutiveMatchCounter++
+                } else {
+                    consecutiveMatchCounter = 1
+                    lastMatchedId = id
                 }
 
-                if (isEnrolling) {
-                    if (results.size > 1) {
-                        LogCat.log(TAG, "Too many faces on picture")
-                        authCallback?.onAuthenticationHelp(
-                            CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_retry
-                            )
-                        )
-                        return
-                    }
-                    LogCat.log(TAG, "Registered: ${result.title}")
-                    result.crop = alignedFace
-                    detector?.register(enrollmentTag, result)
+                if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
+                    LogCat.log(TAG, "Authorized: $title")
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                     stopAuthentication()
                     resetPermanentLockOut()
-                } else {
-                    val distance = result.distance ?: Float.MAX_VALUE
-                    val id = result.id
-                    val title = result.title
+                }
+            } else {
+                clearAntiSpoofingWindow()
+                LogCat.logError(TAG, "Authorized error; Match: $title, Dist: $distance")
+                consecutiveMatchCounter = 0
+                lastMatchedId = null
+                handleFailedAttempt()
 
-                    LogCat.log(TAG, "Match: $title, Dist: $distance")
-
-                    if (distance < config.maxDistanceThresholds) {
-                        if (id == lastMatchedId) {
-                            consecutiveMatchCounter++
-                        } else {
-                            consecutiveMatchCounter = 1
-                            lastMatchedId = id
-                        }
-
-                        if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
-                            LogCat.log(TAG, "Authorized: $title")
-                            authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
-                            stopAuthentication()
-                            resetPermanentLockOut()
-                        }
-                    } else {
-                        consecutiveMatchCounter = 0
-                        lastMatchedId = null
-                        handleFailedAttempt()
-
-                        val lockoutError = checkLockoutState()
-                        if (lockoutError != null) {
-                            val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
-                                LocalizationHelper.getLocalizedString(
-                                    context,
-                                    R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
-                                )
-                            else
-                                LocalizationHelper.getLocalizedString(
-                                    context,
-                                    R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
-                                )
-
-                            authCallback?.onAuthenticationError(lockoutError, msg)
-                            stopAuthentication()
-                            return
-                        }
-                        authCallback?.onAuthenticationHelp(
-                            CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_retry
-                            )
+                val lockoutError = checkLockoutState()
+                if (lockoutError != null) {
+                    val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT)
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
                         )
-                    }
+                    else
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
+                        )
+
+                    onAuthenticationError(lockoutError, msg)
+                    stopAuthentication()
+                    return
+                } else {
+
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_retry
+                        )
+                    )
                 }
             }
         } finally {
-            if (alignedFace != bitmap) {
+            if (!alignedFace.isRecycled) {
                 alignedFace.recycle()
+            }
+            if (!livenessCrop.isRecycled) {
+                livenessCrop.recycle()
             }
         }
     }
 
-    private fun getAlignedFace(originalBitmap: Bitmap, face: Face): Bitmap? {
+    private fun getAlignedFace(
+        originalBitmap: Bitmap,
+        face: Face,
+        cropScale: Float = RECOGNITION_CROP_SCALE
+    ): Bitmap? {
         val leftEye = face.getLandmark(FaceLandmark.LEFT_EYE)
         val rightEye = face.getLandmark(FaceLandmark.RIGHT_EYE)
 
         if (leftEye == null || rightEye == null) return null
 
-        val leftEyePos = leftEye.position
-        val rightEyePos = rightEye.position
-
-        val deltaX = rightEyePos.x - leftEyePos.x
-        val deltaY = rightEyePos.y - leftEyePos.y
-        val angle = Math.toDegrees(atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
-        val eyeDistance = sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()).toFloat()
-
-        val eyeCenter = android.graphics.PointF(
-            (leftEyePos.x + rightEyePos.x) / 2f,
-            (leftEyePos.y + rightEyePos.y) / 2f
+        val cropRect = buildExpandedFaceRect(originalBitmap, face, cropScale)
+        val sourceBitmap = Bitmap.createBitmap(
+            originalBitmap,
+            cropRect.left,
+            cropRect.top,
+            cropRect.width(),
+            cropRect.height()
         )
 
+        return try {
+            val leftEyePos = leftEye.position
+            val rightEyePos = rightEye.position
 
-        val desiredEyeDist = TF_OD_API_INPUT_SIZE * 0.38f
-        val scale = desiredEyeDist / eyeDistance
+            val deltaX = rightEyePos.x - leftEyePos.x
+            val deltaY = rightEyePos.y - leftEyePos.y
+            val angle = Math.toDegrees(atan2(deltaY.toDouble(), deltaX.toDouble())).toFloat()
+            val eyeDistance = sqrt((deltaX * deltaX + deltaY * deltaY).toDouble()).toFloat()
+            if (eyeDistance <= 0f) return null
 
-        val matrix = Matrix()
-        matrix.postTranslate(-eyeCenter.x, -eyeCenter.y)
-        matrix.postRotate(-angle)
-        matrix.postScale(scale, scale)
+            val eyeCenter = android.graphics.PointF(
+                ((leftEyePos.x + rightEyePos.x) / 2f) - cropRect.left,
+                ((leftEyePos.y + rightEyePos.y) / 2f) - cropRect.top
+            )
 
-        matrix.postTranslate(TF_OD_API_INPUT_SIZE / 2f, TF_OD_API_INPUT_SIZE * 0.45f)
+            val desiredEyeDist = TF_OD_API_INPUT_SIZE * 0.38f
+            val scale = desiredEyeDist / eyeDistance
 
-        return Bitmap.createBitmap(
-            originalBitmap, 0, 0, originalBitmap.width, originalBitmap.height, matrix, true
-        ).let {
-            val destBitmap = createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE)
-            val canvas = android.graphics.Canvas(destBitmap)
-            val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
-            canvas.drawBitmap(originalBitmap, matrix, paint)
-            destBitmap
+            val matrix = Matrix().apply {
+                postTranslate(-eyeCenter.x, -eyeCenter.y)
+                postRotate(-angle)
+                postScale(scale, scale)
+                postTranslate(TF_OD_API_INPUT_SIZE / 2f, TF_OD_API_INPUT_SIZE * 0.45f)
+            }
+
+            createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE).also { destBitmap ->
+                val canvas = android.graphics.Canvas(destBitmap)
+                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    isFilterBitmap = true
+                    isDither = true
+                }
+                canvas.drawBitmap(sourceBitmap, matrix, paint)
+            }
+        } finally {
+            sourceBitmap.recycle()
         }
+    }
+
+    private fun createScaledFaceCrop(
+        originalBitmap: Bitmap,
+        face: Face,
+        cropScale: Float,
+        outputSize: Int
+    ): Bitmap? {
+        val cropRect = buildExpandedFaceRect(originalBitmap, face, cropScale)
+        if (cropRect.width() <= 1 || cropRect.height() <= 1) return null
+        val croppedBitmap = Bitmap.createBitmap(
+            originalBitmap,
+            cropRect.left,
+            cropRect.top,
+            cropRect.width(),
+            cropRect.height()
+        )
+        return try {
+            croppedBitmap.scale(outputSize, outputSize)
+        } finally {
+            croppedBitmap.recycle()
+        }
+    }
+
+    private fun buildExpandedFaceRect(
+        originalBitmap: Bitmap,
+        face: Face,
+        cropScale: Float
+    ): android.graphics.Rect {
+        val boundingBox = face.boundingBox
+        val centerX = boundingBox.exactCenterX()
+        val centerY = boundingBox.exactCenterY()
+        val cropWidth = (boundingBox.width() * cropScale).toInt().coerceAtLeast(2)
+        val cropHeight = (boundingBox.height() * cropScale).toInt().coerceAtLeast(2)
+
+        val left = (centerX - cropWidth / 2f).toInt().coerceIn(0, originalBitmap.width - 2)
+        val top = (centerY - cropHeight / 2f).toInt().coerceIn(0, originalBitmap.height - 2)
+        val right = (left + cropWidth).coerceIn(left + 1, originalBitmap.width)
+        val bottom = (top + cropHeight).coerceIn(top + 1, originalBitmap.height)
+
+        return android.graphics.Rect(left, top, right, bottom)
     }
 
     private fun isBitmapBrightEnough(bitmap: Bitmap, threshold: Int): Boolean {

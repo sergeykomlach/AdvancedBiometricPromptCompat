@@ -35,9 +35,7 @@ data class TensorFlowFaceConfig(
     The number of success Consecutive Matches
     */
     @IntRange(from = 1)
-    val requiredConsecutiveMatches: Int = 3,
-
-    val allowFaceReEnroll: Boolean = true
+    val requiredConsecutiveMatches: Int = 3
 ) {
     init {
         require(maxDistanceThresholds in 0.5f..1.0f) {

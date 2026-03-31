@@ -13,6 +13,7 @@ import android.hardware.camera2.CameraManager
 import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Size
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceDetector
@@ -23,7 +24,6 @@ import dev.skomlach.biometric.custom.face.tf.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.translate.LocalizationHelper
-import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
 class RealCameraProvider(private val context: Context) : IFrameProvider,
@@ -142,8 +142,11 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 return
             }
 
-            val previewSize =
-                Collections.min(validSizes) { l, r -> (l.width * l.height).compareTo(r.width * r.height) }
+            val previewSize = choosePreviewSize(validSizes)
+            LogCat.log(
+                javaClass.simpleName,
+                "Using camera preview size: ${previewSize.width}x${previewSize.height}, sensorOrientation=$sensorOrientation"
+            )
 
             imageReader = ImageReader.newInstance(
                 previewSize.width,
@@ -306,6 +309,21 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                 isConverting.set(false)
             }
         }
+    }
+
+
+    private fun choosePreviewSize(validSizes: List<Size>): Size {
+        val filtered = validSizes
+            .filter { it.width <= 1920 && it.height <= 1080 }
+            .ifEmpty { validSizes }
+
+        filtered.firstOrNull { it.width == 1280 && it.height == 720 }?.let { return it }
+
+        return filtered.maxWithOrNull(
+            compareBy<Size> { minOf(it.width, 1280) * minOf(it.height, 720) }
+                .thenBy { -(kotlin.math.abs(it.width - 1280) + kotlin.math.abs(it.height - 720)) }
+                .thenBy { it.width * it.height }
+        ) ?: filtered.maxByOrNull { it.width * it.height } ?: validSizes.first()
     }
 
     private fun getFrontFacingCameraId(manager: CameraManager): String? {
