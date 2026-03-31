@@ -22,43 +22,20 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import android.os.Build
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
-import dev.skomlach.common.misc.ExecutorHelper
 import java.util.Collections
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
 object Connection {
 
     val connectionStateListener = ConnectionStateListener()
 
-    private val connectivityManager: ConnectivityManager? =
-        appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
     private val netlistLis: MutableList<NetworkListener> =
         Collections.synchronizedList(ArrayList<NetworkListener>())
     private val screenLockReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            connectionStateListener.updateConnectionCheckQuery(1)
-        }
-    }
-    private const val ACTION = "check_network"
-    private var job: Runnable? = null
-    private var lastActiveNetworkInfo: AtomicReference<Any?> = AtomicReference<Any?>(null)
-    private var lastKnownConnection = false
-    private val notifyNetworkChangedTask = {
-        val netlistList = ArrayList(netlistLis)
-        for (i in netlistList.indices) {
-            netlistList[i].networkChanged(lastKnownConnection)
-        }
-    }
-    private val checkConnection: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            checkConnection()
+            connectionStateListener.updateConnectionCheckQuery(0)
         }
     }
 
@@ -66,87 +43,49 @@ object Connection {
         initConnectionReceivers()
     }
 
-    //schedule forced network check after last user interaction
-    fun updateConnectionCheckDueToUserInteraction(delaySeconds: Long = 1) {
-        connectionStateListener.updateConnectionCheckQuery(delaySeconds)
-    }
+    fun notifyConnectionChanged(lastKnownConnection: Boolean) {
+        synchronized(netlistLis) {
+            try {
+                val netlistList = netlistLis.toMutableList()
+                LogCat.logError("Connection new connection state - $lastKnownConnection")
+                for (i in netlistList.indices) {
+                    netlistList[i].networkChanged(lastKnownConnection)
+                }
+            } catch (_: ThreadDeath) {
 
-    fun checkConnectionChanged() {
-        LocalBroadcastManager.getInstance(appContext)
-            .sendBroadcast(Intent(ACTION))
-    }
-
-    private fun checkConnection() {
-        try {
-            val activeNetworkInfo = if (Build.VERSION.SDK_INT >= 24)
-                connectivityManager?.activeNetwork else
-                connectivityManager?.activeNetworkInfo
-            val isConnected = isConnection
-            val isNetworkChanged =
-                activeNetworkInfo != null && activeNetworkInfo != lastActiveNetworkInfo.get()
-            if (isNetworkChanged || isConnected != lastKnownConnection) {
-                lastActiveNetworkInfo.set(activeNetworkInfo)
-                lastKnownConnection = isConnected
-                notifyNetworkChange()
             }
-        } catch (_: Throwable) {
         }
     }
 
-    fun initConnectionReceivers() {
+    private fun initConnectionReceivers() {
         //looking for the Screen ON/OFF
         val intentFilter = IntentFilter()
         intentFilter.addAction(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         BroadcastTools.registerGlobalBroadcastIntent(appContext, screenLockReceiver, intentFilter)
         connectionStateListener.startListeners()
-        LocalBroadcastManager.getInstance(appContext)
-            .registerReceiver(checkConnection, IntentFilter(ACTION))
     }
 
-    fun close() {
+    @Throws(Throwable::class)
+    fun finalize() {
         BroadcastTools.unregisterGlobalBroadcastIntent(appContext, screenLockReceiver)
         connectionStateListener.stopListeners()
-        LocalBroadcastManager.getInstance(appContext)
-            .unregisterReceiver(checkConnection)
     }
 
-    val isConnection: Boolean = connectionStateListener.isConnected
-    val isWiFi: Boolean
-        get() {
-            if (Build.VERSION.SDK_INT >= 24) {
-                val activeNetwork = connectivityManager?.activeNetwork ?: return false
-                return connectivityManager.getNetworkCapabilities(activeNetwork)
-                    ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true
-            } else {
-                connectivityManager?.activeNetworkInfo?.let {
-                    return listOf(
-                        ConnectivityManager.TYPE_ETHERNET,
-                        ConnectivityManager.TYPE_WIFI,
-                        ConnectivityManager.TYPE_WIMAX
-                    ).contains(it.type)
-                }
-            }
-            return false
-        }
+    val isConnection: Boolean
+        get() = connectionStateListener.isConnected
 
 
     fun addNetworkListener(listener: NetworkListener) {
-        netlistLis.add(listener)
+        synchronized(netlistLis) {
+            netlistLis.add(listener)
+        }
     }
 
 
     fun removeNetworkListener(listener: NetworkListener) {
-        netlistLis.remove(listener)
-    }
-
-    private fun notifyNetworkChange() {
-        job?.let {
-            ExecutorHelper.removeCallbacks(it)
-        }
-        job = Runnable { notifyNetworkChangedTask.invoke() }
-        job?.let {
-            ExecutorHelper.postDelayed(it, TimeUnit.SECONDS.toMillis(1))
+        synchronized(netlistLis) {
+            netlistLis.remove(listener)
         }
     }
 

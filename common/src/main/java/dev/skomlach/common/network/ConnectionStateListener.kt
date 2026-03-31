@@ -49,11 +49,7 @@ class ConnectionStateListener {
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
 
         ExecutorHelper.startOnBackground {
-            val hasTransport = isConnectionDetected()
-            isConnectionOk.set(hasTransport)
-            if (hasTransport) {
-                ping.updateConnectionCheckQuery(0)
-            }
+            handleNetworkSignalChanged(isConnectionDetected())
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             networkCallback = object : NetworkCallback() {
@@ -91,9 +87,11 @@ class ConnectionStateListener {
         LogCat.log("ConnectionStateListener handleNetworkSignalChanged - $hasTransport")
         if (!hasTransport) {
             setState(false)
+            ping.resetThrottle(false)
             return
+        } else {
+            ping.updateConnectionCheckQuery(0)
         }
-        ping.updateConnectionCheckQuery(0)
     }
 
     fun isConnectionDetected(): Boolean {
@@ -163,7 +161,7 @@ class ConnectionStateListener {
         if (newState != isConnectionOk.get()) {
             isConnectionOk.set(newState)
             LogCat.log("ConnectionStateListener detected new connection state - $newState")
-            Connection.checkConnectionChanged()
+            Connection.notifyConnectionChanged(newState)
         }
     }
 
