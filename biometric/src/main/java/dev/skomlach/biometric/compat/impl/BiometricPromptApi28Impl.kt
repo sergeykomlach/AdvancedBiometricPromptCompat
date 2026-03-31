@@ -585,13 +585,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             return
         d("BiometricPromptApi28Impl.checkAuthResult(): stage 1")
         var failureReason = module?.reason
+        //non fatal
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
                 AuthenticationFailureReason.AUTHENTICATION_FAILED
             ).contains(failureReason)
         ) {
-            HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).lockout()
-            failureReason = AuthenticationFailureReason.LOCKED_OUT
+            return
         }
         var added = false
         if (isDeviceCredentialAllowed) {
