@@ -30,15 +30,8 @@ import java.net.URI
 import java.net.URL
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 internal class Ping(private val connectionStateListener: ConnectionStateListener) {
-    private val patternMeta =
-        Pattern.compile("<meta(.*?)>") //compile RegEx to extract all <meta/> tags
-    private val patternLink =
-        Pattern.compile("<link(.*?)>") //compile RegEx to extract all <link/> tags
-    private val patternTagAttributes =
-        Pattern.compile("(\\w*?)=\"(.*?)\"") //compile RegEx to find all attributes
 
     companion object {
         private const val MIN_CHECK_INTERVAL_MS = 1000L // 1s
@@ -137,7 +130,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
                 urlConnection.connect()
                 val headCode = urlConnection.responseCode
-                LogCat.log("ping(HEAD): $headCode=${urlConnection.responseMessage}")
+                LogCat.log("ping(HEAD): $headCode=${urlConnection.responseMessage} $host")
 
                 if (headCode in HttpURLConnection.HTTP_OK until HttpURLConnection.HTTP_BAD_REQUEST) {
                     val finalUrl = try {
@@ -168,7 +161,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 }
                 urlConnection.connect()
                 val getCode = urlConnection.responseCode
-                LogCat.log("ping(GET): $getCode=${urlConnection.responseMessage}")
+                LogCat.log("ping(GET): $getCode=${urlConnection.responseMessage} $host")
 
                 val inputStream: InputStream = try {
                     urlConnection.inputStream
@@ -224,6 +217,8 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
     }
 
     private fun onPingResult(isOk: Boolean) {
+        LogCat.log("onPingResult = $isOk")
+
         lastKnownState = isOk
         val now = System.currentTimeMillis()
         if (isOk) {

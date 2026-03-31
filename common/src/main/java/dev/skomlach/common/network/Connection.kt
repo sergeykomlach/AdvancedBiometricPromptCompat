@@ -111,11 +111,7 @@ object Connection {
             .unregisterReceiver(checkConnection)
     }
 
-    val isConnection: Boolean
-        get() {
-            connectionStateListener.updateConnectionCheckQuery(0)
-            return connectionStateListener.isConnected
-        }
+    val isConnection: Boolean = connectionStateListener.isConnected
     val isWiFi: Boolean
         get() {
             if (Build.VERSION.SDK_INT >= 24) {

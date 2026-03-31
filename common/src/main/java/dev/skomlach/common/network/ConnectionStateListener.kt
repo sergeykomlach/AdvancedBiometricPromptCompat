@@ -25,6 +25,7 @@ import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.wifi.WifiManager
 import android.os.Build
@@ -48,38 +49,70 @@ class ConnectionStateListener {
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
 
         ExecutorHelper.startOnBackground {
-            isConnectionOk.set(isConnectionDetected())
+            val hasTransport = isConnectionDetected()
+            isConnectionOk.set(hasTransport)
+            if (hasTransport) {
+                ping.updateConnectionCheckQuery(0)
+            }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             networkCallback = object : NetworkCallback() {
 
                 override fun onUnavailable() {
-                    ping.updateConnectionCheckQuery(1)
+                    handleNetworkSignalChanged(false)
                 }
 
                 override fun onAvailable(network: Network) {
-                    ping.updateConnectionCheckQuery(1)
+                    handleNetworkSignalChanged(true)
                 }
 
                 override fun onLost(network: Network) {
-                    ping.updateConnectionCheckQuery(1)
+                    handleNetworkSignalChanged(false)
+                }
+
+                override fun onCapabilitiesChanged(
+                    network: Network,
+                    networkCapabilities: NetworkCapabilities
+                ) {
+                    handleNetworkSignalChanged(isConnectionDetected())
+                }
+            }
+        } else {
+            // pre-Lollipop devices
+            receiverTypeConnection = object : BroadcastReceiver() {
+                override fun onReceive(ctx: Context, intent: Intent) {
+                    handleNetworkSignalChanged(isConnectionDetected())
                 }
             }
         }
+    }
 
-        //pre-Lollipop devices
-        receiverTypeConnection = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context, intent: Intent) {
-                ping.updateConnectionCheckQuery(1)
-            }
+    private fun handleNetworkSignalChanged(hasTransport: Boolean) {
+        LogCat.log("ConnectionStateListener handleNetworkSignalChanged - $hasTransport")
+        if (!hasTransport) {
+            setState(false)
+            return
         }
         ping.updateConnectionCheckQuery(0)
     }
 
-    fun isConnectionDetected() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-        connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-    else
-        connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+    fun isConnectionDetected(): Boolean {
+        return try {
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    val active = connectivityManager?.activeNetwork ?: return false
+                    val caps = connectivityManager?.getNetworkCapabilities(active) ?: return false
+
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                            caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+                } else {
+                    connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+                }
+        } catch (_: Throwable) {
+            false
+        }
+    }
 
     fun startListeners() {
         try {
@@ -100,7 +133,7 @@ class ConnectionStateListener {
                 intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
                 BroadcastTools.registerGlobalBroadcastIntent(
                     appContext,
-                    receiverTypeConnection,
+                    receiverTypeConnection ?: return,
                     intentFilter
                 )
             }
@@ -112,11 +145,13 @@ class ConnectionStateListener {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 networkCallback?.let {
-                    networkCallback
                     connectivityManager?.unregisterNetworkCallback(it)
                 }
             } else {
-                BroadcastTools.unregisterGlobalBroadcastIntent(appContext, receiverTypeConnection)
+                BroadcastTools.unregisterGlobalBroadcastIntent(
+                    appContext,
+                    receiverTypeConnection ?: return
+                )
             }
         } catch (_: Throwable) {
         }
@@ -127,9 +162,7 @@ class ConnectionStateListener {
         ping.cancelConnectionCheckQuery()
         if (newState != isConnectionOk.get()) {
             isConnectionOk.set(newState)
-            LogCat.log(
-                "ConnectionStateListener detected new connection state - $newState"
-            )
+            LogCat.log("ConnectionStateListener detected new connection state - $newState")
             Connection.checkConnectionChanged()
         }
     }

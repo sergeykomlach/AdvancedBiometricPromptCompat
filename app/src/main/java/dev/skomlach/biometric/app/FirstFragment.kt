@@ -40,6 +40,7 @@ import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
 
@@ -85,11 +86,17 @@ class FirstFragment : Fragment() {
             checkDeviceInfo()
         }
         updateUi()
+        Connection.addNetworkListener(object : Connection.NetworkListener{
+            override fun networkChanged(isConnected: Boolean) {
+                checkDeviceInfo()
+            }
+        })
         return binding?.root?.apply {
             this.viewTreeObserver.addOnGlobalLayoutListener {
                 updateUi()
             }
         }
+
     }
 
     private fun updateUi() {
