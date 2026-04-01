@@ -205,7 +205,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type)) || hasSamsungIntelligentScan(
+                            (it.hasFaceID() && checkDeviceFeature(type)) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                 it.model
                             )
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
@@ -216,7 +216,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasIrisScanner() && checkDeviceFeature(type)) || hasSamsungIntelligentScan(
+                            (it.hasIrisScanner() && checkDeviceFeature(type)) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                 it.model
                             )
                         } else
@@ -988,19 +988,9 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
     }
 
-    @Deprecated("Legacy devices")
-    private fun hasSamsungIntelligentScan(marketingName: String?): Boolean {
-        val normalized = marketingName
-            ?.trim()
-            ?.lowercase()
-            ?.replace("note8", "note 8")
-            ?.replace("note9", "note 9")
-            ?.replace("s9 plus", "s9+")
-            ?.replace("s8 plus", "s8+")
-            ?.replace(Regex("""\s+"""), " ")
-            ?: return false
-
-        return listOf(
+    @Deprecated("Legacy Samsung biometric devices")
+    private object SamsungLegacyBiometricDevices {
+        private val faceAndIrisModels = listOf(
             "galaxy s8",
             "galaxy s8+",
             "galaxy s9",
@@ -1008,7 +998,56 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             "galaxy note 8",
             "galaxy note 9",
             "galaxy tab s4"
-        ).any { normalized.contains(it) }
+        )
+        fun hasSamsungFaceAndIris(marketingName: String?): Boolean {
+            val normalized = normalizeSamsungMarketingName(marketingName) ?: return false
+            return matchesAnyModel(normalized, faceAndIrisModels)
+        }
+
+        private fun matchesAnyModel(
+            normalizedName: String,
+            models: List<String>
+        ): Boolean {
+            return models.any { model -> containsWholeModel(normalizedName, model) }
+        }
+
+        private fun containsWholeModel(
+            text: String,
+            model: String
+        ): Boolean {
+            val regex = Regex("""(^|[^a-z0-9])${Regex.escape(model)}([^a-z0-9]|$)""")
+            return regex.containsMatchIn(text)
+        }
+
+        private fun normalizeSamsungMarketingName(marketingName: String?): String? {
+            val raw = marketingName
+                ?.trim()
+                ?.lowercase()
+                ?.takeIf { it.isNotBlank() }
+                ?: return null
+
+            return raw
+                .replace('+', '＋')
+                .replace(Regex("""[\(\)\[\],/_-]"""), " ")
+                .replace(Regex("""\b5g\b"""), " ")
+                .replace(Regex("""\bduos\b"""), " ")
+                .replace(Regex("""\bwifi\b"""), " ")
+                .replace(Regex("""\blte\b"""), " ")
+                .replace(Regex("""\btablet\b"""), " ")
+                .replace(Regex("""\bsm-[a-z0-9]+\b"""), " ")
+                .replace("samsung galaxy", "galaxy")
+                .replace("samsung", " ")
+                .replace("note8", "note 8")
+                .replace("note9", "note 9")
+                .replace("s8plus", "s8+")
+                .replace("s9plus", "s9+")
+                .replace("s8 plus", "s8+")
+                .replace("s9 plus", "s9+")
+                .replace("tabs4", "tab s4")
+                .replace('＋', '+')
+                .replace(Regex("""\s+"""), " ")
+                .trim()
+        }
     }
 
     object PixelModelChecker {
