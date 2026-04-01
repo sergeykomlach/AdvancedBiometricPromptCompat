@@ -440,7 +440,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 // Why getCancellationSignalObject returns an Object is unexplained
                 (if (cancellationSignal == null) null else cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                    ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                    ?: throw IllegalArgumentException("CancellationSignal can't be null")
 
                 this.originalCancellationSignal = cancellationSignal
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)
@@ -473,7 +473,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 // Why getCancellationSignalObject returns an Object is unexplained
                 val signalObject =
                     (cancellationSignal.cancellationSignalObject as android.os.CancellationSignal?)
-                        ?: throw IllegalArgumentException("CancellationSignal cann't be null")
+                        ?: throw IllegalArgumentException("CancellationSignal can't be null")
                 val callback =
                     FaceManagerAuthCallback(
                         biometricCryptoObject,

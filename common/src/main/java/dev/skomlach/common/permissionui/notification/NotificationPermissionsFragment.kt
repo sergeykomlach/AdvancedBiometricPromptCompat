@@ -56,7 +56,7 @@ class NotificationPermissionsFragment : Fragment() {
         private const val CHANNEL_ID = "channelId"
         private const val INTENT_KEY = "NotificationPermissionsFragment.intent_key"
 
-        //Also channels permission cann't be toggled properly
+        //Also channels permission can't be toggled properly
         //https://www.reddit.com/r/Android/comments/1aezehk/one_ui_61_disables_one_of_androids_best/
         //https://www.androidpolice.com/samsung-disables-notification-channels-on-all-one-ui-61-devices/
         fun getOneUiVersion(): String {

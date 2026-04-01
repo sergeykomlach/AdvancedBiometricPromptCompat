@@ -1400,7 +1400,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun enableSilentAuth(authWindowSec: Int = 30) {
-            if (authWindowSec <= 0) throw IllegalArgumentException("AuthWindow cann't be less then 0")
+            if (authWindowSec <= 0) throw IllegalArgumentException("AuthWindow can't be less then 0")
             BiometricLoggerImpl.e(
                 "WARNING!!!\n" +
                         "Keep in mind - some devices use the own built-in animations " +
