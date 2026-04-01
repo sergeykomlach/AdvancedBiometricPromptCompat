@@ -25,6 +25,7 @@ import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.biometric.BiometricFragment
 import androidx.biometric.BiometricManager
@@ -169,7 +170,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         AtomicReference<BiometricFragment?>(null)
     private val fmAuthCallback: LegacyBiometricAuthenticationListener =
         LegacyBiometricAuthenticationCallbackImpl()
-    private val failureCounter = AtomicInteger(0)
+
     private val authCallback: BiometricPrompt.AuthenticationCallback =
         object : BiometricPrompt.AuthenticationCallback() {
             private var errorTs = 0L
@@ -179,12 +180,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             override fun onAuthenticationFailed() {
                 d("BiometricPromptApi28Impl.onAuthenticationFailed")
                 if (callback != null) {
-                    ExecutorHelper.post {
-                        failureCounter.incrementAndGet()
-                        dialog?.onFailure(false)
-                        for (module in builder.getPrimaryAvailableTypes()) {
-                            IconStateHelper.errorType(module)
-                        }
+                    dialog?.onFailure(false)
+                    for (module in builder.getPrimaryAvailableTypes()) {
+                        IconStateHelper.errorType(module)
                     }
                 }
             }
@@ -304,14 +302,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     }
                     if (restartPredicate.invoke(failureReason)) {
                         if (callback != null) {
-                            ExecutorHelper.post {
-                                failureCounter.incrementAndGet()
-                                dialog?.onFailure(
-                                    failureReason == AuthenticationFailureReason.LOCKED_OUT
-                                )
-                                for (module in builder.getPrimaryAvailableTypes()) {
-                                    IconStateHelper.errorType(module)
-                                }
+                            dialog?.onFailure(
+                                failureReason == AuthenticationFailureReason.LOCKED_OUT
+                            )
+                            for (module in builder.getPrimaryAvailableTypes()) {
+                                IconStateHelper.errorType(module)
                             }
                         }
                     } else {
@@ -367,16 +362,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     init {
-        if(builder.enroll){
-            val skipHardwareList =  builder.getPrimaryAvailableTypes().filter {
-                BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withType(it).withProvider(
-                    BiometricProviderType.HARDWARE))
+        if (builder.enroll) {
+            val skipHardwareList = builder.getPrimaryAvailableTypes().filter {
+                BiometricManagerCompat.isHardwareDetected(
+                    BiometricAuthRequest.default().withType(it).withProvider(
+                        BiometricProviderType.HARDWARE
+                    )
+                )
             }
             val filtered = builder.getPrimaryAvailableTypes().toMutableList()
             filtered.removeAll(skipHardwareList)
             isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
-        }
-        else isFingerprint.set(
+        } else isFingerprint.set(
             builder.getPrimaryAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
         )
     }
@@ -404,7 +401,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptApi28Impl,
-                        isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
+                isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
             )
             dialog?.showDialog()
         } else {
@@ -585,13 +582,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             return
         d("BiometricPromptApi28Impl.checkAuthResult(): stage 1")
         var failureReason = module?.reason
-        //non fatal
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
                 AuthenticationFailureReason.AUTHENTICATION_FAILED
             ).contains(failureReason)
         ) {
-            return
+            HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).lockout()
+            failureReason = AuthenticationFailureReason.LOCKED_OUT
         }
         var added = false
         if (isDeviceCredentialAllowed) {
@@ -723,19 +720,34 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         LegacyBiometricAuthenticationListener {
 
         override fun onSuccess(result: AuthenticationResult) {
+            IconStateHelper.successType(result.type)
             checkAuthResult(AuthResult.AuthResultState.SUCCESS, result)
         }
 
         override fun onHelp(msg: CharSequence?) {
             if (!msg.isNullOrEmpty()) {
-                if (dialog != null) dialog?.onHelp(msg)
+                dialog?.onHelp(msg)
             }
         }
 
         override fun onFailure(
             result: AuthenticationResult
         ) {
-            checkAuthResult(AuthResult.AuthResultState.FATAL_ERROR, result)
+            val isLockedOut = result.reason == AuthenticationFailureReason.LOCKED_OUT
+            if (isLockedOut) {
+                checkAuthResult(AuthResult.AuthResultState.FATAL_ERROR, result)
+            } else {
+                IconStateHelper.errorType(result.type)
+                dialog?.onFailure(false) ?: run {
+                    val msg = result.description
+                    if (!msg.isNullOrEmpty()) {
+                        builder.getActivity()?.let {
+                            Toast.makeText(it, msg, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    Vibro.start()
+                }
+            }
         }
 
         override fun onCanceled(result: AuthenticationResult) {
