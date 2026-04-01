@@ -225,19 +225,23 @@ object DeviceModelManager {
                 "DeviceModel.getNameFromDatabase { ${
                     Gson().toJson(
                         info,
-                        DeviceName::class.java
+                        DeviceName.DeviceInfo::class.java
                     )
                 }; }"
             )
         } catch (_: Exception) {
         }
-        return if (info.manufacturer.isNullOrEmpty()) null else info.marketName
+        return if (info.manufacturer.isNullOrEmpty()) null else getName(
+            info.manufacturer,
+            info.marketName
+        )
     }
 
     fun getName(vendor: String, model: String): String {
-        if (model.startsWith(vendor, true))
-            return model.trim()
-        return "$vendor $model".trim()
+        return if (model.startsWith(vendor, true))
+            model.trim()
+        else
+            "$vendor $model".trim()
     }
 
 }
