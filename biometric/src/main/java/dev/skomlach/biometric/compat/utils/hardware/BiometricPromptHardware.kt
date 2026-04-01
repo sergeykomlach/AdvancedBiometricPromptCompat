@@ -995,17 +995,20 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             ?.lowercase()
             ?.replace("note8", "note 8")
             ?.replace("note9", "note 9")
+            ?.replace("s9 plus", "s9+")
+            ?.replace("s8 plus", "s8+")
             ?.replace(Regex("""\s+"""), " ")
             ?: return false
 
-        return normalized in setOf(
-            "samsung galaxy s8",
-            "samsung galaxy s8+",
-            "samsung galaxy s9",
-            "samsung galaxy s9+",
-            "samsung galaxy note 8",
-            "samsung galaxy note 9"
-        )
+        return listOf(
+            "galaxy s8",
+            "galaxy s8+",
+            "galaxy s9",
+            "galaxy s9+",
+            "galaxy note 8",
+            "galaxy note 9",
+            "galaxy tab s4"
+        ).any { normalized.contains(it) }
     }
 
     object PixelModelChecker {
