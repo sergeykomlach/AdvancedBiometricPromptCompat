@@ -238,8 +238,10 @@ object DeviceModelManager {
     }
 
     fun getName(vendor: String, model: String): String {
-        return if (model.startsWith(vendor, true))
+        return if (model.startsWith("$vendor ", true))//With space
             model.trim()
+        else if (model.startsWith(vendor, true)) //Without space
+            "$vendor ${model.substring(vendor.length)}".trim()
         else
             "$vendor $model".trim()
     }
