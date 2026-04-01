@@ -37,6 +37,7 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
+import androidx.core.view.isVisible
 
 
 class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: LegacyBiometricInitListener?) :
@@ -187,7 +188,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 d("$name.authenticate:  Crypto=$crypto")
                 viewWeakReference.get()?.let { view ->
-                    if (view.visibility == View.VISIBLE || view.holder.isCreating) {
+                    if (view.isVisible || view.holder.isCreating) {
                         authCallTimestamp.set(System.currentTimeMillis())
                         try {
                             it.authenticate(
