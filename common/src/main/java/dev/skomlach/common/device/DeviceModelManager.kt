@@ -174,7 +174,7 @@ object DeviceModelManager {
             ts = System.currentTimeMillis()
             val list = mutableListOf<String>()
 
-            val searchKey = "\"$rawModel\":"
+            val searchKey = "$rawModel\":"
             LogCat.log("DeviceModel.getNameFromAssets calculate searchKey time ${System.currentTimeMillis() - ts}ms")
             ts = System.currentTimeMillis()
 

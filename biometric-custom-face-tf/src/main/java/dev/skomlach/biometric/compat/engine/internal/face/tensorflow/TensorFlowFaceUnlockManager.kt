@@ -425,7 +425,7 @@ class TensorFlowFaceUnlockManager(
         handler: Handler?,
         extra: Bundle?
     ) {
-        LogCat.log(TAG, "authenticate $extra")
+        LogCat.log(TAG, "authenticate ${getEnrolls()}; $extra;")
         requestActiveSession(this)
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {

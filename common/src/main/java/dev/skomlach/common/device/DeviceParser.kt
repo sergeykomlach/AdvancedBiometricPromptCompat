@@ -102,8 +102,7 @@ object DeviceParser {
             LogCat.logError("findDeviceSpecInJson < startIndex == -1")
             return null
         }
-
-        val objectStart = lowerCasedFullJson.lastIndexOf('{', startIndex)
+        val objectStart = lowerCasedFullJson.lastIndexOf('{', lowerCasedFullJson.lastIndexOf("\"brand\"", startIndex))
         if (objectStart == -1) {
             LogCat.logError("findDeviceSpecInJson < objectStart == -1")
             return null

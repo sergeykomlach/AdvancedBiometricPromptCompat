@@ -92,7 +92,7 @@ object DeviceSpecManager {
             while (true) {
                 val index = lowerCasedFullJson.indexOf(term, lastIndex)
                 if (index == -1) break
-                val objectStart = lowerCasedFullJson.lastIndexOf('{', index)
+                val objectStart = lowerCasedFullJson.lastIndexOf('{', lowerCasedFullJson.lastIndexOf("\"phone_name\"", index))
                 if (objectStart != -1) {
                     val fragment = extractJsonFragment(fullJson, objectStart, '{', '}')
                     if (fragment != null) {
