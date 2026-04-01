@@ -73,6 +73,8 @@ class TensorFlowFaceUnlockManager(
         private const val MAX_TEMPORARY_LOCKOUTS_BEFORE_PERMANENT = 5
         private const val LOCKOUT_DURATION_MS = 30000L // 30 sec
         private var config: TensorFlowFaceConfig = TensorFlowFaceConfig()
+        private const val KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP = "error_active_until_timestamp"
+        private const val ERROR_ACTIVE_DURATION_MS = 3000L
 
         private val spoofScoresWindow = ArrayDeque<Float>()
 
@@ -214,7 +216,7 @@ class TensorFlowFaceUnlockManager(
 
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
-    private var isErrorActive = AtomicBoolean(false)
+
 
     // --- MLKit & TFLite ---
     private val faceDetector: FaceDetector? by lazy {
@@ -281,7 +283,26 @@ class TensorFlowFaceUnlockManager(
     fun setFrameProvider(provider: IFrameProvider) {
         this.frameProvider = provider
     }
+    private fun isErrorActive(): Boolean {
+        val activeUntil = getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).getLong(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP, 0L)
+        val now = System.currentTimeMillis()
 
+        if (activeUntil <= now) {
+            if (activeUntil != 0L) {
+                getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit { remove(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP) }
+            }
+            return false
+        }
+
+        return true
+    }
+
+    private fun setErrorActive(durationMs: Long = ERROR_ACTIVE_DURATION_MS) {
+        val activeUntil = System.currentTimeMillis() + durationMs
+        getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
+            putLong(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP, activeUntil)
+        }
+    }
     private fun startBackgroundThread() {
         if (backgroundThread == null) {
             backgroundThread = HandlerThread("FaceUnlockBackground").apply {
@@ -614,17 +635,16 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun onAuthenticationError(code: Int, msg: String) {
-        if (isErrorActive.get()) return
-        isErrorActive.set(true)
+        if (isErrorActive()) return
+        setErrorActive()
         authCallback?.onAuthenticationError(
             code,
             msg
         )
-        timeoutHandler.postDelayed({ isErrorActive.set(false) }, 2000)
     }
 
     private fun processFaces(bitmap: Bitmap, faces: List<Face>) {
-        if (isErrorActive.get()) {
+        if (isErrorActive()) {
             LogCat.logError(TAG, "Error on screen")
             return
         }
