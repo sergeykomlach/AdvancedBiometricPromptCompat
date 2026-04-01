@@ -205,18 +205,18 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            it.hasFaceID() || checkDeviceFeature(type) || hasSamsungIntelligentScan(
+                            (it.hasFaceID() && checkDeviceFeature(type)) || hasSamsungIntelligentScan(
                                 it.model
                             )
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
-                            PixelModelChecker.isPixel8OrNewer(it.model)
+                            (it.hasFaceID() && checkDeviceFeature(type)) || PixelModelChecker.isPixel8OrNewer(it.model)
                         } else
                             it.hasFaceID() && checkDeviceFeature(type)
                     }
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            it.hasIrisScanner() || checkDeviceFeature(type) || hasSamsungIntelligentScan(
+                            (it.hasIrisScanner() && checkDeviceFeature(type)) || hasSamsungIntelligentScan(
                                 it.model
                             )
                         } else
