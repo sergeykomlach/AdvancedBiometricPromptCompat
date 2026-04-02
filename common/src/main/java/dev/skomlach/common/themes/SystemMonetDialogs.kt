@@ -58,7 +58,7 @@ object SystemMonetDialogs {
      */
     fun dialogContext(base: Context, alert: Boolean = true): Context {
         return if (isMonetAvailable()) {
-            DynamicColors.wrapContextIfAvailable(base)
+            DynamicColors.wrapContextIfAvailable(ContextThemeWrapper(base, com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog))
         } else {
             ContextThemeWrapper(
                 base,
