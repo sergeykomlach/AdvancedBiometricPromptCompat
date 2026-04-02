@@ -447,9 +447,27 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricType.BIOMETRIC_FACE -> detectFace(context)
                 BiometricType.BIOMETRIC_IRIS -> detectIris(context)
                 BiometricType.BIOMETRIC_FINGERPRINT -> detectFingerprint(context)
-                BiometricType.BIOMETRIC_VOICE -> detectHeuristicOnly(context, type, "voice")
-                BiometricType.BIOMETRIC_HEARTRATE -> detectHeuristicOnly(context, type, "heartrate")
-                BiometricType.BIOMETRIC_PALMPRINT -> detectHeuristicOnly(context, type, "palm")
+                BiometricType.BIOMETRIC_VOICE -> detectHeuristicOnly(
+                    context,
+                    type,
+                    "voice",
+                    emptyList()
+                )
+
+                BiometricType.BIOMETRIC_HEARTRATE -> detectHeuristicOnly(
+                    context,
+                    type,
+                    "heartrate",
+                    emptyList()
+                )
+
+                BiometricType.BIOMETRIC_PALMPRINT -> detectHeuristicOnly(
+                    context,
+                    type,
+                    "palm",
+                    emptyList()
+                )
+
                 else -> Result(
                     type,
                     Confidence.NONE,
@@ -527,7 +545,15 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             if (faceScore >= 3) {
                 reasons += "strings:face(score=$faceScore,tokens=${faceTokens.joinToString()})"
             }
-            val vendorFaceFeature = findRelatedSystemFeatures(pm, "face")
+            val vendorFaceFeature = findRelatedSystemFeatures(
+                pm, "face", listOf(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        PackageManager.FEATURE_FACE
+                    } else {
+                        "android.hardware.biometrics.face"
+                    }
+                )
+            )
             if (vendorFaceFeature.isNotEmpty()) {
                 reasons += vendorFaceFeature.map { "vendorFeature:$it" }
             }
@@ -579,7 +605,15 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 reasons += "strings:iris(score=$irisScore,tokens=${irisTokens.joinToString()})"
             }
 
-            val vendorIrisFeature = findRelatedSystemFeatures(pm, "iris")
+            val vendorIrisFeature = findRelatedSystemFeatures(
+                pm, "iris", listOf(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        PackageManager.FEATURE_IRIS
+                    } else {
+                        "android.hardware.biometrics.iris"
+                    }
+                )
+            )
             if (vendorIrisFeature.isNotEmpty()) {
                 reasons += vendorIrisFeature.map { "vendorFeature:$it" }
             }
@@ -612,11 +646,12 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         private fun detectHeuristicOnly(
             context: Context,
             type: BiometricType,
-            alias: String
+            alias: String,
+            systemFeatures: List<String>
         ): Result {
             val pm = context.packageManager
             val reasons = mutableListOf<String>()
-            val matched = findRelatedSystemFeatures(pm, alias)
+            val matched = findRelatedSystemFeatures(pm, alias, systemFeatures)
             if (matched.isNotEmpty()) {
                 reasons += matched.map { "vendorFeature:$it" }
             }
@@ -630,13 +665,18 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             )
         }
 
-        private fun findRelatedSystemFeatures(pm: PackageManager, alias: String): List<String> {
+        private fun findRelatedSystemFeatures(
+            pm: PackageManager,
+            alias: String,
+            systemFeatures: List<String>
+        ): List<String> {
+            val ignoredFeatures = systemFeatures.map { it.lowercase() }
             return pm.systemAvailableFeatures
                 ?.mapNotNull(FeatureInfo::name)
                 ?.filter { name ->
                     val s = name.lowercase(Locale.ROOT)
                     val a = alias.lowercase(Locale.ROOT)
-                    a in s && (
+                    !ignoredFeatures.contains(s) && a in s && (
                             ".hardware." in s ||
                                     ".biometric" in s ||
                                     "unlock" in s ||
