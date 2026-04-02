@@ -69,14 +69,14 @@ class CredentialsRequestFragment : Fragment() {
                 appContext,
                 object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        ExecutorHelper.post {
+                        ExecutorHelper.postDelayed( {
                             val result = intent.getBooleanExtra("success", false)
                             LogCat.logError("CredentialsRequestFragment", result)
                             if (result) {
                                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                             }
                             validator.invoke(result)
-                        }
+                        }, 500)
                         try {
                             BroadcastTools.unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {

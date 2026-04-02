@@ -61,9 +61,9 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                 return
             registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    ExecutorHelper.post {
+                    ExecutorHelper.postDelayed( {
                         callback.invoke()
-                    }
+                    }, 500)
                     try {
                         unregisterGlobalBroadcastIntent(appContext, this)
                     } catch (e: Throwable) {

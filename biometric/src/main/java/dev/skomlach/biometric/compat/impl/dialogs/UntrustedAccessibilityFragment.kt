@@ -60,9 +60,9 @@ class UntrustedAccessibilityFragment : Fragment() {
             val fragment = UntrustedAccessibilityFragment()
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    ExecutorHelper.post {
+                    ExecutorHelper.postDelayed( {
                         callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
-                    }
+                    }, 500)
                     try {
                         unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
                     } catch (e: Throwable) {

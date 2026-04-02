@@ -105,7 +105,9 @@ class PermissionsFragment : Fragment() {
                 fragment.arguments = bundle
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        if (callback != null) ExecutorHelper.post(callback)
+                        callback?.let {
+                            ExecutorHelper.postDelayed(callback, 500)
+                        }
                         try {
                             unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {

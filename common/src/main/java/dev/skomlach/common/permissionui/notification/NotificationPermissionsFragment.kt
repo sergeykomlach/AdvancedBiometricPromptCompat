@@ -102,7 +102,9 @@ class NotificationPermissionsFragment : Fragment() {
             fragment.arguments = bundle
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    if (callback != null) ExecutorHelper.post(callback)
+                    callback?.let {
+                        ExecutorHelper.postDelayed(it, 500)
+                    }
                     try {
                         unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
                     } catch (e: Throwable) {
