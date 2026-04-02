@@ -151,7 +151,7 @@ object ScreenProtection {
         includeHostActivity: Boolean = false
     ) {
         try {
-            if (window == null || BuildConfig.DEBUG) return
+            if (window == null) return
             applyProtectionInWindowInternal(
                 window,
                 disableWindow,
@@ -173,9 +173,11 @@ object ScreenProtection {
         disableView: Boolean = true
     ) {
         try {
-            if (BuildConfig.DEBUG) return
-            if (A11yDetection.hasWhiteListedService(view.context))
+            if (A11yDetection.hasWhiteListedService(view.context)) {
+                BiometricLoggerImpl.e("ScreenProtection", "View protection disabled due to WL a11y")
                 return
+            } else
+                BiometricLoggerImpl.d("ScreenProtection", "View protection applied with flag=$disableView")
 
             if (disableView) {
                 protectView(view)
