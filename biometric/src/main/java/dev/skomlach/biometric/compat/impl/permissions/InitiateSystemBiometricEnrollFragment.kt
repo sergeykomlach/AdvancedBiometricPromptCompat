@@ -39,6 +39,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
+import dev.skomlach.common.misc.ExecutorHelper
 
 
 class InitiateSystemBiometricEnrollFragment : Fragment() {
@@ -60,7 +61,9 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                 return
             registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    callback.invoke()
+                    ExecutorHelper.post {
+                        callback.invoke()
+                    }
                     try {
                         unregisterGlobalBroadcastIntent(appContext, this)
                     } catch (e: Throwable) {
