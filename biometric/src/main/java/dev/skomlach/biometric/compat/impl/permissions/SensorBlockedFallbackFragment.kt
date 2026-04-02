@@ -62,6 +62,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         private const val MESSAGE = "message"
         private const val INTENT_KEY = "SensorBlockedFallbackFragment.intent_key"
         fun askForCameraUnblock(activity: FragmentActivity, callback: () -> Unit?) {
+            LogCat.log("SensorBlockedFragment", "askForCameraUnblock")
             showFragment(
                 activity,
                 LocalizationHelper.getLocalizedString(
@@ -77,6 +78,7 @@ class SensorBlockedFallbackFragment : Fragment() {
         }
 
         fun askForMicUnblock(activity: FragmentActivity, callback: () -> Unit?) {
+            LogCat.log("SensorBlockedFragment", "askForMicUnblock")
             showFragment(
                 activity,
                 LocalizationHelper.getLocalizedString(

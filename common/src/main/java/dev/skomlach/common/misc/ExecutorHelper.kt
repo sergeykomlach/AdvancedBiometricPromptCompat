@@ -67,9 +67,7 @@ object ExecutorHelper {
     }
 
     fun post(task: Runnable) {
-        scope.launch(Dispatchers.Main) {
-            task.run()
-        }
+        handler.post(task)
     }
 
     fun removeCallbacks(task: Runnable) {
