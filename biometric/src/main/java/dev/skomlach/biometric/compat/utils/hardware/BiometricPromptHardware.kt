@@ -205,7 +205,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type)) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
+                            it.hasFaceID() || checkDeviceFeature(type) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                 it.model
                             )
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
@@ -218,7 +218,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasIrisScanner() && checkDeviceFeature(type)) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
+                            it.hasIrisScanner() || checkDeviceFeature(type) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                 it.model
                             )
                         } else
