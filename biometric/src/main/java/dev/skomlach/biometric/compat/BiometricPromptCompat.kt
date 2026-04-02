@@ -622,18 +622,20 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 authFlowInProgress.set(false)
             } else {
                 BiometricLoggerImpl.d("BiometricPromptCompat.startAuth")
-                val activityViewWatcher = try {
-                    if (!builder.isSilentAuthEnabled()) ActivityViewWatcher(
-                        builder,
-                        object : ActivityViewWatcher.ForceToCloseCallback {
-                            override fun onCloseBiometric() {
-                                BiometricLoggerImpl.e("BiometricPromptCompat.onCloseBiometric")
-                                cancelAuthentication()
-                            }
-                        }) else null
-                } catch (e: Throwable) {
-                    BiometricLoggerImpl.e(e)
-                    null
+                val activityViewWatcher by lazy {
+                    try {
+                        if (!builder.isSilentAuthEnabled()) ActivityViewWatcher(
+                            builder,
+                            object : ActivityViewWatcher.ForceToCloseCallback {
+                                override fun onCloseBiometric() {
+                                    BiometricLoggerImpl.e("BiometricPromptCompat.onCloseBiometric")
+                                    cancelAuthentication()
+                                }
+                            }) else null
+                    } catch (e: Throwable) {
+                        BiometricLoggerImpl.e(e)
+                        null
+                    }
                 }
 
                 val callback = object : AuthenticationCallback() {
@@ -1017,7 +1019,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     )
                 )
             }.toSet())
-            authFlowInProgress.set(false)
             return
         }
         try {
