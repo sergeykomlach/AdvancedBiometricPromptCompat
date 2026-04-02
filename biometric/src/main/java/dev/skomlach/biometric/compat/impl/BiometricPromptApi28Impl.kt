@@ -432,19 +432,18 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun startAuth() {
-        d("BiometricPromptApi28Impl.startAuth():")
         val prompt = biometricPrompt
+        d("BiometricPromptApi28Impl.startAuth(): $prompt")
         if (prompt == null) {
-            callback?.onCanceled(builder.getAllAvailableTypes().map {
-                AuthenticationResult(
-                    it,
-                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = LocalizationHelper.getLocalizedString(
-                        builder.getContext(),
-                        R.string.biometriccompat_camera_blocked
+            ExecutorHelper.post {
+                callback?.onCanceled(builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.INTERNAL_ERROR,
+                        description = "Can't start authenticate for BiometricPromptApi28Impl"
                     )
-                )
-            }.toSet())
+                }.toSet())
+            }
             return
         }
         val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
@@ -467,7 +466,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     @SuppressLint("RestrictedApi")
     private fun showSystemUi(biometricPrompt: BiometricPrompt) {
         try {
-            d("BiometricPromptApi28Impl.showSystemUi()")
+            d("BiometricPromptApi28Impl.showSystemUi() $biometricPrompt")
             var biometricCryptoObject: BiometricCryptoObject? = null
             builder.getCryptographyPurpose()?.let {
                 try {

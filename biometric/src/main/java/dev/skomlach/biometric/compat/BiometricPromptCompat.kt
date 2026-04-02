@@ -1221,7 +1221,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     class Builder(
         private val biometricAuthRequest: BiometricAuthRequest,
-        activity: FragmentActivity? = null
+        private val activity: FragmentActivity? = null
     ) {
         companion object {
             init {
@@ -1511,7 +1511,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getActivity(): FragmentActivity? {
-            return AndroidContext.activity as? FragmentActivity
+            return if(activity?.isDestroyed == true)
+                AndroidContext.activity as? FragmentActivity
+            else
+                activity
         }
 
         fun getContext(): Context {

@@ -59,16 +59,10 @@ object SystemMonetDialogs {
     fun dialogContext(base: Context, alert: Boolean = true): Context {
         return if (isMonetAvailable()) {
             DynamicColors.wrapContextIfAvailable(
-                ContextThemeWrapper(
-                    base,
-                    com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog
-                ), com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog
+                base
             )
         } else {
-            ContextThemeWrapper(
-                base,
-                if (alert) legacyAlertTheme(base) else legacyDialogTheme(base)
-            )
+            base
         }
     }
 
@@ -138,39 +132,6 @@ object SystemMonetDialogs {
                 setOnDismissListener { onDismiss?.invoke() }
                 show()
             }
-        }
-    }
-
-    /**
-     * Returns a plain Dialog (not AlertDialog shell).
-     *
-     * Android 12+:
-     *   Dialog on Monet-wrapped context
-     * Older:
-     *   Dialog on DeviceDefault dialog theme
-     */
-    fun createDialog(
-        context: Context,
-        contentView: View? = null,
-        cancelable: Boolean = true,
-        alertLike: Boolean = false,
-        onCancel: (() -> Unit)? = null,
-        onDismiss: (() -> Unit)? = null,
-    ): Dialog {
-        val ctx = if (isMonetAvailable()) {
-            DynamicColors.wrapContextIfAvailable(context)
-        } else {
-            ContextThemeWrapper(
-                context,
-                if (alertLike) legacyAlertTheme(context) else legacyDialogTheme(context)
-            )
-        }
-
-        return Dialog(ctx).apply {
-            setCancelable(cancelable)
-            if (contentView != null) setContentView(contentView)
-            setOnCancelListener { onCancel?.invoke() }
-            setOnDismissListener { onDismiss?.invoke() }
         }
     }
 }
