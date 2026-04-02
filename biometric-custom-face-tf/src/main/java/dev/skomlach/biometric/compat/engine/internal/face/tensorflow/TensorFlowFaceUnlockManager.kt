@@ -571,7 +571,7 @@ class TensorFlowFaceUnlockManager(
             },
             { code, msg ->
                 if (isSessionActive.get()) {
-                    LogCat.log(TAG, "Provider Error: $code, $msg")
+                    LogCat.logError(TAG, "Provider Error: $code, $msg")
 
                     onAuthenticationError(code, msg)
                     stopAuthentication()

@@ -922,19 +922,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (PermissionUtils.INSTANCE.hasSelfPermissions(permissions))
                         authTask.invoke()
                     else {
-                        if (builder.getAllAvailableTypes().size == 1) {
-                            callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-                                AuthenticationResult(
-                                    t,
-                                    reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                                    description = LocalizationHelper.getLocalizedString(
-                                        builder.getContext(),
-                                        R.string.biometriccompat_permissions_request_failed
-                                    )
+                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+                            AuthenticationResult(
+                                t,
+                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                                description = LocalizationHelper.getLocalizedString(
+                                    builder.getContext(),
+                                    R.string.biometriccompat_permissions_request_failed
                                 )
-                            }.toSet())
-                            authFlowInProgress.set(false)
-                        } else authTask.invoke()
+                            )
+                        }.toSet())
+                        authFlowInProgress.set(false)
                     }
                 }
             } ?: run {
