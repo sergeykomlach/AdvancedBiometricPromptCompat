@@ -128,7 +128,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION) ?: 0
 
             val validSizes = map.getOutputSizes(ImageFormat.YUV_420_888).filter {
-                it.width >= 640 && it.height >= 480
+                it.width >= 1280 && it.height >= 720
             }
 
             if (validSizes.isEmpty()) {
@@ -328,8 +328,16 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
     private fun getFrontFacingCameraId(manager: CameraManager): String? {
         return manager.cameraIdList.firstOrNull {
-            manager.getCameraCharacteristics(it)
-                .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
+            if(manager.getCameraCharacteristics(it)
+                .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT){
+                val characteristics = manager.getCameraCharacteristics(it)
+                val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
+                val validSizes = map.getOutputSizes(ImageFormat.YUV_420_888).filter { s->
+                    s.width >= 1280 && s.height >= 720
+                }
+
+                validSizes.isNotEmpty()
+            } else false
         }
     }
 }
