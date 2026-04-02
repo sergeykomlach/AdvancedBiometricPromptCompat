@@ -175,14 +175,19 @@ object ScreenProtection {
         try {
             if (A11yDetection.hasWhiteListedService(view.context)) {
                 BiometricLoggerImpl.e("ScreenProtection", "View protection disabled due to WL a11y")
-                return
-            } else
-                BiometricLoggerImpl.d("ScreenProtection", "View protection applied with flag=$disableView")
-
-            if (disableView) {
-                protectView(view)
-            } else {
                 rollbackView(view)
+                return
+            } else {
+                BiometricLoggerImpl.d(
+                    "ScreenProtection",
+                    "View protection applied with flag=$disableView"
+                )
+
+                if (disableView) {
+                    protectView(view)
+                } else {
+                    rollbackView(view)
+                }
             }
         } catch (e: Exception) {
             //not sure is exception can happen, but better to track at least
