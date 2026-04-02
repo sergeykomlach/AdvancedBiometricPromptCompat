@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.impl.permissions
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -29,7 +30,6 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
@@ -43,6 +43,7 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
+import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 
 
@@ -137,7 +138,7 @@ class SensorBlockedFallbackFragment : Fragment() {
 
     }
 
-    private var alert: AlertDialog? = null
+    private var alert: Dialog? = null
     private fun closeFragment() {
         alert?.dismiss()
         alert = null
@@ -184,29 +185,23 @@ class SensorBlockedFallbackFragment : Fragment() {
         lifecycleScope.launchWhenResumed {
             if (alert == null)
                 try {
-                    alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
-                        .setTitle(arguments?.getString(TITLE)).also { dialog ->
-                            arguments?.getString(MESSAGE)?.let {
-                                dialog.setMessage(it)
-                            }
-                        }
-                        .setNegativeButton(
-                            android.R.string.cancel
-                        ) { _, _ -> closeFragment() }
-                        .setPositiveButton(
-                            LocalizationHelper.getLocalizedString(
-                                appContext,
-                                R.string.biometriccompat_sensor_privacy_start_use_dialog_turn_on_button
-                            )
-                        ) { p0, _ ->
+                    alert = SystemMonetDialogs.showAlertDialog(requireActivity(),
+                        title =  arguments?.getString(TITLE),
+                        message = arguments?.getString(MESSAGE),
+                        negativeText = getString(android.R.string.cancel),
+                        onNegative = { closeFragment() },
+                        positiveText = LocalizationHelper.getLocalizedString(
+                            appContext,
+                            R.string.biometriccompat_sensor_privacy_start_use_dialog_turn_on_button
+                        ),
+                        onPositive = {
                             val intent =
                                 if (intentCanBeResolved(Intent(Settings.ACTION_PRIVACY_SETTINGS)))
                                     Intent(Settings.ACTION_PRIVACY_SETTINGS)
                                 else Intent(Settings.ACTION_SETTINGS)
 
                             startForResult.launch(intent)
-
-                        }.show()
+                        })
                 } catch (e: Throwable) {
                     LogCat.logException(
                         e, "SensorBlockedFallbackFragment", e.message

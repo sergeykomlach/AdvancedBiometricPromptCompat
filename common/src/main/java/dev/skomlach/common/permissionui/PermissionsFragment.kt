@@ -20,6 +20,7 @@
 package dev.skomlach.common.permissionui
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -30,7 +31,6 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
@@ -55,6 +55,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 
 class PermissionsFragment : Fragment() {
@@ -137,6 +138,7 @@ class PermissionsFragment : Fragment() {
         }
     }
 
+    private var alert: Dialog? = null
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
             LogCat.log("PermissionsFragment.ActivityResult()")
@@ -320,23 +322,20 @@ class PermissionsFragment : Fragment() {
         if (textEnd.isNullOrEmpty() || title.isEmpty()) {
             closeFragment()
         }
-        AlertDialog.Builder(
-            requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert
-        ).apply {
-            setTitle(title)
-            setCancelable(false)
-            setMessage(text)
-            setOnCancelListener {
+        alert = SystemMonetDialogs.showAlertDialog(
+            requireActivity(), title = title, cancelable = false, message = text,
+            onCancel = {
                 closeFragment()
-            }
-            setNegativeButton(
-                android.R.string.cancel
-            ) { dialog, which -> closeFragment() }
-            setPositiveButton(android.R.string.ok) { dialog, _ ->
-                dialog.dismiss()
+            },
+            negativeText = (
+                    getString(android.R.string.cancel)
+                    ),
+            onNegative = { closeFragment() },
+            positiveText = getString(android.R.string.ok),
+            onPositive = {
                 startForResultForPermissions.launch(permissions.toTypedArray())
             }
-        }.show()
+        )
     }
 
     /**
@@ -388,18 +387,20 @@ class PermissionsFragment : Fragment() {
             return
         }
 
-        AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert).apply {
-            setTitle(title)
-            setCancelable(false)
-            setMessage(text)
-            setOnCancelListener {
+        alert = SystemMonetDialogs.showAlertDialog(
+            requireActivity(),
+            title = title,
+            cancelable = false,
+            message = text,
+            onCancel = {
                 closeFragment()
-            }
-            setNegativeButton(
+            },
+            negativeText = getString(
                 android.R.string.cancel
-            ) { dialog, which -> closeFragment() }
-            setPositiveButton(button) { dialog, _ ->
-                dialog.dismiss()
+            ),
+            onNegative = { closeFragment() },
+            positiveText = button,
+            onPositive = {
                 try {
                     val future: ListenableFuture<Int> =
                         PackageManagerCompat.getUnusedAppRestrictionsStatus(requireActivity())
@@ -410,13 +411,14 @@ class PermissionsFragment : Fragment() {
                 } catch (e: Throwable) {
                     unusedAppRestrictionsDisabled()
                 }
-            }
-        }.show()
+            })
     }
 
 
     private fun closeFragment() {
         LogCat.logError("PermissionsFragment", "closeFragment")
+        alert?.dismiss()
+        alert = null
         val tag = TAG
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {

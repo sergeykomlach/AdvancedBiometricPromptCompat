@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.impl.dialogs
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -29,7 +30,6 @@ import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
@@ -42,6 +42,7 @@ import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 
 
@@ -96,7 +97,7 @@ class UntrustedAccessibilityFragment : Fragment() {
         }
     }
 
-    private var alert: AlertDialog? = null
+    private var alert: Dialog? = null
     override fun onAttach(context: Context) {
         super.onAttach(context)
         lifecycleScope.launchWhenResumed {
@@ -140,18 +141,17 @@ class UntrustedAccessibilityFragment : Fragment() {
                         LogCat.logException(e)
                     }
 
-                    alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
-                        .setTitle(title)
-                        .setMessage(str)
-                        .setCancelable(false)
-                        .setNegativeButton(android.R.string.cancel) { p0, _ ->
+                    alert = SystemMonetDialogs.showAlertDialog(requireActivity(), title = title,
+                        message = str, cancelable = false,
+                        negativeText = getString(android.R.string.cancel),
+                        onNegative =  {
                             closeFragment(false)
-                        }
-                        .setPositiveButton(
-                            android.R.string.ok
-                        ) { p0, _ ->
+                        },
+                        positiveText = getString( android.R.string.ok),
+
+                        onPositive = {
                             closeFragment(true)
-                        }.show()
+                        })
                 } catch (e: Throwable) {
                     LogCat.logException(
                         e, "UntrustedAccessibilityFragment", e.message

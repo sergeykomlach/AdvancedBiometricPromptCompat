@@ -20,6 +20,7 @@
 package dev.skomlach.common.permissionui.notification
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -30,7 +31,6 @@ import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -46,6 +46,7 @@ import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.launch
 
@@ -136,6 +137,7 @@ class NotificationPermissionsFragment : Fragment() {
         }
     }
 
+    private var alert: Dialog? = null
 
     private val startForResultForPermissions =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -190,27 +192,21 @@ class NotificationPermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             "Unknown"
         }
-        val alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
-            .setTitle(title)
-            .setMessage(
+        alert = SystemMonetDialogs.showAlertDialog(
+            requireActivity(), title = title, message = LocalizationHelper.getLocalizedString(
+                activity,
+                R.string.biometriccompat_request_perm,
+                title,
                 LocalizationHelper.getLocalizedString(
                     activity,
-                    R.string.biometriccompat_request_perm,
-                    title,
-                    LocalizationHelper.getLocalizedString(
-                        activity,
-                        R.string.biometriccompat_allow_notifications_perm
-                    )
+                    R.string.biometriccompat_allow_notifications_perm
                 )
-            )
-            .setCancelable(false)
-            .setNegativeButton(android.R.string.cancel) { p0, _ ->
+            ), cancelable = false, negativeText = getString(android.R.string.cancel),
+            onNegative = {
                 closeFragment()
-            }
-            .setPositiveButton(
-                android.R.string.ok
-            ) { p0, _ ->
-                p0.dismiss()
+            },
+            positiveText = getString(android.R.string.ok),
+            onPositive = {
                 if (VERSION.SDK_INT >= 26) {
                     try {
                         if (safeStartActivity(
@@ -219,7 +215,7 @@ class NotificationPermissionsFragment : Fragment() {
 
                                 )
                         )
-                            return@setPositiveButton
+                            return@showAlertDialog
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -233,7 +229,7 @@ class NotificationPermissionsFragment : Fragment() {
 
                     if (intentCanBeResolved(launchIntent)) {
                         if (safeStartActivity(launchIntent))
-                            return@setPositiveButton
+                            return@showAlertDialog
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -243,7 +239,7 @@ class NotificationPermissionsFragment : Fragment() {
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
                         if (safeStartActivity(i))
-                            return@setPositiveButton
+                            return@showAlertDialog
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -251,9 +247,7 @@ class NotificationPermissionsFragment : Fragment() {
                 closeFragment()
 
 
-            }
-
-        alert.show()
+            })
     }
 
     private val channelNotification = {
@@ -275,27 +269,25 @@ class NotificationPermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             "Unknown"
         }
-        val alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
-            .setTitle(title)
-            .setMessage(
+        alert = SystemMonetDialogs.showAlertDialog(
+            requireActivity(),
+            title = title,
+            message = LocalizationHelper.getLocalizedString(
+                activity,
+                R.string.biometriccompat_request_perm,
+                title,
                 LocalizationHelper.getLocalizedString(
                     activity,
-                    R.string.biometriccompat_request_perm,
-                    title,
-                    LocalizationHelper.getLocalizedString(
-                        activity,
-                        R.string.biometriccompat_allow_notifications_channel_perm
-                    )
+                    R.string.biometriccompat_allow_notifications_channel_perm
                 )
-            )
-            .setCancelable(false)
-            .setNegativeButton(android.R.string.cancel) { p0, _ ->
+            ),
+            cancelable = false,
+            negativeText = getString(android.R.string.cancel),
+            onNegative = {
                 closeFragment()
-            }
-            .setPositiveButton(
-                android.R.string.ok
-            ) { p0, _ ->
-                p0.dismiss()
+            },
+            positiveText = getString(android.R.string.ok),
+            onPositive = {
                 if (VERSION.SDK_INT >= 26) {
                     try {
                         val channelId = arguments?.getString(CHANNEL_ID)
@@ -312,7 +304,7 @@ class NotificationPermissionsFragment : Fragment() {
                             )
                         )
 
-                            return@setPositiveButton
+                            return@showAlertDialog
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
@@ -325,7 +317,7 @@ class NotificationPermissionsFragment : Fragment() {
 
                     if (intentCanBeResolved(launchIntent)) {
                         if (safeStartActivity(launchIntent))
-                            return@setPositiveButton
+                            return@showAlertDialog
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
@@ -335,16 +327,16 @@ class NotificationPermissionsFragment : Fragment() {
                     i.addCategory(Intent.CATEGORY_DEFAULT)
                     if (intentCanBeResolved(i)) {
                         if (safeStartActivity(i))
-                            return@setPositiveButton
+                            return@showAlertDialog
                     }
                 } catch (e: Throwable) {
                     LogCat.logException(e)
                 }
                 closeFragment()
 
-            }
+            })
 
-        alert.show()
+
     }
 
     override fun onDestroyView() {
@@ -387,6 +379,8 @@ class NotificationPermissionsFragment : Fragment() {
 
     private fun closeFragment() {
         val tag = TAG
+        alert?.dismiss()
+        alert = null
         activity?.supportFragmentManager?.findFragmentByTag(tag) ?: return
         try {
             activity?.supportFragmentManager?.beginTransaction()

@@ -46,6 +46,7 @@ dependencies {
     implementation libs.gson
     implementation libs.androidx.concurrent.futures
     implementation libs.versioncompare
+    implementation libs.material
 }
 //https://github.com/allendavis-official/gsmarena-scraper
 ext.gsmarenaScrapeAndCopy = { ->
