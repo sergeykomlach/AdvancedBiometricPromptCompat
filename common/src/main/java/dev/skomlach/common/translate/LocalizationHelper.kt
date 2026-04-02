@@ -64,7 +64,7 @@ object LocalizationHelper {
     private val diskTranslationsCache =
         ConcurrentHashMap<String, MutableMap<String, String>>()
 
-    private val translationMemoryCache = ConcurrentHashMap<String, String?>()
+    private val translationMemoryCache = ConcurrentHashMap<String, String>()
 
     private fun ensureLocaleState() {
         val currentTag = AndroidContext.appLocale.toLanguageTag()
@@ -326,7 +326,7 @@ object LocalizationHelper {
         val translations = getOrLoadTranslationsMap(pairKey)
 
         val value = translations[text]?.trim()?.ifEmpty { null }
-        translationMemoryCache[memKey] = value
+        translationMemoryCache[memKey] = value?:return null
         return value
     }
 

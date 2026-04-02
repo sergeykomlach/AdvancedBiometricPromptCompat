@@ -47,6 +47,7 @@ import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import kotlin.coroutines.cancellation.CancellationException
+import androidx.core.graphics.createBitmap
 
 @SuppressLint("RestrictedApi")
 object BlurUtil {
@@ -256,17 +257,34 @@ object BlurUtil {
                             }
                         }
                     } catch (ignore: Throwable) {
-                        blur(
-                            view.context,
-                            fallbackViewCapture(view) ?: return@startOnBackground,
-                            listener
-                        )
+                        ExecutorHelper.post {
+                            fallbackViewCapture(view)?.let {
+                                ExecutorHelper.startOnBackground {
+                                    blur(
+                                        view.context,
+                                        it,
+                                        listener
+                                    )
+                                }
+                            }
+                        }
+
                     }
                     return@startOnBackground
                 }
             }
 
-            blur(view.context, fallbackViewCapture(view) ?: return@startOnBackground, listener)
+            ExecutorHelper.post {
+                fallbackViewCapture(view)?.let {
+                    ExecutorHelper.startOnBackground {
+                        blur(
+                            view.context,
+                            it,
+                            listener
+                        )
+                    }
+                }
+            }
         }
 
     }
@@ -276,9 +294,9 @@ object BlurUtil {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
                 val bm =
-                    Bitmap.createBitmap(
-                        view.measuredWidth,
-                        view.measuredHeight,
+                    createBitmap(
+                        view.measuredWidth.takeIf { it > 0 } ?: return null,
+                        view.measuredHeight.takeIf { it > 0 } ?: return null,
                         Bitmap.Config.ARGB_4444
                     )
                 val canvas = Canvas(bm)
