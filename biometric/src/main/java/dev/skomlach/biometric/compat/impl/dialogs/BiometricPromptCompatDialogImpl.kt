@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
-import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
@@ -331,7 +330,8 @@ class BiometricPromptCompatDialogImpl(
             dialog.status?.text = msg
             dialog.status?.setTextColor(
                 ContextCompat.getColor(
-                    dialog.status!!.context, if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
+                    dialog.status!!.context,
+                    if (Utils.isAtLeastS) R.color.material_blue_500 else R.color.material_deep_teal_500
                 )
             )
             animateHandler.sendEmptyMessageDelayed(
@@ -371,7 +371,12 @@ class BiometricPromptCompatDialogImpl(
                         primaryBiometricType
                     )
                     dialog.status?.text = promptText
-                    dialog.status?.setTextColor(ContextCompat.getColor(dialog.status!!.context, R.color.textColor))
+                    dialog.status?.setTextColor(
+                        ContextCompat.getColor(
+                            dialog.status!!.context,
+                            R.color.textColor
+                        )
+                    )
                     dialog.updateMonetColorsInternal(dialog.status!!.context)
                 }
             }

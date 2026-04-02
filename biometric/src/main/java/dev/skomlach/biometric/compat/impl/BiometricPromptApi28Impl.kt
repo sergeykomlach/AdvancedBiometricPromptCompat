@@ -25,6 +25,7 @@ import android.content.Context
 import android.os.Build
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.widget.Toast
 import androidx.annotation.ColorInt
@@ -71,7 +72,6 @@ import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
-import android.text.Spanned
 
 
 fun CharSequence.toColoredText(context: Context, colorRes: Int): CharSequence {
@@ -84,6 +84,7 @@ fun CharSequence.toColoredText(context: Context, colorRes: Int): CharSequence {
         )
     }
 }
+
 @TargetApi(Build.VERSION_CODES.P)
 
 class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Builder) :
@@ -754,7 +755,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     val msg = result.description
                     if (!msg.isNullOrEmpty()) {
                         builder.getActivity()?.let {
-                            Toast.makeText(it, msg.toColoredText(it, R.color.material_red_500), Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                it,
+                                msg.toColoredText(it, R.color.material_red_500),
+                                Toast.LENGTH_LONG
+                            ).show()
                         }
                     }
                     Vibro.start()

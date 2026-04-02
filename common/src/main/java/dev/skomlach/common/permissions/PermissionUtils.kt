@@ -36,7 +36,6 @@ import androidx.core.app.AppOpsManagerCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
-import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat.logError
 import dev.skomlach.common.logging.LogCat.logException

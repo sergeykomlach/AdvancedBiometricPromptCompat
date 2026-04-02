@@ -79,6 +79,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
                 ExecutorHelper.post(it)
         }
     }
+
     fun resetThrottle(keepLastKnownState: Boolean = true) {
         cancelConnectionCheckQuery()
         nextAllowedCheckAtMs = 0L
@@ -88,6 +89,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             lastKnownState = false
         }
     }
+
     private fun isWebUrl(u: String): Boolean {
         var url = u
         if (url.isEmpty()) return false

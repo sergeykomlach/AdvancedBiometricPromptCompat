@@ -209,7 +209,9 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                                 it.model
                             )
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type)) || PixelModelChecker.isPixel8OrNewer(it.model)
+                            (it.hasFaceID() && checkDeviceFeature(type)) || PixelModelChecker.isPixel8OrNewer(
+                                it.model
+                            )
                         } else
                             it.hasFaceID() && checkDeviceFeature(type)
                     }
@@ -999,6 +1001,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             "galaxy note 9",
             "galaxy tab s4"
         )
+
         fun hasSamsungFaceAndIris(marketingName: String?): Boolean {
             val normalized = normalizeSamsungMarketingName(marketingName) ?: return false
             return matchesAnyModel(normalized, faceAndIrisModels)

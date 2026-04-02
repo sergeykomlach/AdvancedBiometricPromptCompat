@@ -96,17 +96,17 @@ class ConnectionStateListener {
 
     fun isConnectionDetected(): Boolean {
         return try {
-             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    val active = connectivityManager?.activeNetwork ?: return false
-                    val caps = connectivityManager?.getNetworkCapabilities(active) ?: return false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val active = connectivityManager?.activeNetwork ?: return false
+                val caps = connectivityManager?.getNetworkCapabilities(active) ?: return false
 
-                    caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
-                            caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-                } else {
-                    connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-                }
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                        caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                        caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            } else {
+                connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+            }
         } catch (_: Throwable) {
             false
         }

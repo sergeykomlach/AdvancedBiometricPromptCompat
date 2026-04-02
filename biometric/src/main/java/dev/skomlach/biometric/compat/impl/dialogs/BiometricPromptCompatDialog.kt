@@ -36,7 +36,6 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
-import android.view.Window
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -59,7 +58,6 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.biometric.compat.utils.WindowFocusChangedListener
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
 import dev.skomlach.common.misc.BroadcastTools

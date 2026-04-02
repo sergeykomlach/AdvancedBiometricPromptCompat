@@ -55,19 +55,21 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val canceled = HashSet<AuthenticationResult>()
 
     init {
-        if(builder.enroll){
-            val skipHardwareList =  builder.getAllAvailableTypes().filter {
-                BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withType(it).withProvider(
-                    BiometricProviderType.HARDWARE))
+        if (builder.enroll) {
+            val skipHardwareList = builder.getAllAvailableTypes().filter {
+                BiometricManagerCompat.isHardwareDetected(
+                    BiometricAuthRequest.default().withType(it).withProvider(
+                        BiometricProviderType.HARDWARE
+                    )
+                )
             }
             val filtered = builder.getAllAvailableTypes().toMutableList()
             filtered.removeAll(skipHardwareList)
             isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
-        }
-        else
-        isFingerprint.set(
-            builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
-        )
+        } else
+            isFingerprint.set(
+                builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
+            )
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {

@@ -21,7 +21,6 @@ package dev.skomlach.common.device
 
 import androidx.annotation.Keep
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import dev.skomlach.common.device.DeviceSpecManager.removeBrandPrefixIgnoreCase
 import dev.skomlach.common.logging.LogCat
 
@@ -54,6 +53,7 @@ fun fixModelAsAnsi(ua: String): String {
     else
         result.toString().replace("\\s+".toRegex(), " ").trim()
 }
+
 fun extractJsonFragment(text: String, startIndex: Int, openChar: Char, closeChar: Char): String? {
     var balance = 0
     var foundStart = false
@@ -102,7 +102,10 @@ object DeviceParser {
             LogCat.logError("findDeviceSpecInJson < startIndex == -1")
             return null
         }
-        val objectStart = lowerCasedFullJson.lastIndexOf('{', lowerCasedFullJson.lastIndexOf("\"brand\"", startIndex))
+        val objectStart = lowerCasedFullJson.lastIndexOf(
+            '{',
+            lowerCasedFullJson.lastIndexOf("\"brand\"", startIndex)
+        )
         if (objectStart == -1) {
             LogCat.logError("findDeviceSpecInJson < objectStart == -1")
             return null
@@ -147,4 +150,4 @@ data class Device(
 data class Specs(
     val sensors: String? = null,
 
-)
+    )

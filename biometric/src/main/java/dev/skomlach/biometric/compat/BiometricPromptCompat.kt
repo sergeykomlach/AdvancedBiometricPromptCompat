@@ -20,7 +20,6 @@
 package dev.skomlach.biometric.compat
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -1358,7 +1357,6 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var isTruncateChecked: Boolean? = null
 
 
-
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = false
         internal var enroll: Boolean = false
@@ -1516,7 +1514,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getActivity(): FragmentActivity? {
-           return AndroidContext.activity as? FragmentActivity
+            return AndroidContext.activity as? FragmentActivity
         }
 
         fun getContext(): Context {

@@ -114,6 +114,7 @@ suspend fun Fragment.authenticateWithBiometrics(
 
     return authPrompt.authenticate()
 }
+
 private suspend fun BiometricPromptCompat.setup(): Set<AuthenticationResult> {
     return suspendCancellableCoroutine { continuation ->
         this.setupBiometric(CoroutineAuthPromptCallback(continuation))
@@ -122,6 +123,7 @@ private suspend fun BiometricPromptCompat.setup(): Set<AuthenticationResult> {
         }
     }
 }
+
 private suspend fun BiometricPromptCompat.authenticate(): Set<AuthenticationResult> {
     return suspendCancellableCoroutine { continuation ->
         this.authenticate(CoroutineAuthPromptCallback(continuation))
@@ -130,6 +132,7 @@ private suspend fun BiometricPromptCompat.authenticate(): Set<AuthenticationResu
         }
     }
 }
+
 private fun startSetupBiometricAuthenticationInternal(
     host: AuthPromptHost,
     biometricAuthRequestData: BiometricAuthRequestData,
@@ -143,6 +146,7 @@ private fun startSetupBiometricAuthenticationInternal(
     prompt.setupBiometric(callback)
     return prompt
 }
+
 private fun startBiometricAuthenticationInternal(
     host: AuthPromptHost,
     biometricAuthRequestData: BiometricAuthRequestData,

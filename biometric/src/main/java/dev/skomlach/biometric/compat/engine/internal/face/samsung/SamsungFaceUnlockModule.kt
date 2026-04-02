@@ -24,6 +24,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import androidx.core.os.CancellationSignal
+import androidx.core.view.isVisible
 import com.samsung.android.bio.face.SemBioFaceManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -37,7 +38,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 import java.lang.ref.WeakReference
-import androidx.core.view.isVisible
 
 
 class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: LegacyBiometricInitListener?) :

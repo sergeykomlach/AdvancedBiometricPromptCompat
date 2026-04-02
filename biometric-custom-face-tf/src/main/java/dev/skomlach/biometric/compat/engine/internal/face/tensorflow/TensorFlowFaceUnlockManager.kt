@@ -283,13 +283,22 @@ class TensorFlowFaceUnlockManager(
     fun setFrameProvider(provider: IFrameProvider) {
         this.frameProvider = provider
     }
+
     private fun isErrorActive(): Boolean {
-        val activeUntil = getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).getLong(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP, 0L)
+        val activeUntil =
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).getLong(
+                KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP,
+                0L
+            )
         val now = System.currentTimeMillis()
 
         if (activeUntil <= now) {
             if (activeUntil != 0L) {
-                getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit { remove(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP) }
+                getProtectedPreferences(TFLiteObjectDetectionAPIModel.storageName).edit {
+                    remove(
+                        KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP
+                    )
+                }
             }
             return false
         }
@@ -303,6 +312,7 @@ class TensorFlowFaceUnlockManager(
             putLong(KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP, activeUntil)
         }
     }
+
     private fun startBackgroundThread() {
         if (backgroundThread == null) {
             backgroundThread = HandlerThread("FaceUnlockBackground").apply {
