@@ -37,6 +37,7 @@ import java.net.HttpURLConnection
 import java.net.URLEncoder
 import java.security.SecureRandom
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.pow
 
 object LocalizationHelper {
@@ -49,6 +50,85 @@ object LocalizationHelper {
         "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
     )
+
+    private const val PREF_NAME = "LocalizationHelperV3"
+    private const val AUTHOR_LOCALE_TAG = "en-US"
+
+    @Volatile
+    private var lastKnownAppLocaleTag: String = AndroidContext.appLocale.toLanguageTag()
+
+    private val localizedContextCache = ConcurrentHashMap<String, Context>()
+    private val resourceStringCache = ConcurrentHashMap<String, String>()
+    private val resourceTranslationAvailabilityCache = ConcurrentHashMap<String, Boolean>()
+
+    private val diskTranslationsCache =
+        ConcurrentHashMap<String, MutableMap<String, String>>()
+
+    private val translationMemoryCache = ConcurrentHashMap<String, String?>()
+
+    private fun ensureLocaleState() {
+        val currentTag = AndroidContext.appLocale.toLanguageTag()
+        if (currentTag != lastKnownAppLocaleTag) {
+            synchronized(this) {
+                val latestTag = AndroidContext.appLocale.toLanguageTag()
+                if (latestTag != lastKnownAppLocaleTag) {
+                    lastKnownAppLocaleTag = latestTag
+                    clearCaches()
+                }
+            }
+        }
+    }
+
+    fun clearCaches() {
+        localizedContextCache.clear()
+        resourceStringCache.clear()
+        resourceTranslationAvailabilityCache.clear()
+        translationMemoryCache.clear()
+    }
+
+    private fun translationPairKey(fromLang: Locale, toLang: Locale): String {
+        return fromLang.language + ">>" + toLang.language
+    }
+
+    private fun translationEntryKey(fromLang: Locale, toLang: Locale, text: String): String {
+        return buildString(text.length + 32) {
+            append(fromLang.language)
+            append(">>")
+            append(toLang.language)
+            append("::")
+            append(text)
+        }
+    }
+
+    private fun resourceKey(
+        resId: Int,
+        locale: Locale,
+        formatArgs: Array<out Any?> = emptyArray()
+    ): String {
+        return buildString {
+            append(resId)
+            append('|')
+            append(locale.toLanguageTag())
+            if (formatArgs.isNotEmpty()) {
+                append('|')
+                append(formatArgs.contentDeepHashCode())
+            }
+        }
+    }
+
+    private fun translationAvailabilityKey(
+        resId: Int,
+        locale: Locale,
+        formatArgs: Array<out Any?> = emptyArray()
+    ): String {
+        return buildString {
+            append(resId)
+            append('|')
+            append(locale.toLanguageTag())
+            append('|')
+            append(formatArgs.contentDeepHashCode())
+        }
+    }
 
     fun fetchFromWeb(url: String): String? {
         return fetchFromWebWithRedirects(url, 0)
@@ -89,32 +169,30 @@ object LocalizationHelper {
 
                 try {
                     Thread.sleep(delay)
-                } catch (e: InterruptedException) {
+                } catch (_: InterruptedException) {
                     return null
                 }
                 return fetchFromWebWithRedirects(url, redirectCount, retryCount + 1)
-            } else
-                if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-                    responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-                    responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
-                    responseCode == 307 || responseCode == 308
-                ) {
+            } else if (
+                responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                responseCode == 307 ||
+                responseCode == 308
+            ) {
+                val location = urlConnection.getHeaderField("Location") ?: return null
 
-                    val location = urlConnection.getHeaderField("Location") ?: return null
-
-                    val target = when {
-                        location.startsWith("//") -> "${urlConnection.url.protocol}:$location"         // //host/path
-                        NetworkApi.isWebUrl(location) -> location                                      // absolute
-                        else -> NetworkApi.resolveUrl(
-                            urlConnection.url.toString(),
-                            location
-                        )          // relative (/path or path)
-                    }
-
-                    LogCat.log("Redirecting to: $target")
-                    urlConnection.disconnect()
-                    return fetchFromWebWithRedirects(target, redirectCount + 1)
+                val target = when {
+                    location.startsWith("//") -> "${urlConnection.url.protocol}:$location"
+                    NetworkApi.isWebUrl(location) -> location
+                    else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)
                 }
+
+                LogCat.log("Redirecting to: $target")
+                urlConnection.disconnect()
+                return fetchFromWebWithRedirects(target, redirectCount + 1)
+            }
+
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 urlConnection.inputStream.use { inputStream ->
                     ByteArrayOutputStream().use { result ->
@@ -130,7 +208,6 @@ object LocalizationHelper {
                 val errorMsg = urlConnection.errorStream?.bufferedReader()?.use { it.readText() }
                 LogCat.logError("Server returned code: $responseCode for URL: $url. Error: $errorMsg")
             }
-
         } catch (e: Throwable) {
             LogCat.logException(e)
         } finally {
@@ -140,20 +217,21 @@ object LocalizationHelper {
     }
 
     fun prefetch(context: Context, vararg formatArgs: Any?) {
+        ensureLocaleState()
         try {
-            formatArgs.toList().forEach {
-                var name = try {
-                    context.resources.getResourceEntryName(it as Int)
+            formatArgs.toList().forEach { resId ->
+                val name = try {
+                    context.resources.getResourceEntryName(resId as Int)
                 } catch (_: Exception) {
-                    it.toString()
+                    resId.toString()
                 }
+
                 try {
-                    if (getTranslatedStringFromResources(context, it as Int).isNullOrEmpty())
-                        invoke(
-                            getStringForLocale(context, it, Locale.US),
-                            Locale.US,
-                            AndroidContext.appLocale
-                        )
+                    val translated = getTranslatedStringFromResources(context, resId as Int)
+                    if (translated.isNullOrEmpty()) {
+                        val source = getStringForLocaleCached(context, resId, Locale.US)
+                        invoke(source, Locale.US, AndroidContext.appLocale)
+                    }
                 } catch (e: Throwable) {
                     LogCat.logException(e, "LocalizationHelper $name")
                 }
@@ -164,15 +242,16 @@ object LocalizationHelper {
     }
 
     fun getLocalizedString(context: Context, @StringRes resId: Int): String {
-        try {
+        ensureLocaleState()
+        return try {
             getTranslatedStringFromResources(context, resId)?.let {
                 return it
             }
-            val str = getStringForLocale(context, resId, Locale.US)
-            return getLocalizedString(str)
+            val source = getStringForLocaleCached(context, resId, Locale.US)
+            getLocalizedString(source)
         } catch (e: Throwable) {
             LogCat.logException(e, "LocalizationHelper")
-            return context.getString(resId)
+            context.getString(resId)
         }
     }
 
@@ -181,23 +260,26 @@ object LocalizationHelper {
         @StringRes resId: Int,
         vararg formatArgs: Any?
     ): String {
-        try {
+        ensureLocaleState()
+        return try {
             getTranslatedStringFromResources(context, resId, *formatArgs)?.let {
                 return it
             }
-            val str = getStringForLocale(context, resId, Locale.US)
-            return getLocalizedString(str, *formatArgs)
+            val source = getStringForLocaleCached(context, resId, Locale.US, *formatArgs)
+            getLocalizedString(source, *formatArgs)
         } catch (e: Throwable) {
             LogCat.logException(e, "LocalizationHelper")
-            return context.getString(resId, *formatArgs)
+            context.getString(resId, *formatArgs)
         }
     }
 
     private fun getLocalizedString(str: String): String {
+        ensureLocaleState()
         return read(Locale.US, AndroidContext.appLocale, str) ?: str
     }
 
     private fun getLocalizedString(raw: String, vararg formatArgs: Any?): String {
+        ensureLocaleState()
         return try {
             String.format(
                 read(Locale.US, AndroidContext.appLocale, raw) ?: raw,
@@ -209,7 +291,6 @@ object LocalizationHelper {
         }
     }
 
-
     private fun invoke(
         text: String,
         fromLang: Locale,
@@ -217,14 +298,16 @@ object LocalizationHelper {
         listener: TranslateResult? = null
     ) {
         ExecutorHelper.startOnBackground {
+            ensureLocaleState()
             val str = read(fromLang, toLang, text) ?: translate(text, fromLang, toLang).also {
-                store(fromLang, toLang, text, it)
+                if (!it.isNullOrEmpty() && it != text) {
+                    store(fromLang, toLang, text, it)
+                }
             }
             ExecutorHelper.post {
                 listener?.onResult(str)
             }
         }
-
     }
 
     private fun read(
@@ -232,18 +315,41 @@ object LocalizationHelper {
         toLang: Locale,
         text: String
     ): String? {
-        if (fromLang.language == toLang.language)
-            return text
-        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV3")
-        val key = fromLang.language + ">>" + toLang.language
-        val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
-        set.forEach {
-            val json = JSONObject(it)
-            if (json.has(text))
-                return json.getString(text).trim().ifEmpty { return null }
+        if (fromLang.language == toLang.language) return text
+
+        val memKey = translationEntryKey(fromLang, toLang, text)
+        if (translationMemoryCache.containsKey(memKey)) {
+            return translationMemoryCache[memKey]
         }
 
-        return null
+        val pairKey = translationPairKey(fromLang, toLang)
+        val translations = getOrLoadTranslationsMap(pairKey)
+
+        val value = translations[text]?.trim()?.ifEmpty { null }
+        translationMemoryCache[memKey] = value
+        return value
+    }
+
+    private fun getOrLoadTranslationsMap(pairKey: String): MutableMap<String, String> {
+        return diskTranslationsCache.getOrPut(pairKey) {
+            val pref = SharedPreferenceProvider.getPreferences(PREF_NAME)
+            val set = pref.getStringSet(pairKey, emptySet()).orEmpty()
+
+            val result = HashMap<String, String>(set.size * 2)
+            for (item in set) {
+                try {
+                    val json = JSONObject(item)
+                    val keys = json.keys()
+                    while (keys.hasNext()) {
+                        val key = keys.next()
+                        result[key] = json.optString(key)
+                    }
+                } catch (e: Throwable) {
+                    LogCat.logException(e, "LocalizationHelper")
+                }
+            }
+            result
+        }
     }
 
     private fun store(
@@ -252,119 +358,157 @@ object LocalizationHelper {
         text: String,
         result: String
     ) {
-        if (fromLang.language == toLang.language)
-            return
-        if (text.trim().isEmpty() || result.trim().isEmpty() || text == result)
-            return
-        val pref = SharedPreferenceProvider.getPreferences("LocalizationHelperV3")
-        val key = fromLang.language + ">>" + toLang.language
-        val set = HashSet<String>(pref.getStringSet(key, emptySet()) ?: emptySet())
-        set.add(JSONObject().apply {
-            this.put(text, result)
-        }.toString())
+        if (fromLang.language == toLang.language) return
+        if (text.trim().isEmpty() || result.trim().isEmpty() || text == result) return
 
-        pref.edit()
-            .putStringSet(key, set).apply()
+        val pairKey = translationPairKey(fromLang, toLang)
+
+        synchronized(pairKey.intern()) {
+            val map = getOrLoadTranslationsMap(pairKey)
+            val oldValue = map[text]
+            if (oldValue == result) {
+                translationMemoryCache[translationEntryKey(fromLang, toLang, text)] = result
+                return
+            }
+
+            map[text] = result
+            translationMemoryCache[translationEntryKey(fromLang, toLang, text)] = result
+
+            try {
+                val pref = SharedPreferenceProvider.getPreferences(PREF_NAME)
+                val set = HashSet<String>(pref.getStringSet(pairKey, emptySet()) ?: emptySet())
+
+                var existingJsonToRemove: String? = null
+                for (item in set) {
+                    try {
+                        val json = JSONObject(item)
+                        if (json.has(text)) {
+                            existingJsonToRemove = item
+                            break
+                        }
+                    } catch (_: Throwable) {
+                    }
+                }
+                if (existingJsonToRemove != null) {
+                    set.remove(existingJsonToRemove)
+                }
+
+                set.add(JSONObject().apply {
+                    put(text, result)
+                }.toString())
+
+                pref.edit().putStringSet(pairKey, set).apply()
+            } catch (e: Throwable) {
+                LogCat.logException(e, "LocalizationHelper")
+            }
+        }
     }
 
     private fun translate(text: String, fromLang: Locale, toLang: Locale): String {
         try {
             val parts = text.split(".")
-            //first try
             var sb = StringBuilder()
+
             parts.forEach {
                 translateUseGoogleApi(it, fromLang, toLang)?.let { s ->
-                    if (s.isNotEmpty())
+                    if (s.isNotEmpty()) {
                         sb.append(s).append(". ")
+                    }
                 }
             }
+
             var result = sb.toString().trim()
-
-            if (!text.endsWith(".") && result.endsWith("."))
+            if (!text.endsWith(".") && result.endsWith(".")) {
                 result = result.substring(0, result.length - 1)
-
+            }
             if (result.isNotEmpty()) return result
 
             sb = StringBuilder()
             parts.forEach {
                 translateUseFallbackApi(it, fromLang, toLang)?.let { s ->
-                    if (s.isNotEmpty())
+                    if (s.isNotEmpty()) {
                         sb.append(s).append(". ")
+                    }
                 }
             }
+
             result = sb.toString().trim()
-
-            if (!text.endsWith(".") && result.endsWith("."))
+            if (!text.endsWith(".") && result.endsWith(".")) {
                 result = result.substring(0, result.length - 1)
-
+            }
             if (result.isNotEmpty()) return result
         } catch (e: Throwable) {
             LogCat.logException(e, "LocalizationHelper")
         }
-        return text//return not translated
+        return text
     }
 
     //https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=fr&dt=t&q=father&ie=UTF-8&oe=UTF-8
     //https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=fr&dt=t&q=father
     private fun translateUseGoogleApi(t: String, fromLang: Locale, toLang: Locale): String? {
         LogCat.logError("translateUseGoogleApi: from=$fromLang to=$toLang text=$t")
-        if (NetworkApi.hasInternet() && t.isNotEmpty())
+        if (NetworkApi.hasInternet() && t.isNotEmpty()) {
             try {
                 var text = t
                 for (i in 1..Int.MAX_VALUE) {
                     if (text.contains("%$i$")) {
                         text = text.replace("%$i$", "%$i%")
-                    } else
+                    } else {
                         break
+                    }
                 }
 
                 val encode: String = URLEncoder.encode(text.replace("\n", " \\n "), "UTF-8")
                 val sb = StringBuilder()
-
                 sb.append("https://translate.googleapis.com/translate_a/single?client=gtx&sl=")
                 sb.append(fromLang.language)
                 sb.append("&tl=")
                 sb.append(toLang.language)
                 sb.append("&dt=t&q=")
                 sb.append(encode).append("&ie=UTF-8&oe=UTF-8")
-                val data = fetchFromWeb(sb.toString())
-                //note:
-                //[[["père","father",null,null,10]],null,"en",null,null,null,null,[]]
+
+                val data = fetchFromWeb(sb.toString()) ?: return null
 
                 var s = JSONArray(data)
                     .getJSONArray(0)
                     .getJSONArray(0)
                     .getString(0)
+
                 for (i in 1..Int.MAX_VALUE) {
                     if (s.contains("%$i%")) {
                         s = s
                             .replace("%$i%", "%$i$")
                             .replace("%$i\$S", "%$i\$s")
                             .replace("%$i\$D", "%$i\$d")
-                    } else
+                    } else {
                         break
+                    }
                 }
+
                 return s
                     .replace(" \\ n ", "\n")
                     .replace("\\ n", "\n")
-                    .replace("  ", " ").trim()
-                    .ifEmpty { return null }
+                    .replace("  ", " ")
+                    .trim()
+                    .ifEmpty { null }
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
+        }
         return null
     }
 
     private fun translateUseFallbackApi(t: String, fromLang: Locale, toLang: Locale): String? {
         LogCat.logError("translateUseFallbackApi: from=$fromLang to=$toLang text=$t")
-        if (NetworkApi.hasInternet() && t.isNotEmpty())
+        if (NetworkApi.hasInternet() && t.isNotEmpty()) {
             try {
                 var text = t
                 for (i in 1..Int.MAX_VALUE) {
                     if (text.contains("%$i$")) {
                         text = text.replace("%$i$", "%$i%")
-                    } else
+                    } else {
                         break
+                    }
                 }
 
                 val encode: String = URLEncoder.encode(text.replace("\n", " \\n "), "UTF-8")
@@ -376,12 +520,9 @@ object LocalizationHelper {
                 sb.append("&dt=t&q=")
                 sb.append(encode).append("&ie=UTF-8&oe=UTF-8")
 
-                val data = fetchFromWeb(sb.toString())
+                val data = fetchFromWeb(sb.toString()) ?: return null
 
-                //["père"]
-                val jSONArray =
-                    JSONArray(data)
-                var s = jSONArray.getString(0)
+                var s = JSONArray(data).getString(0)
 
                 for (i in 1..Int.MAX_VALUE) {
                     if (s.contains("%$i%")) {
@@ -389,49 +530,48 @@ object LocalizationHelper {
                             .replace("%$i%", "%$i$")
                             .replace("%$i\$S", "%$i\$s")
                             .replace("%$i\$D", "%$i\$d")
-                    } else
+                    } else {
                         break
+                    }
                 }
+
                 return s
                     .replace(" \\ n ", "\n")
                     .replace("\\ n", "\n")
-                    .replace("  ", " ").trim()
-                    .ifEmpty { return null }
+                    .replace("  ", " ")
+                    .trim()
+                    .ifEmpty { null }
             } catch (e: Throwable) {
                 LogCat.logException(e, "LocalizationHelper")
             }
+        }
         return null
     }
 
-
     private fun getTranslatedStringFromResources(currentContext: Context, id: Int): String? {
+        ensureLocaleState()
+
         val currentLocale = AndroidContext.appLocale
-        val authorsLocale = Locale.US
-        val stringInCurrentLocale = getStringForLocale(currentContext, id, currentLocale)
+        val authorsLocale = Locale.forLanguageTag(AUTHOR_LOCALE_TAG)
+
+        val stringInCurrentLocale = getStringForLocaleCached(currentContext, id, currentLocale)
+
         if (authorsLocale.language == currentLocale.language) {
             return stringInCurrentLocale
-        } else {
-            val authorsOriginalString = getStringForLocale(currentContext, id, authorsLocale)
-            if (authorsOriginalString == stringInCurrentLocale) {
-                //Check if translations exists for any other locales, but may missed for current -
-                //in this case return default translation and give up
-                try {
-                    val resources = currentContext.resources
-                    for (loc in resources.assets.locales) {
-                        if (loc.isEmpty()) continue
-                        val locale: Locale = Locale.forLanguageTag(loc)
-                        val testTranslation = getStringForLocale(currentContext, id, locale)
-                        if (testTranslation != authorsOriginalString)
-                            return authorsOriginalString
-                    }
-                } catch (e: Throwable) {
-                    LogCat.logException(e, "LocalizationHelper")
-                }
-                return null
-            } else {
-                return stringInCurrentLocale
-            }
         }
+
+        val authorsOriginalString = getStringForLocaleCached(currentContext, id, authorsLocale)
+        if (stringInCurrentLocale != authorsOriginalString) {
+            return stringInCurrentLocale
+        }
+
+        val hasTranslation = resourceTranslationAvailabilityCache.getOrPut(
+            translationAvailabilityKey(id, currentLocale)
+        ) {
+            false
+        }
+
+        return if (hasTranslation) stringInCurrentLocale else null
     }
 
     private fun getTranslatedStringFromResources(
@@ -439,35 +579,69 @@ object LocalizationHelper {
         id: Int,
         vararg formatArgs: Any?
     ): String? {
+        ensureLocaleState()
+
         val currentLocale = AndroidContext.appLocale
-        val authorsLocale = Locale.US
+        val authorsLocale = Locale.forLanguageTag(AUTHOR_LOCALE_TAG)
+
         val stringInCurrentLocale =
-            getStringForLocale(currentContext, id, currentLocale, *formatArgs)
+            getStringForLocaleCached(currentContext, id, currentLocale, *formatArgs)
+
         if (authorsLocale.language == currentLocale.language) {
             return stringInCurrentLocale
-        } else {
-            val authorsOriginalString =
-                getStringForLocale(currentContext, id, authorsLocale, *formatArgs)
-            if (authorsOriginalString == stringInCurrentLocale) {
-                //Check if translations exists for any other locales, but may missed for current -
-                //in this case return default translation and give up
-                try {
-                    val resources = currentContext.resources
-                    for (loc in resources.assets.locales) {
-                        if (loc.isEmpty()) continue
-                        val locale: Locale = Locale.forLanguageTag(loc)
-                        val testTranslation =
-                            getStringForLocale(currentContext, id, locale, *formatArgs)
-                        if (testTranslation != authorsOriginalString)
-                            return authorsOriginalString
-                    }
-                } catch (e: Throwable) {
-                    LogCat.logException(e, "LocalizationHelper")
-                }
-                return null
+        }
+
+        val authorsOriginalString =
+            getStringForLocaleCached(currentContext, id, authorsLocale, *formatArgs)
+
+        if (stringInCurrentLocale != authorsOriginalString) {
+            return stringInCurrentLocale
+        }
+
+        val hasTranslation = resourceTranslationAvailabilityCache.getOrPut(
+            translationAvailabilityKey(id, currentLocale, formatArgs)
+        ) {
+            false
+        }
+
+        return if (hasTranslation) stringInCurrentLocale else null
+    }
+
+    private fun getLocalizedContext(baseContext: Context, locale: Locale): Context {
+        val localeTag = locale.toLanguageTag()
+        return localizedContextCache.getOrPut(localeTag) {
+            val appContext = baseContext.applicationContext ?: baseContext
+            val res = appContext.resources
+            val config = Configuration(res.configuration)
+            ConfigurationCompat.setLocales(config, LocaleListCompat.create(locale))
+            if (Build.VERSION.SDK_INT >= 17) {
+                appContext.createConfigurationContext(config)
             } else {
-                return stringInCurrentLocale
+                appContext
             }
+        }
+    }
+
+    private fun getStringForLocaleCached(
+        currentContext: Context,
+        id: Int,
+        locale: Locale,
+        vararg formatArgs: Any?
+    ): String {
+        val key = resourceKey(id, locale, formatArgs)
+        return resourceStringCache.getOrPut(key) {
+            getStringForLocale(currentContext, id, locale, *formatArgs)
+        }
+    }
+
+    private fun getStringForLocaleCached(
+        currentContext: Context,
+        id: Int,
+        locale: Locale
+    ): String {
+        val key = resourceKey(id, locale)
+        return resourceStringCache.getOrPut(key) {
+            getStringForLocale(currentContext, id, locale)
         }
     }
 
@@ -475,16 +649,14 @@ object LocalizationHelper {
         currentContext: Context,
         id: Int,
         locale: Locale,
-        vararg formatArgs: Any?,
+        vararg formatArgs: Any?
     ): String {
-        val res = currentContext.resources
-        val config = Configuration(res.configuration)
-
-        ConfigurationCompat.setLocales(config, LocaleListCompat.create(locale))
         return if (Build.VERSION.SDK_INT >= 17) {
-            currentContext.createConfigurationContext(config).getString(id, *formatArgs)
+            getLocalizedContext(currentContext, locale).getString(id, *formatArgs)
         } else {
+            val res = currentContext.resources
             val oldConfig = Configuration(res.configuration)
+            val config = Configuration(res.configuration)
             config.locale = locale
             res.updateConfiguration(config, res.displayMetrics)
             val s = currentContext.getString(id, *formatArgs)
@@ -493,20 +665,22 @@ object LocalizationHelper {
         }
     }
 
-    private fun getStringForLocale(currentContext: Context, id: Int, locale: Locale): String {
-        val res = currentContext.resources
-        val config = Configuration(res.configuration)
-        ConfigurationCompat.setLocales(config, LocaleListCompat.create(locale))
+    private fun getStringForLocale(
+        currentContext: Context,
+        id: Int,
+        locale: Locale
+    ): String {
         return if (Build.VERSION.SDK_INT >= 17) {
-            currentContext.createConfigurationContext(config).getString(id)
+            getLocalizedContext(currentContext, locale).getString(id)
         } else {
+            val res = currentContext.resources
             val oldConfig = Configuration(res.configuration)
+            val config = Configuration(res.configuration)
             config.locale = locale
             res.updateConfiguration(config, res.displayMetrics)
             val s = currentContext.getString(id)
             res.updateConfiguration(oldConfig, res.displayMetrics)
             s
         }
-
     }
 }
