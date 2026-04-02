@@ -328,11 +328,13 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
     private fun getFrontFacingCameraId(manager: CameraManager): String? {
         return manager.cameraIdList.firstOrNull {
-            if(manager.getCameraCharacteristics(it)
-                .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT){
+            if (manager.getCameraCharacteristics(it)
+                    .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
+            ) {
                 val characteristics = manager.getCameraCharacteristics(it)
-                val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
-                val validSizes = map.getOutputSizes(ImageFormat.YUV_420_888).filter { s->
+                val map =
+                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
+                val validSizes = map.getOutputSizes(ImageFormat.YUV_420_888).filter { s ->
                     s.width >= 1280 && s.height >= 720
                 }
 

@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl.dialogs
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -31,6 +32,7 @@ import android.text.style.StyleSpan
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -60,9 +62,22 @@ class UntrustedAccessibilityFragment : Fragment() {
             val fragment = UntrustedAccessibilityFragment()
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    ExecutorHelper.postDelayed( {
-                        callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
-                    }, 500)
+                    if (AndroidContext.activity != null) {
+                        ExecutorHelper.post {
+                            callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
+                        }
+                    } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                        Observer<Activity?> {
+                        override fun onChanged(value: Activity?) {
+                            if (value != null) {
+                                AndroidContext.resumedActivityLiveData.removeObserver(this)
+                                ExecutorHelper.post {
+                                    callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
+                                }
+                            }
+                        }
+
+                    })
                     try {
                         unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
                     } catch (e: Throwable) {
@@ -125,7 +140,7 @@ class UntrustedAccessibilityFragment : Fragment() {
                         LogCat.logException(e)
                     }
 
-                    alert = AlertDialog.Builder(requireActivity())
+                    alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
                         .setTitle(title)
                         .setMessage(str)
                         .setCancelable(false)

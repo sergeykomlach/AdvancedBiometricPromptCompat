@@ -286,7 +286,7 @@ fun Fragment.startBiometric(
 }
 
 private fun showAlertDialog(context: Context, msg: String) {
-    AlertDialog.Builder(context).setTitle("Biometric Error").setMessage(msg)
+    AlertDialog.Builder(context, androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert).setTitle("Biometric Error").setMessage(msg)
         .setNegativeButton(android.R.string.cancel, null).show()
 }
 

@@ -102,9 +102,22 @@ class NotificationPermissionsFragment : Fragment() {
             fragment.arguments = bundle
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    callback?.let {
-                        ExecutorHelper.postDelayed(it, 500)
-                    }
+                    if (AndroidContext.activity != null) {
+                        ExecutorHelper.post {
+                            callback?.run()
+                        }
+                    } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                        Observer<Activity?> {
+                        override fun onChanged(value: Activity?) {
+                            if (value != null) {
+                                AndroidContext.resumedActivityLiveData.removeObserver(this)
+                                ExecutorHelper.post {
+                                    callback?.run()
+                                }
+                            }
+                        }
+
+                    })
                     try {
                         unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)
                     } catch (e: Throwable) {
@@ -177,7 +190,7 @@ class NotificationPermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             "Unknown"
         }
-        val alert = AlertDialog.Builder(requireActivity())
+        val alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
             .setTitle(title)
             .setMessage(
                 LocalizationHelper.getLocalizedString(
@@ -262,7 +275,7 @@ class NotificationPermissionsFragment : Fragment() {
         } catch (e: Throwable) {
             "Unknown"
         }
-        val alert = AlertDialog.Builder(requireActivity())
+        val alert = AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
             .setTitle(title)
             .setMessage(
                 LocalizationHelper.getLocalizedString(

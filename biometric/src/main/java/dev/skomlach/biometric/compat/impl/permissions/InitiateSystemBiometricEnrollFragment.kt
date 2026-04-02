@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat.impl.permissions
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -30,10 +31,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.BundleCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
@@ -61,9 +64,22 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                 return
             registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    ExecutorHelper.postDelayed( {
-                        callback.invoke()
-                    }, 500)
+                    if (AndroidContext.activity != null) {
+                        ExecutorHelper.post {
+                            callback.invoke()
+                        }
+                    } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                        Observer<Activity?> {
+                        override fun onChanged(value: Activity?) {
+                            if (value != null) {
+                                AndroidContext.resumedActivityLiveData.removeObserver(this)
+                                ExecutorHelper.post {
+                                    callback.invoke()
+                                }
+                            }
+                        }
+
+                    })
                     try {
                         unregisterGlobalBroadcastIntent(appContext, this)
                     } catch (e: Throwable) {

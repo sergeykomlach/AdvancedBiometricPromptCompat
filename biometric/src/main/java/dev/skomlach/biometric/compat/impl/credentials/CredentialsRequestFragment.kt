@@ -69,14 +69,32 @@ class CredentialsRequestFragment : Fragment() {
                 appContext,
                 object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        ExecutorHelper.postDelayed( {
-                            val result = intent.getBooleanExtra("success", false)
-                            LogCat.logError("CredentialsRequestFragment", result)
-                            if (result) {
-                                BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                        if (AndroidContext.activity != null) {
+                            ExecutorHelper.post {
+                                val result = intent.getBooleanExtra("success", false)
+                                LogCat.logError("CredentialsRequestFragment", result)
+                                if (result) {
+                                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                                }
+                                validator.invoke(result)
                             }
-                            validator.invoke(result)
-                        }, 500)
+                        } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                            Observer<Activity?> {
+                            override fun onChanged(value: Activity?) {
+                                if (value != null) {
+                                    AndroidContext.resumedActivityLiveData.removeObserver(this)
+                                    ExecutorHelper.post {
+                                        val result = intent.getBooleanExtra("success", false)
+                                        LogCat.logError("CredentialsRequestFragment", result)
+                                        if (result) {
+                                            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                                        }
+                                        validator.invoke(result)
+                                    }
+                                }
+                            }
+
+                        })
                         try {
                             BroadcastTools.unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {

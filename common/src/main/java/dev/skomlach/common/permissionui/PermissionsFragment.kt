@@ -105,9 +105,22 @@ class PermissionsFragment : Fragment() {
                 fragment.arguments = bundle
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        callback?.let {
-                            ExecutorHelper.postDelayed(callback, 500)
-                        }
+                        if (AndroidContext.activity != null) {
+                            ExecutorHelper.post {
+                                callback?.run()
+                            }
+                        } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                            Observer<Activity?> {
+                            override fun onChanged(value: Activity?) {
+                                if (value != null) {
+                                    AndroidContext.resumedActivityLiveData.removeObserver(this)
+                                    ExecutorHelper.post {
+                                        callback?.run()
+                                    }
+                                }
+                            }
+
+                        })
                         try {
                             unregisterGlobalBroadcastIntent(appContext, this)
                         } catch (e: Throwable) {
@@ -308,7 +321,7 @@ class PermissionsFragment : Fragment() {
             closeFragment()
         }
         AlertDialog.Builder(
-            requireActivity()
+            requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert
         ).apply {
             setTitle(title)
             setCancelable(false)
@@ -375,7 +388,7 @@ class PermissionsFragment : Fragment() {
             return
         }
 
-        AlertDialog.Builder(requireActivity()).apply {
+        AlertDialog.Builder(requireActivity(), androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert).apply {
             setTitle(title)
             setCancelable(false)
             setMessage(text)
