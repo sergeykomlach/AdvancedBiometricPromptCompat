@@ -43,6 +43,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Runnable
 
 
 class CredentialsRequestFragment : Fragment() {
@@ -69,31 +70,26 @@ class CredentialsRequestFragment : Fragment() {
                 appContext,
                 object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        if (AndroidContext.activity != null) {
-                            ExecutorHelper.post {
+                            AndroidContext.resumedActivityLiveData.observeForever(object :
+                            Observer<Activity?> {
+                            private val observer = this
+                            private val action = Runnable {
+                                AndroidContext.activity?.let {
+                                    AndroidContext.resumedActivityLiveData.removeObserver(observer)
                                 val result = intent.getBooleanExtra("success", false)
                                 LogCat.logError("CredentialsRequestFragment", result)
                                 if (result) {
                                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                                 }
                                 validator.invoke(result)
-                            }
-                        } else AndroidContext.resumedActivityLiveData.observeForever(object :
-                            Observer<Activity?> {
-                            override fun onChanged(value: Activity?) {
-                                if (value != null) {
-                                    AndroidContext.resumedActivityLiveData.removeObserver(this)
-                                    ExecutorHelper.post {
-                                        val result = intent.getBooleanExtra("success", false)
-                                        LogCat.logError("CredentialsRequestFragment", result)
-                                        if (result) {
-                                            BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-                                        }
-                                        validator.invoke(result)
-                                    }
                                 }
                             }
-
+                            override fun onChanged(value: Activity?) {
+                                if (value != null) {
+                                    ExecutorHelper.removeCallbacks(action)
+                                    ExecutorHelper.postDelayed(action, 250)
+                                }
+                            }
                         })
                         try {
                             BroadcastTools.unregisterGlobalBroadcastIntent(appContext, this)

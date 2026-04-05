@@ -45,6 +45,7 @@ import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Runnable
 
 
 class SensorBlockedFallbackFragment : Fragment() {
@@ -102,21 +103,21 @@ class SensorBlockedFallbackFragment : Fragment() {
                 return
             registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    if (AndroidContext.activity != null) {
-                        ExecutorHelper.post {
-                            callback.invoke()
-                        }
-                    } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                    AndroidContext.resumedActivityLiveData.observeForever(object :
                         Observer<Activity?> {
-                        override fun onChanged(value: Activity?) {
-                            if (value != null) {
-                                AndroidContext.resumedActivityLiveData.removeObserver(this)
-                                ExecutorHelper.post {
-                                    callback.invoke()
-                                }
+                        private val observer = this
+                        private val action = Runnable {
+                            AndroidContext.activity?.let {
+                                AndroidContext.resumedActivityLiveData.removeObserver(observer)
+                                callback.invoke()
                             }
                         }
-
+                        override fun onChanged(value: Activity?) {
+                            if (value != null) {
+                                ExecutorHelper.removeCallbacks(action)
+                                ExecutorHelper.postDelayed(action, 250)
+                            }
+                        }
                     })
                     try {
                         unregisterGlobalBroadcastIntent(appContext, this)
@@ -164,8 +165,27 @@ class SensorBlockedFallbackFragment : Fragment() {
 
     private val startForResult: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            LogCat.log("SensorBlockedFragment", "startForResult")
-            closeFragment()
+            if (it.resultCode == Activity.RESULT_OK) {
+                closeFragment()
+
+            } else { //workaround
+                val observer = object : Observer<Activity?> {
+                    private var waitForResume = false
+                    override fun onChanged(t: Activity?) {
+                        if (t == null) {
+                            waitForResume = true
+                            return
+                        }
+                        if (waitForResume && t == activity) {
+                            AndroidContext.resumedActivityLiveData.removeObserver(this)
+                            closeFragment()
+                        }
+
+
+                    }
+                }
+                AndroidContext.resumedActivityLiveData.observeForever(observer)
+            }
         }
 
     override fun onDestroyView() {

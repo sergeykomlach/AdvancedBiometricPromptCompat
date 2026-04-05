@@ -326,7 +326,7 @@ object LocalizationHelper {
         val translations = getOrLoadTranslationsMap(pairKey)
 
         val value = translations[text]?.trim()?.ifEmpty { null }
-        translationMemoryCache[memKey] = value?:return null
+        translationMemoryCache[memKey] = value ?: return null
         return value
     }
 

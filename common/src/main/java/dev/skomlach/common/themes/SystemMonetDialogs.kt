@@ -19,51 +19,29 @@
 
 package dev.skomlach.common.themes
 
+import android.app.Activity
 import android.app.Dialog
+import android.app.UiModeManager
 import android.content.Context
 import android.content.DialogInterface
+import android.content.res.Configuration
+import android.content.res.Resources
 import android.os.Build
 import android.view.ContextThemeWrapper
 import android.view.View
-import androidx.annotation.StyleRes
 import com.google.android.material.color.DynamicColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dev.skomlach.common.R
+import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.SettingsHelper
+import dev.skomlach.common.misc.Utils
+import java.time.LocalTime
 
 object SystemMonetDialogs {
 
-    private fun isMonetAvailable(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
-    @StyleRes
-    private fun legacyAlertTheme(base: Context): Int {
-        return if (getIsOsDarkTheme(base) == DarkThemeCheckResult.DARK) {
-            android.R.style.Theme_DeviceDefault_Dialog_Alert
-        } else {
-            android.R.style.Theme_DeviceDefault_Light_Dialog_Alert
-        }
-    }
-
-    @StyleRes
-    private fun legacyDialogTheme(base: Context): Int {
-        return if (getIsOsDarkTheme(base) == DarkThemeCheckResult.DARK) {
-            android.R.style.Theme_DeviceDefault_Dialog
-        } else {
-            android.R.style.Theme_DeviceDefault_Light_Dialog
-        }
-    }
-
-    /**
-     * Context for dialogs:
-     * - Android 12+ -> wrapped with dynamic colors
-     * - older Android -> wrapped with DeviceDefault dialog theme
-     */
-    fun dialogContext(base: Context, alert: Boolean = true): Context {
-        return if (isMonetAvailable()) {
-            DynamicColors.wrapContextIfAvailable(
-                base
-            )
-        } else {
-            base
-        }
+    private fun dialogContext(base: Context, res: Int): Context {
+        val themed = ContextThemeWrapper(base, res)
+        return DynamicColors.wrapContextIfAvailable(themed)
     }
 
     /**
@@ -75,7 +53,7 @@ object SystemMonetDialogs {
      *   framework AlertDialog with DeviceDefault dialog-alert theme
      */
     fun showAlertDialog(
-        context: Context,
+        context: Activity,
         title: CharSequence? = null,
         message: CharSequence? = null,
         positiveText: CharSequence? = null,
@@ -89,10 +67,17 @@ object SystemMonetDialogs {
         onCancel: (() -> Unit)? = null,
         onDismiss: (() -> Unit)? = null,
     ): Dialog {
-        val ctx = dialogContext(context, alert = true)
+        try {
+            val darkTheme = DarkLightThemes.isNightMode(context)
+            val targetThemeRes = when (darkTheme) {
+                true -> R.style.BiometricTheme_SystemDialog_Dark
+                else -> R.style.BiometricTheme_SystemDialog_Light
+            }
 
-        return if (isMonetAvailable()) {
-            MaterialAlertDialogBuilder(ctx).apply {
+
+            LogCat.log("SystemMonetDialogs", "darkTheme=$darkTheme; themeId=$targetThemeRes")
+            val ctx = dialogContext(context, targetThemeRes)
+            return MaterialAlertDialogBuilder(ctx).apply {
                 if (title != null) setTitle(title)
                 if (message != null) setMessage(message)
                 if (view != null) setView(view)
@@ -111,26 +96,75 @@ object SystemMonetDialogs {
                 setOnCancelListener { onCancel?.invoke() }
                 setOnDismissListener { onDismiss?.invoke() }
             }.show()
-        } else {
-            android.app.AlertDialog.Builder(ctx).apply {
-                if (title != null) setTitle(title)
-                if (message != null) setMessage(message)
-                if (view != null) setView(view)
+        } catch (e: Exception) {
+            LogCat.logError("SystemMonetDialogs", e)
+            throw e
+        }
+    }
 
-                if (positiveText != null) {
-                    setPositiveButton(positiveText) { dialog, _ -> onPositive?.invoke(dialog) }
+    internal object DarkLightThemes {
+
+        fun isNightMode(context: Context): Boolean {
+            return UiModeManager.MODE_NIGHT_YES == getNightMode(context)
+        }
+
+
+        private fun getNightMode(context: Context): Int {
+            return when (getIsOsDarkTheme(context)) {
+                DarkThemeCheckResult.DARK -> {
+                    UiModeManager.MODE_NIGHT_YES
                 }
-                if (negativeText != null) {
-                    setNegativeButton(negativeText) { dialog, _ -> onNegative?.invoke(dialog) }
+
+                DarkThemeCheckResult.LIGHT -> {
+                    UiModeManager.MODE_NIGHT_NO
                 }
-                if (neutralText != null) {
-                    setNeutralButton(neutralText) { dialog, _ -> onNeutral?.invoke(dialog) }
+
+                else -> {
+                    Resources.getSystem().configuration?.let { config ->
+                        if ((config.uiMode and
+                                    Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES) ||
+                            (Utils.isAtLeastR && config.isNightModeActive)
+                        )
+                            return UiModeManager.MODE_NIGHT_YES
+                    }
+
+                    val mUiModeManager =
+                        context.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager?
+                    val modeFromSettings =
+                        SettingsHelper.getInt(context, "ui_night_mode", UiModeManager.MODE_NIGHT_NO)
+                    if (modeFromSettings != UiModeManager.MODE_NIGHT_NO) {
+                        if (modeFromSettings == UiModeManager.MODE_NIGHT_YES)
+                            return UiModeManager.MODE_NIGHT_YES
+                        else {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                val start = mUiModeManager?.customNightModeStart
+                                val end = mUiModeManager?.customNightModeEnd
+                                val now = LocalTime.now()
+                                if (now.isAfter(start) && now.isBefore(end))
+                                    return UiModeManager.MODE_NIGHT_YES
+                            }
+                        }
+                    } else {
+                        val nightMode = mUiModeManager?.nightMode ?: UiModeManager.MODE_NIGHT_NO
+                        if (nightMode != UiModeManager.MODE_NIGHT_NO) {
+                            if (nightMode == UiModeManager.MODE_NIGHT_YES)
+                                return UiModeManager.MODE_NIGHT_YES
+                            else {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    val start = mUiModeManager?.customNightModeStart
+                                    val end = mUiModeManager?.customNightModeEnd
+                                    val now = LocalTime.now()
+                                    if ((now.equals(start) || now.equals(end)) || (now.isAfter(start) && now.isBefore(
+                                            end
+                                        ))
+                                    )
+                                        return UiModeManager.MODE_NIGHT_YES
+                                }
+                            }
+                        }
+                    }
+                    UiModeManager.MODE_NIGHT_NO
                 }
-            }.create().apply {
-                setCancelable(cancelable)
-                setOnCancelListener { onCancel?.invoke() }
-                setOnDismissListener { onDismiss?.invoke() }
-                show()
             }
         }
     }

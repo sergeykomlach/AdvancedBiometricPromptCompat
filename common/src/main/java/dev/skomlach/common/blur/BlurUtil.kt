@@ -35,6 +35,7 @@ import android.view.ViewTreeObserver
 import android.view.Window
 import androidx.annotation.RequiresApi
 import androidx.concurrent.futures.ResolvableFuture
+import androidx.core.graphics.createBitmap
 import com.google.common.util.concurrent.ListenableFuture
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
@@ -47,7 +48,6 @@ import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import kotlin.coroutines.cancellation.CancellationException
-import androidx.core.graphics.createBitmap
 
 @SuppressLint("RestrictedApi")
 object BlurUtil {

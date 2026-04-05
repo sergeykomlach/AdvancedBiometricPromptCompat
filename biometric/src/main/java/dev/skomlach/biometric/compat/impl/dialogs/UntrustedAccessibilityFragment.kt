@@ -44,6 +44,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Runnable
 
 
 class UntrustedAccessibilityFragment : Fragment() {
@@ -63,21 +64,21 @@ class UntrustedAccessibilityFragment : Fragment() {
             val fragment = UntrustedAccessibilityFragment()
             registerGlobalBroadcastIntent(AndroidContext.appContext, object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent) {
-                    if (AndroidContext.activity != null) {
-                        ExecutorHelper.post {
-                            callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
-                        }
-                    } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                    AndroidContext.resumedActivityLiveData.observeForever(object :
                         Observer<Activity?> {
-                        override fun onChanged(value: Activity?) {
-                            if (value != null) {
-                                AndroidContext.resumedActivityLiveData.removeObserver(this)
-                                ExecutorHelper.post {
-                                    callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
-                                }
+                        private val observer = this
+                        private val action = Runnable {
+                            AndroidContext.activity?.let {
+                                AndroidContext.resumedActivityLiveData.removeObserver(observer)
+                                callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
                             }
                         }
-
+                        override fun onChanged(value: Activity?) {
+                            if (value != null) {
+                                ExecutorHelper.removeCallbacks(action)
+                                ExecutorHelper.postDelayed(action, 250)
+                            }
+                        }
                     })
                     try {
                         unregisterGlobalBroadcastIntent(AndroidContext.appContext, this)

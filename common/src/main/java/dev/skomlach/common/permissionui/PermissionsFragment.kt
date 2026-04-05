@@ -57,6 +57,7 @@ import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
+import kotlinx.coroutines.Runnable
 
 class PermissionsFragment : Fragment() {
     companion object {
@@ -106,21 +107,21 @@ class PermissionsFragment : Fragment() {
                 fragment.arguments = bundle
                 registerGlobalBroadcastIntent(appContext, object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
-                        if (AndroidContext.activity != null) {
-                            ExecutorHelper.post {
-                                callback?.run()
-                            }
-                        } else AndroidContext.resumedActivityLiveData.observeForever(object :
+                        AndroidContext.resumedActivityLiveData.observeForever(object :
                             Observer<Activity?> {
-                            override fun onChanged(value: Activity?) {
-                                if (value != null) {
-                                    AndroidContext.resumedActivityLiveData.removeObserver(this)
-                                    ExecutorHelper.post {
-                                        callback?.run()
-                                    }
+                            private val observer = this
+                            private val action = Runnable {
+                                AndroidContext.activity?.let {
+                                    AndroidContext.resumedActivityLiveData.removeObserver(observer)
+                                    callback?.run()
                                 }
                             }
-
+                            override fun onChanged(value: Activity?) {
+                                if (value != null) {
+                                    ExecutorHelper.removeCallbacks(action)
+                                    ExecutorHelper.postDelayed(action, 250)
+                                }
+                            }
                         })
                         try {
                             unregisterGlobalBroadcastIntent(appContext, this)

@@ -1,0 +1,53 @@
+<resources>
+
+    <!-- Самодостатня тема бібліотеки -->
+    <style name="BiometricTheme.SystemDialog.Light" parent="Theme.Material3.Light.Dialog.Alert">
+        <!-- Діалог має жити сам по собі -->
+        <item name="colorSurface">#FFFCFCFF</item>
+        <item name="android:colorBackground">#FFFCFCFF</item>
+
+        <!-- Системно-нейтральний вигляд -->
+        <item name="shapeAppearanceMediumComponent">@style/BiometricShape.Dialog</item>
+
+        <!-- Трохи стримані текстові стилі -->
+        <item name="materialAlertDialogTitleTextStyle">@style/BiometricText.Dialog.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/BiometricText.Dialog.Body</item>
+
+        <!-- Кольори кнопок через атрибути теми, без жорсткого брендингу -->
+        <item name="buttonBarPositiveButtonStyle">@style/BiometricWidget.Dialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/BiometricWidget.Dialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/BiometricWidget.Dialog.Button</item>
+    </style>
+    <style name="BiometricTheme.SystemDialog.Dark" parent="Theme.Material3.Dark.Dialog.Alert">
+        <!-- Діалог має жити сам по собі -->
+        <item name="colorSurface">#FF1C1B1F</item>
+        <item name="android:colorBackground">#FF1C1B1F</item>
+
+        <!-- Системно-нейтральний вигляд -->
+        <item name="shapeAppearanceMediumComponent">@style/BiometricShape.Dialog</item>
+
+        <!-- Трохи стримані текстові стилі -->
+        <item name="materialAlertDialogTitleTextStyle">@style/BiometricText.Dialog.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/BiometricText.Dialog.Body</item>
+
+        <!-- Кольори кнопок через атрибути теми, без жорсткого брендингу -->
+        <item name="buttonBarPositiveButtonStyle">@style/BiometricWidget.Dialog.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/BiometricWidget.Dialog.Button</item>
+        <item name="buttonBarNeutralButtonStyle">@style/BiometricWidget.Dialog.Button</item>
+    </style>
+
+    <style name="BiometricShape.Dialog" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <style name="BiometricText.Dialog.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BiometricText.Dialog.Body" parent="TextAppearance.Material3.BodyMedium" />
+
+    <style name="BiometricWidget.Dialog.Button" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:minHeight">48dp</item>
+    </style>
+
+</resources>

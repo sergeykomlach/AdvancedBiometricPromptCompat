@@ -509,7 +509,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 biometricPrompt.authenticate(biometricPromptInfo)
             }
             ExecutorHelper.startOnBackground {
-                //fallback - sometimes we not able to cancel BiometricPrompt properly
+                //fallback - sometimes we are not able to cancel BiometricPrompt properly
                 try {
                     val m = BiometricPrompt::class.java.declaredMethods.first {
                         it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
@@ -527,6 +527,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     } finally {
                         if (!isAccessible)
                             m.isAccessible = false
+
+                        if (biometricFragment.get() == null) {
+                            callback?.onCanceled(builder.getAllAvailableTypes().map {
+                                AuthenticationResult(
+                                    it,
+                                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
+                                    description = "Action called on activity that already destroyed"
+                                )
+                            }.toSet())
+                        }
                     }
                 } catch (e: Throwable) {
                     e(e)
@@ -534,14 +544,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
         } catch (e: BiometricCryptoException) {
             e(e)
-            checkAuthResult(
-                AuthResult.AuthResultState.FATAL_ERROR,
+            callback?.onCanceled(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
-                    BiometricType.BIOMETRIC_ANY,
-                    reason = AuthenticationFailureReason.CRYPTO_ERROR,
+                    it,
+                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
                     description = e.message
                 )
-            )
+            }.toSet())
         }
     }
 

@@ -1510,11 +1510,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return HashSet<BiometricType>(allAvailableTypes)
         }
 
+        private fun verifyActivity(activity: FragmentActivity?): Boolean {
+            return !(activity?.isDestroyed == true || activity?.isFinishing == true || activity?.supportFragmentManager?.isStateSaved == true)
+        }
+
         fun getActivity(): FragmentActivity? {
-            return if(activity?.isDestroyed == true)
-                AndroidContext.activity as? FragmentActivity
-            else
-                activity
+            return if (verifyActivity(activity)) activity
+            else {
+                val act = AndroidContext.activity as? FragmentActivity
+                if (verifyActivity(act)) act else null
+            }
         }
 
         fun getContext(): Context {

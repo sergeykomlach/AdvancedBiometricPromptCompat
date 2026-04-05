@@ -20,14 +20,13 @@
 package dev.skomlach.common.contextprovider
 
 import android.content.Context
+import android.hardware.display.DisplayManager
 import android.os.Build
 import android.provider.Settings
 import android.view.Display
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
-import androidx.core.hardware.display.DisplayManagerCompat
 import dev.skomlach.common.misc.SettingsHelper
-import dev.skomlach.common.misc.Utils.isAtLeastR
 
 
 fun Context.animationsDisabled(): Boolean =
@@ -56,52 +55,35 @@ fun Context.animationsDisabled(): Boolean =
                 1.0f
             ) <= 0.0f)
 
-
-fun Context.getFixedContext(type: Int = WindowManager.LayoutParams.TYPE_APPLICATION): Context {
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-        getDisplayContext(this, type)
-    } else getWindowContext(this, type)
+fun Context.getFixedContext(
+    type: Int = WindowManager.LayoutParams.TYPE_APPLICATION
+): Context {
+    return when {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> getWindowContextApi31(type)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> getWindowContextApi30(type)
+        else -> this
+    }
 }
 
-@RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-private fun getDisplayContext(context: Context, type: Int): Context {
-    //check if context already has display
-    try {
-        if (isAtLeastR) {
-            context.display?.let { d ->
-                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    context.createWindowContext(d, type, null)
-                } else context.createDisplayContext(d).createWindowContext(type, null)
-            }
+@RequiresApi(Build.VERSION_CODES.S)
+private fun Context.getWindowContextApi31(type: Int): Context {
+    runCatching {
+        val currentDisplay = try {
+            display
+        } catch (_: Exception) {
+            getSystemService(DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY)
         }
-    } catch (e: Throwable) {
-
-    }
-    try {
-        val dm = DisplayManagerCompat.getInstance(context)
-        dm.getDisplay(Display.DEFAULT_DISPLAY)?.let { d ->
-            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                context.createWindowContext(d, type, null)
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                context.createDisplayContext(d).createWindowContext(type, null)
-            } else
-                getWindowContext(context, type)
+        if (currentDisplay != null) {
+            return createWindowContext(currentDisplay, type, null)
         }
-    } catch (e: Throwable) {
-
     }
-    //give up, lets use at least original Context
-    return getWindowContext(context, type)
+    return this
 }
 
-private fun getWindowContext(context: Context, type: Int): Context {
-    if (isAtLeastR) {
-        try {
-            return context.createWindowContext(type, null)//for now - fail always for 3rd party apps
-        } catch (e: Throwable) {
-
-        }
-        //give up, lets use at least original Context
+@RequiresApi(Build.VERSION_CODES.R)
+private fun Context.getWindowContextApi30(type: Int): Context {
+    runCatching {
+        return createWindowContext(type, null)
     }
-    return context
+    return this
 }
