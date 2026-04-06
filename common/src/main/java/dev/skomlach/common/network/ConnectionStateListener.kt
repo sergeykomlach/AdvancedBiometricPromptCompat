@@ -93,34 +93,25 @@ class ConnectionStateListener {
         }
     }
 
-    private fun isConnectionDetectedLegacy(): Boolean {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-            else
-                connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-        } catch (_: Throwable) {
-            false
-        }
-    }
 
+    @Suppress("DEPRECATION")
     fun isConnectionDetected(): Boolean {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val active =
-                    connectivityManager?.activeNetwork ?: return isConnectionDetectedLegacy()
-                val caps = connectivityManager?.getNetworkCapabilities(active)
-                    ?: return isConnectionDetectedLegacy()
+            val cm = connectivityManager ?: return false
 
-                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                        caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                        caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
-                        caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) || isConnectionDetectedLegacy()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val network =
+                    cm.activeNetwork ?: return cm.activeNetworkInfo?.isConnectedOrConnecting == true
+                val caps = cm.getNetworkCapabilities(network)
+                    ?: return cm.activeNetworkInfo?.isConnectedOrConnecting == true
+
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             } else {
-                isConnectionDetectedLegacy()
+                cm.activeNetworkInfo?.isConnectedOrConnecting == true
             }
         } catch (_: Throwable) {
-            isConnectionDetectedLegacy()
+            false
         }
     }
 
