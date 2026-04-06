@@ -47,10 +47,9 @@ class ConnectionStateListener {
     init {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
+         //Just an initial state; Will be checked properly later
+        isConnectionOk.set(isConnectionDetected())
 
-        ExecutorHelper.startOnBackground {
-            handleNetworkSignalChanged(isConnectionDetected())
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             networkCallback = object : NetworkCallback() {
 
@@ -94,21 +93,30 @@ class ConnectionStateListener {
         }
     }
 
+    private fun isConnectionDetectedLegacy(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+        else
+            connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+    }
+
     fun isConnectionDetected(): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val active = connectivityManager?.activeNetwork ?: return false
-                val caps = connectivityManager?.getNetworkCapabilities(active) ?: return false
+                val active =
+                    connectivityManager?.activeNetwork ?: return isConnectionDetectedLegacy()
+                val caps = connectivityManager?.getNetworkCapabilities(active)
+                    ?: return isConnectionDetectedLegacy()
 
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                         caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
                         caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
-                        caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+                        caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN) || isConnectionDetectedLegacy()
             } else {
-                connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+                isConnectionDetectedLegacy()
             }
         } catch (_: Throwable) {
-            false
+            isConnectionDetectedLegacy()
         }
     }
 
@@ -136,6 +144,10 @@ class ConnectionStateListener {
                 )
             }
         } catch (_: Throwable) {
+        } finally {
+            ExecutorHelper.startOnBackground {
+                handleNetworkSignalChanged(isConnectionDetected())
+            }
         }
     }
 
