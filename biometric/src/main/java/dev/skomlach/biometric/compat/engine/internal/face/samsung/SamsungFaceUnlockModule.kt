@@ -314,7 +314,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -418,8 +418,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
-
+            onAuthenticationError(FACE_ERROR_UNABLE_TO_PROCESS, null)
         }
     }
 

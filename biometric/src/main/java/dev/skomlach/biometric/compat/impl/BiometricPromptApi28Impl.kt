@@ -237,7 +237,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                         BiometricPrompt.ERROR_UNABLE_TO_PROCESS -> {
                             failureReason =
-                                AuthenticationFailureReason.SENSOR_FAILED
+                                AuthenticationFailureReason.AUTHENTICATION_FAILED
                         }
 
                         BiometricPrompt.ERROR_NO_SPACE -> {

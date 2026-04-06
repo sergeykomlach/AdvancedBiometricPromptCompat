@@ -228,7 +228,7 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
                 }
 
                 FingerprintManager.FINGERPRINT_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 FingerprintManager.FINGERPRINT_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED

@@ -378,7 +378,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 IRIS_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 IRIS_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
@@ -505,7 +505,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
         override fun onAuthenticationFailed() {
             d("$name.onAuthenticationFailed: ")
-            listener?.onFailure(tag(), AuthenticationFailureReason.AUTHENTICATION_FAILED, null)
+            onAuthenticationError(IRIS_ERROR_UNABLE_TO_PROCESS, null)
         }
     }
 

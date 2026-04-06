@@ -193,8 +193,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
-
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
 

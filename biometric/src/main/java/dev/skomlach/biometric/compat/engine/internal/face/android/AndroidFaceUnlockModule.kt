@@ -592,7 +592,7 @@ class AndroidFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
                 }
 
                 FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
-                    AuthenticationFailureReason.SENSOR_FAILED
+                    AuthenticationFailureReason.AUTHENTICATION_FAILED
 
                 FACE_ERROR_NO_SPACE -> failureReason =
                     AuthenticationFailureReason.SENSOR_FAILED
