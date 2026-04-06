@@ -426,7 +426,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                        listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
                         postCancelTask {
 
                             if (cancellationSignal?.isCanceled == false) {
@@ -454,7 +454,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -469,7 +469,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
                     postCancelTask {
 
                         if (cancellationSignal?.isCanceled == false) {

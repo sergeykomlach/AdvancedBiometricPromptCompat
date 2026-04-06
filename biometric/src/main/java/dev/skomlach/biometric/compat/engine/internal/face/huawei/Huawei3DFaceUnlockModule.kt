@@ -210,7 +210,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                        listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -237,7 +237,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -252,7 +252,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, "$errMsgId-$errString")
+                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true
