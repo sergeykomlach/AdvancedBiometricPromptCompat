@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -32,6 +33,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import dev.skomlach.biometric.compat.crypto.CryptographyManager
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
@@ -638,10 +640,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                 val callback = object : AuthenticationCallback() {
 
-                    private var isOpened = AtomicBoolean(false)
+                    
                     private var lastKnownOrientation = AtomicInteger(0)
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
-                        if (isOpened.get()) {
+                        if (builder.isUIOpened.get()) {
                             super.onSucceeded(result)
                             if (builder.isDeviceCredentialFallbackAllowed() && builder.forceDeviceCredential()) {
                                 val checkHardware = checkHardware()
@@ -729,7 +731,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
 
                     override fun onCanceled(canceled: Set<AuthenticationResult>) {
-                        if (isOpened.get()) {
+                        if (builder.isUIOpened.get()) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
                             ExecutorHelper.post { callbackOuter.onCanceled(canceled) }
                             onUIClosed()
@@ -745,7 +747,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onFailed(
                         canceled: Set<AuthenticationResult>
                     ) {
-                        if (isOpened.get()) {
+                        if (builder.isUIOpened.get()) {
                             //Lock/Permanent Lock
                             if (System.currentTimeMillis() - startTsImpl <= AndroidContext.appContext.resources.getInteger(
                                     android.R.integer.config_longAnimTime
@@ -784,8 +786,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
 
                     override fun onUIOpened() {
-                        if (!isOpened.get()) {
-                            isOpened.set(true)
+                        if (!builder.isUIOpened.get()) {
+                            builder.isUIOpened.set(true)
                             if (DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
                                 lastKnownOrientation.set(
                                     builder.getActivity()?.requestedOrientation
@@ -835,8 +837,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
 
                     override fun onUIClosed() {
-                        if (isOpened.get()) {
-                            isOpened.set(false)
+                        if (builder.isUIOpened.get()) {
+                            builder.isUIOpened.set(false)
+                            builder.release()
                             if (DevicesWithKnownBugs.hasUnderDisplayFingerprint) {
                                 builder.getActivity()?.requestedOrientation =
                                     lastKnownOrientation.get()
@@ -928,7 +931,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
                                 description = LocalizationHelper.getLocalizedString(
                                     builder.getContext(),
-                                    R.string.biometriccompat_permissions_request_failed
+                                    dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
                                 )
                             )
                         }.toSet())
@@ -942,7 +945,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
                         description = LocalizationHelper.getLocalizedString(
                             builder.getContext(),
-                            R.string.biometriccompat_permissions_request_failed
+                            dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
                         )
                     )
                 }.toSet())
@@ -1357,6 +1360,37 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = false
         internal var enroll: Boolean = false
+        internal var isUIOpened = AtomicBoolean(false)
+        private var observer: Observer<Activity?>? = Observer<Activity?> { context ->
+            this.colorNavBar = context?.window?.navigationBarColor ?: return@Observer
+            this.colorStatusBar = context.window.statusBarColor
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                dividerColor = context.window.navigationBarDividerColor
+            }
+            //Re-set tinting
+            if (!isSilentAuthEnabled() && isUIOpened.get()) {
+                ExecutorHelper.post {
+                    getActivity()?.let {
+                        StatusBarTools.setNavBarAndStatusBarColors(
+                            it.window,
+                            DialogMainColor.getColor(
+                                getContext(),
+                                DarkLightThemes.isNightModeCompatWithInscreen(
+                                    getContext()
+                                )
+                            ),
+                            DialogMainColor.getColor(
+                                getContext(),
+                                !DarkLightThemes.isNightModeCompatWithInscreen(
+                                    getContext()
+                                )
+                            ),
+                            getStatusBarColor()
+                        )
+                    }
+                }
+            }
+        }
 
         init {
 
@@ -1377,6 +1411,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     dividerColor = context.window.navigationBarDividerColor
                 }
             }
+            ExecutorHelper.post {
+                try {
+                    observer?.let {
+                        AndroidContext.resumedActivityLiveData.observeForever(it)
+                    }
+                } catch (_: Exception) {
+                }
+            }
             if (API_ENABLED) {
                 multiWindowSupport = MultiWindowSupport.get()
             }
@@ -1385,6 +1427,24 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         constructor(dummy_reference: FragmentActivity) : this(
             BiometricAuthRequest.default(), dummy_reference
         )
+
+        /* Access modifiers changed, original: protected */
+        @Throws(Throwable::class)
+        fun finalize() {
+            release()
+        }
+
+        fun release() {
+            ExecutorHelper.post {
+                try {
+                    observer?.let {
+                        AndroidContext.resumedActivityLiveData.removeObserver(it)
+                    }
+                    observer = null
+                } catch (_: Exception) {
+                }
+            }
+        }
 
         fun isSilentAuthEnabled(): Boolean {
             return silentAuth
