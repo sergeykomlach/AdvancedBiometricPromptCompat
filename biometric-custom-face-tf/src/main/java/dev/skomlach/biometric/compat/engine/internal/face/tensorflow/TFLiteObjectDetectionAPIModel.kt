@@ -45,34 +45,14 @@ import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import kotlin.math.sqrt
 
-/**
- * Wrapper for frozen detection models trained using the Tensorflow Object Detection API:
- * - https://github.com/tensorflow/models/tree/master/research/object_detection
- * where you can find the training code.
- *
- *
- * To use pretrained models in the API or convert to TF Lite models, please see docs for details:
- * - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md
- * - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/running_on_mobile_tensorflowlite.md#running-our-model-on-android
- */
-class TFLiteObjectDetectionAPIModel
-private constructor() : SimilarityClassifier {
+class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier {
     companion object {
         const val storageName = "tf_storage"
         private const val PREF_NAME = "registered"
-
-        //private static final int OUTPUT_SIZE = 512;
         private const val OUTPUT_SIZE = 192
-
-        // Only return this many results.
-        private const val NUM_DETECTIONS = 1
-
-        // Float model
         private const val IMAGE_MEAN = 128.0f
         private const val IMAGE_STD = 128.0f
 
-
-        /** Memory-map the model file in Assets.  */
         @Throws(IOException::class)
         private fun loadModelFile(assets: AssetManager, modelFilename: String): MappedByteBuffer {
             var inputStream: FileInputStream? = null
@@ -84,7 +64,6 @@ private constructor() : SimilarityClassifier {
                 fileChannel = inputStream.channel
                 val startOffset = fileDescriptor.startOffset
                 val declaredLength = fileDescriptor.declaredLength
-
                 return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
             } finally {
                 fileChannel?.close()
@@ -93,14 +72,6 @@ private constructor() : SimilarityClassifier {
             }
         }
 
-        /**
-         * Initializes a native TensorFlow session for classifying images.
-         *
-         * @param assetManager  The asset manager to be used to load assets.
-         * @param modelFilename The filepath of the model GraphDef protocol buffer.
-         * @param inputSize     The size of image input
-         * @param isQuantized   Boolean representing model is quantized or not
-         */
         @Throws(IOException::class)
         fun create(
             assetManager: AssetManager,
@@ -109,29 +80,18 @@ private constructor() : SimilarityClassifier {
             isQuantized: Boolean,
             options: Interpreter.Options?
         ): SimilarityClassifier {
-            val d = TFLiteObjectDetectionAPIModel()
+            val model = TFLiteObjectDetectionAPIModel()
+            model.inputSize = inputSize
+            model.isModelQuantized = isQuantized
+            model.tfLite = Interpreter(loadModelFile(assetManager, modelFilename), options)
 
-
-            d.inputSize = inputSize
-
-            try {
-                d.tfLite = Interpreter(loadModelFile(assetManager, modelFilename), options)
-            } catch (e: Exception) {
-                throw RuntimeException(e)
-            }
-
-            d.isModelQuantized = isQuantized
-            // Pre-allocate buffers.
-            val numBytesPerChannel = if (isQuantized) {
-                1 // Quantized
-            } else {
-                4 // Floating point
-            }
-            d.imgData =
-                ByteBuffer.allocateDirect(d.inputSize * d.inputSize * 3 * numBytesPerChannel)
-            d.imgData.order(ByteOrder.nativeOrder())
-            d.intValues = IntArray(d.inputSize * d.inputSize)
-            return d
+            val numBytesPerChannel = if (isQuantized) 1 else 4
+            model.imgData = ByteBuffer.allocateDirect(inputSize * inputSize * 3 * numBytesPerChannel)
+            model.imgData.order(ByteOrder.nativeOrder())
+            model.intValues = IntArray(inputSize * inputSize)
+            model.embeddings = Array(1) { FloatArray(OUTPUT_SIZE) }
+            model.outputMap[0] = model.embeddings
+            return model
         }
     }
 
@@ -160,14 +120,12 @@ private constructor() : SimilarityClassifier {
     }
 
     private var isModelQuantized = false
-
-    // Config values.
     private var inputSize = 0
     private var intValues: IntArray = IntArray(0)
-
-    private var embeedings: Array<FloatArray> = emptyArray<FloatArray>()
+    private var embeddings: Array<FloatArray> = emptyArray()
     private var imgData: ByteBuffer = ByteBuffer.allocate(0)
     private var tfLite: Interpreter? = null
+    private val outputMap: MutableMap<Int, Any> = HashMap(1)
 
     @Throws(JSONException::class)
     private fun json2recognition(jsonObject: JSONObject): SimilarityClassifier.Recognition {
@@ -184,25 +142,23 @@ private constructor() : SimilarityClassifier {
         )
 
         val recognition = SimilarityClassifier.Recognition(id, title, distance, location)
-
         if (jsonObject.has("extra")) {
             val top = jsonObject.getJSONArray("extra")
             val array = arrayOfNulls<FloatArray>(top.length())
-            for (i in 0..<top.length()) {
+            for (i in 0 until top.length()) {
                 val inner = top.getJSONArray(i)
                 val innerArray = FloatArray(inner.length())
-                for (j in 0..<inner.length()) {
+                for (j in 0 until inner.length()) {
                     innerArray[j] = inner.getDouble(j).toFloat()
                 }
                 array[i] = innerArray
             }
-            recognition.extra = (array)
+            recognition.extra = array
         }
         if (jsonObject.has("crop")) {
             val base64Bitmap = jsonObject.getString("crop")
             val bytes = Base64.decode(base64Bitmap, Base64.DEFAULT)
-            val bm = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-            recognition.crop = (bm)
+            recognition.crop = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         }
         return recognition
     }
@@ -222,11 +178,9 @@ private constructor() : SimilarityClassifier {
         if (extra != null) {
             val topArray = JSONArray()
             for (i in extra.indices) {
-                val top = extra[i]
                 val innerArray = JSONArray()
-                for (j in top.indices) {
-                    val inner = extra[i][j]
-                    innerArray.put(inner.toDouble())
+                for (j in extra[i].indices) {
+                    innerArray.put(extra[i][j].toDouble())
                 }
                 topArray.put(innerArray)
             }
@@ -234,8 +188,7 @@ private constructor() : SimilarityClassifier {
         }
         jsonObject.put("title", rec.title)
 
-        val crop = rec.crop
-        if (crop != null) {
+        rec.crop?.let { crop ->
             val byteArrayOutputStream = ByteArrayOutputStream()
             crop.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
             jsonObject.put(
@@ -246,29 +199,17 @@ private constructor() : SimilarityClassifier {
         return jsonObject
     }
 
-    override fun registeredCount(): Int {
-        Log.i(javaClass.simpleName, "registeredCount: size ${registered.size}")
-        return registered.size
-    }
-
-    override fun hasRegistered(): Boolean {
-        Log.i(javaClass.simpleName, "hasRegistered:  ${registered.isNotEmpty()}")
-        return registered.isNotEmpty()
-    }
-
-    override fun getEnrolls(): Set<String> {
-        Log.i(javaClass.simpleName, "getEnrolls:  ${registered.keys}")
-        return registered.keys.filterNotNull().toSet()
-    }
+    override fun registeredCount(): Int = registered.size
+    override fun hasRegistered(): Boolean = registered.isNotEmpty()
+    override fun getEnrolls(): Set<String> = registered.keys.filterNotNull().toSet()
 
     override fun delete(name: String?) {
         if (name == null) {
             if (BuildConfig.DEBUG) {
                 registered.values.toMutableList().forEach { rec ->
-                    if (rec != null) ImageUtils.deleteBitmap(
-                        AndroidContext.appContext,
-                        "${rec.title}-${rec.id}.png"
-                    )
+                    if (rec != null) {
+                        ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
+                    }
                 }
             }
             registered.clear()
@@ -277,37 +218,34 @@ private constructor() : SimilarityClassifier {
             } catch (e: Throwable) {
                 LogCat.logException(e)
             }
-        } else {
-            if (BuildConfig.DEBUG) {
-                registered[name]?.let { rec ->
-                    ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
-                }
-            }
-            registered.remove(name)
-            try {
-                val sharedPreferences = getProtectedPreferences(storageName)
-                val jsonString = sharedPreferences.getString(PREF_NAME, null)
-                val jsonObjectRoot =
-                    if (jsonString == null) JSONObject() else JSONObject(jsonString)
-                jsonObjectRoot.remove(name)
-                sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
-            } catch (e: Throwable) {
-                LogCat.logException(e)
+            return
+        }
+
+        if (BuildConfig.DEBUG) {
+            registered[name]?.let { rec ->
+                ImageUtils.deleteBitmap(AndroidContext.appContext, "${rec.title}-${rec.id}.png")
             }
         }
-        Log.e(javaClass.simpleName, "registered: size ${registered.size}")
+        registered.remove(name)
+        try {
+            val sharedPreferences = getProtectedPreferences(storageName)
+            val jsonString = sharedPreferences.getString(PREF_NAME, null)
+            val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
+            jsonObjectRoot.remove(name)
+            sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
+        } catch (e: Throwable) {
+            LogCat.logException(e)
+        }
     }
-
 
     override fun register(name: String, rec: SimilarityClassifier.Recognition) {
         registered[name] = rec
         val sharedPreferences = getProtectedPreferences(storageName)
         val jsonString = sharedPreferences.getString(PREF_NAME, null)
-        val jsonObjectRoot =
-            if (jsonString == null) JSONObject() else JSONObject(jsonString)
-
+        val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
         jsonObjectRoot.put(name, recognition2json(rec))
         sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
+
         if (BuildConfig.DEBUG) {
             AsyncTask.THREAD_POOL_EXECUTOR.execute {
                 try {
@@ -321,18 +259,12 @@ private constructor() : SimilarityClassifier {
                 }
             }
         }
-        Log.e(javaClass.simpleName, "registered: size ${registered.size}")
     }
 
-    // looks for the nearest embeeding in the dataset (using L2 norm)
-    // and returns the pair <id, distance>
     private fun findNearest(emb: FloatArray): Pair<String, Float>? {
         var ret: Pair<String, Float>? = null
-        for (entry in registered.entries) {
-            val name = entry.key
-            val knownEmb = (entry.value?.extra as? Array<FloatArray>)?.get(0)
-
-
+        for ((name, recognition) in registered.entries) {
+            val knownEmb = (recognition?.extra as? Array<FloatArray>)?.firstOrNull()
             if (knownEmb != null && name != null) {
                 var distance = 0f
                 for (i in emb.indices) {
@@ -348,16 +280,10 @@ private constructor() : SimilarityClassifier {
         return ret
     }
 
-
     override fun recognizeImage(
         bitmap: Bitmap,
         storeExtra: Boolean
     ): MutableList<SimilarityClassifier.Recognition> {
-        // Log this method so that it can be analyzed with systrace.
-
-        // Preprocess the image data from 0-255 int to normalized float based
-        // on the provided parameters.
-
         bitmap.getPixels(
             intValues,
             0,
@@ -369,15 +295,14 @@ private constructor() : SimilarityClassifier {
         )
 
         imgData.rewind()
-        for (i in 0..<inputSize) {
-            for (j in 0..<inputSize) {
+        for (i in 0 until inputSize) {
+            for (j in 0 until inputSize) {
                 val pixelValue = intValues[i * inputSize + j]
                 if (isModelQuantized) {
-                    // Quantized model
                     imgData.put(((pixelValue shr 16) and 0xFF).toByte())
                     imgData.put(((pixelValue shr 8) and 0xFF).toByte())
                     imgData.put((pixelValue and 0xFF).toByte())
-                } else { // Float model
+                } else {
                     imgData.putFloat((((pixelValue shr 16) and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
                     imgData.putFloat((((pixelValue shr 8) and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
                     imgData.putFloat(((pixelValue and 0xFF) - IMAGE_MEAN) / IMAGE_STD)
@@ -385,50 +310,39 @@ private constructor() : SimilarityClassifier {
             }
         }
 
-        val inputArray = arrayOf<Any?>(imgData)
-
-        // Here outputMap is changed to fit the Face Mask detector
-        val outputMap: MutableMap<Int?, Any?> = HashMap<Int?, Any?>()
-
-        embeedings = Array<FloatArray>(1) { FloatArray(OUTPUT_SIZE) }
-        outputMap[0] = embeedings
-
-        // Run the inference call.
-        tfLite?.runForMultipleInputsOutputs(inputArray, outputMap)
+        embeddings[0].fill(0f)
+        tfLite?.runForMultipleInputsOutputs(arrayOf<Any>(imgData), outputMap)
 
         var distance = Float.MAX_VALUE
-        val id = "0"
+        var recognitionId = "unknown"
         var label: String? = "face"
 
-        if (!registered.isEmpty()) {
-            //LOGGER.i("dataset SIZE: " + registered.size());
-            val nearest = findNearest(embeedings[0])
+        if (registered.isNotEmpty()) {
+            val nearest = findNearest(embeddings[0])
             if (nearest != null) {
-                val name = nearest.first
-                label = name
+                recognitionId = nearest.first
+                label = nearest.first
                 distance = nearest.second
-
-                Log.e(javaClass.simpleName, "nearest: $name - distance: $distance")
+                Log.e(javaClass.simpleName, "nearest: $label - distance: $distance")
             }
         }
 
-        val numDetectionsOutput = 1
-
-        val recognitions = ArrayList<SimilarityClassifier.Recognition>(numDetectionsOutput)
-        val rec = SimilarityClassifier.Recognition(
-            id,
-            label,
-            distance,
-            RectF()
-        )
-
-        recognitions.add(rec)
-
+        val recognitions = ArrayList<SimilarityClassifier.Recognition>(1)
+        val rec = SimilarityClassifier.Recognition(recognitionId, label, distance, RectF())
         if (storeExtra) {
-            rec.extra = (embeedings)
+            rec.extra = embeddings.map { it.copyOf() }.toTypedArray()
         }
+        recognitions.add(rec)
         return recognitions
     }
 
-
+    fun close() {
+        try {
+            tfLite?.close()
+        } catch (t: Throwable) {
+            LogCat.logException(t)
+        } finally {
+            tfLite = null
+        }
+    }
 }
