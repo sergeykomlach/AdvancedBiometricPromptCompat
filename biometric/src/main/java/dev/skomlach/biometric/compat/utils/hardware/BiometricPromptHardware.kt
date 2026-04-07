@@ -195,10 +195,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
         if (!isAnyHardwareAvailable) return false
 
-        if (type == BiometricType.BIOMETRIC_FINGERPRINT &&
-            LegacyBiometric.getAvailableBiometricModule(type)?.isHardwarePresent == true
-        ) {
-            return true
+        if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
+            return LegacyBiometric.getAvailableBiometricModule(type)?.isHardwarePresent == true
         }
         BiometricPromptCompat.deviceInfo?.let {
             if (it.sensors.isNotEmpty()) {
@@ -224,11 +222,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                         } else
                             it.hasIrisScanner() && checkDeviceFeature(type)
                     }
-
-                    BiometricType.BIOMETRIC_FINGERPRINT -> it.hasFingerprint() && checkDeviceFeature(
-                        type
-                    )
-
                     BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() && checkDeviceFeature(type)
                     BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID() && checkDeviceFeature(
                         type
@@ -278,7 +271,28 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         }
 
         val result = modalityResult(type)
+        BiometricPromptCompat.deviceInfo?.let {
+            if (it.sensors.isNotEmpty()) {
+                return when (type) {
+                    BiometricType.BIOMETRIC_FACE -> {
+                        if (it.model.startsWith("Samsung", ignoreCase = true)) {
+                            result.enrolledLikely || isAnyBiometricEnrolled
+                        } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
+                            result.enrolledLikely || isAnyBiometricEnrolled
+                        } else
+                            result.enrolledLikely
+                    }
 
+                    BiometricType.BIOMETRIC_IRIS -> {
+                        if (it.model.startsWith("Samsung", ignoreCase = true)) {
+                            result.enrolledLikely || isAnyBiometricEnrolled
+                        } else
+                            result.enrolledLikely
+                    }
+                    else -> false
+                }
+            }
+        }
         return when (type) {
             BiometricType.BIOMETRIC_FACE,
             BiometricType.BIOMETRIC_IRIS -> result.enrolledLikely

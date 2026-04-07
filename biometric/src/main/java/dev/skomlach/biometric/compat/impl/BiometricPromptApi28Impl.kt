@@ -447,10 +447,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
             return
         }
-        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes().filter {
-            !BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withApi(
-                BiometricApi.BIOMETRIC_API).withType(it))
-        })
+        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
         onUiOpened()
         showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
