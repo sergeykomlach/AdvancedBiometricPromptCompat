@@ -359,7 +359,10 @@ object LegacyBiometric {
         listener: LegacyBiometricAuthenticationListener,
         bundle: Bundle?
     ) {
-        if (authInProgress.get() || requestedMethods.isEmpty()) return
+        if (authInProgress.get() || requestedMethods.isEmpty()){
+            e("BiometricAuthentication not started, wrong state")
+            return
+        }
 
         if (initInProgress.get()) {
             val viewRef = WeakReference(targetView)
@@ -430,7 +433,6 @@ object LegacyBiometric {
                 reason: AuthenticationFailureReason?,
                 desc: CharSequence?
             ) {
-                authInProgress.set(false)
                 listenerRef.get()?.onFailure(
                     AuthenticationResult(
                         activeModules[tag],
@@ -445,7 +447,6 @@ object LegacyBiometric {
                 reason: AuthenticationFailureReason?,
                 desc: CharSequence?
             ) {
-                authInProgress.set(false)
                 listenerRef.get()?.onCanceled(
                     AuthenticationResult(
                         activeModules[tag],
@@ -460,15 +461,13 @@ object LegacyBiometric {
     fun cancelAuthentication() {
         if (authInProgress.compareAndSet(true, false)) {
             d("BiometricAuthentication.cancelAuthentication")
-            ExecutorHelper.startOnBackground {
-                availableBiometricMethods.forEach { method ->
-                    val module = moduleHashMap[method]
-                    if (module is FacelockOldModule) module.stopAuth()
-                    if (module is FaceunlockLavaModule) module.stopAuth()
-                }
-                Core.cancelAuthentication()
+            availableBiometricMethods.forEach { method ->
+                val module = moduleHashMap[method]
+                if (module is FacelockOldModule) module.stopAuth()
+                if (module is FaceunlockLavaModule) module.stopAuth()
             }
-        }
+            Core.cancelAuthentication()
+        } else e("BiometricAuthentication not canceled, wrong state")
     }
 
     fun getSettingsIntent(type: BiometricType): Intent? {

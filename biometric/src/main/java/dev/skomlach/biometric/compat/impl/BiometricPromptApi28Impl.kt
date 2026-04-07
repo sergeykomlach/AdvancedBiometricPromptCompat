@@ -433,7 +433,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
     override fun startAuth() {
         val prompt = biometricPrompt
-        d("BiometricPromptApi28Impl.startAuth(): $prompt")
+        d("BiometricPromptApi28Impl.startAuth(): ${builder.getPrimaryAvailableTypes()}")
         if (prompt == null) {
             ExecutorHelper.post {
                 callback?.onCanceled(builder.getAllAvailableTypes().map {
@@ -450,15 +450,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
         showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
-            ExecutorHelper.post {
-                LegacyBiometric.authenticate(
-                    builder.getCryptographyPurpose(),
-                    null,
-                    secondary,
-                    fmAuthCallback,
-                    BundleBuilder.create(builder)
-                )
-            }
+            LegacyBiometric.authenticate(
+                builder.getCryptographyPurpose(),
+                dialog?.authPreview,
+                secondary,
+                fmAuthCallback,
+                BundleBuilder.create(builder)
+            )
         }
 
     }

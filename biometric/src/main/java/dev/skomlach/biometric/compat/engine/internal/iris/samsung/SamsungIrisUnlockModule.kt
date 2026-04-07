@@ -219,6 +219,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
             try {
                 val cancellationSignal = CancellationSignal()
                 originalCancellationSignal?.setOnCancelListener {
+                    e("$name.authenticate - cancel()")
                     if (!cancellationSignal.isCanceled)
                         cancellationSignal.cancel()
                 }

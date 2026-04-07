@@ -40,7 +40,11 @@ object Core {
     private val reprintModuleHashMap = Collections.synchronizedMap(HashMap<Int, BiometricModule>())
     fun cleanModules() {
         try {
+            val copy = reprintModuleHashMap.toMutableMap()
             reprintModuleHashMap.clear()
+            for (module in copy.values) {
+                cancelAuthentication(module)
+            }
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
