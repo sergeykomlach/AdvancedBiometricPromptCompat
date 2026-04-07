@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.internal.face.samsung
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
@@ -70,7 +71,14 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
     init {
         manager = try {
-            SemBioFaceManager.getInstance(context)
+            try{ SemBioFaceManager.getInstance(context)!! } catch (_: Throwable){
+                SemBioFaceManager::class.java.getDeclaredMethod(
+                    "getInstance",
+                    Context::class.java
+                ).apply {
+                    isAccessible = true
+                }.invoke(context) as SemBioFaceManager
+            }
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)
@@ -99,7 +107,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             }
 
-            return false
+            return isManagerAccessible
         }
 
     override val hasEnrolled: Boolean

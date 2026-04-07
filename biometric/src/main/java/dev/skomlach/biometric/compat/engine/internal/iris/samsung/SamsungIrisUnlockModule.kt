@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.internal.iris.samsung
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
@@ -133,7 +134,16 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
     init {
 
         manager = try {
-            SemIrisManager.getSemIrisManager(context)
+            try {
+                SemIrisManager.getSemIrisManager(context)!!
+            } catch (_: Throwable) {
+                SemIrisManager::class.java.getDeclaredMethod(
+                    "getSemIrisManager",
+                    Context::class.java
+                ).apply {
+                    isAccessible = true
+                }.invoke(context) as SemIrisManager
+            }
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)
@@ -162,7 +172,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             }
 
-            return false
+            return isManagerAccessible
         }
 
     override val hasEnrolled: Boolean
@@ -427,7 +437,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                         postCancelTask {
 
                             if (cancellationSignal?.isCanceled == false) {
@@ -455,7 +465,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -470,7 +480,7 @@ class SamsungIrisUnlockModule @SuppressLint("WrongConstant") constructor(listene
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     postCancelTask {
 
                         if (cancellationSignal?.isCanceled == false) {
