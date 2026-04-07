@@ -26,6 +26,7 @@ import android.util.Base64
 import android.util.Pair
 import androidx.collection.ArraySet
 import com.tozny.crypto.android.AesCbcWithIntegrity
+import dev.skomlach.common.logging.LogCat
 import java.io.UnsupportedEncodingException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -58,15 +59,17 @@ class KeyNameCipher(
         System.arraycopy(nonce12, 0, packed, 0, nonce12.size)
         System.arraycopy(ct, 0, packed, nonce12.size, ct.size)
 
-        val b64 =
-            Base64.encodeToString(packed, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        val b64 = Base64.encodeToString(
+            packed,
+            Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
+        )
         return "e_$b64"
     }
 
     fun decryptName(encName: String): String? {
         if (!encName.startsWith("e_")) return null
         val packed = Base64.decode(encName.substring(2), Base64.URL_SAFE)
-        if (packed.size < 12 + 16) return null // nonce + tag
+        if (packed.size < 12 + 16) return null
 
         val nonce = packed.copyOfRange(0, 12)
         val ct = packed.copyOfRange(12, packed.size)
@@ -138,29 +141,32 @@ class EncryptedSharedPreferences(
     }
 
     private fun decrypt(ciphertext: String?): ByteArray? {
-        if (ciphertext.isNullOrEmpty()) {
-            return ciphertext?.toByteArray(UTF_8)
-        }
-        try {
-            val cipherTextIvMac: AesCbcWithIntegrity.CipherTextIvMac =
-                AesCbcWithIntegrity.CipherTextIvMac(ciphertext)
-            return AesCbcWithIntegrity.decrypt(cipherTextIvMac, keys)
+        if (ciphertext.isNullOrEmpty()) return ciphertext?.toByteArray(UTF_8)
+        return try {
+            val cipherTextIvMac = AesCbcWithIntegrity.CipherTextIvMac(ciphertext)
+            AesCbcWithIntegrity.decrypt(cipherTextIvMac, keys)
         } catch (e: GeneralSecurityException) {
+            LogCat.logException(e)
+            null
         } catch (e: UnsupportedEncodingException) {
+            LogCat.logException(e)
+            null
         }
-        return null
     }
 
     private fun encrypt(cleartext: ByteArray?): String? {
         if (cleartext == null || cleartext.isEmpty()) {
             return String(cleartext ?: return null, UTF_8)
         }
-        try {
-            return AesCbcWithIntegrity.encrypt(cleartext, keys).toString()
+        return try {
+            AesCbcWithIntegrity.encrypt(cleartext, keys).toString()
         } catch (e: GeneralSecurityException) {
+            LogCat.logException(e)
+            null
         } catch (e: UnsupportedEncodingException) {
+            LogCat.logException(e)
+            null
         }
-        return null
     }
 
     private class Editor(
