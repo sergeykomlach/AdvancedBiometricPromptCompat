@@ -38,6 +38,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
+import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -446,7 +447,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
             return
         }
-        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
+        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes().filter {
+            !BiometricManagerCompat.isHardwareDetected(BiometricAuthRequest.default().withApi(
+                BiometricApi.BIOMETRIC_API).withType(it))
+        })
         onUiOpened()
         showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
