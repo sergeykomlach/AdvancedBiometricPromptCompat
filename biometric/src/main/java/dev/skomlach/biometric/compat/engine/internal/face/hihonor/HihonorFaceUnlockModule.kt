@@ -75,7 +75,7 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     override val isHardwarePresent: Boolean
         get() {
             try {
-                if (hihonorFaceManagerLegacy?.isHardwareDetected == true) return true
+                return hihonorFaceManagerLegacy?.isHardwareDetected == true
             } catch (e: Throwable) {
 
             }
@@ -86,7 +86,7 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     override val hasEnrolled: Boolean
         get() {
             try {
-                if (hihonorFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
+                return hihonorFaceManagerLegacy?.hasEnrolledTemplates() == true
             } catch (e: Throwable) {
 
             }

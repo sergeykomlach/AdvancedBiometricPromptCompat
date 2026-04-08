@@ -74,7 +74,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         get() {
 
             try {
-                return manager?.isHardwareDetected == true && manager?.hasEnrolledBiometric() == true
+                return manager?.hasEnrolledBiometric() == true
             } catch (e: Throwable) {
 
             }

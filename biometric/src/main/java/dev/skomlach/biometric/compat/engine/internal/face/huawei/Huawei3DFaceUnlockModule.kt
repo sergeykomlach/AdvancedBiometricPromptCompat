@@ -72,7 +72,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     override val isHardwarePresent: Boolean
         get() {
             try {
-                if (huawei3DFaceManager?.isHardwareDetected == true) return true
+                return huawei3DFaceManager?.isHardwareDetected == true
             } catch (e: Throwable) {
 
             }

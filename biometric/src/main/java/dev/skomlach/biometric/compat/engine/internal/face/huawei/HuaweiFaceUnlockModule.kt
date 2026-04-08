@@ -74,7 +74,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     override val isHardwarePresent: Boolean
         get() {
             try {
-                if (huaweiFaceManagerLegacy?.isHardwareDetected == true) return true
+                return huaweiFaceManagerLegacy?.isHardwareDetected == true
             } catch (e: Throwable) {
 
             }
@@ -85,7 +85,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     override val hasEnrolled: Boolean
         get() {
             try {
-                if (huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true) return true
+               return huaweiFaceManagerLegacy?.hasEnrolledTemplates() == true
             } catch (e: Throwable) {
 
             }

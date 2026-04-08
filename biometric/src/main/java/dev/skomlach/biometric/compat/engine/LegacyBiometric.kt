@@ -91,6 +91,7 @@ object LegacyBiometric {
 
         if (Build.VERSION.SDK_INT >= 24) {
             add(BiometricMethod.FACE_SOTERAPI)
+            add(BiometricMethod.FACE_OPPO)
             add(BiometricMethod.FACE_SAMSUNG)
             add(BiometricMethod.IRIS_SAMSUNG)
         }

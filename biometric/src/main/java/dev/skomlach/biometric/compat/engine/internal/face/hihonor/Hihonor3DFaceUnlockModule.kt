@@ -72,7 +72,7 @@ class Hihonor3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
     override val isHardwarePresent: Boolean
         get() {
             try {
-                if (hihonor3DFaceManager?.isHardwareDetected == true) return true
+                return hihonor3DFaceManager?.isHardwareDetected == true
             } catch (e: Throwable) {
 
             }
