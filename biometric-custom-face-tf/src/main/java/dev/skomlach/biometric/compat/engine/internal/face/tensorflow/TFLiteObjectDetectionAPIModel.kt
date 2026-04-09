@@ -31,6 +31,7 @@ import androidx.core.content.edit
 import dev.skomlach.biometric.custom.face.tf.BuildConfig
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import org.json.JSONArray
 import org.json.JSONException
@@ -83,8 +84,9 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
             val model = TFLiteObjectDetectionAPIModel()
             model.inputSize = inputSize
             model.isModelQuantized = isQuantized
-            model.tfLite = Interpreter(loadModelFile(assetManager, modelFilename), options)
-
+            ExecutorHelper.startOnBackground {
+                model.tfLite = Interpreter(loadModelFile(assetManager, modelFilename), options)
+            }
             val numBytesPerChannel = if (isQuantized) 1 else 4
             model.imgData = ByteBuffer.allocateDirect(inputSize * inputSize * 3 * numBytesPerChannel)
             model.imgData.order(ByteOrder.nativeOrder())

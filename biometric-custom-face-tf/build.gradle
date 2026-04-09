@@ -37,7 +37,9 @@ dependencies {
     implementation libs.material
     implementation(libs.tensorflow.lite) { changing = true }
     implementation libs.face.detection
+    implementation libs.litert
     implementation libs.litert.support
+    implementation libs.litert.gpu
     implementation libs.litert.gpu.api
 }
 

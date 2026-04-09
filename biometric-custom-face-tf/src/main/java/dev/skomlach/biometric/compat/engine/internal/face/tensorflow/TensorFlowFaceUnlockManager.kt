@@ -201,15 +201,32 @@ class TensorFlowFaceUnlockManager(
     }
 
     private val recognitionBackend: TfBackendSelection by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        selectRecognitionBackend()
+        val ts = System.currentTimeMillis()
+        selectRecognitionBackend().also {
+            LogCat.log(
+                TAG,
+                "TfBackendSelection recognitionBackend ${System.currentTimeMillis() - ts}ms; $it"
+            )
+
+        }
     }
 
     private val antiSpoofingBackend: TfBackendSelection by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        selectAntiSpoofingBackend()
+        val ts = System.currentTimeMillis()
+        selectAntiSpoofingBackend().also {
+            LogCat.log(
+                TAG,
+                "TfBackendSelection antiSpoofingBackend ${System.currentTimeMillis() - ts}ms; $it"
+            )
+
+        }
     }
 
     private val antiSpoofingRationality: TfBackendRationality by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        TfLiteBackendHelper.evaluateRationality(antiSpoofingBackend, "FaceAntiSpoofing")
+        val ts = System.currentTimeMillis()
+        TfLiteBackendHelper.evaluateRationality(antiSpoofingBackend, "FaceAntiSpoofing").also {
+            LogCat.log(TAG, "TfBackendRationality ${System.currentTimeMillis() - ts}ms; $it")
+        }
     }
 
     private val antiSpoofingEnabled: Boolean by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -218,26 +235,35 @@ class TensorFlowFaceUnlockManager(
 
     private val antiSpoofing: FaceAntiSpoofing? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         if (!antiSpoofingEnabled) {
-            LogCat.log(TAG, "FaceAntiSpoofing disabled: ${antiSpoofingRationality.reason}")
+            LogCat.log(TAG, "AntiSpoofingModel disabled: ${antiSpoofingRationality.reason}")
             return@lazy null
         }
+        val ts = System.currentTimeMillis()
         try {
-            FaceAntiSpoofing.create(context.assets, antiSpoofingBackend)
+            FaceAntiSpoofing.create(context.assets, antiSpoofingBackend).also {
+                LogCat.log(TAG, "AntiSpoofingModel init takes ${System.currentTimeMillis() - ts}ms")
+            }
         } catch (e: Throwable) {
-            LogCat.log(TAG, "AntiSpoofing model init failed: ${e.message}")
+            LogCat.log(TAG, "AntiSpoofingModel init failed: ${e.message}")
             null
         }
     }
 
     private val detector: SimilarityClassifier? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         try {
+            val ts = System.currentTimeMillis()
             TFLiteObjectDetectionAPIModel.create(
                 context.assets,
                 TF_OD_API_MODEL_FILE,
                 TF_OD_API_INPUT_SIZE,
                 TF_OD_API_IS_QUANTIZED,
                 TfLiteBackendHelper.createOptions(recognitionBackend)
-            )
+            ).also {
+                LogCat.log(
+                    TAG,
+                    "TFLiteObjectDetectionAPIModel init takes ${System.currentTimeMillis() - ts}ms"
+                )
+            }
         } catch (e: Throwable) {
             LogCat.logException(e)
             null
@@ -518,8 +544,8 @@ class TensorFlowFaceUnlockManager(
             val averageScore = spoofScoresWindow.average().toFloat()
             val highScores = spoofScoresWindow.count { it >= ANTISPOOFING_SCORE_THRESHOLD }
             averageScore >= ANTISPOOFING_SCORE_THRESHOLD &&
-                currentScore >= ANTISPOOFING_SCORE_THRESHOLD &&
-                highScores >= ANTISPOOFING_MIN_FRAMES_TO_DECIDE
+                    currentScore >= ANTISPOOFING_SCORE_THRESHOLD &&
+                    highScores >= ANTISPOOFING_MIN_FRAMES_TO_DECIDE
         } catch (e: Throwable) {
             LogCat.logException(e, TAG)
             false
@@ -533,233 +559,206 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun processFaces(bitmap: Bitmap, faces: List<Face>) {
-        if (isErrorActive()) return
-        if (faces.isEmpty()) {
-            clearAntiSpoofingWindow()
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_not_detected)
-            )
-            return
-        }
-        if (faces.size > 1) {
-            clearAntiSpoofingWindow()
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_too_many_faces)
-            )
-            return
-        }
-
-        val face = faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() } ?: return
-        if (face.boundingBox.width() < MIN_FACE_SIZE_PX || face.boundingBox.height() < MIN_FACE_SIZE_PX) {
-            clearAntiSpoofingWindow()
-            authCallback?.onAuthenticationHelp(
-                CUSTOM_BIOMETRIC_ACQUIRED_TOO_FAST,
-                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_look_straight_ahead)
-            )
-            return
-        }
-        if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
-            clearAntiSpoofingWindow()
-            authCallback?.onAuthenticationHelp(
-                CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
-                LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_look_straight_ahead)
-            )
-            return
-        }
-
-        val livenessCrop = createScaledFaceCrop(
-            originalBitmap = bitmap,
-            face = face,
-            cropScale = LIVENESS_CROP_SCALE,
-            outputSize = FaceAntiSpoofing.INPUT_IMAGE_SIZE
-        ) ?: run {
-            clearAntiSpoofingWindow()
-            return
-        }
-
-        val alignedFace = getAlignedFace(
-            originalBitmap = bitmap,
-            face = face,
-            cropScale = RECOGNITION_CROP_SCALE
-        ) ?: run {
-            livenessCrop.recycle()
-            clearAntiSpoofingWindow()
-            return
-        }
-
+        val ts = System.currentTimeMillis()
+        LogCat.log(TAG, "processFaces >")
         try {
-            if (!isBitmapBrightEnough(livenessCrop, MIN_BRIGHTNESS_LUMA)) {
+            if (isErrorActive()) return
+            if (faces.isEmpty()) {
                 clearAntiSpoofingWindow()
-                authCallback?.onAuthenticationHelp(
-                    CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
-                    LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_too_dark)
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_not_detected
+                    )
                 )
                 return
             }
-
-            val laplaceScore = if (antiSpoofingEnabled) {
-                antiSpoofing?.laplacian(livenessCrop) ?: FaceAntiSpoofing.LAPLACIAN_THRESHOLD
-            } else {
-                FaceAntiSpoofing.LAPLACIAN_THRESHOLD
-            }
-            if (laplaceScore < FaceAntiSpoofing.LAPLACIAN_THRESHOLD) {
+            if (faces.size > 1) {
                 clearAntiSpoofingWindow()
-                authCallback?.onAuthenticationHelp(
-                    CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
                     LocalizationHelper.getLocalizedString(
                         context,
-                        R.string.biometriccompat_tf_face_help_model_image_is_blurry
+                        R.string.biometriccompat_tf_face_help_model_too_many_faces
                     )
                 )
                 return
             }
 
-            if (antiSpoofingEnabled && analyzeAntiSpoofing(livenessCrop)) {
-                consecutiveMatchCounter = 0
-                lastMatchedId = null
-                onAuthenticationError(
-                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+            val face =
+                faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() } ?: return
+            if (face.boundingBox.width() < MIN_FACE_SIZE_PX || face.boundingBox.height() < MIN_FACE_SIZE_PX) {
+                clearAntiSpoofingWindow()
+                authCallback?.onAuthenticationHelp(
+                    CUSTOM_BIOMETRIC_ACQUIRED_TOO_FAST,
                     LocalizationHelper.getLocalizedString(
                         context,
-                        R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                        R.string.biometriccompat_tf_face_help_model_look_straight_ahead
+                    )
+                )
+                return
+            }
+            if (abs(face.headEulerAngleX) > MAX_ANGLE || abs(face.headEulerAngleY) > MAX_ANGLE) {
+                clearAntiSpoofingWindow()
+                authCallback?.onAuthenticationHelp(
+                    CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_look_straight_ahead
                     )
                 )
                 return
             }
 
-            val results = detector?.recognizeImage(alignedFace, isEnrolling)
-            if (results.isNullOrEmpty()) {
+            val livenessCrop = createScaledFaceCrop(
+                originalBitmap = bitmap,
+                face = face,
+                cropScale = LIVENESS_CROP_SCALE,
+                outputSize = FaceAntiSpoofing.INPUT_IMAGE_SIZE
+            ) ?: run {
                 clearAntiSpoofingWindow()
-                onAuthenticationError(
-                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                    LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_not_detected)
-                )
                 return
             }
 
-            val result = results.first()
-            if (isEnrolling) {
-                result.crop = alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
-                detector?.register(enrollmentTag, result)
-                authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
-                stopAuthentication()
-                resetPermanentLockOut()
+            val alignedFace = getAlignedFace(
+                originalBitmap = bitmap,
+                face = face,
+                cropScale = RECOGNITION_CROP_SCALE
+            ) ?: run {
+                livenessCrop.recycle()
+                clearAntiSpoofingWindow()
                 return
             }
 
-            val distance = result.distance ?: return
-            val id = result.id
-            if (distance < config.maxDistanceThresholds) {
-                if (id == lastMatchedId) {
-                    consecutiveMatchCounter++
-                } else {
-                    consecutiveMatchCounter = 1
-                    lastMatchedId = id
+            try {
+                if (!isBitmapBrightEnough(livenessCrop, MIN_BRIGHTNESS_LUMA)) {
+                    clearAntiSpoofingWindow()
+                    authCallback?.onAuthenticationHelp(
+                        CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_too_dark
+                        )
+                    )
+                    return
                 }
-                if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
+
+                val laplaceScore = if (antiSpoofingEnabled) {
+                    antiSpoofing?.laplacian(livenessCrop) ?: FaceAntiSpoofing.LAPLACIAN_THRESHOLD
+                } else {
+                    FaceAntiSpoofing.LAPLACIAN_THRESHOLD
+                }
+                if (laplaceScore < FaceAntiSpoofing.LAPLACIAN_THRESHOLD) {
+                    clearAntiSpoofingWindow()
+                    authCallback?.onAuthenticationHelp(
+                        CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_image_is_blurry
+                        )
+                    )
+                    return
+                }
+
+                if (antiSpoofingEnabled && analyzeAntiSpoofing(livenessCrop)) {
+                    consecutiveMatchCounter = 0
+                    lastMatchedId = null
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                        )
+                    )
+                    return
+                }
+
+                val results = detector?.recognizeImage(alignedFace, isEnrolling)
+                if (results.isNullOrEmpty()) {
+                    clearAntiSpoofingWindow()
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_not_detected
+                        )
+                    )
+                    return
+                }
+
+                val result = results.first()
+                if (isEnrolling) {
+                    result.crop =
+                        alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
+                    detector?.register(enrollmentTag, result)
+                    LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (enroll)")
                     authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
                     stopAuthentication()
                     resetPermanentLockOut()
+                    return
                 }
-            } else {
-                clearAntiSpoofingWindow()
-                consecutiveMatchCounter = 0
-                lastMatchedId = null
-                handleFailedAttempt()
-                val lockoutError = checkLockoutState()
-                if (lockoutError != null) {
-                    val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
-                        )
+
+                val distance = result.distance ?: return
+                val id = result.id
+                if (distance < config.maxDistanceThresholds) {
+                    if (id == lastMatchedId) {
+                        consecutiveMatchCounter++
                     } else {
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
+                        consecutiveMatchCounter = 1
+                        lastMatchedId = id
+                    }
+                    if (consecutiveMatchCounter >= config.requiredConsecutiveMatches) {
+                        LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (auth)")
+                        authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
+                        stopAuthentication()
+                        resetPermanentLockOut()
+                    }
+                } else {
+                    clearAntiSpoofingWindow()
+                    consecutiveMatchCounter = 0
+                    lastMatchedId = null
+                    handleFailedAttempt()
+                    val lockoutError = checkLockoutState()
+                    if (lockoutError != null) {
+                        val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
+                            )
+                        } else {
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
+                            )
+                        }
+                        onAuthenticationError(lockoutError, msg)
+                        stopAuthentication()
+                    } else {
+                        onAuthenticationError(
+                            CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.biometriccompat_tf_face_help_model_retry
+                            )
                         )
                     }
-                    onAuthenticationError(lockoutError, msg)
-                    stopAuthentication()
-                } else {
-                    onAuthenticationError(
-                        CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                        LocalizationHelper.getLocalizedString(context, R.string.biometriccompat_tf_face_help_model_retry)
-                    )
                 }
+            } finally {
+                if (!alignedFace.isRecycled) alignedFace.recycle()
+                if (!livenessCrop.isRecycled) livenessCrop.recycle()
             }
         } finally {
-            if (!alignedFace.isRecycled) alignedFace.recycle()
-            if (!livenessCrop.isRecycled) livenessCrop.recycle()
+            LogCat.log(TAG, "processFaces < ${System.currentTimeMillis() - ts}ms")
         }
     }
 
     private fun selectRecognitionBackend(): TfBackendSelection {
-        return TfLiteBackendHelper.chooseBestBackend("Recognition") { selection ->
-            val classifier = TFLiteObjectDetectionAPIModel.create(
-                context.assets,
-                TF_OD_API_MODEL_FILE,
-                TF_OD_API_INPUT_SIZE,
-                TF_OD_API_IS_QUANTIZED,
-                TfLiteBackendHelper.createOptions(selection)
-            ) as? TFLiteObjectDetectionAPIModel ?: return@chooseBestBackend null
-            try {
-                benchmarkRecognitionClassifier(classifier)
-            } finally {
-                classifier.close()
-            }
-        }
+        return TfLiteBackendHelper.chooseRecognitionBackendHeuristic("Recognition")
     }
 
     private fun selectAntiSpoofingBackend(): TfBackendSelection {
-        return TfLiteBackendHelper.chooseBestBackend("AntiSpoofing") { selection ->
-            val engine = FaceAntiSpoofing.create(context.assets, selection)
-            try {
-                benchmarkAntiSpoofingEngine(engine)
-            } finally {
-                engine.close()
-            }
-        }
-    }
-
-    private fun benchmarkRecognitionClassifier(classifier: TFLiteObjectDetectionAPIModel): Long {
-        val sample = Bitmap.createBitmap(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, Bitmap.Config.ARGB_8888)
-        try {
-            repeat(2) { classifier.recognizeImage(sample, false) }
-            var best = Long.MAX_VALUE
-            repeat(4) {
-                val started = System.nanoTime()
-                classifier.recognizeImage(sample, false)
-                val tookMs = (System.nanoTime() - started) / 1_000_000L
-                if (tookMs < best) best = tookMs
-            }
-            return best
-        } finally {
-            if (!sample.isRecycled) sample.recycle()
-        }
-    }
-
-    private fun benchmarkAntiSpoofingEngine(engine: FaceAntiSpoofing): Long {
-        val sample = Bitmap.createBitmap(
-            FaceAntiSpoofing.INPUT_IMAGE_SIZE,
-            FaceAntiSpoofing.INPUT_IMAGE_SIZE,
-            Bitmap.Config.ARGB_8888
-        )
-        try {
-            repeat(2) { engine.antiSpoofing(sample) }
-            var best = Long.MAX_VALUE
-            repeat(4) {
-                val started = System.nanoTime()
-                engine.antiSpoofing(sample)
-                val tookMs = (System.nanoTime() - started) / 1_000_000L
-                if (tookMs < best) best = tookMs
-            }
-            return best
-        } finally {
-            if (!sample.isRecycled) sample.recycle()
-        }
+        return TfLiteBackendHelper.chooseAntiSpoofingBackendHeuristic("AntiSpoofing")
     }
 
     private fun getAlignedFace(
