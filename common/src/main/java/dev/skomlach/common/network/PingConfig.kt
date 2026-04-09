@@ -26,7 +26,7 @@ object PingConfig {
     //So you can try to use "aliexpress.com" or "yandex.ru" or other national domains
 
     private const val PREF_NAME = "pingConfig_v7"
-    private var timeout: Long = 5
+    private var timeout: Long = 1
     private var hosts: Set<String> = arrayOf(
         "1.1.1.1", //Must be available everywhere
         "google.com", //May be banned in China
@@ -43,7 +43,7 @@ object PingConfig {
 
     init {
         val pref = SharedPreferenceProvider.getPreferences(PREF_NAME)
-        this.timeout = pref.getLong("pingTimeoutSec", 5)
+        this.timeout = pref.getLong("pingTimeoutSec", 1)
         this.hosts =
             pref.getStringSet(
                 "hostsList", arrayOf(

@@ -262,7 +262,7 @@ internal class Ping(private val connectionStateListener: ConnectionStateListener
             }
         }
         return try {
-            String(out.toByteArray()).takeIf { it.isNotBlank() }?:""
+            String(out.toByteArray()).takeIf { it.isNotBlank() } ?: ""
         } catch (_: Throwable) {
             ""
         }

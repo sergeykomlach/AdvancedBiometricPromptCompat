@@ -25,7 +25,7 @@ kotlinStdlib = "2.3.10"
 leakcanaryAndroid = "2.14"
 chuckerLibrary = "4.3.0"
 lifecycleProcess = "2.10.0"
-litertSupport = "1.4.1"
+litertSupport = "1.4.2"
 localbroadcastmanager = "1.1.0"
 material = "1.13.0"
 multidex = "2.0.1"
@@ -75,13 +75,17 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 chucker-library = { module = "com.github.chuckerteam.chucker:library", version.ref = "chuckerLibrary" }
 chucker-library-no-op = { module = "com.github.chuckerteam.chucker:library-no-op", version.ref = "chuckerLibrary" }
-litert-gpu-api = { module = "com.google.ai.edge.litert:litert-gpu-api", version.ref = "litertSupport" }
-litert-support = { module = "com.google.ai.edge.litert:litert-support", version.ref = "litertSupport" }
+
 material = { module = "com.google.android.material:material", version.ref = "material" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
 re2j = { module = "com.google.re2j:re2j", version.ref = "re2j" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 versioncompare = { module = "io.github.g00fy2:versioncompare", version.ref = "versioncompare" }
+
+litert-gpu-api = { module = "com.google.ai.edge.litert:litert-gpu-api", version.ref = "litertSupport" }
+litert-support = { module = "com.google.ai.edge.litert:litert-support", version.ref = "litertSupport" }
+litert = { module = "com.google.ai.edge.litert:litert", version.ref = "litertSupport" }
+litert-gpu= { module = "com.google.ai.edge.litert:litert-gpu", version.ref = "litertSupport" }
 
 [plugins]

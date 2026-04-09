@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ConnectionStateListener {
 
-    private val isConnectionOk = AtomicBoolean(false)
+    private val isConnectionOk = AtomicBoolean(true)
     private val ping: Ping = Ping(this)
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
@@ -48,39 +48,69 @@ class ConnectionStateListener {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         //Just an initial state; Will be checked properly later
-        isConnectionOk.set(isConnectionDetected())
+        ExecutorHelper.startOnBackground {
+            isConnectionOk.set(isConnectionDetected())
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
             networkCallback = object : NetworkCallback() {
-
                 override fun onUnavailable() {
-                    handleNetworkSignalChanged(false)
+                    LogCat.logError("ConnectionStateListener onUnavailable")
+                    ExecutorHelper.startOnBackground({
+                        handleNetworkSignalChanged(
+                            isConnectionDetected()
+                        )
+                    }, 500)
                 }
-
                 override fun onAvailable(network: Network) {
-                    handleNetworkSignalChanged(true)
+                    LogCat.logError("ConnectionStateListener onAvailable")
+                    ExecutorHelper.startOnBackground({
+                        handleNetworkSignalChanged(
+                            isConnectionDetected()
+                        )
+                    }, 500)
                 }
 
                 override fun onLost(network: Network) {
-                    handleNetworkSignalChanged(false)
+                    LogCat.logError("ConnectionStateListener onLost")
+                    ExecutorHelper.startOnBackground({
+                        handleNetworkSignalChanged(
+                            isConnectionDetected()
+                        )
+                    }, 500)
                 }
 
                 override fun onCapabilitiesChanged(
                     network: Network,
                     networkCapabilities: NetworkCapabilities
                 ) {
-                    handleNetworkSignalChanged(isConnectionDetected())
+                    LogCat.logError("ConnectionStateListener onCapabilitiesChanged")
+                    ExecutorHelper.startOnBackground({
+                        handleNetworkSignalChanged(
+                            isConnectionDetected()
+                        )
+                    }, 500)
                 }
             }
         } else {
             // pre-Lollipop devices
             receiverTypeConnection = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context, intent: Intent) {
-                    handleNetworkSignalChanged(isConnectionDetected())
+                    ExecutorHelper.startOnBackground({
+                        handleNetworkSignalChanged(
+                            isConnectionDetected()
+                        )
+                    }, 500)
                 }
             }
         }
     }
+
+    private fun isConnectionDetectedLegacy() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+        connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+    else
+        connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
 
     private fun handleNetworkSignalChanged(hasTransport: Boolean) {
         LogCat.log("ConnectionStateListener handleNetworkSignalChanged - $hasTransport")
@@ -97,9 +127,8 @@ class ConnectionStateListener {
     @Suppress("DEPRECATION")
     fun isConnectionDetected(): Boolean {
         return try {
-            val cm = connectivityManager ?: return false
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                val cm = connectivityManager ?: return false
                 val network =
                     cm.activeNetwork ?: return cm.activeNetworkInfo?.isConnectedOrConnecting == true
                 val caps = cm.getNetworkCapabilities(network)
@@ -108,7 +137,7 @@ class ConnectionStateListener {
                 caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                         caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             } else {
-                cm.activeNetworkInfo?.isConnectedOrConnecting == true
+                isConnectionDetectedLegacy()
             }
         } catch (_: Throwable) {
             false
@@ -117,8 +146,13 @@ class ConnectionStateListener {
 
     fun startListeners() {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                //Looking for the network changes
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                networkCallback?.let {
+                    connectivityManager?.registerDefaultNetworkCallback(
+                        it, ExecutorHelper.handler
+                    )
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 networkCallback?.let {
                     connectivityManager?.registerNetworkCallback(
                         NetworkRequest.Builder().build(),
@@ -148,6 +182,11 @@ class ConnectionStateListener {
 
     fun stopListeners() {
         try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                networkCallback?.let {
+                    connectivityManager?.unregisterNetworkCallback(it)
+                }
+            } else
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 networkCallback?.let {
                     connectivityManager?.unregisterNetworkCallback(it)

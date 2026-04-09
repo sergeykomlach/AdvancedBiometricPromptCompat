@@ -72,7 +72,7 @@ object Connection {
         connectionStateListener.stopListeners()
     }
 
-    val isConnection: Boolean
+    internal val isConnection: Boolean
         get() = connectionStateListener.isConnected
 
 
