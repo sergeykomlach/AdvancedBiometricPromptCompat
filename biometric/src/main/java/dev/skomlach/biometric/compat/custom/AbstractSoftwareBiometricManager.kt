@@ -49,6 +49,7 @@ abstract class AbstractSoftwareBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
     }
 
+    abstract fun getTimeoutMessage(): CharSequence?
     abstract fun resetLockOut()
     abstract fun resetPermanentLockOut()
     abstract fun getPermissions(): List<String>

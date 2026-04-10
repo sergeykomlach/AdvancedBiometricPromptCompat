@@ -20,6 +20,7 @@
 package dev.skomlach.biometric.compat.engine.internal
 
 import android.os.Bundle
+import android.os.Handler
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -52,8 +53,9 @@ class SoftwareBiometricModule(
     private val listener: LegacyBiometricInitListener?
 ) :
     AbstractBiometricModule(method) {
-
+    private val timeoutHandler = Handler(ExecutorHelper.handler.looper)
     private var enrollBundle: Bundle? = null
+    private var timeoutRunnable = Runnable {}
 
     init {
         listener?.initFinished(biometricMethod, this@SoftwareBiometricModule)
@@ -109,6 +111,16 @@ class SoftwareBiometricModule(
                     ?: throw IllegalArgumentException("CancellationSignal can't be null")
 
                 this.originalCancellationSignal = cancellationSignal
+                timeoutHandler.postDelayed(Runnable {
+                    listener?.onFailure(
+                        tag(),
+                        AuthenticationFailureReason.TIMEOUT,
+                        manager?.getTimeoutMessage()
+                    )
+                    this.originalCancellationSignal?.cancel()
+                }.also {
+                    timeoutRunnable = it
+                }, 30_000L)
                 authenticateInternal(biometricCryptoObject, listener, restartPredicate)
                 return
             } catch (e: Throwable) {
@@ -133,8 +145,10 @@ class SoftwareBiometricModule(
             try {
                 val cancellationSignal = CancellationSignal()
                 originalCancellationSignal?.setOnCancelListener {
-                    if (!cancellationSignal.isCanceled)
+                    if (!cancellationSignal.isCanceled) {
+                        timeoutHandler.removeCallbacks(timeoutRunnable)
                         cancellationSignal.cancel()
+                    }
                 }
                 // Why getCancellationSignalObject returns an Object is unexplained
                 val signalObject =

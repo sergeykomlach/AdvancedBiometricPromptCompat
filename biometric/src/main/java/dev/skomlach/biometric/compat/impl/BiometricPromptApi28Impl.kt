@@ -38,7 +38,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
-import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricCryptoObject
@@ -69,7 +68,6 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
-import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -451,13 +449,15 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         onUiOpened()
         showSystemUi(prompt)
         if (secondary.isNotEmpty()) {
-            LegacyBiometric.authenticate(
-                builder.getCryptographyPurpose(),
-                dialog?.authPreview,
-                secondary,
-                fmAuthCallback,
-                BundleBuilder.create(builder)
-            )
+            ExecutorHelper.postDelayed({
+                LegacyBiometric.authenticate(
+                    builder.getCryptographyPurpose(),
+                    dialog?.authPreview,
+                    secondary,
+                    fmAuthCallback,
+                    BundleBuilder.create(builder)
+                )
+            }, 500)
         }
 
     }

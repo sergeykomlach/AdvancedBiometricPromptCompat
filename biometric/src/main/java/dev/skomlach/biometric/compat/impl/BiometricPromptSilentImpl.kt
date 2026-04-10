@@ -99,13 +99,15 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         val types: List<BiometricType?> = ArrayList(
             builder.getAllAvailableTypes()
         )
-        LegacyBiometric.authenticate(
-            builder.getCryptographyPurpose(),
-            null,
-            types,
-            fmAuthCallback,
-            BundleBuilder.create(builder)
-        )
+        ExecutorHelper.postDelayed({
+            LegacyBiometric.authenticate(
+                builder.getCryptographyPurpose(),
+                null,
+                types,
+                fmAuthCallback,
+                BundleBuilder.create(builder)
+            )
+        }, 500)
     }
 
     override fun stopAuth() {

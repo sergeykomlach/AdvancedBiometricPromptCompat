@@ -104,13 +104,16 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         val types: List<BiometricType?> = ArrayList(
             builder.getAllAvailableTypes()
         )
-        LegacyBiometric.authenticate(
-            builder.getCryptographyPurpose(),
-            dialog?.authPreview,
-            types,
-            fmAuthCallback,
-            BundleBuilder.create(builder)
-        )
+        ExecutorHelper.postDelayed({
+            LegacyBiometric.authenticate(
+                builder.getCryptographyPurpose(),
+                dialog?.authPreview,
+                types,
+                fmAuthCallback,
+                BundleBuilder.create(builder)
+            )
+        }, 500)
+
     }
 
     override fun stopAuth() {
