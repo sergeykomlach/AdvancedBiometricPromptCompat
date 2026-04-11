@@ -142,7 +142,7 @@ object TfLiteBackendHelper {
                 consecutive = max(consecutive, 3)
                 minFace += 10
                 brightness += 4
-                antiThreshold -= 0.02f
+                antiThreshold -= 0.01f
                 antiWindow = max(antiWindow, 6)
                 antiMinFrames = max(antiMinFrames, 4)
                 antiStride = antiStride.coerceAtMost(1)
@@ -154,7 +154,7 @@ object TfLiteBackendHelper {
         }
 
         if (relaxed) {
-            threshold += 0.02f
+            threshold += 0.03f
             consecutive = consecutive.coerceAtMost(2)
             angleX += 4f
             angleY += 4f
@@ -195,9 +195,6 @@ object TfLiteBackendHelper {
 
         if (deviceClass == DevicePerformanceClass.LOW_END && base.antiSpoofingEnabled) {
             antiEnabled = antiEnabled && base.antiSpoofingOnAuthentication
-            if (antiMode == AntiSpoofingMode.BEFORE_RECOGNITION) {
-                antiMode = AntiSpoofingMode.AFTER_CANDIDATE
-            }
         }
 
         threshold = threshold.coerceIn(0.5f, 1.0f)

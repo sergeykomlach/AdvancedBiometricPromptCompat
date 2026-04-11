@@ -4,7 +4,6 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import androidx.core.graphics.scale
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.ExecutorHelper
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.io.IOException
@@ -19,8 +18,7 @@ import kotlin.math.abs
  * https://github.com/syaringan357/Android-MobileFaceNet-MTCNN-FaceAntiSpoofing/tree/master
  */
 class FaceAntiSpoofing private constructor(
-    private val assetManager: AssetManager,
-    private val selection: TfBackendSelection
+    private val interpreter: Interpreter
 ) {
 
     companion object {
@@ -49,11 +47,14 @@ class FaceAntiSpoofing private constructor(
             assetManager: AssetManager,
             selection: TfBackendSelection
         ): FaceAntiSpoofing {
-            return FaceAntiSpoofing(assetManager, selection)
+            val interpreter = Interpreter(
+                loadModelFile(assetManager, MODEL_FILE),
+                TfLiteBackendHelper.createOptions(selection)
+            )
+            return FaceAntiSpoofing(interpreter)
         }
     }
 
-    private var interpreter: Interpreter? = null
     private val imgData: ByteBuffer = ByteBuffer.allocateDirect(
         1 * INPUT_IMAGE_SIZE * INPUT_IMAGE_SIZE * 3 * 4
     ).apply {
@@ -65,29 +66,22 @@ class FaceAntiSpoofing private constructor(
     private val outputs = HashMap<Int, Any>(2)
     private val outputIndex0: Int by lazy {
         try {
-            interpreter?.getOutputIndex("Identity") ?: 0
+            interpreter.getOutputIndex("Identity")
         } catch (_: Throwable) {
             0
         }
     }
     private val outputIndex1: Int by lazy {
         try {
-            interpreter?.getOutputIndex("Identity_1") ?: 0
+            interpreter.getOutputIndex("Identity_1")
         } catch (_: Throwable) {
             1
         }
     }
 
     init {
-
-        ExecutorHelper.startOnBackground {
-            interpreter = Interpreter(
-                loadModelFile(assetManager, MODEL_FILE),
-                TfLiteBackendHelper.createOptions(selection)
-            )
-            outputs[outputIndex0] = clssPred
-            outputs[outputIndex1] = leafNodeMask
-        }
+        outputs[outputIndex0] = clssPred
+        outputs[outputIndex1] = leafNodeMask
     }
 
     /**
@@ -100,10 +94,6 @@ class FaceAntiSpoofing private constructor(
         try {
             convertBitmapToByteBuffer(bitmapScale)
             clearOutputs()
-            val interpreter = interpreter ?: run {
-                LogCat.logError(javaClass.simpleName, "Interpreter is not initialized")
-                return Float.MAX_VALUE
-            }
             interpreter.runForMultipleInputsOutputs(arrayOf<Any>(imgData), outputs)
             LogCat.log(TAG, "ClssPred: ${clssPred[0].contentToString()}")
             LogCat.log(TAG, "LeafNodeMask: ${leafNodeMask[0].contentToString()}")
@@ -193,11 +183,9 @@ class FaceAntiSpoofing private constructor(
 
     fun close() {
         try {
-            interpreter?.close()
+            interpreter.close()
         } catch (t: Throwable) {
             LogCat.logException(t)
-        } finally {
-            interpreter = null
         }
     }
 }
