@@ -18,7 +18,6 @@
  */
 package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 
-import android.content.res.AssetFileDescriptor
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -56,20 +55,17 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
 
         @Throws(IOException::class)
         private fun loadModelFile(assets: AssetManager, modelFilename: String): MappedByteBuffer {
-            var inputStream: FileInputStream? = null
-            var fileChannel: FileChannel? = null
-            var fileDescriptor: AssetFileDescriptor? = null
-            try {
-                fileDescriptor = assets.openFd(modelFilename)
-                inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-                fileChannel = inputStream.channel
-                val startOffset = fileDescriptor.startOffset
-                val declaredLength = fileDescriptor.declaredLength
-                return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-            } finally {
-                fileChannel?.close()
-                inputStream?.close()
-                fileDescriptor?.close()
+            assets.openFd(modelFilename).use { fileDescriptor ->
+                FileInputStream(fileDescriptor.fileDescriptor).use { inputStream ->
+                    val fileChannel = inputStream.channel
+                    val startOffset = fileDescriptor.startOffset
+                    val declaredLength = fileDescriptor.declaredLength
+                    return fileChannel.map(
+                        FileChannel.MapMode.READ_ONLY,
+                        startOffset,
+                        declaredLength
+                    )
+                }
             }
         }
 
@@ -313,7 +309,11 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         }
 
         embeddings[0].fill(0f)
-        tfLite?.runForMultipleInputsOutputs(arrayOf<Any>(imgData), outputMap)
+        val interpreter = tfLite ?: run {
+            LogCat.logError(javaClass.simpleName, "Interpreter is not initialized")
+            return mutableListOf<SimilarityClassifier.Recognition>()
+        }
+        interpreter.runForMultipleInputsOutputs(arrayOf<Any>(imgData), outputMap)
 
         var distance = Float.MAX_VALUE
         var recognitionId = "unknown"
