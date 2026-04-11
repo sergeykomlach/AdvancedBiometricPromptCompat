@@ -144,7 +144,7 @@ class TensorFlowFaceUnlockManager(
                 FaceDetectorOptions.Builder()
                     .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
                     .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
-                    .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                    .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
                     .build()
             )
         } catch (e: Exception) {
@@ -524,27 +524,45 @@ class TensorFlowFaceUnlockManager(
         spoofScoresWindow.clear()
     }
 
-    private fun shouldRunAntiSpoofing(
+    private enum class AntiSpoofingStage {
+        NONE,
+        BEFORE_RECOGNITION,
+        AFTER_CANDIDATE
+    }
+
+    private fun resolveAntiSpoofingStage(
         frameNumber: Int,
         consecutiveMatches: Int,
         candidateMatched: Boolean
-    ): Boolean {
-        if (!antiSpoofingEnabled) return false
+    ): AntiSpoofingStage {
+        if (!antiSpoofingEnabled) return AntiSpoofingStage.NONE
         val allowedForFlow = if (isEnrolling) {
             effectiveConfig.antiSpoofingOnEnrollment
         } else {
             effectiveConfig.antiSpoofingOnAuthentication
         }
-        if (!allowedForFlow) return false
-        if (frameNumber % effectiveConfig.antiSpoofingFrameStride != 0) return false
+        if (!allowedForFlow) return AntiSpoofingStage.NONE
+        if (frameNumber % effectiveConfig.antiSpoofingFrameStride != 0) {
+            return AntiSpoofingStage.NONE
+        }
 
         return when (effectiveConfig.antiSpoofingMode) {
-            AntiSpoofingMode.OFF -> false
-            AntiSpoofingMode.BEFORE_RECOGNITION -> true
-            AntiSpoofingMode.AFTER_CANDIDATE -> isEnrolling || candidateMatched ||
-                    consecutiveMatches >= effectiveConfig.antiSpoofingWarmupMatches
+            AntiSpoofingMode.OFF -> AntiSpoofingStage.NONE
+            AntiSpoofingMode.BEFORE_RECOGNITION -> AntiSpoofingStage.BEFORE_RECOGNITION
+            AntiSpoofingMode.AFTER_CANDIDATE -> if (
+                isEnrolling || candidateMatched ||
+                consecutiveMatches >= effectiveConfig.antiSpoofingWarmupMatches
+            ) {
+                AntiSpoofingStage.AFTER_CANDIDATE
+            } else {
+                AntiSpoofingStage.NONE
+            }
 
-            AntiSpoofingMode.AUTO -> isEnrolling || candidateMatched
+            AntiSpoofingMode.AUTO -> if (isEnrolling || candidateMatched) {
+                AntiSpoofingStage.AFTER_CANDIDATE
+            } else {
+                AntiSpoofingStage.NONE
+            }
         }
     }
 
@@ -696,24 +714,26 @@ class TensorFlowFaceUnlockManager(
 
                 processedFrameCounter++
 
-                if (shouldRunAntiSpoofing(
-                        processedFrameCounter,
-                        consecutiveMatchCounter,
-                        candidateMatched = false
-                    ) &&
-                    effectiveConfig.antiSpoofingMode == AntiSpoofingMode.BEFORE_RECOGNITION &&
-                    isSpoofDetected(livenessCrop)
-                ) {
-                    consecutiveMatchCounter = 0
-                    lastMatchedId = null
-                    onAuthenticationError(
-                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                var antiSpoofCheckedThisFrame = false
+                val antiSpoofStageBefore = resolveAntiSpoofingStage(
+                    frameNumber = processedFrameCounter,
+                    consecutiveMatches = consecutiveMatchCounter,
+                    candidateMatched = false
+                )
+                if (antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION) {
+                    antiSpoofCheckedThisFrame = true
+                    if (isSpoofDetected(livenessCrop)) {
+                        consecutiveMatchCounter = 0
+                        lastMatchedId = null
+                        onAuthenticationError(
+                            CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                            )
                         )
-                    )
-                    return
+                        return
+                    }
                 }
 
                 val results = detector?.recognizeImage(alignedFace, isEnrolling)
@@ -730,15 +750,17 @@ class TensorFlowFaceUnlockManager(
                 }
 
                 val result = results.first()
+                val antiSpoofStageAfter = resolveAntiSpoofingStage(
+                    frameNumber = processedFrameCounter,
+                    consecutiveMatches = consecutiveMatchCounter,
+                    candidateMatched = isEnrolling
+                )
                 if (isEnrolling) {
-                    if (shouldRunAntiSpoofing(
-                            processedFrameCounter,
-                            consecutiveMatchCounter,
-                            candidateMatched = true
-                        ) &&
-                        effectiveConfig.antiSpoofingMode != AntiSpoofingMode.OFF &&
+                    if (!antiSpoofCheckedThisFrame &&
+                        antiSpoofStageAfter == AntiSpoofingStage.AFTER_CANDIDATE &&
                         isSpoofDetected(livenessCrop)
                     ) {
+                        clearAntiSpoofingWindow()
                         onAuthenticationError(
                             CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
                             LocalizationHelper.getLocalizedString(
@@ -762,12 +784,13 @@ class TensorFlowFaceUnlockManager(
                 val id = result.id
                 val matched = distance < effectiveConfig.maxDistanceThreshold
 
-                if (matched && shouldRunAntiSpoofing(
-                        processedFrameCounter,
-                        consecutiveMatchCounter,
-                        candidateMatched = true
-                    ) &&
-                    effectiveConfig.antiSpoofingMode != AntiSpoofingMode.OFF &&
+                val antiSpoofStageForMatch = resolveAntiSpoofingStage(
+                    frameNumber = processedFrameCounter,
+                    consecutiveMatches = consecutiveMatchCounter,
+                    candidateMatched = matched
+                )
+                if (!antiSpoofCheckedThisFrame &&
+                    matched && antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &&
                     isSpoofDetected(livenessCrop)
                 ) {
                     clearAntiSpoofingWindow()

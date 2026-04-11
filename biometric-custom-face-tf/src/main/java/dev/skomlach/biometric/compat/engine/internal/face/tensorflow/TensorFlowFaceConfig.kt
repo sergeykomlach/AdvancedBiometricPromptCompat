@@ -58,7 +58,7 @@ enum class DevicePerformanceClass {
 
 data class TensorFlowFaceConfig(
     @FloatRange(from = 0.5, to = 1.0)
-    val maxDistanceThresholds: Float = 0.76f,
+    val maxDistanceThresholds: Float = 0.74f,
     @IntRange(from = 1)
     val requiredConsecutiveMatches: Int = 2,
     val performanceProfile: TensorFlowPerformanceProfile = TensorFlowPerformanceProfile.AUTO,
@@ -68,22 +68,22 @@ data class TensorFlowFaceConfig(
     val strictPolicyOnModernDevices: Boolean = true,
     val relaxedPolicyOnLowEndDevices: Boolean = true,
     @FloatRange(from = 0.0, to = 45.0)
-    val maxHeadAngleX: Float = 22f,
+    val maxHeadAngleX: Float = 20f,
     @FloatRange(from = 0.0, to = 45.0)
-    val maxHeadAngleY: Float = 22f,
+    val maxHeadAngleY: Float = 20f,
     @IntRange(from = 64)
-    val minFaceSizePx: Int = 150,
+    val minFaceSizePx: Int = 160,
     @IntRange(from = 0, to = 255)
-    val minBrightnessLuma: Int = 48,
+    val minBrightnessLuma: Int = 52,
     @IntRange(from = 0)
-    val minLaplacianScore: Int = FaceAntiSpoofing.LAPLACIAN_THRESHOLD,
+    val minLaplacianScore: Int = 1100,
     @FloatRange(from = 1.0, to = 2.5)
-    val recognitionCropScale: Float = 1.30f,
+    val recognitionCropScale: Float = 1.28f,
     @FloatRange(from = 1.0, to = 3.0)
-    val livenessCropScale: Float = 1.60f,
+    val livenessCropScale: Float = 1.55f,
     val antiSpoofingEnabled: Boolean = true,
     @FloatRange(from = 0.0, to = 1.0)
-    val antiSpoofingScoreThreshold: Float = 0.28f,
+    val antiSpoofingScoreThreshold: Float = 0.26f,
     @IntRange(from = 1)
     val antiSpoofingWindowSize: Int = 5,
     @IntRange(from = 1)
@@ -95,7 +95,7 @@ data class TensorFlowFaceConfig(
     val antiSpoofingOnEnrollment: Boolean = true,
     val antiSpoofingOnAuthentication: Boolean = true,
     @IntRange(from = 0)
-    val errorCooldownMs: Long = 2_000L,
+    val errorCooldownMs: Long = 2_200L,
     @IntRange(from = 1)
     val maxFailedAttemptsBeforeLockout: Int = 5,
     @IntRange(from = 1)
@@ -104,9 +104,9 @@ data class TensorFlowFaceConfig(
     val lockoutDurationMs: Long = 30_000L,
     val countFailedAttemptsForDistantMismatches: Boolean = false,
     @FloatRange(from = 0.0, to = 0.5)
-    val mismatchGraceDistanceDelta: Float = 0.08f,
-    val recognitionCpuThreads: Int? = null,
-    val antiSpoofingCpuThreads: Int? = null,
+    val mismatchGraceDistanceDelta: Float = 0.06f,
+    val recognitionCpuThreads: Int? = 4,
+    val antiSpoofingCpuThreads: Int? = 2,
     val forceDeviceClass: DevicePerformanceClass? = null
 ) {
     init {
