@@ -134,7 +134,6 @@ class TensorFlowFaceUnlockManager(
     private val isProcessingFrame = AtomicBoolean(false)
     private val isSessionActive = AtomicBoolean(false)
     private val spoofScoresWindow = ArrayDeque<Float>()
-    private val deepfakeScoresWindow = ArrayDeque<Float>()
     private var processedFrameCounter = 0
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
@@ -195,35 +194,6 @@ class TensorFlowFaceUnlockManager(
             }
         } catch (e: Throwable) {
             LogCat.log(TAG, "AntiSpoofingModel init failed: ${e.message}")
-            null
-        }
-    }
-
-    private val deepfakeBackend: TfBackendSelection by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        val ts = System.currentTimeMillis()
-        TfLiteBackendHelper.chooseAntiSpoofingBackend(effectiveConfig, "Deepfake").also {
-            LogCat.log(TAG, "deepfakeBackend ${System.currentTimeMillis() - ts}ms; $it")
-        }
-    }
-
-    private val deepfakeDetector: DeepfakeFrameSequenceDetector? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        val ts = System.currentTimeMillis()
-        try {
-            DeepfakeFrameSequenceDetector.create(
-                assetManager = context.assets,
-                selection = deepfakeBackend,
-                sequenceLength = 10,
-                inputSize = 224,
-                threshold = 0.5f,
-                normalizeToUnitRange = true
-            ).also {
-                LogCat.log(
-                    TAG,
-                    "DeepfakeSequenceDetector init takes ${System.currentTimeMillis() - ts}ms"
-                )
-            }
-        } catch (e: Throwable) {
-            LogCat.log(TAG, "DeepfakeSequenceDetector init failed: ${e.message}")
             null
         }
     }
@@ -358,8 +328,6 @@ class TensorFlowFaceUnlockManager(
         if (!isSessionActive.compareAndSet(true, false)) return
 
         spoofScoresWindow.clear()
-        deepfakeScoresWindow.clear()
-        deepfakeDetector?.clear()
 
         try {
             frameProvider.stop()
@@ -453,8 +421,6 @@ class TensorFlowFaceUnlockManager(
 
         isSessionActive.set(true)
         spoofScoresWindow.clear()
-        deepfakeScoresWindow.clear()
-        deepfakeDetector?.clear()
         processedFrameCounter = 0
         consecutiveMatchCounter = 0
         lastMatchedId = null
@@ -558,11 +524,6 @@ class TensorFlowFaceUnlockManager(
         spoofScoresWindow.clear()
     }
 
-    private fun clearDeepfakeWindow() {
-        deepfakeScoresWindow.clear()
-        deepfakeDetector?.clear()
-    }
-
     private enum class AntiSpoofingStage {
         NONE,
         BEFORE_RECOGNITION,
@@ -634,30 +595,6 @@ class TensorFlowFaceUnlockManager(
         authCallback?.onAuthenticationError(code, msg)
     }
 
-    private fun isDeepfakeDetected(bitmap: Bitmap): Boolean {
-        val engine = deepfakeDetector ?: return false
-        return try {
-            engine.addFrame(bitmap)
-            val result = engine.predict()
-            if (!result.ready) {
-                return false
-            }
-            deepfakeScoresWindow.addLast(result.score)
-            while (deepfakeScoresWindow.size > 3) {
-                deepfakeScoresWindow.removeFirst()
-            }
-            if (deepfakeScoresWindow.size < 2) {
-                return false
-            }
-            val averageScore = deepfakeScoresWindow.average().toFloat()
-            val highScores = deepfakeScoresWindow.count { it >= 0.5f }
-            averageScore >= 0.5f && highScores >= 2
-        } catch (e: Throwable) {
-            LogCat.logException(e, TAG)
-            false
-        }
-    }
-
     private fun maybeHandleMismatchFailure(distance: Float) {
         val shouldCount = effectiveConfig.countFailedAttemptsForDistantMismatches ||
                 distance <= effectiveConfig.maxDistanceThreshold + effectiveConfig.mismatchGraceDistanceDelta
@@ -675,7 +612,6 @@ class TensorFlowFaceUnlockManager(
             if (isErrorActive()) return
             if (faces.isEmpty()) {
                 clearAntiSpoofingWindow()
-                clearDeepfakeWindow()
                 onAuthenticationError(
                     CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
                     LocalizationHelper.getLocalizedString(
@@ -687,7 +623,6 @@ class TensorFlowFaceUnlockManager(
             }
             if (faces.size > 1) {
                 clearAntiSpoofingWindow()
-                clearDeepfakeWindow()
                 onAuthenticationError(
                     CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
                     LocalizationHelper.getLocalizedString(
@@ -872,20 +807,6 @@ class TensorFlowFaceUnlockManager(
                 }
 
                 if (matched) {
-                    if (processedFrameCounter % 2 == 0 && isDeepfakeDetected(alignedFace)) {
-                        clearAntiSpoofingWindow()
-                        clearDeepfakeWindow()
-                        consecutiveMatchCounter = 0
-                        lastMatchedId = null
-                        onAuthenticationError(
-                            CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                            )
-                        )
-                        return
-                    }
                     if (id == lastMatchedId) {
                         consecutiveMatchCounter++
                     } else {
@@ -900,7 +821,6 @@ class TensorFlowFaceUnlockManager(
                     }
                 } else {
                     clearAntiSpoofingWindow()
-                    clearDeepfakeWindow()
                     consecutiveMatchCounter = 0
                     lastMatchedId = null
                     maybeHandleMismatchFailure(distance)
