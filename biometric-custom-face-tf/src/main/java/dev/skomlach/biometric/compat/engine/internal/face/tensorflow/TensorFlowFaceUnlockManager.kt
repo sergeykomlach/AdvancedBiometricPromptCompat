@@ -200,11 +200,10 @@ class TensorFlowFaceUnlockManager(
     }
 
     private val deepfakeBackend: TfBackendSelection by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        TfBackendSelection(
-            backend = TfBackend.CPU,
-            threads = (effectiveConfig.antiSpoofingCpuThreads ?: 2).coerceAtLeast(1),
-            reason = "Deepfake model forced to CPU for compatibility/stability"
-        )
+        val ts = System.currentTimeMillis()
+        TfLiteBackendHelper.chooseAntiSpoofingBackend(effectiveConfig, "Deepfake").also {
+            LogCat.log(TAG, "deepfakeBackend ${System.currentTimeMillis() - ts}ms; $it")
+        }
     }
 
     private val deepfakeDetector: DeepfakeFrameSequenceDetector? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
