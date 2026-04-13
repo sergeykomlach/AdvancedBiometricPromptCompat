@@ -134,7 +134,6 @@ class TensorFlowFaceUnlockManager(
     private val isProcessingFrame = AtomicBoolean(false)
     private val isSessionActive = AtomicBoolean(false)
     private val spoofScoresWindow = ArrayDeque<Float>()
-    private val deepfakeScoresWindow = ArrayDeque<Float>()
     private var processedFrameCounter = 0
     private var consecutiveMatchCounter = 0
     private var lastMatchedId: String? = null
@@ -195,36 +194,6 @@ class TensorFlowFaceUnlockManager(
             }
         } catch (e: Throwable) {
             LogCat.log(TAG, "AntiSpoofingModel init failed: ${e.message}")
-            null
-        }
-    }
-
-    private val deepfakeBackend: TfBackendSelection by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        TfBackendSelection(
-            backend = TfBackend.CPU,
-            threads = (effectiveConfig.antiSpoofingCpuThreads ?: 2).coerceAtLeast(1),
-            reason = "Deepfake model forced to CPU for compatibility/stability"
-        )
-    }
-
-    private val deepfakeDetector: DeepfakeFrameSequenceDetector? by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-        val ts = System.currentTimeMillis()
-        try {
-            DeepfakeFrameSequenceDetector.create(
-                assetManager = context.assets,
-                selection = deepfakeBackend,
-                sequenceLength = 10,
-                inputSize = 224,
-                threshold = 0.5f,
-                normalizeToUnitRange = true
-            ).also {
-                LogCat.log(
-                    TAG,
-                    "DeepfakeSequenceDetector init takes ${System.currentTimeMillis() - ts}ms"
-                )
-            }
-        } catch (e: Throwable) {
-            LogCat.log(TAG, "DeepfakeSequenceDetector init failed: ${e.message}")
             null
         }
     }
@@ -340,8 +309,6 @@ class TensorFlowFaceUnlockManager(
         backgroundThread = null
     }
 
-
-
     private fun cancelInternal() {
         if (isSessionActive.get()) {
             onAuthenticationError(
@@ -359,8 +326,6 @@ class TensorFlowFaceUnlockManager(
         if (!isSessionActive.compareAndSet(true, false)) return
 
         spoofScoresWindow.clear()
-        deepfakeScoresWindow.clear()
-        deepfakeDetector?.clear()
 
         try {
             frameProvider.stop()
@@ -454,8 +419,6 @@ class TensorFlowFaceUnlockManager(
 
         isSessionActive.set(true)
         spoofScoresWindow.clear()
-        deepfakeScoresWindow.clear()
-        deepfakeDetector?.clear()
         processedFrameCounter = 0
         consecutiveMatchCounter = 0
         lastMatchedId = null
@@ -559,15 +522,19 @@ class TensorFlowFaceUnlockManager(
         spoofScoresWindow.clear()
     }
 
-    private fun clearDeepfakeWindow() {
-        deepfakeScoresWindow.clear()
-        deepfakeDetector?.clear()
-    }
-
     private enum class AntiSpoofingStage {
         NONE,
         BEFORE_RECOGNITION,
         AFTER_CANDIDATE
+    }
+
+    private sealed class FaceAttemptResult {
+        object Success : FaceAttemptResult()
+        object MatchInProgress : FaceAttemptResult()
+        data class NoMatch(val distance: Float) : FaceAttemptResult()
+        object InvalidFace : FaceAttemptResult()
+        object Spoof : FaceAttemptResult()
+        object FatalError : FaceAttemptResult()
     }
 
     private fun resolveAntiSpoofingStage(
@@ -635,30 +602,6 @@ class TensorFlowFaceUnlockManager(
         authCallback?.onAuthenticationError(code, msg)
     }
 
-    private fun isDeepfakeDetected(bitmap: Bitmap): Boolean {
-        val engine = deepfakeDetector ?: return false
-        return try {
-            engine.addFrame(bitmap)
-            val result = engine.predict()
-            if (!result.ready) {
-                return false
-            }
-            deepfakeScoresWindow.addLast(result.score)
-            while (deepfakeScoresWindow.size > 3) {
-                deepfakeScoresWindow.removeFirst()
-            }
-            if (deepfakeScoresWindow.size < 2) {
-                return false
-            }
-            val averageScore = deepfakeScoresWindow.average().toFloat()
-            val highScores = deepfakeScoresWindow.count { it >= 0.5f }
-            averageScore >= 0.5f && highScores >= 2
-        } catch (e: Throwable) {
-            LogCat.logException(e, TAG)
-            false
-        }
-    }
-
     private fun maybeHandleMismatchFailure(distance: Float) {
         val shouldCount = effectiveConfig.countFailedAttemptsForDistantMismatches ||
                 distance <= effectiveConfig.maxDistanceThreshold + effectiveConfig.mismatchGraceDistanceDelta
@@ -676,7 +619,6 @@ class TensorFlowFaceUnlockManager(
             if (isErrorActive()) return
             if (faces.isEmpty()) {
                 clearAntiSpoofingWindow()
-                clearDeepfakeWindow()
                 onAuthenticationError(
                     CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
                     LocalizationHelper.getLocalizedString(
@@ -686,38 +628,110 @@ class TensorFlowFaceUnlockManager(
                 )
                 return
             }
-            if (faces.size > 1) {
-                clearAntiSpoofingWindow()
-                clearDeepfakeWindow()
-                onAuthenticationError(
-                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                    LocalizationHelper.getLocalizedString(
-                        context,
-                        R.string.biometriccompat_tf_face_help_model_too_many_faces
+            if (isEnrolling) {
+                if (faces.size > 1) {
+                    clearAntiSpoofingWindow()
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_too_many_faces
+                        )
                     )
-                )
+                    return
+                }
+
+                processedFrameCounter++
+                when (processSingleFace(bitmap, faces.first())) {
+                    FaceAttemptResult.Success,
+                    FaceAttemptResult.MatchInProgress,
+                    is FaceAttemptResult.NoMatch -> return
+
+                    FaceAttemptResult.InvalidFace -> {
+                        clearAntiSpoofingWindow()
+                        authCallback?.onAuthenticationHelp(
+                            CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.biometriccompat_tf_face_help_model_look_straight_ahead
+                            )
+                        )
+                        return
+                    }
+
+                    FaceAttemptResult.Spoof,
+                    FaceAttemptResult.FatalError -> return
+                }
+            }
+
+            val sortedFaces = faces.sortedByDescending {
+                it.boundingBox.width() * it.boundingBox.height()
+            }
+
+            processedFrameCounter++
+
+            var bestMismatchDistance: Float? = null
+            var sawInvalidFace = false
+
+            for (face in sortedFaces) {
+                when (val result = processSingleFace(bitmap, face)) {
+                    FaceAttemptResult.Success -> return
+
+                    FaceAttemptResult.MatchInProgress -> {
+                        return
+                    }
+
+                    is FaceAttemptResult.NoMatch -> {
+                        bestMismatchDistance = when {
+                            bestMismatchDistance == null -> result.distance
+                            result.distance < bestMismatchDistance!! -> result.distance
+                            else -> bestMismatchDistance
+                        }
+                    }
+
+                    FaceAttemptResult.InvalidFace -> {
+                        sawInvalidFace = true
+                    }
+
+                    FaceAttemptResult.Spoof,
+                    FaceAttemptResult.FatalError -> return
+                }
+            }
+
+            clearAntiSpoofingWindow()
+            consecutiveMatchCounter = 0
+            lastMatchedId = null
+
+            if (bestMismatchDistance != null) {
+                maybeHandleMismatchFailure(bestMismatchDistance!!)
+                val lockoutError = checkLockoutState()
+                if (lockoutError != null) {
+                    val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
+                        )
+                    } else {
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
+                        )
+                    }
+                    onAuthenticationError(lockoutError, msg)
+                    stopAuthentication()
+                } else {
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_retry
+                        )
+                    )
+                }
                 return
             }
 
-            val face =
-                faces.maxByOrNull { it.boundingBox.width() * it.boundingBox.height() } ?: return
-            if (face.boundingBox.width() < effectiveConfig.minFaceSizePx ||
-                face.boundingBox.height() < effectiveConfig.minFaceSizePx
-            ) {
-                clearAntiSpoofingWindow()
-                authCallback?.onAuthenticationHelp(
-                    CUSTOM_BIOMETRIC_ACQUIRED_TOO_FAST,
-                    LocalizationHelper.getLocalizedString(
-                        context,
-                        R.string.biometriccompat_tf_face_help_model_look_straight_ahead
-                    )
-                )
-                return
-            }
-            if (abs(face.headEulerAngleX) > effectiveConfig.maxHeadAngleX ||
-                abs(face.headEulerAngleY) > effectiveConfig.maxHeadAngleY
-            ) {
-                clearAntiSpoofingWindow()
+            if (sawInvalidFace) {
                 authCallback?.onAuthenticationHelp(
                     CUSTOM_BIOMETRIC_ACQUIRED_PARTIAL,
                     LocalizationHelper.getLocalizedString(
@@ -728,138 +742,74 @@ class TensorFlowFaceUnlockManager(
                 return
             }
 
-            val livenessCrop = createScaledFaceCrop(
-                originalBitmap = bitmap,
-                face = face,
-                cropScale = effectiveConfig.livenessCropScale,
-                outputSize = FaceAntiSpoofing.INPUT_IMAGE_SIZE
-            ) ?: run {
-                clearAntiSpoofingWindow()
-                return
+            clearAntiSpoofingWindow()
+            onAuthenticationError(
+                CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_tf_face_help_model_not_detected
+                )
+            )
+        } finally {
+            LogCat.log(TAG, "processFaces < ${System.currentTimeMillis() - ts}ms")
+        }
+    }
+
+    private fun processSingleFace(
+        bitmap: Bitmap,
+        face: Face
+    ): FaceAttemptResult {
+        if (face.boundingBox.width() < effectiveConfig.minFaceSizePx ||
+            face.boundingBox.height() < effectiveConfig.minFaceSizePx
+        ) {
+            return FaceAttemptResult.InvalidFace
+        }
+
+        if (abs(face.headEulerAngleX) > effectiveConfig.maxHeadAngleX ||
+            abs(face.headEulerAngleY) > effectiveConfig.maxHeadAngleY
+        ) {
+            return FaceAttemptResult.InvalidFace
+        }
+
+        val livenessCrop = createScaledFaceCrop(
+            originalBitmap = bitmap,
+            face = face,
+            cropScale = effectiveConfig.livenessCropScale,
+            outputSize = FaceAntiSpoofing.INPUT_IMAGE_SIZE
+        ) ?: return FaceAttemptResult.InvalidFace
+
+        val alignedFace = getAlignedFace(
+            originalBitmap = bitmap,
+            face = face,
+            cropScale = effectiveConfig.recognitionCropScale
+        ) ?: run {
+            livenessCrop.recycle()
+            return FaceAttemptResult.InvalidFace
+        }
+
+        try {
+            if (!isBitmapBrightEnough(livenessCrop, effectiveConfig.minBrightnessLuma)) {
+                return FaceAttemptResult.InvalidFace
             }
 
-            val alignedFace = getAlignedFace(
-                originalBitmap = bitmap,
-                face = face,
-                cropScale = effectiveConfig.recognitionCropScale
-            ) ?: run {
-                livenessCrop.recycle()
-                clearAntiSpoofingWindow()
-                return
+            val laplaceScore = if (antiSpoofingEnabled) {
+                antiSpoofing?.laplacian(livenessCrop) ?: effectiveConfig.minLaplacianScore
+            } else {
+                effectiveConfig.minLaplacianScore
+            }
+            if (laplaceScore < effectiveConfig.minLaplacianScore) {
+                return FaceAttemptResult.InvalidFace
             }
 
-            try {
-                if (!isBitmapBrightEnough(livenessCrop, effectiveConfig.minBrightnessLuma)) {
-                    clearAntiSpoofingWindow()
-                    authCallback?.onAuthenticationHelp(
-                        CUSTOM_BIOMETRIC_ACQUIRED_IMAGER_DIRTY,
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_model_too_dark
-                        )
-                    )
-                    return
-                }
-
-                val laplaceScore = if (antiSpoofingEnabled) {
-                    antiSpoofing?.laplacian(livenessCrop) ?: effectiveConfig.minLaplacianScore
-                } else {
-                    effectiveConfig.minLaplacianScore
-                }
-                if (laplaceScore < effectiveConfig.minLaplacianScore) {
-                    clearAntiSpoofingWindow()
-                    authCallback?.onAuthenticationHelp(
-                        CUSTOM_BIOMETRIC_ACQUIRED_INSUFFICIENT,
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_model_image_is_blurry
-                        )
-                    )
-                    return
-                }
-
-                processedFrameCounter++
-
-                var antiSpoofCheckedThisFrame = false
-                val antiSpoofStageBefore = resolveAntiSpoofingStage(
-                    frameNumber = processedFrameCounter,
-                    consecutiveMatches = consecutiveMatchCounter,
-                    candidateMatched = false
-                )
-                if (antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION) {
-                    antiSpoofCheckedThisFrame = true
-                    if (isSpoofDetected(livenessCrop)) {
-                        consecutiveMatchCounter = 0
-                        lastMatchedId = null
-                        onAuthenticationError(
-                            CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                            )
-                        )
-                        return
-                    }
-                }
-
-                val results = detector?.recognizeImage(alignedFace, isEnrolling)
-                if (results.isNullOrEmpty()) {
-                    clearAntiSpoofingWindow()
-                    onAuthenticationError(
-                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                        LocalizationHelper.getLocalizedString(
-                            context,
-                            R.string.biometriccompat_tf_face_help_model_not_detected
-                        )
-                    )
-                    return
-                }
-
-                val result = results.first()
-                val antiSpoofStageAfter = resolveAntiSpoofingStage(
-                    frameNumber = processedFrameCounter,
-                    consecutiveMatches = consecutiveMatchCounter,
-                    candidateMatched = isEnrolling
-                )
-                if (isEnrolling) {
-                    if (!antiSpoofCheckedThisFrame &&
-                        antiSpoofStageAfter == AntiSpoofingStage.AFTER_CANDIDATE &&
-                        isSpoofDetected(livenessCrop)
-                    ) {
-                        clearAntiSpoofingWindow()
-                        onAuthenticationError(
-                            CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                            )
-                        )
-                        return
-                    }
-                    result.crop =
-                        alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
-                    detector?.register(enrollmentTag, result)
-                    LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (enroll)")
-                    authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
-                    stopAuthentication()
-                    resetPermanentLockOut()
-                    return
-                }
-
-                val distance = result.distance ?: return
-                val id = result.id
-                val matched = distance < effectiveConfig.maxDistanceThreshold
-
-                val antiSpoofStageForMatch = resolveAntiSpoofingStage(
-                    frameNumber = processedFrameCounter,
-                    consecutiveMatches = consecutiveMatchCounter,
-                    candidateMatched = matched
-                )
-                if (!antiSpoofCheckedThisFrame &&
-                    matched && antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &&
-                    isSpoofDetected(livenessCrop)
-                ) {
-                    clearAntiSpoofingWindow()
+            var antiSpoofCheckedThisFace = false
+            val antiSpoofStageBefore = resolveAntiSpoofingStage(
+                frameNumber = processedFrameCounter,
+                consecutiveMatches = consecutiveMatchCounter,
+                candidateMatched = false
+            )
+            if (antiSpoofStageBefore == AntiSpoofingStage.BEFORE_RECOGNITION) {
+                antiSpoofCheckedThisFace = true
+                if (isSpoofDetected(livenessCrop)) {
                     consecutiveMatchCounter = 0
                     lastMatchedId = null
                     onAuthenticationError(
@@ -869,73 +819,108 @@ class TensorFlowFaceUnlockManager(
                             R.string.biometriccompat_tf_face_help_model_fake_face_detected
                         )
                     )
-                    return
+                    return FaceAttemptResult.Spoof
+                }
+            }
+
+            val results = detector?.recognizeImage(alignedFace, isEnrolling)
+            if (results.isNullOrEmpty()) {
+                clearAntiSpoofingWindow()
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_not_detected
+                    )
+                )
+                return FaceAttemptResult.FatalError
+            }
+
+            val result = results.minByOrNull { it.distance ?: Float.MAX_VALUE }
+                ?: return FaceAttemptResult.InvalidFace
+
+            val antiSpoofStageAfter = resolveAntiSpoofingStage(
+                frameNumber = processedFrameCounter,
+                consecutiveMatches = consecutiveMatchCounter,
+                candidateMatched = isEnrolling
+            )
+
+            if (isEnrolling) {
+                if (!antiSpoofCheckedThisFace &&
+                    antiSpoofStageAfter == AntiSpoofingStage.AFTER_CANDIDATE &&
+                    isSpoofDetected(livenessCrop)
+                ) {
+                    clearAntiSpoofingWindow()
+                    onAuthenticationError(
+                        CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                        )
+                    )
+                    return FaceAttemptResult.Spoof
                 }
 
-                if (matched) {
-                    if (processedFrameCounter % 2 == 0 && isDeepfakeDetected(alignedFace)) {
-                        clearAntiSpoofingWindow()
-                        clearDeepfakeWindow()
-                        consecutiveMatchCounter = 0
-                        lastMatchedId = null
-                        onAuthenticationError(
-                            CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_fake_face_detected
-                            )
-                        )
-                        return
-                    }
-                    if (id == lastMatchedId) {
-                        consecutiveMatchCounter++
-                    } else {
-                        consecutiveMatchCounter = 1
-                        lastMatchedId = id
-                    }
-                    if (consecutiveMatchCounter >= effectiveConfig.requiredConsecutiveMatches) {
-                        LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (auth)")
-                        authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
-                        stopAuthentication()
-                        resetPermanentLockOut()
-                    }
-                } else {
-                    clearAntiSpoofingWindow()
-                    clearDeepfakeWindow()
-                    consecutiveMatchCounter = 0
-                    lastMatchedId = null
-                    maybeHandleMismatchFailure(distance)
-                    val lockoutError = checkLockoutState()
-                    if (lockoutError != null) {
-                        val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_too_many_attempts_permanent
-                            )
-                        } else {
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_too_many_attempts_try_later
-                            )
-                        }
-                        onAuthenticationError(lockoutError, msg)
-                        stopAuthentication()
-                    } else {
-                        onAuthenticationError(
-                            CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                            LocalizationHelper.getLocalizedString(
-                                context,
-                                R.string.biometriccompat_tf_face_help_model_retry
-                            )
-                        )
-                    }
-                }
-            } finally {
-                if (!alignedFace.isRecycled) alignedFace.recycle()
-                if (!livenessCrop.isRecycled) livenessCrop.recycle()
+                result.crop =
+                    alignedFace.copy(alignedFace.config ?: Bitmap.Config.ARGB_8888, false)
+                detector?.register(enrollmentTag, result)
+                LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (enroll)")
+                authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
+                stopAuthentication()
+                resetPermanentLockOut()
+                return FaceAttemptResult.Success
             }
+
+            val distance = result.distance ?: return FaceAttemptResult.InvalidFace
+            val id = result.id
+            val matched = distance < effectiveConfig.maxDistanceThreshold
+
+            val antiSpoofStageForMatch = resolveAntiSpoofingStage(
+                frameNumber = processedFrameCounter,
+                consecutiveMatches = consecutiveMatchCounter,
+                candidateMatched = matched
+            )
+            if (!antiSpoofCheckedThisFace &&
+                matched &&
+                antiSpoofStageForMatch == AntiSpoofingStage.AFTER_CANDIDATE &&
+                isSpoofDetected(livenessCrop)
+            ) {
+                clearAntiSpoofingWindow()
+                consecutiveMatchCounter = 0
+                lastMatchedId = null
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_SPACE,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_fake_face_detected
+                    )
+                )
+                return FaceAttemptResult.Spoof
+            }
+
+            if (matched) {
+                if (id == lastMatchedId) {
+                    consecutiveMatchCounter++
+                } else {
+                    consecutiveMatchCounter = 1
+                    lastMatchedId = id
+                }
+
+                if (consecutiveMatchCounter >= effectiveConfig.requiredConsecutiveMatches) {
+                    LogCat.logError(TAG, "processFaces onAuthenticationSucceeded (auth)")
+                    authCallback?.onAuthenticationSucceeded(AuthenticationResult(null))
+                    stopAuthentication()
+                    resetPermanentLockOut()
+                    return FaceAttemptResult.Success
+                }
+
+                return FaceAttemptResult.MatchInProgress
+            }
+
+            return FaceAttemptResult.NoMatch(distance)
         } finally {
-            LogCat.log(TAG, "processFaces < ${System.currentTimeMillis() - ts}ms")
+            if (!alignedFace.isRecycled) alignedFace.recycle()
+            if (!livenessCrop.isRecycled) livenessCrop.recycle()
         }
     }
 

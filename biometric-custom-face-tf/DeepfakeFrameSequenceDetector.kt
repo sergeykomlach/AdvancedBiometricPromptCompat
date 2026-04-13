@@ -53,7 +53,7 @@ class DeepfakeFrameSequenceDetector private constructor(
 
     companion object {
         private const val TAG = "DeepfakeSequenceDetector"
-        const val DEFAULT_MODEL_FILE = "tf_bio/deepfake_detection_model.tflite"
+        const val DEFAULT_MODEL_FILE = "deepfake_detection_model.tflite"
         const val DEFAULT_SEQUENCE_LENGTH = 10
         const val DEFAULT_INPUT_SIZE = 224
         const val DEFAULT_THRESHOLD = 0.5f
