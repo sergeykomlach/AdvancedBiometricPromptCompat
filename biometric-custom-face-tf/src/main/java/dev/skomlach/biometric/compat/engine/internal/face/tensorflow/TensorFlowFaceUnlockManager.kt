@@ -684,7 +684,7 @@ class TensorFlowFaceUnlockManager(
                     is FaceAttemptResult.NoMatch -> {
                         bestMismatchDistance = when {
                             bestMismatchDistance == null -> result.distance
-                            result.distance < bestMismatchDistance!! -> result.distance
+                            result.distance < bestMismatchDistance -> result.distance
                             else -> bestMismatchDistance
                         }
                     }
@@ -703,7 +703,7 @@ class TensorFlowFaceUnlockManager(
             lastMatchedId = null
 
             if (bestMismatchDistance != null) {
-                maybeHandleMismatchFailure(bestMismatchDistance!!)
+                maybeHandleMismatchFailure(bestMismatchDistance)
                 val lockoutError = checkLockoutState()
                 if (lockoutError != null) {
                     val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
