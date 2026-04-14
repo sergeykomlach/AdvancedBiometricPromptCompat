@@ -360,10 +360,10 @@ object BiometricManagerCompat {
                         }
                     }
                 }
-                permission.addAll(LegacyBiometric.getSoftwareModulePermissions())
+
             }
         }
-
+        permission.addAll(LegacyBiometric.getSoftwareModulePermissions())
         return ArrayList(permission)
     }
 

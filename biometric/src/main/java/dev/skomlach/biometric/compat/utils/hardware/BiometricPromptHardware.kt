@@ -382,8 +382,8 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         private fun getCipher(): Cipher {
             return Cipher.getInstance(
                 KeyProperties.KEY_ALGORITHM_AES + "/"
-                        + KeyProperties.BLOCK_MODE_CBC + "/"
-                        + KeyProperties.ENCRYPTION_PADDING_PKCS7
+                        + KeyProperties.BLOCK_MODE_GCM + "/"
+                        + KeyProperties.ENCRYPTION_PADDING_NONE
             )
         }
 
@@ -398,9 +398,9 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                             KEY_NAME,
                             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
                         )
-                            .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-                            .setRandomizedEncryptionRequired(false)
+                            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                            .setRandomizedEncryptionRequired(true)
                             .apply {
                                 setInvalidatedByBiometricEnrollment(true)
                                 setUserAuthenticationRequired(true)

@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.security.GeneralSecurityException
+import java.security.SecureRandom
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.crypto.Cipher
@@ -40,12 +41,14 @@ import kotlin.text.Charsets.UTF_8
 
 class KeyNameCipher(
     private val aesKey32: ByteArray,
-    private val nonce12: ByteArray
+    private val secureRandom: SecureRandom = SecureRandom()
 ) {
 
-    private val aad = "FNv1".toByteArray(UTF_8)
+    private val aad = "FNv2".toByteArray(UTF_8)
 
     fun encryptName(realName: String): String {
+        val nonce12 = ByteArray(12)
+        secureRandom.nextBytes(nonce12)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(
             Cipher.ENCRYPT_MODE,
@@ -63,12 +66,12 @@ class KeyNameCipher(
             packed,
             Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
         )
-        return "e_$b64"
+        return "e2_$b64"
     }
 
     fun decryptName(encName: String): String? {
-        if (!encName.startsWith("e_")) return null
-        val packed = Base64.decode(encName.substring(2), Base64.URL_SAFE)
+        if (!encName.startsWith("e2_")) return null
+        val packed = Base64.decode(encName.substring(3), Base64.URL_SAFE)
         if (packed.size < 12 + 16) return null
 
         val nonce = packed.copyOfRange(0, 12)
@@ -95,19 +98,27 @@ class EncryptedSharedPreferences(
         private const val NULL_VALUE = "__NULL__"
     }
 
-    private val keys by lazy {
-        val config = SharedPreferenceProvider.EncryptionConfig.instance
-        AesCbcWithIntegrity.generateKeyFromPassword(
-            String(config.password.reversedArray()),
-            config.salt.reversedArray()
-        )
+    private data class DerivedConfig(
+        val valueKeys: AesCbcWithIntegrity.SecretKeys,
+        val fileNameCipher: KeyNameCipher
+    )
+
+    private val primaryConfig by lazy {
+        deriveConfig(SharedPreferenceProvider.EncryptionConfig.instance)
     }
-    private val reversibleFileNameCipher by lazy {
-        val config = SharedPreferenceProvider.EncryptionConfig.instance
-        KeyNameCipher(
-            (config.password + config.salt).copyOf(32).reversedArray(),
-            (config.password.reversedArray() + config.salt.reversedArray()).copyOf(12)
-                .reversedArray()
+    private val legacyConfig by lazy {
+        deriveConfig(SharedPreferenceProvider.EncryptionConfig.legacyInstance)
+    }
+
+    private fun deriveConfig(config: SharedPreferenceProvider.EncryptionConfig): DerivedConfig {
+        return DerivedConfig(
+            valueKeys = AesCbcWithIntegrity.generateKeyFromPassword(
+                String(config.password.reversedArray()),
+                config.salt.reversedArray()
+            ),
+            fileNameCipher = KeyNameCipher(
+                (config.password + config.salt).copyOf(32).reversedArray()
+            )
         )
     }
 
@@ -130,26 +141,37 @@ class EncryptedSharedPreferences(
         if (ciphertext.isNullOrEmpty()) {
             return ciphertext
         }
-        return reversibleFileNameCipher.decryptName(ciphertext)
+        return try {
+            primaryConfig.fileNameCipher.decryptName(ciphertext)
+                ?: legacyConfig.fileNameCipher.decryptName(ciphertext)
+        } catch (e: Throwable) {
+            null
+        }
     }
 
     private fun encryptString(cleartext: String?): String? {
         if (cleartext.isNullOrEmpty()) {
             return cleartext
         }
-        return reversibleFileNameCipher.encryptName(cleartext)
+        return primaryConfig.fileNameCipher.encryptName(cleartext)
     }
 
     private fun decrypt(ciphertext: String?): ByteArray? {
         if (ciphertext.isNullOrEmpty()) return ciphertext?.toByteArray(UTF_8)
+        return decryptWith(primaryConfig.valueKeys, ciphertext)
+            ?: decryptWith(legacyConfig.valueKeys, ciphertext)
+    }
+
+    private fun decryptWith(
+        keys: AesCbcWithIntegrity.SecretKeys,
+        ciphertext: String
+    ): ByteArray? {
         return try {
             val cipherTextIvMac = AesCbcWithIntegrity.CipherTextIvMac(ciphertext)
             AesCbcWithIntegrity.decrypt(cipherTextIvMac, keys)
         } catch (e: GeneralSecurityException) {
-            LogCat.logException(e)
             null
         } catch (e: UnsupportedEncodingException) {
-            LogCat.logException(e)
             null
         }
     }
@@ -159,7 +181,7 @@ class EncryptedSharedPreferences(
             return String(cleartext ?: return null, UTF_8)
         }
         return try {
-            AesCbcWithIntegrity.encrypt(cleartext, keys).toString()
+            AesCbcWithIntegrity.encrypt(cleartext, primaryConfig.valueKeys).toString()
         } catch (e: GeneralSecurityException) {
             LogCat.logException(e)
             null
@@ -169,7 +191,7 @@ class EncryptedSharedPreferences(
         }
     }
 
-    private class Editor(
+    private inner class Editor(
         private val mEncryptedSharedPreferences: EncryptedSharedPreferences,
         editor: SharedPreferences.Editor
     ) : SharedPreferences.Editor {
@@ -178,11 +200,11 @@ class EncryptedSharedPreferences(
         private val mClearRequested = AtomicBoolean(false)
 
         override fun putString(key: String?, value: String?): SharedPreferences.Editor {
-            var value = value
-            if (value == null) {
-                value = NULL_VALUE
+            var outValue = value
+            if (outValue == null) {
+                outValue = NULL_VALUE
             }
-            val stringBytes = value.toByteArray(StandardCharsets.UTF_8)
+            val stringBytes = outValue.toByteArray(StandardCharsets.UTF_8)
             val stringByteLength = stringBytes.size
             val buffer = ByteBuffer.allocate(
                 (Integer.BYTES + Integer.BYTES + stringByteLength)
@@ -197,14 +219,14 @@ class EncryptedSharedPreferences(
         override fun putStringSet(
             key: String?, values: MutableSet<String>?
         ): SharedPreferences.Editor {
-            var values = values
-            if (values == null) {
-                values = ArraySet()
-                values.add(NULL_VALUE)
+            var localValues = values
+            if (localValues == null) {
+                localValues = ArraySet()
+                localValues.add(NULL_VALUE)
             }
-            val byteValues: MutableList<ByteArray> = ArrayList(values.size)
-            var totalBytes = values.size * Integer.BYTES
-            for (strValue in values) {
+            val byteValues: MutableList<ByteArray> = ArrayList(localValues.size)
+            var totalBytes = localValues.size * Integer.BYTES
+            for (strValue in localValues) {
                 val byteValue = strValue.toByteArray(StandardCharsets.UTF_8)
                 byteValues.add(byteValue)
                 totalBytes += byteValue.size
@@ -253,67 +275,56 @@ class EncryptedSharedPreferences(
         }
 
         override fun remove(key: String?): SharedPreferences.Editor {
-            mEditor.remove(mEncryptedSharedPreferences.encryptKey(key))
+            val encryptedKey = mEncryptedSharedPreferences.findEncryptedKey(key)
+                ?: mEncryptedSharedPreferences.encryptKey(key)
+            mEditor.remove(encryptedKey)
             mKeysChanged.add(key)
             return this
         }
 
         override fun clear(): SharedPreferences.Editor {
-            // Set the flag to clear on commit, this operation happens first on commit.
-            // Cannot use underlying clear operation, it will remove the keysets and
-            // break the editor.
             mClearRequested.set(true)
             return this
         }
 
         override fun commit(): Boolean {
             clearKeysIfNeeded()
-            try {
-                return mEditor.commit()
-            } finally {
-                notifyListeners()
-                mKeysChanged.clear()
-            }
+            val result = mEditor.commit()
+            notifyListeners()
+            return result
         }
 
         override fun apply() {
             clearKeysIfNeeded()
             mEditor.apply()
             notifyListeners()
-            mKeysChanged.clear()
         }
 
-        fun clearKeysIfNeeded() {
-            // Call "clear" first as per the documentation, remove all keys that haven't
-            // been modified in this editor.
+        private fun clearKeysIfNeeded() {
             if (mClearRequested.getAndSet(false)) {
-                for (key in mEncryptedSharedPreferences.all.keys) {
+                for ((key) in mEncryptedSharedPreferences.mSharedPreferences.all.entries) {
                     if (!mKeysChanged.contains(key)) {
-                        mEditor.remove(mEncryptedSharedPreferences.encryptKey(key))
+                        mEditor.remove(key)
                     }
                 }
             }
         }
 
-        fun putEncryptedObject(key: String?, value: ByteArray?) {
-            var key = key
-            mKeysChanged.add(key)
-            if (key == null) {
-                key = NULL_VALUE
-            }
-            try {
-                val encryptedPair = mEncryptedSharedPreferences.encryptKeyValuePair(key, value)
-                mEditor.putString(encryptedPair.first, encryptedPair.second)
-            } catch (ex: GeneralSecurityException) {
-                throw SecurityException("Could not encrypt data: " + ex.message, ex)
-            }
-        }
-
-        fun notifyListeners() {
+        private fun notifyListeners() {
             for (listener in mEncryptedSharedPreferences.mListeners) {
                 for (key in mKeysChanged) {
                     listener.onSharedPreferenceChanged(mEncryptedSharedPreferences, key)
                 }
+            }
+        }
+
+        private fun putEncryptedObject(key: String?, value: ByteArray?) {
+            try {
+                val encryptedPair = mEncryptedSharedPreferences.encryptKeyValuePair(key, value)
+                mEditor.putString(encryptedPair.first, encryptedPair.second)
+                mKeysChanged.add(key)
+            } catch (e: GeneralSecurityException) {
+                throw SecurityException("Could not encrypt data: ${e.message}", e)
             }
         }
     }
@@ -336,6 +347,7 @@ class EncryptedSharedPreferences(
 
         val value = getDecryptedObject(key)
         val returnValues = if (value is Set<*>) {
+            @Suppress("UNCHECKED_CAST")
             value as Set<String>
         } else {
             ArraySet()
@@ -364,7 +376,7 @@ class EncryptedSharedPreferences(
     }
 
     override fun contains(key: String?): Boolean {
-        val encryptedKey = encryptKey(key)
+        val encryptedKey = findEncryptedKey(key) ?: return false
         return mSharedPreferences.contains(encryptedKey)
     }
 
@@ -392,15 +404,15 @@ class EncryptedSharedPreferences(
 
         companion object {
             fun fromId(id: Int): EncryptedType? {
-                when (id) {
-                    0 -> return STRING
-                    1 -> return STRING_SET
-                    2 -> return INT
-                    3 -> return LONG
-                    4 -> return FLOAT
-                    5 -> return BOOLEAN
+                return when (id) {
+                    0 -> STRING
+                    1 -> STRING_SET
+                    2 -> INT
+                    3 -> LONG
+                    4 -> FLOAT
+                    5 -> BOOLEAN
+                    else -> null
                 }
-                return null
             }
         }
     }
@@ -412,21 +424,34 @@ class EncryptedSharedPreferences(
     private fun decryptKey(encryptedKey: String?): String {
         var key = decryptString(encryptedKey)
         if (key == null) {
-            key = NULL_VALUE
+            key = encryptedKey ?: NULL_VALUE
         }
-        return key
+        return if (key == NULL_VALUE) NULL_VALUE else key
+    }
+
+    internal fun findEncryptedKey(key: String?): String? {
+        val normalizedKey = key ?: NULL_VALUE
+        val direct = encryptString(normalizedKey)
+        if (direct != null && mSharedPreferences.contains(direct)) {
+            return direct
+        }
+        for (storedKey in mSharedPreferences.all.keys) {
+            if (decryptString(storedKey) == normalizedKey) {
+                return storedKey
+            }
+        }
+        return null
     }
 
     @Throws(SecurityException::class)
     private fun getDecryptedObject(key: String?): Any? {
-        var key = key
-        if (key == null) {
-            key = NULL_VALUE
+        var localKey = key
+        if (localKey == null) {
+            localKey = NULL_VALUE
         }
 
         try {
-            val encryptedKey = encryptKey(key)
-
+            val encryptedKey = findEncryptedKey(localKey) ?: return null
             val encryptedValue: String =
                 mSharedPreferences.getString(encryptedKey, null) ?: return null
 
@@ -435,22 +460,16 @@ class EncryptedSharedPreferences(
             val buffer = ByteBuffer.wrap(value)
             buffer.position(0)
             val typeId = buffer.getInt()
-            val type = EncryptedType.fromId(
-                typeId
-            ) ?: throw SecurityException("Unknown type ID for encrypted pref value: $typeId")
+            val type = EncryptedType.fromId(typeId)
+                ?: throw SecurityException("Unknown type ID for encrypted pref value: $typeId")
 
             when (type) {
                 EncryptedType.STRING -> {
                     val stringLength = buffer.getInt()
                     val stringSlice = buffer.slice()
-                    buffer.limit(stringLength)
-
+                    stringSlice.limit(stringLength)
                     val stringValue = StandardCharsets.UTF_8.decode(stringSlice).toString()
-                    if (stringValue == NULL_VALUE) {
-                        return null
-                    }
-
-                    return stringValue
+                    return if (stringValue == NULL_VALUE) null else stringValue
                 }
 
                 EncryptedType.INT -> return buffer.getInt()
@@ -468,23 +487,21 @@ class EncryptedSharedPreferences(
                         stringSet.add(StandardCharsets.UTF_8.decode(subStringSlice).toString())
                     }
 
-                    if (stringSet.size == 1 && NULL_VALUE == stringSet.valueAt(0)) {
-                        return null
+                    return if (stringSet.size == 1 && NULL_VALUE == stringSet.valueAt(0)) {
+                        null
+                    } else {
+                        stringSet
                     }
-
-                    return stringSet
                 }
-
-                else -> throw SecurityException("Unhandled type for encrypted pref value: $type")
             }
         } catch (ex: GeneralSecurityException) {
-            throw SecurityException("Could not decrypt value. " + ex.message, ex)
+            throw SecurityException("Could not decrypt value. ${ex.message}", ex)
         }
     }
 
     @Throws(GeneralSecurityException::class)
     private fun encryptKeyValuePair(key: String?, value: ByteArray?): Pair<String, String> {
-        val encryptedKey = encryptKey(key)
+        val encryptedKey = findEncryptedKey(key) ?: encryptKey(key)
         val cipherText = encrypt(value)
         return Pair(encryptedKey, cipherText)
     }

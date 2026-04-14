@@ -24,26 +24,16 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.security.KeyPairGeneratorSpec
-import android.util.Base64
 import androidx.annotation.RequiresApi
-import androidx.core.content.edit
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
-import dev.skomlach.biometric.compat.crypto.rsa.RsaPrivateKey
-import dev.skomlach.biometric.compat.crypto.rsa.RsaPublicKey
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.misc.currentLocale
-import dev.skomlach.common.storage.SharedPreferenceProvider
 import java.math.BigInteger
 import java.security.KeyFactory
-import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
-import java.security.PrivateKey
-import java.security.PublicKey
-import java.security.interfaces.RSAPrivateCrtKey
-import java.security.interfaces.RSAPublicKey
 import java.security.spec.AlgorithmParameterSpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.Locale
@@ -52,12 +42,8 @@ import javax.security.auth.x500.X500Principal
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
 class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
-    private val KEYSTORE_FALLBACK_NAME: String
-        get() = "biometric_keystore_fallback"
-    private val PRIVATE_KEY_NAME: String
-        get() = "privateKey"
-    private val PUBLIC_KEY_NAME: String
-        get() = "publicKey"
+    override val version: String
+        get() = "v2"
     private val TYPE_RSA: String
         get() = "RSA"
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
@@ -73,12 +59,6 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.deleteEntry("$KEY_NAME.$keyName")
-        val sharedPreferences =
-            SharedPreferenceProvider.getProtectedPreferences(
-                "$KEYSTORE_FALLBACK_NAME-$keyName"
-            )
-
-        sharedPreferences.edit { clear() }
     }
 
     override fun getInitializedCipherForEncryption(
@@ -88,19 +68,12 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         try {
             val cipher = getCipher()
             getOrCreateSecretKey("$KEY_NAME.$keyName")
-            val keys = getPublicKeys("$KEY_NAME.$keyName")
-            for (key in keys) {
-                try {
-                    key?.let {
-                        val unrestricted = KeyFactory.getInstance(key.algorithm)
-                            .generatePublic(X509EncodedKeySpec(key.encoded))
-                        cipher.init(Cipher.ENCRYPT_MODE, unrestricted)
-                        return cipher
-                    }
-                } catch (exception: Exception) {
-                }
-            }
-            throw IllegalStateException("Cipher initialization error")
+            val key = getPublicKey("$KEY_NAME.$keyName")
+                ?: throw IllegalStateException("Cipher initialization error")
+            val unrestricted = KeyFactory.getInstance(key.algorithm)
+                .generatePublic(X509EncodedKeySpec(key.encoded))
+            cipher.init(Cipher.ENCRYPT_MODE, unrestricted)
+            return cipher
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
                 e,
@@ -119,16 +92,9 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         try {
             val cipher = getCipher()
             getOrCreateSecretKey("$KEY_NAME.$keyName")
-            val keys = getPrivateKeys("$KEY_NAME.$keyName")
-            for (key in keys) {
-                try {
-                    key?.let {
-                        cipher.init(Cipher.DECRYPT_MODE, key)
-                    }
-                } catch (exception: Exception) {
-
-                }
-            }
+            val key = getPrivateKey("$KEY_NAME.$keyName")
+                ?: throw IllegalStateException("Cipher initialization error")
+            cipher.init(Cipher.DECRYPT_MODE, key)
             return cipher
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
@@ -159,15 +125,9 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
                 keyPairGenerator.initialize(spec)
 
-                val keyPair =
-                    keyPairGenerator.generateKeyPair()//SK: Exception on some devices here; It seems like device-specific KeyStore issue
-                storeKeyPairInFallback(name, keyPair)
+                keyPairGenerator.generateKeyPair()//SK: Exception on some devices here; It seems like device-specific KeyStore issue
             } catch (e: IllegalStateException) {
-                //SK: As a fallback - generate simple RSA keypair and store keys in EncryptedSharedPreferences
-                //NOTE: do not use getAlgorithmParameterSpec() - Keys can't be stored in this case
-                val keyPair = KeyPairGenerator.getInstance(TYPE_RSA)
-                keyPair.initialize(2048)
-                storeKeyPairInFallback(name, keyPair.generateKeyPair())
+                throw IllegalStateException("Android Keystore is unavailable; insecure software fallback has been disabled", e)
             } catch (e: Exception) {
                 throw e
             }
@@ -219,114 +179,12 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
     @Throws(Exception::class)
     private fun keyExist(name: String): Boolean {
-        var entry = keyPairInFallback(name)
-        try {
-
-            keyStore.load(null)
-
-            entry = entry || keyStore.containsAlias(name)
-        } catch (e: Throwable) {
-
-        }
-        return entry
+        keyStore.load(null)
+        return keyStore.containsAlias(name)
     }
 
-    private fun getPrivateKeys(name: String): List<PrivateKey?> {
-        val list = ArrayList<PrivateKey?>()
-        try {
-            keyStore.load(null)
-            list.add(keyStore.getKey(name, null) as PrivateKey?)
-        } catch (e: Throwable) {
+    private fun getPrivateKey(name: String) = keyStore.getKey(name, null) as? java.security.PrivateKey
 
-        }
-        getKeyPairFromFallback(name)?.let {
-            list.add(it.private)
-        }
-
-        return list
-    }
-
-    private fun getPublicKeys(name: String): List<PublicKey?> {
-        val list = ArrayList<PublicKey?>()
-        AndroidContext.systemLocale
-        try {
-            keyStore.load(null)
-            list.add(keyStore.getCertificate(name)?.publicKey)
-        } catch (e: Throwable) {
-
-        }
-        getKeyPairFromFallback(name)?.let {
-            list.add(it.public)
-        }
-        return list
-    }
-
-    private fun keyPairInFallback(name: String): Boolean {
-        return try {
-            val sharedPreferences =
-                SharedPreferenceProvider.getProtectedPreferences(
-                    "$KEYSTORE_FALLBACK_NAME-$name"
-                )
-            sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
-                PUBLIC_KEY_NAME
-            )
-        } catch (e: Throwable) {
-            false
-        }
-
-    }
-
-    private fun getKeyPairFromFallback(name: String): KeyPair? {
-        try {
-            val sharedPreferences =
-                SharedPreferenceProvider.getProtectedPreferences(
-                    "$KEYSTORE_FALLBACK_NAME-$name"
-                )
-            if (sharedPreferences.contains(PRIVATE_KEY_NAME) && sharedPreferences.contains(
-                    PUBLIC_KEY_NAME
-                )
-            ) {
-                val privateKeyBytes =
-                    Base64.decode(
-                        sharedPreferences.getString(PRIVATE_KEY_NAME, null),
-                        Base64.DEFAULT
-                    )
-                val publicKeyBytes =
-                    Base64.decode(
-                        sharedPreferences.getString(PUBLIC_KEY_NAME, null),
-                        Base64.DEFAULT
-                    )
-                val rsaPrivateKey = RsaPrivateKey.fromByteArray(privateKeyBytes, 8)
-                val rsaPublicKey = RsaPublicKey.fromByteArray(publicKeyBytes, 8)
-                return KeyPair(rsaPublicKey.toRsaKey(), rsaPrivateKey.toRsaKey())
-            }
-        } catch (e: Throwable) {
-
-        }
-        return null
-    }
-
-    private fun storeKeyPairInFallback(name: String, keyPair: KeyPair) {
-        try {
-            val rsaPrivateKey = RsaPrivateKey.fromRsaKey(keyPair.private as RSAPrivateCrtKey)
-            val rsaPublicKey = RsaPublicKey.fromRsaKey(keyPair.public as RSAPublicKey)
-            val sharedPreferences =
-                SharedPreferenceProvider.getProtectedPreferences(
-                    "$KEYSTORE_FALLBACK_NAME-$name"
-                )
-            sharedPreferences.edit {
-                putString(
-                    PRIVATE_KEY_NAME,
-                    Base64.encodeToString(rsaPrivateKey.toByteArray(8), Base64.DEFAULT)
-                )
-                    .putString(
-                        PUBLIC_KEY_NAME,
-                        Base64.encodeToString(rsaPublicKey.toByteArray(8), Base64.DEFAULT)
-                    )
-            }
-        } catch (e: Throwable) {
-
-        }
-    }
+    private fun getPublicKey(name: String) = keyStore.getCertificate(name)?.publicKey
 
 }

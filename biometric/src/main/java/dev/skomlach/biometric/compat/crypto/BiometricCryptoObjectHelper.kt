@@ -30,10 +30,7 @@ object BiometricCryptoObjectHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             CryptographyManagerInterfaceMarshmallowImpl()
         else
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
                 CryptographyManagerInterfaceKitkatImpl()
-            else
-                CryptographyManagerInterfaceLegacyImpl()
 
     fun deleteCrypto(name: String) {
         managerInterface.deleteKey(name)

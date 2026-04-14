@@ -60,7 +60,8 @@ class SoftwareBiometricModule(
     init {
         listener?.initFinished(biometricMethod, this@SoftwareBiometricModule)
     }
-
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = false
     fun rollbackLastEnroll() {
         d("$name: rollbackLastEnroll $enrollBundle")
         manager?.remove(enrollBundle ?: return)

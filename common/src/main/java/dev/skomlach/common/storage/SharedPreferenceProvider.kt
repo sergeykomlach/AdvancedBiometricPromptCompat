@@ -41,12 +41,12 @@ object SharedPreferenceProvider {
     }
 
     fun getProtectedPreferences(name: String): SharedPreferences {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && appContext.isDeviceProtectedStorage) {
+        val targetContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && appContext.isDeviceProtectedStorage) {
             appContext.createDeviceProtectedStorageContext()
-                .getSharedPreferences(name.ifEmpty { appContext.packageName }, Context.MODE_PRIVATE)
         } else {
-            EncryptedSharedPreferences(appContext, name)
+            appContext
         }
+        return EncryptedSharedPreferences(targetContext, name)
     }
 
     data class EncryptionConfig(val password: ByteArray, val salt: ByteArray) {
@@ -73,26 +73,88 @@ object SharedPreferenceProvider {
                 getEncryptionConfig()
             }
 
+            val legacyInstance: EncryptionConfig by lazy {
+                getLegacyEncryptionConfig()
+            }
+
+            private fun getDataDir(): File {
+                val context = appContext
+                val dataDir = File(
+                    ContextCompat.getDataDir(context)?.absolutePath
+                        ?: context.applicationInfo.dataDir
+                )
+                if (!dataDir.exists()) {
+                    dataDir.mkdirs()
+                }
+                return dataDir
+            }
+
+            private fun secureRandomBytes(size: Int): ByteArray {
+                val bytes = ByteArray(size)
+                try {
+                    val random: SecureRandom =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            SecureRandom.getInstanceStrong()
+                        } else {
+                            SecureRandom()
+                        }
+                    random.nextBytes(bytes)
+                } catch (e: Throwable) {
+                    SecureRandom().nextBytes(bytes)
+                }
+                return bytes
+            }
+
+            private fun readOrCreateBytes(fileName: String, size: Int): ByteArray {
+                val file = File(getDataDir(), fileName)
+                return if (file.exists()) {
+                    val bytes = file.readBytes()
+                    if (bytes.size == size) {
+                        bytes
+                    } else {
+                        val replacement = secureRandomBytes(size)
+                        file.writeBytes(replacement)
+                        file.setReadable(false, false)
+                        file.setWritable(false, false)
+                        file.setExecutable(false, false)
+                        file.setReadOnly()
+                        replacement
+                    }
+                } else {
+                    val bytes = secureRandomBytes(size)
+                    file.writeBytes(bytes)
+                    file.setReadable(false, false)
+                    file.setWritable(false, false)
+                    file.setExecutable(false, false)
+                    file.setReadOnly()
+                    bytes
+                }
+            }
+
             private fun getEncryptionConfig(): EncryptionConfig {
+                val password = readOrCreateBytes("bio_key", 32)
+                val salt = readOrCreateBytes("bio_hash", 128)
+                return EncryptionConfig(password, salt)
+            }
+
+            private fun getLegacyEncryptionConfig(): EncryptionConfig {
                 val context = appContext
 
                 @SuppressLint("HardwareIds")
                 fun deviceID(): String {
                     var deviceID = ""
                     val obsoleteId = Secure.getString(
-                        context?.contentResolver,
+                        context.contentResolver,
                         Secure.ANDROID_ID
-                    )//may be NULL sometimes https://console.firebase.google.com/u/1/project/roboform-cfb29/crashlytics/app/android:com.siber.roboform/issues/d57f539f1526118b1b1d5c833130bcdc
-                    //https://beltran.work/blog/2018-03-27-device-unique-id-android/
+                    )
                     if (obsoleteId.isNullOrEmpty()) {
                         val commonPsshUuid = UUID(0x1077EFECC0B24D02L, -0x531cc3e1ad1d04b5L)
                         val clearkeyUuid = UUID(-0x1d8e62a7567a4c37L, 0x781AB030AF78D30EL)
                         val widevineUuid = UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L)
                         val playReadyUuid = UUID(-0x65fb0f8667bfbd7aL, -0x546d19a41f77a06bL)
-                        val uuids =
-                            listOf(widevineUuid, playReadyUuid, clearkeyUuid, commonPsshUuid)
+                        val uuids = listOf(widevineUuid, playReadyUuid, clearkeyUuid, commonPsshUuid)
                         uuids.forEach {
-                            if (deviceID.isEmpty())
+                            if (deviceID.isEmpty()) {
                                 try {
                                     val drmIdByteArray = MediaDrm(it)
                                         .getPropertyByteArray(MediaDrm.PROPERTY_DEVICE_UNIQUE_ID)
@@ -105,53 +167,30 @@ object SharedPreferenceProvider {
                                     }
                                 } catch (ignore: Throwable) {
                                 }
+                            }
                         }
-                    } else
+                    } else {
                         deviceID = obsoleteId
+                    }
 
                     return deviceID
                 }
 
-                val password = deviceID().reversed()
-
-                val dataDir =
-                    File(
-                        ContextCompat.getDataDir(context)?.absolutePath
-                            ?: context.applicationInfo.dataDir
-                    )
-                dataDir.apply {
-                    if (!exists()) mkdirs()
-                }
-                //Mask salt as useless file
-                val data = File(dataDir, "bio_hash")
-                var bytes = ByteArray(128)//AesCbcWithIntegrity.PBE_SALT_LENGTH_BITS
-                if (!data.exists()) {
-                    try {
-                        val random: SecureRandom =
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                SecureRandom.getInstanceStrong()
-                            } else {
-                                SecureRandom.getInstance("SHA1PRNG")
-                            }
-                        random.nextBytes(bytes)
-                    } catch (e: Throwable) {
+                val password = deviceID().reversed().toByteArray(UTF_8)
+                val data = File(getDataDir(), "bio_hash")
+                var bytes = ByteArray(128)
+                if (data.exists()) {
+                    val tmp = data.readBytes()
+                    if (tmp.size == bytes.size) {
+                        bytes = tmp
+                    } else {
                         Arrays.fill(bytes, 0x00.toByte())
                     }
-                    data.apply {
-                        outputStream().use {
-                            writeBytes(bytes)
-                        }
-                        setReadOnly()
-                    }
                 } else {
-                    val tmp = data.readBytes()
-                    if (tmp.size == bytes.size)
-                        bytes = tmp
-                    else throw IllegalStateException()
+                    Arrays.fill(bytes, 0x00.toByte())
                 }
-                return EncryptionConfig(password.toByteArray(UTF_8), bytes.reversedArray())
+                return EncryptionConfig(password, bytes.reversedArray())
             }
         }
     }
-
 }

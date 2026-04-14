@@ -22,8 +22,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import android.security.keystore.KeyProperties.BLOCK_MODE_CBC
-import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_PKCS7
+import android.security.keystore.KeyProperties.BLOCK_MODE_GCM
+import android.security.keystore.KeyProperties.ENCRYPTION_PADDING_NONE
 import android.security.keystore.KeyProperties.KEY_ALGORITHM_AES
 import android.security.keystore.KeyProperties.PURPOSE_DECRYPT
 import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
@@ -35,10 +35,12 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.GCMParameterSpec
 
 @RequiresApi(Build.VERSION_CODES.M)
 class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface {
+    override val version: String
+        get() = "v2"
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
     private val KEY_NAME = "CryptographyManagerInterfaceMarshmallowImpl-$version"
@@ -87,7 +89,8 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 "$KEY_NAME.$keyName",
                 isUserAuthRequired
             )
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(initializationVector))
+            val iv = initializationVector ?: throw IllegalArgumentException("Initialization vector is required for decryption")
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
             cipher
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(
@@ -106,7 +109,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     }
 
     private fun getCipher(): Cipher {
-        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_CBC/$ENCRYPTION_PADDING_PKCS7"
+        val transformation = "$KEY_ALGORITHM_AES/$BLOCK_MODE_GCM/$ENCRYPTION_PADDING_NONE"
         return Cipher.getInstance(transformation)
     }
 
@@ -122,9 +125,9 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             PURPOSE_ENCRYPT or PURPOSE_DECRYPT
         )
         paramsBuilder.apply {
-            setBlockModes(BLOCK_MODE_CBC)
-            setEncryptionPaddings(ENCRYPTION_PADDING_PKCS7)
-            setRandomizedEncryptionRequired(false)
+            setBlockModes(BLOCK_MODE_GCM)
+            setEncryptionPaddings(ENCRYPTION_PADDING_NONE)
+            setRandomizedEncryptionRequired(true)
             setUserAuthenticationRequired(isUserAuthRequired)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 setInvalidatedByBiometricEnrollment(isUserAuthRequired)
@@ -132,15 +135,20 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 setUserPresenceRequired(false)//TRUE produce error during initialization
                 setUserConfirmationRequired(false)//TRUE produce error during encoding
-                setIsStrongBoxBacked(hasStrongBox())
+                if (hasStrongBox()) {
+                    setIsStrongBoxBacked(true)
+                }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                setUserAuthenticationParameters(
-                    Int.MAX_VALUE,
-                    KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
-                )
-            else
-                setUserAuthenticationValidityDurationSeconds(Int.MAX_VALUE)
+            if (isUserAuthRequired) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    setUserAuthenticationParameters(
+                        0,
+                        KeyProperties.AUTH_BIOMETRIC_STRONG
+                    )
+                } else {
+                    setUserAuthenticationValidityDurationSeconds(-1)
+                }
+            }
         }
 
         val keyGenParams = paramsBuilder.build()
