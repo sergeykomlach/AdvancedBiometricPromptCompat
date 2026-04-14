@@ -640,7 +640,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
                 val callback = object : AuthenticationCallback() {
 
-                    
+
                     private var lastKnownOrientation = AtomicInteger(0)
                     override fun onSucceeded(result: Set<AuthenticationResult>) {
                         if (builder.isUIOpened.get()) {
@@ -910,21 +910,24 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private fun checkPermissions(callback: AuthenticationCallback, authTask: () -> Unit) {
         BiometricLoggerImpl.e("BiometricPromptCompat.checkPermissions")
-        val permissions = BiometricManagerCompat.getUsedPermissions(
-            builder.getAllAvailableTypes()
-        )
-        if (!PermissionUtils.INSTANCE.hasSelfPermissions(permissions)) {
+        val permissionsMap = builder.getAllAvailableTypes().map {
+            Pair(it, BiometricManagerCompat.getUsedPermissions(listOf(it)))
+        }
+
+        if (!PermissionUtils.INSTANCE.hasSelfPermissions(permissionsMap.flatMap { p -> p.second })) {
             BiometricLoggerImpl.d(
-                "BiometricPromptCompat.checkPermissions - request permissions $permissions"
+                "BiometricPromptCompat.checkPermissions - request permissions $permissionsMap"
             )
             builder.getActivity()?.let {
                 PermissionsFragment.askForPermissions(
                     it,
-                    permissions
+                    permissionsMap.flatMap { p -> p.second }
                 ) {
-                    if (PermissionUtils.INSTANCE.hasSelfPermissions(permissions))
+                    if (permissionsMap.any { p ->
+                            PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
+                        }) {
                         authTask.invoke()
-                    else {
+                    } else {
                         callback.onCanceled(builder.getAllAvailableTypes().map { t ->
                             AuthenticationResult(
                                 t,
@@ -939,17 +942,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }
                 }
             } ?: run {
-                callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-                    AuthenticationResult(
-                        t,
-                        reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                        description = LocalizationHelper.getLocalizedString(
-                            builder.getContext(),
-                            dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
+                if (permissionsMap.any { p ->
+                        PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
+                    }) {
+                    authTask.invoke()
+                } else {
+                    callback.onCanceled(builder.getAllAvailableTypes().map { t ->
+                        AuthenticationResult(
+                            t,
+                            reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                            description = LocalizationHelper.getLocalizedString(
+                                builder.getContext(),
+                                dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
+                            )
                         )
-                    )
-                }.toSet())
-                authFlowInProgress.set(false)
+                    }.toSet())
+                    authFlowInProgress.set(false)
+                }
             }
         } else
             authTask.invoke()

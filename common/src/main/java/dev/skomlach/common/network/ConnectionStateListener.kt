@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
+ *  Copyright (c) 2026 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
  *  All rights reserved.
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,7 +125,7 @@ class ConnectionStateListener {
 
 
     @Suppress("DEPRECATION")
-    fun isConnectionDetected(): Boolean {
+    internal fun isConnectionDetected(): Boolean {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val cm = connectivityManager ?: return false
@@ -144,7 +144,7 @@ class ConnectionStateListener {
         }
     }
 
-    fun startListeners() {
+    internal fun startListeners() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 networkCallback?.let {
@@ -180,7 +180,7 @@ class ConnectionStateListener {
         }
     }
 
-    fun stopListeners() {
+    internal fun stopListeners() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 networkCallback?.let {
@@ -201,7 +201,7 @@ class ConnectionStateListener {
         }
     }
 
-    fun setState(newState: Boolean) {
+    internal fun setState(newState: Boolean) {
         //cancel  SocketCheck if it planned
         ping.cancelConnectionCheckQuery()
         if (newState != isConnectionOk.get()) {
@@ -211,10 +211,15 @@ class ConnectionStateListener {
         }
     }
 
-    fun updateConnectionCheckQuery(delaySeconds: Long) {
-        ping.updateConnectionCheckQuery(delaySeconds)
+    internal fun onScreenStateChanged(forceCheck: Boolean) {
+        ExecutorHelper.startOnBackground {
+            val isConnected = isConnectionDetected()
+            isConnectionOk.set(isConnected)
+            if (forceCheck)
+                handleNetworkSignalChanged(isConnected)
+        }
     }
 
-    val isConnected: Boolean
+    internal val isConnected: Boolean
         get() = isConnectionOk.get()
 }

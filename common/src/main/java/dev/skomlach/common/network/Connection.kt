@@ -29,13 +29,13 @@ import java.util.Collections
 
 object Connection {
 
-    val connectionStateListener = ConnectionStateListener()
+    private val connectionStateListener = ConnectionStateListener()
 
     private val netlistLis: MutableList<NetworkListener> =
         Collections.synchronizedList(ArrayList<NetworkListener>())
     private val screenLockReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            connectionStateListener.updateConnectionCheckQuery(0)
+            connectionStateListener.onScreenStateChanged(intent.action !== Intent.ACTION_SCREEN_OFF)
         }
     }
 
