@@ -19,7 +19,6 @@
 
 package dev.skomlach.biometric.compat.crypto
 
-import android.os.Build
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import kotlinx.coroutines.sync.Mutex
@@ -27,10 +26,7 @@ import kotlinx.coroutines.sync.Mutex
 object BiometricCryptoObjectHelper {
     private val mutex = Mutex()
     private val managerInterface: CryptographyManagerInterface =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            CryptographyManagerInterfaceMarshmallowImpl()
-        else
-                CryptographyManagerInterfaceKitkatImpl()
+        HybridCryptographyManagerInterface()
 
     fun deleteCrypto(name: String) {
         managerInterface.deleteKey(name)
@@ -45,6 +41,11 @@ object BiometricCryptoObjectHelper {
             return null
         mutex.tryLock()
         try {
+            if (!isUserAuthRequired) {
+                AppFlowCryptoFacade.registerKeyForAppFlow(name)
+                AppFlowCryptoFacade.unlockWithAppSecret(name, name.toCharArray().reversedArray())
+            } else
+                AppFlowCryptoFacade.registerKeyForBiometric(name)
             val cipher =
                 when (purpose.purpose) {
                     BiometricCryptographyPurpose.ENCRYPT -> try {
