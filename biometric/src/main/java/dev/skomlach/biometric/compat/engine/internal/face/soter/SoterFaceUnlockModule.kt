@@ -194,6 +194,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_UNABLE_TO_PROCESS -> failureReason =
                     AuthenticationFailureReason.AUTHENTICATION_FAILED
+
                 com.tencent.soter.core.biometric.FaceManager.FACE_ERROR_TIMEOUT -> failureReason =
                     AuthenticationFailureReason.TIMEOUT
 
@@ -212,7 +213,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -239,7 +240,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -254,7 +255,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true

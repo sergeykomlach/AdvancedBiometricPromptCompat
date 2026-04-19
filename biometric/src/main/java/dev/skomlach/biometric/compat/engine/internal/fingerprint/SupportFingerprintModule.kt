@@ -278,7 +278,7 @@ class SupportFingerprintModule(listener: LegacyBiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                         postCancelTask {
 
                             if (cancellationSignal?.isCanceled == false) {
@@ -306,7 +306,7 @@ class SupportFingerprintModule(listener: LegacyBiometricInitListener?) :
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -321,7 +321,7 @@ class SupportFingerprintModule(listener: LegacyBiometricInitListener?) :
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     postCancelTask {
 
                         if (cancellationSignal?.isCanceled == false) {

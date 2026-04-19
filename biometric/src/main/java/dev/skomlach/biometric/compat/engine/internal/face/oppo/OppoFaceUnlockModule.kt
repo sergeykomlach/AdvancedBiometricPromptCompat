@@ -322,7 +322,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -349,7 +349,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -364,7 +364,7 @@ class OppoFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString?:"Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true

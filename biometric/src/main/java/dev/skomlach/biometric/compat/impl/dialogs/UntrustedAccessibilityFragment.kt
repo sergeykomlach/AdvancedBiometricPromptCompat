@@ -44,7 +44,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
-import kotlinx.coroutines.Runnable
 
 
 class UntrustedAccessibilityFragment : Fragment() {
@@ -73,6 +72,7 @@ class UntrustedAccessibilityFragment : Fragment() {
                                 callback.invoke(intent.getBooleanExtra(INTENT_RESULT, false))
                             }
                         }
+
                         override fun onChanged(value: Activity?) {
                             if (value != null) {
                                 ExecutorHelper.removeCallbacks(action)
@@ -142,13 +142,14 @@ class UntrustedAccessibilityFragment : Fragment() {
                         LogCat.logException(e)
                     }
 
-                    alert = SystemMonetDialogs.showAlertDialog(requireActivity(), title = title,
+                    alert = SystemMonetDialogs.showAlertDialog(
+                        requireActivity(), title = title,
                         message = str, cancelable = false,
                         negativeText = getString(android.R.string.cancel),
-                        onNegative =  {
+                        onNegative = {
                             closeFragment(false)
                         },
-                        positiveText = getString( android.R.string.ok),
+                        positiveText = getString(android.R.string.ok),
 
                         onPositive = {
                             closeFragment(true)

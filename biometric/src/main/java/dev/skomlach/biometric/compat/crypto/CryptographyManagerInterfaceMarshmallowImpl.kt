@@ -89,7 +89,8 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 "$KEY_NAME.$keyName",
                 isUserAuthRequired
             )
-            val iv = initializationVector ?: throw IllegalArgumentException("Initialization vector is required for decryption")
+            val iv = initializationVector
+                ?: throw IllegalArgumentException("Initialization vector is required for decryption")
             cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
             cipher
         } catch (e: Throwable) {

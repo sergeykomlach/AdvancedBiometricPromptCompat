@@ -43,7 +43,6 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import kotlinx.coroutines.Runnable
 
 
 class InitiateSystemBiometricEnrollFragment : Fragment() {
@@ -74,6 +73,7 @@ class InitiateSystemBiometricEnrollFragment : Fragment() {
                                 callback.invoke()
                             }
                         }
+
                         override fun onChanged(value: Activity?) {
                             if (value != null) {
                                 ExecutorHelper.removeCallbacks(action)

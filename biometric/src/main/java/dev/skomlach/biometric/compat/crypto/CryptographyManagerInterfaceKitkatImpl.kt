@@ -127,7 +127,10 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
                 keyPairGenerator.generateKeyPair()//SK: Exception on some devices here; It seems like device-specific KeyStore issue
             } catch (e: IllegalStateException) {
-                throw IllegalStateException("Android Keystore is unavailable; insecure software fallback has been disabled", e)
+                throw IllegalStateException(
+                    "Android Keystore is unavailable; insecure software fallback has been disabled",
+                    e
+                )
             } catch (e: Exception) {
                 throw e
             }
@@ -183,7 +186,8 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         return keyStore.containsAlias(name)
     }
 
-    private fun getPrivateKey(name: String) = keyStore.getKey(name, null) as? java.security.PrivateKey
+    private fun getPrivateKey(name: String) =
+        keyStore.getKey(name, null) as? java.security.PrivateKey
 
     private fun getPublicKey(name: String) = keyStore.getCertificate(name)?.publicKey
 

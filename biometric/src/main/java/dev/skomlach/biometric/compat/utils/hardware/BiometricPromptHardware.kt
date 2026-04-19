@@ -39,7 +39,6 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.device.hasFaceID
-import dev.skomlach.common.device.hasFingerprint
 import dev.skomlach.common.device.hasHeartrateID
 import dev.skomlach.common.device.hasIrisScanner
 import dev.skomlach.common.device.hasPalmID
@@ -222,6 +221,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                         } else
                             it.hasIrisScanner() && checkDeviceFeature(type)
                     }
+
                     BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() && checkDeviceFeature(type)
                     BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID() && checkDeviceFeature(
                         type
@@ -289,6 +289,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                         } else
                             result.enrolledLikely
                     }
+
                     else -> false
                 }
             }

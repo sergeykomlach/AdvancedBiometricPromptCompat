@@ -45,7 +45,6 @@ import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
-import kotlinx.coroutines.Runnable
 
 
 class SensorBlockedFallbackFragment : Fragment() {
@@ -112,6 +111,7 @@ class SensorBlockedFallbackFragment : Fragment() {
                                 callback.invoke()
                             }
                         }
+
                         override fun onChanged(value: Activity?) {
                             if (value != null) {
                                 ExecutorHelper.removeCallbacks(action)
@@ -207,8 +207,9 @@ class SensorBlockedFallbackFragment : Fragment() {
         lifecycleScope.launchWhenResumed {
             if (alert == null)
                 try {
-                    alert = SystemMonetDialogs.showAlertDialog(requireActivity(),
-                        title =  arguments?.getString(TITLE),
+                    alert = SystemMonetDialogs.showAlertDialog(
+                        requireActivity(),
+                        title = arguments?.getString(TITLE),
                         message = arguments?.getString(MESSAGE),
                         negativeText = getString(android.R.string.cancel),
                         onNegative = { closeFragment() },

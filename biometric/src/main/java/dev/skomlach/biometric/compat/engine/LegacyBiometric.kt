@@ -360,7 +360,7 @@ object LegacyBiometric {
         listener: LegacyBiometricAuthenticationListener,
         bundle: Bundle?
     ) {
-        if (authInProgress.get() || requestedMethods.isEmpty()){
+        if (authInProgress.get() || requestedMethods.isEmpty()) {
             e("BiometricAuthentication not started, wrong state")
             return
         }
