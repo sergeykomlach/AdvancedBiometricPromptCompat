@@ -39,6 +39,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricAvailable
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
 import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
@@ -57,7 +58,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.statusbar.ColorUtil
 import java.util.concurrent.atomic.AtomicBoolean
-
+import dev.skomlach.common.permissions.PermissionUtils
 class WindowForegroundBlurring(
     private val compatBuilder: BiometricPromptCompat.Builder,
     private val parentView: ViewGroup,
@@ -100,7 +101,13 @@ class WindowForegroundBlurring(
                         val filtered = compatBuilder.getAllAvailableTypes().toMutableList()
                         filtered.removeAll(skipHardwareList)
                         filtered
-                    } else compatBuilder.getAllAvailableTypes().toMutableList()
+                    } else{
+                        val filtered = compatBuilder.getAllAvailableTypes().filter {
+                            val list = BiometricManagerCompat.getUsedPermissions(listOf(it))
+                            list.isEmpty() || PermissionUtils.INSTANCE.hasSelfPermissions(list)
+                        }
+                        filtered
+                    }
                 } else emptyList()
                 typesList.filter {
                     val api = compatBuilder.getBiometricAuthRequest().withType(

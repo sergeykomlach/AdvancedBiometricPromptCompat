@@ -876,13 +876,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 authenticateInternal(callback)
             }
         }
-        checkNotificationPermissions {
-            checkPermissions(callbackOuter) {
-                checkSensor(callbackOuter) {
-                    authTask.invoke()
+        if (builder.enroll) {
+            checkNotificationPermissions {
+                checkPermissions(callbackOuter) {
+                    checkSensor(callbackOuter) {
+                        authTask.invoke()
+                    }
                 }
             }
-        }
+        } else authTask.invoke()
     }
 
     private fun checkNotificationPermissions(authTask: () -> Unit) {

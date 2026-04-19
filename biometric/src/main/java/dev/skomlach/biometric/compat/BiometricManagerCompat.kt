@@ -326,7 +326,7 @@ object BiometricManagerCompat {
 
         val permission: MutableSet<String> = java.util.HashSet()
         types.forEach {
-            if (Build.VERSION.SDK_INT >= 28 && (it == BiometricType.BIOMETRIC_ANY || it == BiometricType.BIOMETRIC_FINGERPRINT)) {
+            if (Build.VERSION.SDK_INT >= 28 && it == BiometricType.BIOMETRIC_ANY) {
                 permission.add("android.permission.USE_BIOMETRIC")
             } else {
                 for (m in LegacyBiometric.availableBiometricMethods) {
@@ -363,7 +363,7 @@ object BiometricManagerCompat {
 
             }
         }
-        permission.addAll(LegacyBiometric.getSoftwareModulePermissions())
+        permission.addAll(LegacyBiometric.getSoftwareModulePermissions(types))
         return ArrayList(permission)
     }
 

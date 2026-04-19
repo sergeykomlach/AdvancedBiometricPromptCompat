@@ -130,11 +130,13 @@ object LegacyBiometric {
         }
     }
 
-    fun getSoftwareModulePermissions(): List<String> {
+    fun getSoftwareModulePermissions(types: Collection<BiometricType>): List<String> {
         val permission = mutableListOf<String>()
         synchronized(customModuleHashMap) {
             customModuleHashMap.values.forEach { module ->
-                permission.addAll(module.getPermissions())
+                if (types.contains(module.biometricType)) {
+                    permission.addAll(module.getPermissions())
+                }
 
             }
         }

@@ -41,7 +41,9 @@ object SharedPreferenceProvider {
     }
 
     fun getProtectedPreferences(name: String): SharedPreferences {
-        val targetContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && appContext.isDeviceProtectedStorage) {
+        val targetContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+            && !appContext.isDeviceProtectedStorage
+        ) {
             appContext.createDeviceProtectedStorageContext()
         } else {
             appContext
@@ -107,28 +109,26 @@ object SharedPreferenceProvider {
 
             private fun readOrCreateBytes(fileName: String, size: Int): ByteArray {
                 val file = File(getDataDir(), fileName)
-                return if (file.exists()) {
-                    val bytes = file.readBytes()
-                    if (bytes.size == size) {
-                        bytes
-                    } else {
-                        val replacement = secureRandomBytes(size)
-                        file.writeBytes(replacement)
-                        file.setReadable(false, false)
-                        file.setWritable(false, false)
-                        file.setExecutable(false, false)
-                        file.setReadOnly()
-                        replacement
+
+                if (file.exists()) {
+                    try {
+                        val bytes = file.readBytes()
+                        if (bytes.size == size) {
+                            return bytes
+                        }
+                    } catch (_: Throwable) {
+
                     }
-                } else {
-                    val bytes = secureRandomBytes(size)
-                    file.writeBytes(bytes)
-                    file.setReadable(false, false)
-                    file.setWritable(false, false)
-                    file.setExecutable(false, false)
-                    file.setReadOnly()
-                    bytes
+                    runCatching { file.delete() }
                 }
+
+                val replacement = secureRandomBytes(size)
+                file.writeBytes(replacement)
+                file.setReadable(true, true)
+                file.setWritable(true, true)
+                file.setExecutable(false, false)
+                file.setReadOnly()
+                return replacement
             }
 
             private fun getEncryptionConfig(): EncryptionConfig {
@@ -152,7 +152,8 @@ object SharedPreferenceProvider {
                         val clearkeyUuid = UUID(-0x1d8e62a7567a4c37L, 0x781AB030AF78D30EL)
                         val widevineUuid = UUID(-0x121074568629b532L, -0x5c37d8232ae2de13L)
                         val playReadyUuid = UUID(-0x65fb0f8667bfbd7aL, -0x546d19a41f77a06bL)
-                        val uuids = listOf(widevineUuid, playReadyUuid, clearkeyUuid, commonPsshUuid)
+                        val uuids =
+                            listOf(widevineUuid, playReadyUuid, clearkeyUuid, commonPsshUuid)
                         uuids.forEach {
                             if (deviceID.isEmpty()) {
                                 try {
