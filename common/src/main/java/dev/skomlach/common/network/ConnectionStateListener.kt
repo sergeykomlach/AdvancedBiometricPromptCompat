@@ -33,6 +33,10 @@ import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConnectionStateListener {
@@ -48,37 +52,47 @@ class ConnectionStateListener {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         //Just an initial state; Will be checked properly later
-        ExecutorHelper.startOnBackground {
+        var checkJob: Job? = null
+
+        checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
             isConnectionOk.set(isConnectionDetected())
+            delay(250)
+            handleNetworkSignalChanged(
+                isConnectionDetected()
+            )
         }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
             networkCallback = object : NetworkCallback() {
                 override fun onUnavailable() {
                     LogCat.logError("ConnectionStateListener onUnavailable")
-                    ExecutorHelper.startOnBackground({
+                    checkJob?.cancel()
+                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
+                        delay(250)
                         handleNetworkSignalChanged(
                             isConnectionDetected()
                         )
-                    }, 500)
+                    }
                 }
                 override fun onAvailable(network: Network) {
                     LogCat.logError("ConnectionStateListener onAvailable")
-                    ExecutorHelper.startOnBackground({
+                    checkJob?.cancel()
+                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
+                        delay(250)
                         handleNetworkSignalChanged(
                             isConnectionDetected()
                         )
-                    }, 500)
+                    }
                 }
 
                 override fun onLost(network: Network) {
                     LogCat.logError("ConnectionStateListener onLost")
-                    ExecutorHelper.startOnBackground({
+                    checkJob?.cancel()
+                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
+                        delay(250)
                         handleNetworkSignalChanged(
                             isConnectionDetected()
                         )
-                    }, 500)
+                    }
                 }
 
                 override fun onCapabilitiesChanged(
@@ -86,31 +100,32 @@ class ConnectionStateListener {
                     networkCapabilities: NetworkCapabilities
                 ) {
                     LogCat.logError("ConnectionStateListener onCapabilitiesChanged")
-                    ExecutorHelper.startOnBackground({
+                    checkJob?.cancel()
+                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
+                        delay(250)
                         handleNetworkSignalChanged(
                             isConnectionDetected()
                         )
-                    }, 500)
+                    }
                 }
             }
         } else {
             // pre-Lollipop devices
             receiverTypeConnection = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context, intent: Intent) {
-                    ExecutorHelper.startOnBackground({
+                    checkJob?.cancel()
+                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
+                        delay(250)
                         handleNetworkSignalChanged(
                             isConnectionDetected()
                         )
-                    }, 500)
+                    }
                 }
             }
         }
     }
 
-    private fun isConnectionDetectedLegacy() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-        connectivityManager?.isDefaultNetworkActive == true || connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
-    else
-        connectivityManager?.activeNetworkInfo?.isConnectedOrConnecting == true
+    private fun isConnectionDetectedLegacy() = connectivityManager?.activeNetworkInfo?.isConnected == true
 
     private fun handleNetworkSignalChanged(hasTransport: Boolean) {
         LogCat.log("ConnectionStateListener handleNetworkSignalChanged - $hasTransport")
@@ -130,9 +145,9 @@ class ConnectionStateListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 val cm = connectivityManager ?: return false
                 val network =
-                    cm.activeNetwork ?: return cm.activeNetworkInfo?.isConnectedOrConnecting == true
+                    cm.activeNetwork ?: return false
                 val caps = cm.getNetworkCapabilities(network)
-                    ?: return cm.activeNetworkInfo?.isConnectedOrConnecting == true
+                    ?: return false
 
                 caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
                         caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
