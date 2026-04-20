@@ -47,7 +47,7 @@ import kotlin.math.sqrt
 
 class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier {
     companion object {
-        const val storageName = "tf_storage"
+        const val storageName = "tf_storage_v2"
         private const val PREF_NAME = "registered"
         private const val OUTPUT_SIZE = 192
         private const val IMAGE_MEAN = 128.0f

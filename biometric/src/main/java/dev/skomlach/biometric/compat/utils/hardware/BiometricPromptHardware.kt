@@ -49,6 +49,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
 import java.security.InvalidKeyException
 import java.security.KeyStore
 import java.text.Normalizer
@@ -333,7 +334,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
     }
 
     private object EnrollCheckHelper {
-        const val KEY_NAME = "BiometricEnrollChanged.test"
+        const val KEY_NAME = "BiometricEnrollChanged.test-v2"
         private val mutex = Mutex()
         val keyStore: KeyStore by lazy {
             KeyStore.getInstance("AndroidKeyStore")
@@ -342,6 +343,12 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
         init {
             GlobalScope.launch(Dispatchers.Main) {
+                withContext(Dispatchers.IO){
+                    try{
+                        keyStore.load(null)
+                        keyStore.deleteEntry("BiometricEnrollChanged.test")
+                    } catch (_: Throwable){}
+                }
                 AndroidContext.resumedActivityLiveData.observeForever {
                     updateState()
                 }
@@ -352,90 +359,142 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             if (job?.isActive == true) return
             job?.cancel()
             job = GlobalScope.launch(Dispatchers.IO) {
-
                 try {
                     val changed = isChanged()
                     SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                        .edit()
-                        .putBoolean("isBiometricEnrollChanged", changed).apply()
+                        .edit {
+                            putBoolean("isBiometricEnrollChanged", changed)
+                        }
                 } catch (e: Throwable) {
-
+                    BiometricLoggerImpl.e(e)
                 }
             }
         }
 
-        private fun generateSecretKey(keyGenParameterSpec: KeyGenParameterSpec): SecretKey {
+        private fun generateSecretKey(): SecretKey {
             val keyGenerator = KeyGenerator.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore"
+                KeyProperties.KEY_ALGORITHM_AES,
+                "AndroidKeyStore"
             )
-            keyGenerator.init(keyGenParameterSpec)
+
+            val builder = KeyGenParameterSpec.Builder(
+                KEY_NAME,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setRandomizedEncryptionRequired(true)
+                .setUserAuthenticationRequired(true)
+                .setInvalidatedByBiometricEnrollment(true)
+
+            keyGenerator.init(builder.build())
             return keyGenerator.generateKey()
         }
 
         private fun getSecretKey(): SecretKey? {
-            // Before the keystore can be accessed, it must be loaded.
             keyStore.load(null)
-            return if (keyStore.containsAlias(KEY_NAME))
-                keyStore.getKey(KEY_NAME, null) as SecretKey
-            else null
+            return if (keyStore.containsAlias(KEY_NAME)) {
+                keyStore.getKey(KEY_NAME, null) as? SecretKey
+            } else {
+                null
+            }
+        }
+
+        private fun deleteSecretKey() {
+            try {
+                keyStore.load(null)
+                if (keyStore.containsAlias(KEY_NAME)) {
+                    keyStore.deleteEntry(KEY_NAME)
+                }
+            } catch (t: Throwable) {
+                BiometricLoggerImpl.e(t)
+            }
         }
 
         private fun getCipher(): Cipher {
             return Cipher.getInstance(
-                KeyProperties.KEY_ALGORITHM_AES + "/"
-                        + KeyProperties.BLOCK_MODE_GCM + "/"
-                        + KeyProperties.ENCRYPTION_PADDING_NONE
+                "${KeyProperties.KEY_ALGORITHM_AES}/" +
+                        "${KeyProperties.BLOCK_MODE_GCM}/" +
+                        KeyProperties.ENCRYPTION_PADDING_NONE
             )
+        }
+
+        private fun getOrCreateFreshKey(forceRecreate: Boolean = false): SecretKey {
+            if (forceRecreate) {
+                deleteSecretKey()
+            }
+            return getSecretKey() ?: generateSecretKey()
+        }
+
+        private fun isRecoverableKeyFailure(t: Throwable): Boolean {
+            val msg = t.message.orEmpty()
+            return t is InvalidKeyException ||
+                    t is KeyPermanentlyInvalidatedException ||
+                    msg.contains("Incompatible block mode", ignoreCase = true) ||
+                    msg.contains("INCOMPATIBLE_BLOCK_MODE", ignoreCase = true) ||
+                    msg.contains("User changed or deleted their auth credentials", ignoreCase = true)
         }
 
         fun isChanged(): Boolean {
             if (!mutex.tryLock()) return false
             try {
-                val cipher: Cipher = getCipher()
-                var secretKey = getSecretKey()
-                if (secretKey == null) {
-                    secretKey = generateSecretKey(
-                        KeyGenParameterSpec.Builder(
-                            KEY_NAME,
-                            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-                        )
-                            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                            .setRandomizedEncryptionRequired(true)
-                            .apply {
-                                setInvalidatedByBiometricEnrollment(true)
-                                setUserAuthenticationRequired(true)
-                            }
-                            .build()
-                    )
-                }
-                try {
-                    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-                    SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                        .edit {
+                val prefs = SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
+
+                repeat(2) { attempt ->
+                    try {
+                        val cipher = getCipher()
+                        val secretKey = getOrCreateFreshKey(forceRecreate = attempt > 0)
+
+                        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+
+                        prefs.edit {
                             putBoolean("isBiometricConfirmed", true)
                         }
-                } catch (e: KeyPermanentlyInvalidatedException) {
-                    return true
-                } catch (e: InvalidKeyException) {
-                    e(e)
+                        return false
+                    } catch (e: KeyPermanentlyInvalidatedException) {
+                        BiometricLoggerImpl.e(e)
+                        return true
+                    } catch (e: InvalidKeyException) {
+                        BiometricLoggerImpl.e(e)
+
+                        if (isRecoverableKeyFailure(e) && attempt == 0) {
+                            deleteSecretKey()
+                            return@repeat
+                        }
+                        return false
+                    } catch (e: Throwable) {
+                        BiometricLoggerImpl.e(e)
+
+                        if (e.message?.contains(
+                                "User changed or deleted their auth credentials",
+                                ignoreCase = true
+                            ) == true
+                        ) {
+                            return true
+                        }
+
+                        if (e.message?.contains("At least one", ignoreCase = true) == true &&
+                            e.message?.contains("must be enrolled to create keys", ignoreCase = true) == true
+                        ) {
+                            return prefs.getBoolean("isBiometricConfirmed", false)
+                        }
+
+                        if (isRecoverableKeyFailure(e) && attempt == 0) {
+                            deleteSecretKey()
+                            return@repeat
+                        }
+
+                        return false
+                    }
                 }
-            } catch (e: Throwable) {
-                if (e.message?.contains("User changed or deleted their auth credentials") == true)
-                    return true
-                else if (e.message?.contains("At least one") == true && e.message?.contains("must be enrolled to create keys") == true)
-                    return SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
-                        .getBoolean("isBiometricConfirmed", false)
-                else
-                    e(e)
+
+                return false
             } finally {
                 try {
                     if (mutex.isLocked) mutex.unlock()
                 } catch (_: Throwable) {
                 }
             }
-            return false
-
         }
     }
 
