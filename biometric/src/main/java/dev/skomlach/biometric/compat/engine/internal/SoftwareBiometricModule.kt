@@ -115,12 +115,14 @@ class SoftwareBiometricModule(
 
                 this.originalCancellationSignal = cancellationSignal
                 timeoutHandler.postDelayed(Runnable {
-                    listener?.onFailure(
-                        tag(),
-                        AuthenticationFailureReason.TIMEOUT,
-                        manager?.getTimeoutMessage()
-                    )
-                    this.originalCancellationSignal?.cancel()
+                    if (this.originalCancellationSignal?.isCanceled == false) {
+                        listener?.onFailure(
+                            tag(),
+                            AuthenticationFailureReason.TIMEOUT,
+                            manager?.getTimeoutMessage()
+                        )
+                        this.originalCancellationSignal?.cancel()
+                    }
                 }.also {
                     timeoutRunnable = it
                 }, 30_000L)
@@ -338,14 +340,18 @@ class SoftwareBiometricModule(
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return
             errorTs = tmp
-            listener?.onSuccess(
-                tag(),
-                BiometricCryptoObject(
-                    result?.cryptoObject?.signature,
-                    result?.cryptoObject?.cipher,
-                    result?.cryptoObject?.mac
+            try {
+                listener?.onSuccess(
+                    tag(),
+                    BiometricCryptoObject(
+                        result?.cryptoObject?.signature,
+                        result?.cryptoObject?.cipher,
+                        result?.cryptoObject?.mac
+                    )
                 )
-            )
+            } finally {
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+            }
         }
 
         override fun onAuthenticationFailed() {
