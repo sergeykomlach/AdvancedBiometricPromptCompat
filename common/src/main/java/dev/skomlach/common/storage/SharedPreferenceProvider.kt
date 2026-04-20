@@ -71,12 +71,12 @@ object SharedPreferenceProvider {
         }
 
         companion object {
-            val instance: EncryptionConfig by lazy {
-                getEncryptionConfig()
+            val secondaryInstance: EncryptionConfig by lazy {
+                getFileBasedEncryptionConfig()
             }
 
-            val legacyInstance: EncryptionConfig by lazy {
-                getLegacyEncryptionConfig()
+            val primaryInstance: EncryptionConfig? by lazy {
+                getDeviceIdEncryptionConfig()
             }
 
             private fun getDataDir(): File {
@@ -112,7 +112,12 @@ object SharedPreferenceProvider {
 
                 if (file.exists()) {
                     try {
-                        val bytes = file.readBytes()
+                        val bytes = try{
+                            file.setReadable(true, true)
+                            file.readBytes()
+                        } finally {
+                            file.setReadable(false, false)
+                        }
                         if (bytes.size == size) {
                             return bytes
                         }
@@ -124,20 +129,20 @@ object SharedPreferenceProvider {
 
                 val replacement = secureRandomBytes(size)
                 file.writeBytes(replacement)
-                file.setReadable(true, true)
+                file.setReadable(false, false)
                 file.setWritable(true, true)
                 file.setExecutable(false, false)
                 file.setReadOnly()
                 return replacement
             }
 
-            private fun getEncryptionConfig(): EncryptionConfig {
+            private fun getFileBasedEncryptionConfig(): EncryptionConfig {
                 val password = readOrCreateBytes("bio_key", 32)
                 val salt = readOrCreateBytes("bio_hash", 128)
                 return EncryptionConfig(password, salt)
             }
 
-            private fun getLegacyEncryptionConfig(): EncryptionConfig {
+            private fun getDeviceIdEncryptionConfig(): EncryptionConfig? {
                 val context = appContext
 
                 @SuppressLint("HardwareIds")
@@ -177,19 +182,10 @@ object SharedPreferenceProvider {
                     return deviceID
                 }
 
+                val deviceID = deviceID().trim()
+                if (deviceID.isEmpty()) return null
                 val password = deviceID().reversed().toByteArray(UTF_8)
-                val data = File(getDataDir(), "bio_hash")
-                var bytes = ByteArray(128)
-                if (data.exists()) {
-                    val tmp = data.readBytes()
-                    if (tmp.size == bytes.size) {
-                        bytes = tmp
-                    } else {
-                        Arrays.fill(bytes, 0x00.toByte())
-                    }
-                } else {
-                    Arrays.fill(bytes, 0x00.toByte())
-                }
+                val bytes = readOrCreateBytes("bio_hash", 128)
                 return EncryptionConfig(password, bytes.reversedArray())
             }
         }
