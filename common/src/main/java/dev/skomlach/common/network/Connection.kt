@@ -35,7 +35,7 @@ object Connection {
         Collections.synchronizedList(ArrayList<NetworkListener>())
     private val screenLockReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            connectionStateListener.onScreenStateChanged(intent.action !== Intent.ACTION_SCREEN_OFF)
+            connectionStateListener.onScreenStateChanged()
         }
     }
 

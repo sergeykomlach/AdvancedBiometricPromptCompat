@@ -18,123 +18,96 @@
  */
 package dev.skomlach.common.network
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.wifi.WifiManager
 import android.os.Build
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
-import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.ExecutorHelper
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConnectionStateListener {
 
     private val isConnectionOk = AtomicBoolean(true)
-    private val ping: Ping = Ping(this)
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
-    private var receiverTypeConnection: BroadcastReceiver? = null
 
 
     init {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         //Just an initial state; Will be checked properly later
-        var checkJob: Job? = null
-
-        checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
-            isConnectionOk.set(isConnectionDetected())
-            delay(250)
+        ExecutorHelper.scope.launch(Dispatchers.IO) {
             handleNetworkSignalChanged(
                 isConnectionDetected()
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            networkCallback = object : NetworkCallback() {
-                override fun onUnavailable() {
-                    LogCat.logError("ConnectionStateListener onUnavailable")
-                    checkJob?.cancel()
-                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
-                        delay(250)
-                        handleNetworkSignalChanged(
-                            isConnectionDetected()
-                        )
-                    }
-                }
-                override fun onAvailable(network: Network) {
-                    LogCat.logError("ConnectionStateListener onAvailable")
-                    checkJob?.cancel()
-                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
-                        delay(250)
-                        handleNetworkSignalChanged(
-                            isConnectionDetected()
-                        )
-                    }
-                }
 
-                override fun onLost(network: Network) {
-                    LogCat.logError("ConnectionStateListener onLost")
-                    checkJob?.cancel()
-                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
-                        delay(250)
-                        handleNetworkSignalChanged(
-                            isConnectionDetected()
-                        )
-                    }
-                }
-
-                override fun onCapabilitiesChanged(
-                    network: Network,
-                    networkCapabilities: NetworkCapabilities
-                ) {
-                    LogCat.logError("ConnectionStateListener onCapabilitiesChanged")
-                    checkJob?.cancel()
-                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
-                        delay(250)
-                        handleNetworkSignalChanged(
-                            isConnectionDetected()
-                        )
-                    }
+        networkCallback = object : NetworkCallback() {
+            override fun onUnavailable() {
+                LogCat.logError("ConnectionStateListener onUnavailable")
+                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                    handleNetworkSignalChanged(
+                        false
+                    )
                 }
             }
-        } else {
-            // pre-Lollipop devices
-            receiverTypeConnection = object : BroadcastReceiver() {
-                override fun onReceive(ctx: Context, intent: Intent) {
-                    checkJob?.cancel()
-                    checkJob = ExecutorHelper.scope.launch(Dispatchers.IO) {
-                        delay(250)
-                        handleNetworkSignalChanged(
-                            isConnectionDetected()
-                        )
-                    }
+
+            override fun onAvailable(network: Network) {
+                LogCat.logError("ConnectionStateListener onAvailable")
+                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                    handleNetworkSignalChanged(
+                        true
+                    )
+                }
+            }
+
+            override fun onLost(network: Network) {
+                LogCat.logError("ConnectionStateListener onLost")
+                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                    handleNetworkSignalChanged(
+                        false
+                    )
+                }
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities
+            ) {
+                LogCat.logError("ConnectionStateListener onCapabilitiesChanged")
+                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                    handleNetworkSignalChanged(
+                        isConnectionDetected()
+                    )
                 }
             }
         }
-    }
 
-    private fun isConnectionDetectedLegacy() = connectivityManager?.activeNetworkInfo?.isConnected == true
+    }
 
     private fun handleNetworkSignalChanged(hasTransport: Boolean) {
         LogCat.log("ConnectionStateListener handleNetworkSignalChanged - $hasTransport")
         if (!hasTransport) {
             setState(false)
-            ping.resetThrottle(false)
             return
         } else {
-            ping.updateConnectionCheckQuery(0)
+            val cm = connectivityManager
+            val network =
+                cm?.activeNetwork
+            val caps = cm?.getNetworkCapabilities(network)
+
+            setState(
+                caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+                        caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+            )
+
         }
     }
 
@@ -142,18 +115,13 @@ class ConnectionStateListener {
     @Suppress("DEPRECATION")
     internal fun isConnectionDetected(): Boolean {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                val cm = connectivityManager ?: return false
-                val network =
-                    cm.activeNetwork ?: return false
-                val caps = cm.getNetworkCapabilities(network)
-                    ?: return false
+            val cm = connectivityManager ?: return false
+            val network =
+                cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network)
+                ?: return false
 
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            } else {
-                isConnectionDetectedLegacy()
-            }
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         } catch (_: Throwable) {
             false
         }
@@ -167,50 +135,22 @@ class ConnectionStateListener {
                         it, ExecutorHelper.handler
                     )
                 }
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            } else {
                 networkCallback?.let {
                     connectivityManager?.registerNetworkCallback(
                         NetworkRequest.Builder().build(),
                         it
                     )
                 }
-            } else {
-                //NOTE: almost all intent actions deprecated for latest Android OS versions (05/2019)
-                val intentFilter = IntentFilter()
-                intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
-                intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION)
-                intentFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)
-                intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
-                BroadcastTools.registerGlobalBroadcastIntent(
-                    appContext,
-                    receiverTypeConnection ?: return,
-                    intentFilter
-                )
             }
         } catch (_: Throwable) {
-        } finally {
-            ExecutorHelper.startOnBackground {
-                handleNetworkSignalChanged(isConnectionDetected())
-            }
         }
     }
 
     internal fun stopListeners() {
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                networkCallback?.let {
-                    connectivityManager?.unregisterNetworkCallback(it)
-                }
-            } else
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                networkCallback?.let {
-                    connectivityManager?.unregisterNetworkCallback(it)
-                }
-            } else {
-                BroadcastTools.unregisterGlobalBroadcastIntent(
-                    appContext,
-                    receiverTypeConnection ?: return
-                )
+            networkCallback?.let {
+                connectivityManager?.unregisterNetworkCallback(it)
             }
         } catch (_: Throwable) {
         }
@@ -218,7 +158,6 @@ class ConnectionStateListener {
 
     internal fun setState(newState: Boolean) {
         //cancel  SocketCheck if it planned
-        ping.cancelConnectionCheckQuery()
         if (newState != isConnectionOk.get()) {
             isConnectionOk.set(newState)
             LogCat.log("ConnectionStateListener detected new connection state - $newState")
@@ -226,12 +165,11 @@ class ConnectionStateListener {
         }
     }
 
-    internal fun onScreenStateChanged(forceCheck: Boolean) {
-        ExecutorHelper.startOnBackground {
-            val isConnected = isConnectionDetected()
-            isConnectionOk.set(isConnected)
-            if (forceCheck)
-                handleNetworkSignalChanged(isConnected)
+    internal fun onScreenStateChanged() {
+        ExecutorHelper.scope.launch(Dispatchers.IO) {
+            handleNetworkSignalChanged(
+                isConnectionDetected()
+            )
         }
     }
 
