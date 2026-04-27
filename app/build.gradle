@@ -78,6 +78,7 @@ dependencies {
     implementation project(":" + libArtifactId_biometric)
     implementation project(":" + libArtifactId_biometric_ktx)
     implementation project(":" + libArtifactId_biometric_custom_face_tf)
+    implementation project(":" + libArtifactId_biometric_zkfinger)
 
 //"dev.skomlach:biometric:${libsMajorVersion + "." + libsMinorVersion}"
     implementation libs.conscrypt.android

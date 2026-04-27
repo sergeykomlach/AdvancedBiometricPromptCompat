@@ -31,6 +31,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import android.view.ViewTreeObserver
 import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
@@ -52,6 +53,10 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 class FirstFragment : Fragment() {
 
     private var _binding: FragmentFirstBinding? = null
+    private var progressDialog: ProgressDialog? = null
+    private var initListener: App.OnInitFinished? = null
+    private var networkListener: Connection.NetworkListener? = null
+    private var globalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -69,32 +74,37 @@ class FirstFragment : Fragment() {
                 activity, "",
                 "Initialization in progress...", true
             )
-            App.onInitListeners.add(object : App.OnInitFinished {
+            progressDialog = dialog
+            initListener = object : App.OnInitFinished {
                 override fun onFinished() {
                     try {
                         dialog.dismiss()
                     } catch (e: Throwable) {
                     }
+                    initListener = null
                     fillList(inflater, binding?.buttonsList)
                     checkDeviceInfo()
 
 
                 }
-            })
+            }
+            initListener?.let(App.onInitListeners::add)
         } else {
             fillList(inflater, binding?.buttonsList)
             checkDeviceInfo()
         }
         updateUi()
-        Connection.addNetworkListener(object : Connection.NetworkListener{
+        networkListener = object : Connection.NetworkListener {
             override fun networkChanged(isConnected: Boolean) {
                 checkDeviceInfo()
             }
-        })
+        }
+        networkListener?.let(Connection::addNetworkListener)
         return binding?.root?.apply {
-            this.viewTreeObserver.addOnGlobalLayoutListener {
+            globalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
                 updateUi()
             }
+            this.viewTreeObserver.addOnGlobalLayoutListener(globalLayoutListener)
         }
 
     }
@@ -172,6 +182,7 @@ class FirstFragment : Fragment() {
     }
 
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout?) {
+        buttonsList?.removeAllViews()
         for (authRequest in App.authRequestList) {
             val container: FrameLayout =
                 inflater.inflate(R.layout.button, buttonsList, false) as FrameLayout
@@ -227,6 +238,20 @@ class FirstFragment : Fragment() {
 ////        )
 //    }
     override fun onDestroyView() {
+        initListener?.let {
+            App.onInitListeners.remove(it)
+            initListener = null
+        }
+        networkListener?.let {
+            Connection.removeNetworkListener(it)
+            networkListener = null
+        }
+        globalLayoutListener?.let {
+            binding?.root?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
+            globalLayoutListener = null
+        }
+        progressDialog?.dismiss()
+        progressDialog = null
         super.onDestroyView()
         _binding = null
     }

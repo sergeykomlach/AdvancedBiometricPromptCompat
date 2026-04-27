@@ -43,6 +43,8 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 
 
 class AppCompactBaseDialogFragment : DialogFragment() {
+    private var initListener: App.OnInitFinished? = null
+    private var networkListener: Connection.NetworkListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,12 +68,14 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         view.findViewById<LinearLayout>(R.id.buttons).visibility = View.GONE
         view.findViewById<CheckBox>(R.id.checkboxFullscreen).visibility = View.GONE
         if (!App.isReady) {
-            App.onInitListeners.add(object : App.OnInitFinished {
+            initListener = object : App.OnInitFinished {
                 override fun onFinished() {
+                    initListener = null
                     fillList(inflater, buttonsList)
                     checkDeviceInfo()
                 }
-            })
+            }
+            initListener?.let(App.onInitListeners::add)
         } else {
             fillList(inflater, buttonsList)
             checkDeviceInfo()
@@ -120,11 +124,12 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                     .putBoolean("silent", isChecked).apply()
             }
         }
-        Connection.addNetworkListener(object : Connection.NetworkListener{
+        networkListener = object : Connection.NetworkListener {
             override fun networkChanged(isConnected: Boolean) {
                 checkDeviceInfo()
             }
-        })
+        }
+        networkListener?.let(Connection::addNetworkListener)
         return view
     }
 
@@ -137,6 +142,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
     }
 
     private fun fillList(inflater: LayoutInflater, buttonsList: LinearLayout) {
+        buttonsList.removeAllViews()
         for (authRequest in App.authRequestList) {
             val container: FrameLayout =
                 inflater.inflate(R.layout.button, buttonsList, false) as FrameLayout
@@ -183,5 +189,17 @@ class AppCompactBaseDialogFragment : DialogFragment() {
         requireDialog().window?.setWindowAnimations(
             R.style.DialogAnimation
         )
+    }
+
+    override fun onDestroyView() {
+        initListener?.let {
+            App.onInitListeners.remove(it)
+            initListener = null
+        }
+        networkListener?.let {
+            Connection.removeNetworkListener(it)
+            networkListener = null
+        }
+        super.onDestroyView()
     }
 }

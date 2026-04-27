@@ -14,6 +14,7 @@
             <option value="$PROJECT_DIR$/biometric-api" />
             <option value="$PROJECT_DIR$/biometric-custom-face-tf" />
             <option value="$PROJECT_DIR$/biometric-ktx" />
+            <option value="$PROJECT_DIR$/biometric-zkfinger" />
             <option value="$PROJECT_DIR$/common" />
           </set>
         </option>

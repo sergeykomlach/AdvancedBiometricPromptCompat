@@ -22,6 +22,7 @@ package dev.skomlach.biometric.app
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import dev.skomlach.biometric.app.BuildConfig
 import androidx.multidex.MultiDexApplication
 import dev.skomlach.biometric.app.devtools.AppMonitoringDevTools
 import dev.skomlach.biometric.app.devtools.LogCat
@@ -50,24 +51,30 @@ class App : MultiDexApplication() {
     override fun onCreate() {
         super.onCreate()
         Security.insertProviderAt(Conscrypt.newProvider(), 1)
-        AppMonitoringDevTools(this).enableMonitoringTools(true)
-        val callback = object : LogCat.Log2ViewCallback {
-            override fun log(string: String) {
-                LogCat.setLog2ViewCallback(null)
-                BiometricPromptCompat.logging(true)
-                ts = System.currentTimeMillis()
-                checkInit()
+        if (BuildConfig.DEBUG) {
+            AppMonitoringDevTools(this).enableMonitoringTools(true)
+            val callback = object : LogCat.Log2ViewCallback {
+                override fun log(log: String) {
+                    LogCat.setLog2ViewCallback(null)
+                    BiometricPromptCompat.logging(true)
+                    ts = System.currentTimeMillis()
+                    checkInit()
+                }
             }
+            LogCat.setLog2ViewCallback(callback)
+            LogCat.start()
+        } else {
+            BiometricPromptCompat.logging(false)
+            ts = System.currentTimeMillis()
+            checkInit()
         }
-        LogCat.setLog2ViewCallback(callback)
-        LogCat.start()
     }
 
     private fun checkInit() {
         if (BiometricPromptCompat.isInitialized) {
             GlobalScope.launch(Dispatchers.Main) {
                 authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
-                for (listener in onInitListeners) {
+                for (listener in onInitListeners.toList()) {
                     listener.onFinished()
                 }
                 onInitListeners.clear()
