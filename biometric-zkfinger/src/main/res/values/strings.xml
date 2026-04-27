@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_zkfinger_help_timeout">Fingerprint authentication timed out</string>
+    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelled by new operation</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK fingerprint reader not connected</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB permission denied for ZK fingerprint reader</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK fingerprint reader unavailable</string>
+    <string name="biometriccompat_zkfinger_help_not_registered">Fingerprint not registered</string>
+    <string name="biometriccompat_zkfinger_help_already_registered">This fingerprint is already registered</string>
+    <string name="biometriccompat_zkfinger_help_same_finger_required">Use the same finger for all enrollment scans</string>
+    <string name="biometriccompat_zkfinger_help_scan_again">Scan your finger again</string>
+    <string name="biometriccompat_zkfinger_help_enroll_progress">Scan accepted. Continue enrollment</string>
+    <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK fingerprint reader is locked out permanently</string>
+</resources>

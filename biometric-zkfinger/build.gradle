@@ -1,0 +1,39 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+    compileSdk compileSDK
+    defaultConfig {
+        minSdkVersion minSDK
+        targetSdkVersion targetSDK
+        multiDexEnabled true
+        consumerProguardFiles "proguard-project-biometric-zkfinger.pro"
+    }
+    namespace 'dev.skomlach.biometric.zkfinger'
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
+}
+
+dependencies {
+    implementation project(":" + libArtifactId_common)
+    implementation project(":" + libArtifactId_biometric)
+    implementation libs.androidx.core.ktx
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+}
+
+// Publishing
+ext {
+    PUBLISH_GROUP_ID = libsGroupId
+    PUBLISH_ARTIFACT_ID = libArtifactId_biometric_zkfinger
+    PUBLISH_VERSION = libVersion
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"
