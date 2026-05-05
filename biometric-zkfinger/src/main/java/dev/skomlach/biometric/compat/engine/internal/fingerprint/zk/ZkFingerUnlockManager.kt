@@ -38,6 +38,8 @@ class ZkFingerUnlockManager(
     private val context: Context
 ) : AbstractSoftwareBiometricManager() {
 
+    override val priority: Int = PRIORITY_ABOVE_SYSTEM_HARDWARE
+
     companion object {
         const val IS_ENROLLMENT_KEY = "is_enrollment"
         const val ENROLLMENT_TAG_KEY = "enrollment_tag"

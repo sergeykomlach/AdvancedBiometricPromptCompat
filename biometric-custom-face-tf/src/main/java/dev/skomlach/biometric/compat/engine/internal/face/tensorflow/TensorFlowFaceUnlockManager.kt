@@ -43,6 +43,8 @@ class TensorFlowFaceUnlockManager(
     private val context: Context
 ) : AbstractSoftwareBiometricManager() {
 
+    override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
+
     companion object {
         private const val TAG = "TensorFlowFaceUnlockManager"
         const val IS_ENROLLMENT_KEY = "is_enrollment"

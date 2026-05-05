@@ -527,6 +527,14 @@ object LegacyBiometric {
         return getAvailableBiometricModules(biometricType, provider).firstOrNull()
     }
 
+    fun getSelectedBiometricModule(
+        biometricType: BiometricType?,
+        provider: BiometricProviderType,
+        enroll: Boolean
+    ): BiometricModule? {
+        return getPreferredBiometricModule(biometricType, provider, enroll)
+    }
+
     fun getAvailableBiometricModules(
         biometricType: BiometricType?,
         provider: BiometricProviderType = BiometricProviderType.COMBINED
@@ -538,6 +546,8 @@ object LegacyBiometric {
                 .filter { providerMatches(it.value, provider) }
                 .sortedWith(
                     compareBy<Map.Entry<BiometricMethod, BiometricModule>> {
+                        -it.value.priority
+                    }.thenBy {
                         it.value is SoftwareBiometricModule
                     }.thenBy { it.key.id }
                 )
@@ -599,11 +609,9 @@ object LegacyBiometric {
         val modules = getAvailableBiometricModules(biometricType, provider)
             .filter { it.isHardwarePresent }
         val preferred = if (enroll) {
-            modules.firstOrNull { it !is SoftwareBiometricModule }
-                ?: modules.firstOrNull { it is SoftwareBiometricModule }
+            modules.firstOrNull()
         } else {
-            modules.firstOrNull { it !is SoftwareBiometricModule && it.hasEnrolled }
-                ?: modules.firstOrNull { it is SoftwareBiometricModule && it.hasEnrolled }
+            modules.firstOrNull { it.hasEnrolled }
         }
         return preferred
     }

@@ -23,6 +23,7 @@ import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.Mac
@@ -47,7 +48,16 @@ abstract class AbstractSoftwareBiometricManager {
         const val CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS = 2
         const val CUSTOM_BIOMETRIC_ERROR_USER_CANCELED = 10
         const val CUSTOM_BIOMETRIC_ERROR_VENDOR = 8
+
+        const val PRIORITY_BELOW_SYSTEM_HARDWARE =
+            BiometricModule.PRIORITY_BELOW_SYSTEM_HARDWARE
+        const val PRIORITY_SYSTEM_HARDWARE =
+            BiometricModule.PRIORITY_SYSTEM_HARDWARE
+        const val PRIORITY_ABOVE_SYSTEM_HARDWARE =
+            BiometricModule.PRIORITY_ABOVE_SYSTEM_HARDWARE
     }
+
+    open val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
 
     abstract fun getTimeoutMessage(): CharSequence?
     abstract fun resetLockOut()

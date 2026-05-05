@@ -32,6 +32,9 @@ import dev.skomlach.biometric.compat.engine.core.Core
  */
 
 interface BiometricModule {
+    val priority: Int
+        get() = PRIORITY_SYSTEM_HARDWARE
+
     val isManagerAccessible: Boolean
     val isHardwarePresent: Boolean
     val isLockOut: Boolean
@@ -67,4 +70,10 @@ interface BiometricModule {
      * and each class's tag must be unique among registered modules.
      */
     fun tag(): Int
+
+    companion object {
+        const val PRIORITY_BELOW_SYSTEM_HARDWARE = -100
+        const val PRIORITY_SYSTEM_HARDWARE = 0
+        const val PRIORITY_ABOVE_SYSTEM_HARDWARE = 100
+    }
 }

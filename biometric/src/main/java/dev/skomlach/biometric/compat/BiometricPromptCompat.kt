@@ -40,6 +40,7 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.impl.BiometricPromptApi28Impl
 import dev.skomlach.biometric.compat.impl.BiometricPromptGenericImpl
 import dev.skomlach.biometric.compat.impl.BiometricPromptSilentImpl
@@ -1067,6 +1068,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         return builder.getPrimaryAvailableTypes().any { type ->
+            if (!isSelectedBiometricPromptHardwareType(type)) {
+                return@any false
+            }
             val request = builder.getBiometricAuthRequest()
                 .withApi(BiometricApi.BIOMETRIC_API)
                 .withType(type)
@@ -1107,16 +1111,33 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun getProviderForSelectedModule(type: BiometricType): BiometricProviderType {
-        return if (isPrimaryBiometricPromptHardwareType(type)) {
-            BiometricProviderType.HARDWARE
-        } else {
-            builder.getBiometricAuthRequest().provider
+        return when {
+            isSelectedBiometricPromptHardwareType(type) -> BiometricProviderType.HARDWARE
+            isSelectedSoftwareType(type) -> BiometricProviderType.SOFTWARE
+            else -> builder.getBiometricAuthRequest().provider
         }
     }
 
     private fun isPrimaryBiometricPromptHardwareType(type: BiometricType): Boolean {
         return builder.getPrimaryAvailableTypes().contains(type) &&
+                isSelectedBiometricPromptHardwareType(type) &&
                 shouldUseBiometricPromptImpl()
+    }
+
+    private fun isSelectedBiometricPromptHardwareType(type: BiometricType): Boolean {
+        return LegacyBiometric.getSelectedBiometricModule(
+            type,
+            builder.getBiometricAuthRequest().provider,
+            builder.enroll
+        ) !is SoftwareBiometricModule
+    }
+
+    private fun isSelectedSoftwareType(type: BiometricType): Boolean {
+        return LegacyBiometric.getSelectedBiometricModule(
+            type,
+            builder.getBiometricAuthRequest().provider,
+            builder.enroll
+        ) is SoftwareBiometricModule
     }
 
 
