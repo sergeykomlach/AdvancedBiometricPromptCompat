@@ -122,7 +122,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                 authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
             if (success != null)
                 return
-            callback?.onCanceled(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
+            callback.dispatchCanceledOrFailed(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.CANCELED_BY_USER

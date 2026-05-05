@@ -296,19 +296,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                     )
                                 )
                             )
-                            postCancelTask {
-                                builder.getPrimaryAvailableTypes().forEach {
-                                    canceled.add(
-                                        AuthenticationResult(
-                                            it,
-                                            reason = AuthenticationFailureReason.CANCELED,
-                                            description = null
-                                        )
-                                    )
-                                }
-                                cancelAuth()
-
-                            }
+                            cancelAuthentication()
                             return@Runnable
                         }
                     }
@@ -356,22 +344,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
         }
     private val isFingerprint = AtomicBoolean(false)
-    private var cancelTask: Runnable? = null
-
-    @Throws(Throwable::class)
-    fun finalize() {
-        cancelTask?.let {
-            ExecutorHelper.removeCallbacks(it)
-        }
-    }
-
-    fun postCancelTask(runnable: Runnable?) {
-        cancelTask?.let {
-            ExecutorHelper.removeCallbacks(it)
-        }
-        cancelTask = runnable
-        ExecutorHelper.postDelayed(runnable ?: return, 2000)
-    }
 
     init {
         if (builder.enroll) {
@@ -434,15 +406,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val prompt = biometricPrompt
         d("BiometricPromptApi28Impl.startAuth(): ${builder.getPrimaryAvailableTypes()}")
         if (prompt == null) {
-            ExecutorHelper.post {
-                callback?.onCanceled(builder.getAllAvailableTypes().map {
-                    AuthenticationResult(
-                        it,
-                        reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                        description = "Can't start authenticate for BiometricPromptApi28Impl"
-                    )
-                }.toSet())
-            }
+            callback?.onFailed(builder.getAllAvailableTypes().map {
+                AuthenticationResult(
+                    it,
+                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
+                    description = "Can't start authenticate for BiometricPromptApi28Impl"
+                )
+            }.toSet())
             return
         }
         val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
@@ -476,7 +446,9 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                         true
                     )
                 } catch (e: BiometricCryptoException) {
-                    if (builder.getCryptographyPurpose()?.purpose == BiometricCryptographyPurpose.ENCRYPT) {
+                    if (builder.getCryptographyPurpose()?.purpose == BiometricCryptographyPurpose.ENCRYPT &&
+                        !e.isNoKeystoreBiometricEnrollment()
+                    ) {
                         BiometricCryptoObjectHelper.deleteCrypto("BiometricPromptCompat")
                         biometricCryptoObject =
                             BiometricCryptoObjectHelper.getBiometricCryptoObject(
@@ -529,7 +501,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             m.isAccessible = false
 
                         if (biometricFragment.get() == null) {
-                            callback?.onCanceled(builder.getAllAvailableTypes().map {
+                            callback?.onFailed(builder.getAllAvailableTypes().map {
                                 AuthenticationResult(
                                     it,
                                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -544,7 +516,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
         } catch (e: BiometricCryptoException) {
             e(e)
-            callback?.onCanceled(builder.getAllAvailableTypes().map {
+            callback?.onFailed(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -569,7 +541,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     override fun cancelAuth() {
         try {
             e("BiometricPromptApi28Impl.cancelAuth()")
-            callback?.onCanceled(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
+            callback.dispatchCanceledOrFailed(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.CANCELED_BY_USER

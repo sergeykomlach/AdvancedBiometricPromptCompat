@@ -342,11 +342,13 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     private object EnrollCheckHelper {
         const val KEY_NAME = "BiometricEnrollChanged.test-v2"
+        private const val KEYSTORE_BIOMETRIC_UNAVAILABLE_RETRY_MS = 5 * 60 * 1000L
         private val mutex = Mutex()
         val keyStore: KeyStore by lazy {
             KeyStore.getInstance("AndroidKeyStore")
         }
         private var job: Job? = null
+        private var keyStoreBiometricUnavailableUntil = 0L
 
         init {
             GlobalScope.launch(Dispatchers.Main) {
@@ -442,7 +444,14 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     msg.contains("User changed or deleted their auth credentials", ignoreCase = true)
         }
 
+        private fun isNoKeystoreBiometricEnrollment(t: Throwable): Boolean {
+            val msg = t.message.orEmpty()
+            return msg.contains("At least one biometric", ignoreCase = true) &&
+                    msg.contains("must be enrolled to create keys", ignoreCase = true)
+        }
+
         fun isChanged(): Boolean {
+            if (System.currentTimeMillis() < keyStoreBiometricUnavailableUntil) return false
             if (!mutex.tryLock()) return false
             try {
                 val prefs = SharedPreferenceProvider.getPreferences("BiometricPromptHardware")
@@ -470,8 +479,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                         }
                         return false
                     } catch (e: Throwable) {
-                        BiometricLoggerImpl.e(e)
-
                         if (e.message?.contains(
                                 "User changed or deleted their auth credentials",
                                 ignoreCase = true
@@ -480,11 +487,16 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                             return true
                         }
 
-                        if (e.message?.contains("At least one", ignoreCase = true) == true &&
-                            e.message?.contains("must be enrolled to create keys", ignoreCase = true) == true
-                        ) {
+                        if (isNoKeystoreBiometricEnrollment(e)) {
+                            keyStoreBiometricUnavailableUntil =
+                                System.currentTimeMillis() + KEYSTORE_BIOMETRIC_UNAVAILABLE_RETRY_MS
+                            BiometricLoggerImpl.d(
+                                "BiometricPromptHardware.EnrollCheckHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use keys"
+                            )
                             return prefs.getBoolean("isBiometricConfirmed", false)
                         }
+
+                        BiometricLoggerImpl.e(e)
 
                         if (isRecoverableKeyFailure(e) && attempt == 0) {
                             deleteSecretKey()

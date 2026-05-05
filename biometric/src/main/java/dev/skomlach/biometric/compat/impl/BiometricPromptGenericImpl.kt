@@ -129,7 +129,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             if (success != null)
                 return
 
-            callback?.onCanceled(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
+            callback.dispatchCanceledOrFailed(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.CANCELED_BY_USER

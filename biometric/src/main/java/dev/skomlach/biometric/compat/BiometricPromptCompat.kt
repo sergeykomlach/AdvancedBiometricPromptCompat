@@ -425,7 +425,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
 
             )
-            callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+            callbackOuter.onFailed(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -571,7 +571,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
 
             )
-            callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+            callbackOuter.onFailed(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -593,7 +593,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         R.string.biometriccompat_window_error
                     )
                 )
-                callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+                callbackOuter.onFailed(builder.getAllAvailableTypes().map {
                     AuthenticationResult(
                         it,
                         reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -715,7 +715,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     override fun onCanceled(canceled: Set<AuthenticationResult>) {
                         if (builder.isUIOpened.get()) {
                             BiometricLoggerImpl.d("BiometricPromptCompat.AuthenticationCallback.onCanceled")
-                            ExecutorHelper.post { callbackOuter.onCanceled(canceled) }
+                            ExecutorHelper.post {
+                                if (canceled.any { it.reason == AuthenticationFailureReason.INTERNAL_ERROR }) {
+                                    callbackOuter.onFailed(canceled)
+                                } else {
+                                    callbackOuter.onCanceled(canceled)
+                                }
+                            }
                             onUIClosed()
                             if (builder.enroll) {
                                 ExecutorHelper.startOnBackground {
@@ -1154,7 +1160,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
 
             )
-            callback.onCanceled(builder.getAllAvailableTypes().map {
+            callback.onFailed(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -1233,7 +1239,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                                 ),
                                 IllegalStateException()
                             )
-                            callback.onCanceled(builder.getAllAvailableTypes().map {
+                            callback.onFailed(builder.getAllAvailableTypes().map {
                                 AuthenticationResult(
                                     it,
                                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
