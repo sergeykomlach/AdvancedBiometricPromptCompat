@@ -144,8 +144,7 @@ class ZkFingerUnlockManager(
                 return
             }
 
-            val usbManager = usbManager()
-            if (usbManager?.hasPermission(device) == true) {
+            if (hasUsbPermission(device)) {
                 callback.onPrepared()
                 return
             }
@@ -179,7 +178,12 @@ class ZkFingerUnlockManager(
 
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_FINGERPRINT
 
-    override fun isHardwareDetected(): Boolean = findSupportedDevice() != null
+    override fun isHardwareDetected(): Boolean {
+        // USB permission is requested later. Hardware detection must only mean that a
+        // supported reader is physically attached, otherwise prepareForAuthentication()
+        // would never get a chance to request permission.
+        return findSupportedDevice() != null
+    }
 
     override fun hasEnrolledBiometric(): Boolean = getEnrolls().isNotEmpty()
 
@@ -282,8 +286,7 @@ class ZkFingerUnlockManager(
                 return
             }
 
-            val usbManager = usbManager()
-            if (usbManager?.hasPermission(device) == true) {
+            if (hasUsbPermission(device)) {
                 openDevice(device)
                 return
             }
@@ -717,6 +720,10 @@ class ZkFingerUnlockManager(
 
     private fun usbManager(): UsbManager? {
         return context.getSystemService(Context.USB_SERVICE) as? UsbManager
+    }
+
+    private fun hasUsbPermission(device: UsbDevice): Boolean {
+        return usbManager()?.hasPermission(device) == true
     }
 
     private fun permissionAction(): String {
