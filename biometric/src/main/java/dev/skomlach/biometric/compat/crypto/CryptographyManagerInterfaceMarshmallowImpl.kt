@@ -63,10 +63,12 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             cipher.init(Cipher.ENCRYPT_MODE, secretKey)
             cipher
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(
-                e,
-                "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
-            )
+            if (!isUserAuthRequired || !isNoKeystoreBiometricEnrollment(e)) {
+                BiometricLoggerImpl.e(
+                    e,
+                    "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
+                )
+            }
             throw e
         } finally {
             try {
@@ -94,10 +96,12 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
             cipher
         } catch (e: Throwable) {
-            BiometricLoggerImpl.e(
-                e,
-                "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
-            )
+            if (!isUserAuthRequired || !isNoKeystoreBiometricEnrollment(e)) {
+                BiometricLoggerImpl.e(
+                    e,
+                    "KeyName=$KEY_NAME.$keyName; isUserAuthRequired=$isUserAuthRequired"
+                )
+            }
             throw e
         }
     }
@@ -168,5 +172,19 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         } else {
             false
         }
+    }
+
+    private fun isNoKeystoreBiometricEnrollment(t: Throwable): Boolean {
+        var current: Throwable? = t
+        while (current != null) {
+            val msg = current.message.orEmpty()
+            if (msg.contains("At least one biometric", ignoreCase = true) &&
+                msg.contains("must be enrolled to create keys", ignoreCase = true)
+            ) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
     }
 }

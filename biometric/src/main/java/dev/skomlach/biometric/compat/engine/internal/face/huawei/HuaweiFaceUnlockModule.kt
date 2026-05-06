@@ -58,8 +58,6 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@HuaweiFaceUnlockModule)
     }
 
-    override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = false
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

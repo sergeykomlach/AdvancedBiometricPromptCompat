@@ -48,8 +48,10 @@ import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.crypto.AppFlowCryptoRegistry
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
+import dev.skomlach.biometric.compat.crypto.CryptoAccessType
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
@@ -88,8 +90,13 @@ fun CharSequence.toColoredText(context: Context, colorRes: Int): CharSequence {
 
 class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
+    companion object {
+        private const val PROMPT_CRYPTO_KEY = "BiometricPromptCompat"
+    }
+
     private val isOpened = AtomicBoolean(false)
     private val authCallTimestamp = AtomicLong(0)
+    private val pendingPromptCryptoObject = AtomicReference<BiometricCryptoObject?>(null)
     private val canceled = HashSet<AuthenticationResult>()
     private val isDeviceCredentialAllowed: Boolean
         get() {
@@ -97,7 +104,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (builder.forceDeviceCredential()) {
                     true
                 } else {
-                    return builder.getCryptographyPurpose() == null
+                    builder.getCryptographyPurpose() == null
                 }
             } else {
                 builder.forceDeviceCredential()
@@ -330,15 +337,24 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                     return
                 errorTs = tmp
+                val resultCryptoObject = BiometricCryptoObject(
+                    result.cryptoObject?.signature,
+                    result.cryptoObject?.cipher,
+                    result.cryptoObject?.mac
+                )
                 checkAuthResult(
                     AuthResult.AuthResultState.SUCCESS,
                     AuthenticationResult(
                         BiometricType.BIOMETRIC_ANY,
-                        cryptoObject = BiometricCryptoObject(
-                            result.cryptoObject?.signature,
-                            result.cryptoObject?.cipher,
-                            result.cryptoObject?.mac
-                        )
+                        cryptoObject = if (
+                            resultCryptoObject.signature != null ||
+                            resultCryptoObject.cipher != null ||
+                            resultCryptoObject.mac != null
+                        ) {
+                            resultCryptoObject
+                        } else {
+                            pendingPromptCryptoObject.getAndSet(null)
+                        }
                     )
                 )
             }
@@ -438,24 +454,29 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         try {
             d("BiometricPromptApi28Impl.showSystemUi() $biometricPrompt")
             var biometricCryptoObject: BiometricCryptoObject? = null
+            var isAppFlowCrypto = false
             builder.getCryptographyPurpose()?.let {
                 try {
                     biometricCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                        "BiometricPromptCompat",
+                        PROMPT_CRYPTO_KEY,
                         builder.getCryptographyPurpose(),
                         true
                     )
+                    isAppFlowCrypto =
+                        AppFlowCryptoRegistry.getAccessType(PROMPT_CRYPTO_KEY) == CryptoAccessType.APP_FLOW
                 } catch (e: BiometricCryptoException) {
                     if (builder.getCryptographyPurpose()?.purpose == BiometricCryptographyPurpose.ENCRYPT &&
                         !e.isNoKeystoreBiometricEnrollment()
                     ) {
-                        BiometricCryptoObjectHelper.deleteCrypto("BiometricPromptCompat")
+                        BiometricCryptoObjectHelper.deleteCrypto(PROMPT_CRYPTO_KEY)
                         biometricCryptoObject =
                             BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                "BiometricPromptCompat",
+                                PROMPT_CRYPTO_KEY,
                                 builder.getCryptographyPurpose(),
                                 true
                             )
+                        isAppFlowCrypto =
+                            AppFlowCryptoRegistry.getAccessType(PROMPT_CRYPTO_KEY) == CryptoAccessType.APP_FLOW
                     } else throw e
                 }
             }
@@ -468,15 +489,27 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 else biometricCryptoObject?.signature?.let { BiometricPrompt.CryptoObject(it) }
 
             d("BiometricPromptApi28Impl.authenticate:  Crypto=$crpObject")
-            if (crpObject != null) {
+            if (isAppFlowCrypto) {
+                d("BiometricPromptApi28Impl.authenticate: app-flow crypto is prepared; authenticate without AndroidX CryptoObject")
+                pendingPromptCryptoObject.set(biometricCryptoObject)
+                authCallTimestamp.set(System.currentTimeMillis())
+                biometricPrompt.authenticate(biometricPromptInfo)
+            } else if (crpObject != null) {
                 try {
+                    pendingPromptCryptoObject.set(null)
                     authCallTimestamp.set(System.currentTimeMillis())
                     biometricPrompt.authenticate(biometricPromptInfo, crpObject)
                 } catch (e: Throwable) {
+                    e(
+                        e,
+                        "BiometricPromptApi28Impl.authenticate with CryptoObject failed; retry without AndroidX CryptoObject"
+                    )
+                    pendingPromptCryptoObject.set(null)
                     authCallTimestamp.set(System.currentTimeMillis())
                     biometricPrompt.authenticate(biometricPromptInfo)
                 }
             } else {
+                pendingPromptCryptoObject.set(null)
                 authCallTimestamp.set(System.currentTimeMillis())
                 biometricPrompt.authenticate(biometricPromptInfo)
             }

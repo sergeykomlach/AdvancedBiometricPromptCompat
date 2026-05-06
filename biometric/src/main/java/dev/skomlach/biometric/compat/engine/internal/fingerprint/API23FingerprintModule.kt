@@ -70,6 +70,8 @@ class API23FingerprintModule @SuppressLint("WrongConstant") constructor(listener
         listener?.initFinished(biometricMethod, this@API23FingerprintModule)
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = true
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         manager?.let {

@@ -55,8 +55,6 @@ class Hihonor3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
 
     }
 
-    override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = false
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

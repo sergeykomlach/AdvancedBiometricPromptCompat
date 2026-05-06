@@ -52,7 +52,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     val context = AndroidContext.appContext
     var bundle: Bundle? = null
     override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = true
+        get() = false
     protected val authCallTimestamp = AtomicLong(0)
 
     private var cancelTask: Runnable? = null

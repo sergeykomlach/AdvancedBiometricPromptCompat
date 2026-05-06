@@ -73,6 +73,9 @@ class SupportFingerprintModule(listener: LegacyBiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@SupportFingerprintModule)
     }
 
+    override val isUserAuthCanByUsedWithCrypto: Boolean
+        get() = true
+
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         val manager = try {

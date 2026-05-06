@@ -23,8 +23,10 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.crypto.AppFlowCryptoRegistry
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
+import dev.skomlach.biometric.compat.crypto.CryptoAccessType
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
@@ -133,29 +135,48 @@ object Core {
                 m = module
 
                 var biometricCryptoObject: BiometricCryptoObject? = null
+                var isAppFlowCrypto = false
                 purpose?.let {
+                    val keyName = "BiometricModule${module.tag()}"
                     try {
                         biometricCryptoObject =
                             BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                "BiometricModule${module.tag()}",
+                                keyName,
                                 purpose,
                                 m.isUserAuthCanByUsedWithCrypto
                             )
+                        isAppFlowCrypto =
+                            AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
                     } catch (e: BiometricCryptoException) {
                         if (purpose.purpose == BiometricCryptographyPurpose.ENCRYPT) {
-                            BiometricCryptoObjectHelper.deleteCrypto("BiometricModule${module.tag()}")
+                            BiometricCryptoObjectHelper.deleteCrypto(keyName)
                             biometricCryptoObject =
                                 BiometricCryptoObjectHelper.getBiometricCryptoObject(
-                                    "BiometricModule${module.tag()}",
+                                    keyName,
                                     purpose,
                                     m.isUserAuthCanByUsedWithCrypto
                                 )
+                            isAppFlowCrypto =
+                                AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
                         } else throw e
                     }
                 }
 
-
-                authenticate(biometricCryptoObject, module, listener, restartPredicate)
+                if (isAppFlowCrypto) {
+                    BiometricLoggerImpl.d(
+                        "Core.authenticate: app-flow crypto is prepared for ${module.javaClass.simpleName}; authenticate without module CryptoObject"
+                    )
+                }
+                authenticate(
+                    if (isAppFlowCrypto) null else biometricCryptoObject,
+                    module,
+                    if (isAppFlowCrypto) {
+                        listener.withPreparedCryptoObject(biometricCryptoObject)
+                    } else {
+                        listener
+                    },
+                    restartPredicate
+                )
             }
         } catch (e: BiometricCryptoException) {
             BiometricLoggerImpl.e(e)
@@ -230,5 +251,39 @@ object Core {
         listener: AuthenticationListener?
     ) {
         authenticate(biometricCryptoObject, listener, RestartPredicatesImpl.neverRestart())
+    }
+
+    private fun AuthenticationListener?.withPreparedCryptoObject(
+        biometricCryptoObject: BiometricCryptoObject?
+    ): AuthenticationListener? {
+        val delegate = this ?: return null
+        return object : AuthenticationListener {
+            override fun onHelp(msg: CharSequence?) {
+                delegate.onHelp(msg)
+            }
+
+            override fun onSuccess(
+                moduleTag: Int,
+                resultCryptoObject: BiometricCryptoObject?
+            ) {
+                delegate.onSuccess(moduleTag, resultCryptoObject ?: biometricCryptoObject)
+            }
+
+            override fun onFailure(
+                moduleTag: Int,
+                reason: AuthenticationFailureReason?,
+                description: CharSequence?
+            ) {
+                delegate.onFailure(moduleTag, reason, description)
+            }
+
+            override fun onCanceled(
+                moduleTag: Int,
+                reason: AuthenticationFailureReason?,
+                description: CharSequence?
+            ) {
+                delegate.onCanceled(moduleTag, reason, description)
+            }
+        }
     }
 }

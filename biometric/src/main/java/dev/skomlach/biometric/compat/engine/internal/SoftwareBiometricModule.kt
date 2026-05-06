@@ -64,8 +64,6 @@ class SoftwareBiometricModule(
     override val priority: Int
         get() = manager?.priority ?: super.priority
 
-    override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = false
 
     fun rollbackLastEnroll() {
         d("$name: rollbackLastEnroll $enrollBundle")

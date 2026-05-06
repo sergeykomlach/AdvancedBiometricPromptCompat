@@ -59,8 +59,6 @@ class HihonorFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.initFinished(biometricMethod, this@HihonorFaceUnlockModule)
     }
 
-    override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = false
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

@@ -65,8 +65,6 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
         }
     }
 
-    override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = false
 
     fun stopAuth() {
         faceLockHelper?.stopFaceVerify()

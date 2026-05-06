@@ -59,8 +59,6 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
         listener?.initFinished(biometricMethod, this@MiuiFaceUnlockModule)
     }
 
-    override val isUserAuthCanByUsedWithCrypto: Boolean
-        get() = false
 
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()

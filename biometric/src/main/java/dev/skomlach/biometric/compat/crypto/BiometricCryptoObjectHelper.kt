@@ -21,6 +21,7 @@ package dev.skomlach.biometric.compat.crypto
 
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import kotlinx.coroutines.sync.Mutex
 
 object BiometricCryptoObjectHelper {
@@ -41,25 +42,13 @@ object BiometricCryptoObjectHelper {
             return null
         mutex.tryLock()
         try {
-            if (!isUserAuthRequired) {
-                AppFlowCryptoFacade.registerKeyForAppFlow(name)
-                AppFlowCryptoFacade.unlockWithAppSecret(name, name.toCharArray().reversedArray())
-            } else
-                AppFlowCryptoFacade.registerKeyForBiometric(name)
+            prepareCryptoAccess(name, isUserAuthRequired)
             val cipher =
                 when (purpose.purpose) {
-                    BiometricCryptographyPurpose.ENCRYPT -> try {
-                        managerInterface.getInitializedCipherForEncryption(
-                            name,
-                            isUserAuthRequired
-                        )
-                    } catch (e: Throwable) {
-                        managerInterface.deleteKey(name)
-                        managerInterface.getInitializedCipherForEncryption(
-                            name,
-                            isUserAuthRequired
-                        )
-                    }
+                    BiometricCryptographyPurpose.ENCRYPT -> getCipherForEncryption(
+                        name,
+                        isUserAuthRequired
+                    )
 
                     BiometricCryptographyPurpose.DECRYPT -> managerInterface.getInitializedCipherForDecryption(
                         name,
@@ -81,6 +70,61 @@ object BiometricCryptoObjectHelper {
             }
         }
 
+    }
+
+    private fun getCipherForEncryption(
+        name: String,
+        isUserAuthRequired: Boolean
+    ) = try {
+        managerInterface.getInitializedCipherForEncryption(
+            name,
+            isUserAuthRequired
+        )
+    } catch (e: Throwable) {
+        if (isUserAuthRequired && isNoKeystoreBiometricEnrollment(e)) {
+            BiometricLoggerImpl.d(
+                "BiometricCryptoObjectHelper: fallback to app-flow crypto for $name because AndroidKeyStore has no biometric enrollment usable for auth-per-use keys"
+            )
+            managerInterface.deleteKey(name)
+            prepareAppFlowCrypto(name)
+            managerInterface.getInitializedCipherForEncryption(
+                name,
+                false
+            )
+        } else {
+            managerInterface.deleteKey(name)
+            managerInterface.getInitializedCipherForEncryption(
+                name,
+                isUserAuthRequired
+            )
+        }
+    }
+
+    private fun prepareCryptoAccess(name: String, isUserAuthRequired: Boolean) {
+        if (!isUserAuthRequired || AppFlowCryptoRegistry.getAccessType(name) == CryptoAccessType.APP_FLOW) {
+            prepareAppFlowCrypto(name)
+        } else {
+            AppFlowCryptoFacade.registerKeyForBiometric(name)
+        }
+    }
+
+    private fun prepareAppFlowCrypto(name: String) {
+        AppFlowCryptoFacade.registerKeyForAppFlow(name)
+        AppFlowCryptoFacade.unlockWithAppSecret(name, name.toCharArray().reversedArray())
+    }
+
+    private fun isNoKeystoreBiometricEnrollment(t: Throwable): Boolean {
+        var current: Throwable? = t
+        while (current != null) {
+            val msg = current.message.orEmpty()
+            if (msg.contains("At least one biometric", ignoreCase = true) &&
+                msg.contains("must be enrolled to create keys", ignoreCase = true)
+            ) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
     }
 
 }
