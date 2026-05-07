@@ -417,7 +417,7 @@ class ZkFingerUnlockManager(
             sensor.SetFingerprintExceptionListener(exceptionListener)
             sensor.open(effectiveConfig.deviceIndex)
             sensor.startCapture(effectiveConfig.deviceIndex)
-            postHelp(localized(R.string.biometriccompat_zkfinger_help_scan_again))
+            postHelp(initialScanMessage())
         } catch (e: Throwable) {
             LogCat.logException(e)
             onAuthenticationError(
@@ -429,12 +429,10 @@ class ZkFingerUnlockManager(
     }
 
     private val captureListener = object : FingerprintCaptureListener {
+
         override fun captureOK(image: ByteArray?) = Unit
 
-        override fun captureError(e: FingerprintException?) {
-            LogCat.logException(e ?: return)
-            postHelp(localized(R.string.biometriccompat_zkfinger_help_scan_again))
-        }
+        override fun captureError(e: FingerprintException?) = Unit
 
         override fun extractOK(template: ByteArray?) {
             if (!isSessionActive.get() || template == null) return
@@ -445,7 +443,7 @@ class ZkFingerUnlockManager(
 
         override fun extractError(errorCode: Int) {
             LogCat.logError(TAG, "extractError=$errorCode")
-            postHelp(localized(R.string.biometriccompat_zkfinger_help_template_error))
+            onAuthenticationFailed()
         }
     }
 
@@ -501,10 +499,17 @@ class ZkFingerUnlockManager(
 
         enrollmentSamples += template.copyOf(TEMPLATE_SIZE)
         if (enrollmentSamples.size < effectiveConfig.enrollmentScanCount) {
-            postHelp(localized(R.string.biometriccompat_zkfinger_help_enroll_progress))
+            postHelp(
+                localized(
+                    R.string.biometriccompat_zkfinger_help_enroll_progress,
+                    enrollmentSamples.size,
+                    effectiveConfig.enrollmentScanCount
+                )
+            )
             return
         }
 
+        postHelp(localized(R.string.biometriccompat_zkfinger_help_enroll_finalizing))
         val merged = ByteArray(TEMPLATE_SIZE)
         val ret = if (enrollmentSamples.size >= 3) {
             ZKFingerService.merge(enrollmentSamples[0], enrollmentSamples[1], enrollmentSamples[2], merged)
@@ -552,10 +557,7 @@ class ZkFingerUnlockManager(
             onAuthenticationError(lockoutError, lockoutMessage(lockoutError))
             stopAuthentication()
         } else {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                localized(R.string.biometriccompat_zkfinger_help_scan_again)
-            )
+            onAuthenticationFailed()
         }
     }
 
@@ -774,7 +776,29 @@ class ZkFingerUnlockManager(
         }
     }
 
+    private fun onAuthenticationFailed() {
+        val callback = authCallback
+        callbackHandler.post {
+            callback?.onAuthenticationFailed()
+        }
+    }
+
+    private fun initialScanMessage(): CharSequence {
+        return if (isEnrolling) {
+            localized(
+                R.string.biometriccompat_zkfinger_help_enroll_start,
+                effectiveConfig.enrollmentScanCount
+            )
+        } else {
+            localized(R.string.biometriccompat_zkfinger_help_scan_again)
+        }
+    }
+
     private fun localized(id: Int): String {
         return LocalizationHelper.getLocalizedString(context, id)
+    }
+
+    private fun localized(id: Int, vararg formatArgs: Any?): String {
+        return LocalizationHelper.getLocalizedString(context, id, *formatArgs)
     }
 }

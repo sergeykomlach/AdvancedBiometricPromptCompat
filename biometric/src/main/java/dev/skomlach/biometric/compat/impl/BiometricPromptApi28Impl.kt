@@ -38,13 +38,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
-import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
-import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.R
@@ -55,6 +52,7 @@ import dev.skomlach.biometric.compat.crypto.CryptoAccessType
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.RestartPredicatesImpl.defaultPredicate
+import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
@@ -359,25 +357,6 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 )
             }
         }
-    private val isFingerprint = AtomicBoolean(false)
-
-    init {
-        if (builder.enroll) {
-            val skipHardwareList = builder.getPrimaryAvailableTypes().filter {
-                BiometricManagerCompat.isHardwareDetected(
-                    BiometricAuthRequest.default().withType(it).withProvider(
-                        BiometricProviderType.HARDWARE
-                    )
-                )
-            }
-            val filtered = builder.getPrimaryAvailableTypes().toMutableList()
-            filtered.removeAll(skipHardwareList)
-            isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
-        } else isFingerprint.set(
-            builder.getPrimaryAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
-        )
-    }
-
     private fun getFixedString(str: CharSequence?, @ColorInt color: Int): CharSequence {
         val wordtoSpan: Spannable = SpannableString(str)
         wordtoSpan.setSpan(
@@ -401,7 +380,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             dialog = BiometricPromptCompatDialogImpl(
                 builder,
                 this@BiometricPromptApi28Impl,
-                isFingerprint.get() && DevicesWithKnownBugs.hasUnderDisplayFingerprint
+                shouldUseUnderDisplayFingerprintLayout(builder.getPrimaryAvailableTypes())
             )
             dialog?.showDialog()
         } else {
@@ -732,9 +711,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 this@BiometricPromptApi28Impl.onUiClosed()
                             }
                         },
-                        builder.getSecondaryAvailableTypes()
-                            .contains(BiometricType.BIOMETRIC_FINGERPRINT)
-                                && DevicesWithKnownBugs.hasUnderDisplayFingerprint
+                        shouldUseUnderDisplayFingerprintLayout(builder.getSecondaryAvailableTypes())
                     )
                 dialog?.authFinishedCopy = authFinished
             }
@@ -783,5 +760,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         override fun onCanceled(result: AuthenticationResult) {
             canceled.add(result)
         }
+    }
+
+    private fun shouldUseUnderDisplayFingerprintLayout(types: Collection<BiometricType>): Boolean {
+        if (!types.contains(BiometricType.BIOMETRIC_FINGERPRINT)) return false
+        val fingerprintModule = LegacyBiometric.getSelectedBiometricModule(
+            BiometricType.BIOMETRIC_FINGERPRINT,
+            builder.getBiometricAuthRequest().provider,
+            builder.enroll
+        )
+        return fingerprintModule != null &&
+                fingerprintModule !is SoftwareBiometricModule &&
+                DevicesWithKnownBugs.hasUnderDisplayFingerprint
     }
 }

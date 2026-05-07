@@ -1073,20 +1073,34 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return false
         }
 
-        return builder.getPrimaryAvailableTypes().any { type ->
-            if (!isSelectedBiometricPromptHardwareType(type)) {
-                return@any false
-            }
-            val request = builder.getBiometricAuthRequest()
-                .withApi(BiometricApi.BIOMETRIC_API)
-                .withType(type)
-                .withProvider(BiometricProviderType.HARDWARE)
-            if (builder.enroll) {
-                BiometricManagerCompat.isBiometricReadyForEnroll(request)
-            } else {
-                BiometricManagerCompat.isBiometricAvailable(request)
-            }
+        if (isHigherPrioritySoftwareSelectedThanBiometricPrompt()) {
+            return false
         }
+
+        return builder.getPrimaryAvailableTypes().any { type ->
+            isSelectedBiometricPromptHardwareType(type)
+        }
+    }
+
+    private fun isHigherPrioritySoftwareSelectedThanBiometricPrompt(): Boolean {
+        val selectedModules = builder.getAllAvailableTypes()
+            .mapNotNull { type ->
+                getSelectedBiometricModule(type)?.let { module -> Pair(type, module) }
+            }
+        val bestSoftwarePriority = selectedModules
+            .map { it.second }
+            .filterIsInstance<SoftwareBiometricModule>()
+            .maxOfOrNull { it.priority } ?: return false
+        val bestBiometricPromptPriority = selectedModules
+            .filter { (type, module) ->
+                builder.getPrimaryAvailableTypes().contains(type) &&
+                        module !is SoftwareBiometricModule &&
+                        isBiometricPromptHardwareAvailable(type)
+            }
+            .maxOfOrNull { it.second.priority }
+
+        return bestBiometricPromptPriority == null ||
+                bestSoftwarePriority > bestBiometricPromptPriority
     }
 
     private fun getUsedPermissionsMapForSelectedModules(): List<Pair<BiometricType, List<String>>> {
@@ -1131,19 +1145,47 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun isSelectedBiometricPromptHardwareType(type: BiometricType): Boolean {
-        return LegacyBiometric.getSelectedBiometricModule(
-            type,
-            builder.getBiometricAuthRequest().provider,
-            builder.enroll
-        ) !is SoftwareBiometricModule
+        val module = getSelectedBiometricModule(type) ?: return false
+        return builder.getPrimaryAvailableTypes().contains(type) &&
+                module !is SoftwareBiometricModule &&
+                isBiometricPromptHardwareAvailable(type)
+    }
+
+    private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean {
+        if (builder.getBiometricAuthRequest().api == BiometricApi.LEGACY_API) {
+            return false
+        }
+
+        if (builder.getBiometricAuthRequest().provider == BiometricProviderType.SOFTWARE) {
+            return false
+        }
+
+        if (!HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).isNewBiometricApi) {
+            return false
+        }
+
+        val request = builder.getBiometricAuthRequest()
+            .withApi(BiometricApi.BIOMETRIC_API)
+            .withType(type)
+            .withProvider(BiometricProviderType.HARDWARE)
+
+        return if (builder.enroll) {
+            BiometricManagerCompat.isBiometricReadyForEnroll(request)
+        } else {
+            BiometricManagerCompat.isBiometricAvailable(request)
+        }
     }
 
     private fun isSelectedSoftwareType(type: BiometricType): Boolean {
+        return getSelectedBiometricModule(type) is SoftwareBiometricModule
+    }
+
+    private fun getSelectedBiometricModule(type: BiometricType): BiometricModule? {
         return LegacyBiometric.getSelectedBiometricModule(
             type,
             builder.getBiometricAuthRequest().provider,
             builder.enroll
-        ) is SoftwareBiometricModule
+        )
     }
 
 
