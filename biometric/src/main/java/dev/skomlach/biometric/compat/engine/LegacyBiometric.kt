@@ -535,6 +535,26 @@ object LegacyBiometric {
         return getPreferredBiometricModule(biometricType, provider, enroll)
     }
 
+    fun getSelectedBiometricModule(
+        biometricTypes: Collection<BiometricType>,
+        provider: BiometricProviderType,
+        enroll: Boolean
+    ): Pair<BiometricType, BiometricModule>? {
+        return biometricTypes
+            .asSequence()
+            .mapNotNull { type ->
+                getPreferredBiometricModule(type, provider, enroll)?.let { module -> type to module }
+            }
+            .sortedWith(
+                compareByDescending<Pair<BiometricType, BiometricModule>> { (_, module) ->
+                    module.priority
+                }.thenBy { (type, _) ->
+                    type.ordinal
+                }
+            )
+            .firstOrNull()
+    }
+
     fun getAvailableBiometricModules(
         biometricType: BiometricType?,
         provider: BiometricProviderType = BiometricProviderType.COMBINED

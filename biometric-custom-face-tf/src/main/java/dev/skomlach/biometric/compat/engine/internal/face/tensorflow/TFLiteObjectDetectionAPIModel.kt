@@ -24,7 +24,6 @@ import android.graphics.BitmapFactory
 import android.graphics.RectF
 import android.os.AsyncTask
 import android.util.Base64
-import android.util.Log
 import android.util.Pair
 import androidx.core.content.edit
 import dev.skomlach.biometric.custom.face.tf.BuildConfig
@@ -49,7 +48,7 @@ import kotlin.math.sqrt
 
 class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier {
     companion object {
-        const val storageName = "tf_storage_v2"
+        internal const val STORAGE_NAME = "tf_storage_v2"
         private const val PREF_NAME = "registered"
         private const val OUTPUT_SIZE = 192
         private const val IMAGE_MEAN = 128.0f
@@ -98,7 +97,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     private val registered: HashMap<String?, SimilarityClassifier.Recognition?> by lazy {
         val map = HashMap<String?, SimilarityClassifier.Recognition?>()
         try {
-            val sharedPreferences = getProtectedPreferences(storageName)
+            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
             val jsonString = sharedPreferences.getString(PREF_NAME, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             val keys = jsonObjectRoot.keys()
@@ -115,7 +114,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
-        Log.e(javaClass.simpleName, "registered: size ${map.size}")
+        LogCat.log(javaClass.simpleName, "registered: size ${map.size}")
         map
     }
 
@@ -249,7 +248,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
             }
             registered.clear()
             try {
-                getProtectedPreferences(storageName).edit { clear() }
+                getProtectedPreferences(STORAGE_NAME).edit { clear() }
             } catch (e: Throwable) {
                 LogCat.logException(e)
             }
@@ -263,7 +262,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         }
         registered.remove(name)
         try {
-            val sharedPreferences = getProtectedPreferences(storageName)
+            val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
             val jsonString = sharedPreferences.getString(PREF_NAME, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             jsonObjectRoot.remove(name)
@@ -275,7 +274,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
 
     override fun register(name: String, rec: SimilarityClassifier.Recognition) {
         registered[name] = rec
-        val sharedPreferences = getProtectedPreferences(storageName)
+        val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
         val jsonString = sharedPreferences.getString(PREF_NAME, null)
         val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
         jsonObjectRoot.put(name, recognition2json(rec))
@@ -366,7 +365,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
                 recognitionId = nearest.first
                 label = nearest.first
                 distance = nearest.second
-                Log.e(javaClass.simpleName, "nearest: $label - distance: $distance")
+                LogCat.log(javaClass.simpleName, "nearest match found")
             }
         }
 

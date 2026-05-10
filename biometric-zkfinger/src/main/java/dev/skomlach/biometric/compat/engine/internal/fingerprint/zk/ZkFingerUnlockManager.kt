@@ -30,6 +30,7 @@ import dev.skomlach.biometric.zkfinger.R
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import dev.skomlach.common.translate.LocalizationHelper
+import java.lang.ref.WeakReference
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
@@ -52,6 +53,8 @@ class ZkFingerUnlockManager(
         private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
         private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
         private const val KEY_PERMANENT_LOCKOUT_COUNT = "permanent_lockout_count"
+        private const val USB_PERMISSION_POLL_INTERVAL_MS = 250L
+        private const val USB_PERMISSION_TIMEOUT_MS = 30_000L
 
         @Volatile
         private var config: ZkFingerConfig = ZkFingerConfig()
@@ -59,7 +62,7 @@ class ZkFingerUnlockManager(
         private val activeSessionLock = Any()
 
         @Volatile
-        private var currentActiveManager: ZkFingerUnlockManager? = null
+        private var currentActiveManager: WeakReference<ZkFingerUnlockManager>? = null
 
         fun setZkFingerConfig(zkFingerConfig: ZkFingerConfig) {
             require(zkFingerConfig.enrollmentScanCount >= 1) {
@@ -73,17 +76,17 @@ class ZkFingerUnlockManager(
 
         private fun requestActiveSession(newManager: ZkFingerUnlockManager) {
             synchronized(activeSessionLock) {
-                val previous = currentActiveManager
+                val previous = currentActiveManager?.get()
                 if (previous != null && previous != newManager) {
                     previous.cancelInternal()
                 }
-                currentActiveManager = newManager
+                currentActiveManager = WeakReference(newManager)
             }
         }
 
         private fun releaseSession(manager: ZkFingerUnlockManager) {
             synchronized(activeSessionLock) {
-                if (currentActiveManager == manager) {
+                if (currentActiveManager?.get() == manager) {
                     currentActiveManager = null
                 }
             }
@@ -333,20 +336,51 @@ class ZkFingerUnlockManager(
             onDetached()
             return
         }
-        registerUsbReceiver(targetDevice, onGranted, onDenied, onDetached)
+        val completed = AtomicBoolean(false)
+        val completeGranted = { device: UsbDevice ->
+            if (completed.compareAndSet(false, true)) {
+                unregisterUsbReceiver()
+                onGranted(device)
+            }
+        }
+        val completeDenied = {
+            if (completed.compareAndSet(false, true)) {
+                unregisterUsbReceiver()
+                onDenied()
+            }
+        }
+        val completeDetached = {
+            if (completed.compareAndSet(false, true)) {
+                unregisterUsbReceiver()
+                onDetached()
+            }
+        }
+
+        registerUsbReceiver(targetDevice, completeGranted, completeDenied, completeDetached)
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    // UsbManager adds EXTRA_DEVICE and EXTRA_PERMISSION_GRANTED to the
+                    // permission result. This PendingIntent must stay mutable for that
+                    // platform flow; the receiver still validates action and VID/PID.
                     PendingIntent.FLAG_MUTABLE
                 } else {
                     0
                 }
         val permissionIntent = PendingIntent.getBroadcast(
             context,
-            0,
+            permissionRequestCode(targetDevice),
             Intent(permissionAction()).setPackage(context.packageName),
             flags
         )
         manager.requestPermission(targetDevice, permissionIntent)
+        pollUsbPermissionResult(
+            targetDevice,
+            System.currentTimeMillis() + USB_PERMISSION_TIMEOUT_MS,
+            completed,
+            completeGranted,
+            completeDenied,
+            completeDetached
+        )
     }
 
     private fun registerUsbReceiver(
@@ -375,7 +409,6 @@ class ZkFingerUnlockManager(
                 }
                 when (intent.action) {
                     permissionAction() -> {
-                        unregisterUsbReceiver()
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             onGranted(device)
                         } else {
@@ -384,7 +417,6 @@ class ZkFingerUnlockManager(
                     }
 
                     UsbManager.ACTION_USB_DEVICE_DETACHED -> {
-                        unregisterUsbReceiver()
                         onDetached()
                     }
                 }
@@ -395,6 +427,46 @@ class ZkFingerUnlockManager(
             usbReceiver,
             filter,
             ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+    }
+
+    private fun pollUsbPermissionResult(
+        targetDevice: UsbDevice,
+        deadline: Long,
+        completed: AtomicBoolean,
+        onGranted: (UsbDevice) -> Unit,
+        onDenied: () -> Unit,
+        onDetached: () -> Unit
+    ) {
+        callbackHandler.postDelayed(
+            {
+                if (completed.get()) return@postDelayed
+                val device = findSupportedDevice()
+                if (device == null ||
+                    device.vendorId != targetDevice.vendorId ||
+                    device.productId != targetDevice.productId
+                ) {
+                    onDetached()
+                    return@postDelayed
+                }
+                if (hasUsbPermission(device)) {
+                    onGranted(device)
+                    return@postDelayed
+                }
+                if (System.currentTimeMillis() >= deadline) {
+                    onDenied()
+                    return@postDelayed
+                }
+                pollUsbPermissionResult(
+                    targetDevice,
+                    deadline,
+                    completed,
+                    onGranted,
+                    onDenied,
+                    onDetached
+                )
+            },
+            USB_PERMISSION_POLL_INTERVAL_MS
         )
     }
 
@@ -730,6 +802,14 @@ class ZkFingerUnlockManager(
 
     private fun permissionAction(): String {
         return "${context.packageName}.dev.skomlach.biometric.zkfinger.USB_PERMISSION"
+    }
+
+    private fun permissionRequestCode(device: UsbDevice): Int {
+        var result = 17
+        result = 31 * result + device.vendorId
+        result = 31 * result + device.productId
+        result = 31 * result + effectiveConfig.deviceIndex
+        return result
     }
 
     private fun unregisterUsbReceiver() {

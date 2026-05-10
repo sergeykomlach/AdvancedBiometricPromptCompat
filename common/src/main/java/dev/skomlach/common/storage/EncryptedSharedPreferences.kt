@@ -39,7 +39,7 @@ import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.text.Charsets.UTF_8
 
-class KeyNameCipher(
+private class KeyNameCipher(
     private val aesKey32: ByteArray,
     private val secureRandom: SecureRandom = SecureRandom()
 ) {
@@ -160,8 +160,12 @@ class EncryptedSharedPreferences(
 
     private fun decrypt(ciphertext: String?): ByteArray? {
         if (ciphertext.isNullOrEmpty()) return ciphertext?.toByteArray(UTF_8)
-        return decryptWith(primaryConfig?.valueKeys?:return null, ciphertext)
-            ?: decryptWith(secondaryConfig?.valueKeys?:return null, ciphertext)
+        return listOfNotNull(
+            primaryConfig?.valueKeys,
+            secondaryConfig?.valueKeys
+        ).firstNotNullOfOrNull { keys ->
+            decryptWith(keys, ciphertext)
+        }
     }
 
     private fun decryptWith(
@@ -402,7 +406,7 @@ class EncryptedSharedPreferences(
     /**
      * Internal enum to set the type of encrypted data.
      */
-    enum class EncryptedType(val id: Int) {
+    private enum class EncryptedType(val id: Int) {
         STRING(0), STRING_SET(1), INT(2), LONG(3), FLOAT(4), BOOLEAN(5);
 
         companion object {
@@ -432,7 +436,7 @@ class EncryptedSharedPreferences(
         return if (key == NULL_VALUE) NULL_VALUE else key
     }
 
-    internal fun findEncryptedKey(key: String?): String? {
+    private fun findEncryptedKey(key: String?): String? {
         val normalizedKey = key ?: NULL_VALUE
         val direct = encryptString(normalizedKey)
         if (direct != null && mSharedPreferences.contains(direct)) {
@@ -499,6 +503,8 @@ class EncryptedSharedPreferences(
             }
         } catch (ex: GeneralSecurityException) {
             throw SecurityException("Could not decrypt value. ${ex.message}", ex)
+        } catch (_: RuntimeException) {
+            return null
         }
     }
 
@@ -506,6 +512,9 @@ class EncryptedSharedPreferences(
     private fun encryptKeyValuePair(key: String?, value: ByteArray?): Pair<String, String> {
         val encryptedKey = findEncryptedKey(key) ?: encryptKey(key)
         val cipherText = encrypt(value)
+        if (encryptedKey == null || cipherText == null) {
+            throw GeneralSecurityException("Could not encrypt preference entry")
+        }
         return Pair(encryptedKey, cipherText)
     }
 }

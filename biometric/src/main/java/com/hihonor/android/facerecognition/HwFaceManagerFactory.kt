@@ -21,31 +21,32 @@ package com.hihonor.android.facerecognition
 
 import android.content.Context
 import android.os.Build.VERSION
-import android.util.Log
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import java.lang.reflect.InvocationTargetException
 
 object HwFaceManagerFactory {
-    private const val TAG = "FaceRecognize"
-
     @Synchronized
     @JvmStatic
     fun getFaceManager(context: Context?): FaceManager? {
         try {
             if (VERSION.SDK_INT < 29) {
-                Log.e("FaceRecognize", "The current version does not support face recognition")
+                BiometricLoggerImpl.d(
+                    "FaceRecognize",
+                    "The current version does not support face recognition"
+                )
                 return null
             }
             val t = Class.forName("com.hihonor.android.facerecognition.FaceManagerFactory")
             val method = t.getDeclaredMethod("getFaceManager", Context::class.java)
             return method.invoke(null as Any?, context) as FaceManager?
         } catch (var3: ClassNotFoundException) {
-            Log.i("FaceRecognize", "Throw exception: ClassNotFoundException")
+            BiometricLoggerImpl.d("FaceRecognize", "Throw exception: ClassNotFoundException")
         } catch (var4: NoSuchMethodException) {
-            Log.i("FaceRecognize", "Throw exception: NoSuchMethodException")
+            BiometricLoggerImpl.d("FaceRecognize", "Throw exception: NoSuchMethodException")
         } catch (var5: IllegalAccessException) {
-            Log.i("FaceRecognize", "Throw exception: IllegalAccessException")
+            BiometricLoggerImpl.d("FaceRecognize", "Throw exception: IllegalAccessException")
         } catch (var6: InvocationTargetException) {
-            Log.i("FaceRecognize", "Throw exception: InvocationTargetException")
+            BiometricLoggerImpl.d("FaceRecognize", "Throw exception: InvocationTargetException")
         }
         return null
     }

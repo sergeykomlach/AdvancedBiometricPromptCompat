@@ -188,6 +188,11 @@ object LocalizationHelper {
                     else -> NetworkApi.resolveUrl(urlConnection.url.toString(), location)
                 }
 
+                if (!NetworkApi.isWebUrl(target)) {
+                    LogCat.logError("Blocked non-web redirect for URL: $url")
+                    return null
+                }
+
                 LogCat.log("Redirecting to: $target")
                 urlConnection.disconnect()
                 return fetchFromWebWithRedirects(target, redirectCount + 1)

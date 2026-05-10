@@ -104,12 +104,13 @@ object BiometricNotificationManager {
                         )
                         .setSmallIcon(type.iconId).build()
 
-                    if (
-                        PermissionUtils.INSTANCE.isAllowedNotificationsPermission &&
-                        PermissionUtils.INSTANCE.isAllowedNotificationsChannelPermission(CHANNEL_ID)
-                    ) {
-                        notificationCompat.notify(type.hashCode(), notif)
-                        BiometricLoggerImpl.d("BiometricNotificationManager", "Notification posted")
+                    if (canPostNotification()) {
+                        try {
+                            notificationCompat.notify(type.hashCode(), notif)
+                            BiometricLoggerImpl.d("BiometricNotificationManager", "Notification posted")
+                        } catch (e: SecurityException) {
+                            BiometricLoggerImpl.e(e)
+                        }
                     } else
                         BiometricLoggerImpl.d(
                             "BiometricNotificationManager",
@@ -157,5 +158,10 @@ object BiometricNotificationManager {
         } catch (e: Throwable) {
             BiometricLoggerImpl.e(e)
         }
+    }
+
+    private fun canPostNotification(): Boolean {
+        return PermissionUtils.INSTANCE.isAllowedNotificationsPermission &&
+                PermissionUtils.INSTANCE.isAllowedNotificationsChannelPermission(CHANNEL_ID)
     }
 }

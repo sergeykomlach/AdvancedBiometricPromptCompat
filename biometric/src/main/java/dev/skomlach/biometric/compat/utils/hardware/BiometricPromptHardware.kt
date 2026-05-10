@@ -194,8 +194,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
     //OK to check in this way
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
-        if (!isAnyHardwareAvailable) return false
-
         if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
             return LegacyBiometric.getAvailableBiometricModule(
                 type,
@@ -207,9 +205,10 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type)) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
-                                it.model
-                            )
+                            (it.hasFaceID() && checkDeviceFeature(type)) ||
+                                    SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
+                                        it.model
+                                    )
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
                             (it.hasFaceID() && checkDeviceFeature(type)) || PixelModelChecker.isPixel8OrNewer(
                                 it.model
@@ -220,9 +219,10 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            it.hasIrisScanner() && checkDeviceFeature(type) || SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
-                                it.model
-                            )
+                            (it.hasIrisScanner() && checkDeviceFeature(type)) ||
+                                    SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
+                                        it.model
+                                    )
                         } else
                             it.hasIrisScanner() && checkDeviceFeature(type)
                     }
@@ -269,8 +269,6 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         BiometricLockoutFix.isLockOut(type)
 
     private fun isBiometricEnrolledForType(type: BiometricType): Boolean {
-        if (!isAnyHardwareAvailable) return false
-
         if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
             return LegacyBiometric.getAvailableBiometricModule(
                 type,
@@ -352,11 +350,12 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
 
         init {
             GlobalScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO){
-                    try{
+                withContext(Dispatchers.IO) {
+                    try {
                         keyStore.load(null)
                         keyStore.deleteEntry("BiometricEnrollChanged.test")
-                    } catch (_: Throwable){}
+                    } catch (_: Throwable) {
+                    }
                 }
                 AndroidContext.resumedActivityLiveData.observeForever {
                     updateState()
@@ -441,7 +440,10 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     t is KeyPermanentlyInvalidatedException ||
                     msg.contains("Incompatible block mode", ignoreCase = true) ||
                     msg.contains("INCOMPATIBLE_BLOCK_MODE", ignoreCase = true) ||
-                    msg.contains("User changed or deleted their auth credentials", ignoreCase = true)
+                    msg.contains(
+                        "User changed or deleted their auth credentials",
+                        ignoreCase = true
+                    )
         }
 
         private fun isNoKeystoreBiometricEnrollment(t: Throwable): Boolean {

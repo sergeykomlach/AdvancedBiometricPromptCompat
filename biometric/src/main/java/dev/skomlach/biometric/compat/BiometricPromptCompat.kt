@@ -1059,21 +1059,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun shouldUseBiometricPromptImpl(): Boolean {
-        if (builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API) {
-            return true
-        }
-
         if (builder.getBiometricAuthRequest().provider == BiometricProviderType.SOFTWARE) {
             return false
+        }
+
+        if (isHigherPrioritySoftwareSelectedThanBiometricPrompt()) {
+            return false
+        }
+
+        if (builder.getBiometricAuthRequest().api == BiometricApi.BIOMETRIC_API) {
+            return true
         }
 
         if (builder.getBiometricAuthRequest().api == BiometricApi.AUTO &&
             !HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).isNewBiometricApi
         ) {
-            return false
-        }
-
-        if (isHigherPrioritySoftwareSelectedThanBiometricPrompt()) {
             return false
         }
 

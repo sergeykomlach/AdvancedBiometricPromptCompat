@@ -43,6 +43,8 @@ import javax.security.auth.x500.X500Principal
 @RequiresApi(Build.VERSION_CODES.KITKAT)
 class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     override val version: String
+        get() = "v3"
+    private val LEGACY_VERSION: String
         get() = "v2"
     private val TYPE_RSA: String
         get() = "RSA"
@@ -51,6 +53,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
     private val context = AndroidContext.appContext
 
     private val KEY_NAME = "CryptographyManagerInterfaceKitkatImpl-$version"
+    private val LEGACY_KEY_NAME = "CryptographyManagerInterfaceKitkatImpl-$LEGACY_VERSION"
     private val keyStore by lazy {
         KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
     }
@@ -59,6 +62,7 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
 
         keyStore.load(null) // Keystore must be loaded before it can be accessed
         keyStore.deleteEntry("$KEY_NAME.$keyName")
+        keyStore.deleteEntry("$LEGACY_KEY_NAME.$keyName")
     }
 
     override fun getInitializedCipherForEncryption(
@@ -90,9 +94,13 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         initializationVector: ByteArray?
     ): Cipher {
         try {
-            val cipher = getCipher()
-            getOrCreateSecretKey("$KEY_NAME.$keyName")
-            val key = getPrivateKey("$KEY_NAME.$keyName")
+            val primaryAlias = "$KEY_NAME.$keyName"
+            val legacyAlias = "$LEGACY_KEY_NAME.$keyName"
+            val useLegacyKey = !keyExist(primaryAlias) && keyExist(legacyAlias)
+            val alias = if (useLegacyKey) legacyAlias else primaryAlias
+            val cipher = getCipher(useLegacyKey)
+            getOrCreateSecretKey(alias)
+            val key = getPrivateKey(alias)
                 ?: throw IllegalStateException("Cipher initialization error")
             cipher.init(Cipher.DECRYPT_MODE, key)
             return cipher
@@ -105,9 +113,15 @@ class CryptographyManagerInterfaceKitkatImpl : CryptographyManagerInterface {
         }
     }
 
-    private fun getCipher(): Cipher {
+    private fun getCipher(useLegacyPadding: Boolean = false): Cipher {
 
-        return Cipher.getInstance("RSA/ECB/PKCS1Padding")
+        return Cipher.getInstance(
+            if (useLegacyPadding) {
+                "RSA/ECB/PKCS1Padding"
+            } else {
+                "RSA/ECB/OAEPWithSHA-1AndMGF1Padding"
+            }
+        )
 
     }
 

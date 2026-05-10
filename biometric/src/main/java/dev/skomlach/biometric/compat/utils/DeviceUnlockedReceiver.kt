@@ -24,6 +24,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
@@ -32,6 +33,12 @@ import dev.skomlach.common.misc.ExecutorHelper
 
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
+        private val BOOT_ACTIONS = setOf(
+            Intent.ACTION_BOOT_COMPLETED,
+            "android.intent.action.QUICKBOOT_POWERON",
+            "com.htc.intent.action.QUICKBOOT_POWERON"
+        )
+
         private var isRegistered = false
 
 
@@ -48,8 +55,10 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
                 BroadcastTools.registerGlobalBroadcastIntent(
                     appContext,
                     DeviceUnlockedReceiver(),
-                    filter
+                    filter,
+                    ContextCompat.RECEIVER_NOT_EXPORTED
                 )
+                isRegistered = true
             } catch (e: Throwable) {
                 e(e)
             }
@@ -58,19 +67,25 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
+        val action = intent.action ?: return
         ExecutorHelper.startOnBackground {
-            if (intent.action?.contains("boot", ignoreCase = true) == true) {
+            if (BOOT_ACTIONS.contains(action)) {
                 d("Device boot completed")
                 BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
-            } else
-                if (!intent.action.isNullOrEmpty()) {
+            } else if (
+                action == Intent.ACTION_USER_PRESENT ||
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+                        (
+                                action == Intent.ACTION_MANAGED_PROFILE_UNLOCKED ||
+                                        action == Intent.ACTION_USER_UNLOCKED
+                                ))
+            ) {
                     d("Device unlocked completed")
                     if (BiometricErrorLockoutPermanentFix.isRebootDetected())
                         BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                     else
                         BiometricLockoutFix.reset()
-                } else if (BiometricErrorLockoutPermanentFix.isRebootDetected())
-                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+            }
         }
     }
 

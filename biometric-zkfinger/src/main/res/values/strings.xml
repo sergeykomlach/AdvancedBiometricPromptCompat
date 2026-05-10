@@ -9,8 +9,8 @@
     <string name="biometriccompat_zkfinger_help_already_registered">This fingerprint is already registered</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Use the same finger for all enrollment scans</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Scan your finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Place the same finger on the ZK reader %1$d times</string>
-    <string name="biometriccompat_zkfinger_help_enroll_progress">Scan %1$d of %2$d accepted. Lift and place the same finger again</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Required ZK reader scans: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_progress">Accepted scans: %1$d/%2$d. Lift and place the same finger again</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizing fingerprint enrollment</string>
     <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
     <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>

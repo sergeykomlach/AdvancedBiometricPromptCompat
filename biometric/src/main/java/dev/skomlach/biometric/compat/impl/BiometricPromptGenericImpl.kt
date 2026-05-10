@@ -30,7 +30,6 @@ import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListene
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.impl.dialogs.BiometricPromptCompatDialogImpl
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
-import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs.isHideDialogInstantly
 import dev.skomlach.biometric.compat.utils.Vibro
 import dev.skomlach.biometric.compat.utils.activityView.IconStateHelper
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -51,26 +50,30 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     private val isOpened = AtomicBoolean(false)
     private val failureCounter = AtomicInteger(0)
     private val canceled = HashSet<AuthenticationResult>()
+    private val shouldHideCompatDialogForUnderDisplayFingerprint: Boolean
+        get() = useUnderDisplayFingerprintLayout.get() && !DevicesWithKnownBugs.isMissedBiometricUI
 
     init {
-        val fingerprintModule = LegacyBiometric.getSelectedBiometricModule(
-            BiometricType.BIOMETRIC_FINGERPRINT,
+        useUnderDisplayFingerprintLayout.set(shouldUseUnderDisplayFingerprintLayout())
+    }
+
+    private fun shouldUseUnderDisplayFingerprintLayout(): Boolean {
+        val selected = LegacyBiometric.getSelectedBiometricModule(
+            builder.getAllAvailableTypes(),
             builder.getBiometricAuthRequest().provider,
             builder.enroll
         )
-        val hasSelectedFingerprint = fingerprintModule != null
-        val selectedFingerprintIsSoftware = fingerprintModule is SoftwareBiometricModule
-        useUnderDisplayFingerprintLayout.set(
-            hasSelectedFingerprint &&
-                    !selectedFingerprintIsSoftware &&
-                    DevicesWithKnownBugs.hasUnderDisplayFingerprint
-        )
+            ?: return false
+
+        return selected.first == BiometricType.BIOMETRIC_FINGERPRINT &&
+                selected.second !is SoftwareBiometricModule &&
+                DevicesWithKnownBugs.hasUnderDisplayFingerprint
     }
 
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
         this.authFinished.clear()
         this.callback = callback
-        val doNotShowDialog = useUnderDisplayFingerprintLayout.get() && isHideDialogInstantly
+        val doNotShowDialog = shouldHideCompatDialogForUnderDisplayFingerprint
         d("BiometricPromptGenericImpl.authenticate(): doNotShowDialog=$doNotShowDialog")
         onUiOpened()
         if (!doNotShowDialog) {
@@ -213,7 +216,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 }.toSet())
                 cancelAuthentication()
             } else if (error != null && allList.isEmpty()) {
-                if (failureCounter.get() == 1 || error.result?.reason !== AuthenticationFailureReason.LOCKED_OUT || isHideDialogInstantly) {
+                if (failureCounter.get() == 1 || error.result?.reason !== AuthenticationFailureReason.LOCKED_OUT || shouldHideCompatDialogForUnderDisplayFingerprint) {
                     callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
                         .mapNotNull {
                             it.result

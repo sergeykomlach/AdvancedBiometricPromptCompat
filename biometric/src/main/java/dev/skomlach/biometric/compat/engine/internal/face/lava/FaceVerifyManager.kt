@@ -24,18 +24,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.*
-import android.util.Log
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.SettingsHelper
 
 
-class FaceVerifyManager(private val mContext: Context) {
+internal class FaceVerifyManager(private val mContext: Context) {
 
     companion object {
         private const val TAG = "PrizeFaceVerifyManager"
-        private const val ACTION = "com.prize.faceunlock.prizeFaceUnlockDetectService"
         private const val VERIFY_MSG = 0
-        const val LAVA_FACE_UNLOCK_KEY = "lava_face_unlock_key"
     }
 
     private var mIFaceVerifyService: IFaceVerifyService? = null
@@ -81,21 +78,22 @@ class FaceVerifyManager(private val mContext: Context) {
         }
 
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            Log.i(TAG, "onServiceConnected start  ")
+            BiometricLoggerImpl.d(TAG, "onServiceConnected start")
             mIFaceVerifyService = IFaceVerifyService.Stub.asInterface(service)
             if (null != mIFaceVerifyService) {
                 try {
-                    Log.i(
+                    BiometricLoggerImpl.d(
                         TAG,
-                        "onServiceConnected mIFaceVerifyServiceCallback  = $mIFaceVerifyServiceCallback"
+                        "onServiceConnected mIFaceVerifyServiceCallback registered"
                     )
                     mIFaceVerifyService?.registerCallback(mIFaceVerifyServiceCallback)
                     mIFaceVerifyService?.startVerify()
                 } catch (e: RemoteException) {
+                    BiometricLoggerImpl.e(e)
                 }
             }
             isBinded = true
-            Log.i(TAG, "onServiceConnected end  ")
+            BiometricLoggerImpl.d(TAG, "onServiceConnected end")
         }
     }
 
@@ -103,7 +101,7 @@ class FaceVerifyManager(private val mContext: Context) {
         if (isBinded) {
             startFaceVerify()
         } else {
-            Log.i(TAG, "bindFaceVerifyService start 11111  ")
+            BiometricLoggerImpl.d(TAG, "bindFaceVerifyService start")
             val intent = Intent()
             val cn = ComponentName(
                 "com.prize.faceunlock",
@@ -111,12 +109,12 @@ class FaceVerifyManager(private val mContext: Context) {
             )
             intent.component = cn
             mContext.bindService(intent, conn, Context.BIND_AUTO_CREATE)
-            Log.i(TAG, "bindLavaVoiceService end  ")
+            BiometricLoggerImpl.d(TAG, "bindFaceVerifyService end")
         }
     }
 
     fun unbindFaceVerifyService() {
-        Log.i(
+        BiometricLoggerImpl.d(
             TAG,
             "unbindLavaVoiceService start  isBinded = $isBinded"
         )
@@ -125,7 +123,7 @@ class FaceVerifyManager(private val mContext: Context) {
             mIFaceVerifyService = null
             isBinded = false
         }
-        Log.i(TAG, "unbindLavaVoiceService start  ")
+        BiometricLoggerImpl.d(TAG, "unbindFaceVerifyService end")
     }
 
     fun startFaceVerify() {

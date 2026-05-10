@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
-        var DEBUG_MANAGERS = false
+        internal var DEBUG_MANAGERS = false
     }
 
 
@@ -64,7 +64,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         }
     }
 
-    fun postCancelTask(runnable: Runnable?) {
+    protected fun postCancelTask(runnable: Runnable?) {
         cancelTask?.let {
             ExecutorHelper.removeCallbacks(it)
         }
@@ -72,7 +72,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         ExecutorHelper.postDelayed(runnable ?: return, 2000)
     }
 
-    fun getUserId(): Int {
+    protected fun getUserId(): Int {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 UserHandle::class.java.methods.filter { it.name == "myUserId" }[0].invoke(null) as Int
@@ -84,7 +84,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         }
     }
 
-    fun lockout() {
+    protected fun lockout() {
         if (!isLockOut) {
             BiometricLockoutFix.lockout(biometricMethod.biometricType)
         }
@@ -121,7 +121,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         preferences.edit().putStringSet(ENROLLED_PREF + tag(), getHashes()).apply()
     }
 
-    open fun getIds(manager: Any): List<String> {
+    private fun getIds(manager: Any): List<String> {
         val ids = ArrayList<String?>()
         try {
             val methods = manager.javaClass.declaredMethods.filter {
@@ -221,9 +221,8 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
 
             for (id in temp) {
-                md5(id)?.let { md5 ->
-                    e("$name: getHashes $id -> $md5")
-                    hashes.add(md5)
+                digestEnrollmentId(id)?.let { hash ->
+                    hashes.add(hash)
                 }
             }
         }
@@ -286,9 +285,9 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         return null
     }
 
-    private fun md5(s: String): String? {
+    private fun digestEnrollmentId(s: String): String? {
         try {
-            val digest = MessageDigest.getInstance("MD5")
+            val digest = MessageDigest.getInstance("SHA-256")
             digest.reset()
             digest.update(s.toByteArray(Charset.forName("UTF-8")))
             return HexUtils.bytesToHex(digest.digest())
@@ -298,7 +297,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         return null
     }
 
-    fun restartCauseTimeout(reason: AuthenticationFailureReason?): Boolean {
+    protected fun restartCauseTimeout(reason: AuthenticationFailureReason?): Boolean {
         return reason == AuthenticationFailureReason.TIMEOUT
     }
 }

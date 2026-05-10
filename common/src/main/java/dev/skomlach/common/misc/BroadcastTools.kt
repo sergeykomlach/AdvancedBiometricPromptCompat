@@ -42,7 +42,7 @@ object BroadcastTools {
     fun registerGlobalBroadcastIntent(
         context: Context,
         broadcastReceiver: BroadcastReceiver?,
-        filter: IntentFilter, flags: Int = ContextCompat.RECEIVER_EXPORTED
+        filter: IntentFilter, flags: Int = ContextCompat.RECEIVER_NOT_EXPORTED
     ) {
         val actionsIterator = filter.actionsIterator()
         while (actionsIterator.hasNext()) {
