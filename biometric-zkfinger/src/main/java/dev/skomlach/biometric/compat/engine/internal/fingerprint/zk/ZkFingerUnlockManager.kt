@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
@@ -182,10 +183,7 @@ class ZkFingerUnlockManager(
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_FINGERPRINT
 
     override fun isHardwareDetected(): Boolean {
-        // USB permission is requested later. Hardware detection must only mean that a
-        // supported reader is physically attached, otherwise prepareForAuthentication()
-        // would never get a chance to request permission.
-        return findSupportedDevice() != null
+        return isUsbHostAvailable()
     }
 
     override fun hasEnrolledBiometric(): Boolean = getEnrolls().isNotEmpty()
@@ -227,9 +225,14 @@ class ZkFingerUnlockManager(
         extra: Bundle?
     ) {
         requestActiveSession(this)
+        callbackHandler = handler ?: Handler(Looper.getMainLooper())
+        authCallback = callback
+        cancellationSignal = cancel
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {
             onAuthenticationError(lockoutError, lockoutMessage(lockoutError))
+            authCallback = null
+            cancellationSignal = null
             releaseSession(this)
             return
         }
@@ -243,6 +246,8 @@ class ZkFingerUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
                 localized(R.string.biometriccompat_zkfinger_help_not_registered)
             )
+            authCallback = null
+            cancellationSignal = null
             releaseSession(this)
             return
         }
@@ -252,13 +257,12 @@ class ZkFingerUnlockManager(
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
                 localized(R.string.biometriccompat_zkfinger_help_sensor_not_found)
             )
+            authCallback = null
+            cancellationSignal = null
             releaseSession(this)
             return
         }
 
-        callbackHandler = handler ?: Handler(Looper.getMainLooper())
-        authCallback = callback
-        cancellationSignal = cancel
         isSessionActive.set(true)
         cancellationSignal?.setOnCancelListener {
             if (isSessionActive.get()) {
@@ -683,6 +687,10 @@ class ZkFingerUnlockManager(
     }
 
     private fun checkLockoutState(): Int? {
+        if (findSupportedDevice() == null) {
+            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+        }
+
         val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
         if (permanentLockoutCount >= effectiveConfig.maxTemporaryLockoutsBeforePermanent) {
             return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
@@ -700,6 +708,8 @@ class ZkFingerUnlockManager(
         }
         return null
     }
+
+    override fun getLockoutError(): Int? = checkLockoutState()
 
     private fun handleFailedAttempt() {
         var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
@@ -794,6 +804,14 @@ class ZkFingerUnlockManager(
 
     private fun usbManager(): UsbManager? {
         return context.getSystemService(Context.USB_SERVICE) as? UsbManager
+    }
+
+    private fun isUsbHostAvailable(): Boolean {
+        val currentConfig = effectiveConfig
+        return currentConfig.vendorId > 0 &&
+                currentConfig.productIds.isNotEmpty() &&
+                context.packageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST) &&
+                usbManager() != null
     }
 
     private fun hasUsbPermission(device: UsbDevice): Boolean {

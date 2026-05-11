@@ -31,5 +31,6 @@ interface IFrameProvider {
     )
 
     fun stop()
+    fun isHardwareCapabilityAvailable(): Boolean = isHardwareSupported()
     fun isHardwareSupported(): Boolean
 }

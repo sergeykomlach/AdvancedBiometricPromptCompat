@@ -365,6 +365,22 @@ object LegacyBiometric {
             moduleHashMap.values.any { it.isHardwarePresent }
         }
 
+    fun isSoftwarePermanentlyLockedOut(
+        biometricType: BiometricType?,
+        provider: BiometricProviderType
+    ): Boolean {
+        if (provider == BiometricProviderType.HARDWARE) return false
+        val modules = if (biometricType == BiometricType.BIOMETRIC_ANY) {
+            synchronized(moduleHashMap) { moduleHashMap.values.toList() }
+        } else {
+            getAvailableBiometricModules(biometricType, provider)
+        }
+        return modules
+            .filterIsInstance<SoftwareBiometricModule>()
+            .filter { providerMatches(it, provider) }
+            .any { it.isPermanentlyLockedOut }
+    }
+
     val hasEnrolled: Boolean
         get() = synchronized(moduleHashMap) {
             moduleHashMap.values.any { it.hasEnrolled }

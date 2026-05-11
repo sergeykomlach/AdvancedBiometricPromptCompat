@@ -89,6 +89,28 @@ class SoftwareBiometricModule(
             return result
         }
 
+    override val isLockOut: Boolean
+        get() {
+            val result = try {
+                super.isLockOut || manager?.isLockedOut() == true
+            } catch (e: Throwable) {
+                super.isLockOut
+            }
+            e("$name: isLockOut=$result")
+            return result
+        }
+
+    val isPermanentlyLockedOut: Boolean
+        get() {
+            val result = try {
+                manager?.getLockoutError() == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+            } catch (e: Throwable) {
+                false
+            }
+            e("$name: isPermanentlyLockedOut=$result")
+            return result
+        }
+
     override val hasEnrolled: Boolean
         get() {
 

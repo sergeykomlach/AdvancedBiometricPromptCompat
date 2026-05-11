@@ -70,6 +70,10 @@ abstract class AbstractSoftwareBiometricManager {
         callback.onPrepared()
     }
 
+    open fun getLockoutError(): Int? = null
+
+    open fun isLockedOut(): Boolean = getLockoutError() != null
+
     abstract val biometricType: BiometricType
     abstract fun isHardwareDetected(): Boolean
     abstract fun hasEnrolledBiometric(): Boolean

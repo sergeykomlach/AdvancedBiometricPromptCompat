@@ -222,7 +222,8 @@ object BiometricManagerCompat {
             return false
         var result = false
         if (api.api != BiometricApi.AUTO)
-            result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
+            result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type) ||
+                    LegacyBiometric.isSoftwarePermanentlyLockedOut(api.type, api.provider)
         else {
             var total = 0
             var counted = 0
@@ -230,7 +231,9 @@ object BiometricManagerCompat {
                 val v = api.withApi(BiometricApi.AUTO).withType(s)
                 if (isBiometricAvailable(v)) {
                     total++
-                    if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s)) {
+                    if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s) ||
+                        LegacyBiometric.isSoftwarePermanentlyLockedOut(s, api.provider)
+                    ) {
                         counted++
                     }
                 }
@@ -262,7 +265,19 @@ object BiometricManagerCompat {
             ).isHardwareAvailable
         val isBiometricAppEnabled = isBiometricAppEnabled()
         BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result isBiometricAppEnabled $isBiometricAppEnabled")
-        preferences.edit { putBoolean("isHardwareDetected-${api.api}-${api.type}", result) }
+        val lockoutResult = if (api.api != BiometricApi.AUTO)
+            HardwareAccessImpl.getInstance(api).isLockedOut
+        else {
+            HardwareAccessImpl.getInstance(
+                api.withApi(BiometricApi.LEGACY_API)
+            ).isLockedOut || HardwareAccessImpl.getInstance(
+                api.withApi(BiometricApi.BIOMETRIC_API)
+            ).isLockedOut
+        }
+        preferences.edit {
+            putBoolean("isHardwareDetected-${api.api}-${api.type}", result)
+            putBoolean("isLockOut-${api.api}-${api.type}", lockoutResult)
+        }
         return result && isBiometricAppEnabled
     }
 

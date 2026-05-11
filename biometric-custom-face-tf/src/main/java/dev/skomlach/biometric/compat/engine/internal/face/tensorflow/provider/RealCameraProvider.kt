@@ -3,6 +3,7 @@ package dev.skomlach.biometric.compat.engine.internal.face.tensorflow.provider
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.graphics.Matrix
@@ -95,7 +96,19 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
 
     override fun isHardwareSupported(): Boolean {
         return try {
-            !getFrontFacingCameraId(cameraManager).isNullOrEmpty()
+            !getCaptureCameraId(cameraManager).isNullOrEmpty()
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    override fun isHardwareCapabilityAvailable(): Boolean {
+        val packageManager = context.packageManager
+        return try {
+                    packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT) ||
+                    packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_EXTERNAL) ||
+                    packageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST) ||
+                    cameraManager.cameraIdList.isNotEmpty()
         } catch (_: Exception) {
             false
         }
@@ -115,7 +128,7 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             return
         }
 
-        val cameraId = getFrontFacingCameraId(cameraManager) ?: run {
+        val cameraId = getCaptureCameraId(cameraManager) ?: run {
             onError?.invoke(
                 AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
                 LocalizationHelper.getLocalizedString(
@@ -330,20 +343,33 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
         ) ?: filtered.maxByOrNull { it.width * it.height } ?: validSizes.first()
     }
 
-    private fun getFrontFacingCameraId(manager: CameraManager): String? {
-        return manager.cameraIdList.firstOrNull {
-            if (manager.getCameraCharacteristics(it)
-                    .get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
-            ) {
-                val characteristics = manager.getCameraCharacteristics(it)
-                val map =
-                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
-                val validSizes = map.getOutputSizes(ImageFormat.YUV_420_888)
-                    .filter { s -> isUsablePreviewSize(s) }
-
-                validSizes.isNotEmpty()
-            } else false
+    private fun getCaptureCameraId(manager: CameraManager): String? {
+        val candidates = manager.cameraIdList.mapNotNull { id ->
+            val characteristics = manager.getCameraCharacteristics(id)
+            val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+            if (!isFaceCaptureLens(lensFacing) || !hasUsablePreviewOutput(characteristics)) {
+                null
+            } else {
+                id to lensFacing
+            }
         }
+        return candidates.firstOrNull {
+            it.second == CameraCharacteristics.LENS_FACING_FRONT
+        }?.first ?: candidates.firstOrNull {
+            it.second == CameraCharacteristics.LENS_FACING_EXTERNAL
+        }?.first
+    }
+
+    private fun isFaceCaptureLens(lensFacing: Int?): Boolean {
+        return lensFacing == CameraCharacteristics.LENS_FACING_FRONT ||
+                lensFacing == CameraCharacteristics.LENS_FACING_EXTERNAL
+    }
+
+    private fun hasUsablePreviewOutput(characteristics: CameraCharacteristics): Boolean {
+        val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+            ?: return false
+        return map.getOutputSizes(ImageFormat.YUV_420_888)
+            ?.any { isUsablePreviewSize(it) } == true
     }
 
     private fun isUsablePreviewSize(size: Size): Boolean {

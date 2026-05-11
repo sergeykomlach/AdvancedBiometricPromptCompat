@@ -239,6 +239,10 @@ class TensorFlowFaceUnlockManager(
     }
 
     private fun checkLockoutState(): Int? {
+        if (!frameProvider.isHardwareSupported()) {
+            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+        }
+
         val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
         val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
         if (permanentLockoutCount >= effectiveConfig.maxTemporaryLockoutsBeforePermanent) {
@@ -257,6 +261,8 @@ class TensorFlowFaceUnlockManager(
         }
         return null
     }
+
+    override fun getLockoutError(): Int? = checkLockoutState()
 
     private fun handleFailedAttempt() {
         val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
@@ -439,7 +445,7 @@ class TensorFlowFaceUnlockManager(
     }
 
     override fun isHardwareDetected(): Boolean {
-        return detector != null && faceDetector != null && frameProvider.isHardwareSupported()
+        return detector != null && faceDetector != null && frameProvider.isHardwareCapabilityAvailable()
     }
 
     override fun hasEnrolledBiometric(): Boolean = detector?.hasRegistered() == true
