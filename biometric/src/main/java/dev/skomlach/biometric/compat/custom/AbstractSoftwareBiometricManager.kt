@@ -22,6 +22,8 @@ package dev.skomlach.biometric.compat.custom
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
+import android.content.SharedPreferences
+import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import java.security.Signature
@@ -55,9 +57,19 @@ abstract class AbstractSoftwareBiometricManager {
             BiometricModule.PRIORITY_SYSTEM_HARDWARE
         const val PRIORITY_ABOVE_SYSTEM_HARDWARE =
             BiometricModule.PRIORITY_ABOVE_SYSTEM_HARDWARE
+
+        private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
+        private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
+        private const val KEY_PERMANENT_LOCKOUT_COUNT = "permanent_lockout_count"
     }
 
     open val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
+
+    protected data class LockoutPolicy(
+        val maxFailedAttemptsBeforeLockout: Int,
+        val maxTemporaryLockoutsBeforePermanent: Int,
+        val lockoutDurationMs: Long
+    )
 
     abstract fun getTimeoutMessage(): CharSequence?
     abstract fun resetLockOut()
@@ -73,6 +85,63 @@ abstract class AbstractSoftwareBiometricManager {
     open fun getLockoutError(): Int? = null
 
     open fun isLockedOut(): Boolean = getLockoutError() != null
+
+    protected fun resetTemporaryLockoutState(prefs: SharedPreferences) {
+        prefs.edit {
+            remove(KEY_LOCKOUT_END_TIMESTAMP)
+            remove(KEY_FAILED_ATTEMPTS)
+        }
+    }
+
+    protected fun resetPermanentLockoutState(prefs: SharedPreferences) {
+        prefs.edit {
+            remove(KEY_FAILED_ATTEMPTS)
+            remove(KEY_LOCKOUT_END_TIMESTAMP)
+            remove(KEY_PERMANENT_LOCKOUT_COUNT)
+        }
+    }
+
+    protected fun getStoredLockoutError(
+        prefs: SharedPreferences,
+        policy: LockoutPolicy
+    ): Int? {
+        val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
+        if (permanentLockoutCount >= policy.maxTemporaryLockoutsBeforePermanent) {
+            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+        }
+
+        val lockoutEndTime = prefs.getLong(KEY_LOCKOUT_END_TIMESTAMP, 0)
+        val currentTime = System.currentTimeMillis()
+        if (lockoutEndTime > currentTime) {
+            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+        } else if (lockoutEndTime > 0) {
+            resetTemporaryLockoutState(prefs)
+        }
+        return null
+    }
+
+    protected fun recordFailedAttempt(
+        prefs: SharedPreferences,
+        policy: LockoutPolicy
+    ) {
+        var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
+        var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
+
+        prefs.edit {
+            if (failedAttempts >= policy.maxFailedAttemptsBeforeLockout) {
+                permanentLockoutCount++
+                failedAttempts = 0
+                if (permanentLockoutCount < policy.maxTemporaryLockoutsBeforePermanent) {
+                    putLong(
+                        KEY_LOCKOUT_END_TIMESTAMP,
+                        System.currentTimeMillis() + policy.lockoutDurationMs
+                    )
+                }
+                putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
+            }
+            putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
+        }
+    }
 
     abstract val biometricType: BiometricType
     abstract fun isHardwareDetected(): Boolean

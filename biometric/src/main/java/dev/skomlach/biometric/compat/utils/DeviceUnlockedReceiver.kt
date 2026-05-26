@@ -34,6 +34,7 @@ import dev.skomlach.common.misc.ExecutorHelper
 class DeviceUnlockedReceiver : BroadcastReceiver() {
     companion object {
         private val BOOT_ACTIONS = setOf(
+            Intent.ACTION_LOCKED_BOOT_COMPLETED,
             Intent.ACTION_BOOT_COMPLETED,
             "android.intent.action.QUICKBOOT_POWERON",
             "com.htc.intent.action.QUICKBOOT_POWERON"
@@ -70,8 +71,12 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
         val action = intent.action ?: return
         ExecutorHelper.startOnBackground {
             if (BOOT_ACTIONS.contains(action)) {
-                d("Device boot completed")
-                BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                d("Device boot event received: $action")
+                if (BiometricErrorLockoutPermanentFix.isRebootDetected()) {
+                    BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
+                } else {
+                    d("Ignoring boot event without reboot evidence")
+                }
             } else if (
                 action == Intent.ACTION_USER_PRESENT ||
                 (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&

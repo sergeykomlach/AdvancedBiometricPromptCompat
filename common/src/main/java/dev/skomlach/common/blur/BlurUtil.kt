@@ -30,7 +30,6 @@ import android.os.Build
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.View
-import android.view.ViewDebug
 import android.view.ViewTreeObserver
 import android.view.Window
 import androidx.annotation.RequiresApi
@@ -52,17 +51,6 @@ import kotlin.coroutines.cancellation.CancellationException
 @SuppressLint("RestrictedApi")
 object BlurUtil {
     private const val TAG = "BlurUtil"
-    private var m: Method? = try {
-        ViewDebug::class.java.getDeclaredMethod(
-            "performViewCapture",
-            View::class.java,
-            Boolean::class.javaPrimitiveType
-        ).apply {
-            isAccessible = true
-        }
-    } catch (ignore: Throwable) {
-        null
-    }
 
     fun interface OnPublishListener {
         fun onBlurredScreenshot(originalBitmap: Bitmap, blurredBitmap: Bitmap?)
@@ -108,53 +96,6 @@ object BlurUtil {
 
     fun takeScreenshot(view: View, listener: OnScreenshotListener) {
         ExecutorHelper.startOnBackground {
-            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
-            val isBlackBerryBug = (Build.BRAND.equals(
-                "Blackberry",
-                ignoreCase = true
-            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
-                    && try {
-                val f =
-                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-                val isAccessible = f?.isAccessible != false
-                var result = false
-                try {
-                    f?.isAccessible = true
-                    result = f?.get(view) == null
-                } finally {
-                    if (!isAccessible)
-                        f?.isAccessible = false
-                }
-                result
-            } catch (ignore: Throwable) {
-                false
-            }
-            if (!isBlackBerryBug) {
-                m?.let { method ->
-                    val startMs = System.currentTimeMillis()
-                    try {
-                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            try {
-                                LogCat.log("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
-                                ExecutorHelper.post {
-                                    listener.invoke(
-                                        bm.copy(Bitmap.Config.ARGB_4444, false)
-                                    )
-                                }
-                            } catch (e: Throwable) {
-                                LogCat.logException(e)
-                            }
-                        }
-                    } catch (ignore: Throwable) {
-                        ExecutorHelper.post {
-                            listener.invoke(
-                                fallbackViewCapture(view) ?: return@post
-                            )
-                        }
-                    }
-                    return@startOnBackground
-                }
-            }
             ExecutorHelper.post { listener.invoke(fallbackViewCapture(view) ?: return@post) }
         }
 
@@ -163,117 +104,12 @@ object BlurUtil {
     suspend fun takeScreenshotSync(view: View): Bitmap? =
         withContext(Dispatchers.IO) {
             val bitmapDeferred = CompletableDeferred<Bitmap?>()
-            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
-            val isBlackBerryBug = (Build.BRAND.equals(
-                "Blackberry",
-                ignoreCase = true
-            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
-                    && try {
-                val f =
-                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-                val isAccessible = f?.isAccessible != false
-                var result = false
-                try {
-                    f?.isAccessible = true
-                    result = f?.get(view) == null
-                } finally {
-                    if (!isAccessible)
-                        f?.isAccessible = false
-                }
-                result
-            } catch (ignore: Throwable) {
-                false
-            }
-            if (!isBlackBerryBug) {
-                m?.let { method ->
-                    val startMs = System.currentTimeMillis()
-                    try {
-                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            try {
-                                LogCat.log("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
-                                bitmapDeferred.complete(
-                                    bm.copy(Bitmap.Config.ARGB_4444, false)
-                                )
-                            } catch (e: Throwable) {
-                                if (e is CancellationException) {
-                                    throw e
-                                } else {
-                                    bitmapDeferred.complete(null)
-                                    LogCat.logException(e)
-                                }
-                            }
-                        }
-                    } catch (ignore: Throwable) {
-                        if (ignore is CancellationException) {
-                            throw ignore
-                        } else {
-                            bitmapDeferred.complete(null)
-                            bitmapDeferred.complete(fallbackViewCapture(view))
-                        }
-                    }
-                }
-            }
             bitmapDeferred.complete(fallbackViewCapture(view))
             bitmapDeferred.await()
         }
 
     fun takeScreenshotAndBlur(view: View, listener: OnPublishListener) {
         ExecutorHelper.startOnBackground {
-            //Crash happens on Blackberry due to mPowerSaveScalingMode is NULL
-            val isBlackBerryBug = (Build.BRAND.equals(
-                "Blackberry",
-                ignoreCase = true
-            ) || System.getProperty("os.name").equals("QNX", ignoreCase = true))
-                    && try {
-                val f =
-                    view::class.java.declaredFields.firstOrNull { it.name == "mPowerSaveScalingMode" }
-                val isAccessible = f?.isAccessible != false
-                var result = false
-                try {
-                    f?.isAccessible = true
-                    result = f?.get(view) == null
-                } finally {
-                    if (!isAccessible)
-                        f?.isAccessible = false
-                }
-                result
-            } catch (ignore: Throwable) {
-                false
-            }
-            if (!isBlackBerryBug) {
-                m?.let { method ->
-                    val startMs = System.currentTimeMillis()
-                    try {
-                        (method.invoke(null, view, false) as Bitmap?)?.let { bm ->
-                            try {
-                                LogCat.log("BlurUtil.takeScreenshot#1 time - ${System.currentTimeMillis() - startMs} ms")
-                                blur(
-                                    view.context,
-                                    bm.copy(Bitmap.Config.ARGB_4444, false),
-                                    listener
-                                )
-                            } catch (e: Throwable) {
-                                LogCat.logException(e)
-                            }
-                        }
-                    } catch (ignore: Throwable) {
-                        ExecutorHelper.post {
-                            fallbackViewCapture(view)?.let {
-                                ExecutorHelper.startOnBackground {
-                                    blur(
-                                        view.context,
-                                        it,
-                                        listener
-                                    )
-                                }
-                            }
-                        }
-
-                    }
-                    return@startOnBackground
-                }
-            }
-
             ExecutorHelper.post {
                 fallbackViewCapture(view)?.let {
                     ExecutorHelper.startOnBackground {

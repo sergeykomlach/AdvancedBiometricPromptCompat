@@ -421,7 +421,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     secondary,
                     fmAuthCallback,
                     BundleBuilder.create(builder),
-                    builder.getBiometricAuthRequest().provider
+                    builder.getBiometricAuthRequest().provider,
+                    builder.getDisabledModuleTags()
                 )
             }, 500)
         }
@@ -736,6 +737,16 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         override fun onFailure(
             result: AuthenticationResult
         ) {
+            if (builder.disableBiometricForPermissionFailure(result)) {
+                BiometricNotificationManager.dismiss(result.type)
+                if (builder.getAllAvailableTypes().isEmpty()) {
+                    checkAuthResult(AuthResult.AuthResultState.FATAL_ERROR, result)
+                } else if (builder.getPrimaryAvailableTypes().isEmpty()) {
+                    stopAuth()
+                    startAuth()
+                }
+                return
+            }
             val isLockedOut = result.reason == AuthenticationFailureReason.LOCKED_OUT
             if (isLockedOut) {
                 checkAuthResult(AuthResult.AuthResultState.FATAL_ERROR, result)
@@ -767,7 +778,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         val fingerprintModule = LegacyBiometric.getSelectedBiometricModule(
             BiometricType.BIOMETRIC_FINGERPRINT,
             builder.getBiometricAuthRequest().provider,
-            builder.enroll
+            builder.enroll,
+            builder.getDisabledModuleTags()
         )
         return fingerprintModule != null &&
                 fingerprintModule !is SoftwareBiometricModule &&

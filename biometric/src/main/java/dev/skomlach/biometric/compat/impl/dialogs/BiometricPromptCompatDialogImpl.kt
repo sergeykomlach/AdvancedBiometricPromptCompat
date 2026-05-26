@@ -167,7 +167,8 @@ class BiometricPromptCompatDialogImpl(
                 compatBuilder.getAllAvailableTypes()
                     .filterNot { authFinishedCopy.containsKey(it) },
                 compatBuilder.getBiometricAuthRequest().provider,
-                compatBuilder.enroll
+                compatBuilder.enroll,
+                compatBuilder.getDisabledModuleTags()
             )?.first
                 ?: BiometricType.BIOMETRIC_ANY
             e("BiometricPromptGenericImpl.primaryBiometricType < $selectedType")

@@ -54,9 +54,6 @@ class TensorFlowFaceUnlockManager(
         private const val TF_OD_API_IS_QUANTIZED = false
         private const val TF_OD_API_MODEL_FILE = "tf_bio/mobile_face_net.tflite"
 
-        private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
-        private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
-        private const val KEY_PERMANENT_LOCKOUT_COUNT = "permanent_lockout_count"
         private const val KEY_ERROR_ACTIVE_UNTIL_TIMESTAMP = "error_active_until_timestamp"
 
         @Volatile
@@ -228,6 +225,13 @@ class TensorFlowFaceUnlockManager(
     private var isEnrolling: Boolean = false
     private var enrollmentTag: String = ""
 
+    private val lockoutPolicy: LockoutPolicy
+        get() = LockoutPolicy(
+            maxFailedAttemptsBeforeLockout = effectiveConfig.maxFailedAttemptsBeforeLockout,
+            maxTemporaryLockoutsBeforePermanent = effectiveConfig.maxTemporaryLockoutsBeforePermanent,
+            lockoutDurationMs = effectiveConfig.lockoutDurationMs
+        )
+
     fun setFrameProvider(provider: IFrameProvider) {
         this.frameProvider = provider
     }
@@ -243,46 +247,19 @@ class TensorFlowFaceUnlockManager(
             return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
         }
 
-        val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
-        val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
-        if (permanentLockoutCount >= effectiveConfig.maxTemporaryLockoutsBeforePermanent) {
-            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
-        }
-
-        val lockoutEndTime = prefs.getLong(KEY_LOCKOUT_END_TIMESTAMP, 0)
-        val currentTime = System.currentTimeMillis()
-        if (lockoutEndTime > currentTime) {
-            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
-        } else if (lockoutEndTime > 0) {
-            prefs.edit {
-                remove(KEY_LOCKOUT_END_TIMESTAMP)
-                remove(KEY_FAILED_ATTEMPTS)
-            }
-        }
-        return null
+        return getStoredLockoutError(
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME),
+            lockoutPolicy
+        )
     }
 
     override fun getLockoutError(): Int? = checkLockoutState()
 
     private fun handleFailedAttempt() {
-        val prefs = getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
-        var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
-        var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
-
-        prefs.edit {
-            if (failedAttempts >= effectiveConfig.maxFailedAttemptsBeforeLockout) {
-                permanentLockoutCount++
-                failedAttempts = 0
-                if (permanentLockoutCount < effectiveConfig.maxTemporaryLockoutsBeforePermanent) {
-                    putLong(
-                        KEY_LOCKOUT_END_TIMESTAMP,
-                        System.currentTimeMillis() + effectiveConfig.lockoutDurationMs
-                    )
-                }
-                putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
-            }
-            putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
-        }
+        recordFailedAttempt(
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME),
+            lockoutPolicy
+        )
     }
 
     private fun isErrorActive(): Boolean {
@@ -362,18 +339,11 @@ class TensorFlowFaceUnlockManager(
     }
 
     override fun resetLockOut() {
-        getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME).edit {
-            remove(KEY_LOCKOUT_END_TIMESTAMP)
-            remove(KEY_FAILED_ATTEMPTS)
-        }
+        resetTemporaryLockoutState(getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME))
     }
 
     override fun resetPermanentLockOut() {
-        getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME).edit {
-            remove(KEY_FAILED_ATTEMPTS)
-            remove(KEY_LOCKOUT_END_TIMESTAMP)
-            remove(KEY_PERMANENT_LOCKOUT_COUNT)
-        }
+        resetPermanentLockoutState(getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME))
     }
 
     override fun getPermissions(): List<String> = listOf(Manifest.permission.CAMERA)

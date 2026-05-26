@@ -33,47 +33,58 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConnectionStateListener {
+    private data class ConnectionState(
+        val hasTransport: Boolean,
+        val isValidated: Boolean
+    )
 
     private val isConnectionOk = AtomicBoolean(true)
+    private val hasNetworkTransport = AtomicBoolean(false)
+    private val listenersStarted = AtomicBoolean(false)
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
+    private val connectionWatchdog = Runnable {
+        ExecutorHelper.scope.launch(Dispatchers.IO) {
+            refreshConnectionState()
+            scheduleConnectionWatchdog()
+        }
+    }
 
+    companion object {
+        private const val TRANSITION_RECHECK_DELAY_MS = 2_000L
+        private const val OFFLINE_RECHECK_DELAY_MS = 10_000L
+        private const val STABLE_RECHECK_DELAY_MS = 30_000L
+    }
 
     init {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         //Just an initial state; Will be checked properly later
         ExecutorHelper.scope.launch(Dispatchers.IO) {
-            handleNetworkSignalChanged(
-                isConnectionDetected()
-            )
+            refreshConnectionStateAndSchedule()
         }
 
         networkCallback = object : NetworkCallback() {
             override fun onUnavailable() {
                 LogCat.logError("ConnectionStateListener onUnavailable")
                 ExecutorHelper.scope.launch(Dispatchers.IO) {
-                    handleNetworkSignalChanged(
-                        false
-                    )
+                    refreshConnectionStateAndSchedule()
                 }
             }
 
             override fun onAvailable(network: Network) {
                 LogCat.logError("ConnectionStateListener onAvailable")
                 ExecutorHelper.scope.launch(Dispatchers.IO) {
-                    handleNetworkSignalChanged(
-                        true
-                    )
+                    refreshConnectionStateAndSchedule()
                 }
+                delayedRefreshConnectionState(1_000)
+                delayedRefreshConnectionState(3_000)
             }
 
             override fun onLost(network: Network) {
                 LogCat.logError("ConnectionStateListener onLost")
                 ExecutorHelper.scope.launch(Dispatchers.IO) {
-                    handleNetworkSignalChanged(
-                        false
-                    )
+                    refreshConnectionStateAndSchedule()
                 }
             }
 
@@ -83,51 +94,91 @@ class ConnectionStateListener {
             ) {
                 LogCat.logError("ConnectionStateListener onCapabilitiesChanged")
                 ExecutorHelper.scope.launch(Dispatchers.IO) {
-                    handleNetworkSignalChanged(
-                        isConnectionDetected()
-                    )
+                    refreshConnectionStateAndSchedule()
                 }
             }
         }
 
     }
 
-    private fun handleNetworkSignalChanged(hasTransport: Boolean) {
-        LogCat.log("ConnectionStateListener handleNetworkSignalChanged - $hasTransport")
-        if (!hasTransport) {
-            setState(false)
-            return
-        } else {
-            val cm = connectivityManager
-            val network =
-                cm?.activeNetwork
-            val caps = cm?.getNetworkCapabilities(network)
+    private fun delayedRefreshConnectionState(delay: Long) {
+        ExecutorHelper.handler.postDelayed({
+            ExecutorHelper.scope.launch(Dispatchers.IO) {
+                refreshConnectionStateAndSchedule()
+            }
+        }, delay)
+    }
 
-            setState(
-                caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
-                        caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
+    private fun refreshConnectionStateAndSchedule(): Boolean {
+        val connected = refreshConnectionState()
+        scheduleConnectionWatchdog()
+        return connected
+    }
+
+    internal fun refreshConnectionState(): Boolean {
+        val state = detectConnectionState()
+        hasNetworkTransport.set(state.hasTransport)
+        LogCat.log(
+            "ConnectionStateListener refreshConnectionState - ${state.isValidated}, transport - ${state.hasTransport}"
+        )
+        setState(state.isValidated)
+        return state.isValidated
+    }
+
+    internal fun hasNetworkTransport(): Boolean {
+        refreshConnectionState()
+        return hasNetworkTransport.get()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun detectConnectionState(): ConnectionState {
+        return try {
+            val cm = connectivityManager ?: return ConnectionState(
+                hasTransport = false,
+                isValidated = false
             )
-
+            var hasTransport = false
+            var isValidated = false
+            for (network in cm.allNetworks) {
+                val caps = cm.getNetworkCapabilities(network) ?: continue
+                if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                    hasTransport = true
+                    if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                        isValidated = true
+                        break
+                    }
+                }
+            }
+            ConnectionState(hasTransport, isValidated)
+        } catch (_: Throwable) {
+            ConnectionState(
+                hasTransport = false,
+                isValidated = false
+            )
         }
     }
 
+    private fun scheduleConnectionWatchdog(delay: Long = getNextWatchdogDelay()) {
+        if (!listenersStarted.get()) return
+        ExecutorHelper.handler.removeCallbacks(connectionWatchdog)
+        ExecutorHelper.handler.postDelayed(connectionWatchdog, delay)
+    }
 
-    @Suppress("DEPRECATION")
-    internal fun isConnectionDetected(): Boolean {
-        return try {
-            val cm = connectivityManager ?: return false
-            val network =
-                cm.activeNetwork ?: return false
-            val caps = cm.getNetworkCapabilities(network)
-                ?: return false
+    private fun stopConnectionWatchdog() {
+        ExecutorHelper.handler.removeCallbacks(connectionWatchdog)
+    }
 
-            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        } catch (_: Throwable) {
-            false
+    private fun getNextWatchdogDelay(): Long {
+        return when {
+            hasNetworkTransport.get() && !isConnectionOk.get() -> TRANSITION_RECHECK_DELAY_MS
+            !hasNetworkTransport.get() -> OFFLINE_RECHECK_DELAY_MS
+            else -> STABLE_RECHECK_DELAY_MS
         }
     }
 
     internal fun startListeners() {
+        listenersStarted.set(true)
+        refreshConnectionStateAndSchedule()
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 networkCallback?.let {
@@ -148,6 +199,8 @@ class ConnectionStateListener {
     }
 
     internal fun stopListeners() {
+        listenersStarted.set(false)
+        stopConnectionWatchdog()
         try {
             networkCallback?.let {
                 connectivityManager?.unregisterNetworkCallback(it)
@@ -167,9 +220,7 @@ class ConnectionStateListener {
 
     internal fun onScreenStateChanged() {
         ExecutorHelper.scope.launch(Dispatchers.IO) {
-            handleNetworkSignalChanged(
-                isConnectionDetected()
-            )
+            refreshConnectionStateAndSchedule()
         }
     }
 

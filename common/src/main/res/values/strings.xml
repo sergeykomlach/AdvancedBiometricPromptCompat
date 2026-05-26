@@ -22,6 +22,7 @@
     <string name="biometriccompat_allow_notifications_channel_perm">Allow show notification channels</string>
     <string name="biometriccompat_allow_notifications_perm">Allow show notifications</string>
     <string name="biometriccompat_permissions_request_failed">The action cannot be performed due to the required permission not being granted.</string>
+    <string name="biometriccompat_camera_permission_required">Camera permission is required to use this feature.</string>
     <string name="biometriccompat_request_perm">%1$s needs the following permission:\n%2$s</string>
 
 

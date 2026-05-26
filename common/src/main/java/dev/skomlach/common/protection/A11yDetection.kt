@@ -126,9 +126,12 @@ object A11yDetection {
             val enabledServices =
                 am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_SPOKEN)
             return enabledServices.any { service ->
-                val packageName = service.resolveInfo.serviceInfo.packageName
-                (trustedA11yPackages.contains(packageName) || service.capabilities and AccessibilityServiceInfo.CAPABILITY_CAN_RETRIEVE_WINDOW_CONTENT != 0)
-                        && isSystemApp(cnt, packageName)
+                val serviceInfo = service.resolveInfo.serviceInfo
+                val packageName = serviceInfo.packageName
+                val componentName = ComponentName(packageName, serviceInfo.name)
+                trustedA11yPackages.contains(packageName) &&
+                        isSystemApp(cnt, packageName) &&
+                        isAccessibilityTool(cnt, componentName)
             }.also {
                 whiteListCache = Pair(now, it)
             }
@@ -211,11 +214,8 @@ object A11yDetection {
             )
         }
         try {
-            val ctx = context.createPackageContext(
-                componentName.packageName,
-                Context.CONTEXT_INCLUDE_CODE or Context.CONTEXT_IGNORE_SECURITY
-            )
-            val pi = ctx.packageManager.getPackageInfo(
+            val resources = context.packageManager.getResourcesForApplication(componentName.packageName)
+            val pi = context.packageManager.getPackageInfo(
                 componentName.packageName,
                 PackageManager.GET_SERVICES or PackageManager.GET_META_DATA
             )
@@ -223,7 +223,7 @@ object A11yDetection {
                 if ("${it.packageName}/${it.name}" == componentName.flattenToString()) {
                     val res = it.metaData.getInt("android.accessibilityservice")
                         .also { i -> if (i == 0) throw IllegalAccessException() }
-                    return AssetsChecker(ctx.resources).isAccessibilityTool(res)
+                    return AssetsChecker(resources).isAccessibilityTool(res)
                 }
             }
         } catch (e: PackageManager.NameNotFoundException) {

@@ -51,9 +51,6 @@ class ZkFingerUnlockManager(
         private const val TEMPLATE_PREFIX = "template_"
         private const val TEMPLATE_SIZE = 2048
         private const val IDENTIFY_BUFFER_SIZE = 256
-        private const val KEY_FAILED_ATTEMPTS = "failed_attempts"
-        private const val KEY_LOCKOUT_END_TIMESTAMP = "lockout_end_timestamp"
-        private const val KEY_PERMANENT_LOCKOUT_COUNT = "permanent_lockout_count"
         private const val USB_PERMISSION_POLL_INTERVAL_MS = 250L
         private const val USB_PERMISSION_TIMEOUT_MS = 30_000L
 
@@ -114,23 +111,23 @@ class ZkFingerUnlockManager(
     private val isSessionActive = AtomicBoolean(false)
     private val isOpening = AtomicBoolean(false)
 
+    private val lockoutPolicy: LockoutPolicy
+        get() = LockoutPolicy(
+            maxFailedAttemptsBeforeLockout = effectiveConfig.maxFailedAttemptsBeforeLockout,
+            maxTemporaryLockoutsBeforePermanent = effectiveConfig.maxTemporaryLockoutsBeforePermanent,
+            lockoutDurationMs = effectiveConfig.lockoutDurationMs
+        )
+
     override fun getTimeoutMessage(): CharSequence {
         return localized(R.string.biometriccompat_zkfinger_help_timeout)
     }
 
     override fun resetLockOut() {
-        prefs.edit {
-            remove(KEY_LOCKOUT_END_TIMESTAMP)
-            remove(KEY_FAILED_ATTEMPTS)
-        }
+        resetTemporaryLockoutState(prefs)
     }
 
     override fun resetPermanentLockOut() {
-        prefs.edit {
-            remove(KEY_FAILED_ATTEMPTS)
-            remove(KEY_LOCKOUT_END_TIMESTAMP)
-            remove(KEY_PERMANENT_LOCKOUT_COUNT)
-        }
+        resetPermanentLockoutState(prefs)
     }
 
     override fun getPermissions(): List<String> = emptyList()
@@ -691,44 +688,13 @@ class ZkFingerUnlockManager(
             return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
         }
 
-        val permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
-        if (permanentLockoutCount >= effectiveConfig.maxTemporaryLockoutsBeforePermanent) {
-            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
-        }
-
-        val lockoutEndTime = prefs.getLong(KEY_LOCKOUT_END_TIMESTAMP, 0)
-        val currentTime = System.currentTimeMillis()
-        if (lockoutEndTime > currentTime) {
-            return CUSTOM_BIOMETRIC_ERROR_LOCKOUT
-        } else if (lockoutEndTime > 0) {
-            prefs.edit {
-                remove(KEY_LOCKOUT_END_TIMESTAMP)
-                remove(KEY_FAILED_ATTEMPTS)
-            }
-        }
-        return null
+        return getStoredLockoutError(prefs, lockoutPolicy)
     }
 
     override fun getLockoutError(): Int? = checkLockoutState()
 
     private fun handleFailedAttempt() {
-        var failedAttempts = prefs.getInt(KEY_FAILED_ATTEMPTS, 0) + 1
-        var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0)
-
-        prefs.edit {
-            if (failedAttempts >= effectiveConfig.maxFailedAttemptsBeforeLockout) {
-                permanentLockoutCount++
-                failedAttempts = 0
-                if (permanentLockoutCount < effectiveConfig.maxTemporaryLockoutsBeforePermanent) {
-                    putLong(
-                        KEY_LOCKOUT_END_TIMESTAMP,
-                        System.currentTimeMillis() + effectiveConfig.lockoutDurationMs
-                    )
-                }
-                putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
-            }
-            putInt(KEY_FAILED_ATTEMPTS, failedAttempts)
-        }
+        recordFailedAttempt(prefs, lockoutPolicy)
     }
 
     private fun lockoutMessage(error: Int): String {

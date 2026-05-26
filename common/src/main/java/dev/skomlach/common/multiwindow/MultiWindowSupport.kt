@@ -57,11 +57,13 @@ class MultiWindowSupport private constructor() {
             val configuration = AndroidContext.appConfiguration ?: resources.configuration
             val config = Configuration(configuration)
             return if (Build.VERSION.SDK_INT >= 17) {
-                ctx.createConfigurationContext(config).resources.getBoolean(R.bool.biometric_compat_is_tablet)
+                val res = ctx.createConfigurationContext(config).resources
+                res.getBoolean(R.bool.biometric_compat_is_tablet) || res.configuration.screenWidthDp >= 600
             } else {
                 val oldConfig = Configuration(configuration)
                 resources.updateConfiguration(config, resources.displayMetrics)
-                val flag = resources.getBoolean(R.bool.biometric_compat_is_tablet)
+                val flag =
+                    resources.getBoolean(R.bool.biometric_compat_is_tablet) || resources.configuration.screenWidthDp >= 600
                 resources.updateConfiguration(oldConfig, resources.displayMetrics)
                 flag
             }

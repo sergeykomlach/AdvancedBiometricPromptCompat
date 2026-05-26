@@ -83,14 +83,9 @@ object BiometricCryptoObjectHelper {
     } catch (e: Throwable) {
         if (isUserAuthRequired && isNoKeystoreBiometricEnrollment(e)) {
             BiometricLoggerImpl.d(
-                "BiometricCryptoObjectHelper: fallback to app-flow crypto for $name because AndroidKeyStore has no biometric enrollment usable for auth-per-use keys"
+                "BiometricCryptoObjectHelper: AndroidKeyStore has no biometric enrollment usable for auth-per-use key $name"
             )
-            managerInterface.deleteKey(name)
-            prepareAppFlowCrypto(name)
-            managerInterface.getInitializedCipherForEncryption(
-                name,
-                false
-            )
+            throw e
         } else {
             managerInterface.deleteKey(name)
             managerInterface.getInitializedCipherForEncryption(
@@ -101,7 +96,7 @@ object BiometricCryptoObjectHelper {
     }
 
     private fun prepareCryptoAccess(name: String, isUserAuthRequired: Boolean) {
-        if (!isUserAuthRequired || AppFlowCryptoRegistry.getAccessType(name) == CryptoAccessType.APP_FLOW) {
+        if (!isUserAuthRequired) {
             prepareAppFlowCrypto(name)
         } else {
             AppFlowCryptoFacade.registerKeyForBiometric(name)

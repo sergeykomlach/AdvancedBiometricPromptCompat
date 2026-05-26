@@ -60,6 +60,7 @@ import dev.skomlach.biometric.compat.utils.TruncatedTextFix
 import dev.skomlach.biometric.compat.utils.WideGamutBug
 import dev.skomlach.biometric.compat.utils.activityView.ActivityViewWatcher
 import dev.skomlach.biometric.compat.utils.appstate.AppBackgroundDetector
+import dev.skomlach.biometric.compat.utils.hardware.BiometricPromptHardware
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.biometric.compat.utils.notification.BiometricNotificationManager
 import dev.skomlach.biometric.compat.utils.themes.DarkLightThemes
@@ -487,7 +488,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             setOf(
                                 AuthenticationResult(
                                     BiometricType.BIOMETRIC_ANY,
-                                    reason = checkHardware
+                                    reason = checkHardware,
+                                    description = if (checkHardware == AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR) {
+                                        getMissingPermissionsDescription()
+                                    } else {
+                                        null
+                                    }
                                 )
                             )
                         )
@@ -868,17 +874,38 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             checkNotificationPermissions {
                 checkPermissions(callbackOuter) {
                     checkModulePreparation(callbackOuter) {
-                        checkSensor(callbackOuter) {
-                            authTask.invoke()
+                        if (!failIfNoActiveBiometrics(callbackOuter)) {
+                            checkSensor(callbackOuter) {
+                                authTask.invoke()
+                            }
                         }
                     }
                 }
             }
         } else {
             checkModulePreparation(callbackOuter) {
-                authTask.invoke()
+                if (!failIfNoActiveBiometrics(callbackOuter)) {
+                    authTask.invoke()
+                }
             }
         }
+    }
+
+    private fun failIfNoActiveBiometrics(callback: AuthenticationCallback): Boolean {
+        if (builder.getAllAvailableTypes().isNotEmpty()) {
+            return false
+        }
+        callback.onCanceled(
+            setOf(
+                AuthenticationResult(
+                    BiometricType.BIOMETRIC_ANY,
+                    reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                    description = getMissingPermissionsDescription()
+                )
+            )
+        )
+        authFlowInProgress.set(false)
+        return true
     }
 
     private fun checkNotificationPermissions(authTask: () -> Unit) {
@@ -920,42 +947,48 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (permissionsMap.any { p ->
                             PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                         }) {
+                        disablePermissionDeniedModules(permissionsMap)
                         authTask.invoke()
                     } else {
-                        callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-                            AuthenticationResult(
-                                t,
-                                reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                                description = LocalizationHelper.getLocalizedString(
-                                    builder.getContext(),
-                                    dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
-                                )
-                            )
-                        }.toSet())
-                        authFlowInProgress.set(false)
+                        disablePermissionDeniedModules(permissionsMap)
+                        if (failIfNoActiveBiometrics(callback)) {
+                            return@askForPermissions
+                        }
+                        authTask.invoke()
+                        return@askForPermissions
                     }
                 }
             } ?: run {
                 if (permissionsMap.any { p ->
                         PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                     }) {
+                    disablePermissionDeniedModules(permissionsMap)
                     authTask.invoke()
                 } else {
-                    callback.onCanceled(builder.getAllAvailableTypes().map { t ->
-                        AuthenticationResult(
-                            t,
-                            reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
-                            description = LocalizationHelper.getLocalizedString(
-                                builder.getContext(),
-                                dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
-                            )
-                        )
-                    }.toSet())
-                    authFlowInProgress.set(false)
+                    disablePermissionDeniedModules(permissionsMap)
+                    if (failIfNoActiveBiometrics(callback)) {
+                        return
+                    }
+                    authTask.invoke()
+                    return
                 }
             }
         } else
             authTask.invoke()
+    }
+
+    private fun disablePermissionDeniedModules(
+        permissionsMap: List<Pair<BiometricType, List<String>>>
+    ) {
+        permissionsMap
+            .filter { (_, permissions) ->
+                permissions.isNotEmpty() && !PermissionUtils.INSTANCE.hasSelfPermissions(permissions)
+            }
+            .forEach { (type, _) ->
+                getSelectedBiometricModule(type)?.let { module ->
+                    builder.disableBiometricModule(module)
+                }
+            }
     }
 
     private fun checkModulePreparation(callback: AuthenticationCallback, authTask: () -> Unit) {
@@ -964,19 +997,29 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             builder.getBiometricAuthRequest(),
             getSoftwarePreparationTypes(),
             builder.enroll,
-            object : AbstractSoftwareBiometricManager.PreparationCallback() {
+            builder.getDisabledModuleTags(),
+            onPermissionDenied = { module ->
+                builder.disableBiometricModule(module)
+            },
+            callback = object : AbstractSoftwareBiometricManager.PreparationCallback() {
                 override fun onPrepared() {
                     authTask.invoke()
                 }
 
                 override fun onPreparationError(errMsgId: Int, errString: CharSequence?) {
+                    val reason = mapPreparationError(errMsgId)
                     authFlowInProgress.set(false)
                     callback.onCanceled(
                         builder.getAllAvailableTypes().map { type ->
                             AuthenticationResult(
                                 type,
-                                reason = mapPreparationError(errMsgId),
-                                description = errString
+                                reason = reason,
+                                description = errString?.takeIf { it.isNotBlank() }
+                                    ?: if (reason == AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR) {
+                                        getMissingPermissionsDescription()
+                                    } else {
+                                        null
+                                    }
                             )
                         }.toSet()
                     )
@@ -1017,6 +1060,18 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
             else -> AuthenticationFailureReason.UNKNOWN
         }
+    }
+
+    private fun getMissingPermissionsDescription(): CharSequence {
+        val permissions = getUsedPermissionsForSelectedModules().ifEmpty {
+            BiometricManagerCompat.getUsedPermissions(listOf(builder.getBiometricAuthRequest().type))
+        }
+        val message = if (permissions.contains(Manifest.permission.CAMERA)) {
+            dev.skomlach.common.R.string.biometriccompat_camera_permission_required
+        } else {
+            dev.skomlach.common.R.string.biometriccompat_permissions_request_failed
+        }
+        return LocalizationHelper.getLocalizedString(builder.getContext(), message)
     }
 
     private fun checkSensor(callback: AuthenticationCallback, authTask: () -> Unit) {
@@ -1105,15 +1160,29 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private fun getUsedPermissionsMapForSelectedModules(): List<Pair<BiometricType, List<String>>> {
         return builder.getAllAvailableTypes().map { type ->
-            val request = builder.getBiometricAuthRequest().withType(type)
-                .withProvider(getProviderForSelectedModule(type))
-            Pair(
-                type,
+            val selectedModule = getSelectedBiometricModule(type)
+            val permissions = if (isSelectedBiometricPromptHardwareType(type)) {
+                val request = builder.getBiometricAuthRequest().withType(type)
+                    .withProvider(BiometricProviderType.HARDWARE)
                 BiometricManagerCompat.getUsedPermissions(
                     listOf(type),
                     request,
                     builder.enroll
                 )
+            } else if (selectedModule is SoftwareBiometricModule) {
+                selectedModule.manager?.getPermissions() ?: emptyList()
+            } else {
+                val request = builder.getBiometricAuthRequest().withType(type)
+                    .withProvider(getProviderForSelectedModule(type))
+                BiometricManagerCompat.getUsedPermissions(
+                    listOf(type),
+                    request,
+                    builder.enroll
+                )
+            }
+            Pair(
+                type,
+                permissions
             )
         }
     }
@@ -1145,14 +1214,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun isSelectedBiometricPromptHardwareType(type: BiometricType): Boolean {
-        val module = getSelectedBiometricModule(type) ?: return false
         return builder.getPrimaryAvailableTypes().contains(type) &&
-                module !is SoftwareBiometricModule &&
                 isBiometricPromptHardwareAvailable(type)
     }
 
     private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean {
-        if (builder.getBiometricAuthRequest().api == BiometricApi.LEGACY_API) {
+        if (builder.getBiometricAuthRequest().api == BiometricApi.LEGACY_API &&
+            type != BiometricType.BIOMETRIC_FACE
+        ) {
             return false
         }
 
@@ -1160,7 +1229,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return false
         }
 
-        if (!HardwareAccessImpl.getInstance(builder.getBiometricAuthRequest()).isNewBiometricApi) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             return false
         }
 
@@ -1184,7 +1253,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         return LegacyBiometric.getSelectedBiometricModule(
             type,
             builder.getBiometricAuthRequest().provider,
-            builder.enroll
+            builder.enroll,
+            builder.getDisabledModuleTags()
         )
     }
 
@@ -1431,6 +1501,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             types.addAll(secondaryAvailableTypes)
             types
         }
+        private val disabledModuleTags = Collections.synchronizedSet(HashSet<Int>())
         private val primaryAvailableTypes: HashSet<BiometricType> by lazy {
             val types = HashSet<BiometricType>()
             val isNewBiometric =
@@ -1751,15 +1822,103 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         fun getPrimaryAvailableTypes(): Set<BiometricType> {
-            return HashSet<BiometricType>(primaryAvailableTypes)
+            return filterDisabledTypes(primaryAvailableTypes)
+                .filterNotTo(HashSet()) { shouldRouteLegacyBeforeSystemHardware(it) }
         }
 
         fun getSecondaryAvailableTypes(): Set<BiometricType> {
-            return HashSet<BiometricType>(secondaryAvailableTypes)
+            val types = filterDisabledTypes(secondaryAvailableTypes)
+            filterDisabledTypes(primaryAvailableTypes)
+                .filterTo(types) { shouldRouteLegacyBeforeSystemHardware(it) }
+            return types
         }
 
         fun getAllAvailableTypes(): Set<BiometricType> {
-            return HashSet<BiometricType>(allAvailableTypes)
+            val types = HashSet<BiometricType>()
+            types.addAll(getPrimaryAvailableTypes())
+            types.addAll(getSecondaryAvailableTypes())
+            return types
+        }
+
+        internal fun getDisabledModuleTags(): Set<Int> {
+            return HashSet(disabledModuleTags)
+        }
+
+        internal fun disableBiometricModule(module: BiometricModule) {
+            disabledModuleTags.add(module.tag())
+            BiometricLoggerImpl.d("BiometricPromptCompat.Builder disabled module=${module.javaClass.simpleName}")
+        }
+
+        internal fun disableBiometricForPermissionFailure(result: AuthenticationResult): Boolean {
+            if (result.reason != AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR) {
+                return false
+            }
+            val type = result.type ?: return false
+            val module = LegacyBiometric.getSelectedBiometricModule(
+                type,
+                biometricAuthRequest.provider,
+                enroll,
+                getDisabledModuleTags()
+            ) ?: return false
+            disableBiometricModule(module)
+            return true
+        }
+
+        private fun filterDisabledTypes(types: Collection<BiometricType>): HashSet<BiometricType> {
+            val disabled = getDisabledModuleTags()
+            if (disabled.isEmpty()) {
+                return HashSet(types)
+            }
+            return types.filterTo(HashSet()) { type ->
+                LegacyBiometric.getSelectedBiometricModule(
+                    type,
+                    biometricAuthRequest.provider,
+                    enroll,
+                    disabled
+                ) != null || hasBiometricPromptHardwareType(type)
+            }
+        }
+
+        private fun hasBiometricPromptHardwareType(type: BiometricType): Boolean {
+            if (biometricAuthRequest.provider == BiometricProviderType.SOFTWARE ||
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.P
+            ) {
+                return false
+            }
+            val request = biometricAuthRequest
+                .withApi(BiometricApi.BIOMETRIC_API)
+                .withType(type)
+                .withProvider(BiometricProviderType.HARDWARE)
+            return if (enroll) {
+                BiometricManagerCompat.isBiometricReadyForEnroll(request)
+            } else {
+                BiometricManagerCompat.isBiometricAvailable(request)
+            }
+        }
+
+        private fun shouldRouteLegacyBeforeSystemHardware(type: BiometricType): Boolean {
+            if (biometricAuthRequest.provider == BiometricProviderType.HARDWARE ||
+                !hasBiometricPromptHardwareType(type) ||
+                shouldPreferSystemHardwareFace(type)
+            ) {
+                return false
+            }
+            val module = LegacyBiometric.getSelectedBiometricModule(
+                type,
+                biometricAuthRequest.provider,
+                enroll,
+                getDisabledModuleTags()
+            ) ?: return false
+            return module.priority > BiometricModule.PRIORITY_SYSTEM_HARDWARE
+        }
+
+        private fun shouldPreferSystemHardwareFace(type: BiometricType): Boolean {
+            if (type != BiometricType.BIOMETRIC_FACE) {
+                return false
+            }
+            val model = deviceInfo?.model ?: return false
+            return model.startsWith("Samsung", ignoreCase = true) ||
+                    BiometricPromptHardware.PixelModelChecker.isPixel8OrNewer(model)
         }
 
         private fun verifyActivity(activity: FragmentActivity?): Boolean {

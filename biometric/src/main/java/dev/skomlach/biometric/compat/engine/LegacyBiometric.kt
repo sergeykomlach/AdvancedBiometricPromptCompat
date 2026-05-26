@@ -145,10 +145,13 @@ object LegacyBiometric {
     fun getPreferredSoftwareModulePermissions(
         types: Collection<BiometricType>,
         provider: BiometricProviderType,
-        enroll: Boolean
+        enroll: Boolean,
+        excludedModuleTags: Set<Int> = emptySet()
     ): List<String> {
         return types
-            .mapNotNull { type -> getPreferredBiometricModule(type, provider, enroll) }
+            .mapNotNull { type ->
+                getPreferredBiometricModule(type, provider, enroll, excludedModuleTags)
+            }
             .filterIsInstance<SoftwareBiometricModule>()
             .flatMap { it.manager?.getPermissions() ?: emptyList() }
             .distinct()
@@ -365,7 +368,7 @@ object LegacyBiometric {
             moduleHashMap.values.any { it.isHardwarePresent }
         }
 
-    fun isSoftwarePermanentlyLockedOut(
+    fun areAvailableSoftwareModulesPermanentlyLockedOut(
         biometricType: BiometricType?,
         provider: BiometricProviderType
     ): Boolean {
@@ -375,10 +378,11 @@ object LegacyBiometric {
         } else {
             getAvailableBiometricModules(biometricType, provider)
         }
-        return modules
-            .filterIsInstance<SoftwareBiometricModule>()
+        val availableModules = modules
             .filter { providerMatches(it, provider) }
-            .any { it.isPermanentlyLockedOut }
+            .filter { it.isHardwarePresent }
+        if (availableModules.isEmpty()) return false
+        return availableModules.all { it.isPermanentlyLockedOutForSelection() }
     }
 
     val hasEnrolled: Boolean
@@ -392,7 +396,8 @@ object LegacyBiometric {
         requestedMethods: List<BiometricType?>,
         listener: LegacyBiometricAuthenticationListener,
         bundle: Bundle?,
-        provider: BiometricProviderType = BiometricProviderType.COMBINED
+        provider: BiometricProviderType = BiometricProviderType.COMBINED,
+        excludedModuleTags: Set<Int> = emptySet()
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) {
             e("BiometricAuthentication not started, wrong state")
@@ -413,7 +418,9 @@ object LegacyBiometric {
                         viewRef.get(),
                         methodsRef,
                         listener,
-                        bundle
+                        bundle,
+                        provider,
+                        excludedModuleTags
                     )
                 }
             }
@@ -426,7 +433,7 @@ object LegacyBiometric {
 
         val isEnroll = bundle?.getBoolean(BundleBuilder.ENROLL, false) == true
         requestedMethods.filterNotNull().forEach { type ->
-            getPreferredBiometricModule(type, provider, isEnroll)?.let { module ->
+            getPreferredBiometricModule(type, provider, isEnroll, excludedModuleTags)?.let { module ->
                 Core.registerModule(module)
                 if (module is FacelockOldModule) module.setCallerView(targetView)
                 if (module is SoterFaceUnlockModule) module.bundle = bundle
@@ -464,6 +471,9 @@ object LegacyBiometric {
                 reason: AuthenticationFailureReason?,
                 desc: CharSequence?
             ) {
+                if (reason == AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR) {
+                    authInProgress.set(false)
+                }
                 listenerRef.get()?.onFailure(
                     AuthenticationResult(
                         activeModules[tag],
@@ -546,20 +556,24 @@ object LegacyBiometric {
     fun getSelectedBiometricModule(
         biometricType: BiometricType?,
         provider: BiometricProviderType,
-        enroll: Boolean
+        enroll: Boolean,
+        excludedModuleTags: Set<Int> = emptySet()
     ): BiometricModule? {
-        return getPreferredBiometricModule(biometricType, provider, enroll)
+        return getPreferredBiometricModule(biometricType, provider, enroll, excludedModuleTags)
     }
 
     fun getSelectedBiometricModule(
         biometricTypes: Collection<BiometricType>,
         provider: BiometricProviderType,
-        enroll: Boolean
+        enroll: Boolean,
+        excludedModuleTags: Set<Int> = emptySet()
     ): Pair<BiometricType, BiometricModule>? {
         return biometricTypes
             .asSequence()
             .mapNotNull { type ->
-                getPreferredBiometricModule(type, provider, enroll)?.let { module -> type to module }
+                getPreferredBiometricModule(type, provider, enroll, excludedModuleTags)?.let { module ->
+                    type to module
+                }
             }
             .sortedWith(
                 compareByDescending<Pair<BiometricType, BiometricModule>> { (_, module) ->
@@ -595,38 +609,53 @@ object LegacyBiometric {
         request: BiometricAuthRequest,
         types: Collection<BiometricType>,
         enroll: Boolean,
+        excludedModuleTags: Set<Int> = emptySet(),
+        onPermissionDenied: (SoftwareBiometricModule) -> Unit = {},
         callback: AbstractSoftwareBiometricManager.PreparationCallback
     ) {
-        val managers = types
-            .mapNotNull { type -> getPreferredBiometricModule(type, request.provider, enroll) }
+        val modules = types
+            .mapNotNull { type ->
+                getPreferredBiometricModule(type, request.provider, enroll, excludedModuleTags)
+            }
             .filterIsInstance<SoftwareBiometricModule>()
-            .mapNotNull { it.manager }
             .distinct()
 
-        if (managers.isEmpty()) {
+        if (modules.isEmpty()) {
             callback.onPrepared()
             return
         }
 
-        prepareNextSoftwareModule(managers, 0, callback)
+        prepareNextSoftwareModule(modules, 0, onPermissionDenied, callback)
     }
 
     private fun prepareNextSoftwareModule(
-        managers: List<AbstractSoftwareBiometricManager>,
+        modules: List<SoftwareBiometricModule>,
         index: Int,
+        onPermissionDenied: (SoftwareBiometricModule) -> Unit,
         callback: AbstractSoftwareBiometricManager.PreparationCallback
     ) {
-        if (index >= managers.size) {
+        if (index >= modules.size) {
             callback.onPrepared()
             return
         }
-        managers[index].prepareForAuthentication(
+        val module = modules[index]
+        val manager = module.manager ?: run {
+            prepareNextSoftwareModule(modules, index + 1, onPermissionDenied, callback)
+            return
+        }
+        manager.prepareForAuthentication(
             object : AbstractSoftwareBiometricManager.PreparationCallback() {
                 override fun onPrepared() {
-                    prepareNextSoftwareModule(managers, index + 1, callback)
+                    prepareNextSoftwareModule(modules, index + 1, onPermissionDenied, callback)
                 }
 
                 override fun onPreparationError(errMsgId: Int, errString: CharSequence?) {
+                    val normalizedError = if (errMsgId < 1000) errMsgId else errMsgId % 1000
+                    if (normalizedError == AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS) {
+                        onPermissionDenied(module)
+                        prepareNextSoftwareModule(modules, index + 1, onPermissionDenied, callback)
+                        return
+                    }
                     callback.onPreparationError(errMsgId, errString)
                 }
 
@@ -640,16 +669,22 @@ object LegacyBiometric {
     private fun getPreferredBiometricModule(
         biometricType: BiometricType?,
         provider: BiometricProviderType,
-        enroll: Boolean
+        enroll: Boolean,
+        excludedModuleTags: Set<Int> = emptySet()
     ): BiometricModule? {
         val modules = getAvailableBiometricModules(biometricType, provider)
-            .filter { it.isHardwarePresent }
+            .filterNot { excludedModuleTags.contains(it.tag()) }
+            .filter { it.isHardwarePresent && !it.isPermanentlyLockedOutForSelection() }
         val preferred = if (enroll) {
             modules.firstOrNull()
         } else {
             modules.firstOrNull { it.hasEnrolled }
         }
         return preferred
+    }
+
+    private fun BiometricModule.isPermanentlyLockedOutForSelection(): Boolean {
+        return this is SoftwareBiometricModule && isPermanentlyLockedOut
     }
 
     private fun providerMatches(

@@ -75,6 +75,13 @@ object Connection {
     internal val isConnection: Boolean
         get() = connectionStateListener.isConnected
 
+    internal fun refreshAndGetConnection(): Boolean {
+        return connectionStateListener.refreshConnectionState()
+    }
+
+    internal fun hasNetworkTransport(): Boolean {
+        return connectionStateListener.hasNetworkTransport()
+    }
 
     fun addNetworkListener(listener: NetworkListener) {
         synchronized(netlistLis) {

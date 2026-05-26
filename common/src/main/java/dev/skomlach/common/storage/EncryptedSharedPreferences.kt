@@ -106,9 +106,15 @@ class EncryptedSharedPreferences(
     private val primaryConfig by lazy {
         deriveConfig(SharedPreferenceProvider.EncryptionConfig.primaryInstance)
     }
+    private val legacyDeviceIdConfig by lazy {
+        deriveConfig(SharedPreferenceProvider.EncryptionConfig.legacyDeviceIdInstance)
+    }
     private val secondaryConfig by lazy {
         deriveConfig(SharedPreferenceProvider.EncryptionConfig.secondaryInstance)
     }
+
+    private val configs: List<DerivedConfig>
+        get() = listOfNotNull(primaryConfig, legacyDeviceIdConfig, secondaryConfig)
 
     private fun deriveConfig(config: SharedPreferenceProvider.EncryptionConfig?): DerivedConfig? {
         if (config == null) return null
@@ -142,11 +148,12 @@ class EncryptedSharedPreferences(
         if (ciphertext.isNullOrEmpty()) {
             return ciphertext
         }
-        return try {
-            primaryConfig?.fileNameCipher?.decryptName(ciphertext)
-                ?: secondaryConfig?.fileNameCipher?.decryptName(ciphertext)
-        } catch (e: Throwable) {
-            null
+        return configs.firstNotNullOfOrNull { config ->
+            try {
+                config.fileNameCipher.decryptName(ciphertext)
+            } catch (_: Throwable) {
+                null
+            }
         }
     }
 
@@ -155,16 +162,13 @@ class EncryptedSharedPreferences(
             return cleartext
         }
         return primaryConfig?.fileNameCipher?.encryptName(cleartext)
-            ?:secondaryConfig?.fileNameCipher?.encryptName(cleartext)
+            ?: secondaryConfig?.fileNameCipher?.encryptName(cleartext)
     }
 
     private fun decrypt(ciphertext: String?): ByteArray? {
         if (ciphertext.isNullOrEmpty()) return ciphertext?.toByteArray(UTF_8)
-        return listOfNotNull(
-            primaryConfig?.valueKeys,
-            secondaryConfig?.valueKeys
-        ).firstNotNullOfOrNull { keys ->
-            decryptWith(keys, ciphertext)
+        return configs.firstNotNullOfOrNull { config ->
+            decryptWith(config.valueKeys, ciphertext)
         }
     }
 
@@ -187,8 +191,10 @@ class EncryptedSharedPreferences(
             return String(cleartext ?: return null, UTF_8)
         }
         return try {
-            AesCbcWithIntegrity.encrypt(cleartext, primaryConfig?.valueKeys
-                ?:secondaryConfig?.valueKeys?:return null).toString()
+            AesCbcWithIntegrity.encrypt(
+                cleartext,
+                primaryConfig?.valueKeys ?: secondaryConfig?.valueKeys ?: return null
+            ).toString()
         } catch (e: GeneralSecurityException) {
             LogCat.logException(e)
             null

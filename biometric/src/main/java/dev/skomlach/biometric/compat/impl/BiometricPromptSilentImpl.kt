@@ -106,7 +106,8 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                 types,
                 fmAuthCallback,
                 BundleBuilder.create(builder),
-                builder.getBiometricAuthRequest().provider
+                builder.getBiometricAuthRequest().provider,
+                builder.getDisabledModuleTags()
             )
         }, 500)
     }
@@ -239,6 +240,16 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         }
 
         override fun onFailure(result: AuthenticationResult) {
+            if (builder.disableBiometricForPermissionFailure(result)) {
+                BiometricNotificationManager.dismiss(result.type)
+                if (builder.getAllAvailableTypes().isEmpty()) {
+                    checkAuthResult(result, AuthResult.AuthResultState.FATAL_ERROR)
+                } else {
+                    stopAuth()
+                    startAuth()
+                }
+                return
+            }
             checkAuthResult(
                 result,
                 AuthResult.AuthResultState.FATAL_ERROR,

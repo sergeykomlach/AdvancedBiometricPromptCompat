@@ -223,7 +223,10 @@ object BiometricManagerCompat {
         var result = false
         if (api.api != BiometricApi.AUTO)
             result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type) ||
-                    LegacyBiometric.isSoftwarePermanentlyLockedOut(api.type, api.provider)
+                    LegacyBiometric.areAvailableSoftwareModulesPermanentlyLockedOut(
+                        api.type,
+                        api.provider
+                    )
         else {
             var total = 0
             var counted = 0
@@ -232,7 +235,10 @@ object BiometricManagerCompat {
                 if (isBiometricAvailable(v)) {
                     total++
                     if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s) ||
-                        LegacyBiometric.isSoftwarePermanentlyLockedOut(s, api.provider)
+                        LegacyBiometric.areAvailableSoftwareModulesPermanentlyLockedOut(
+                            s,
+                            api.provider
+                        )
                     ) {
                         counted++
                     }

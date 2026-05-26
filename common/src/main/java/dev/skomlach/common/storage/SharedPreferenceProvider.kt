@@ -25,13 +25,20 @@ import android.content.SharedPreferences
 import android.media.MediaDrm
 import android.os.Build
 import android.provider.Settings.Secure
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.core.content.ContextCompat
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import java.io.File
+import java.security.KeyStore
 import java.security.SecureRandom
 import java.util.Arrays
 import java.util.UUID
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import kotlin.text.Charsets.UTF_8
 
 object SharedPreferenceProvider {
@@ -71,12 +78,21 @@ object SharedPreferenceProvider {
         }
 
         companion object {
+            private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+            private const val KEYSTORE_ALIAS = "BiometricCompatProtectedPrefs"
+            private const val KEYSTORE_WRAPPED_KEY = "bio_key_v2"
+            private const val KEYSTORE_SALT = "bio_hash_v2"
+
             val secondaryInstance: EncryptionConfig by lazy {
                 getFileBasedEncryptionConfig()
             }
 
-            val primaryInstance: EncryptionConfig? by lazy {
+            val legacyDeviceIdInstance: EncryptionConfig? by lazy {
                 getDeviceIdEncryptionConfig()
+            }
+
+            val primaryInstance: EncryptionConfig? by lazy {
+                getKeyStoreBackedEncryptionConfig() ?: legacyDeviceIdInstance
             }
 
             private fun getDataDir(): File {
@@ -140,6 +156,87 @@ object SharedPreferenceProvider {
                 val password = readOrCreateBytes("bio_key", 32)
                 val salt = readOrCreateBytes("bio_hash", 128)
                 return EncryptionConfig(password, salt)
+            }
+
+            private fun getKeyStoreBackedEncryptionConfig(): EncryptionConfig? {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return null
+                return try {
+                    val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+                    if (!keyStore.containsAlias(KEYSTORE_ALIAS)) {
+                        val keyGenerator = KeyGenerator.getInstance(
+                            KeyProperties.KEY_ALGORITHM_AES,
+                            ANDROID_KEYSTORE
+                        )
+                        keyGenerator.init(
+                            KeyGenParameterSpec.Builder(
+                                KEYSTORE_ALIAS,
+                                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                            )
+                                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                                .setRandomizedEncryptionRequired(true)
+                                .build()
+                        )
+                        keyGenerator.generateKey()
+                    }
+                    val secretKey = keyStore.getKey(KEYSTORE_ALIAS, null) as? SecretKey
+                        ?: return null
+                    val password = readOrCreateWrappedBytes(KEYSTORE_WRAPPED_KEY, 32, secretKey)
+                    val salt = readOrCreateWrappedBytes(KEYSTORE_SALT, 128, secretKey)
+                    EncryptionConfig(password, salt)
+                } catch (_: Throwable) {
+                    null
+                }
+            }
+
+            private fun readOrCreateWrappedBytes(
+                fileName: String,
+                size: Int,
+                secretKey: SecretKey
+            ): ByteArray {
+                val file = File(getDataDir(), fileName)
+                if (file.exists()) {
+                    try {
+                        val encrypted = try {
+                            file.setReadable(true, true)
+                            file.readBytes()
+                        } finally {
+                            file.setReadable(false, false)
+                        }
+                        val decrypted = decryptWithKeyStore(secretKey, encrypted)
+                        if (decrypted.size == size) {
+                            return decrypted
+                        }
+                    } catch (_: Throwable) {
+                    }
+                    runCatching { file.delete() }
+                }
+
+                val replacement = secureRandomBytes(size)
+                file.writeBytes(encryptWithKeyStore(secretKey, replacement))
+                file.setReadable(false, false)
+                file.setWritable(true, true)
+                file.setExecutable(false, false)
+                file.setReadOnly()
+                return replacement
+            }
+
+            private fun encryptWithKeyStore(secretKey: SecretKey, cleartext: ByteArray): ByteArray {
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+                val iv = cipher.iv
+                val ciphertext = cipher.doFinal(cleartext)
+                return byteArrayOf(iv.size.toByte()) + iv + ciphertext
+            }
+
+            private fun decryptWithKeyStore(secretKey: SecretKey, encrypted: ByteArray): ByteArray {
+                val ivSize = encrypted.firstOrNull()?.toInt() ?: 0
+                require(ivSize > 0 && encrypted.size > ivSize + 1)
+                val iv = encrypted.copyOfRange(1, 1 + ivSize)
+                val ciphertext = encrypted.copyOfRange(1 + ivSize, encrypted.size)
+                val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
+                return cipher.doFinal(ciphertext)
             }
 
             private fun getDeviceIdEncryptionConfig(): EncryptionConfig? {

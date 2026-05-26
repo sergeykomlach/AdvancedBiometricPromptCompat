@@ -34,6 +34,8 @@ import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
+import org.json.JSONArray
+import org.json.JSONObject
 
 object DataProviders {
 
@@ -153,6 +155,7 @@ object DataProviders {
 
     private fun saveToCache(data: String, name: String) {
         try {
+            validateJson(data)
             val cacheDir = AndroidContext.appContext.cacheDir
             val file = File(cacheDir, name)
             val parent = file.parentFile
@@ -176,6 +179,17 @@ object DataProviders {
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
+        }
+    }
+
+    private fun validateJson(data: String) {
+        val trimmed = data.trimStart()
+        if (trimmed.startsWith("{")) {
+            JSONObject(data)
+        } else if (trimmed.startsWith("[")) {
+            JSONArray(data)
+        } else {
+            throw IllegalArgumentException("Unexpected JSON root")
         }
     }
 

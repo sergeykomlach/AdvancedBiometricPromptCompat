@@ -56,7 +56,7 @@ object BiometricErrorLockoutPermanentFix {
             val uptime = SystemClock.uptimeMillis()
             keys.forEach {
                 val memorizedUptime = sharedPreferences.getLong(it, uptime)
-                uptimeChanged = uptimeChanged || uptime > memorizedUptime
+                uptimeChanged = uptimeChanged || uptime < memorizedUptime
             }
             return uptimeChanged
         } finally {

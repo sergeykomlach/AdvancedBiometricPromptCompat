@@ -47,7 +47,15 @@ object NetworkApi {
     }
 
     fun hasInternet(): Boolean {
-        return Connection.isConnection
+        return Connection.refreshAndGetConnection()
+    }
+
+    fun refreshConnectionState(): Boolean {
+        return Connection.refreshAndGetConnection()
+    }
+
+    fun hasNetworkTransport(): Boolean {
+        return Connection.hasNetworkTransport()
     }
 
     @Throws(Exception::class)

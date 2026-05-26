@@ -61,7 +61,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         val selected = LegacyBiometric.getSelectedBiometricModule(
             builder.getAllAvailableTypes(),
             builder.getBiometricAuthRequest().provider,
-            builder.enroll
+            builder.enroll,
+            builder.getDisabledModuleTags()
         )
             ?: return false
 
@@ -109,7 +110,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 types,
                 fmAuthCallback,
                 BundleBuilder.create(builder),
-                builder.getBiometricAuthRequest().provider
+                builder.getBiometricAuthRequest().provider,
+                builder.getDisabledModuleTags()
             )
         }, 500)
 
@@ -253,6 +255,16 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         override fun onFailure(
             result: AuthenticationResult
         ) {
+            if (builder.disableBiometricForPermissionFailure(result)) {
+                BiometricNotificationManager.dismiss(result.type)
+                if (builder.getAllAvailableTypes().isEmpty()) {
+                    checkAuthResult(result, AuthResult.AuthResultState.FATAL_ERROR)
+                } else {
+                    stopAuth()
+                    startAuth()
+                }
+                return
+            }
             checkAuthResult(
                 result,
                 AuthResult.AuthResultState.FATAL_ERROR
