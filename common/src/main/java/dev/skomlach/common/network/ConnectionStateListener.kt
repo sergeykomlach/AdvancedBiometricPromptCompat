@@ -28,7 +28,6 @@ import android.os.Build
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -44,7 +43,7 @@ class ConnectionStateListener {
     private var connectivityManager: ConnectivityManager? = null
     private var networkCallback: NetworkCallback? = null
     private val connectionWatchdog = Runnable {
-        ExecutorHelper.scope.launch(Dispatchers.IO) {
+        ExecutorHelper.scope.launch {
             refreshConnectionState()
             scheduleConnectionWatchdog()
         }
@@ -60,21 +59,21 @@ class ConnectionStateListener {
         connectivityManager =
             appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
         //Just an initial state; Will be checked properly later
-        ExecutorHelper.scope.launch(Dispatchers.IO) {
+        ExecutorHelper.scope.launch {
             refreshConnectionStateAndSchedule()
         }
 
         networkCallback = object : NetworkCallback() {
             override fun onUnavailable() {
                 LogCat.logError("ConnectionStateListener onUnavailable")
-                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                ExecutorHelper.scope.launch {
                     refreshConnectionStateAndSchedule()
                 }
             }
 
             override fun onAvailable(network: Network) {
                 LogCat.logError("ConnectionStateListener onAvailable")
-                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                ExecutorHelper.scope.launch {
                     refreshConnectionStateAndSchedule()
                 }
                 delayedRefreshConnectionState(1_000)
@@ -83,7 +82,7 @@ class ConnectionStateListener {
 
             override fun onLost(network: Network) {
                 LogCat.logError("ConnectionStateListener onLost")
-                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                ExecutorHelper.scope.launch {
                     refreshConnectionStateAndSchedule()
                 }
             }
@@ -93,7 +92,7 @@ class ConnectionStateListener {
                 networkCapabilities: NetworkCapabilities
             ) {
                 LogCat.logError("ConnectionStateListener onCapabilitiesChanged")
-                ExecutorHelper.scope.launch(Dispatchers.IO) {
+                ExecutorHelper.scope.launch {
                     refreshConnectionStateAndSchedule()
                 }
             }
@@ -103,7 +102,7 @@ class ConnectionStateListener {
 
     private fun delayedRefreshConnectionState(delay: Long) {
         ExecutorHelper.handler.postDelayed({
-            ExecutorHelper.scope.launch(Dispatchers.IO) {
+            ExecutorHelper.scope.launch {
                 refreshConnectionStateAndSchedule()
             }
         }, delay)
@@ -219,7 +218,7 @@ class ConnectionStateListener {
     }
 
     internal fun onScreenStateChanged() {
-        ExecutorHelper.scope.launch(Dispatchers.IO) {
+        ExecutorHelper.scope.launch {
             refreshConnectionStateAndSchedule()
         }
     }

@@ -21,11 +21,12 @@ package dev.skomlach.biometric.compat.crypto
 
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
+import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
-import kotlinx.coroutines.sync.Mutex
+import java.util.concurrent.locks.ReentrantLock
 
 object BiometricCryptoObjectHelper {
-    private val mutex = Mutex()
+    private val lock = ReentrantLock()
     private val managerInterface: CryptographyManagerInterface =
         HybridCryptographyManagerInterface()
 
@@ -40,7 +41,7 @@ object BiometricCryptoObjectHelper {
     ): BiometricCryptoObject? {
         if (purpose == null)
             return null
-        mutex.tryLock()
+        lock.lock()
         try {
             prepareCryptoAccess(name, isUserAuthRequired)
             val cipher =
@@ -58,16 +59,22 @@ object BiometricCryptoObjectHelper {
 
                     else -> throw IllegalArgumentException("Cryptography purpose should be BiometricCryptographyPurpose.ENCRYPT or BiometricCryptographyPurpose.DECRYPT")
                 }
-            return BiometricCryptoObject(signature = null, cipher = cipher, mac = null)
+            return BiometricCryptoObject(
+                signature = null,
+                cipher = cipher,
+                mac = null,
+                cryptoSecurityLevel = if (isUserAuthRequired) {
+                    CryptoSecurityLevel.HARDWARE_BACKED
+                } else {
+                    CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
+                }
+            )
         } catch (ex: IllegalArgumentException) {
             throw ex
         } catch (e: Throwable) {
             throw BiometricCryptoException(e)
         } finally {
-            try {
-                if (mutex.isLocked) mutex.unlock()
-            } catch (e: Throwable) {
-            }
+            lock.unlock()
         }
 
     }

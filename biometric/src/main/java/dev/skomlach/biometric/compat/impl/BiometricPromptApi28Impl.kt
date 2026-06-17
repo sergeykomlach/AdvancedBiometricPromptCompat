@@ -44,6 +44,7 @@ import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.crypto.AppFlowCryptoRegistry
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
@@ -422,7 +423,8 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     fmAuthCallback,
                     BundleBuilder.create(builder),
                     builder.getBiometricAuthRequest().provider,
-                    builder.getDisabledModuleTags()
+                    builder.getDisabledModuleTags(),
+                    builder.isCryptoFallbackAllowed()
                 )
             }, 500)
         }
@@ -482,9 +484,31 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 } catch (e: Throwable) {
                     e(
                         e,
-                        "BiometricPromptApi28Impl.authenticate with CryptoObject failed; retry without AndroidX CryptoObject"
+                        "BiometricPromptApi28Impl.authenticate with CryptoObject failed"
                     )
                     pendingPromptCryptoObject.set(null)
+                    if (builder.getCryptographyPurpose() != null) {
+                        if (builder.isCryptoFallbackAllowed()) {
+                            val fallbackCryptoObject = BiometricCryptoObjectHelper.getBiometricCryptoObject(
+                                PROMPT_CRYPTO_KEY,
+                                builder.getCryptographyPurpose(),
+                                false
+                            )
+                            pendingPromptCryptoObject.set(fallbackCryptoObject)
+                            authCallTimestamp.set(System.currentTimeMillis())
+                            biometricPrompt.authenticate(biometricPromptInfo)
+                            return
+                        }
+                        checkAuthResult(
+                            AuthResult.AuthResultState.FATAL_ERROR,
+                            AuthenticationResult(
+                                BiometricType.BIOMETRIC_ANY,
+                                reason = AuthenticationFailureReason.CRYPTO_ERROR,
+                                description = "BiometricPrompt rejected required CryptoObject: ${e.message}"
+                            )
+                        )
+                        return
+                    }
                     authCallTimestamp.set(System.currentTimeMillis())
                     biometricPrompt.authenticate(biometricPromptInfo)
                 }
@@ -587,7 +611,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         if (!isOpened.get())
             return
         d("BiometricPromptApi28Impl.checkAuthResult(): stage 1")
-        var failureReason = module?.reason
+        val normalizedModule = normalizeCryptoResult(module, authResult)
+        val normalizedAuthResult = if (normalizedModule?.reason == AuthenticationFailureReason.CRYPTO_ERROR) {
+            AuthResult.AuthResultState.FATAL_ERROR
+        } else {
+            authResult
+        }
+        var failureReason = normalizedModule?.reason
         if (mutableListOf(
                 AuthenticationFailureReason.SENSOR_FAILED,
                 AuthenticationFailureReason.AUTHENTICATION_FAILED
@@ -601,12 +631,13 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             for (m in builder.getPrimaryAvailableTypes()) {
                 authFinished[m] =
                     AuthResult(
-                        authResult,
+                        normalizedAuthResult,
                         AuthenticationResult(
                             BiometricType.BIOMETRIC_ANY,
-                            module?.cryptoObject,
-                            module?.reason,
-                            module?.description
+                            normalizedModule?.cryptoObject,
+                            normalizedModule?.reason,
+                            normalizedModule?.description,
+                            normalizedModule?.cryptoSecurityLevel ?: CryptoSecurityLevel.NONE
                         )
                     )
             }
@@ -615,18 +646,19 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             for (m in builder.getPrimaryAvailableTypes()) {
                 authFinished[m] =
                     AuthResult(
-                        authResult,
+                        normalizedAuthResult,
                         AuthenticationResult(
                             m,
-                            module?.cryptoObject,
-                            module?.reason,
-                            module?.description
+                            normalizedModule?.cryptoObject,
+                            normalizedModule?.reason,
+                            normalizedModule?.description,
+                            normalizedModule?.cryptoSecurityLevel ?: CryptoSecurityLevel.NONE
                         )
                     )
                 added = true
 
                 BiometricNotificationManager.dismiss(m)
-                if (AuthResult.AuthResultState.SUCCESS == authResult) {
+                if (AuthResult.AuthResultState.SUCCESS == normalizedAuthResult) {
                     IconStateHelper.successType(m)
                 } else
                     IconStateHelper.errorType(m)
@@ -635,7 +667,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
         dialog?.authFinishedCopy = authFinished
         d("BiometricPromptApi28Impl.checkAuthResult(): stage 2")
-        if (added && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && AuthResult.AuthResultState.SUCCESS == authResult) {
+        if (added && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && AuthResult.AuthResultState.SUCCESS == normalizedAuthResult) {
             Vibro.start()
         }
 
@@ -668,7 +700,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                     onlySuccess[it]?.result?.let { r ->
                         result = AuthenticationResult(
                             r.type,
-                            if (fixCryptoObjects) null else r.cryptoObject, r.reason, r.description
+                            if (fixCryptoObjects) null else r.cryptoObject,
+                            r.reason,
+                            r.description,
+                            if (fixCryptoObjects) CryptoSecurityLevel.NONE else r.cryptoSecurityLevel
                         )
                     }
                     result
@@ -718,6 +753,31 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }
             dialog?.showDialog()
         }
+    }
+
+    private fun normalizeCryptoResult(
+        module: AuthenticationResult?,
+        authResult: AuthResult.AuthResultState
+    ): AuthenticationResult? {
+        if (authResult != AuthResult.AuthResultState.SUCCESS ||
+            builder.getCryptographyPurpose() == null ||
+            isAcceptedCryptoResult(module)
+        ) {
+            return module
+        }
+        return AuthenticationResult(
+            module?.type ?: BiometricType.BIOMETRIC_ANY,
+            reason = AuthenticationFailureReason.CRYPTO_ERROR,
+            description = "Biometric module ${module?.type ?: BiometricType.BIOMETRIC_ANY} completed without required CryptoObject"
+        )
+    }
+
+    private fun isAcceptedCryptoResult(module: AuthenticationResult?): Boolean {
+        return module?.cryptoSecurityLevel == CryptoSecurityLevel.HARDWARE_BACKED ||
+                (
+                        builder.isCryptoFallbackAllowed() &&
+                                module?.cryptoSecurityLevel == CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
+                        )
     }
 
     private inner class LegacyBiometricAuthenticationCallbackImpl :

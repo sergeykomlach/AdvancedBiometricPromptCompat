@@ -68,6 +68,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 object LegacyBiometric {
+    private const val INIT_AUTH_RETRY_DELAY_MS = 50L
+    private const val INIT_AUTH_TIMEOUT_MS = 5000L
     private val moduleHashMap =
         Collections.synchronizedMap(HashMap<BiometricMethod, BiometricModule>())
     private val customModuleHashMap =
@@ -397,7 +399,8 @@ object LegacyBiometric {
         listener: LegacyBiometricAuthenticationListener,
         bundle: Bundle?,
         provider: BiometricProviderType = BiometricProviderType.COMBINED,
-        excludedModuleTags: Set<Int> = emptySet()
+        excludedModuleTags: Set<Int> = emptySet(),
+        allowCryptoFallback: Boolean = false
     ) {
         if (authInProgress.get() || requestedMethods.isEmpty()) {
             e("BiometricAuthentication not started, wrong state")
@@ -407,23 +410,17 @@ object LegacyBiometric {
         if (initInProgress.get()) {
             val viewRef = WeakReference(targetView)
             val methodsRef = requestedMethods.filterNotNull()
-            ExecutorHelper.startOnBackground {
-                val start = System.currentTimeMillis()
-                while (initInProgress.get() && System.currentTimeMillis() - start < 5000) {
-                    Thread.sleep(50)
-                }
-                ExecutorHelper.post {
-                    authenticate(
-                        biometricCryptographyPurpose,
-                        viewRef.get(),
-                        methodsRef,
-                        listener,
-                        bundle,
-                        provider,
-                        excludedModuleTags
-                    )
-                }
-            }
+            retryAuthenticationAfterInit(
+                biometricCryptographyPurpose,
+                viewRef,
+                methodsRef,
+                listener,
+                bundle,
+                provider,
+                excludedModuleTags,
+                allowCryptoFallback,
+                System.currentTimeMillis()
+            )
             return
         }
 
@@ -496,7 +493,51 @@ object LegacyBiometric {
                     )
                 )
             }
-        })
+        }, allowCryptoFallback = allowCryptoFallback)
+    }
+
+    private fun retryAuthenticationAfterInit(
+        biometricCryptographyPurpose: BiometricCryptographyPurpose?,
+        viewRef: WeakReference<SurfaceView?>,
+        requestedMethods: List<BiometricType>,
+        listener: LegacyBiometricAuthenticationListener,
+        bundle: Bundle?,
+        provider: BiometricProviderType,
+        excludedModuleTags: Set<Int>,
+        allowCryptoFallback: Boolean,
+        startTime: Long
+    ) {
+        if (initInProgress.get() && System.currentTimeMillis() - startTime < INIT_AUTH_TIMEOUT_MS) {
+            ExecutorHelper.postDelayed(
+                {
+                    retryAuthenticationAfterInit(
+                        biometricCryptographyPurpose,
+                        viewRef,
+                        requestedMethods,
+                        listener,
+                        bundle,
+                        provider,
+                        excludedModuleTags,
+                        allowCryptoFallback,
+                        startTime
+                    )
+                },
+                INIT_AUTH_RETRY_DELAY_MS
+            )
+            return
+        }
+        ExecutorHelper.post {
+            authenticate(
+                biometricCryptographyPurpose,
+                viewRef.get(),
+                requestedMethods,
+                listener,
+                bundle,
+                provider,
+                excludedModuleTags,
+                allowCryptoFallback
+            )
+        }
     }
 
     fun cancelAuthentication() {

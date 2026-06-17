@@ -78,6 +78,7 @@
                 android:required="false" />
         <receiver
                 android:name="dev.skomlach.biometric.compat.utils.DeviceUnlockedReceiver"
+                android:directBootAware="true"
                 android:enabled="true"
                 android:exported="true">
             <intent-filter>

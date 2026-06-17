@@ -30,8 +30,6 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider.getProtectedPreferences
 import dev.skomlach.common.translate.LocalizationHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -65,7 +63,15 @@ class TensorFlowFaceUnlockManager(
         @Volatile
         private var currentActiveManager: TensorFlowFaceUnlockManager? = null
 
+        private val configurationObserverRegistered = AtomicBoolean(false)
+        private val prefetchLock = Any()
+        private var prefetchJob: Job? = null
+
         init {
+            prefetchLocalizationStrings()
+        }
+
+        private fun prefetchLocalizationStrings() {
             try {
                 val stringIds: Array<Int> = R.string::class.java
                     .fields
@@ -82,20 +88,29 @@ class TensorFlowFaceUnlockManager(
                     .toList()
                     .toTypedArray()
 
-                var prefetch: Job? = null
-                prefetch = GlobalScope.launch(Dispatchers.IO) {
-                    LocalizationHelper.prefetch(AndroidContext.appContext, *stringIds)
-                }
-                GlobalScope.launch(Dispatchers.Main) {
-                    AndroidContext.configurationLiveData.observeForever {
-                        prefetch?.cancel()
-                        prefetch = GlobalScope.launch(Dispatchers.IO) {
-                            LocalizationHelper.prefetch(AndroidContext.appContext, *stringIds)
+                scheduleLocalizationPrefetch(stringIds)
+                if (configurationObserverRegistered.compareAndSet(false, true)) {
+                    ExecutorHelper.post {
+                        AndroidContext.configurationLiveData.observeForever {
+                            scheduleLocalizationPrefetch(stringIds)
                         }
                     }
                 }
             } catch (e: Throwable) {
                 LogCat.logException(e)
+            }
+        }
+
+        private fun scheduleLocalizationPrefetch(stringIds: Array<Int>) {
+            synchronized(prefetchLock) {
+                prefetchJob?.cancel()
+                prefetchJob = ExecutorHelper.scope.launch {
+                    try {
+                        LocalizationHelper.prefetch(AndroidContext.appContext, *stringIds)
+                    } catch (e: Throwable) {
+                        LogCat.logException(e, TAG)
+                    }
+                }
             }
         }
 

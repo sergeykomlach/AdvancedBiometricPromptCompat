@@ -1,5 +1,6 @@
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
 
 
 apply plugin: 'com.android.library'
@@ -106,7 +107,19 @@ ext.gsmarenaScrapeAndCopy = { ->
 
     return outFile
 }
-ext.downloadToAssetsByUrl = { String urlStr ->
+ext.sha256Hex = { File file ->
+    MessageDigest digest = MessageDigest.getInstance("SHA-256")
+    file.withInputStream { input ->
+        byte[] buffer = new byte[8192]
+        int read
+        while ((read = input.read(buffer)) != -1) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    return digest.digest().collect { String.format("%02x", it & 0xff) }.join()
+}
+
+ext.downloadToAssetsByUrl = { String urlStr, String expectedSha256 = null ->
     if (!urlStr) throw new GradleException("URL is empty")
 
     URI uri
@@ -114,6 +127,20 @@ ext.downloadToAssetsByUrl = { String urlStr ->
         uri = new URI(urlStr)
     } catch (Exception e) {
         throw new GradleException("Invalid URL: ${urlStr}", e)
+    }
+    if (uri.scheme != "https") {
+        throw new GradleException("Only HTTPS asset downloads are allowed: ${urlStr}")
+    }
+    if (!["github.com", "raw.githubusercontent.com"].contains(uri.host)) {
+        throw new GradleException("Unexpected asset download host: ${uri.host}")
+    }
+    boolean allowUnpinnedDownloads =
+            (findProperty("allowUnpinnedDeviceAssetDownloads") ?: "false").toString().toBoolean()
+    if (!expectedSha256 && !allowUnpinnedDownloads) {
+        throw new GradleException(
+                "Missing SHA-256 for ${urlStr}. " +
+                        "Pass the expected hash or set -PallowUnpinnedDeviceAssetDownloads=true for manual refresh."
+        )
     }
 
     // ---- Extract file name from URL ----
@@ -177,6 +204,15 @@ ext.downloadToAssetsByUrl = { String urlStr ->
 
     if (!outFile.exists() || outFile.length() == 0) {
         throw new GradleException("Downloaded file is missing or empty: ${outFile.absolutePath}")
+    }
+    if (expectedSha256) {
+        String actualSha256 = sha256Hex(outFile)
+        if (!actualSha256.equalsIgnoreCase(expectedSha256)) {
+            outFile.delete()
+            throw new GradleException(
+                    "SHA-256 mismatch for ${urlStr}: expected ${expectedSha256}, got ${actualSha256}"
+            )
+        }
     }
 
     return outFile

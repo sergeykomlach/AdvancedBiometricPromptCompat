@@ -28,6 +28,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
@@ -107,7 +108,8 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                 fmAuthCallback,
                 BundleBuilder.create(builder),
                 builder.getBiometricAuthRequest().provider,
-                builder.getDisabledModuleTags()
+                builder.getDisabledModuleTags(),
+                builder.isCryptoFallbackAllowed()
             )
         }, 500)
     }
@@ -159,8 +161,14 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     ) {
         if (!isOpened.get())
             return
-        val failureReason = module?.reason
-        if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+        val normalizedModule = normalizeCryptoResult(module, authResult)
+        val normalizedAuthResult = if (normalizedModule?.reason == AuthenticationFailureReason.CRYPTO_ERROR) {
+            AuthResult.AuthResultState.FATAL_ERROR
+        } else {
+            authResult
+        }
+        val failureReason = normalizedModule?.reason
+        if (normalizedAuthResult == AuthResult.AuthResultState.FATAL_ERROR) {
             failureCounter.incrementAndGet()
         }
         //non fatal
@@ -171,9 +179,9 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         ) {
             return
         }
-        authFinished[module?.type] =
-            AuthResult(authResult, result = module)
-        BiometricNotificationManager.dismiss(module?.type)
+        authFinished[normalizedModule?.type] =
+            AuthResult(normalizedAuthResult, result = normalizedModule)
+        BiometricNotificationManager.dismiss(normalizedModule?.type)
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = ArrayList(
@@ -201,7 +209,10 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                     onlySuccess[it]?.result?.let { r ->
                         result = AuthenticationResult(
                             r.type,
-                            if (fixCryptoObjects) null else r.cryptoObject, r.reason, r.description
+                            if (fixCryptoObjects) null else r.cryptoObject,
+                            r.reason,
+                            r.description,
+                            if (fixCryptoObjects) CryptoSecurityLevel.NONE else r.cryptoSecurityLevel
                         )
                     }
                     result
@@ -227,6 +238,31 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
 
         }
+    }
+
+    private fun normalizeCryptoResult(
+        module: AuthenticationResult?,
+        authResult: AuthResult.AuthResultState
+    ): AuthenticationResult? {
+        if (authResult != AuthResult.AuthResultState.SUCCESS ||
+            builder.getCryptographyPurpose() == null ||
+            isAcceptedCryptoResult(module)
+        ) {
+            return module
+        }
+        return AuthenticationResult(
+            module?.type ?: BiometricType.BIOMETRIC_ANY,
+            reason = AuthenticationFailureReason.CRYPTO_ERROR,
+            description = "Biometric module ${module?.type ?: BiometricType.BIOMETRIC_ANY} completed without required CryptoObject"
+        )
+    }
+
+    private fun isAcceptedCryptoResult(module: AuthenticationResult?): Boolean {
+        return module?.cryptoSecurityLevel == CryptoSecurityLevel.HARDWARE_BACKED ||
+                (
+                        builder.isCryptoFallbackAllowed() &&
+                                module?.cryptoSecurityLevel == CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
+                        )
     }
 
     private inner class LegacyBiometricAuthenticationCallbackImpl :

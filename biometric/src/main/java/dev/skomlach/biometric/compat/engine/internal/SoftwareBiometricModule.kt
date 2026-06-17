@@ -171,6 +171,16 @@ class SoftwareBiometricModule(
         d("$name.authenticate - $biometricMethod; Crypto=$biometricCryptoObject")
         manager?.let {
             try {
+                if (biometricCryptoObject.hasUsableCrypto() && !it.supportsCryptoObject) {
+                    timeoutHandler.removeCallbacks(timeoutRunnable)
+                    listener?.onFailure(
+                        tag(),
+                        AuthenticationFailureReason.CRYPTO_ERROR,
+                        "Software biometric module $name cannot satisfy a hardware-backed CryptoObject"
+                    )
+                    originalCancellationSignal?.cancel()
+                    return
+                }
                 val cancellationSignal = CancellationSignal()
                 originalCancellationSignal?.setOnCancelListener {
                     if (!cancellationSignal.isCanceled) {
@@ -224,6 +234,10 @@ class SoftwareBiometricModule(
             "Can't start authenticate for $name"
         )
         return
+    }
+
+    private fun BiometricCryptoObject?.hasUsableCrypto(): Boolean {
+        return this?.cipher != null || this?.mac != null || this?.signature != null
     }
 
     private fun convertBundleToCustom(): Bundle? {
@@ -359,6 +373,10 @@ class SoftwareBiometricModule(
 
         override fun onAuthenticationSucceeded(result: AbstractSoftwareBiometricManager.AuthenticationResult?) {
             d("$name.onAuthenticationSucceeded: $result; Crypto=${result?.cryptoObject}")
+            if (cancellationSignal?.isCanceled != false || originalCancellationSignal?.isCanceled != false) {
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+                return
+            }
             val tmp = System.currentTimeMillis()
             if (tmp - errorTs <= skipTimeout || tmp - authCallTimestamp.get() <= skipTimeout)
                 return

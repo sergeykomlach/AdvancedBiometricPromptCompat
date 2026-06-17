@@ -25,12 +25,15 @@ import dev.skomlach.common.R
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.translate.LocalizationHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 object Utils {
+    private val configurationObserverRegistered = AtomicBoolean(false)
+    private val prefetchLock = Any()
+    private var prefetchJob: Job? = null
+
     init {
         prefetchStrings()
     }
@@ -53,30 +56,40 @@ object Utils {
                 .toTypedArray()
             LogCat.log("Utils", "LocalizationHelper.prefetch")
 
-            var prefech: Job? = null
-            prefech = GlobalScope.launch(Dispatchers.IO) {
-                LocalizationHelper.prefetch(
-                    AndroidContext.appContext,
-                    *stringIds
-                )
-            }
-            GlobalScope.launch(Dispatchers.Main) {
-                AndroidContext.configurationLiveData.observeForever {
-                    LogCat.log(
-                        "Utils",
-                        "observeForever -> LocalizationHelper.prefetch"
-                    )
-                    prefech?.cancel()
-                    prefech = GlobalScope.launch(Dispatchers.IO) {
-                        LocalizationHelper.prefetch(
-                            AndroidContext.appContext,
-                            *stringIds
+            schedulePrefetch(stringIds)
+            if (configurationObserverRegistered.compareAndSet(false, true)) {
+                ExecutorHelper.post {
+                    AndroidContext.configurationLiveData.observeForever {
+                        LogCat.log(
+                            "Utils",
+                            "observeForever -> LocalizationHelper.prefetch"
                         )
+                        schedulePrefetch(stringIds)
                     }
                 }
             }
         } catch (e: Throwable) {
             LogCat.logException(e)
+        }
+    }
+
+    private fun schedulePrefetch(stringIds: Array<Int>) {
+        synchronized(prefetchLock) {
+            prefetchJob?.cancel()
+            prefetchJob = ExecutorHelper.scope.launch {
+                try {
+                    LocalizationHelper.prefetch(
+                        AndroidContext.appContext,
+                        *stringIds
+                    )
+                } catch (e: Throwable) {
+                    LogCat.log(
+                        "Utils",
+                        "LocalizationHelper.prefetch failed"
+                    )
+                    LogCat.logException(e)
+                }
+            }
         }
     }
 

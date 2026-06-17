@@ -39,6 +39,10 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
             "android.intent.action.QUICKBOOT_POWERON",
             "com.htc.intent.action.QUICKBOOT_POWERON"
         )
+        private val PROTECTED_BOOT_ACTIONS = setOf(
+            Intent.ACTION_LOCKED_BOOT_COMPLETED,
+            Intent.ACTION_BOOT_COMPLETED
+        )
 
         private var isRegistered = false
 
@@ -72,7 +76,9 @@ class DeviceUnlockedReceiver : BroadcastReceiver() {
         ExecutorHelper.startOnBackground {
             if (BOOT_ACTIONS.contains(action)) {
                 d("Device boot event received: $action")
-                if (BiometricErrorLockoutPermanentFix.isRebootDetected()) {
+                if (PROTECTED_BOOT_ACTIONS.contains(action) ||
+                    BiometricErrorLockoutPermanentFix.isRebootDetected()
+                ) {
                     BiometricErrorLockoutPermanentFix.resetBiometricSensorPermanentlyLocked()
                 } else {
                     d("Ignoring boot event without reboot evidence")

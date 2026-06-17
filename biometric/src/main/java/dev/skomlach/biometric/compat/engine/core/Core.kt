@@ -126,7 +126,8 @@ object Core {
     fun authenticate(
         purpose: BiometricCryptographyPurpose?,
         listener: AuthenticationListener?,
-        restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate()
+        restartPredicate: RestartPredicate? = RestartPredicatesImpl.defaultPredicate(),
+        allowCryptoFallback: Boolean = false
     ) {
         var m: BiometricModule? = null
         try {
@@ -136,14 +137,25 @@ object Core {
 
                 var biometricCryptoObject: BiometricCryptoObject? = null
                 var isAppFlowCrypto = false
+                var cryptoPreparationFailed = false
                 purpose?.let {
                     val keyName = "BiometricModule${module.tag()}"
+                    if (!m.isUserAuthCanByUsedWithCrypto && !allowCryptoFallback) {
+                        listener?.onFailure(
+                            m.tag(),
+                            AuthenticationFailureReason.CRYPTO_ERROR,
+                            "${module.javaClass.simpleName} cannot bind authentication to Android Keystore CryptoObject"
+                        )
+                        cryptoPreparationFailed = true
+                        return@let
+                    }
+                    val requireUserAuth = m.isUserAuthCanByUsedWithCrypto
                     try {
                         biometricCryptoObject =
                             BiometricCryptoObjectHelper.getBiometricCryptoObject(
                                 keyName,
                                 purpose,
-                                m.isUserAuthCanByUsedWithCrypto
+                                requireUserAuth
                             )
                         isAppFlowCrypto =
                             AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
@@ -154,13 +166,14 @@ object Core {
                                 BiometricCryptoObjectHelper.getBiometricCryptoObject(
                                     keyName,
                                     purpose,
-                                    m.isUserAuthCanByUsedWithCrypto
+                                    requireUserAuth
                                 )
                             isAppFlowCrypto =
                                 AppFlowCryptoRegistry.getAccessType(keyName) == CryptoAccessType.APP_FLOW
                         } else throw e
                     }
                 }
+                if (cryptoPreparationFailed) continue
 
                 if (isAppFlowCrypto) {
                     BiometricLoggerImpl.d(

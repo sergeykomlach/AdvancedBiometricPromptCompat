@@ -44,9 +44,9 @@ import dev.skomlach.common.device.hasHeartrateID
 import dev.skomlach.common.device.hasIrisScanner
 import dev.skomlach.common.device.hasPalmID
 import dev.skomlach.common.device.hasVoiceID
+import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.storage.SharedPreferenceProvider
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -349,16 +349,16 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         private var keyStoreBiometricUnavailableUntil = 0L
 
         init {
-            GlobalScope.launch(Dispatchers.Main) {
-                withContext(Dispatchers.IO) {
-                    try {
-                        keyStore.load(null)
-                        keyStore.deleteEntry("BiometricEnrollChanged.test")
-                    } catch (_: Throwable) {
-                    }
+            ExecutorHelper.scope.launch {
+                try {
+                    keyStore.load(null)
+                    keyStore.deleteEntry("BiometricEnrollChanged.test")
+                } catch (_: Throwable) {
                 }
-                AndroidContext.resumedActivityLiveData.observeForever {
-                    updateState()
+                withContext(Dispatchers.Main) {
+                    AndroidContext.resumedActivityLiveData.observeForever {
+                        updateState()
+                    }
                 }
             }
         }
@@ -366,7 +366,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         fun updateState() {
             if (job?.isActive == true) return
             job?.cancel()
-            job = GlobalScope.launch(Dispatchers.IO) {
+            job = ExecutorHelper.scope.launch {
                 try {
                     val changed = isChanged()
                     SharedPreferenceProvider.getPreferences("BiometricPromptHardware")

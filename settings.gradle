@@ -21,15 +21,23 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
-        maven { url 'https://jitpack.io' }
     }
 }
 dependencyResolutionManagement {
-    //repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        exclusiveContent {
+            forRepository {
+                maven { url 'https://jitpack.io' }
+            }
+            filter {
+                includeGroup "com.github.tozny"
+                includeGroup "com.github.anrwatchdog"
+                includeGroup "com.github.chuckerteam.chucker"
+            }
+        }
     }
 }
 rootProject.name = "biometric"

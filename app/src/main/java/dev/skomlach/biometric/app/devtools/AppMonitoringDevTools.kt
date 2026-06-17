@@ -27,7 +27,6 @@ import android.os.StrictMode.ThreadPolicy
 import android.os.StrictMode.VmPolicy
 import android.util.Log
 import androidx.core.content.ContextCompat
-import com.github.anrwatchdog.ANRWatchDog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -40,7 +39,6 @@ import java.text.DecimalFormat
 class AppMonitoringDevTools(val app: Application) {
     private val threadPolicy = StrictMode.getThreadPolicy()
     private val vmPolicy = StrictMode.getVmPolicy()
-    private var anrWatchDog: ANRWatchDog? = null
     private var enable: Boolean = false
     private var fileObserver: FileObserver? = null
 
@@ -132,40 +130,8 @@ class AppMonitoringDevTools(val app: Application) {
             }
         }
         if (enable) {
-            try {
-                anrWatchDog?.interrupt()
-                anrWatchDog = null
-            } catch (_: InterruptedException) {
-
-            }
-            if (anrWatchDog == null) {
-                anrWatchDog = ANRWatchDog()
-                    .setLogThreadsWithoutStackTrace(true)
-                    .setIgnoreDebugger(true)
-                    .setReportAllThreads()
-                    .setInterruptionListener { e ->
-                        Log.e(
-                            "ANRWatchDog.onInterrupted",
-                            e.message, e
-                        )
-                    }
-                    .setANRListener { e ->
-                        Log.e(
-                            "ANRWatchDog.onAppNotResponding",
-                            e.message, e
-                        )
-                    }
-            }
-
-            anrWatchDog?.start()
             fileObserver?.startWatching()
         } else {
-            try {
-                anrWatchDog?.interrupt()
-                anrWatchDog = null
-            } catch (_: InterruptedException) {
-
-            }
             fileObserver?.stopWatching()
         }
 

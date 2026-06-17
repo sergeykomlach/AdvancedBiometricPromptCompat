@@ -24,5 +24,7 @@ data class AuthenticationResult(
     val type: BiometricType?,
     val cryptoObject: BiometricCryptoObject? = null,
     val reason: AuthenticationFailureReason? = null,
-    val description: CharSequence? = null
+    val description: CharSequence? = null,
+    val cryptoSecurityLevel: CryptoSecurityLevel =
+        cryptoObject?.cryptoSecurityLevel ?: CryptoSecurityLevel.NONE
 )

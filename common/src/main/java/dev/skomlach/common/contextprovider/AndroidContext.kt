@@ -38,6 +38,7 @@ import java.io.IOException
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 
@@ -69,6 +70,7 @@ object AndroidContext {
         }
     private val lock = ReentrantLock()
     private var appRef = AtomicReference<Reference<Application?>?>(null)
+    private val dirAccessFixStarted = AtomicBoolean(false)
     private fun getContextRef(): Context? = appRef.get()?.get()
 
     var appConfiguration: Configuration? = null
@@ -87,35 +89,23 @@ object AndroidContext {
     val appContext: Context
         get() {
             getContextRef()?.let {
-                ExecutorHelper.startOnBackground {
-                    fixDirAccess(it)
-                }
+                scheduleDirAccessFix(it)
                 return it
-            } ?: run {
-                try {
-                    lock.runCatching { this.lock() }
-                    if (Looper.getMainLooper().thread !== Thread.currentThread()) {
-                        runBlocking {
-                            withContext(Dispatchers.Main) {
-                                updateApplicationReference()
-                            }
-                        }
-                    } else {
-                        updateApplicationReference()
-                    }
-                    getContextRef()?.let {
-                        ExecutorHelper.startOnBackground {
-                            fixDirAccess(it)
-                        }
-                        return it
-                    }
-                    throw RuntimeException("Application is NULL")
-                } finally {
-                    lock.runCatching {
-                        this.unlock()
+            }
+            if (Looper.getMainLooper().thread === Thread.currentThread()) {
+                ensureApplicationReference()
+            } else {
+                runBlocking {
+                    withContext(Dispatchers.Main) {
+                        ensureApplicationReference()
                     }
                 }
             }
+            getContextRef()?.let {
+                scheduleDirAccessFix(it)
+                return it
+            }
+            throw RuntimeException("Application is NULL")
         }
 
     val appLocale: Locale
@@ -237,6 +227,28 @@ object AndroidContext {
                 }
             )
         )
+    }
+
+    private fun ensureApplicationReference() {
+        if (getContextRef() != null)
+            return
+        try {
+            lock.runCatching { this.lock() }
+            if (getContextRef() == null)
+                updateApplicationReference()
+        } finally {
+            lock.runCatching {
+                this.unlock()
+            }
+        }
+    }
+
+    private fun scheduleDirAccessFix(context: Context) {
+        if (dirAccessFixStarted.compareAndSet(false, true)) {
+            ExecutorHelper.startOnBackground {
+                fixDirAccess(context)
+            }
+        }
     }
 
     //Solution from

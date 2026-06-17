@@ -77,8 +77,6 @@ import dev.skomlach.common.protection.A11yDetection
 import dev.skomlach.common.protection.HookDetection
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.translate.LocalizationHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.nio.charset.Charset
@@ -163,6 +161,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         var deviceInfo: DeviceInfo? = null
         private var authFlowInProgress = AtomicBoolean(false)
         var initStart = System.currentTimeMillis()
+        private val configurationObserverRegistered = AtomicBoolean(false)
+        private val prefetchLock = Any()
+        private var prefetchJob: Job? = null
 
         internal fun init(execute: Runnable? = null) {
             if (!API_ENABLED)
@@ -203,48 +204,57 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     } catch (e: Throwable) {
                         LogCat.logException(e)
                     }
-                    try {
-                        val stringIds: Array<Int> =
-                            R.string::class.java
-                                .fields
-                                .asSequence()
-                                .filter { it.type == Int::class.javaPrimitiveType }
-                                .filter { it.name.startsWith("biometriccompat_") }
-                                .mapNotNull { field ->
-                                    try {
-                                        field.getInt(null)
-                                    } catch (_: Throwable) {
-                                        null
-                                    }
-                                }
-                                .toList()
-                                .toTypedArray()
-                        LogCat.log("BiometricPromptCompat", "LocalizationHelper.prefetch")
+                    prefetchLocalizationStrings()
+                }
+            }
+        }
 
-                        var prefech: Job? = null
-                        prefech = GlobalScope.launch(Dispatchers.IO) {
-                            LocalizationHelper.prefetch(
-                                AndroidContext.appContext,
-                                *stringIds
-                            )
-                        }
-                        GlobalScope.launch(Dispatchers.Main) {
-                            AndroidContext.configurationLiveData.observeForever {
-                                LogCat.log(
-                                    "BiometricPromptCompat",
-                                    "observeForever -> LocalizationHelper.prefetch"
-                                )
-                                prefech?.cancel()
-                                prefech = GlobalScope.launch(Dispatchers.IO) {
-                                    LocalizationHelper.prefetch(
-                                        AndroidContext.appContext,
-                                        *stringIds
-                                    )
-                                }
+        private fun prefetchLocalizationStrings() {
+            try {
+                val stringIds: Array<Int> =
+                    R.string::class.java
+                        .fields
+                        .asSequence()
+                        .filter { it.type == Int::class.javaPrimitiveType }
+                        .filter { it.name.startsWith("biometriccompat_") }
+                        .mapNotNull { field ->
+                            try {
+                                field.getInt(null)
+                            } catch (_: Throwable) {
+                                null
                             }
                         }
+                        .toList()
+                        .toTypedArray()
+                LogCat.log("BiometricPromptCompat", "LocalizationHelper.prefetch")
+                scheduleLocalizationPrefetch(stringIds)
+                if (configurationObserverRegistered.compareAndSet(false, true)) {
+                    ExecutorHelper.post {
+                        AndroidContext.configurationLiveData.observeForever {
+                            LogCat.log(
+                                "BiometricPromptCompat",
+                                "observeForever -> LocalizationHelper.prefetch"
+                            )
+                            scheduleLocalizationPrefetch(stringIds)
+                        }
+                    }
+                }
+            } catch (e: Throwable) {
+                LogCat.logException(e)
+            }
+        }
+
+        private fun scheduleLocalizationPrefetch(stringIds: Array<Int>) {
+            synchronized(prefetchLock) {
+                prefetchJob?.cancel()
+                prefetchJob = ExecutorHelper.scope.launch {
+                    try {
+                        LocalizationHelper.prefetch(
+                            AndroidContext.appContext,
+                            *stringIds
+                        )
                     } catch (e: Throwable) {
-                        LogCat.logException(e)
+                        LogCat.logException(e, "BiometricPromptCompat.prefetch")
                     }
                 }
             }
@@ -304,6 +314,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
     private var startTs = 0L
     private var startTsImpl = 0L
+    private val authCanceled = AtomicBoolean(false)
 
 
     fun setupBiometric(
@@ -318,12 +329,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     ) {
         //WARNING: Set this first!!!!!!!!!!!!
         builder.enroll = true
+        val callback = callbackOuter.withMissingPermissionDescriptions()
 
         BiometricLoggerImpl.e(
             "BiometricPromptCompat.enroll enrollNewHardwareBiometric=$enrollNewHardwareBiometric; list=${builder.getAllAvailableTypes()}"
         )
-        if (authFlowInProgress.get()) {
-            callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+        if (!authFlowInProgress.tryStartAuthFlow()) {
+            callback.onCanceled(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.BIOMETRIC_ALREADY_STARTED
@@ -331,9 +343,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }.toSet())
             return
         }
-        authFlowInProgress.set(true)
         if (!API_ENABLED) {
-            callbackOuter.onFailed(
+            callback.onFailed(
                 builder.getAllAvailableTypes().map {
                     AuthenticationResult(
                         it,
@@ -356,15 +367,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         .withProvider(provider = BiometricProviderType.HARDWARE)
                 )
                 if (!builder.getSecondaryAvailableTypes().isEmpty()) {
-                    authenticate(callbackOuter)
+                    authenticate(callback)
                 } else if (!newHardwareEnroll) {
-                    callbackOuter.onSucceeded(builder.getAllAvailableTypes().map {
+                    callback.onSucceeded(builder.getAllAvailableTypes().map {
                         AuthenticationResult(
                             it
                         )
                     }.toSet())
                 } else {
-                    callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+                    callback.onCanceled(builder.getAllAvailableTypes().map {
                         AuthenticationResult(
                             it,
                             reason = AuthenticationFailureReason.CANCELED_BY_USER
@@ -372,7 +383,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     }.toSet())
                 }
             } else {
-                authenticate(callbackOuter)
+                authenticate(callback)
             }
         }
         if (enrollNewHardwareBiometric) {
@@ -393,8 +404,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     fun authenticate(callbackOuter: AuthenticationCallback) {
         BiometricLoggerImpl.d("BiometricPromptCompat.authenticate() stage1")
         startTs = System.currentTimeMillis()
-        if (authFlowInProgress.get()) {
-            callbackOuter.onCanceled(builder.getAllAvailableTypes().map {
+        val callback = callbackOuter.withMissingPermissionDescriptions()
+        if (!authFlowInProgress.tryStartAuthFlow()) {
+            callback.onCanceled(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.BIOMETRIC_ALREADY_STARTED
@@ -402,10 +414,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }.toSet())
             return
         }
-        authFlowInProgress.set(true)
+        authCanceled.set(false)
 
         if (!API_ENABLED) {
-            callbackOuter.onFailed(
+            callback.onFailed(
                 builder.getAllAvailableTypes().map {
                     AuthenticationResult(
                         it,
@@ -426,7 +438,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 )
 
             )
-            callbackOuter.onFailed(builder.getAllAvailableTypes().map {
+            callback.onFailed(builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
@@ -444,7 +456,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 it == BiometricType.BIOMETRIC_FINGERPRINT
             } && WideGamutBug.unsupportedColorMode(builder.getActivity())) {
             BiometricLoggerImpl.e("BiometricPromptCompat.startAuth - WideGamutBug")
-            callbackOuter.onFailed(
+            callback.onFailed(
                 builder.getAllAvailableTypes().map {
                     AuthenticationResult(
                         it,
@@ -459,18 +471,50 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             return
         }
-        val startTime = System.currentTimeMillis()
-        var timeout = false
+        waitUntilReadyForAuth(callback, System.currentTimeMillis())
+    }
+
+    private fun waitUntilReadyForAuth(
+        callback: AuthenticationCallback,
+        startTime: Long
+    ) {
+        if (authCanceled.get()) {
+            callback.onCanceled(builder.getAllAvailableTypes().map {
+                AuthenticationResult(
+                    it,
+                    reason = AuthenticationFailureReason.CANCELED_BY_USER
+                )
+            }.toSet())
+            authFlowInProgress.set(false)
+            return
+        }
+        val timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
+        if (!timeout && (!builder.isTruncateChecked() || !isInitialized)) {
+            ExecutorHelper.postDelayed(
+                { waitUntilReadyForAuth(callback, startTime) },
+                10
+            )
+            return
+        }
+        continueAuthenticationAfterReadiness(callback, timeout)
+    }
+
+    private fun continueAuthenticationAfterReadiness(
+        callback: AuthenticationCallback,
+        timeout: Boolean
+    ) {
         ExecutorHelper.startOnBackground {
-            while (!builder.isTruncateChecked() || !isInitialized) {
-                timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
-                if (timeout) {
-                    break
+            if (authCanceled.get()) {
+                ExecutorHelper.post {
+                    callback.onCanceled(builder.getAllAvailableTypes().map {
+                        AuthenticationResult(
+                            it,
+                            reason = AuthenticationFailureReason.CANCELED_BY_USER
+                        )
+                    }.toSet())
+                    authFlowInProgress.set(false)
                 }
-                try {
-                    Thread.sleep(10)
-                } catch (ignore: InterruptedException) {
-                }
+                return@startOnBackground
             }
             if (builder.getAllAvailableTypes().isEmpty()) {
                 val checkHardware = checkHardware()
@@ -484,7 +528,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
                 if (interruptAuth) {
                     ExecutorHelper.post {
-                        callbackOuter.onFailed(
+                        callback.onFailed(
                             setOf(
                                 AuthenticationResult(
                                     BiometricType.BIOMETRIC_ANY,
@@ -504,7 +548,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
             ExecutorHelper.post {
                 if (timeout) {
-                    callbackOuter.onFailed(builder.getAllAvailableTypes().map {
+                    callback.onFailed(builder.getAllAvailableTypes().map {
                         AuthenticationResult(
                             it,
                             reason = AuthenticationFailureReason.NOT_INITIALIZED_ERROR,
@@ -515,18 +559,57 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         )
                     }.toSet())
                     authFlowInProgress.set(false)
-                } else if (BiometricManagerCompat.isLockOut(builder.getBiometricAuthRequest())) {
-                    callbackOuter.onFailed(builder.getAllAvailableTypes().map {
+                } else if (builder.areSelectedTypesLockedOut()) {
+                    callback.onFailed(builder.getAllAvailableTypes().map {
                         AuthenticationResult(
                             it,
                             reason = AuthenticationFailureReason.LOCKED_OUT
                         )
                     }.toSet())
                     authFlowInProgress.set(false)
+                } else if (authCanceled.get()) {
+                    callback.onCanceled(builder.getAllAvailableTypes().map {
+                        AuthenticationResult(
+                            it,
+                            reason = AuthenticationFailureReason.CANCELED_BY_USER
+                        )
+                    }.toSet())
+                    authFlowInProgress.set(false)
                 } else
-                    startAuth(callbackOuter)
+                    startAuth(callback)
             }
         }
+    }
+
+    private fun AuthenticationCallback.withMissingPermissionDescriptions(): AuthenticationCallback {
+        val delegate = this
+        return object : AuthenticationCallback() {
+            override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
+                super.onSucceeded(confirmed)
+                delegate.onSucceeded(confirmed)
+            }
+
+            override fun onCanceled(canceled: Set<AuthenticationResult>) {
+                delegate.onCanceled(canceled.withMissingPermissionDescriptions())
+            }
+
+            override fun onFailed(failure: Set<AuthenticationResult>) {
+                delegate.onFailed(failure.withMissingPermissionDescriptions())
+            }
+
+            override fun onUIOpened() {
+                delegate.onUIOpened()
+            }
+
+            override fun onUIClosed() {
+                delegate.onUIClosed()
+            }
+        }
+    }
+
+    private fun Set<AuthenticationResult>.withMissingPermissionDescriptions(): Set<AuthenticationResult> {
+        val description = getMissingPermissionsDescription()
+        return map { it.withMissingPermissionDescription(description) }.toSet()
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
@@ -549,15 +632,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - missed permissions")
             return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
-        } else if (BiometricManagerCompat.isLockOut(
-                builder.getBiometricAuthRequest(), false
-            )
+        } else if (builder.areSelectedTypesLockedOut(false)
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isLockOut")
             return AuthenticationFailureReason.LOCKED_OUT
-        } else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                builder.getBiometricAuthRequest(), false
-            )
+        } else if (builder.areSelectedTypesPermanentlyLocked(false)
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isBiometricSensorPermanentlyLocked")
             return AuthenticationFailureReason.HARDWARE_UNAVAILABLE
@@ -947,10 +1026,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (permissionsMap.any { p ->
                             PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                         }) {
+                        if (stopAfterPermissionDenied(callback, permissionsMap)) {
+                            return@askForPermissions
+                        }
                         disablePermissionDeniedModules(permissionsMap)
                         authTask.invoke()
                     } else {
                         disablePermissionDeniedModules(permissionsMap)
+                        if (stopAfterPermissionDenied(callback, permissionsMap)) {
+                            return@askForPermissions
+                        }
                         if (failIfNoActiveBiometrics(callback)) {
                             return@askForPermissions
                         }
@@ -962,10 +1047,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (permissionsMap.any { p ->
                         PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                     }) {
+                    if (stopAfterPermissionDenied(callback, permissionsMap)) {
+                        return
+                    }
                     disablePermissionDeniedModules(permissionsMap)
                     authTask.invoke()
                 } else {
                     disablePermissionDeniedModules(permissionsMap)
+                    if (stopAfterPermissionDenied(callback, permissionsMap)) {
+                        return
+                    }
                     if (failIfNoActiveBiometrics(callback)) {
                         return
                     }
@@ -975,6 +1066,34 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         } else
             authTask.invoke()
+    }
+
+    private fun stopAfterPermissionDenied(
+        callback: AuthenticationCallback,
+        permissionsMap: List<Pair<BiometricType, List<String>>>
+    ): Boolean {
+        val deniedPermissions = permissionsMap
+            .flatMap { (_, permissions) ->
+                permissions.filterNot { permission ->
+                    PermissionUtils.INSTANCE.hasSelfPermissions(listOf(permission))
+                }
+            }
+            .distinct()
+        if (!shouldStopAfterPermissionDenied(builder.enroll, deniedPermissions)) {
+            return false
+        }
+
+        callback.onCanceled(
+            setOf(
+                AuthenticationResult(
+                    BiometricType.BIOMETRIC_ANY,
+                    reason = AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR,
+                    description = getMissingPermissionsDescription()
+                )
+            )
+        )
+        authFlowInProgress.set(false)
+        return true
     }
 
     private fun disablePermissionDeniedModules(
@@ -1426,10 +1545,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     fun cancelAuthentication() {
-        if (!API_ENABLED || !authFlowInProgress.get() || !isInitialized) {
+        if (!API_ENABLED || !authFlowInProgress.get()) {
             return
         }
+        authCanceled.set(true)
         authFlowInProgress.set(false)
+        if (!isInitialized) {
+            return
+        }
         ExecutorHelper.post {
             impl.cancelAuthentication()
         }
@@ -1607,6 +1730,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var backgroundBiometricIconsEnabled = true
 
         private var biometricCryptographyPurpose: BiometricCryptographyPurpose? = null
+        private var cryptoFallbackAllowed: Boolean = false
 
         @ColorInt
         private var colorNavBar: Int = Color.TRANSPARENT
@@ -1840,6 +1964,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return types
         }
 
+        internal fun areSelectedTypesLockedOut(ignoreCameraCheck: Boolean = true): Boolean {
+            val types = getAllAvailableTypes()
+            return types.isNotEmpty() && types.all { isSelectedTypeLockedOut(it, ignoreCameraCheck) }
+        }
+
+        internal fun areSelectedTypesPermanentlyLocked(ignoreCameraCheck: Boolean = true): Boolean {
+            val types = getAllAvailableTypes()
+            return types.isNotEmpty() && types.all {
+                BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
+                    routeAwareRequest(it),
+                    ignoreCameraCheck
+                )
+            }
+        }
+
         internal fun getDisabledModuleTags(): Set<Int> {
             return HashSet(disabledModuleTags)
         }
@@ -1896,6 +2035,30 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
 
+        private fun isSelectedTypeLockedOut(
+            type: BiometricType,
+            ignoreCameraCheck: Boolean
+        ): Boolean {
+            return BiometricManagerCompat.isLockOut(routeAwareRequest(type), ignoreCameraCheck)
+        }
+
+        private fun routeAwareRequest(type: BiometricType): BiometricAuthRequest {
+            val request = biometricAuthRequest.withType(type)
+            return when {
+                getPrimaryAvailableTypes().contains(type) && hasBiometricPromptHardwareType(type) -> {
+                    request.withApi(BiometricApi.BIOMETRIC_API)
+                        .withProvider(BiometricProviderType.HARDWARE)
+                }
+
+                getSecondaryAvailableTypes().contains(type) &&
+                        biometricAuthRequest.provider != BiometricProviderType.HARDWARE -> {
+                    request.withApi(BiometricApi.LEGACY_API)
+                }
+
+                else -> request
+            }
+        }
+
         private fun shouldRouteLegacyBeforeSystemHardware(type: BiometricType): Boolean {
             if (biometricAuthRequest.provider == BiometricProviderType.HARDWARE ||
                 !hasBiometricPromptHardwareType(type) ||
@@ -1941,6 +2104,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return biometricCryptographyPurpose
         }
 
+        fun isCryptoFallbackAllowed(): Boolean {
+            return cryptoFallbackAllowed
+        }
+
         fun getBiometricAuthRequest(): BiometricAuthRequest {
             return biometricAuthRequest
         }
@@ -1953,6 +2120,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             biometricCryptographyPurpose: BiometricCryptographyPurpose
         ): Builder {
             this.biometricCryptographyPurpose = biometricCryptographyPurpose
+            return this
+        }
+
+        /**
+         * Allows compatibility crypto for biometric providers that cannot bind authentication to
+         * Android Keystore auth-per-use keys. Results from this path are marked as
+         * [CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND] and are not treated as hardware-backed
+         * by [dev.skomlach.biometric.compat.crypto.CryptographyManager].
+         */
+        fun setCryptoFallbackAllowed(enabled: Boolean): Builder {
+            this.cryptoFallbackAllowed = enabled
             return this
         }
 

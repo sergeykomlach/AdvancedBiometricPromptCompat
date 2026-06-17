@@ -41,7 +41,6 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.reflect.InvocationTargetException
@@ -61,11 +60,13 @@ object BlurUtil {
     }
 
     fun takeScreenshot(window: Window, listener: OnScreenshotListener) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val bm = window.captureRegionToBitmap()
-            bm.addListener({
-                listener.invoke(bm.get())
-            }, ExecutorHelper.executor)
+        ExecutorHelper.scope.launch {
+            withContext(Dispatchers.Main) {
+                val bm = window.captureRegionToBitmap()
+                bm.addListener({
+                    listener.invoke(bm.get())
+                }, ExecutorHelper.executor)
+            }
         }
     }
 
@@ -86,11 +87,13 @@ object BlurUtil {
         }
 
     fun takeScreenshotAndBlur(window: Window, listener: OnPublishListener) {
-        GlobalScope.launch(Dispatchers.Main) {
-            val bm = window.captureRegionToBitmap()
-            bm.addListener({
-                blur(window.context, bm.get(), listener)
-            }, ExecutorHelper.executor)
+        ExecutorHelper.scope.launch {
+            withContext(Dispatchers.Main) {
+                val bm = window.captureRegionToBitmap()
+                bm.addListener({
+                    blur(window.context, bm.get(), listener)
+                }, ExecutorHelper.executor)
+            }
         }
     }
 

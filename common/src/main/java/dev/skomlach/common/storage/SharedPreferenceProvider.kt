@@ -83,6 +83,9 @@ object SharedPreferenceProvider {
             private const val KEYSTORE_WRAPPED_KEY = "bio_key_v2"
             private const val KEYSTORE_SALT = "bio_hash_v2"
 
+            @Volatile
+            var failClosedWhenKeyStoreUnavailable: Boolean = true
+
             val secondaryInstance: EncryptionConfig by lazy {
                 getFileBasedEncryptionConfig()
             }
@@ -92,7 +95,14 @@ object SharedPreferenceProvider {
             }
 
             val primaryInstance: EncryptionConfig? by lazy {
-                getKeyStoreBackedEncryptionConfig() ?: legacyDeviceIdInstance
+                getKeyStoreBackedEncryptionConfig()
+                    ?: if (failClosedWhenKeyStoreUnavailable) {
+                        throw IllegalStateException(
+                            "Android Keystore is unavailable; protected preferences fallback is disabled"
+                        )
+                    } else {
+                        legacyDeviceIdInstance
+                    }
             }
 
             private fun getDataDir(): File {

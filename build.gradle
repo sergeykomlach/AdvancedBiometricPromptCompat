@@ -43,10 +43,9 @@ buildscript {
 
 
     repositories {
-        maven { url 'https://jitpack.io' }
         maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         google()
+        mavenCentral()
     }
     dependencies {
         classpath libs.gradle
@@ -62,12 +61,6 @@ buildscript {
 }
 
 allprojects {
-    repositories {
-        maven { url 'https://jitpack.io' }
-        maven { url "https://plugins.gradle.org/m2/" }
-        google()
-
-    }
     apply plugin: "io.gitlab.arturbosch.detekt"
     dependencies {
         detektPlugins libs.detekt.rules.libraries
@@ -81,14 +74,19 @@ allprojects {
     def runOncePerWeek = qualityProperties.getProperty("runOncePerWeek")?.toBoolean() ?: false
     // Detekt
     detekt {
-        autoCorrect = true
+        autoCorrect = false
         buildUponDefaultConfig = true
         allRules = false
-        ignoreFailures = true
+        ignoreFailures = false
         source = files("src/main/java", "src/main/kotlin")
         reports {
             html.required = true
             html.outputLocation = file("$rootDir/reports/detekt/main.html")
+        }
+    }
+    if (project.name == "app") {
+        tasks.matching { it.name == "detekt" }.configureEach {
+            enabled = false
         }
     }
     tasks.register("codeQualityCheck") {

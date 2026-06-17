@@ -45,6 +45,7 @@ dependencies {
     implementation libs.androidx.palette.ktx
     //noinspection GradleDependency
     implementation libs.gson
+    testImplementation libs.junit
 }
 
 // Publishing

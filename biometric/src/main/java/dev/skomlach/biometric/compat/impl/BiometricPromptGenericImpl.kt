@@ -25,6 +25,7 @@ import dev.skomlach.biometric.compat.BiometricConfirmation
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
@@ -111,7 +112,8 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 fmAuthCallback,
                 BundleBuilder.create(builder),
                 builder.getBiometricAuthRequest().provider,
-                builder.getDisabledModuleTags()
+                builder.getDisabledModuleTags(),
+                builder.isCryptoFallbackAllowed()
             )
         }, 500)
 
@@ -160,16 +162,22 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     ) {
         if (!isOpened.get())
             return
-        val failureReason = module?.reason
-        if (authResult == AuthResult.AuthResultState.SUCCESS) {
+        val normalizedModule = normalizeCryptoResult(module, authResult)
+        val normalizedAuthResult = if (normalizedModule?.reason == AuthenticationFailureReason.CRYPTO_ERROR) {
+            AuthResult.AuthResultState.FATAL_ERROR
+        } else {
+            authResult
+        }
+        val failureReason = normalizedModule?.reason
+        if (normalizedAuthResult == AuthResult.AuthResultState.SUCCESS) {
             if (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL) {
                 Vibro.start()
             }
-            IconStateHelper.successType(module?.type)
-        } else if (authResult == AuthResult.AuthResultState.FATAL_ERROR) {
+            IconStateHelper.successType(normalizedModule?.type)
+        } else if (normalizedAuthResult == AuthResult.AuthResultState.FATAL_ERROR) {
             failureCounter.incrementAndGet()
             dialog?.onFailure(failureReason == AuthenticationFailureReason.LOCKED_OUT)
-            IconStateHelper.errorType(module?.type)
+            IconStateHelper.errorType(normalizedModule?.type)
         }
 
         //non fatal
@@ -180,10 +188,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         ) {
             return
         }
-        authFinished[module?.type] =
-            AuthResult(authResult, result = module)
+        authFinished[normalizedModule?.type] =
+            AuthResult(normalizedAuthResult, result = normalizedModule)
         dialog?.authFinishedCopy = authFinished
-        BiometricNotificationManager.dismiss(module?.type)
+        BiometricNotificationManager.dismiss(normalizedModule?.type)
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = ArrayList(
@@ -211,7 +219,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                     onlySuccess[it]?.result?.let { r ->
                         result = AuthenticationResult(
                             r.type,
-                            if (fixCryptoObjects) null else r.cryptoObject, r.reason, r.description
+                            if (fixCryptoObjects) null else r.cryptoObject,
+                            r.reason,
+                            r.description,
+                            if (fixCryptoObjects) CryptoSecurityLevel.NONE else r.cryptoSecurityLevel
                         )
                     }
                     result
@@ -237,6 +248,31 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
 
         }
+    }
+
+    private fun normalizeCryptoResult(
+        module: AuthenticationResult?,
+        authResult: AuthResult.AuthResultState
+    ): AuthenticationResult? {
+        if (authResult != AuthResult.AuthResultState.SUCCESS ||
+            builder.getCryptographyPurpose() == null ||
+            isAcceptedCryptoResult(module)
+        ) {
+            return module
+        }
+        return AuthenticationResult(
+            module?.type ?: BiometricType.BIOMETRIC_ANY,
+            reason = AuthenticationFailureReason.CRYPTO_ERROR,
+            description = "Biometric module ${module?.type ?: BiometricType.BIOMETRIC_ANY} completed without required CryptoObject"
+        )
+    }
+
+    private fun isAcceptedCryptoResult(module: AuthenticationResult?): Boolean {
+        return module?.cryptoSecurityLevel == CryptoSecurityLevel.HARDWARE_BACKED ||
+                (
+                        builder.isCryptoFallbackAllowed() &&
+                                module?.cryptoSecurityLevel == CryptoSecurityLevel.APP_FLOW_NOT_BIOMETRIC_BOUND
+                        )
     }
 
     private inner class LegacyBiometricAuthenticationCallbackImpl :

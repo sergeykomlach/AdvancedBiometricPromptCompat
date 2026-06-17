@@ -65,6 +65,12 @@ abstract class AbstractSoftwareBiometricManager {
 
     open val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
 
+    /**
+     * Software biometrics cannot unlock Android Keystore auth-per-use keys.
+     * Providers must opt in only if they can cryptographically bind success to the supplied object.
+     */
+    open val supportsCryptoObject: Boolean = false
+
     protected data class LockoutPolicy(
         val maxFailedAttemptsBeforeLockout: Int,
         val maxTemporaryLockoutsBeforePermanent: Int,

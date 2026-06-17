@@ -22,7 +22,6 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.RectF
-import android.os.AsyncTask
 import android.util.Base64
 import android.util.Pair
 import androidx.core.content.edit
@@ -279,20 +278,6 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
         jsonObjectRoot.put(name, recognition2json(rec))
         sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
-
-        if (BuildConfig.DEBUG) {
-            AsyncTask.THREAD_POOL_EXECUTOR.execute {
-                try {
-                    ImageUtils.saveBitmap(
-                        AndroidContext.appContext,
-                        rec.crop ?: return@execute,
-                        "${rec.title}-${rec.id}.png"
-                    )
-                } catch (e: Throwable) {
-                    LogCat.logException(e)
-                }
-            }
-        }
     }
 
     private fun findNearest(emb: FloatArray): Pair<String, Float>? {

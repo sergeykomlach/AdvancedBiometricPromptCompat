@@ -30,8 +30,8 @@ import android.security.keystore.KeyProperties.PURPOSE_ENCRYPT
 import androidx.annotation.RequiresApi
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
-import kotlinx.coroutines.sync.Mutex
 import java.security.KeyStore
+import java.util.concurrent.locks.ReentrantLock
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -44,7 +44,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
     private val ANDROID_KEYSTORE_PROVIDER_TYPE: String
         get() = "AndroidKeyStore"
     private val KEY_NAME = "CryptographyManagerInterfaceMarshmallowImpl-$version"
-    private val mutex = Mutex()
+    private val lock = ReentrantLock()
     private val keyStore by lazy {
         KeyStore.getInstance(ANDROID_KEYSTORE_PROVIDER_TYPE)
     }
@@ -53,7 +53,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         keyName: String,
         isUserAuthRequired: Boolean,
     ): Cipher {
-        mutex.tryLock()
+        lock.lock()
         return try {
             val cipher = getCipher()
             val secretKey = getOrCreateSecretKey(
@@ -71,10 +71,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
             }
             throw e
         } finally {
-            try {
-                if (mutex.isLocked) mutex.unlock()
-            } catch (e: Throwable) {
-            }
+            lock.unlock()
         }
     }
 
@@ -84,6 +81,7 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
         isUserAuthRequired: Boolean,
         initializationVector: ByteArray?
     ): Cipher {
+        lock.lock()
         return try {
 
             val cipher = getCipher()
@@ -103,14 +101,19 @@ class CryptographyManagerInterfaceMarshmallowImpl : CryptographyManagerInterface
                 )
             }
             throw e
+        } finally {
+            lock.unlock()
         }
     }
 
     override fun deleteKey(keyName: String) {
-
-        keyStore.load(null) // Keystore must be loaded before it can be accessed
-        keyStore.deleteEntry("$KEY_NAME.$keyName")
-
+        lock.lock()
+        try {
+            keyStore.load(null) // Keystore must be loaded before it can be accessed
+            keyStore.deleteEntry("$KEY_NAME.$keyName")
+        } finally {
+            lock.unlock()
+        }
     }
 
     private fun getCipher(): Cipher {

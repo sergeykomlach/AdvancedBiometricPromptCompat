@@ -26,5 +26,6 @@ import javax.crypto.Mac
 data class BiometricCryptoObject(
     val signature: Signature? = null,
     val cipher: Cipher? = null,
-    val mac: Mac? = null
+    val mac: Mac? = null,
+    val cryptoSecurityLevel: CryptoSecurityLevel = CryptoSecurityLevel.HARDWARE_BACKED
 )

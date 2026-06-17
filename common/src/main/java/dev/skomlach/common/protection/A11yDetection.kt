@@ -33,7 +33,7 @@ import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.logging.LogCat
-import kotlinx.coroutines.GlobalScope
+import dev.skomlach.common.misc.ExecutorHelper
 import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParser
 
@@ -100,7 +100,7 @@ object A11yDetection {
     }
 
     init {
-        GlobalScope.launch {
+        ExecutorHelper.scope.launch {
             try {
                 AndroidContext.appContext.let {
                     A11ySettingsObserver(Handler(Looper.getMainLooper()), it).register()
@@ -168,11 +168,8 @@ object A11yDetection {
                 ComponentName.unflattenFromString("${service.resolveInfo.serviceInfo.packageName}/${service.resolveInfo.serviceInfo.name}")
             }
             return list.filterNotNull().none {
-                val trustedSource =
-                    isSystemApp(cnt, it.packageName) || InstallerID.verifyInstallerId(
-                        cnt,
-                        it.packageName
-                    )
+                val trustedSource = isSystemApp(cnt, it.packageName) ||
+                        trustedA11yPackages.contains(it.packageName)
                 !(trustedSource && isAccessibilityTool(
                     cnt,
                     it

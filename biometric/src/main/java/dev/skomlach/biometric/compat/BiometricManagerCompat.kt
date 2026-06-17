@@ -111,7 +111,7 @@ object BiometricManagerCompat {
         BiometricLoggerImpl.e("NOTE!!! Be careful using 'isBiometricEnrollChanged' - due to technical limitations, it can return incorrect result in many cases")
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", false)
+            return preferences.getBoolean(api.stateCacheKey("isBiometricEnrollChanged"), false)
         }
         val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isBiometricEnrollChanged
@@ -123,7 +123,7 @@ object BiometricManagerCompat {
             ).isBiometricEnrollChanged
         BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricEnrollChanged for $api return $result")
         preferences.edit {
-            putBoolean("isBiometricEnrollChanged-${api.api}-${api.type}", result)
+            putBoolean(api.stateCacheKey("isBiometricEnrollChanged"), result)
         }
         return result
     }
@@ -259,7 +259,7 @@ object BiometricManagerCompat {
             return false
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean("isHardwareDetected-${api.api}-${api.type}", false)
+            return preferences.getBoolean(api.stateCacheKey("isHardwareDetected"), false)
         }
         val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isHardwareAvailable
@@ -281,8 +281,8 @@ object BiometricManagerCompat {
             ).isLockedOut
         }
         preferences.edit {
-            putBoolean("isHardwareDetected-${api.api}-${api.type}", result)
-            putBoolean("isLockOut-${api.api}-${api.type}", lockoutResult)
+            putBoolean(api.stateCacheKey("isHardwareDetected"), result)
+            putBoolean(api.stateCacheKey("isLockOut"), lockoutResult)
         }
         return result && isBiometricAppEnabled
     }
@@ -296,7 +296,7 @@ object BiometricManagerCompat {
 
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean("hasEnrolled-${api.api}-${api.type}", false)
+            return preferences.getBoolean(api.stateCacheKey("hasEnrolled"), false)
         }
         val result = if (api.api != BiometricApi.AUTO)
             HardwareAccessImpl.getInstance(api).isBiometricEnrolled
@@ -307,7 +307,7 @@ object BiometricManagerCompat {
                 api.withApi(BiometricApi.BIOMETRIC_API)
             ).isBiometricEnrolled
         BiometricLoggerImpl.d("BiometricManagerCompat.hasEnrolled for $api return $result")
-        preferences.edit { putBoolean("hasEnrolled-${api.api}-${api.type}", result) }
+        preferences.edit { putBoolean(api.stateCacheKey("hasEnrolled"), result) }
         return result
     }
 
@@ -321,7 +321,7 @@ object BiometricManagerCompat {
         if (!BiometricPromptCompat.isInitialized) {
             BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
             return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
-                "isLockOut-${api.api}-${api.type}",
+                api.stateCacheKey("isLockOut"),
                 false
             )
         }
@@ -336,7 +336,7 @@ object BiometricManagerCompat {
         }
         val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
         BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return $result  && $cameraInUse")
-        preferences.edit { putBoolean("isLockOut-${api.api}-${api.type}", result) }
+        preferences.edit { putBoolean(api.stateCacheKey("isLockOut"), result) }
         return result || cameraInUse
     }
 

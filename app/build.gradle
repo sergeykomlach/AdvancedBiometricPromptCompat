@@ -94,7 +94,7 @@ dependencies {
 
 //    //DevTools
 //    //ANR's
-    implementation libs.anrwatchdog
+//    implementation libs.anrwatchdog
 //    //memory leaks
     implementation libs.leakcanary.android
     implementation(libs.chucker.library)

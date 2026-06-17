@@ -19,6 +19,7 @@
 
 package dev.skomlach.common.protection
 
+import android.os.Debug
 import dev.skomlach.common.logging.LogCat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +49,12 @@ object HookDetection {
 
     private fun hooksDetection(): Boolean {
 
+        if (checkDebuggerAttached()) return true
+
+        if (checkTracerPid()) return true
+
+        if (checkSuspiciousThreads()) return true
+
         if (checkMemoryMappings()) return true
 
         if (checkSuspiciousClasses()) return true
@@ -57,6 +64,49 @@ object HookDetection {
         if (checkFridaPorts()) return true
 
         return false
+    }
+
+    private fun checkDebuggerAttached(): Boolean {
+        return try {
+            Debug.isDebuggerConnected() || Debug.waitingForDebugger()
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun checkTracerPid(): Boolean {
+        return try {
+            File("/proc/self/status").takeIf { it.exists() }?.useLines { lines ->
+                lines.firstOrNull { it.startsWith("TracerPid:") }
+                    ?.substringAfter(':')
+                    ?.trim()
+                    ?.toIntOrNull()
+                    ?.let { it > 0 }
+            } == true
+        } catch (e: Throwable) {
+            LogCat.logError("HookDetection", "TracerPid check error", e)
+            false
+        }
+    }
+
+    private fun checkSuspiciousThreads(): Boolean {
+        val suspiciousNames = arrayOf("frida", "gum-js-loop", "gmain", "gdbus")
+        return try {
+            File("/proc/self/task").listFiles()?.any { task ->
+                val status = File(task, "status")
+                if (!status.exists()) return@any false
+                status.useLines { lines ->
+                    val name = lines.firstOrNull { it.startsWith("Name:") }
+                        ?.substringAfter(':')
+                        ?.trim()
+                        ?.lowercase()
+                    suspiciousNames.any { marker -> name?.contains(marker) == true }
+                }
+            } == true
+        } catch (e: Throwable) {
+            LogCat.logError("HookDetection", "Thread check error", e)
+            false
+        }
     }
 
     private fun checkMemoryMappings(): Boolean {

@@ -19,20 +19,25 @@
 
 package dev.skomlach.common.misc
 
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import dev.skomlach.common.logging.LogCat
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay as coroutineDelay
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadFactory
+import java.util.concurrent.atomic.AtomicInteger
 
 object ExecutorHelper {
+    private const val MAX_BACKGROUND_THREADS = 8
+    private val backgroundThreadCounter = AtomicInteger(0)
+
     val handler: Handler by lazy {
         Handler(Looper.getMainLooper())
     }
@@ -40,25 +45,42 @@ object ExecutorHelper {
         HandlerExecutor()
     }
 
-    //https://proandroiddev.com/what-is-faster-and-in-which-tasks-coroutines-rxjava-executor-952b1ff62506
-    val backgroundExecutor: Executor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-        Executors.newWorkStealingPool(100)
-    } else {
-        Executors.newFixedThreadPool(100)
-    }
+    val backgroundExecutor: Executor = Executors.newFixedThreadPool(
+        MAX_BACKGROUND_THREADS,
+        ThreadFactory { runnable ->
+            Thread(
+                runnable,
+                "BiometricCompat-bg-${backgroundThreadCounter.incrementAndGet()}"
+            ).apply {
+                isDaemon = true
+            }
+        }
+    )
 
     private val dispatcher = backgroundExecutor.asCoroutineDispatcher()
-    val scope = CoroutineScope(dispatcher)
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        LogCat.logException(throwable, "ExecutorHelper")
+    }
+    val scope = CoroutineScope(SupervisorJob() + dispatcher + exceptionHandler)
+
     fun startOnBackground(task: Runnable, delay: Long) {
-        scope.launch(Dispatchers.IO) {
-            delay(delay)
-            task.run()
+        scope.launch {
+            coroutineDelay(delay)
+            runCatching {
+                task.run()
+            }.onFailure {
+                LogCat.logException(it, "startOnBackground")
+            }
         }
     }
 
     fun startOnBackground(task: Runnable) {
-        scope.launch(Dispatchers.IO) {
-            task.run()
+        scope.launch {
+            runCatching {
+                task.run()
+            }.onFailure {
+                LogCat.logException(it, "startOnBackground")
+            }
         }
     }
 

@@ -20,6 +20,7 @@ package dev.skomlach.biometric.compat.crypto
 
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricCryptographyResult
+import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 
 object CryptographyManager {
@@ -32,6 +33,7 @@ object CryptographyManager {
         for (result in confirmed) {
             try {
                 val type = result.type ?: continue
+                if (result.cryptoSecurityLevel == CryptoSecurityLevel.NONE) continue
                 val cipher = result.cryptoObject?.cipher ?: continue
                 val bytes = cipher.doFinal(plaintext)
                 return BiometricCryptographyResult(type, bytes, cipher.iv)
@@ -51,6 +53,7 @@ object CryptographyManager {
         for (result in confirmed) {
             try {
                 val type = result.type ?: continue
+                if (result.cryptoSecurityLevel == CryptoSecurityLevel.NONE) continue
                 val cipher = result.cryptoObject?.cipher ?: continue
                 return BiometricCryptographyResult(type, cipher.doFinal(ciphertext))
             } catch (e: Throwable) {
