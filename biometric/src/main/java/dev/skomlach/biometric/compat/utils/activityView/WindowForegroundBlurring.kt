@@ -40,10 +40,6 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricAvailable
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isBiometricSensorPermanentlyLocked
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isHardwareDetected
-import dev.skomlach.biometric.compat.BiometricManagerCompat.isLockOut
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
@@ -90,34 +86,33 @@ class WindowForegroundBlurring(
                 emptyList()
             } else {
                 val typesList = if (compatBuilder.isBackgroundBiometricIconsEnabled()) {
+                    val allTypes = compatBuilder.getAllAvailableTypes()
                     if (compatBuilder.enroll) {
-                        val skipHardwareList = compatBuilder.getAllAvailableTypes().filter {
-                            isHardwareDetected(
+                        allTypes.filterNot {
+                            BiometricManagerCompat.getAuthSnapshot(
                                 BiometricAuthRequest.default().withType(it).withProvider(
                                     BiometricProviderType.HARDWARE
                                 )
-                            )
+                            ).state.hardwareDetected
                         }
-                        val filtered = compatBuilder.getAllAvailableTypes().toMutableList()
-                        filtered.removeAll(skipHardwareList)
-                        filtered
                     } else{
-                        val filtered = compatBuilder.getAllAvailableTypes().filter {
+                        allTypes.filter {
                             val list = BiometricManagerCompat.getUsedPermissions(listOf(it))
                             list.isEmpty() || PermissionUtils.INSTANCE.hasSelfPermissions(list)
                         }
-                        filtered
                     }
                 } else emptyList()
                 typesList.filter {
                     val api = compatBuilder.getBiometricAuthRequest().withType(
                         type = it
                     )
-                    if (compatBuilder.enroll) {
-                        isHardwareDetected(api)
+                    val snapshot = BiometricManagerCompat.getAuthSnapshot(api, false)
+                    val active = if (compatBuilder.enroll) {
+                        snapshot.state.hardwareDetected
                     } else {
-                        isBiometricAvailable(api)
-                    } && !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api, false)
+                        snapshot.available
+                    }
+                    active && !snapshot.state.lockedOut && !snapshot.state.permanentlyLocked
                 }
             }
         }

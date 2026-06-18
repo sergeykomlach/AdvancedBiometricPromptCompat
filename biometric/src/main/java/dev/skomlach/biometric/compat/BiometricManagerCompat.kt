@@ -29,6 +29,7 @@ import android.provider.Settings
 import androidx.core.content.edit
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
+import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
 import dev.skomlach.biometric.compat.utils.HardwareAccessImpl
@@ -72,10 +73,11 @@ object BiometricManagerCompat {
     fun shouldFallbackToDeviceCredentials(
         api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        if (isBiometricReadyForEnroll(api))
+        val snapshot = getAuthSnapshot(api)
+        if (snapshot.readyForEnroll)
             return false
 
-        return isBiometricAvailable(api) && isDeviceSecureAvailable()
+        return snapshot.available && isDeviceSecureAvailable()
     }
 
 
@@ -132,51 +134,23 @@ object BiometricManagerCompat {
     fun isSilentAuthAvailable(
         biometricAuthRequest: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        val primaryAvailableTypes: java.util.HashSet<BiometricType> by lazy {
-            val types = java.util.HashSet<BiometricType>()
-            val api =
-                if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) BiometricApi.BIOMETRIC_API else BiometricApi.LEGACY_API
-            if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                for (type in BiometricType.entries) {
-                    if (type == BiometricType.BIOMETRIC_ANY)
-                        continue
-                    val request = biometricAuthRequest.withApi(api).withType(type)
-                    if (isBiometricReadyForEnroll(request)) {
-                        types.add(type)
-                    }
-                }
-            } else {
-                if (isBiometricReadyForEnroll(biometricAuthRequest))
-                    types.add(biometricAuthRequest.type)
-            }
-            types
+        val primaryApi =
+            if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi)
+                BiometricApi.BIOMETRIC_API
+            else
+                BiometricApi.LEGACY_API
+        val requestedTypes = biometricAuthRequest.expandedTypes()
+        val primaryAvailableTypes = requestedTypes.filterTo(HashSet()) { type ->
+            getAuthSnapshot(biometricAuthRequest.withApi(primaryApi).withType(type)).readyForEnroll
         }
-        val secondaryAvailableTypes: java.util.HashSet<BiometricType> by lazy {
-            val types = java.util.HashSet<BiometricType>()
-            if (HardwareAccessImpl.getInstance(biometricAuthRequest).isNewBiometricApi) {
-                if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-                    for (type in BiometricType.entries) {
-                        if (type == BiometricType.BIOMETRIC_ANY)
-                            continue
-                        val request =
+        val allAvailableTypes = HashSet(primaryAvailableTypes)
+        if (primaryApi == BiometricApi.BIOMETRIC_API) {
+            requestedTypes.filterTo(allAvailableTypes) { type ->
+                !primaryAvailableTypes.contains(type) &&
+                        getAuthSnapshot(
                             biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
-                        if (isBiometricReadyForEnroll(request)) {
-                            types.add(type)
-                        }
-                    }
-                } else {
-                    if (isBiometricReadyForEnroll(biometricAuthRequest))
-                        types.add(biometricAuthRequest.type)
-                }
-                types.removeAll(primaryAvailableTypes)
+                        ).readyForEnroll
             }
-            types
-        }
-        val allAvailableTypes: java.util.HashSet<BiometricType> by lazy {
-            val types = java.util.HashSet<BiometricType>()
-            types.addAll(primaryAvailableTypes)
-            types.addAll(secondaryAvailableTypes)
-            types
         }
         val list = allAvailableTypes.filter {
             !((it == BiometricType.BIOMETRIC_FINGERPRINT || it == BiometricType.BIOMETRIC_ANY)
@@ -192,25 +166,21 @@ object BiometricManagerCompat {
     fun isBiometricAvailable(
         api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        val isHardwareDetected = isHardwareDetected(api)
-        val hasEnrolled = hasEnrolled(api)
-        return isHardwareDetected && hasEnrolled
+        return getAuthSnapshot(api).available
     }
 
     @JvmStatic
     fun isBiometricReadyForUsage(
         api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        return isBiometricAvailable(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+        return getAuthSnapshot(api).readyForUsage
     }
 
     @JvmStatic
     fun isBiometricReadyForEnroll(
         api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        return isHardwareDetected(api) &&
-                !isLockOut(api) && !isBiometricSensorPermanentlyLocked(api)
+        return getAuthSnapshot(api).readyForEnroll
     }
 
     @JvmStatic
@@ -218,96 +188,26 @@ object BiometricManagerCompat {
         api: BiometricAuthRequest = BiometricAuthRequest.default(),
         ignoreCameraCheck: Boolean = true
     ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        var result = false
-        if (api.api != BiometricApi.AUTO)
-            result = BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type) ||
-                    LegacyBiometric.areAvailableSoftwareModulesPermanentlyLockedOut(
-                        api.type,
-                        api.provider
-                    )
-        else {
-            var total = 0
-            var counted = 0
-            for (s in BiometricType.entries) {
-                val v = api.withApi(BiometricApi.AUTO).withType(s)
-                if (isBiometricAvailable(v)) {
-                    total++
-                    if (BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(s) ||
-                        LegacyBiometric.areAvailableSoftwareModulesPermanentlyLockedOut(
-                            s,
-                            api.provider
-                        )
-                    ) {
-                        counted++
-                    }
-                }
-            }
-            result = total > 0 && (total == counted)
-        }
-        val isCameraBlocked = isCameraNotAvailable(api, ignoreCameraCheck)
-        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return ${result || isCameraBlocked}")
-        return result || isCameraBlocked
+        val result = getAuthSnapshot(api, ignoreCameraCheck).state.permanentlyLocked
+        BiometricLoggerImpl.d("BiometricManagerCompat.isBiometricSensorPermanentlyLocked for $api return $result")
+        return result
     }
 
     @JvmStatic
     fun isHardwareDetected(
         api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        if (!BiometricPromptCompat.isInitialized) {
-            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean(api.stateCacheKey("isHardwareDetected"), false)
-        }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isHardwareAvailable
-        else
-            HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.LEGACY_API)
-            ).isHardwareAvailable || HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.BIOMETRIC_API)
-            ).isHardwareAvailable
-        val isBiometricAppEnabled = isBiometricAppEnabled()
-        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result isBiometricAppEnabled $isBiometricAppEnabled")
-        val lockoutResult = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isLockedOut
-        else {
-            HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.LEGACY_API)
-            ).isLockedOut || HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.BIOMETRIC_API)
-            ).isLockedOut
-        }
-        preferences.edit {
-            putBoolean(api.stateCacheKey("isHardwareDetected"), result)
-            putBoolean(api.stateCacheKey("isLockOut"), lockoutResult)
-        }
-        return result && isBiometricAppEnabled
+        val result = getAuthSnapshot(api).state.hardwareDetected
+        BiometricLoggerImpl.d("BiometricManagerCompat.isHardwareDetected for $api return $result")
+        return result
     }
 
     @JvmStatic
     fun hasEnrolled(
         api: BiometricAuthRequest = BiometricAuthRequest.default()
     ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-
-        if (!BiometricPromptCompat.isInitialized) {
-            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return preferences.getBoolean(api.stateCacheKey("hasEnrolled"), false)
-        }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isBiometricEnrolled
-        else
-            HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.LEGACY_API)
-            ).isBiometricEnrolled || HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.BIOMETRIC_API)
-            ).isBiometricEnrolled
+        val result = getAuthSnapshot(api).state.enrolled
         BiometricLoggerImpl.d("BiometricManagerCompat.hasEnrolled for $api return $result")
-        preferences.edit { putBoolean(api.stateCacheKey("hasEnrolled"), result) }
         return result
     }
 
@@ -316,28 +216,162 @@ object BiometricManagerCompat {
         api: BiometricAuthRequest = BiometricAuthRequest.default(),
         ignoreCameraCheck: Boolean = true
     ): Boolean {
-        if (!BiometricPromptCompat.API_ENABLED)
-            return false
-        if (!BiometricPromptCompat.isInitialized) {
-            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
-            return isCameraInUse(api, ignoreCameraCheck) || preferences.getBoolean(
-                api.stateCacheKey("isLockOut"),
-                false
+        val result = getAuthSnapshot(api, ignoreCameraCheck).state.lockedOut
+        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return $result")
+        return result
+    }
+
+    @JvmStatic
+    fun getAuthSnapshot(
+        api: BiometricAuthRequest = BiometricAuthRequest.default(),
+        ignoreCameraCheck: Boolean = true
+    ): BiometricAuthSnapshot {
+        if (!BiometricPromptCompat.API_ENABLED) {
+            return BiometricAuthSnapshot(
+                request = api,
+                routes = emptyList(),
+                state = unavailableAuthState()
             )
         }
-        val result = if (api.api != BiometricApi.AUTO)
-            HardwareAccessImpl.getInstance(api).isLockedOut
-        else {
-            HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.LEGACY_API)
-            ).isLockedOut || HardwareAccessImpl.getInstance(
-                api.withApi(BiometricApi.BIOMETRIC_API)
-            ).isLockedOut
+
+        if (!BiometricPromptCompat.isInitialized) {
+            BiometricLoggerImpl.e("Please call BiometricPromptCompat.init(null);  first")
+            return BiometricAuthSnapshot(
+                request = api,
+                routes = emptyList(),
+                state = cachedAuthState(api, ignoreCameraCheck)
+            )
         }
-        val cameraInUse = isCameraInUse(api, ignoreCameraCheck)
-        BiometricLoggerImpl.d("BiometricManagerCompat.isLockOut for $api return $result  && $cameraInUse")
-        preferences.edit { putBoolean(api.stateCacheKey("isLockOut"), result) }
-        return result || cameraInUse
+
+        val snapshot = if (api.api == BiometricApi.AUTO) {
+            autoAuthSnapshot(api)
+        } else {
+            directAuthSnapshot(api)
+        }.withEnvironmentState(ignoreCameraCheck)
+
+        preferences.edit {
+            putBoolean(api.stateCacheKey("isHardwareDetected"), snapshot.state.hardwareDetected)
+            putBoolean(api.stateCacheKey("hasEnrolled"), snapshot.state.enrolled)
+            putBoolean(api.stateCacheKey("isLockOut"), snapshot.state.lockedOut)
+        }
+        return snapshot
+    }
+
+    private fun cachedAuthState(
+        api: BiometricAuthRequest,
+        ignoreCameraCheck: Boolean
+    ): BiometricAuthState {
+        return BiometricAuthState(
+            hardwareDetected = preferences.getBoolean(api.stateCacheKey("isHardwareDetected"), false),
+            enrolled = preferences.getBoolean(api.stateCacheKey("hasEnrolled"), false),
+            lockedOut = preferences.getBoolean(api.stateCacheKey("isLockOut"), false),
+            permanentlyLocked = false
+        ).withEnvironmentState(api, ignoreCameraCheck)
+    }
+
+    private fun directAuthSnapshot(api: BiometricAuthRequest): BiometricAuthSnapshot {
+        val route = directAuthRouteState(api)
+        return BiometricAuthSnapshot(
+            request = api,
+            routes = listOf(route),
+            state = route.state
+        )
+    }
+
+    private fun BiometricAuthRequest.expandedTypes(): List<BiometricType> {
+        return if (type == BiometricType.BIOMETRIC_ANY) {
+            BiometricType.entries.filterNot { it == BiometricType.BIOMETRIC_ANY }
+        } else {
+            listOf(type)
+        }
+    }
+
+    private fun directAuthRouteState(api: BiometricAuthRequest): BiometricAuthRouteState {
+        val access = HardwareAccessImpl.getInstance(api)
+        val baseState = access.authState
+        val state = baseState.copy(
+            permanentlyLocked = baseState.permanentlyLocked ||
+                    BiometricErrorLockoutPermanentFix.isBiometricSensorPermanentlyLocked(api.type)
+        )
+        return BiometricAuthRouteState(
+            request = api,
+            source = when (api.api) {
+                BiometricApi.BIOMETRIC_API -> BiometricAuthRouteSource.BIOMETRIC_PROMPT
+                else -> BiometricAuthRouteSource.LEGACY
+            },
+            state = state
+        )
+    }
+
+    private fun autoAuthSnapshot(api: BiometricAuthRequest): BiometricAuthSnapshot {
+        if (api.type == BiometricType.BIOMETRIC_ANY) {
+            val typedSnapshots = BiometricType.entries
+                .asSequence()
+                .filterNot { it == BiometricType.BIOMETRIC_ANY }
+                .map { autoTypedAuthSnapshot(api.withType(it)) }
+                .toList()
+            return BiometricAuthSnapshot(
+                request = api,
+                routes = typedSnapshots.flatMap { it.routes },
+                state = aggregateAnyBiometricState(typedSnapshots.map { it.state })
+            )
+        }
+        return autoTypedAuthSnapshot(api)
+    }
+
+    private fun autoTypedAuthSnapshot(api: BiometricAuthRequest): BiometricAuthSnapshot {
+        val legacyRoute = directAuthRouteState(api.withApi(BiometricApi.LEGACY_API))
+        val biometricPromptRoute = directAuthRouteState(api.withApi(BiometricApi.BIOMETRIC_API))
+        return BiometricAuthSnapshot(
+            request = api,
+            routes = listOf(legacyRoute, biometricPromptRoute),
+            state = aggregateTypedAutoBiometricState(
+                legacyRoute.state,
+                biometricPromptRoute.state,
+                preferLegacyEnrollment = shouldPreferLegacyEnrollment(api, legacyRoute.state)
+            )
+        )
+    }
+
+    private fun shouldPreferLegacyEnrollment(
+        api: BiometricAuthRequest,
+        legacyState: BiometricAuthState
+    ): Boolean {
+        if (api.provider == BiometricProviderType.HARDWARE ||
+            api.type == BiometricType.BIOMETRIC_FINGERPRINT ||
+            !legacyState.hardwareDetected
+        ) {
+            return false
+        }
+        return LegacyBiometric.getAvailableBiometricModules(api.type, api.provider)
+            .any { it is SoftwareBiometricModule }
+    }
+
+    private fun BiometricAuthState.withEnvironmentState(
+        api: BiometricAuthRequest,
+        ignoreCameraCheck: Boolean
+    ): BiometricAuthState {
+        val appEnabled = isBiometricAppEnabled()
+        return copy(
+            hardwareDetected = hardwareDetected && appEnabled,
+            lockedOut = lockedOut || isCameraInUse(api, ignoreCameraCheck),
+            permanentlyLocked = permanentlyLocked || isCameraNotAvailable(api, ignoreCameraCheck)
+        )
+    }
+
+    private fun BiometricAuthSnapshot.withEnvironmentState(
+        ignoreCameraCheck: Boolean
+    ): BiometricAuthSnapshot {
+        return copy(state = state.withEnvironmentState(request, ignoreCameraCheck))
+    }
+
+    private fun unavailableAuthState(): BiometricAuthState {
+        return BiometricAuthState(
+            hardwareDetected = false,
+            enrolled = false,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
     }
 
     @JvmStatic
@@ -431,25 +465,7 @@ object BiometricManagerCompat {
         if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraBlocked()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-            val types = HashSet<BiometricType>()
-            for (type in BiometricType.entries) {
-                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
-                    val request =
-                        biometricAuthRequest.withApi(BiometricApi.BIOMETRIC_API).withType(type)
-                    if (isBiometricAvailable(request)) {
-                        types.add(type)
-                    }
-                }
-                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.LEGACY_API) {
-                    val request =
-                        biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
-                    if (isBiometricAvailable(request)) {
-                        types.add(type)
-                    }
-                }
-            }
-
-
+            val types = availableRouteTypesForCameraCheck(biometricAuthRequest)
             if (getUsedPermissions(types).contains(Manifest.permission.CAMERA) &&
                 SensorPrivacyCheck.isCameraBlocked()
             )
@@ -467,30 +483,28 @@ object BiometricManagerCompat {
         if (getUsedPermissions(listOf(biometricAuthRequest.type)).contains(Manifest.permission.CAMERA)) {
             return SensorPrivacyCheck.isCameraInUse()
         } else if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
-            val types = HashSet<BiometricType>()
-
-            for (type in BiometricType.entries) {
-                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.BIOMETRIC_API) {
-                    val request =
-                        biometricAuthRequest.withApi(BiometricApi.BIOMETRIC_API).withType(type)
-                    if (isBiometricAvailable(request)) {
-                        types.add(type)
-                    }
-                }
-                if (biometricAuthRequest.api == BiometricApi.AUTO || biometricAuthRequest.api == BiometricApi.LEGACY_API) {
-                    val request =
-                        biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
-                    if (isBiometricAvailable(request)) {
-                        types.add(type)
-                    }
-                }
-            }
-
-
+            val types = availableRouteTypesForCameraCheck(biometricAuthRequest)
             return getUsedPermissions(types).contains(Manifest.permission.CAMERA) &&
                     SensorPrivacyCheck.isCameraInUse()
         }
         return false
+    }
+
+    private fun availableRouteTypesForCameraCheck(
+        biometricAuthRequest: BiometricAuthRequest
+    ): Set<BiometricType> {
+        return biometricAuthRequest.expandedTypes().filterTo(HashSet()) { type ->
+            when (biometricAuthRequest.api) {
+                BiometricApi.AUTO -> autoTypedAuthSnapshot(
+                    biometricAuthRequest.withType(type)
+                ).available
+
+                BiometricApi.BIOMETRIC_API,
+                BiometricApi.LEGACY_API -> directAuthSnapshot(
+                    biometricAuthRequest.withType(type)
+                ).available
+            }
+        }
     }
 
     //Special case for Pixel and probable others -

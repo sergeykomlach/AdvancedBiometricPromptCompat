@@ -27,6 +27,7 @@ import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricAuthException
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricAuthSnapshot
 import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
@@ -37,11 +38,7 @@ import dev.skomlach.common.contextprovider.getFixedContext
 import java.nio.charset.Charset
 
 private val testString = "Test data"
-private var cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>().apply {
-    for (r in BiometricPromptCompat.getAvailableAuthRequests()) {
-        this[r] = CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
-    }
-}
+private val cryptoTests = HashMap<BiometricAuthRequest, CryptoTest>()
 
 fun Fragment.startBiometric(
     biometricAuthRequest: BiometricAuthRequest,
@@ -52,34 +49,16 @@ fun Fragment.startBiometric(
 ) {
 
     BiometricLoggerImpl.e("CheckBiometric.start() for $biometricAuthRequest isRegister=$isRegister")
+    val authSnapshot = BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest)
     if (isRegister) {
-        if (!BiometricManagerCompat.isBiometricReadyForEnroll(biometricAuthRequest) && !allowCredentials) {
-            if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-
-                    )
-            else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
-                )
-            else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            else {
-                showAlertDialog(
-                    requireActivity(),
-                    "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            }
+        val readyForEnroll = authSnapshot.readyForEnroll
+        if (!readyForEnroll && !allowCredentials) {
+            showAlertDialog(requireActivity(), biometricUnavailableMessage(authSnapshot, forEnroll = true))
             return
         }
     } else {
-        if (!BiometricManagerCompat.isBiometricReadyForUsage(biometricAuthRequest) && !allowCredentials) {
+        val readyForUsage = authSnapshot.readyForUsage
+        if (!readyForUsage && !allowCredentials) {
 //        if (!BiometricManagerCompat.hasPermissionsGranted(biometricAuthRequest))
 //            showAlertDialog(
 //                requireActivity(),
@@ -87,35 +66,7 @@ fun Fragment.startBiometric(
 //
 //                )
 //        else
-            if (!BiometricManagerCompat.isHardwareDetected(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-
-                    )
-            else if (!BiometricManagerCompat.hasEnrolled(biometricAuthRequest)) {
-                showAlertDialog(
-                    requireActivity(),
-                    "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            } else if (BiometricManagerCompat.isLockOut(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
-                )
-            else if (BiometricManagerCompat.isBiometricSensorPermanentlyLocked(biometricAuthRequest))
-                showAlertDialog(
-                    requireActivity(),
-                    "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            else {
-                showAlertDialog(
-                    requireActivity(),
-                    "Unexpected error state for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
-                )
-            }
-
-
+            showAlertDialog(requireActivity(), biometricUnavailableMessage(authSnapshot, forEnroll = false))
             return
         }
     }
@@ -134,11 +85,13 @@ fun Fragment.startBiometric(
         }
         .also {
             if (crypto) {
+                val cryptoTest = cryptoTests.getOrPut(biometricAuthRequest) {
+                    CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
+                }
                 it.setCryptographyPurpose(
                     BiometricCryptographyPurpose(
-                        cryptoTests[biometricAuthRequest]?.type
-                            ?: BiometricCryptographyPurpose.ENCRYPT,
-                        cryptoTests[biometricAuthRequest]?.vector
+                        cryptoTest.type,
+                        cryptoTest.vector
                     )
                 )
             }
@@ -185,7 +138,6 @@ fun Fragment.startBiometric(
                     cryptoTests[biometricAuthRequest] =
                         CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
                 }
-
             }
 
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed; $cryptoText")
@@ -282,6 +234,30 @@ fun Fragment.startBiometric(
             "Start authenticate ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
             Toast.LENGTH_SHORT
         ).show()
+    }
+}
+
+private fun biometricUnavailableMessage(
+    authSnapshot: BiometricAuthSnapshot,
+    forEnroll: Boolean
+): String {
+    val biometricAuthRequest = authSnapshot.request
+    val state = authSnapshot.state
+    val route = "${biometricAuthRequest.api}/${biometricAuthRequest.type}"
+    return when {
+        !state.hardwareDetected ->
+            "No hardware for $route"
+
+        !forEnroll && !state.enrolled ->
+            "No enrolled biometric for - $route"
+
+        state.lockedOut ->
+            "Biometric sensor temporary locked for $route\nTry again later"
+
+        state.permanentlyLocked ->
+            "Biometric sensor permanently locked for $route"
+
+        else -> "Unexpected error state for $route"
     }
 }
 

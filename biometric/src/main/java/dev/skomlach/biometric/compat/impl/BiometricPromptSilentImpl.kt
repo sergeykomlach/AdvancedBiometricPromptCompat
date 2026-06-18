@@ -63,20 +63,19 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     }
 
     init {
+        val allTypes = builder.getAllAvailableTypes()
         if (builder.enroll) {
-            val skipHardwareList = builder.getAllAvailableTypes().filter {
-                BiometricManagerCompat.isHardwareDetected(
+            val softwareTypes = allTypes.filterNot {
+                BiometricManagerCompat.getAuthSnapshot(
                     BiometricAuthRequest.default().withType(it).withProvider(
                         BiometricProviderType.HARDWARE
                     )
-                )
+                ).state.hardwareDetected
             }
-            val filtered = builder.getAllAvailableTypes().toMutableList()
-            filtered.removeAll(skipHardwareList)
-            isFingerprint.set(filtered.contains(BiometricType.BIOMETRIC_FINGERPRINT))
+            isFingerprint.set(softwareTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT))
         } else
             isFingerprint.set(
-                builder.getAllAvailableTypes().contains(BiometricType.BIOMETRIC_FINGERPRINT)
+                allTypes.contains(BiometricType.BIOMETRIC_FINGERPRINT)
             )
     }
 

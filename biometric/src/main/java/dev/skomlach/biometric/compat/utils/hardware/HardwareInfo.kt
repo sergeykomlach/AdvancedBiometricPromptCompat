@@ -19,6 +19,8 @@
 
 package dev.skomlach.biometric.compat.utils.hardware
 
+import dev.skomlach.biometric.compat.BiometricAuthState
+
 
 interface HardwareInfo {
     val isHardwareAvailable: Boolean
@@ -28,4 +30,14 @@ interface HardwareInfo {
     fun updateBiometricEnrollChanged()
 
     fun lockout()
+
+    fun getAuthState(): BiometricAuthState {
+        val hardwareDetected = isHardwareAvailable
+        return BiometricAuthState(
+            hardwareDetected = hardwareDetected,
+            enrolled = hardwareDetected && isBiometricEnrolled,
+            lockedOut = hardwareDetected && isLockedOut,
+            permanentlyLocked = false
+        )
+    }
 }

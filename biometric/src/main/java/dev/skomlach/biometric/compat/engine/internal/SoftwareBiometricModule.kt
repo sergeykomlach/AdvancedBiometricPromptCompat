@@ -40,6 +40,7 @@ import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometricInitListener
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import dev.skomlach.biometric.compat.engine.core.interfaces.RestartPredicate
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
@@ -122,6 +123,50 @@ class SoftwareBiometricModule(
             e("$name: hasEnrolled=$result")
             return result
         }
+
+    override fun getModuleState(): BiometricModuleState {
+        val hardwareDetected = try {
+            manager?.isHardwareDetected() == true
+        } catch (_: Throwable) {
+            false
+        }
+        val enrolled = if (hardwareDetected) {
+            try {
+                manager?.hasEnrolledBiometric() == true
+            } catch (_: Throwable) {
+                false
+            }
+        } else {
+            false
+        }
+        val managerLockedOut = if (hardwareDetected && enrolled) {
+            try {
+                manager?.isLockedOut() == true
+            } catch (_: Throwable) {
+                false
+            }
+        } else {
+            false
+        }
+        val permanentlyLocked = if (hardwareDetected && enrolled) {
+            try {
+                manager?.getLockoutError() == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+            } catch (_: Throwable) {
+                false
+            }
+        } else {
+            false
+        }
+        return BiometricModuleState(
+            managerAccessible = manager != null,
+            hardwarePresent = hardwareDetected,
+            enrolled = enrolled,
+            lockedOut = super.isLockOut || managerLockedOut,
+            permanentlyLocked = permanentlyLocked
+        ).also {
+            e("$name: getModuleState=$it")
+        }
+    }
 
     @Throws(SecurityException::class)
     override fun authenticate(

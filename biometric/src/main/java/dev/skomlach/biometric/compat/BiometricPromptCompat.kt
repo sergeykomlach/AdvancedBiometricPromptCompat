@@ -140,6 +140,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
 
+        private fun isHardwareEnrollmentNeeded(request: BiometricAuthRequest): Boolean {
+            val snapshot = BiometricManagerCompat.getAuthSnapshot(
+                request.withProvider(provider = BiometricProviderType.HARDWARE)
+            )
+            return snapshot.readyForEnroll && !snapshot.state.enrolled
+        }
+
         @JvmStatic
         fun logging(
             enabled: Boolean
@@ -319,12 +326,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     fun setupBiometric(
         callbackOuter: AuthenticationCallback,
-        enrollNewHardwareBiometric: Boolean = BiometricManagerCompat.isBiometricReadyForEnroll(
+        enrollNewHardwareBiometric: Boolean = isHardwareEnrollmentNeeded(
             builder.getBiometricAuthRequest()
-                .withProvider(provider = BiometricProviderType.HARDWARE)
-        ) && !BiometricManagerCompat.hasEnrolled(
-            builder.getBiometricAuthRequest()
-                .withProvider(provider = BiometricProviderType.HARDWARE)
         )
     ) {
         //WARNING: Set this first!!!!!!!!!!!!
@@ -359,13 +362,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         val softwareSetup = {
             authFlowInProgress.set(false)
             if (enrollNewHardwareBiometric) {
-                val newHardwareEnroll = BiometricManagerCompat.isBiometricReadyForEnroll(
-                    builder.getBiometricAuthRequest()
-                        .withProvider(provider = BiometricProviderType.HARDWARE)
-                ) && !BiometricManagerCompat.hasEnrolled(
-                    builder.getBiometricAuthRequest()
-                        .withProvider(provider = BiometricProviderType.HARDWARE)
-                )
+                val newHardwareEnroll = isHardwareEnrollmentNeeded(builder.getBiometricAuthRequest())
                 if (!builder.getSecondaryAvailableTypes().isEmpty()) {
                     authenticate(callback)
                 } else if (!newHardwareEnroll) {
@@ -489,7 +486,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return
         }
         val timeout = System.currentTimeMillis() - startTime >= TimeUnit.SECONDS.toMillis(5)
-        if (!timeout && (!builder.isTruncateChecked() || !isInitialized)) {
+        val waitForTruncateCheck =
+            isInitialized && builder.getAllAvailableTypes().isNotEmpty() && !builder.isTruncateChecked()
+        if (!timeout && (!isInitialized || waitForTruncateCheck)) {
             ExecutorHelper.postDelayed(
                 { waitUntilReadyForAuth(callback, startTime) },
                 10
@@ -613,16 +612,21 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun checkHardware(): AuthenticationFailureReason {
+        val biometricAuthRequest = builder.getBiometricAuthRequest()
+        val authSnapshot = BiometricManagerCompat.getAuthSnapshot(
+            biometricAuthRequest,
+            ignoreCameraCheck = false
+        )
         val ignoreMissedSoftwareBiometric =
             builder.enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                builder.getBiometricAuthRequest()
+                biometricAuthRequest
                     .withProvider(provider = BiometricProviderType.SOFTWARE)
             )
 
-        if (!BiometricManagerCompat.isHardwareDetected(builder.getBiometricAuthRequest())) {
+        if (!authSnapshot.state.hardwareDetected) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isHardwareDetected")
             return AuthenticationFailureReason.NO_HARDWARE
-        } else if (!ignoreMissedSoftwareBiometric && !BiometricManagerCompat.hasEnrolled(builder.getBiometricAuthRequest())
+        } else if (!ignoreMissedSoftwareBiometric && !authSnapshot.state.enrolled
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - hasEnrolled")
             return AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED
@@ -632,11 +636,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - missed permissions")
             return AuthenticationFailureReason.MISSING_PERMISSIONS_ERROR
-        } else if (builder.areSelectedTypesLockedOut(false)
+        } else if (authSnapshot.state.lockedOut
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isLockOut")
             return AuthenticationFailureReason.LOCKED_OUT
-        } else if (builder.areSelectedTypesPermanentlyLocked(false)
+        } else if (authSnapshot.state.permanentlyLocked
         ) {
             BiometricLoggerImpl.e("BiometricPromptCompat.checkHardware - isBiometricSensorPermanentlyLocked")
             return AuthenticationFailureReason.HARDWARE_UNAVAILABLE
@@ -1357,10 +1361,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             .withType(type)
             .withProvider(BiometricProviderType.HARDWARE)
 
+        val snapshot = BiometricManagerCompat.getAuthSnapshot(request)
         return if (builder.enroll) {
-            BiometricManagerCompat.isBiometricReadyForEnroll(request)
+            snapshot.readyForEnroll
         } else {
-            BiometricManagerCompat.isBiometricAvailable(request)
+            snapshot.available
         }
     }
 
@@ -1637,36 +1642,44 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         continue
                     val request = biometricAuthRequest.withApi(api).withType(type)
                     if (enroll) {
-                        if (!isNewBiometric && BiometricManagerCompat.isBiometricReadyForEnroll(
-                                request.withProvider(provider = BiometricProviderType.COMBINED)
-                            )
-                        ) {
-                            types.add(type)
-                        } else if (BiometricManagerCompat.isBiometricReadyForEnroll(
-                                request.withProvider(
-                                    provider = BiometricProviderType.HARDWARE
+                        val combinedReady = !isNewBiometric &&
+                                isAnyEnrollTypeReady(
+                                    type,
+                                    BiometricManagerCompat.getAuthSnapshot(
+                                        request.withProvider(
+                                            provider = BiometricProviderType.COMBINED
+                                        )
+                                    )
                                 )
-                            )
-                        ) {
+                        val hardwareReady = !combinedReady &&
+                                isAnyEnrollTypeReady(
+                                    type,
+                                    BiometricManagerCompat.getAuthSnapshot(
+                                        request.withProvider(
+                                            provider = BiometricProviderType.HARDWARE
+                                        )
+                                    )
+                                )
+                        if (combinedReady || hardwareReady) {
                             types.add(type)
                         }
-                    } else if (BiometricManagerCompat.isBiometricAvailable(request)) {
+                    } else if (BiometricManagerCompat.getAuthSnapshot(request).available) {
                         types.add(type)
                     }
                 }
             } else {
                 if (enroll) {
-                    if (!isNewBiometric && BiometricManagerCompat.isBiometricReadyForEnroll(
-                            biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
-                        )
-                    ) {
+                    val combinedReady = !isNewBiometric &&
+                            BiometricManagerCompat.getAuthSnapshot(
+                                biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
+                            ).readyForEnroll
+                    val hardwareReady = !combinedReady &&
+                            BiometricManagerCompat.getAuthSnapshot(
+                                biometricAuthRequest.withProvider(provider = BiometricProviderType.HARDWARE)
+                            ).readyForEnroll
+                    if (combinedReady || hardwareReady)
                         types.add(biometricAuthRequest.type)
-                    } else if (BiometricManagerCompat.isBiometricReadyForEnroll(
-                            biometricAuthRequest.withProvider(provider = BiometricProviderType.HARDWARE)
-                        )
-                    )
-                        types.add(biometricAuthRequest.type)
-                } else if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
+                } else if (BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest).available)
                     types.add(biometricAuthRequest.type)
 
             }
@@ -1681,27 +1694,62 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             continue
                         val request =
                             biometricAuthRequest.withApi(BiometricApi.LEGACY_API).withType(type)
-                        if (enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                                request.withProvider(provider = BiometricProviderType.COMBINED)
-                            )
-                        ) {
+                        val combinedReady = enroll &&
+                                isAnyEnrollTypeReady(
+                                    type,
+                                    BiometricManagerCompat.getAuthSnapshot(
+                                        request.withProvider(
+                                            provider = BiometricProviderType.COMBINED
+                                        )
+                                    )
+                                )
+                        if (combinedReady) {
                             types.add(type)
-                        } else if (BiometricManagerCompat.isBiometricAvailable(request)) {
+                        } else if (!enroll &&
+                            BiometricManagerCompat.getAuthSnapshot(request).available
+                        ) {
                             types.add(type)
                         }
                     }
                 } else {
-                    if (enroll && BiometricManagerCompat.isBiometricReadyForEnroll(
-                            biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
-                        )
-                    ) {
+                    val combinedReady = enroll &&
+                            BiometricManagerCompat.getAuthSnapshot(
+                                biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
+                            ).readyForEnroll
+                    if (combinedReady) {
                         types.add(biometricAuthRequest.type)
-                    } else if (BiometricManagerCompat.isBiometricAvailable(biometricAuthRequest))
+                    } else if (BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest).available)
                         types.add(biometricAuthRequest.type)
                 }
                 types.removeAll(primaryAvailableTypes)
             }
             types
+        }
+
+        private fun isAnyEnrollTypeReady(
+            type: BiometricType,
+            snapshot: BiometricAuthSnapshot
+        ): Boolean {
+            val module = LegacyBiometric.getSelectedBiometricModule(
+                type,
+                biometricAuthRequest.provider,
+                enroll,
+                getDisabledModuleTags()
+            )
+            val moduleState = module?.getModuleState()
+            val moduleReadyForEnroll = moduleState?.hardwarePresent == true &&
+                    !moduleState.enrolled &&
+                    !moduleState.lockedOut &&
+                    !moduleState.permanentlyLocked
+            val shouldPreferModule = biometricAuthRequest.provider == BiometricProviderType.SOFTWARE ||
+                    !hasBiometricPromptHardwareType(type) ||
+                    (!shouldPreferSystemHardwareFace(type) &&
+                            (module?.priority ?: BiometricModule.PRIORITY_SYSTEM_HARDWARE) >
+                            BiometricModule.PRIORITY_SYSTEM_HARDWARE)
+            if (moduleReadyForEnroll && shouldPreferModule) {
+                return true
+            }
+            return snapshot.readyForEnroll && !snapshot.state.enrolled
         }
 
         private var silentAuth = false
@@ -1972,10 +2020,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         internal fun areSelectedTypesPermanentlyLocked(ignoreCameraCheck: Boolean = true): Boolean {
             val types = getAllAvailableTypes()
             return types.isNotEmpty() && types.all {
-                BiometricManagerCompat.isBiometricSensorPermanentlyLocked(
-                    routeAwareRequest(it),
-                    ignoreCameraCheck
-                )
+                selectedTypeSnapshot(it, ignoreCameraCheck).state.permanentlyLocked
             }
         }
 
@@ -2028,10 +2073,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 .withApi(BiometricApi.BIOMETRIC_API)
                 .withType(type)
                 .withProvider(BiometricProviderType.HARDWARE)
+            val snapshot = BiometricManagerCompat.getAuthSnapshot(request)
             return if (enroll) {
-                BiometricManagerCompat.isBiometricReadyForEnroll(request)
+                snapshot.readyForEnroll
             } else {
-                BiometricManagerCompat.isBiometricAvailable(request)
+                snapshot.available
             }
         }
 
@@ -2039,7 +2085,14 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             type: BiometricType,
             ignoreCameraCheck: Boolean
         ): Boolean {
-            return BiometricManagerCompat.isLockOut(routeAwareRequest(type), ignoreCameraCheck)
+            return selectedTypeSnapshot(type, ignoreCameraCheck).state.lockedOut
+        }
+
+        private fun selectedTypeSnapshot(
+            type: BiometricType,
+            ignoreCameraCheck: Boolean
+        ): BiometricAuthSnapshot {
+            return BiometricManagerCompat.getAuthSnapshot(routeAwareRequest(type), ignoreCameraCheck)
         }
 
         private fun routeAwareRequest(type: BiometricType): BiometricAuthRequest {

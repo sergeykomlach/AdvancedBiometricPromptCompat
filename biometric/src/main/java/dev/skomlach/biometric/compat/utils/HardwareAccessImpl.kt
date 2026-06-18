@@ -22,6 +22,7 @@ package dev.skomlach.biometric.compat.utils
 import androidx.core.os.BuildCompat
 import dev.skomlach.biometric.compat.BiometricApi
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricAuthState
 import dev.skomlach.biometric.compat.utils.hardware.BiometricPromptHardware
 import dev.skomlach.biometric.compat.utils.hardware.HardwareInfo
 import dev.skomlach.biometric.compat.utils.hardware.LegacyHardware
@@ -32,6 +33,32 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         private val cache = HashMap<BiometricAuthRequest, HardwareInfo?>()
         fun getInstance(api: BiometricAuthRequest): HardwareAccessImpl {
             return HardwareAccessImpl(api)
+        }
+
+        private fun createHardwareInfo(
+            biometricAuthRequest: BiometricAuthRequest
+        ): HardwareInfo {
+            return when (biometricAuthRequest.api) {
+                BiometricApi.LEGACY_API -> {
+                    LegacyHardware(biometricAuthRequest) //Android 4+
+                }
+
+                BiometricApi.BIOMETRIC_API -> {
+                    BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+                }
+
+                else -> { //AUTO
+                    when {
+                        BuildCompat.isAtLeastP() -> {
+                            BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
+                        }
+
+                        else -> {
+                            LegacyHardware(biometricAuthRequest) //Android 4+
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -51,33 +78,19 @@ class HardwareAccessImpl private constructor(val biometricAuthRequest: Biometric
         get() = hardwareInfo?.isBiometricEnrolled == true
     val isLockedOut: Boolean
         get() = hardwareInfo?.isLockedOut == true
+    val authState: BiometricAuthState
+        get() = hardwareInfo?.getAuthState() ?: BiometricAuthState(
+            hardwareDetected = false,
+            enrolled = false,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
 
     init {
-        hardwareInfo = cache[biometricAuthRequest]
-        if (hardwareInfo == null) {
-            when (biometricAuthRequest.api) {
-                BiometricApi.LEGACY_API -> {
-                    hardwareInfo = LegacyHardware(biometricAuthRequest) //Android 4+
-                }
-
-                BiometricApi.BIOMETRIC_API -> {
-                    hardwareInfo =
-                        BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
-                }
-
-                else -> { //AUTO
-                    hardwareInfo = when {
-                        BuildCompat.isAtLeastP() -> {
-                            BiometricPromptHardware(biometricAuthRequest) //new BiometricPrompt API; very raw on Android 9, so hacks and workarounds used
-                        }
-
-                        else -> {
-                            LegacyHardware(biometricAuthRequest) //Android 4+
-                        }
-                    }
-                }
+        hardwareInfo = synchronized(cache) {
+            cache[biometricAuthRequest] ?: createHardwareInfo(biometricAuthRequest).also {
+                cache[biometricAuthRequest] = it
             }
-            cache[biometricAuthRequest] = hardwareInfo
         }
     }
 

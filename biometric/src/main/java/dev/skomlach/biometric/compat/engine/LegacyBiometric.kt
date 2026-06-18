@@ -362,12 +362,12 @@ object LegacyBiometric {
         get() {
             val modules = synchronized(moduleHashMap) { moduleHashMap.values.toList() }
             if (modules.isEmpty()) return false
-            return modules.all { it.isLockOut }
+            return modules.all { it.getModuleState().lockedOut }
         }
 
     val isHardwareDetected: Boolean
         get() = synchronized(moduleHashMap) {
-            moduleHashMap.values.any { it.isHardwarePresent }
+            moduleHashMap.values.any { it.getModuleState().hardwarePresent }
         }
 
     fun areAvailableSoftwareModulesPermanentlyLockedOut(
@@ -380,16 +380,17 @@ object LegacyBiometric {
         } else {
             getAvailableBiometricModules(biometricType, provider)
         }
-        val availableModules = modules
+        val availableModuleStates = modules
             .filter { providerMatches(it, provider) }
-            .filter { it.isHardwarePresent }
-        if (availableModules.isEmpty()) return false
-        return availableModules.all { it.isPermanentlyLockedOutForSelection() }
+            .map { it.getModuleState() }
+            .filter { it.hardwarePresent }
+        if (availableModuleStates.isEmpty()) return false
+        return availableModuleStates.all { it.permanentlyLocked }
     }
 
     val hasEnrolled: Boolean
         get() = synchronized(moduleHashMap) {
-            moduleHashMap.values.any { it.hasEnrolled }
+            moduleHashMap.values.any { it.getModuleState().enrolled }
         }
 
     fun authenticate(
@@ -715,17 +716,14 @@ object LegacyBiometric {
     ): BiometricModule? {
         val modules = getAvailableBiometricModules(biometricType, provider)
             .filterNot { excludedModuleTags.contains(it.tag()) }
-            .filter { it.isHardwarePresent && !it.isPermanentlyLockedOutForSelection() }
+            .map { it to it.getModuleState() }
+            .filter { (_, state) -> state.hardwarePresent && !state.permanentlyLocked }
         val preferred = if (enroll) {
             modules.firstOrNull()
         } else {
-            modules.firstOrNull { it.hasEnrolled }
+            modules.firstOrNull { (_, state) -> state.enrolled }
         }
-        return preferred
-    }
-
-    private fun BiometricModule.isPermanentlyLockedOutForSelection(): Boolean {
-        return this is SoftwareBiometricModule && isPermanentlyLockedOut
+        return preferred?.first
     }
 
     private fun providerMatches(

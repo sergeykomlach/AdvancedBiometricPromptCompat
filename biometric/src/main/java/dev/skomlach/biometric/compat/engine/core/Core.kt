@@ -71,7 +71,7 @@ object Core {
             try {
 
                 for (module in reprintModuleHashMap.values) {
-                    if (module.isLockOut) {
+                    if (module.getModuleState().lockedOut) {
                         return true
                     }
                 }
@@ -85,7 +85,7 @@ object Core {
             try {
 
                 for (module in reprintModuleHashMap.values) {
-                    if (module.isHardwarePresent) return true
+                    if (module.getModuleState().hardwarePresent) return true
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)
@@ -99,7 +99,7 @@ object Core {
             try {
 
                 for (module in reprintModuleHashMap.values) {
-                    if (module.hasEnrolled) return true
+                    if (module.getModuleState().enrolled) return true
                 }
             } catch (e: Throwable) {
                 BiometricLoggerImpl.e(e)

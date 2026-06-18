@@ -44,6 +44,18 @@ interface BiometricModule {
     @Deprecated("Starts from Android 9 method unable to determinate enroll changes via managers")
     val isBiometricEnrollChanged: Boolean
 
+    fun getModuleState(): BiometricModuleState {
+        val managerAccessible = isManagerAccessible
+        val hardwarePresent = managerAccessible && isHardwarePresent
+        return BiometricModuleState(
+            managerAccessible = managerAccessible,
+            hardwarePresent = hardwarePresent,
+            enrolled = hardwarePresent && hasEnrolled,
+            lockedOut = hardwarePresent && isLockOut,
+            permanentlyLocked = false
+        )
+    }
+
     /**
      * Start a fingerprint authentication request.
      *
@@ -77,3 +89,11 @@ interface BiometricModule {
         const val PRIORITY_ABOVE_SYSTEM_HARDWARE = 100
     }
 }
+
+data class BiometricModuleState(
+    val managerAccessible: Boolean,
+    val hardwarePresent: Boolean,
+    val enrolled: Boolean,
+    val lockedOut: Boolean,
+    val permanentlyLocked: Boolean
+)

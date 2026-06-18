@@ -30,6 +30,7 @@ import android.security.keystore.KeyProperties
 import androidx.biometric.BiometricManager
 import androidx.core.content.edit
 import dev.skomlach.biometric.compat.BiometricAuthRequest
+import dev.skomlach.biometric.compat.BiometricAuthState
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
@@ -122,50 +123,47 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
         return code
     }
 
-    private val isAnyHardwareAvailable: Boolean
-        get() {
-            return when (canAuthenticate) {
-                BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false //really no sensors
-                BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> false //security patch required due to vulnerabilities
-                BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> false //Some incompatibility issue
-                BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
-                BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
-                BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> true //sensor Ok, just biometric data missing
-                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable
-                else -> false
-            }
+    private fun isAnyHardwareAvailable(status: Int): Boolean {
+        return when (status) {
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false //really no sensors
+            BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> false //security patch required due to vulnerabilities
+            BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> false //Some incompatibility issue
+            BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
+            BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> true //sensor Ok, just biometric data missing
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> true //sensor temporary unavailable
+            else -> false
         }
-    private val isAnyBiometricEnrolled: Boolean
-        get() {
-            return when (canAuthenticate) {
-                BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false //really no sensors and enrolled data
-                BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> false //security patch required due to vulnerabilities
-                BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> false //Some incompatibility issue
-                BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
-                BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
-                BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> false //no biometric
-                BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> false
-                //sensor temporary unavailable; fallback to legacy
-                else -> false
-            }
-        }
+    }
 
-    init {
-        EnrollCheckHelper.updateState()
+    private fun isAnyBiometricEnrolled(status: Int): Boolean {
+        return when (status) {
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> false //really no sensors and enrolled data
+            BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> false //security patch required due to vulnerabilities
+            BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> false //Some incompatibility issue
+            BiometricManager.BIOMETRIC_SUCCESS -> true //all OK
+            BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> true //some biometric exist, but unable to check properly
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> false //no biometric
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> false
+            //sensor temporary unavailable; fallback to legacy
+            else -> false
+        }
     }
 
     override val isHardwareAvailable: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyHardwareAvailable else isHardwareAvailableForType(
-            biometricAuthRequest.type
-        )
+        get() = getAuthState().hardwareDetected
     override val isBiometricEnrolled: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyBiometricEnrolled else isBiometricEnrolledForType(
-            biometricAuthRequest.type
-        )
+        get() = getAuthState().enrolled
     override val isLockedOut: Boolean
-        get() = if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) isAnyLockedOut else isLockedOutForType(
-            biometricAuthRequest.type
-        )
+        get() = getAuthState().lockedOut
+
+    override fun getAuthState(): BiometricAuthState {
+        return if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY) {
+            anyAuthState()
+        } else {
+            typedAuthState(biometricAuthRequest.type)
+        }
+    }
 
     override fun lockout() {
         if (!isLockedOut) {
@@ -192,6 +190,46 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             return false
         }//legacy
 
+    private fun anyAuthState(): BiometricAuthState {
+        val status = canAuthenticate
+        val enrolled = isAnyBiometricEnrolled(status)
+        return BiometricAuthState(
+            hardwareDetected = isAnyHardwareAvailable(status),
+            enrolled = enrolled,
+            lockedOut = enrolled &&
+                    (status == BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE ||
+                            BiometricType.entries
+                                .filterNot { it == BiometricType.BIOMETRIC_ANY }
+                                .any { BiometricLockoutFix.isLockOut(it) }),
+            permanentlyLocked = false
+        )
+    }
+
+    private fun typedAuthState(type: BiometricType): BiometricAuthState {
+        if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
+            val moduleState = LegacyBiometric.getAvailableBiometricModule(
+                type,
+                BiometricProviderType.HARDWARE
+            )?.getModuleState()
+            return BiometricAuthState(
+                hardwareDetected = moduleState?.hardwarePresent == true,
+                enrolled = moduleState?.enrolled == true,
+                lockedOut = moduleState?.lockedOut == true,
+                permanentlyLocked = moduleState?.permanentlyLocked == true
+            )
+        }
+
+        val result = modalityResult(type)
+        val hardwareDetected = isHardwareAvailableForType(type, result)
+        val enrolled = hardwareDetected && isBiometricEnrolledForType(type, result)
+        return BiometricAuthState(
+            hardwareDetected = hardwareDetected,
+            enrolled = enrolled,
+            lockedOut = enrolled && isLockedOutForType(type),
+            permanentlyLocked = false
+        )
+    }
+
     //OK to check in this way
     private fun isHardwareAvailableForType(type: BiometricType): Boolean {
         if (type == BiometricType.BIOMETRIC_FINGERPRINT) {
@@ -200,51 +238,60 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                 BiometricProviderType.HARDWARE
             )?.isHardwarePresent == true
         }
+        return isHardwareAvailableForType(type, modalityResult(type))
+    }
+
+    private fun isHardwareAvailableForType(
+        type: BiometricType,
+        modalityResult: BiometricModalityDetector.Result
+    ): Boolean {
         BiometricPromptCompat.deviceInfo?.let {
             if (it.sensors.isNotEmpty()) {
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type)) ||
+                            (it.hasFaceID() && checkDeviceFeature(type, modalityResult)) ||
                                     SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                         it.model
                                     )
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type)) || PixelModelChecker.isPixel8OrNewer(
+                            (it.hasFaceID() && checkDeviceFeature(type, modalityResult)) || PixelModelChecker.isPixel8OrNewer(
                                 it.model
                             )
                         } else
-                            it.hasFaceID() && checkDeviceFeature(type)
+                            it.hasFaceID() && checkDeviceFeature(type, modalityResult)
                     }
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasIrisScanner() && checkDeviceFeature(type)) ||
+                            (it.hasIrisScanner() && checkDeviceFeature(type, modalityResult)) ||
                                     SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                         it.model
                                     )
                         } else
-                            it.hasIrisScanner() && checkDeviceFeature(type)
+                            it.hasIrisScanner() && checkDeviceFeature(type, modalityResult)
                     }
 
-                    BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() && checkDeviceFeature(type)
+                    BiometricType.BIOMETRIC_VOICE -> it.hasVoiceID() && checkDeviceFeature(type, modalityResult)
                     BiometricType.BIOMETRIC_HEARTRATE -> it.hasHeartrateID() && checkDeviceFeature(
-                        type
+                        type,
+                        modalityResult
                     )
 
-                    BiometricType.BIOMETRIC_PALMPRINT -> it.hasPalmID() && checkDeviceFeature(type)
-                    else -> checkDeviceFeature(type)
+                    BiometricType.BIOMETRIC_PALMPRINT -> it.hasPalmID() && checkDeviceFeature(type, modalityResult)
+                    else -> checkDeviceFeature(type, modalityResult)
                 }
             }
         }
 
         //legacy
-        return checkDeviceFeature(type)
+        return checkDeviceFeature(type, modalityResult)
     }
 
-    private fun checkDeviceFeature(type: BiometricType): Boolean {
-        val result = modalityResult(type)
-
+    private fun checkDeviceFeature(
+        type: BiometricType,
+        result: BiometricModalityDetector.Result
+    ): Boolean {
         return when (type) {
             BiometricType.BIOMETRIC_FACE,
             BiometricType.BIOMETRIC_IRIS,
@@ -276,22 +323,28 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             )?.hasEnrolled == true
         }
 
-        val result = modalityResult(type)
+        return isBiometricEnrolledForType(type, modalityResult(type))
+    }
+
+    private fun isBiometricEnrolledForType(
+        type: BiometricType,
+        result: BiometricModalityDetector.Result
+    ): Boolean {
         BiometricPromptCompat.deviceInfo?.let {
             if (it.sensors.isNotEmpty()) {
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            result.enrolledLikely || isAnyBiometricEnrolled
+                            result.enrolledLikely || isAnyBiometricEnrolled(canAuthenticate)
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
-                            result.enrolledLikely || isAnyBiometricEnrolled
+                            result.enrolledLikely || isAnyBiometricEnrolled(canAuthenticate)
                         } else
                             result.enrolledLikely
                     }
 
                     BiometricType.BIOMETRIC_IRIS -> {
                         if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            result.enrolledLikely || isAnyBiometricEnrolled
+                            result.enrolledLikely || isAnyBiometricEnrolled(canAuthenticate)
                         } else
                             result.enrolledLikely
                     }
