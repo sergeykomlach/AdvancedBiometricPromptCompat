@@ -109,7 +109,7 @@ class SamsungFaceUnlockModule @SuppressLint("WrongConstant") constructor(listene
 
             }
 
-            return isManagerAccessible
+            return false
         }
 
     override val hasEnrolled: Boolean

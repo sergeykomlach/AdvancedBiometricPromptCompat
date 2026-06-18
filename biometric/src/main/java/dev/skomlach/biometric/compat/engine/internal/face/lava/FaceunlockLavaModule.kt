@@ -42,26 +42,23 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
     private var faceLockHelper: FaceVerifyManager? = null
     private var facelockProxyListener: ProxyListener? = null
     override var isManagerAccessible = false
-
-    init {
-        val faceLockInterface: FaceUnlockCallback = object : FaceUnlockCallback {
-            override fun onFaceVerifyChanged(resultCode: Int, msg: String?) {
-                if (resultCode == 1) {
-                    facelockProxyListener?.onAuthenticationSucceeded(null)
-                } else {
-                    facelockProxyListener?.onAuthenticationError()
-                }
+    private val faceLockInterface: FaceUnlockCallback = object : FaceUnlockCallback {
+        override fun onFaceVerifyChanged(resultCode: Int, msg: String?) {
+            if (resultCode == 1) {
+                facelockProxyListener?.onAuthenticationSucceeded(null)
+            } else {
+                facelockProxyListener?.onAuthenticationError()
             }
         }
+    }
+
+    init {
         faceLockHelper = FaceVerifyManager(context)
         faceLockHelper?.setFaceUnlockCallback(faceLockInterface)
-        if (!isHardwarePresent) {
-            if (listener != null) {
-                listener?.initFinished(biometricMethod, this@FaceunlockLavaModule)
-                listener = null
-            }
-        } else {
-            faceLockHelper?.bindFaceVerifyService()
+        isManagerAccessible = faceLockHelper != null
+        if (listener != null) {
+            listener?.initFinished(biometricMethod, this@FaceunlockLavaModule)
+            listener = null
         }
     }
 
@@ -131,9 +128,10 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
 
     private fun authorize(proxyListener: ProxyListener) {
         facelockProxyListener = proxyListener
+        faceLockHelper?.setFaceUnlockCallback(faceLockInterface)
         authCallTimestamp.set(System.currentTimeMillis())
         faceLockHelper?.stopFaceVerify()
-        faceLockHelper?.startFaceVerify()
+        faceLockHelper?.bindFaceVerifyService()
     }
 
 

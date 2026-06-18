@@ -50,7 +50,7 @@ class MiuiFaceUnlockModule @SuppressLint("WrongConstant") constructor(listener: 
             if (manager?.isFaceFeatureSupport != true) {
                 throw RuntimeException("Miui Face not supported")
             }
-            d("Miui Face supported -> " + MiuiFaceFactory.getCurrentAuthType())
+            d("Miui Face supported -> " + MiuiFaceFactory.sCurrentAuthType)
         } catch (e: Throwable) {
             if (DEBUG_MANAGERS)
                 e(e, name)

@@ -86,7 +86,7 @@ class SoftwareBiometricModule(
             } catch (e: Throwable) {
                 false
             }
-            e("$name: isHardwareDetected=$result")
+            d("$name: isHardwareDetected=$result")
             return result
         }
 
@@ -97,7 +97,7 @@ class SoftwareBiometricModule(
             } catch (e: Throwable) {
                 super.isLockOut
             }
-            e("$name: isLockOut=$result")
+            d("$name: isLockOut=$result")
             return result
         }
 
@@ -108,7 +108,7 @@ class SoftwareBiometricModule(
             } catch (e: Throwable) {
                 false
             }
-            e("$name: isPermanentlyLockedOut=$result")
+            d("$name: isPermanentlyLockedOut=$result")
             return result
         }
 
@@ -120,7 +120,7 @@ class SoftwareBiometricModule(
             } catch (e: Throwable) {
                 false
             }
-            e("$name: hasEnrolled=$result")
+            d("$name: hasEnrolled=$result")
             return result
         }
 
