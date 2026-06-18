@@ -33,6 +33,7 @@ object BundleBuilder {
         val subtitle = biometricBuilderCompat.getSubtitle()?.toString()
         val description = biometricBuilderCompat.getDescription()?.toString()
         return Bundle().apply {
+            biometricBuilderCompat.getExtras()?.let { putAll(it) }
             putBoolean(ENROLL, biometricBuilderCompat.enroll)
             title?.let { this.putString(TITLE, it) }
             subtitle?.let { this.putString(SUBTITLE, it) }

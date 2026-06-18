@@ -294,7 +294,9 @@ class SoftwareBiometricModule(
                 false
             ) == true
         ) {
-            extras = manager?.getEnrollBundle()
+            extras = Bundle(bundle ?: Bundle()).apply {
+                manager?.getEnrollBundle()?.let { putAll(it) }
+            }
             enrollBundle = extras
         } else enrollBundle = null
 

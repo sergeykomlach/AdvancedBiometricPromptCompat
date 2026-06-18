@@ -1,0 +1,36 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+    compileSdk compileSDK
+    defaultConfig {
+        minSdkVersion minSDK
+        targetSdkVersion targetSDK
+        multiDexEnabled true
+    }
+    namespace 'dev.skomlach.biometric.custom.behavior'
+    compileOptions {
+        sourceCompatibility javaVersion
+        targetCompatibility javaVersion
+    }
+    kotlinOptions {
+        jvmTarget = javaVersion.toString()
+    }
+}
+
+dependencies {
+    implementation project(":" + libArtifactId_common)
+    implementation project(":" + libArtifactId_biometric)
+    testImplementation libs.junit
+}
+
+ext {
+    PUBLISH_GROUP_ID = libsGroupId
+    PUBLISH_ARTIFACT_ID = libArtifactId_biometric_custom_behavior
+    PUBLISH_VERSION = libVersion
+}
+
+apply from: "${rootProject.projectDir}/scripts/publish-mavencentral.gradle"

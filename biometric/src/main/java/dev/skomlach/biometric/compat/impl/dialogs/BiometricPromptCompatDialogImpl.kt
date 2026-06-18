@@ -29,6 +29,7 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.view.Window
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import dev.skomlach.biometric.compat.BehaviorAuthMode
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
@@ -59,6 +60,8 @@ class BiometricPromptCompatDialogImpl(
     val WHAT_RESTORE_NORMAL_STATE = 0
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
+    private var behaviorCaptureController: BehaviorCaptureController? = null
+    private var voiceCaptureController: VoiceCaptureController? = null
 
 
     init {
@@ -88,6 +91,10 @@ class BiometricPromptCompatDialogImpl(
         dialog = BiometricPromptCompatDialog.getFragment(isInScreen)
         dialog.setOnDismissListener {
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. dismissed.")
+            behaviorCaptureController?.dispose()
+            behaviorCaptureController = null
+            voiceCaptureController?.dispose()
+            voiceCaptureController = null
             detachWindowListeners()
             if (inProgress.get()) {
                 inProgress.set(false)
@@ -104,6 +111,10 @@ class BiometricPromptCompatDialogImpl(
         dialog.setOnCancelListener {
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. canceled.")
 
+            behaviorCaptureController?.dispose()
+            behaviorCaptureController = null
+            voiceCaptureController?.dispose()
+            voiceCaptureController = null
             authCallback?.cancelAuth()
             detachWindowListeners()
             if (inProgress.get()) {
@@ -149,6 +160,27 @@ class BiometricPromptCompatDialogImpl(
                 false,
                 primaryBiometricType
             )
+            if (primaryBiometricType == BiometricType.BIOMETRIC_BEHAVIOR &&
+                compatBuilder.getBehaviorAuthMode() == BehaviorAuthMode.EXPLICIT
+            ) {
+                behaviorCaptureController = BehaviorCaptureController(
+                    dialog.rootView ?: return@setOnShowListener,
+                    compatBuilder
+                ) {
+                    startAuth()
+                }.also {
+                    it.install()
+                }
+            } else if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE) {
+                voiceCaptureController = VoiceCaptureController(
+                    dialog.rootView ?: return@setOnShowListener,
+                    compatBuilder
+                ) {
+                    startAuth()
+                }.also {
+                    it.install()
+                }
+            }
 
             checkInScreenVisibility()
             attachWindowListeners()
@@ -261,6 +293,17 @@ class BiometricPromptCompatDialogImpl(
 
     private fun startAuth() {
         if (!inProgress.get() && dialog.isShowing) {
+            if (primaryBiometricType == BiometricType.BIOMETRIC_BEHAVIOR &&
+                compatBuilder.getBehaviorAuthMode() == BehaviorAuthMode.EXPLICIT &&
+                behaviorCaptureController?.consumePrepared() != true
+            ) {
+                return
+            }
+            if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE &&
+                voiceCaptureController?.consumePrepared() != true
+            ) {
+                return
+            }
             inProgress.set(true)
             authCallback?.startAuth()
         }

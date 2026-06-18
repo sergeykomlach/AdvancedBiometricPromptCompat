@@ -35,6 +35,8 @@ buildscript {
     ext.libArtifactId_biometric_ktx = 'biometric-ktx'
     ext.libArtifactId_biometric_custom_face_tf = 'biometric-custom-face-tf'
     ext.libArtifactId_biometric_zkfinger = 'biometric-zkfinger'
+    ext.libArtifactId_biometric_custom_behavior = 'biometric-custom-behavior'
+    ext.libArtifactId_biometric_custom_voice = 'biometric-custom-voice'
 
     ext.libVersion = libsMajorVersion + "." + libsMinorVersion
     ext.libDesc = 'This is an Android project allowing you to use the advanced biometric authorization features.'

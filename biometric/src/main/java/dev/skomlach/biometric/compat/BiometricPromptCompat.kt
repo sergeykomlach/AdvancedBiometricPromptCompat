@@ -25,7 +25,10 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
+import android.os.Bundle
 import android.os.Looper
+import android.view.ViewGroup
+import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.ColorInt
 import androidx.annotation.MainThread
@@ -83,6 +86,7 @@ import java.nio.charset.Charset
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -1795,6 +1799,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         private var isDeviceCredentialFallbackAllowed: Boolean = false
         private var forceDeviceCredential: Boolean = false
         internal var enroll: Boolean = false
+        internal var extras: Bundle? = null
+        internal var behaviorAuthMode: BehaviorAuthMode = BehaviorAuthMode.EXPLICIT
+        private var behaviorTypingView = WeakReference<TextView?>(null)
+        private var behaviorSignatureContainer = WeakReference<ViewGroup?>(null)
+        internal var voicePhrase: CharSequence? = null
         internal var isUIOpened = AtomicBoolean(false)
         private var observer: Observer<Activity?>? = Observer<Activity?> { context ->
             this.colorNavBar = context?.window?.navigationBarColor ?: return@Observer
@@ -2241,6 +2250,51 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         fun setDescription(@StringRes dialogDescriptionRes: Int): Builder {
             dialogDescription = (getActivity() ?: getContext()).getString(dialogDescriptionRes)
             return this
+        }
+
+        fun setExtras(extras: Bundle?): Builder {
+            this.extras = extras?.let { Bundle(it) }
+            return this
+        }
+
+        fun getExtras(): Bundle? {
+            return extras?.let { Bundle(it) }
+        }
+
+        fun setBehaviorTypingView(view: TextView?): Builder {
+            behaviorTypingView = WeakReference(view)
+            return this
+        }
+
+        fun getBehaviorTypingView(): TextView? {
+            return behaviorTypingView.get()
+        }
+
+        fun setBehaviorSignatureContainer(container: ViewGroup?): Builder {
+            behaviorSignatureContainer = WeakReference(container)
+            return this
+        }
+
+        fun getBehaviorSignatureContainer(): ViewGroup? {
+            return behaviorSignatureContainer.get()
+        }
+
+        fun setBehaviorAuthMode(mode: BehaviorAuthMode): Builder {
+            behaviorAuthMode = mode
+            return this
+        }
+
+        fun getBehaviorAuthMode(): BehaviorAuthMode {
+            return behaviorAuthMode
+        }
+
+        fun setVoicePhrase(phrase: CharSequence?): Builder {
+            voicePhrase = phrase
+            return this
+        }
+
+        fun getVoicePhrase(): CharSequence? {
+            return voicePhrase
         }
 
         fun getNegativeButtonText(): CharSequence? {
