@@ -36,7 +36,6 @@ paletteKtx = "1.0.0"
 re2j = "1.8"
 tensorflowLite = "2.17.0"
 vectordrawableAnimated = "1.2.0"
-versioncompare = "1.5.0"
 window = "1.5.1"
 detektVer = "1.23.8"
 
@@ -83,8 +82,6 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-urlconnection = { module = "com.squareup.okhttp3:okhttp-urlconnection", version.ref = "okhttp" }
 re2j = { module = "com.google.re2j:re2j", version.ref = "re2j" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
-versioncompare = { module = "io.github.g00fy2:versioncompare", version.ref = "versioncompare" }
-
 litert-gpu-api = { module = "com.google.ai.edge.litert:litert-gpu-api", version.ref = "litertSupport" }
 litert-support = { module = "com.google.ai.edge.litert:litert-support", version.ref = "litertSupport" }
 litert = { module = "com.google.ai.edge.litert:litert", version.ref = "litertSupport" }

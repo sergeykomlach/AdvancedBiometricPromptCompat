@@ -19,6 +19,16 @@
 
 package dev.skomlach.biometric.compat
 
+/**
+ * API route used to query or launch biometric authentication.
+ */
 enum class BiometricApi {
-    AUTO, LEGACY_API, BIOMETRIC_API
+    /** Let the library choose between legacy OEM modules and AndroidX/System biometric APIs. */
+    AUTO,
+
+    /** Use legacy/OEM-specific modules where the platform BiometricPrompt route is unavailable. */
+    LEGACY_API,
+
+    /** Use the Android biometric prompt route backed by system APIs. */
+    BIOMETRIC_API
 }

@@ -19,8 +19,14 @@
 
 package dev.skomlach.biometric.compat
 
+/**
+ * Provider family allowed for a biometric request.
+ */
 enum class BiometricProviderType {
+    /** Use hardware-backed/system or OEM hardware biometric providers only. */
     HARDWARE,
+    /** Use registered software biometric providers only. */
     SOFTWARE,
+    /** Allow both hardware and software providers. */
     COMBINED
 }

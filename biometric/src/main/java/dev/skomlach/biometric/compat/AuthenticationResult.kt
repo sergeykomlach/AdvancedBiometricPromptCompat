@@ -20,11 +20,23 @@
 
 package dev.skomlach.biometric.compat
 
+/**
+ * Result payload delivered by biometric authentication callbacks.
+ *
+ * [reason] is non-null for failed or canceled flows. [cryptoSecurityLevel] mirrors
+ * [cryptoObject] by default so callers can distinguish hardware-bound crypto from
+ * app-managed fallback crypto without inspecting implementation details.
+ */
 data class AuthenticationResult(
+    /** Biometric modality that produced the result, if it is known. */
     val type: BiometricType?,
+    /** Optional crypto object returned by the successful authentication route. */
     val cryptoObject: BiometricCryptoObject? = null,
+    /** Failure or cancellation category; null indicates no failure category was reported. */
     val reason: AuthenticationFailureReason? = null,
+    /** Human-readable diagnostic or permission message suitable for logs/UI. */
     val description: CharSequence? = null,
+    /** Security binding level for [cryptoObject] or an app-managed cryptography result. */
     val cryptoSecurityLevel: CryptoSecurityLevel =
         cryptoObject?.cryptoSecurityLevel ?: CryptoSecurityLevel.NONE
 )

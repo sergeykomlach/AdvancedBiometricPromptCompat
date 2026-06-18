@@ -21,13 +21,26 @@ package dev.skomlach.biometric.compat
 
 import androidx.annotation.DrawableRes
 
+/**
+ * Biometric modality requested by callers and reported in authentication results.
+ *
+ * [iconId] is the default drawable used by the library dialogs for this modality.
+ */
 enum class BiometricType(@DrawableRes val iconId: Int) {
+    /** Any available biometric modality may satisfy the request. */
     BIOMETRIC_ANY(R.drawable.bio_ic_fingerprint),
+    /** Fingerprint authentication. */
     BIOMETRIC_FINGERPRINT(R.drawable.bio_ic_fingerprint),
+    /** Face authentication. */
     BIOMETRIC_FACE(R.drawable.bio_ic_face),
+    /** Iris authentication. */
     BIOMETRIC_IRIS(R.drawable.bio_ic_iris),
+    /** Voice authentication. */
     BIOMETRIC_VOICE(R.drawable.bio_ic_voice),
+    /** Palmprint authentication. */
     BIOMETRIC_PALMPRINT(R.drawable.bio_ic_palm),
+    /** Heart-rate based authentication. */
     BIOMETRIC_HEARTRATE(R.drawable.bio_ic_heartrate),
+    /** Behavioral biometric authentication. */
     BIOMETRIC_BEHAVIOR(R.drawable.bio_ic_behavior)
 }

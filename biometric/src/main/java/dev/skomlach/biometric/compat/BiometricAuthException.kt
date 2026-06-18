@@ -1,5 +1,8 @@
 package dev.skomlach.biometric.compat
 
+/**
+ * Exception type used by coroutine/KTX authentication APIs for terminal auth failures.
+ */
 class BiometricAuthException : Exception {
     constructor() : super()
 

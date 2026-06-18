@@ -19,7 +19,12 @@
 
 package dev.skomlach.biometric.compat
 
+/**
+ * Confirmation policy for requests that can resolve to multiple providers.
+ */
 enum class BiometricConfirmation {
+    /** A single successful selected provider is enough. */
     ANY,
+    /** Every selected provider must complete successfully. */
     ALL
 }

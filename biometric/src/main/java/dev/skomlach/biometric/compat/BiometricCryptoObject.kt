@@ -23,6 +23,12 @@ import java.security.Signature
 import javax.crypto.Cipher
 import javax.crypto.Mac
 
+/**
+ * Biometric crypto wrapper aligned with Android's Signature/Cipher/Mac contract.
+ *
+ * Exactly one primitive is normally supplied by callers. [cryptoSecurityLevel]
+ * describes whether the primitive is hardware-bound or app-managed.
+ */
 data class BiometricCryptoObject(
     val signature: Signature? = null,
     val cipher: Cipher? = null,

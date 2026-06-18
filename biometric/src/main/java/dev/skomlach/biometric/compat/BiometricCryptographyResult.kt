@@ -19,6 +19,11 @@
 
 package dev.skomlach.biometric.compat
 
+/**
+ * Output of an app-managed cryptography operation.
+ *
+ * Byte arrays participate in value equality by content, not by reference.
+ */
 data class BiometricCryptographyResult(
     val biometricType: BiometricType,
     val data: ByteArray,

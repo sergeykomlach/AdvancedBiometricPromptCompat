@@ -295,11 +295,7 @@ class NotificationPermissionsFragment : Fragment() {
                         if (safeStartActivity(
                                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                                     putExtra(Settings.EXTRA_APP_PACKAGE, context?.packageName)
-                                    val oneUiVersion = getOneUiVersion()
-                                    if (oneUiVersion.isEmpty() || io.github.g00fy2.versioncompare.Version(
-                                            oneUiVersion
-                                        ).isLowerThan("6.1")
-                                    )
+                                    if (shouldIncludeNotificationChannelId(getOneUiVersion()))
                                         putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
                                 }
                             )
@@ -414,4 +410,27 @@ class NotificationPermissionsFragment : Fragment() {
         return pkgAppsList.isNotEmpty()
     }
 
+}
+
+/**
+ * Samsung disables reliable per-channel notification settings deep links starting
+ * with One UI 6.1. Unknown versions keep the channel id so non-Samsung and
+ * unreadable platform values preserve the standard Android behavior.
+ */
+internal fun shouldIncludeNotificationChannelId(oneUiVersion: String): Boolean {
+    val parsedVersion = parseOneUiVersion(oneUiVersion) ?: return true
+    val minimumBrokenVersion = 6 to 1
+    return parsedVersion.first < minimumBrokenVersion.first ||
+            (parsedVersion.first == minimumBrokenVersion.first &&
+                    parsedVersion.second < minimumBrokenVersion.second)
+}
+
+private fun parseOneUiVersion(version: String): Pair<Int, Int>? {
+    val parts = version.split(".")
+    if (parts.size < 2) {
+        return null
+    }
+    val major = parts[0].toIntOrNull() ?: return null
+    val minor = parts[1].toIntOrNull() ?: return null
+    return major to minor
 }

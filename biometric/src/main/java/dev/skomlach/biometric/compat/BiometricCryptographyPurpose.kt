@@ -19,9 +19,16 @@
 
 package dev.skomlach.biometric.compat
 
+/**
+ * Describes the app-managed cryptography operation requested from the library.
+ *
+ * [initVector] is required for decrypt operations that need the original cipher IV.
+ */
 data class BiometricCryptographyPurpose(val purpose: Int, val initVector: ByteArray? = null) {
     companion object {
+        /** Encrypt data after successful authentication. */
         const val ENCRYPT = 1000
+        /** Decrypt data after successful authentication. */
         const val DECRYPT = 1001
     }
 
