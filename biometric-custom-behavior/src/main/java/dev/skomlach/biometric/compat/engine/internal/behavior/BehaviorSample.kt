@@ -42,6 +42,10 @@ data class BehaviorSample(
 
         private const val LEGACY_POINT_STRIDE = 5
         private const val POINT_STRIDE = 6
+        private const val MAX_PHRASE_LENGTH = 256
+        private const val MAX_TYPING_EVENTS = 512
+        private const val MAX_SIGNATURE_POINTS = 2048
+        private const val MAX_COORDINATE_ABS = 100_000f
         private const val MIN_TYPING_EVENTS = 3
         private const val MIN_SIGNATURE_POINTS = 8
         private const val MIN_PRODUCTION_TYPING_CHARS = 5
@@ -61,15 +65,24 @@ data class BehaviorSample(
             val mode = runCatching {
                 BehaviorMode.valueOf(modeName ?: BehaviorMode.COMBINED.name)
             }.getOrDefault(BehaviorMode.COMBINED)
-            val keyDowns = extra.getLongArray(EXTRA_BEHAVIOR_KEY_DOWNS)?.toList().orEmpty()
-            val keyUps = extra.getLongArray(EXTRA_BEHAVIOR_KEY_UPS)?.toList().orEmpty()
+            val keyDowns = extra.getLongArray(EXTRA_BEHAVIOR_KEY_DOWNS)
+                ?.takeIf { it.size <= MAX_TYPING_EVENTS }
+                ?.toList()
+                .orEmpty()
+            val keyUps = extra.getLongArray(EXTRA_BEHAVIOR_KEY_UPS)
+                ?.takeIf { it.size <= MAX_TYPING_EVENTS }
+                ?.toList()
+                .orEmpty()
             val points = parsePoints(
                 extra.getFloatArray(EXTRA_BEHAVIOR_POINTS),
                 extra.getInt(EXTRA_BEHAVIOR_POINTS_STRIDE, LEGACY_POINT_STRIDE)
             )
             return BehaviorSample(
                 mode = mode,
-                phrase = extra.getString(EXTRA_BEHAVIOR_PHRASE),
+                phrase = extra.getString(EXTRA_BEHAVIOR_PHRASE)
+                    ?.trim()
+                    ?.take(MAX_PHRASE_LENGTH)
+                    ?.takeIf { it.isNotEmpty() },
                 keyDownTimesMs = keyDowns,
                 keyUpTimesMs = keyUps,
                 strokePoints = points
@@ -81,17 +94,36 @@ data class BehaviorSample(
             val stride = requestedStride
                 .takeIf { it == POINT_STRIDE && raw.size % POINT_STRIDE == 0 }
                 ?: LEGACY_POINT_STRIDE
+            if (raw.size / stride > MAX_SIGNATURE_POINTS) return emptyList()
             val result = ArrayList<BehaviorPoint>(raw.size / stride)
             var index = 0
             while (index + stride <= raw.size) {
+                val x = raw[index]
+                val y = raw[index + 1]
+                val timestamp = raw[index + 2]
+                val pressure = raw[index + 3]
+                val size = raw[index + 4]
+                val stroke = if (stride == POINT_STRIDE) raw[index + 5] else 0f
+                if (!x.isFinite() ||
+                    !y.isFinite() ||
+                    !timestamp.isFinite() ||
+                    !pressure.isFinite() ||
+                    !size.isFinite() ||
+                    !stroke.isFinite() ||
+                    kotlin.math.abs(x) > MAX_COORDINATE_ABS ||
+                    kotlin.math.abs(y) > MAX_COORDINATE_ABS ||
+                    timestamp < 0f
+                ) {
+                    return emptyList()
+                }
                 result.add(
                     BehaviorPoint(
-                        x = raw[index],
-                        y = raw[index + 1],
-                        timestampMs = raw[index + 2].toLong(),
-                        pressure = raw[index + 3].takeIf { it >= 0f },
-                        size = raw[index + 4].takeIf { it >= 0f },
-                        strokeId = if (stride == POINT_STRIDE) raw[index + 5].toInt() else 0
+                        x = x,
+                        y = y,
+                        timestampMs = timestamp.toLong(),
+                        pressure = pressure.takeIf { it >= 0f },
+                        size = size.takeIf { it >= 0f },
+                        strokeId = stroke.toInt()
                     )
                 )
                 index += stride

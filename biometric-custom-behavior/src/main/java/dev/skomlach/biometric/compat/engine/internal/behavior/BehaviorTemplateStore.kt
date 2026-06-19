@@ -86,6 +86,7 @@ class BehaviorTemplateStore {
     }
 
     private fun deserializeTemplates(raw: String): List<BehaviorSample> {
+        if (raw.length > MAX_SERIALIZED_TEMPLATE_CHARS) return emptyList()
         val parts = raw.split("|", limit = 2)
         if (parts.size == 2 && parts[0] == FORMAT_VERSION_V2) {
             return parts[1]
@@ -113,19 +114,29 @@ class BehaviorTemplateStore {
 
     private fun parseLongList(raw: String): List<Long> {
         if (raw.isBlank()) return emptyList()
-        return raw.split(",").mapNotNull { it.toLongOrNull() }
+        return raw.split(",")
+            .take(MAX_TYPING_EVENTS)
+            .mapNotNull { it.toLongOrNull() }
     }
 
     private fun parsePoints(raw: String): List<BehaviorPoint> {
         if (raw.isBlank()) return emptyList()
-        return raw.split(";").mapNotNull { encoded ->
+        return raw.split(";").take(MAX_SIGNATURE_POINTS).mapNotNull { encoded ->
             val values = encoded.split(",")
             if (values.size != 5 && values.size != 6) return@mapNotNull null
             val x = values[0].toFloatOrNull() ?: return@mapNotNull null
             val y = values[1].toFloatOrNull() ?: return@mapNotNull null
             val timestamp = values[2].toLongOrNull() ?: return@mapNotNull null
-            val pressure = values[3].toFloatOrNull()?.takeIf { it >= 0f }
-            val size = values[4].toFloatOrNull()?.takeIf { it >= 0f }
+            if (!x.isFinite() ||
+                !y.isFinite() ||
+                kotlin.math.abs(x) > MAX_COORDINATE_ABS ||
+                kotlin.math.abs(y) > MAX_COORDINATE_ABS ||
+                timestamp < 0L
+            ) {
+                return@mapNotNull null
+            }
+            val pressure = values[3].toFloatOrNull()?.takeIf { it.isFinite() && it >= 0f }
+            val size = values[4].toFloatOrNull()?.takeIf { it.isFinite() && it >= 0f }
             val strokeId = values.getOrNull(5)?.toIntOrNull() ?: 0
             BehaviorPoint(x, y, timestamp, pressure, size, strokeId)
         }
@@ -148,5 +159,9 @@ class BehaviorTemplateStore {
         const val FORMAT_VERSION_V2 = "v2"
         const val MAX_TAG_LENGTH = 80
         const val MAX_TEMPLATES_PER_TAG = 5
+        const val MAX_SERIALIZED_TEMPLATE_CHARS = 262_144
+        const val MAX_TYPING_EVENTS = 512
+        const val MAX_SIGNATURE_POINTS = 2048
+        const val MAX_COORDINATE_ABS = 100_000f
     }
 }

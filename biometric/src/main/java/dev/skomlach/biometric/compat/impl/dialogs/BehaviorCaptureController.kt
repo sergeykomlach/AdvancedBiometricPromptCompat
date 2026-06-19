@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
@@ -24,6 +25,7 @@ import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.utils.ScreenProtection
 import kotlin.math.max
 
 internal class BehaviorCaptureController(
@@ -62,6 +64,15 @@ internal class BehaviorCaptureController(
         if (ownsTypingView) {
             phraseInput.setOnKeyListener(null)
         }
+        if (::phraseInput.isInitialized) {
+            ScreenProtection.applyProtectionInView(phraseInput, false)
+        }
+        if (::signaturePad.isInitialized) {
+            ScreenProtection.applyProtectionInView(signaturePad, false)
+        }
+        externalSignatureContainer?.let {
+            ScreenProtection.applyProtectionInView(it, false)
+        }
         externalSignatureContainer?.removeView(signaturePad)
         externalSignatureContainer = null
         overlayView?.let { (it.parent as? ViewGroup)?.removeView(it) }
@@ -78,19 +89,27 @@ internal class BehaviorCaptureController(
             isFocusable = false
             ownsTypingView = true
         }
+        phraseInput.filterTouchesWhenObscured = true
+        ScreenProtection.applyProtectionInView(phraseInput)
         attachTypingCapture(phraseInput)
 
         externalSignatureContainer = builder.getBehaviorSignatureContainer()
+        externalSignatureContainer?.let {
+            it.filterTouchesWhenObscured = true
+            ScreenProtection.applyProtectionInView(it)
+        }
         signaturePad = SignaturePad(
             externalSignatureContainer?.context ?: context,
             lineColor = ContextCompat.getColor(context, R.color.material_deep_teal_500)
         ) { x, y, timestamp, pressure, size, strokeId ->
-            points.add(x)
-            points.add(y)
-            points.add(timestamp.toFloat())
-            points.add(pressure)
-            points.add(size)
-            points.add(strokeId.toFloat())
+            if (points.size + POINT_STRIDE <= MAX_CAPTURED_POINT_FLOATS) {
+                points.add(x)
+                points.add(y)
+                points.add(timestamp.toFloat())
+                points.add(pressure)
+                points.add(size)
+                points.add(strokeId.toFloat())
+            }
         }
         externalSignatureContainer?.addView(
             signaturePad,
@@ -118,6 +137,7 @@ internal class BehaviorCaptureController(
             setOnClickListener {
                 showOverlay(container)
             }
+            filterTouchesWhenObscured = true
             layoutParams = FrameLayout.LayoutParams(size, size, Gravity.END or Gravity.BOTTOM).apply {
                 rightMargin = (12 * context.resources.displayMetrics.density).toInt()
                 bottomMargin = (12 * context.resources.displayMetrics.density).toInt()
@@ -223,6 +243,7 @@ internal class BehaviorCaptureController(
 
         return FrameLayout(context).apply {
             setBackgroundColor(0x99000000.toInt())
+            filterTouchesWhenObscured = true
             setOnClickListener {
                 hideOverlay()
             }
@@ -280,7 +301,7 @@ internal class BehaviorCaptureController(
         textWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (count > 0) {
+                if (count > 0 && keyDowns.size < MAX_CAPTURED_TYPING_EVENTS) {
                     keyDowns.add(System.currentTimeMillis())
                     keyUps.add(System.currentTimeMillis() + TEXT_EVENT_DWELL_MS)
                 }
@@ -348,7 +369,12 @@ internal class BehaviorCaptureController(
             textSize = 14f
             setTextColor(ContextCompat.getColor(context, R.color.textColor))
             background = rounded(0x11000000, 8 * density)
+            filterTouchesWhenObscured = true
             setOnTouchListener { _, event ->
+                if (!event.isTrustedBehaviorTouch()) {
+                    showInputError("Touch input is obscured. Remove screen overlays and try again.")
+                    return@setOnTouchListener true
+                }
                 when (event.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
                         downTime = event.eventTime
@@ -373,6 +399,12 @@ internal class BehaviorCaptureController(
     }
 
     private fun appendTypedCharacter(key: String, downTime: Long, upTime: Long) {
+        if (phraseInput.text?.length ?: 0 >= MAX_CAPTURED_TYPING_CHARS ||
+            keyDowns.size >= MAX_CAPTURED_TYPING_EVENTS
+        ) {
+            showInputError("Behavior phrase is too long. Use a shorter phrase.")
+            return
+        }
         phraseInput.append(if (key == KEY_SPACE) " " else key)
         keyDowns.add(downTime)
         keyUps.add(upTime)
@@ -389,6 +421,10 @@ internal class BehaviorCaptureController(
     private fun prepareExtras() {
         val mode = selectedMode()
         val phrase = phraseInput.text?.toString().orEmpty()
+        if (phrase.length > MAX_CAPTURED_TYPING_CHARS) {
+            showInputError("Behavior phrase is too long. Use a shorter phrase.")
+            return
+        }
         val hasTyping = phrase.trim().length >= MIN_TYPING_CHARS &&
             keyDowns.size >= MIN_TYPING_EVENTS &&
             keyDowns.size == keyUps.size
@@ -456,6 +492,8 @@ internal class BehaviorCaptureController(
         }
 
         init {
+            filterTouchesWhenObscured = true
+            ScreenProtection.applyProtectionInView(this)
             background = rounded(
                 color = 0x11ffffff,
                 radius = 12 * context.resources.displayMetrics.density
@@ -469,6 +507,7 @@ internal class BehaviorCaptureController(
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
+            if (!event.isTrustedBehaviorTouch()) return true
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> path.moveTo(event.x, event.y)
                 MotionEvent.ACTION_MOVE -> path.lineTo(event.x, event.y)
@@ -513,6 +552,10 @@ internal class BehaviorCaptureController(
         const val MODE_SIGNATURE_ID = 0x510002
         const val MODE_COMBINED_ID = 0x510003
         const val POINT_STRIDE = 6
+        const val MAX_CAPTURED_TYPING_CHARS = 256
+        const val MAX_CAPTURED_TYPING_EVENTS = 512
+        const val MAX_CAPTURED_SIGNATURE_POINTS = 2048
+        const val MAX_CAPTURED_POINT_FLOATS = MAX_CAPTURED_SIGNATURE_POINTS * POINT_STRIDE
         const val TEXT_EVENT_DWELL_MS = 60L
         const val MIN_TYPING_CHARS = 5
         const val MIN_TYPING_EVENTS = 5
@@ -533,4 +576,11 @@ internal class BehaviorCaptureController(
             }
         }
     }
+}
+
+private fun MotionEvent.isTrustedBehaviorTouch(): Boolean {
+    val obscured = flags and MotionEvent.FLAG_WINDOW_IS_OBSCURED != 0
+    val partiallyObscured = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+        flags and MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED != 0
+    return !obscured && !partiallyObscured
 }

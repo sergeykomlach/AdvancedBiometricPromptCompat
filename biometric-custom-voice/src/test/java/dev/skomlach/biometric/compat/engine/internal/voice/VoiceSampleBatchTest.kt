@@ -38,6 +38,20 @@ class VoiceSampleBatchTest {
     }
 
     @Test
+    fun fromBundleSamplesTruncatesOverlongPhrase() {
+        val extras = Bundle().apply {
+            putInt(VoiceSample.EXTRA_VOICE_SAMPLE_RATE, 16_000)
+            putString(VoiceSample.EXTRA_VOICE_PHRASE, "x".repeat(300))
+            putFloatArray(VoiceSample.EXTRA_VOICE_PCM_FLOAT, usablePcm())
+        }
+
+        val samples = VoiceSample.fromBundleSamples(extras)
+
+        assertEquals(1, samples.size)
+        assertEquals(256, samples.first().phrase?.length)
+    }
+
+    @Test
     fun fromBundleSamplesLimitsEnrollmentBatch() {
         val extras = Bundle().apply {
             putInt(VoiceSample.EXTRA_VOICE_SAMPLE_RATE, 16_000)
@@ -50,6 +64,18 @@ class VoiceSampleBatchTest {
         val samples = VoiceSample.fromBundleSamples(extras)
 
         assertEquals(5, samples.size)
+    }
+
+    @Test
+    fun fromBundleSamplesRejectsOversizedPcmPayload() {
+        val extras = Bundle().apply {
+            putInt(VoiceSample.EXTRA_VOICE_SAMPLE_RATE, 16_000)
+            putFloatArray(VoiceSample.EXTRA_VOICE_PCM_FLOAT, FloatArray(16_000 * 13))
+        }
+
+        val samples = VoiceSample.fromBundleSamples(extras)
+
+        assertTrue(samples.isEmpty())
     }
 
     @Test

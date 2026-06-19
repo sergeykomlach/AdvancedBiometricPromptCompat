@@ -77,7 +77,7 @@ object ImageUtils {
             myDir.absoluteFile
         )
 
-        val file = File(myDir, filename)
+        val file = File(myDir, safeBitmapFileName(filename))
         if (file.exists()) {
             file.delete()
         }
@@ -102,7 +102,7 @@ object ImageUtils {
             }
         }
 
-        val file = File(myDir, filename)
+        val file = File(myDir, safeBitmapFileName(filename))
         if (file.exists()) {
             file.delete()
         }
@@ -111,6 +111,16 @@ object ImageUtils {
         } catch (e: java.lang.Exception) {
             LogCat.logException(e, "Exception!")
         }
+    }
+
+    private fun safeBitmapFileName(filename: String): String {
+        val safeName = filename
+            .substringAfterLast("/")
+            .substringAfterLast("\\")
+            .replace(Regex("[^A-Za-z0-9._-]"), "_")
+            .trim('.', '_')
+            .take(MAX_BITMAP_FILE_NAME_LENGTH)
+        return safeName.ifBlank { "preview.png" }
     }
 
 
@@ -260,4 +270,6 @@ object ImageUtils {
 
         return matrix
     }
+
+    private const val MAX_BITMAP_FILE_NAME_LENGTH = 128
 }

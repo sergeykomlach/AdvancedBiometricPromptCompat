@@ -60,13 +60,19 @@ object NetworkApi {
 
     @Throws(Exception::class)
     fun createConnection(link: String?, timeout: Int): HttpURLConnection {
+        require(!link.isNullOrBlank()) { "URL is empty" }
         val url = URL(link).toURI().normalize().toURL()
+        require(url.protocol.equals("http", ignoreCase = true) ||
+            url.protocol.equals("https", ignoreCase = true)
+        ) {
+            "Only HTTP(S) URLs are supported"
+        }
         val conn = if (url.protocol.equals(
                 "https",
                 ignoreCase = true
             )
         ) url.openConnection() as HttpsURLConnection else url.openConnection() as HttpURLConnection
-        conn.instanceFollowRedirects = true
+        conn.instanceFollowRedirects = false
         conn.connectTimeout = timeout
         conn.readTimeout = timeout
         TrafficStats.setThreadStatsTag(Thread.currentThread().id.toInt())
@@ -85,8 +91,8 @@ object NetworkApi {
             }
             return
         }
-        val size = src.available()
-        val buffer = ByteArray(if (size > 0) size else 512 * 1024)
+        val size = src.available().takeIf { it > 0 } ?: 0
+        val buffer = ByteArray(size.coerceIn(MIN_COPY_BUFFER_SIZE, MAX_COPY_BUFFER_SIZE))
         var bytesRead: Int
         while (src.read(buffer).also { bytesRead = it } != -1) {
             dest.write(buffer, 0, bytesRead)
@@ -100,4 +106,7 @@ object NetworkApi {
         }
         return relativeUrl
     }
+
+    private const val MIN_COPY_BUFFER_SIZE = 8 * 1024
+    private const val MAX_COPY_BUFFER_SIZE = 64 * 1024
 }

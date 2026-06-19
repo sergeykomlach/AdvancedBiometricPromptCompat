@@ -118,6 +118,14 @@ class TensorFlowFaceUnlockManager(
             config = tensorFlowFaceConfig
         }
 
+        private fun sanitizeEnrollmentTag(tag: String?): String? {
+            return tag
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?.replace(Regex("[^A-Za-z0-9_.-]"), "_")
+                ?.take(MAX_ENROLLMENT_TAG_LENGTH)
+        }
+
         private fun requestActiveSession(newManager: TensorFlowFaceUnlockManager) {
             synchronized(activeSessionLock) {
                 val previous = currentActiveManager
@@ -135,6 +143,8 @@ class TensorFlowFaceUnlockManager(
                 }
             }
         }
+
+        private const val MAX_ENROLLMENT_TAG_LENGTH = 80
     }
 
     private val effectiveConfig: EffectiveTensorFlowFaceConfig by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
@@ -444,7 +454,10 @@ class TensorFlowFaceUnlockManager(
     override fun getEnrollBundle(name: String?): Bundle {
         return Bundle().apply {
             putBoolean(IS_ENROLLMENT_KEY, true)
-            putString(ENROLLMENT_TAG_KEY, name ?: "face${(detector?.registeredCount() ?: 0) + 1}")
+            putString(
+                ENROLLMENT_TAG_KEY,
+                sanitizeEnrollmentTag(name) ?: "face${(detector?.registeredCount() ?: 0) + 1}"
+            )
         }
     }
 
@@ -483,7 +496,7 @@ class TensorFlowFaceUnlockManager(
         consecutiveMatchCounter = 0
         lastMatchedId = null
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
-        enrollmentTag = extra?.getString(ENROLLMENT_TAG_KEY)
+        enrollmentTag = sanitizeEnrollmentTag(extra?.getString(ENROLLMENT_TAG_KEY))
             ?: "face${(detector?.registeredCount() ?: 0) + 1}"
 
         if (!isHardwareDetected()) {

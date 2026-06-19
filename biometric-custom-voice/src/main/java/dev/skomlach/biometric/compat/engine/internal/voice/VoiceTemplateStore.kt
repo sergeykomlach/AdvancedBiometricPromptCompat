@@ -117,6 +117,7 @@ class VoiceTemplateStore {
     }
 
     private fun deserializeTemplates(tag: String, raw: String): List<VoiceTemplate> {
+        if (raw.length > MAX_SERIALIZED_TEMPLATE_CHARS) return emptyList()
         val parts = raw.split("|", limit = 2)
         if (parts.size != 2 || parts[0] !in setOf(FORMAT_VERSION_V1, FORMAT_VERSION)) return emptyList()
         return parts[1]
@@ -151,6 +152,7 @@ class VoiceTemplateStore {
     }
 
     private fun deserializeGmmModel(raw: String): GmmVoiceModel? {
+        if (raw.length > MAX_SERIALIZED_GMM_CHARS) return null
         val parts = raw.split(";")
         if (parts.size != 5) return null
         val weights = parseFloatArray(parts[0]).takeIf { it.isNotEmpty() } ?: return null
@@ -158,7 +160,14 @@ class VoiceTemplateStore {
         val variances = parseFrameList(parts[2]).takeIf { it.size == means.size } ?: return null
         val enrollmentLogLikelihood = parts[3].toFloatOrNull() ?: return null
         val enrollmentLogLikelihoodStd = parts[4].toFloatOrNull() ?: return null
-        if (weights.size != means.size || variances.any { it.size != means.first().size }) return null
+        if (!enrollmentLogLikelihood.isFinite() || !enrollmentLogLikelihoodStd.isFinite()) return null
+        if (weights.size != means.size ||
+            weights.size > MAX_GMM_COMPONENTS ||
+            means.first().size > MAX_GMM_FRAME_SIZE ||
+            variances.any { it.size != means.first().size }
+        ) {
+            return null
+        }
         return GmmVoiceModel(weights, means, variances, enrollmentLogLikelihood, enrollmentLogLikelihoodStd)
     }
 
@@ -171,11 +180,15 @@ class VoiceTemplateStore {
     }
 
     private fun parseFloatArray(raw: String): FloatArray {
-        return raw.split(",").mapNotNull { it.toFloatOrNull() }.toFloatArray()
+        return raw.split(",")
+            .take(MAX_FLOAT_ARRAY_VALUES)
+            .mapNotNull { it.toFloatOrNull()?.takeIf { value -> value.isFinite() } }
+            .toFloatArray()
     }
 
     private fun parseFrameList(raw: String): List<FloatArray> {
         return raw.split("/")
+            .take(MAX_GMM_COMPONENTS)
             .map { parseFloatArray(it) }
             .filter { it.isNotEmpty() }
     }
@@ -197,6 +210,11 @@ class VoiceTemplateStore {
         const val FORMAT_VERSION = "v2"
         const val MAX_TAG_LENGTH = 80
         const val MAX_TEMPLATES_PER_TAG = 5
+        const val MAX_SERIALIZED_TEMPLATE_CHARS = 262_144
+        const val MAX_SERIALIZED_GMM_CHARS = 131_072
+        const val MAX_FLOAT_ARRAY_VALUES = 1024
+        const val MAX_GMM_COMPONENTS = 16
+        const val MAX_GMM_FRAME_SIZE = 128
     }
 }
 

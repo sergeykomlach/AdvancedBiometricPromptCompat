@@ -53,6 +53,7 @@ object LocalizationHelper {
 
     private const val PREF_NAME = "LocalizationHelperV3"
     private const val AUTHOR_LOCALE_TAG = "en-US"
+    private const val MAX_WEB_RESPONSE_BYTES = 2 * 1024 * 1024
 
     @Volatile
     private var lastKnownAppLocaleTag: String = AndroidContext.appLocale.toLanguageTag()
@@ -148,7 +149,7 @@ object LocalizationHelper {
         try {
             urlConnection = NetworkApi.createConnection(url, 5000)
             urlConnection.requestMethod = "GET"
-            urlConnection.instanceFollowRedirects = true
+            urlConnection.instanceFollowRedirects = false
 
             urlConnection.setRequestProperty(
                 "User-Agent",
@@ -192,6 +193,12 @@ object LocalizationHelper {
                     LogCat.logError("Blocked non-web redirect for URL: $url")
                     return null
                 }
+                if (urlConnection.url.protocol.equals("https", ignoreCase = true) &&
+                    !target.startsWith("https://", ignoreCase = true)
+                ) {
+                    LogCat.logError("Blocked HTTPS downgrade redirect")
+                    return null
+                }
 
                 LogCat.log("Redirecting to: $target")
                 urlConnection.disconnect()
@@ -203,7 +210,13 @@ object LocalizationHelper {
                     ByteArrayOutputStream().use { result ->
                         val buffer = ByteArray(1024)
                         var length: Int
+                        var totalBytes = 0
                         while (inputStream.read(buffer).also { length = it } != -1) {
+                            totalBytes += length
+                            if (totalBytes > MAX_WEB_RESPONSE_BYTES) {
+                                LogCat.logError("Blocked oversized web response")
+                                return null
+                            }
                             result.write(buffer, 0, length)
                         }
                         return result.toString("UTF-8")

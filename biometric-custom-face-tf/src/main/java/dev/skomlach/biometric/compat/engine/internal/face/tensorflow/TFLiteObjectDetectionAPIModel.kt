@@ -53,6 +53,10 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         private const val IMAGE_MEAN = 128.0f
         private const val IMAGE_STD = 128.0f
         private const val MODEL_INIT_TIMEOUT_MS = 3_000L
+        private const val MAX_REGISTERED_TEMPLATES = 32
+        private const val MAX_EXTRA_ARRAYS = 4
+        private const val MAX_DEBUG_CROP_BASE64_CHARS = 512 * 1024
+        private const val MAX_TEMPLATE_NAME_LENGTH = 80
 
         @Throws(IOException::class)
         private fun loadModelFile(assets: AssetManager, modelFilename: String): MappedByteBuffer {
@@ -100,7 +104,7 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
             val jsonString = sharedPreferences.getString(PREF_NAME, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             val keys = jsonObjectRoot.keys()
-            while (keys.hasNext()) {
+            while (keys.hasNext() && map.size < MAX_REGISTERED_TEMPLATES) {
                 val name = keys.next()
                 try {
                     val jsonObject = jsonObjectRoot.getJSONObject(name)
@@ -174,12 +178,22 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         val recognition = SimilarityClassifier.Recognition(id, title, distance, location)
         if (jsonObject.has("extra")) {
             val top = jsonObject.getJSONArray("extra")
+            if (top.length() > MAX_EXTRA_ARRAYS) {
+                throw JSONException("Too many embedding arrays")
+            }
             val array = arrayOfNulls<FloatArray>(top.length())
             for (i in 0 until top.length()) {
                 val inner = top.getJSONArray(i)
+                if (inner.length() != OUTPUT_SIZE) {
+                    throw JSONException("Unexpected embedding size")
+                }
                 val innerArray = FloatArray(inner.length())
                 for (j in 0 until inner.length()) {
-                    innerArray[j] = inner.getDouble(j).toFloat()
+                    val value = inner.getDouble(j).toFloat()
+                    if (!value.isFinite()) {
+                        throw JSONException("Invalid embedding value")
+                    }
+                    innerArray[j] = value
                 }
                 array[i] = innerArray
             }
@@ -187,6 +201,9 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         }
         if (jsonObject.has("crop")) {
             val base64Bitmap = jsonObject.getString("crop")
+            if (base64Bitmap.length > MAX_DEBUG_CROP_BASE64_CHARS) {
+                throw JSONException("Debug crop is too large")
+            }
             val bytes = Base64.decode(base64Bitmap, Base64.DEFAULT)
             recognition.crop = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         }
@@ -272,12 +289,21 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
     }
 
     override fun register(name: String, rec: SimilarityClassifier.Recognition) {
-        registered[name] = rec
+        val safeName = sanitizeName(name)
+        registered[safeName] = rec
         val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
         val jsonString = sharedPreferences.getString(PREF_NAME, null)
         val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
-        jsonObjectRoot.put(name, recognition2json(rec))
+        jsonObjectRoot.put(safeName, recognition2json(rec))
         sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
+    }
+
+    private fun sanitizeName(name: String): String {
+        return name
+            .trim()
+            .replace(Regex("[^A-Za-z0-9_.-]"), "_")
+            .take(MAX_TEMPLATE_NAME_LENGTH)
+            .ifBlank { "face${registered.size + 1}" }
     }
 
     private fun findNearest(emb: FloatArray): Pair<String, Float>? {

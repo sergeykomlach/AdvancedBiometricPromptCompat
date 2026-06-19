@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
+import android.os.Bundle
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -180,6 +181,31 @@ class BehaviorScorerTest {
         )
 
         assertTrue(BehaviorScorer.score(enrolled, probe) < 0.82f)
+    }
+
+    @Test
+    fun fromBundleRejectsOversizedTypingPayload() {
+        val extras = Bundle().apply {
+            putString(BehaviorSample.EXTRA_BEHAVIOR_MODE, BehaviorMode.TYPING.name)
+            putString(BehaviorSample.EXTRA_BEHAVIOR_PHRASE, "open sesame")
+            putLongArray(BehaviorSample.EXTRA_BEHAVIOR_KEY_DOWNS, LongArray(513) { it * 100L })
+            putLongArray(BehaviorSample.EXTRA_BEHAVIOR_KEY_UPS, LongArray(513) { it * 100L + 40L })
+        }
+
+        assertTrue(BehaviorSample.fromBundle(extras) == null)
+    }
+
+    @Test
+    fun fromBundleRejectsInvalidSignaturePointPayload() {
+        val points = FloatArray(16 * 6) { index -> index.toFloat() }
+        points[0] = Float.NaN
+        val extras = Bundle().apply {
+            putString(BehaviorSample.EXTRA_BEHAVIOR_MODE, BehaviorMode.SIGNATURE.name)
+            putFloatArray(BehaviorSample.EXTRA_BEHAVIOR_POINTS, points)
+            putInt(BehaviorSample.EXTRA_BEHAVIOR_POINTS_STRIDE, 6)
+        }
+
+        assertTrue(BehaviorSample.fromBundle(extras) == null)
     }
 
     @Test
