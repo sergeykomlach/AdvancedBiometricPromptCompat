@@ -43,9 +43,13 @@ matching, instead of trusting a single best sample.
 Enrollment and authentication reject low-quality samples before matching:
 typing phrases must be long enough and have useful timing variation, while
 signature samples must contain enough points, path length, and visible shape
-area. Signature points support an optional `strokeId` field so separate pen
-strokes are not treated as one continuous path. Legacy five-value points are
-still accepted and are treated as a single stroke.
+area. Typing samples also fail closed when the text appears paste/autofill-like
+or unrealistically fast. Signature samples fail closed for repeated duplicate
+points and very simple straight-line shapes. Signature points support an
+optional `strokeId` field so separate pen strokes are not treated as one
+continuous path. Legacy five-value points are still accepted and are treated as
+a single stroke. Diagnostic logs include sanitized counts, durations, and
+coarse geometry buckets; phrases and raw coordinates are not logged.
 
 Alternatively, let the library collect samples from consumer-owned views:
 

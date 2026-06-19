@@ -3,15 +3,21 @@
 Experimental software voice biometric provider for `BIOMETRIC_VOICE`.
 
 The module follows the same `SoftwareBiometricProvider` contract as the TF face,
-ZK fingerprint, and behavior providers. It currently exposes a small Kotlin
-engine boundary:
+ZK fingerprint, and behavior providers. It does not inject a dedicated voice
+capture UI. Consumer apps are expected to provide recorded PCM audio or a
+precomputed embedding through request extras, while the provider handles quality
+checks, enrollment, scoring, lockout, hints, and errors. It currently exposes a
+small Kotlin engine boundary:
 
 - `VoiceSample` accepts either caller-provided PCM float audio or a precomputed
   speaker embedding through the request `Bundle`.
 - `CepstralVoiceEngine` is the default dependency-free PCM backend. It extracts
   MFCC-style cepstral features, applies per-utterance normalization, filters
   near-silent frames, and returns both frame-level features and a normalized
-  speaker-like embedding.
+  speaker-like embedding. PCM input is preprocessed with DC-offset removal,
+  adaptive leading/trailing silence trimming, noise-floor gating, and voiced
+  duration checks before features are extracted. The preprocessor also rejects
+  clipping-heavy samples and repeated loop-like audio before scoring.
 - Enrollment trains a lightweight diagonal GMM speaker model when frame-level
   features are available. Authentication prefers GMM log-likelihood scoring and
   falls back to embedding cosine only for legacy templates or external engines
@@ -26,7 +32,9 @@ engine boundary:
   normalized, filtered for outliers, augmented with a centroid template, and
   paired with a compact GMM model before storage when possible.
 - `VoiceBiometricManager` handles microphone permission, lockout, enroll,
-  authentication, and template removal.
+  authentication, and template removal. Diagnostic logs include sanitized
+  preprocessing metrics such as raw/voiced duration, frame counts, clipping
+  ratio, and repeated-chunk ratio; raw PCM and embeddings are not logged.
 
 Supported extras:
 
@@ -39,6 +47,17 @@ Supported extras:
   as text-independent and is suitable for multilingual speaker-embedding
   backends. When present, phrase mismatch is treated as a different template
   family.
+
+Consumer apps should prefer the typed `BiometricPromptCompat.Builder` helpers
+instead of writing these keys manually:
+
+- `setVoicePcmSample(sampleRateHz, pcmFloat)` for one recorded utterance.
+- `setVoicePcmSamples(sampleRateHz, pcmSamples)` or the vararg overload for
+  enrollment batches. Up to five non-empty samples are included in one request.
+- `setVoiceEmbedding(embedding)` for an external speaker-recognition backend.
+- `setVoicePhrase(phrase)` when the request should be phrase-bound.
+- `clearVoiceSample()` when reusing a builder and removing caller-provided voice
+  input.
 
 This is intentionally not a direct copy of Ye83/VAD-Speaker-Recognition-for-
 Android or other demo apps. Those projects are useful as backend references for

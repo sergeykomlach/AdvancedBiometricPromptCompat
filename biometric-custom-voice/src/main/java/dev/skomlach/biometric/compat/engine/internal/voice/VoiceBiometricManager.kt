@@ -112,7 +112,7 @@ class VoiceBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                "Voice sample is missing or incomplete"
+                "Voice sample is required. Provide a recorded voice sample or precomputed voice embedding."
             )
             return
         }
@@ -133,6 +133,9 @@ class VoiceBiometricManager(
         }
 
         val embeddingResults = samples.map { engine.extractEmbedding(it) }
+        val preprocessMetrics = embeddingResults
+            .mapNotNull { it?.preprocessMetrics }
+            .joinToString(separator = ";") { it.toLogString() }
         val embeddingQualityIssue = embeddingResults
             .map { it?.qualityIssue ?: VoiceQualityIssue.SAMPLE_MISSING }
             .firstOrNull { it != VoiceQualityIssue.NONE }
@@ -143,7 +146,7 @@ class VoiceBiometricManager(
             .map { it?.featureFrames.orEmpty() }
             .filter { it.isNotEmpty() }
         if (embeddings.size != samples.size || embeddingQualityIssue != VoiceQualityIssue.NONE) {
-            e("VoiceBiometricManager.authenticate embedding_quality=$embeddingQualityIssue")
+            e("VoiceBiometricManager.authenticate embedding_quality=$embeddingQualityIssue metrics=$preprocessMetrics")
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
@@ -160,7 +163,11 @@ class VoiceBiometricManager(
                 featureBatches
             )
             resetTemporaryLockoutState(prefs)
-            e("VoiceBiometricManager.enroll quality=OK samples=${embeddings.size}")
+            e(
+                "VoiceBiometricManager.enroll quality=OK samples=${embeddings.size} " +
+                    "featureBatches=${featureBatches.size} featureFrames=${featureBatches.sumOf { it.size }} " +
+                    "metrics=$preprocessMetrics"
+            )
             finishWithSuccess(callback, crypto, "Voice template enrolled: $tag")
             return
         }
@@ -174,7 +181,7 @@ class VoiceBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                "No voice biometric is enrolled"
+                "No voice biometric is enrolled. Record and enroll voice samples before authentication."
             )
             return
         }
@@ -186,14 +193,18 @@ class VoiceBiometricManager(
             .groupBy { it.tag }
             .values
             .map { enrolledTemplates ->
-                TemplateMatch(matchVoiceTemplates(enrolledTemplates, embedding, probeFrames, TOP_K_TEMPLATES))
+                matchVoiceTemplatesDetailed(enrolledTemplates, embedding, probeFrames, TOP_K_TEMPLATES)
             }
             .maxByOrNull { it.score }
-            ?: TemplateMatch(0f)
+            ?: VoiceTemplateMatch(0f, VoiceMatchMethod.NONE, 0, 0, probeFrames.size, null)
 
         e(
             "VoiceBiometricManager.authenticate templates=${templates.size} " +
-                "candidates=${matchingTemplates.size} score=${bestMatch.score} threshold=$MATCH_THRESHOLD"
+                "candidates=${matchingTemplates.size} " +
+                "method=${bestMatch.method} score=${bestMatch.score} threshold=$MATCH_THRESHOLD " +
+                "probeFrames=${bestMatch.probeFrameCount} gmmModels=${bestMatch.gmmModelCount} " +
+                "metrics=$preprocessMetrics " +
+                "gmm=${bestMatch.gmmDetails?.toLogString().orEmpty()}"
         )
         if (bestMatch.score >= MATCH_THRESHOLD) {
             resetTemporaryLockoutState(prefs)
@@ -228,13 +239,24 @@ class VoiceBiometricManager(
     private fun qualityMessage(issue: VoiceQualityIssue): CharSequence {
         return when (issue) {
             VoiceQualityIssue.NONE -> "Voice sample is valid"
-            VoiceQualityIssue.SAMPLE_MISSING -> "Voice sample is missing or incomplete"
-            VoiceQualityIssue.SAMPLE_RATE_TOO_LOW -> "Voice sample rate is too low"
-            VoiceQualityIssue.SAMPLE_TOO_SHORT -> "Voice sample is too short"
-            VoiceQualityIssue.SAMPLE_TOO_LONG -> "Voice sample is too long"
-            VoiceQualityIssue.SAMPLE_TOO_QUIET -> "Voice sample is too quiet"
-            VoiceQualityIssue.SAMPLE_TOO_FLAT -> "Voice sample has too little variation"
-            VoiceQualityIssue.EMBEDDING_INVALID -> "Voice embedding is invalid"
+            VoiceQualityIssue.SAMPLE_MISSING ->
+                "Voice sample is missing or incomplete. Provide PCM audio or a valid embedding."
+            VoiceQualityIssue.SAMPLE_RATE_TOO_LOW ->
+                "Voice sample rate is too low. Use 16 kHz mono PCM when possible."
+            VoiceQualityIssue.SAMPLE_TOO_SHORT ->
+                "Voice sample is too short. Speak naturally for at least one second."
+            VoiceQualityIssue.SAMPLE_TOO_LONG ->
+                "Voice sample is too long. Keep the voice sample under eight seconds."
+            VoiceQualityIssue.SAMPLE_TOO_QUIET ->
+                "Voice sample is too quiet. Move closer to the microphone and try again."
+            VoiceQualityIssue.SAMPLE_TOO_FLAT ->
+                "Voice sample has too little variation. Speak a clear phrase and try again."
+            VoiceQualityIssue.SAMPLE_CLIPPED ->
+                "Voice sample is clipped. Lower microphone gain or move slightly farther away."
+            VoiceQualityIssue.SAMPLE_REPLAY_RISK ->
+                "Voice sample looks repeated or synthetic. Record a fresh natural phrase."
+            VoiceQualityIssue.EMBEDDING_INVALID ->
+                "Voice embedding is invalid. Provide a finite non-empty speaker embedding."
         }
     }
 
@@ -293,6 +315,7 @@ class VoiceBiometricManager(
     }
 }
 
-private data class TemplateMatch(
-    val score: Float
-)
+private fun GmmConfidenceDetails.toLogString(): String {
+    return "avgLL=$averageLogLikelihood enrollLL=$enrollmentLogLikelihood " +
+        "drop=$likelihoodDrop allowedDrop=$allowedDrop components=$componentCount"
+}

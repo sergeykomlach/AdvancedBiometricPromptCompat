@@ -1,7 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import android.os.Bundle
-import kotlin.math.sqrt
 
 enum class VoiceQualityIssue {
     NONE,
@@ -11,6 +10,8 @@ enum class VoiceQualityIssue {
     SAMPLE_TOO_LONG,
     SAMPLE_TOO_QUIET,
     SAMPLE_TOO_FLAT,
+    SAMPLE_CLIPPED,
+    SAMPLE_REPLAY_RISK,
     EMBEDDING_INVALID
 }
 
@@ -28,10 +29,6 @@ data class VoiceSample(
         const val EXTRA_VOICE_SAMPLE_COUNT = "voice.sample_count"
 
         private const val MIN_SAMPLE_RATE_HZ = 8_000
-        private const val MIN_DURATION_MS = 900
-        private const val MAX_DURATION_MS = 8_000
-        private const val MIN_RMS = 0.012f
-        private const val MIN_DYNAMIC_RANGE = 0.025f
         private const val MIN_EMBEDDING_SIZE = 8
         private const val MAX_EMBEDDING_SIZE = 1024
 
@@ -108,25 +105,10 @@ data class VoiceSample(
 
         val pcm = pcmFloat ?: return VoiceQualityIssue.SAMPLE_MISSING
         if (sampleRateHz < MIN_SAMPLE_RATE_HZ) return VoiceQualityIssue.SAMPLE_RATE_TOO_LOW
-
-        val durationMs = pcm.size * 1000L / sampleRateHz
-        if (durationMs < MIN_DURATION_MS) return VoiceQualityIssue.SAMPLE_TOO_SHORT
-        if (durationMs > MAX_DURATION_MS) return VoiceQualityIssue.SAMPLE_TOO_LONG
-
-        var sumSquares = 0.0
-        var min = Float.MAX_VALUE
-        var max = -Float.MAX_VALUE
         for (value in pcm) {
             if (!value.isFinite()) return VoiceQualityIssue.SAMPLE_MISSING
-            val clipped = value.coerceIn(-1f, 1f)
-            sumSquares += clipped * clipped
-            min = kotlin.math.min(min, clipped)
-            max = kotlin.math.max(max, clipped)
         }
-        val rms = sqrt(sumSquares / pcm.size).toFloat()
-        if (rms < MIN_RMS) return VoiceQualityIssue.SAMPLE_TOO_QUIET
-        if (max - min < MIN_DYNAMIC_RANGE) return VoiceQualityIssue.SAMPLE_TOO_FLAT
-        return VoiceQualityIssue.NONE
+        return VoiceAudioPreprocessor.preprocess(pcm, sampleRateHz).qualityIssue
     }
 }
 

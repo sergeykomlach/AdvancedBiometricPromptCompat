@@ -67,12 +67,36 @@ object GmmVoiceTrainer {
     }
 
     fun confidence(model: GmmVoiceModel, probeFrames: List<FloatArray>): Float {
+        return confidenceDetails(model, probeFrames).confidence
+    }
+
+    fun confidenceDetails(model: GmmVoiceModel, probeFrames: List<FloatArray>): GmmConfidenceDetails {
         val frames = validFrames(probeFrames)
-        if (frames.size < MIN_PROBE_FRAMES || !model.isUsable()) return 0f
+        if (frames.size < MIN_PROBE_FRAMES || !model.isUsable()) {
+            return GmmConfidenceDetails(
+                confidence = 0f,
+                averageLogLikelihood = Float.NEGATIVE_INFINITY,
+                enrollmentLogLikelihood = model.enrollmentLogLikelihood,
+                likelihoodDrop = Float.POSITIVE_INFINITY,
+                allowedDrop = 0f,
+                probeFrameCount = frames.size,
+                componentCount = model.weights.size
+            )
+        }
         val likelihood = averageLogLikelihood(model, frames)
         val allowedDrop = (model.enrollmentLogLikelihoodStd * STD_MARGIN).coerceAtLeast(MIN_ALLOWED_DROP)
-        return (1f - ((model.enrollmentLogLikelihood - likelihood) / allowedDrop))
+        val likelihoodDrop = model.enrollmentLogLikelihood - likelihood
+        val confidence = (1f - (likelihoodDrop / allowedDrop))
             .coerceIn(0f, 1f)
+        return GmmConfidenceDetails(
+            confidence = confidence,
+            averageLogLikelihood = likelihood,
+            enrollmentLogLikelihood = model.enrollmentLogLikelihood,
+            likelihoodDrop = likelihoodDrop,
+            allowedDrop = allowedDrop,
+            probeFrameCount = frames.size,
+            componentCount = model.weights.size
+        )
     }
 
     fun averageLogLikelihood(model: GmmVoiceModel, probeFrames: List<FloatArray>): Float {
@@ -241,3 +265,13 @@ object GmmVoiceTrainer {
     private const val MIN_ALLOWED_DROP = 8f
     private const val STD_MARGIN = 4f
 }
+
+data class GmmConfidenceDetails(
+    val confidence: Float,
+    val averageLogLikelihood: Float,
+    val enrollmentLogLikelihood: Float,
+    val likelihoodDrop: Float,
+    val allowedDrop: Float,
+    val probeFrameCount: Int,
+    val componentCount: Int
+)

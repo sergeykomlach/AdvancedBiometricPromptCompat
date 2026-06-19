@@ -1,6 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class BehaviorScorerTest {
@@ -92,6 +93,32 @@ class BehaviorScorerTest {
     }
 
     @Test
+    fun qualityRejectsPasteLikeTypingSample() {
+        val sample = BehaviorSample(
+            mode = BehaviorMode.TYPING,
+            phrase = "open sesame pasted",
+            keyDownTimesMs = listOf(0, 120, 260, 390, 520),
+            keyUpTimesMs = listOf(80, 190, 330, 455, 595),
+            strokePoints = emptyList()
+        )
+
+        assertEquals(BehaviorQualityIssue.TYPING_EVENT_MISMATCH, sample.qualityIssue())
+    }
+
+    @Test
+    fun qualityRejectsUltraFastTypingSample() {
+        val sample = BehaviorSample(
+            mode = BehaviorMode.TYPING,
+            phrase = "open sesame",
+            keyDownTimesMs = listOf(0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40),
+            keyUpTimesMs = listOf(2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42),
+            strokePoints = emptyList()
+        )
+
+        assertEquals(BehaviorQualityIssue.TYPING_TIMING_TOO_FAST, sample.qualityIssue())
+    }
+
+    @Test
     fun qualityAcceptsUsableSignature() {
         val sample = BehaviorSample(
             mode = BehaviorMode.SIGNATURE,
@@ -107,6 +134,35 @@ class BehaviorScorerTest {
         )
 
         assertTrue(sample.qualityIssue() == BehaviorQualityIssue.NONE)
+    }
+
+    @Test
+    fun qualityRejectsStraightLineSignature() {
+        val sample = BehaviorSample(
+            mode = BehaviorMode.SIGNATURE,
+            phrase = null,
+            keyDownTimesMs = emptyList(),
+            keyUpTimesMs = emptyList(),
+            strokePoints = (0 until 20).map { index ->
+                BehaviorPoint(index * 8f, index * 8f, index * 18L)
+            }
+        )
+
+        assertEquals(BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SIMPLE, sample.qualityIssue())
+    }
+
+    @Test
+    fun qualityRejectsDuplicatePointHeavySignature() {
+        val base = signaturePoints(stepMs = 15)
+        val sample = BehaviorSample(
+            mode = BehaviorMode.SIGNATURE,
+            phrase = null,
+            keyDownTimesMs = emptyList(),
+            keyUpTimesMs = emptyList(),
+            strokePoints = base.flatMap { point -> listOf(point, point.copy(timestampMs = point.timestampMs + 1)) }
+        )
+
+        assertEquals(BehaviorQualityIssue.SIGNATURE_DUPLICATE_POINTS, sample.qualityIssue())
     }
 
     @Test

@@ -92,6 +92,12 @@ import java.util.concurrent.atomic.AtomicLong
 
 class BiometricPromptCompat private constructor(private val builder: Builder) {
     companion object {
+        private const val EXTRA_VOICE_SAMPLE_RATE = "voice.sample_rate"
+        private const val EXTRA_VOICE_PCM_FLOAT = "voice.pcm_float"
+        private const val EXTRA_VOICE_EMBEDDING = "voice.embedding"
+        private const val EXTRA_VOICE_PHRASE = "voice.phrase"
+        private const val EXTRA_VOICE_SAMPLE_COUNT = "voice.sample_count"
+        private const val MAX_VOICE_SAMPLE_COUNT = 5
         private var reference = AtomicBoolean(false)
         var API_ENABLED = true
             private set
@@ -2290,11 +2296,80 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
         fun setVoicePhrase(phrase: CharSequence?): Builder {
             voicePhrase = phrase
+            val normalizedPhrase = phrase?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+            val updatedExtras = Bundle(extras ?: Bundle())
+            if (normalizedPhrase == null) {
+                updatedExtras.remove(EXTRA_VOICE_PHRASE)
+            } else {
+                updatedExtras.putString(EXTRA_VOICE_PHRASE, normalizedPhrase)
+            }
+            extras = updatedExtras
             return this
         }
 
         fun getVoicePhrase(): CharSequence? {
             return voicePhrase
+        }
+
+        fun setVoicePcmSample(sampleRateHz: Int, pcmFloat: FloatArray?): Builder {
+            return setVoicePcmSamples(
+                sampleRateHz = sampleRateHz,
+                pcmSamples = pcmFloat?.let { listOf(it) }.orEmpty()
+            )
+        }
+
+        fun setVoicePcmSamples(sampleRateHz: Int, vararg pcmSamples: FloatArray): Builder {
+            return setVoicePcmSamples(sampleRateHz, pcmSamples.asList())
+        }
+
+        fun setVoicePcmSamples(sampleRateHz: Int, pcmSamples: Collection<FloatArray>): Builder {
+            val updatedExtras = voiceExtrasWithoutSamples()
+            val samples = pcmSamples
+                .asSequence()
+                .filter { it.isNotEmpty() }
+                .take(MAX_VOICE_SAMPLE_COUNT)
+                .map { it.copyOf() }
+                .toList()
+            if (samples.isNotEmpty()) {
+                updatedExtras.putInt(EXTRA_VOICE_SAMPLE_RATE, sampleRateHz)
+                if (samples.size == 1) {
+                    updatedExtras.putFloatArray(EXTRA_VOICE_PCM_FLOAT, samples.first())
+                } else {
+                    updatedExtras.putInt(EXTRA_VOICE_SAMPLE_COUNT, samples.size)
+                    samples.forEachIndexed { index, sample ->
+                        updatedExtras.putFloatArray("$EXTRA_VOICE_PCM_FLOAT.$index", sample)
+                    }
+                }
+            }
+            extras = updatedExtras
+            return this
+        }
+
+        fun setVoiceEmbedding(embedding: FloatArray?): Builder {
+            val updatedExtras = voiceExtrasWithoutSamples()
+            embedding
+                ?.copyOf()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { updatedExtras.putFloatArray(EXTRA_VOICE_EMBEDDING, it) }
+            extras = updatedExtras
+            return this
+        }
+
+        fun clearVoiceSample(): Builder {
+            extras = voiceExtrasWithoutSamples()
+            return this
+        }
+
+        private fun voiceExtrasWithoutSamples(): Bundle {
+            val updatedExtras = Bundle(extras ?: Bundle())
+            updatedExtras.remove(EXTRA_VOICE_SAMPLE_RATE)
+            updatedExtras.remove(EXTRA_VOICE_PCM_FLOAT)
+            updatedExtras.remove(EXTRA_VOICE_EMBEDDING)
+            updatedExtras.remove(EXTRA_VOICE_SAMPLE_COUNT)
+            repeat(MAX_VOICE_SAMPLE_COUNT) { index ->
+                updatedExtras.remove("$EXTRA_VOICE_PCM_FLOAT.$index")
+            }
+            return updatedExtras
         }
 
         fun getNegativeButtonText(): CharSequence? {
@@ -2318,4 +2393,5 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return BiometricPromptCompat(this)
         }
     }
+
 }

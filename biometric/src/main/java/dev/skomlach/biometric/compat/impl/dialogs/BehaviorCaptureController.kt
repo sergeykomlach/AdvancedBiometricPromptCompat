@@ -127,6 +127,7 @@ internal class BehaviorCaptureController(
 
     private fun showOverlay(container: FrameLayout) {
         if (overlayView != null) return
+        resetCapturedSample()
         overlayView = createOverlay(container).also { container.addView(it) }
     }
 
@@ -244,6 +245,22 @@ internal class BehaviorCaptureController(
     private fun hideOverlay() {
         overlayView?.let { (it.parent as? ViewGroup)?.removeView(it) }
         overlayView = null
+    }
+
+    private fun resetCapturedSample() {
+        prepared = false
+        keyDowns.clear()
+        keyUps.clear()
+        points.clear()
+        if (::signaturePad.isInitialized) {
+            signaturePad.clear()
+        }
+        if (ownsTypingView && ::phraseInput.isInitialized) {
+            phraseInput.text = ""
+        }
+        if (::actionButton.isInitialized) {
+            actionButton.isEnabled = true
+        }
     }
 
     private fun attachTypingCapture(view: TextView) {
@@ -443,6 +460,12 @@ internal class BehaviorCaptureController(
                 color = 0x11ffffff,
                 radius = 12 * context.resources.displayMetrics.density
             )
+        }
+
+        fun clear() {
+            path.reset()
+            strokeId = 0
+            invalidate()
         }
 
         override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -8,7 +8,8 @@ interface VoiceEngine {
 data class VoiceEmbeddingResult(
     val embedding: FloatArray,
     val qualityIssue: VoiceQualityIssue = VoiceQualityIssue.NONE,
-    val featureFrames: List<FloatArray> = emptyList()
+    val featureFrames: List<FloatArray> = emptyList(),
+    val preprocessMetrics: VoicePreprocessMetrics? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -16,13 +17,15 @@ data class VoiceEmbeddingResult(
         other as VoiceEmbeddingResult
         return embedding.contentEquals(other.embedding) &&
             qualityIssue == other.qualityIssue &&
-            featureFrames.contentDeepEquals(other.featureFrames)
+            featureFrames.contentDeepEquals(other.featureFrames) &&
+            preprocessMetrics == other.preprocessMetrics
     }
 
     override fun hashCode(): Int {
         var result = embedding.contentHashCode()
         result = 31 * result + qualityIssue.hashCode()
         result = 31 * result + featureFrames.contentDeepHashCode()
+        result = 31 * result + (preprocessMetrics?.hashCode() ?: 0)
         return result
     }
 }

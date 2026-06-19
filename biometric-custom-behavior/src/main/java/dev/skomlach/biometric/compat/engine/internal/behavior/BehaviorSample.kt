@@ -15,10 +15,14 @@ enum class BehaviorQualityIssue {
     NONE,
     TYPING_PHRASE_TOO_SHORT,
     TYPING_SAMPLE_TOO_SHORT,
+    TYPING_EVENT_MISMATCH,
+    TYPING_TIMING_TOO_FAST,
     TYPING_TIMING_TOO_UNIFORM,
     SIGNATURE_SAMPLE_TOO_SHORT,
     SIGNATURE_PATH_TOO_SHORT,
-    SIGNATURE_SHAPE_TOO_SMALL
+    SIGNATURE_SHAPE_TOO_SMALL,
+    SIGNATURE_SHAPE_TOO_SIMPLE,
+    SIGNATURE_DUPLICATE_POINTS
 }
 
 data class BehaviorSample(
@@ -45,6 +49,11 @@ data class BehaviorSample(
         private const val MIN_PRODUCTION_SIGNATURE_POINTS = 16
         private const val MIN_SIGNATURE_PATH_LENGTH_PX = 64.0
         private const val MIN_SIGNATURE_BOUNDS_PX = 24f
+        private const val MAX_TYPING_EVENT_GAP = 2
+        private const val MIN_AVERAGE_TYPING_STEP_MS = 25.0
+        private const val MIN_TYPING_DURATION_MS = 180L
+        private const val MAX_SIGNATURE_DIRECTNESS = 0.96
+        private const val MAX_SIGNATURE_DUPLICATE_RATIO = 0.28
 
         fun fromBundle(extra: Bundle?): BehaviorSample? {
             if (extra == null) return null
@@ -121,6 +130,42 @@ data class BehaviorSample(
         }
     }
 
+    fun metrics(): BehaviorSampleMetrics {
+        val typingDurationMs = if (keyDownTimesMs.isNotEmpty() && keyUpTimesMs.isNotEmpty()) {
+            keyUpTimesMs.last() - keyDownTimesMs.first()
+        } else {
+            0L
+        }
+        val strokeCount = strokePoints.map { it.strokeId }.distinct().size
+        val signatureDurationMs = if (strokePoints.isNotEmpty()) {
+            strokePoints.last().timestampMs - strokePoints.first().timestampMs
+        } else {
+            0L
+        }
+        val signaturePathLength = signaturePathLength()
+        val signatureWidth = if (strokePoints.isNotEmpty()) {
+            strokePoints.maxOf { it.x } - strokePoints.minOf { it.x }
+        } else {
+            0f
+        }
+        val signatureHeight = if (strokePoints.isNotEmpty()) {
+            strokePoints.maxOf { it.y } - strokePoints.minOf { it.y }
+        } else {
+            0f
+        }
+        return BehaviorSampleMetrics(
+            mode = mode,
+            phraseLength = phrase?.trim()?.length ?: 0,
+            keyEventCount = keyDownTimesMs.size,
+            typingDurationMs = typingDurationMs.coerceAtLeast(0L),
+            signaturePointCount = strokePoints.size,
+            signatureStrokeCount = strokeCount,
+            signatureDurationMs = signatureDurationMs.coerceAtLeast(0L),
+            signaturePathLengthBucket = signaturePathLength.bucket(),
+            signatureBoundsBucket = kotlin.math.max(signatureWidth, signatureHeight).toDouble().bucket()
+        )
+    }
+
     private fun typingQualityIssue(): BehaviorQualityIssue {
         val normalizedPhrase = phrase?.trim().orEmpty()
         if (normalizedPhrase.length < MIN_PRODUCTION_TYPING_CHARS) {
@@ -130,6 +175,21 @@ data class BehaviorSample(
             keyDownTimesMs.size != keyUpTimesMs.size
         ) {
             return BehaviorQualityIssue.TYPING_SAMPLE_TOO_SHORT
+        }
+        if (keyDownTimesMs.zipWithNext().any { (left, right) -> right < left } ||
+            keyUpTimesMs.zipWithNext().any { (left, right) -> right < left } ||
+            keyDownTimesMs.zip(keyUpTimesMs).any { (down, up) -> up <= down }
+        ) {
+            return BehaviorQualityIssue.TYPING_SAMPLE_TOO_SHORT
+        }
+        if (kotlin.math.abs(normalizedPhrase.length - keyDownTimesMs.size) > MAX_TYPING_EVENT_GAP) {
+            return BehaviorQualityIssue.TYPING_EVENT_MISMATCH
+        }
+        val durationMs = keyUpTimesMs.last() - keyDownTimesMs.first()
+        if (durationMs < MIN_TYPING_DURATION_MS ||
+            durationMs.toDouble() / keyDownTimesMs.size < MIN_AVERAGE_TYPING_STEP_MS
+        ) {
+            return BehaviorQualityIssue.TYPING_TIMING_TOO_FAST
         }
         val dwellTimes = keyDownTimesMs.indices.map { keyUpTimesMs[it] - keyDownTimesMs[it] }
         val flightTimes = keyDownTimesMs.indices.drop(1).map { keyDownTimesMs[it] - keyUpTimesMs[it - 1] }
@@ -144,12 +204,13 @@ data class BehaviorSample(
         if (strokePoints.size < MIN_PRODUCTION_SIGNATURE_POINTS) {
             return BehaviorQualityIssue.SIGNATURE_SAMPLE_TOO_SHORT
         }
-        val pathLength = strokePoints
-            .zipWithNext()
-            .filter { (left, right) -> left.strokeId == right.strokeId }
-            .sumOf { (left, right) ->
-                kotlin.math.hypot((right.x - left.x).toDouble(), (right.y - left.y).toDouble())
-            }
+        val duplicateRatio = strokePoints.zipWithNext().count { (left, right) ->
+            left.strokeId == right.strokeId && left.x == right.x && left.y == right.y
+        }.toDouble() / (strokePoints.size - 1).coerceAtLeast(1)
+        if (duplicateRatio > MAX_SIGNATURE_DUPLICATE_RATIO) {
+            return BehaviorQualityIssue.SIGNATURE_DUPLICATE_POINTS
+        }
+        val pathLength = signaturePathLength()
         if (pathLength < MIN_SIGNATURE_PATH_LENGTH_PX) {
             return BehaviorQualityIssue.SIGNATURE_PATH_TOO_SHORT
         }
@@ -158,7 +219,52 @@ data class BehaviorSample(
         if (kotlin.math.max(width, height) < MIN_SIGNATURE_BOUNDS_PX) {
             return BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SMALL
         }
+        val directDistance = kotlin.math.hypot(
+            (strokePoints.last().x - strokePoints.first().x).toDouble(),
+            (strokePoints.last().y - strokePoints.first().y).toDouble()
+        )
+        if (pathLength > 0.0 && directDistance / pathLength > MAX_SIGNATURE_DIRECTNESS) {
+            return BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SIMPLE
+        }
         return BehaviorQualityIssue.NONE
     }
 
+    private fun signaturePathLength(): Double {
+        return strokePoints
+            .zipWithNext()
+            .filter { (left, right) -> left.strokeId == right.strokeId }
+            .sumOf { (left, right) ->
+                kotlin.math.hypot((right.x - left.x).toDouble(), (right.y - left.y).toDouble())
+            }
+    }
+
+    private fun Double.bucket(): Int {
+        return when {
+            this <= 0.0 -> 0
+            this < 50.0 -> 50
+            this < 100.0 -> 100
+            this < 250.0 -> 250
+            this < 500.0 -> 500
+            else -> 1000
+        }
+    }
+
+}
+
+data class BehaviorSampleMetrics(
+    val mode: BehaviorMode,
+    val phraseLength: Int,
+    val keyEventCount: Int,
+    val typingDurationMs: Long,
+    val signaturePointCount: Int,
+    val signatureStrokeCount: Int,
+    val signatureDurationMs: Long,
+    val signaturePathLengthBucket: Int,
+    val signatureBoundsBucket: Int
+) {
+    fun toLogString(): String {
+        return "mode=$mode phraseLen=$phraseLength keyEvents=$keyEventCount typingMs=$typingDurationMs " +
+            "points=$signaturePointCount strokes=$signatureStrokeCount signatureMs=$signatureDurationMs " +
+            "pathBucket=$signaturePathLengthBucket boundsBucket=$signatureBoundsBucket"
+    }
 }

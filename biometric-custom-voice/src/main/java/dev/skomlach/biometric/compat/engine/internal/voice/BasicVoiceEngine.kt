@@ -20,8 +20,17 @@ class BasicVoiceEngine : VoiceEngine {
         }
 
         val pcm = sample.pcmFloat ?: return null
-        val frames = frameFeatures(pcm, FRAME_COUNT)
-        return frames.normalize()?.let { VoiceEmbeddingResult(it) }
+        val preprocessResult = VoiceAudioPreprocessor.preprocess(pcm, sample.sampleRateHz)
+        if (preprocessResult.qualityIssue != VoiceQualityIssue.NONE) {
+            return VoiceEmbeddingResult(
+                FloatArray(0),
+                preprocessResult.qualityIssue,
+                preprocessMetrics = preprocessResult.metrics
+            )
+        }
+
+        val frames = frameFeatures(preprocessResult.pcm, FRAME_COUNT)
+        return frames.normalize()?.let { VoiceEmbeddingResult(it, preprocessMetrics = preprocessResult.metrics) }
     }
 
     private fun frameFeatures(pcm: FloatArray, frameCount: Int): FloatArray {

@@ -23,11 +23,32 @@ class CepstralVoiceEngine : VoiceEngine {
         }
 
         val pcm = sample.pcmFloat ?: return null
-        val mfccFrames = normalizeFrames(extractMfccFrames(pcm, sample.sampleRateHz))
-        if (mfccFrames.size < MIN_FRAMES) return VoiceEmbeddingResult(FloatArray(0), VoiceQualityIssue.SAMPLE_TOO_SHORT)
+        val preprocessResult = VoiceAudioPreprocessor.preprocess(pcm, sample.sampleRateHz)
+        if (preprocessResult.qualityIssue != VoiceQualityIssue.NONE) {
+            return VoiceEmbeddingResult(
+                FloatArray(0),
+                preprocessResult.qualityIssue,
+                preprocessMetrics = preprocessResult.metrics
+            )
+        }
+
+        val mfccFrames = normalizeFrames(extractMfccFrames(preprocessResult.pcm, sample.sampleRateHz))
+        if (mfccFrames.size < MIN_FRAMES) {
+            return VoiceEmbeddingResult(
+                FloatArray(0),
+                VoiceQualityIssue.SAMPLE_TOO_SHORT,
+                preprocessMetrics = preprocessResult.metrics
+            )
+        }
 
         val embedding = pooledEmbedding(mfccFrames)
-        return embedding.normalizedCopy()?.let { VoiceEmbeddingResult(it, featureFrames = mfccFrames) }
+        return embedding.normalizedCopy()?.let {
+            VoiceEmbeddingResult(
+                it,
+                featureFrames = mfccFrames,
+                preprocessMetrics = preprocessResult.metrics
+            )
+        }
     }
 
     private fun extractMfccFrames(pcm: FloatArray, sampleRateHz: Int): List<FloatArray> {

@@ -100,8 +100,9 @@ class BehaviorBiometricManager(
             return
         }
         val qualityIssue = sample.qualityIssue()
+        val metrics = sample.metrics().toLogString()
         if (qualityIssue != BehaviorQualityIssue.NONE) {
-            e("BehaviorBiometricManager.authenticate mode=${sample.mode} quality=$qualityIssue")
+            e("BehaviorBiometricManager.authenticate quality=$qualityIssue metrics=$metrics")
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
@@ -113,7 +114,7 @@ class BehaviorBiometricManager(
         if (extra?.getBoolean(IS_ENROLLMENT_KEY, false) == true) {
             val tag = store.save(extra.getString(ENROLLMENT_TAG_KEY), sample)
             resetTemporaryLockoutState(prefs)
-            e("BehaviorBiometricManager.enroll mode=${sample.mode} quality=OK")
+            e("BehaviorBiometricManager.enroll quality=OK metrics=$metrics")
             finishWithSuccess(callback, crypto, "Behavior template enrolled: $tag")
             return
         }
@@ -138,8 +139,8 @@ class BehaviorBiometricManager(
 
         val threshold = thresholdFor(sample.mode)
         e(
-            "BehaviorBiometricManager.authenticate mode=${sample.mode} " +
-                "templates=${templates.size} score=${bestMatch.score} threshold=$threshold"
+            "BehaviorBiometricManager.authenticate templates=${templates.size} " +
+                "score=${bestMatch.score} threshold=$threshold metrics=$metrics"
         )
         if (bestMatch.score >= threshold) {
             resetTemporaryLockoutState(prefs)
@@ -191,10 +192,18 @@ class BehaviorBiometricManager(
             BehaviorQualityIssue.NONE -> "Behavior sample is valid"
             BehaviorQualityIssue.TYPING_PHRASE_TOO_SHORT -> "Typing phrase is too short"
             BehaviorQualityIssue.TYPING_SAMPLE_TOO_SHORT -> "Typing sample is too short"
+            BehaviorQualityIssue.TYPING_EVENT_MISMATCH ->
+                "Typing sample does not match the phrase. Type the phrase manually."
+            BehaviorQualityIssue.TYPING_TIMING_TOO_FAST ->
+                "Typing sample is too fast. Type the phrase naturally."
             BehaviorQualityIssue.TYPING_TIMING_TOO_UNIFORM -> "Typing sample has too little timing variation"
             BehaviorQualityIssue.SIGNATURE_SAMPLE_TOO_SHORT -> "Signature sample is too short"
             BehaviorQualityIssue.SIGNATURE_PATH_TOO_SHORT -> "Signature path is too short"
             BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SMALL -> "Signature shape is too small"
+            BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SIMPLE ->
+                "Signature shape is too simple. Draw your normal signature."
+            BehaviorQualityIssue.SIGNATURE_DUPLICATE_POINTS ->
+                "Signature sample has too many repeated points. Draw the signature naturally."
         }
     }
 

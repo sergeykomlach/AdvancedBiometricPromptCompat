@@ -27,6 +27,23 @@ class CepstralVoiceEngineTest {
     }
 
     @Test
+    fun buildsEmbeddingFromSilencePaddedPcm() {
+        val voice = voiceLikeTone(180.0, 0.02f, durationSeconds = 2)
+        val sample = VoiceSample(
+            sampleRateHz = SAMPLE_RATE,
+            pcmFloat = FloatArray(SAMPLE_RATE) + voice + FloatArray(SAMPLE_RATE),
+            embedding = null,
+            phrase = null
+        )
+
+        val result = CepstralVoiceEngine().extractEmbedding(sample)
+
+        assertEquals(VoiceQualityIssue.NONE, result?.qualityIssue)
+        assertTrue(result?.embedding?.isValidEmbedding() == true)
+        assertTrue(result?.featureFrames?.isNotEmpty() == true)
+    }
+
+    @Test
     fun scoresSimilarVoiceLikeSamplesHigherThanDifferentSpectralShape() {
         val engine = CepstralVoiceEngine()
         val enrolled = engine.extractEmbedding(
@@ -52,8 +69,8 @@ class CepstralVoiceEngineTest {
         assertTrue(differentScore < similarScore - 0.08f)
     }
 
-    private fun voiceLikeTone(baseFrequency: Double, noiseScale: Float): FloatArray {
-        return FloatArray(SAMPLE_RATE * 2) { index ->
+    private fun voiceLikeTone(baseFrequency: Double, noiseScale: Float, durationSeconds: Int = 2): FloatArray {
+        return FloatArray(SAMPLE_RATE * durationSeconds) { index ->
             val time = index.toDouble() / SAMPLE_RATE
             val harmonic = 0.42 * sin(2.0 * PI * baseFrequency * time) +
                 0.19 * sin(2.0 * PI * baseFrequency * 2.0 * time) +
