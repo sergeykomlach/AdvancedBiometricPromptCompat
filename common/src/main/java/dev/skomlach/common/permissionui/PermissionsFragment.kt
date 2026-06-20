@@ -65,6 +65,8 @@ class PermissionsFragment : Fragment() {
         private const val TAG = "PermissionsFragment"
         private const val LIST_KEY = "permissions_list"
         private const val INTENT_KEY = "PermissionsFragment.intent_key"
+        private const val PREFERENCES_NAME = "BiometricCompat_PermissionsFragment"
+        private const val DENIED_KEY_PREFIX = "denied:"
 
         fun extractDescriptionsForPermissions(keys: List<String>): String? {
             val permissionsList = PermissionUtils.INSTANCE.getPermissions(keys)
@@ -204,8 +206,7 @@ class PermissionsFragment : Fragment() {
                     requireActivity(),
                     it
                 )
-            } && (SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment")
-                .getBoolean("denied", false))
+            } && previouslyDeniedPermissions(permissions).isNotEmpty()
         ) {
             val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
             val uri = Uri.fromParts("package", requireActivity().packageName, null)
@@ -262,33 +263,52 @@ class PermissionsFragment : Fragment() {
     }
 
     private fun requestPermissions(permissions: List<String>) {
-        if (permissions.any {
-                ActivityCompat.shouldShowRequestPermissionRationale(
-                    requireActivity(),
-                    it
-                )
-            }) {
-            SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment").edit {
-                putBoolean("denied", true)
+        val permissionsWithRationale = permissions.filterTo(HashSet()) {
+            ActivityCompat.shouldShowRequestPermissionRationale(
+                requireActivity(),
+                it
+            )
+        }
+        when (permissionRequestDecision(
+            permissions,
+            permissionsWithRationale,
+            previouslyDeniedPermissions(permissions)
+        )) {
+            PermissionRequestDecision.SHOW_RATIONALE -> {
+                markDenied(permissionsWithRationale)
+                showPermissionDeniedDialog(permissions)
             }
-            showPermissionDeniedDialog(permissions)
-            return
-        } else {
-            if (!permissions.any {
-                    ActivityCompat.shouldShowRequestPermissionRationale(
-                        requireActivity(),
-                        it
-                    )
-                } && (SharedPreferenceProvider.getPreferences("BiometricCompat_PermissionsFragment")
-                    .getBoolean("denied", false))
-            ) {
+
+            PermissionRequestDecision.SHOW_MANDATORY_SETTINGS -> {
                 showMandatoryPermissionsNeedDialog(permissions)
-                return
-            } else {
-                //ask permission
+            }
+
+            PermissionRequestDecision.REQUEST_RUNTIME -> {
                 startForResultForPermissions.launch(permissions.toTypedArray())
             }
         }
+    }
+
+    private fun previouslyDeniedPermissions(permissions: Collection<String>): Set<String> {
+        val preferences = SharedPreferenceProvider.getPreferences(PREFERENCES_NAME)
+        return permissions.filterTo(HashSet()) { permission ->
+            preferences.getBoolean(deniedPreferenceKey(permission), false)
+        }
+    }
+
+    private fun markDenied(permissions: Collection<String>) {
+        if (permissions.isEmpty()) {
+            return
+        }
+        SharedPreferenceProvider.getPreferences(PREFERENCES_NAME).edit {
+            permissions.forEach { permission ->
+                putBoolean(deniedPreferenceKey(permission), true)
+            }
+        }
+    }
+
+    private fun deniedPreferenceKey(permission: String): String {
+        return "$DENIED_KEY_PREFIX$permission"
     }
 
     /**
