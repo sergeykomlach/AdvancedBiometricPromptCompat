@@ -39,7 +39,7 @@ import org.json.JSONObject
 
 object DataProviders {
 
-    private fun extractFileNameFromUrl(urlStr: String?): String {
+    internal fun extractFileNameFromUrl(urlStr: String?): String {
         require(!urlStr.isNullOrBlank()) { "URL is empty" }
 
         val uri = try {
@@ -84,7 +84,18 @@ object DataProviders {
             throw IllegalArgumentException("Could not extract file name from URL: $urlStr")
         }
 
-        return fileName
+        return sanitizeCacheFileName(fileName, urlStr)
+    }
+
+    internal fun sanitizeCacheFileName(rawName: String?, fallbackSeed: String = "cache"): String {
+        val lastSegment = rawName
+            ?.substringAfterLast("/")
+            ?.substringAfterLast("\\")
+            ?.replace(Regex("[^A-Za-z0-9._-]"), "_")
+            ?.trim('.', '_')
+            ?.take(MAX_CACHE_FILE_NAME_LENGTH)
+        if (!lastSegment.isNullOrBlank()) return lastSegment
+        return "cache_${Integer.toHexString(fallbackSeed.hashCode())}.json"
     }
 
     private val loadingInProgress = LruCache<String, Boolean>(50)
@@ -158,6 +169,11 @@ object DataProviders {
             validateJson(data)
             val cacheDir = AndroidContext.appContext.cacheDir
             val file = File(cacheDir, name)
+            val canonicalCacheDir = cacheDir.canonicalFile
+            val canonicalFile = file.canonicalFile
+            if (canonicalFile.parentFile != canonicalCacheDir) {
+                throw SecurityException("Unsafe cache file path")
+            }
             val parent = file.parentFile
             if (parent != null && !parent.exists()) {
                 parent.mkdirs()
@@ -192,5 +208,7 @@ object DataProviders {
             throw IllegalArgumentException("Unexpected JSON root")
         }
     }
+
+    private const val MAX_CACHE_FILE_NAME_LENGTH = 128
 
 }
