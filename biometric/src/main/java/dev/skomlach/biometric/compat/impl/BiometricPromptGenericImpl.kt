@@ -39,6 +39,10 @@ import dev.skomlach.common.misc.ExecutorHelper
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
+internal fun legacyAuthStartDelayMillis(hideCompatDialog: Boolean): Long {
+    return if (hideCompatDialog) 0L else 500L
+}
+
 class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Builder) :
     IBiometricPromptImpl, AuthCallback {
     private var dialog: BiometricPromptCompatDialogImpl? = null
@@ -115,7 +119,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
                 builder.getDisabledModuleTags(),
                 builder.isCryptoFallbackAllowed()
             )
-        }, 500)
+        }, legacyAuthStartDelayMillis(shouldHideCompatDialogForUnderDisplayFingerprint))
 
     }
 

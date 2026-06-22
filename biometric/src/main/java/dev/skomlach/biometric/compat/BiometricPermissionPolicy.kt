@@ -19,15 +19,16 @@
 
 package dev.skomlach.biometric.compat
 
-import android.Manifest
-
 /**
- * Enrollment camera denial is terminal because software face setup cannot proceed without it.
+ * Enrollment permission denial is terminal only when no other selected route remains usable.
  * Runtime authentication keeps other fallback routes available.
  */
 internal fun shouldStopAfterPermissionDenied(
     enroll: Boolean,
-    deniedPermissions: Collection<String>
+    deniedPermissions: Collection<String>,
+    hasUsableRouteAfterDeniedModules: Boolean = false
 ): Boolean {
-    return enroll && deniedPermissions.contains(Manifest.permission.CAMERA)
+    return enroll &&
+            deniedPermissions.isNotEmpty() &&
+            !hasUsableRouteAfterDeniedModules
 }

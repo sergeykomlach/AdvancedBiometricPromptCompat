@@ -1040,10 +1040,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     if (permissionsMap.any { p ->
                             PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                         }) {
+                        disablePermissionDeniedModules(permissionsMap)
                         if (stopAfterPermissionDenied(callback, permissionsMap)) {
                             return@askForPermissions
                         }
-                        disablePermissionDeniedModules(permissionsMap)
                         authTask.invoke()
                     } else {
                         disablePermissionDeniedModules(permissionsMap)
@@ -1061,10 +1061,10 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 if (permissionsMap.any { p ->
                         PermissionUtils.INSTANCE.hasSelfPermissions(p.second)
                     }) {
+                    disablePermissionDeniedModules(permissionsMap)
                     if (stopAfterPermissionDenied(callback, permissionsMap)) {
                         return
                     }
-                    disablePermissionDeniedModules(permissionsMap)
                     authTask.invoke()
                 } else {
                     disablePermissionDeniedModules(permissionsMap)
@@ -1093,7 +1093,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             }
             .distinct()
-        if (!shouldStopAfterPermissionDenied(builder.enroll, deniedPermissions)) {
+        if (!shouldStopAfterPermissionDenied(
+                builder.enroll,
+                deniedPermissions,
+                builder.getAllAvailableTypes().isNotEmpty()
+            )
+        ) {
             return false
         }
 

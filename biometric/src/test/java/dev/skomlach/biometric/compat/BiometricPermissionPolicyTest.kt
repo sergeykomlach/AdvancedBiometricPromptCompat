@@ -8,31 +8,43 @@ import org.junit.Test
 class BiometricPermissionPolicyTest {
 
     @Test
-    fun setupStopsAfterCameraPermissionDenied() {
+    fun setupStopsAfterPermissionDeniedWhenNoRouteRemains() {
         assertTrue(
             shouldStopAfterPermissionDenied(
                 enroll = true,
-                deniedPermissions = listOf(Manifest.permission.CAMERA)
+                deniedPermissions = listOf(Manifest.permission.RECORD_AUDIO),
+                hasUsableRouteAfterDeniedModules = false
             )
         )
     }
 
     @Test
-    fun authenticationDoesNotStopAfterCameraPermissionDeniedPolicy() {
-        assertFalse(
-            shouldStopAfterPermissionDenied(
-                enroll = false,
-                deniedPermissions = listOf(Manifest.permission.CAMERA)
-            )
-        )
-    }
-
-    @Test
-    fun setupDoesNotStopForUnrelatedPermission() {
+    fun setupContinuesAfterPermissionDeniedWhenAnotherRouteRemains() {
         assertFalse(
             shouldStopAfterPermissionDenied(
                 enroll = true,
-                deniedPermissions = listOf(Manifest.permission.POST_NOTIFICATIONS)
+                deniedPermissions = listOf(Manifest.permission.RECORD_AUDIO),
+                hasUsableRouteAfterDeniedModules = true
+            )
+        )
+    }
+
+    @Test
+    fun authenticationDoesNotStopAfterPermissionDeniedPolicy() {
+        assertFalse(
+            shouldStopAfterPermissionDenied(
+                enroll = false,
+                deniedPermissions = listOf(Manifest.permission.RECORD_AUDIO)
+            )
+        )
+    }
+
+    @Test
+    fun setupDoesNotStopWhenNoPermissionWasDenied() {
+        assertFalse(
+            shouldStopAfterPermissionDenied(
+                enroll = true,
+                deniedPermissions = emptyList()
             )
         )
     }
