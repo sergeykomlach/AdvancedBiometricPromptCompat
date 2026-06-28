@@ -154,9 +154,10 @@ internal fun isSkippablePreparationError(errMsgId: Int): Boolean {
 internal fun resolveEffectiveEnrollTypes(
     types: Collection<BiometricType>,
     hasSystemHardware: (BiometricType) -> Boolean,
+    keepSystemType: (BiometricType) -> Boolean = { false },
     isActive: (BiometricType) -> Boolean
 ): List<BiometricType> {
     return types
-        .filterNot(hasSystemHardware)
+        .filter { type -> keepSystemType(type) || !hasSystemHardware(type) }
         .filter(isActive)
 }

@@ -328,23 +328,37 @@ object BiometricManagerCompat {
             state = aggregateTypedAutoBiometricState(
                 legacyRoute.state,
                 biometricPromptRoute.state,
-                preferLegacyEnrollment = shouldPreferLegacyEnrollment(api, legacyRoute.state)
+                preferLegacyEnrollment = shouldPreferLegacyEnrollment(
+                    api,
+                    legacyRoute.state,
+                    biometricPromptRoute.state
+                )
             )
         )
     }
 
     private fun shouldPreferLegacyEnrollment(
         api: BiometricAuthRequest,
-        legacyState: BiometricAuthState
+        legacyState: BiometricAuthState,
+        biometricPromptState: BiometricAuthState
     ): Boolean {
         if (api.provider == BiometricProviderType.HARDWARE ||
-            api.type == BiometricType.BIOMETRIC_FINGERPRINT ||
             !legacyState.hardwareDetected
         ) {
             return false
         }
-        return LegacyBiometric.getAvailableBiometricModules(api.type, api.provider)
-            .any { it is SoftwareBiometricModule }
+        val module = LegacyBiometric.getSelectedBiometricModule(
+            api.type,
+            api.provider,
+            enroll = false
+        ) ?: return false
+
+        if (module !is SoftwareBiometricModule) {
+            return false
+        }
+
+        return !biometricPromptState.hardwareDetected ||
+                module.priority > dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule.PRIORITY_SYSTEM_HARDWARE
     }
 
     private fun BiometricAuthState.withEnvironmentState(

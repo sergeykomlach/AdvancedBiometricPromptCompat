@@ -21,9 +21,12 @@ package dev.skomlach.biometric.compat.utils.hardware
 
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricAuthState
+import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -109,6 +112,17 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
         }
 
     override fun getAuthState(): BiometricAuthState {
+        preferredSelectedModuleState()?.let { state ->
+            return BiometricAuthState(
+                hardwareDetected = state.hardwarePresent,
+                enrolled = state.hardwarePresent && state.enrolled,
+                lockedOut = state.hardwarePresent && state.lockedOut,
+                permanentlyLocked = state.hardwarePresent && state.permanentlyLocked
+            ).also {
+                e("LegacyHardware - getAuthState(selected)=$it $biometricAuthRequest")
+            }
+        }
+
         return aggregateLegacyAuthState(
             biometricModules().map { module -> { module.getModuleState() } }
         ).also {
@@ -162,4 +176,27 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
                 biometricAuthRequest.provider
             )
         }
+
+    private fun preferredSelectedModuleState(): BiometricModuleState? {
+        if (biometricAuthRequest.type == BiometricType.BIOMETRIC_ANY ||
+            biometricAuthRequest.provider == BiometricProviderType.HARDWARE
+        ) {
+            return null
+        }
+
+        val selectedModule = LegacyBiometric.getSelectedBiometricModule(
+            biometricAuthRequest.type,
+            biometricAuthRequest.provider,
+            enroll = false
+        ) ?: return null
+
+        if (selectedModule !is SoftwareBiometricModule ||
+            selectedModule.priority <= BiometricModule.PRIORITY_SYSTEM_HARDWARE
+        ) {
+            return null
+        }
+
+        return selectedModule.getModuleState()
+            .takeIf { it.hardwarePresent && !it.permanentlyLocked }
+    }
 }

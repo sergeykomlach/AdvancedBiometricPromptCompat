@@ -38,6 +38,7 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
 import dev.skomlach.biometric.compat.engine.core.interfaces.AuthenticationListener
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.DummyBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
@@ -718,12 +719,7 @@ object LegacyBiometric {
             .filterNot { excludedModuleTags.contains(it.tag()) }
             .map { it to it.getModuleState() }
             .filter { (_, state) -> state.hardwarePresent && !state.permanentlyLocked }
-        val preferred = if (enroll) {
-            modules.firstOrNull()
-        } else {
-            modules.firstOrNull { (_, state) -> state.enrolled }
-        }
-        return preferred?.first
+        return selectPreferredBiometricModule(modules, enroll)
     }
 
     private fun providerMatches(
@@ -736,4 +732,19 @@ object LegacyBiometric {
             BiometricProviderType.COMBINED -> true
         }
     }
+}
+
+internal fun selectPreferredBiometricModule(
+    modules: List<Pair<BiometricModule, BiometricModuleState>>,
+    enroll: Boolean
+): BiometricModule? {
+    modules.firstOrNull { (module, _) ->
+        module.priority > BiometricModule.PRIORITY_SYSTEM_HARDWARE
+    }?.let { return it.first }
+
+    return if (enroll) {
+        modules.firstOrNull()
+    } else {
+        modules.firstOrNull { (_, state) -> state.enrolled } ?: modules.firstOrNull()
+    }?.first
 }

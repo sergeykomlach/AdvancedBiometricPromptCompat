@@ -59,6 +59,33 @@ class BiometricAuthStateAggregationTest {
     }
 
     @Test
+    fun typedAutoCanPreferLegacyEnrollmentForHigherPriorityFingerprintRoute() {
+        val legacyFingerprintState = BiometricAuthState(
+            hardwareDetected = true,
+            enrolled = false,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
+        val hardwareFingerprintState = BiometricAuthState(
+            hardwareDetected = true,
+            enrolled = true,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
+
+        val state = aggregateTypedAutoBiometricState(
+            legacyFingerprintState,
+            hardwareFingerprintState,
+            preferLegacyEnrollment = true
+        )
+
+        assertTrue(state.hardwareDetected)
+        assertFalse(state.enrolled)
+        assertFalse(state.available)
+        assertTrue(state.readyForEnroll)
+    }
+
+    @Test
     fun anyBiometricKeepsBroadEnrollmentSemantics() {
         val faceState = BiometricAuthState(
             hardwareDetected = true,

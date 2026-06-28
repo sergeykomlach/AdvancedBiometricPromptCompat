@@ -2051,6 +2051,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             .withProvider(BiometricProviderType.HARDWARE)
                     ).state.hardwareDetected
                 },
+                keepSystemType = { type ->
+                    shouldRouteLegacyBeforeSystemHardware(type)
+                },
                 isActive = { type ->
                     val snapshot = selectedTypeSnapshot(type, ignoreCameraCheck = false)
                     snapshot.state.hardwareDetected &&
