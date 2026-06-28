@@ -78,6 +78,7 @@ import dev.skomlach.common.permissionui.PermissionsFragment
 import dev.skomlach.common.permissionui.notification.NotificationPermissionsHelper
 import dev.skomlach.common.protection.A11yDetection
 import dev.skomlach.common.protection.HookDetection
+import dev.skomlach.common.storage.SharedPreferenceProvider
 import dev.skomlach.common.statusbar.StatusBarTools
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Job
@@ -216,6 +217,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ExecutorHelper.startOnBackground {
                         DeviceUnlockedReceiver.registerDeviceUnlockListener()
                     }
+                    SharedPreferenceProvider.warmUpProtectedStorage()
                     try {
                         Utils.prefetchStrings()
                     } catch (e: Throwable) {
@@ -1136,7 +1138,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             getSoftwarePreparationTypes(),
             builder.enroll,
             builder.getDisabledModuleTags(),
-            onPermissionDenied = { module ->
+            onModuleSkipped = { module ->
                 builder.disableBiometricModule(module)
             },
             callback = object : AbstractSoftwareBiometricManager.PreparationCallback() {
@@ -1270,13 +1272,13 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return false
         }
 
-        return builder.getPrimaryAvailableTypes().any { type ->
+        return builder.getEffectiveAvailableTypes().any { type ->
             isSelectedBiometricPromptHardwareType(type)
         }
     }
 
     private fun isHigherPrioritySoftwareSelectedThanBiometricPrompt(): Boolean {
-        val selectedModules = builder.getAllAvailableTypes()
+        val selectedModules = builder.getEffectiveAvailableTypes()
             .mapNotNull { type ->
                 getSelectedBiometricModule(type)?.let { module -> Pair(type, module) }
             }
@@ -1332,7 +1334,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun getSoftwarePreparationTypes(): Set<BiometricType> {
-        return builder.getAllAvailableTypes()
+        return builder.getEffectiveAvailableTypes()
             .filterNot { type -> isPrimaryBiometricPromptHardwareType(type) }
             .toSet()
     }
@@ -2034,13 +2036,37 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             return types
         }
 
+        internal fun getEffectiveAvailableTypes(): Set<BiometricType> {
+            val allTypes = getAllAvailableTypes()
+            if (!enroll) {
+                return allTypes
+            }
+
+            return resolveEffectiveEnrollTypes(
+                types = allTypes,
+                hasSystemHardware = { type ->
+                    BiometricManagerCompat.getAuthSnapshot(
+                        BiometricAuthRequest.default()
+                            .withType(type)
+                            .withProvider(BiometricProviderType.HARDWARE)
+                    ).state.hardwareDetected
+                },
+                isActive = { type ->
+                    val snapshot = selectedTypeSnapshot(type, ignoreCameraCheck = false)
+                    snapshot.state.hardwareDetected &&
+                            !snapshot.state.lockedOut &&
+                            !snapshot.state.permanentlyLocked
+                }
+            ).toHashSet()
+        }
+
         internal fun areSelectedTypesLockedOut(ignoreCameraCheck: Boolean = true): Boolean {
-            val types = getAllAvailableTypes()
+            val types = getEffectiveAvailableTypes()
             return types.isNotEmpty() && types.all { isSelectedTypeLockedOut(it, ignoreCameraCheck) }
         }
 
         internal fun areSelectedTypesPermanentlyLocked(ignoreCameraCheck: Boolean = true): Boolean {
-            val types = getAllAvailableTypes()
+            val types = getEffectiveAvailableTypes()
             return types.isNotEmpty() && types.all {
                 selectedTypeSnapshot(it, ignoreCameraCheck).state.permanentlyLocked
             }

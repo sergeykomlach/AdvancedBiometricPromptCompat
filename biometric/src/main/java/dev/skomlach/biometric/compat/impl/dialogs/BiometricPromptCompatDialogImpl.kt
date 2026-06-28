@@ -66,7 +66,7 @@ class BiometricPromptCompatDialogImpl(
     init {
         promptText = BiometricTitle.getRelevantTitle(
             compatBuilder.getActivity() ?: compatBuilder.getContext(),
-            compatBuilder.getAllAvailableTypes()
+            compatBuilder.getEffectiveAvailableTypes()
         )
         too_many_attempts = try {
             compatBuilder.getContext()
@@ -180,9 +180,9 @@ class BiometricPromptCompatDialogImpl(
             if (System.currentTimeMillis() - cachedPrimary.first <= 1000)
                 return cachedPrimary.second
 
-            e("BiometricPromptGenericImpl.primaryBiometricType > ${compatBuilder.getAllAvailableTypes()}")
+            e("BiometricPromptGenericImpl.primaryBiometricType > ${compatBuilder.getEffectiveAvailableTypes()}")
             val selectedType = LegacyBiometric.getSelectedBiometricModule(
-                compatBuilder.getAllAvailableTypes()
+                compatBuilder.getEffectiveAvailableTypes()
                     .filterNot { authFinishedCopy.containsKey(it) },
                 compatBuilder.getBiometricAuthRequest().provider,
                 compatBuilder.enroll,

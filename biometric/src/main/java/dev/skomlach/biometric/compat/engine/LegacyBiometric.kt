@@ -32,6 +32,7 @@ import dev.skomlach.biometric.compat.BiometricCryptographyPurpose
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.isSkippablePreparationError
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 import dev.skomlach.biometric.compat.engine.core.Core
@@ -652,7 +653,7 @@ object LegacyBiometric {
         types: Collection<BiometricType>,
         enroll: Boolean,
         excludedModuleTags: Set<Int> = emptySet(),
-        onPermissionDenied: (SoftwareBiometricModule) -> Unit = {},
+        onModuleSkipped: (SoftwareBiometricModule) -> Unit = {},
         callback: AbstractSoftwareBiometricManager.PreparationCallback
     ) {
         val modules = types
@@ -667,13 +668,13 @@ object LegacyBiometric {
             return
         }
 
-        prepareNextSoftwareModule(modules, 0, onPermissionDenied, callback)
+        prepareNextSoftwareModule(modules, 0, onModuleSkipped, callback)
     }
 
     private fun prepareNextSoftwareModule(
         modules: List<SoftwareBiometricModule>,
         index: Int,
-        onPermissionDenied: (SoftwareBiometricModule) -> Unit,
+        onModuleSkipped: (SoftwareBiometricModule) -> Unit,
         callback: AbstractSoftwareBiometricManager.PreparationCallback
     ) {
         if (index >= modules.size) {
@@ -682,20 +683,19 @@ object LegacyBiometric {
         }
         val module = modules[index]
         val manager = module.manager ?: run {
-            prepareNextSoftwareModule(modules, index + 1, onPermissionDenied, callback)
+            prepareNextSoftwareModule(modules, index + 1, onModuleSkipped, callback)
             return
         }
         manager.prepareForAuthentication(
             object : AbstractSoftwareBiometricManager.PreparationCallback() {
                 override fun onPrepared() {
-                    prepareNextSoftwareModule(modules, index + 1, onPermissionDenied, callback)
+                    prepareNextSoftwareModule(modules, index + 1, onModuleSkipped, callback)
                 }
 
                 override fun onPreparationError(errMsgId: Int, errString: CharSequence?) {
-                    val normalizedError = if (errMsgId < 1000) errMsgId else errMsgId % 1000
-                    if (normalizedError == AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS) {
-                        onPermissionDenied(module)
-                        prepareNextSoftwareModule(modules, index + 1, onPermissionDenied, callback)
+                    if (isSkippablePreparationError(errMsgId)) {
+                        onModuleSkipped(module)
+                        prepareNextSoftwareModule(modules, index + 1, onModuleSkipped, callback)
                         return
                     }
                     callback.onPreparationError(errMsgId, errString)

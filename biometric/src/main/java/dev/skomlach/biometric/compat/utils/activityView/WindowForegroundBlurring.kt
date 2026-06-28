@@ -86,23 +86,19 @@ class WindowForegroundBlurring(
                 emptyList()
             } else {
                 val typesList = if (compatBuilder.isBackgroundBiometricIconsEnabled()) {
-                    val allTypes = compatBuilder.getAllAvailableTypes()
                     if (compatBuilder.enroll) {
-                        allTypes.filterNot {
-                            BiometricManagerCompat.getAuthSnapshot(
-                                BiometricAuthRequest.default().withType(it).withProvider(
-                                    BiometricProviderType.HARDWARE
-                                )
-                            ).state.hardwareDetected
-                        }
+                        compatBuilder.getEffectiveAvailableTypes().toList()
                     } else{
-                        allTypes.filter {
+                        compatBuilder.getAllAvailableTypes().filter {
                             val list = BiometricManagerCompat.getUsedPermissions(listOf(it))
                             list.isEmpty() || PermissionUtils.INSTANCE.hasSelfPermissions(list)
                         }
                     }
                 } else emptyList()
                 typesList.filter {
+                    if (compatBuilder.enroll) {
+                        return@filter true
+                    }
                     val api = compatBuilder.getBiometricAuthRequest().withType(
                         type = it
                     )

@@ -48,7 +48,6 @@ import kotlin.math.sqrt
 class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier {
     companion object {
         internal const val STORAGE_NAME = "tf_storage_v2"
-        private const val PREF_NAME = "registered"
         private const val OUTPUT_SIZE = 192
         private const val IMAGE_MEAN = 128.0f
         private const val IMAGE_STD = 128.0f
@@ -101,7 +100,8 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         val map = HashMap<String?, SimilarityClassifier.Recognition?>()
         try {
             val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-            val jsonString = sharedPreferences.getString(PREF_NAME, null)
+            val jsonString =
+                sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             val keys = jsonObjectRoot.keys()
             while (keys.hasNext() && map.size < MAX_REGISTERED_TEMPLATES) {
@@ -279,10 +279,13 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         registered.remove(name)
         try {
             val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-            val jsonString = sharedPreferences.getString(PREF_NAME, null)
+            val jsonString =
+                sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
             val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
             jsonObjectRoot.remove(name)
-            sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
+            sharedPreferences.edit {
+                putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
+            }
         } catch (e: Throwable) {
             LogCat.logException(e)
         }
@@ -292,10 +295,12 @@ class TFLiteObjectDetectionAPIModel private constructor() : SimilarityClassifier
         val safeName = sanitizeName(name)
         registered[safeName] = rec
         val sharedPreferences = getProtectedPreferences(STORAGE_NAME)
-        val jsonString = sharedPreferences.getString(PREF_NAME, null)
+        val jsonString = sharedPreferences.getString(REGISTERED_TEMPLATES_PREF_KEY, null)
         val jsonObjectRoot = if (jsonString == null) JSONObject() else JSONObject(jsonString)
         jsonObjectRoot.put(safeName, recognition2json(rec))
-        sharedPreferences.edit { putString(PREF_NAME, jsonObjectRoot.toString()) }
+        sharedPreferences.edit {
+            putString(REGISTERED_TEMPLATES_PREF_KEY, jsonObjectRoot.toString())
+        }
     }
 
     private fun sanitizeName(name: String): String {

@@ -72,14 +72,17 @@ class App : MultiDexApplication() {
 
     private fun checkInit() {
         if (BiometricPromptCompat.isInitialized) {
-            GlobalScope.launch(Dispatchers.Main) {
-                authRequestList.addAll(BiometricPromptCompat.getAvailableAuthRequests())
+            GlobalScope.launch(Dispatchers.Default) {
+                val availableAuthRequests = BiometricPromptCompat.getAvailableAuthRequests()
+                withContext(Dispatchers.Main) {
+                    authRequestList.addAll(availableAuthRequests)
                 for (listener in onInitListeners.toList()) {
                     listener.onFinished()
                 }
                 onInitListeners.clear()
                 isReady = true
                 Log.d("BiometricPromptCompat", "checkInit=${System.currentTimeMillis() - ts}ms")
+                }
             }
         } else {
             Handler(Looper.getMainLooper()).postDelayed({

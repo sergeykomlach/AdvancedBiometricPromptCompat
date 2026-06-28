@@ -30,10 +30,13 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.core.content.ContextCompat
 import dev.skomlach.common.contextprovider.AndroidContext.appContext
+import dev.skomlach.common.logging.LogCat
+import dev.skomlach.common.misc.ExecutorHelper
 import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.util.Arrays
+import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -42,20 +45,42 @@ import javax.crypto.spec.GCMParameterSpec
 import kotlin.text.Charsets.UTF_8
 
 object SharedPreferenceProvider {
+    private val protectedPreferencesCache = ConcurrentHashMap<String, SharedPreferences>()
 
     fun getPreferences(name: String): SharedPreferences {
         return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
 
     fun getProtectedPreferences(name: String): SharedPreferences {
-        val targetContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-            && !appContext.isDeviceProtectedStorage
-        ) {
-            appContext.createDeviceProtectedStorageContext()
-        } else {
-            appContext
+        return protectedPreferencesCache.getOrPut(name) {
+            val targetContext = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                && !appContext.isDeviceProtectedStorage
+            ) {
+                appContext.createDeviceProtectedStorageContext()
+            } else {
+                appContext
+            }
+            EncryptedSharedPreferences(targetContext, name)
         }
-        return EncryptedSharedPreferences(targetContext, name)
+    }
+
+    fun warmUpProtectedStorage(vararg names: String) {
+        val normalizedNames = names
+            .asSequence()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .toList()
+        ExecutorHelper.startOnBackground {
+            runCatching {
+                EncryptionConfig.primaryInstance
+                EncryptionConfig.legacyDeviceIdInstance
+                EncryptionConfig.secondaryInstance
+                normalizedNames.forEach { getProtectedPreferences(it) }
+            }.onFailure {
+                LogCat.logException(it, "SharedPreferenceProvider.warmUpProtectedStorage")
+            }
+        }
     }
 
     data class EncryptionConfig(val password: ByteArray, val salt: ByteArray) {

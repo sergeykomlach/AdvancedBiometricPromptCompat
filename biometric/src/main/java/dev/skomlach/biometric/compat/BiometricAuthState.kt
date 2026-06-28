@@ -140,3 +140,23 @@ internal fun AuthenticationResult.withMissingPermissionDescription(
     }
     return copy(description = fallbackDescription)
 }
+
+internal fun isSkippablePreparationError(errMsgId: Int): Boolean {
+    return when (if (errMsgId < 1000) errMsgId else errMsgId % 1000) {
+        dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
+        dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
+        dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE -> true
+
+        else -> false
+    }
+}
+
+internal fun resolveEffectiveEnrollTypes(
+    types: Collection<BiometricType>,
+    hasSystemHardware: (BiometricType) -> Boolean,
+    isActive: (BiometricType) -> Boolean
+): List<BiometricType> {
+    return types
+        .filterNot(hasSystemHardware)
+        .filter(isActive)
+}

@@ -24,9 +24,47 @@ import dev.skomlach.biometric.compat.BiometricAuthState
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 
+internal fun aggregateLegacyAuthState(
+    moduleStates: Iterable<() -> BiometricModuleState>
+): BiometricAuthState {
+    var hardwareDetected = false
+    var enrolled = false
+    var lockedOut = false
+    var allDetectedHardwarePermanentLocked = true
+
+    for (stateProvider in moduleStates) {
+        val state = stateProvider()
+        if (!state.hardwarePresent) {
+            continue
+        }
+
+        hardwareDetected = true
+        enrolled = enrolled || state.enrolled
+        lockedOut = lockedOut || state.lockedOut
+        allDetectedHardwarePermanentLocked =
+            allDetectedHardwarePermanentLocked && state.permanentlyLocked
+
+        if (state.enrolled && !state.lockedOut && !state.permanentlyLocked) {
+            return BiometricAuthState(
+                hardwareDetected = true,
+                enrolled = true,
+                lockedOut = false,
+                permanentlyLocked = false
+            )
+        }
+    }
+
+    return BiometricAuthState(
+        hardwareDetected = hardwareDetected,
+        enrolled = enrolled,
+        lockedOut = lockedOut,
+        permanentlyLocked = hardwareDetected && allDetectedHardwarePermanentLocked
+    )
+}
 
 class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authRequest) {
     override val isHardwareAvailable: Boolean
@@ -71,15 +109,8 @@ class LegacyHardware(authRequest: BiometricAuthRequest) : AbstractHardware(authR
         }
 
     override fun getAuthState(): BiometricAuthState {
-        val moduleStates = biometricModules().map { it.getModuleState() }
-        val hardwareDetected = moduleStates.any { it.hardwarePresent }
-        return BiometricAuthState(
-            hardwareDetected = hardwareDetected,
-            enrolled = moduleStates.any { it.enrolled },
-            lockedOut = moduleStates.any { it.lockedOut },
-            permanentlyLocked = hardwareDetected && moduleStates
-                .filter { it.hardwarePresent }
-                .all { it.permanentlyLocked }
+        return aggregateLegacyAuthState(
+            biometricModules().map { module -> { module.getModuleState() } }
         ).also {
             e("LegacyHardware - getAuthState=$it $biometricAuthRequest")
         }

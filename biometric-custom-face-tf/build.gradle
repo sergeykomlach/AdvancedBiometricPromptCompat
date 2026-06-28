@@ -41,6 +41,7 @@ dependencies {
     implementation libs.litert.support
     implementation libs.litert.gpu
     implementation libs.litert.gpu.api
+    testImplementation libs.junit
 }
 
 // Publishing

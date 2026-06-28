@@ -131,6 +131,7 @@ class EncryptedSharedPreferences(
 
     private val mListeners =
         CopyOnWriteArrayList<SharedPreferences.OnSharedPreferenceChangeListener>()
+    private val keyResolver = PreferenceKeyResolver()
 
 
     //the backing pref file
@@ -291,6 +292,7 @@ class EncryptedSharedPreferences(
             val encryptedKey = mEncryptedSharedPreferences.findEncryptedKey(key)
                 ?: mEncryptedSharedPreferences.encryptKey(key)
             mEditor.remove(encryptedKey)
+            mEncryptedSharedPreferences.forgetEncryptedKey(key)
             mKeysChanged.add(key)
             return this
         }
@@ -320,6 +322,7 @@ class EncryptedSharedPreferences(
                         mEditor.remove(key)
                     }
                 }
+                mEncryptedSharedPreferences.clearEncryptedKeyCache()
             }
         }
 
@@ -335,6 +338,7 @@ class EncryptedSharedPreferences(
             try {
                 val encryptedPair = mEncryptedSharedPreferences.encryptKeyValuePair(key, value)
                 mEditor.putString(encryptedPair.first, encryptedPair.second)
+                mEncryptedSharedPreferences.rememberEncryptedKey(key, encryptedPair.first)
                 mKeysChanged.add(key)
             } catch (e: GeneralSecurityException) {
                 throw SecurityException("Could not encrypt data: ${e.message}", e)
@@ -444,16 +448,15 @@ class EncryptedSharedPreferences(
 
     private fun findEncryptedKey(key: String?): String? {
         val normalizedKey = key ?: NULL_VALUE
-        val direct = encryptString(normalizedKey)
-        if (direct != null && mSharedPreferences.contains(direct)) {
-            return direct
-        }
-        for (storedKey in mSharedPreferences.all.keys) {
-            if (decryptString(storedKey) == normalizedKey) {
-                return storedKey
-            }
-        }
-        return null
+        return keyResolver.resolve(
+            plainKey = normalizedKey,
+            directLookup = {
+                val direct = encryptString(normalizedKey)
+                if (direct != null && mSharedPreferences.contains(direct)) direct else null
+            },
+            scanStoredKeys = { mSharedPreferences.all.keys.asSequence().filterIsInstance<String>() },
+            decryptStoredKey = { storedKey -> decryptString(storedKey) }
+        )
     }
 
     @Throws(SecurityException::class)
@@ -522,5 +525,19 @@ class EncryptedSharedPreferences(
             throw GeneralSecurityException("Could not encrypt preference entry")
         }
         return Pair(encryptedKey, cipherText)
+    }
+
+    private fun rememberEncryptedKey(key: String?, encryptedKey: String?) {
+        val normalizedKey = key ?: NULL_VALUE
+        val normalizedEncryptedKey = encryptedKey ?: return
+        keyResolver.remember(normalizedKey, normalizedEncryptedKey)
+    }
+
+    private fun forgetEncryptedKey(key: String?) {
+        keyResolver.forget(key ?: NULL_VALUE)
+    }
+
+    private fun clearEncryptedKeyCache() {
+        keyResolver.clear()
     }
 }

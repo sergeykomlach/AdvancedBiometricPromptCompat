@@ -64,7 +64,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
     private fun shouldUseUnderDisplayFingerprintLayout(): Boolean {
         val selected = LegacyBiometric.getSelectedBiometricModule(
-            builder.getAllAvailableTypes(),
+            builder.getEffectiveAvailableTypes(),
             builder.getBiometricAuthRequest().provider,
             builder.enroll,
             builder.getDisabledModuleTags()
@@ -106,7 +106,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
     override fun startAuth() {
         d("BiometricPromptGenericImpl.startAuth():")
         val types: List<BiometricType?> = ArrayList(
-            builder.getAllAvailableTypes()
+            builder.getEffectiveAvailableTypes()
         )
         ExecutorHelper.postDelayed({
             LegacyBiometric.authenticate(
@@ -135,7 +135,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
             if (success != null)
                 return
 
-            callback.dispatchCanceledOrFailed(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
+            callback.dispatchCanceledOrFailed(if (canceled.isEmpty()) builder.getEffectiveAvailableTypes().map {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.CANCELED_BY_USER
@@ -199,10 +199,10 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = ArrayList(
-            builder.getAllAvailableTypes()
+            builder.getEffectiveAvailableTypes()
         )
         allList.removeAll(authFinishedList)
-        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
+        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getEffectiveAvailableTypes()})")
         val error =
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
         val success =
@@ -297,7 +297,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         ) {
             if (builder.disableBiometricForPermissionFailure(result)) {
                 BiometricNotificationManager.dismiss(result.type)
-                if (builder.getAllAvailableTypes().isEmpty()) {
+                if (builder.getEffectiveAvailableTypes().isEmpty()) {
                     checkAuthResult(result, AuthResult.AuthResultState.FATAL_ERROR)
                 } else {
                     stopAuth()

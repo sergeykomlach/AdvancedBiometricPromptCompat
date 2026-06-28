@@ -153,6 +153,10 @@ class TensorFlowFaceUnlockManager(
         }
     }
 
+    private val recognitionModelAvailable: Boolean by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        hasAssetFile(context.assets, TF_OD_API_MODEL_FILE)
+    }
+
     private var frameProvider: IFrameProvider = RealCameraProvider(context)
     private var backgroundThread: HandlerThread? = null
     private var backgroundHandler: Handler? = null
@@ -378,6 +382,18 @@ class TensorFlowFaceUnlockManager(
         val mainHandler = Handler(Looper.getMainLooper())
         ExecutorHelper.startOnBackground {
             try {
+                if (!recognitionModelAvailable) {
+                    mainHandler.post {
+                        callback.onPreparationError(
+                            CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
+                            LocalizationHelper.getLocalizedString(
+                                context,
+                                R.string.biometriccompat_tf_face_help_model_not_available
+                            )
+                        )
+                    }
+                    return@startOnBackground
+                }
                 val recognition = detector
                 if (recognition == null || faceDetector == null || !frameProvider.isHardwareSupported()) {
                     mainHandler.post {
@@ -440,10 +456,14 @@ class TensorFlowFaceUnlockManager(
     }
 
     override fun isHardwareDetected(): Boolean {
-        return detector != null && faceDetector != null && frameProvider.isHardwareCapabilityAvailable()
+        return recognitionModelAvailable && frameProvider.isHardwareCapabilityAvailable()
     }
 
-    override fun hasEnrolledBiometric(): Boolean = detector?.hasRegistered() == true
+    override fun hasEnrolledBiometric(): Boolean {
+        val json = getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
+            .getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+        return hasRegisteredTemplates(json)
+    }
     override fun getManagers(): Set<Any> = emptySet()
 
     override fun remove(extra: Bundle?) {
@@ -452,11 +472,15 @@ class TensorFlowFaceUnlockManager(
     }
 
     override fun getEnrollBundle(name: String?): Bundle {
+        val registeredTemplates = countRegisteredTemplates(
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
+                .getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+        )
         return Bundle().apply {
             putBoolean(IS_ENROLLMENT_KEY, true)
             putString(
                 ENROLLMENT_TAG_KEY,
-                sanitizeEnrollmentTag(name) ?: "face${(detector?.registeredCount() ?: 0) + 1}"
+                sanitizeEnrollmentTag(name) ?: "face${registeredTemplates + 1}"
             )
         }
     }
@@ -496,8 +520,12 @@ class TensorFlowFaceUnlockManager(
         consecutiveMatchCounter = 0
         lastMatchedId = null
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
+        val registeredTemplates = countRegisteredTemplates(
+            getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
+                .getString(REGISTERED_TEMPLATES_PREF_KEY, null)
+        )
         enrollmentTag = sanitizeEnrollmentTag(extra?.getString(ENROLLMENT_TAG_KEY))
-            ?: "face${(detector?.registeredCount() ?: 0) + 1}"
+            ?: "face${registeredTemplates + 1}"
 
         if (!isHardwareDetected()) {
             onAuthenticationError(
