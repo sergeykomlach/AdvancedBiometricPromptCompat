@@ -22,31 +22,34 @@ package dev.skomlach.common.misc
 import android.annotation.SuppressLint
 import android.content.Context
 import dev.skomlach.common.logging.LogCat
+import java.lang.reflect.Field
 
 
 object SystemStringsHelper {
+    private val systemStringFieldsByName: Map<String, Field> by lazy {
+        runCatching {
+            Class.forName("com.android.internal.R\$string").declaredFields
+                .onEach { field ->
+                    if (!field.isAccessible) {
+                        field.isAccessible = true
+                    }
+                }
+                .associateBy { it.name }
+        }.getOrDefault(emptyMap())
+    }
+
     @SuppressLint("PrivateApi")
     fun getFromSystem(context: Context, alias: String): String? {
         try {
-            val fields = Class.forName("com.android.internal.R\$string").declaredFields
-            for (field in fields) {
-                if (field.name == alias) {
-                    LogCat.log("SystemStringsHelper", field.name)
-                    val isAccessible = field.isAccessible
-                    return try {
-                        if (!isAccessible) field.isAccessible = true
-                        val s = context.resources.getString(field[null] as Int)
-                        if (s == alias)
-                            throw RuntimeException("String value must be different from key")
-                        if (s.isEmpty())
-                            throw RuntimeException("String is empty")
-                        LogCat.log("SystemStringsHelper", "$alias -> $s")
-                        s
-                    } finally {
-                        if (!isAccessible) field.isAccessible = false
-                    }
-                }
-            }
+            val field = systemStringFieldsByName[alias] ?: throw NoSuchFieldException(alias)
+            LogCat.log("SystemStringsHelper", field.name)
+            val s = context.resources.getString(field[null] as Int)
+            if (s == alias)
+                throw RuntimeException("String value must be different from key")
+            if (s.isEmpty())
+                throw RuntimeException("String is empty")
+            LogCat.log("SystemStringsHelper", "$alias -> $s")
+            return s
         } catch (e: Throwable) {
 
         }

@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat
 
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -102,5 +103,82 @@ class BiometricAuthStateAggregationTest {
         assertTrue(snapshot.readyForEnroll)
         assertFalse(snapshot.available)
         assertTrue(snapshot.routes.single().source == BiometricAuthRouteSource.LEGACY)
+    }
+
+    @Test
+    fun setupRouteKeepsAlreadyEnrolledHardwareFallback() {
+        val fingerprintState = BiometricAuthState(
+            hardwareDetected = true,
+            enrolled = true,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
+
+        assertTrue(isSetupRouteSelectable(fingerprintState, null, preferModule = false))
+    }
+
+    @Test
+    fun setupRouteIgnoresNonPreferredSoftwareModuleState() {
+        val hardwareFaceState = BiometricAuthState(
+            hardwareDetected = true,
+            enrolled = true,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
+        val softwareFaceState = BiometricModuleState(
+            managerAccessible = true,
+            hardwarePresent = true,
+            enrolled = false,
+            lockedOut = true,
+            permanentlyLocked = false
+        )
+
+        assertTrue(
+            isSetupRouteSelectable(
+                hardwareFaceState,
+                softwareFaceState,
+                preferModule = false
+            )
+        )
+    }
+
+    @Test
+    fun setupRouteKeepsAlreadyEnrolledPreferredModule() {
+        val faceState = BiometricModuleState(
+            managerAccessible = true,
+            hardwarePresent = true,
+            enrolled = true,
+            lockedOut = false,
+            permanentlyLocked = false
+        )
+
+        assertTrue(
+            isSetupRouteSelectable(
+                BiometricAuthState(
+                    hardwareDetected = false,
+                    enrolled = false,
+                    lockedOut = false,
+                    permanentlyLocked = false
+                ),
+                faceState,
+                preferModule = true
+            )
+        )
+    }
+
+    @Test
+    fun setupRouteRejectsUnavailableOrLockedRoute() {
+        assertFalse(
+            isSetupRouteSelectable(
+                BiometricAuthState(
+                    hardwareDetected = true,
+                    enrolled = false,
+                    lockedOut = true,
+                    permanentlyLocked = false
+                ),
+                null,
+                preferModule = false
+            )
+        )
     }
 }

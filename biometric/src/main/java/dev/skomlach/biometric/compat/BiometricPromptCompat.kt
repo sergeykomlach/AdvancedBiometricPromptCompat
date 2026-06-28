@@ -1685,13 +1685,19 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             } else {
                 if (enroll) {
                     val combinedReady = !isNewBiometric &&
-                            BiometricManagerCompat.getAuthSnapshot(
-                                biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
-                            ).readyForEnroll
+                            isAnyEnrollTypeReady(
+                                biometricAuthRequest.type,
+                                BiometricManagerCompat.getAuthSnapshot(
+                                    biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
+                                )
+                            )
                     val hardwareReady = !combinedReady &&
-                            BiometricManagerCompat.getAuthSnapshot(
-                                biometricAuthRequest.withProvider(provider = BiometricProviderType.HARDWARE)
-                            ).readyForEnroll
+                            isAnyEnrollTypeReady(
+                                biometricAuthRequest.type,
+                                BiometricManagerCompat.getAuthSnapshot(
+                                    biometricAuthRequest.withProvider(provider = BiometricProviderType.HARDWARE)
+                                )
+                            )
                     if (combinedReady || hardwareReady)
                         types.add(biometricAuthRequest.type)
                 } else if (BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest).available)
@@ -1725,12 +1731,15 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                         ) {
                             types.add(type)
                         }
-                    }
+                }
                 } else {
                     val combinedReady = enroll &&
-                            BiometricManagerCompat.getAuthSnapshot(
-                                biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
-                            ).readyForEnroll
+                            isAnyEnrollTypeReady(
+                                biometricAuthRequest.type,
+                                BiometricManagerCompat.getAuthSnapshot(
+                                    biometricAuthRequest.withProvider(provider = BiometricProviderType.COMBINED)
+                                )
+                            )
                     if (combinedReady) {
                         types.add(biometricAuthRequest.type)
                     } else if (BiometricManagerCompat.getAuthSnapshot(biometricAuthRequest).available)
@@ -1747,24 +1756,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         ): Boolean {
             val module = LegacyBiometric.getSelectedBiometricModule(
                 type,
-                biometricAuthRequest.provider,
+                snapshot.request.provider,
                 enroll,
                 getDisabledModuleTags()
             )
             val moduleState = module?.getModuleState()
-            val moduleReadyForEnroll = moduleState?.hardwarePresent == true &&
-                    !moduleState.enrolled &&
-                    !moduleState.lockedOut &&
-                    !moduleState.permanentlyLocked
-            val shouldPreferModule = biometricAuthRequest.provider == BiometricProviderType.SOFTWARE ||
+            val shouldPreferModule = snapshot.request.provider == BiometricProviderType.SOFTWARE ||
                     !hasBiometricPromptHardwareType(type) ||
                     (!shouldPreferSystemHardwareFace(type) &&
                             (module?.priority ?: BiometricModule.PRIORITY_SYSTEM_HARDWARE) >
                             BiometricModule.PRIORITY_SYSTEM_HARDWARE)
-            if (moduleReadyForEnroll && shouldPreferModule) {
-                return true
-            }
-            return snapshot.readyForEnroll && !snapshot.state.enrolled
+            return isSetupRouteSelectable(snapshot.state, moduleState, shouldPreferModule)
         }
 
         private var silentAuth = false

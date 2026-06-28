@@ -36,8 +36,19 @@ import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.permissions.PermissionUtils
 import dev.skomlach.common.protection.A11yDetection
+import java.lang.reflect.Field
 
 object ScreenProtection {
+    private val accessibilityDelegateField: Field? by lazy {
+        runCatching {
+            View::class.java.getDeclaredField("mAccessibilityDelegate").apply {
+                if (!isAccessible) {
+                    isAccessible = true
+                }
+            }
+        }.getOrNull()
+    }
+
     private data class ProtectedViewState(
         val importantForAccessibility: Int,
         val importantForAutofill: Int?,
@@ -271,9 +282,7 @@ object ScreenProtection {
     @Suppress("DiscouragedPrivateApi", "PrivateApi")
     private fun getCurrentAccessibilityDelegateCompat(view: View): View.AccessibilityDelegate? {
         return try {
-            val field = View::class.java.getDeclaredField("mAccessibilityDelegate")
-            field.isAccessible = true
-            field.get(view) as? View.AccessibilityDelegate
+            accessibilityDelegateField?.get(view) as? View.AccessibilityDelegate
         } catch (_: Throwable) {
             null
         }

@@ -35,6 +35,7 @@ import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
+import java.lang.reflect.Method
 
 //actually perhaps not necessary impl.
 @SuppressLint("RestrictedApi")
@@ -58,6 +59,19 @@ class SupportFingerprintModule(listener: LegacyBiometricInitListener?) :
         const val FINGERPRINT_ERROR_UNABLE_TO_PROCESS = 2
         const val FINGERPRINT_ERROR_USER_CANCELED = 10
         const val FINGERPRINT_ERROR_VENDOR = 8
+
+        private val hiddenFingerprintManagerMethod: Method? by lazy {
+            runCatching {
+                FingerprintManagerCompat::class.java.declaredMethods.firstOrNull {
+                    it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java &&
+                            it.returnType.methods.firstOrNull { m -> m.name == "isHardwareDetected" } != null
+                }?.apply {
+                    if (!isAccessible) {
+                        isAccessible = true
+                    }
+                }
+            }.getOrNull()
+        }
     }
 
     private var managerCompat: FingerprintManagerCompat? = null
@@ -79,20 +93,7 @@ class SupportFingerprintModule(listener: LegacyBiometricInitListener?) :
     override fun getManagers(): Set<Any> {
         val managers = HashSet<Any>()
         val manager = try {
-            val method = managerCompat?.javaClass?.declaredMethods?.firstOrNull {
-                it.parameterTypes.size == 1 && it.parameterTypes[0] == Context::class.java &&
-                        it.returnType.methods.firstOrNull { m -> m.name.equals("isHardwareDetected") } != null
-            }
-            val isAccessible = method?.isAccessible != false
-            if (!isAccessible)
-                method?.isAccessible = true
-            val manager = try {
-                method?.invoke(managerCompat, context)
-            } finally {
-                if (!isAccessible)
-                    method?.isAccessible = false
-            }
-            manager
+            managerCompat?.let { hiddenFingerprintManagerMethod?.invoke(it, context) }
         } catch (ignore: Throwable) {
             null
         }

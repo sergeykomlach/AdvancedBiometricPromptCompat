@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.lang.reflect.Method
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.util.Locale
@@ -44,6 +45,30 @@ import java.util.concurrent.locks.ReentrantLock
 
 
 object AndroidContext {
+    private val currentApplicationMethod: Method? by lazy {
+        runCatching {
+            Class.forName("android.app.ActivityThread")
+                .getMethod("currentApplication")
+        }.getOrNull()
+    }
+    private val initialApplicationMethod: Method? by lazy {
+        runCatching {
+            Class.forName("android.app.AppGlobals")
+                .getMethod("getInitialApplication")
+        }.getOrNull()
+    }
+    private val setPermissionsMethod: Method? by lazy {
+        runCatching {
+            Class.forName("android.os.FileUtils")
+                .getMethod(
+                    "setPermissions",
+                    String::class.java,
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
+                )
+        }.getOrNull()
+    }
     private val _resumedActivityLiveData = MutableLiveData<Reference<Activity?>>()
     val resumedActivityLiveData = MutableLiveData<Activity?>()
     private val configurationRelay = AtomicReference<Configuration?>(null)
@@ -119,14 +144,10 @@ object AndroidContext {
 
     private fun getApplicationContext(): Application? {
         return try {
-            Class.forName("android.app.ActivityThread")
-                .getMethod("currentApplication")
-                .invoke(null) as Application
+            currentApplicationMethod?.invoke(null) as Application
         } catch (ignored: Throwable) {
             try {
-                Class.forName("android.app.AppGlobals")
-                    .getMethod("getInitialApplication")
-                    .invoke(null) as Application
+                initialApplicationMethod?.invoke(null) as Application
             } catch (e: Throwable) {
                 null
             }
@@ -275,15 +296,7 @@ object AndroidContext {
         // IMPLEMENTATION NOTE: The code below simply invokes the hidden API
         // android.os.FileUtils.setPermissions(path, 0700, -1, -1) via Reflection.
         val errorCode: Int = try {
-            Class.forName("android.os.FileUtils")
-                .getMethod(
-                    "setPermissions",
-                    String::class.java,
-                    Int::class.javaPrimitiveType,
-                    Int::class.javaPrimitiveType,
-                    Int::class.javaPrimitiveType
-                )
-                .invoke(null, path, 448, -1, -1) as Int
+            setPermissionsMethod?.invoke(null, path, 448, -1, -1) as Int
         } catch (e: Exception) {
             // Can't chain exception because IOException doesn't have the right constructor on Froyo
             // and below

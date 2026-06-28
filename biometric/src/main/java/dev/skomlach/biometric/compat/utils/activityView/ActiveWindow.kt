@@ -30,16 +30,25 @@ import android.view.ViewParent
 import android.view.WindowManager
 import androidx.core.util.ObjectsCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import java.lang.reflect.Field
+import java.lang.reflect.Method
 
 
 object ActiveWindow {
     private var clazz: Class<*>? = null
     private var windowManager: Any? = null
     private var windowManagerClazz: Class<*>? = null
+    private var getViewMethod: Method? = null
+    private var rootsField: Field? = null
+    private var stoppedField: Field? = null
 
     init {
         try {
             clazz = Class.forName("android.view.ViewRootImpl")
+            getViewMethod = clazz?.getMethod("getView")
+            stoppedField = clazz?.getDeclaredField("mStopped")?.apply {
+                isAccessible = true
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
                 windowManagerClazz = Class.forName("android.view.WindowManagerGlobal")
                 windowManagerClazz?.getMethod("getInstance")?.invoke(null)
@@ -48,6 +57,9 @@ object ActiveWindow {
                 windowManagerClazz = Class.forName("android.view.WindowManagerImpl")
                 windowManagerClazz?.getMethod("getDefault")?.invoke(null)
                     .also { windowManager = it }
+            }
+            rootsField = windowManagerClazz?.getDeclaredField("mRoots")?.apply {
+                isAccessible = true
             }
         } catch (e: Throwable) {
             e(e)
@@ -84,7 +96,7 @@ object ActiveWindow {
         for (i in list.indices) {
             val viewParent = list[i]
             try {
-                val view = clazz?.getMethod("getView")?.invoke(viewParent) as View
+                val view = getViewMethod?.invoke(viewParent) as View
                 val type = (view.layoutParams as WindowManager.LayoutParams).type
                 if (type >= WindowManager.LayoutParams.FIRST_SYSTEM_WINDOW) {
                     continue
@@ -147,34 +159,20 @@ object ActiveWindow {
         get() {
             val viewRoots: MutableList<ViewParent> = ArrayList()
             try {
-                val rootsField = windowManagerClazz?.getDeclaredField("mRoots")
-                val isAccessibleRootsField = rootsField?.isAccessible
+                val lst = rootsField?.get(windowManager)
+                val viewParents: MutableList<ViewParent> = ArrayList()
                 try {
-                    if (isAccessibleRootsField == false) rootsField.isAccessible = true
-                    val stoppedField = clazz?.getDeclaredField("mStopped")
-                    val isAccessible = stoppedField?.isAccessible
-                    try {
-                        if (isAccessible == false) stoppedField.isAccessible = true
-                        val lst = rootsField?.get(windowManager)
-                        val viewParents: MutableList<ViewParent> = ArrayList()
-                        try {
-                            viewParents.addAll((lst as List<ViewParent>))
-                        } catch (ignore: ClassCastException) {
-                            val parents = lst as Array<ViewParent>
-                            viewParents.addAll(listOf(*parents))
-                        }
-                        // Filter out inactive view roots
-                        for (viewParent in viewParents) {
-                            val stopped = stoppedField?.get(viewParent) as Boolean
-                            if (!stopped) {
-                                viewRoots.add(viewParent)
-                            }
-                        }
-                    } finally {
-                        if (isAccessible == false) stoppedField.isAccessible = false
+                    viewParents.addAll((lst as List<ViewParent>))
+                } catch (ignore: ClassCastException) {
+                    val parents = lst as Array<ViewParent>
+                    viewParents.addAll(listOf(*parents))
+                }
+                // Filter out inactive view roots
+                for (viewParent in viewParents) {
+                    val stopped = stoppedField?.get(viewParent) as Boolean
+                    if (!stopped) {
+                        viewRoots.add(viewParent)
                     }
-                } finally {
-                    if (isAccessibleRootsField == false) rootsField.isAccessible = false
                 }
             } catch (e: Exception) {
                 e(e, "ActiveWindow")

@@ -34,6 +34,12 @@ import java.lang.reflect.Modifier
 
 object DevicesWithKnownBugs {
 
+    private val buildStringFields by lazy {
+        Build::class.java.fields.filter {
+            !Modifier.isPrivate(it.modifiers) && it.type == String::class.java
+        }
+    }
+
 
     //Users reports that on LG devices have a bug with wrong/missing BiometricUI
     //After digging I found that it seems like system BiometricPrompt simply missing on this device
@@ -164,12 +170,9 @@ object DevicesWithKnownBugs {
     }
 
     private fun checkVendor(vendor: String, ignoreCase: Boolean): Boolean {
-        val allFields = Build::class.java.fields
-        for (f in allFields) try {
-            if (!Modifier.isPrivate(f.modifiers) && f.type == String::class.java) {
-                val value = f[null] as String
-                if (value.contains(vendor, ignoreCase = ignoreCase)) return true
-            }
+        for (f in buildStringFields) try {
+            val value = f[null] as String
+            if (value.contains(vendor, ignoreCase = ignoreCase)) return true
         } catch (ignore: Throwable) {
 
         }

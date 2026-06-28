@@ -30,6 +30,10 @@ import java.util.Locale
 object StatusBarIconsDarkMode {
     private var SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = 0x00002000
     private var SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR = 0x00000010
+    private val miuiStatusBarDarkModeFlag: Int? by lazy { findMiuiDarkModeFlag(BarType.STATUSBAR) }
+    private val miuiNavBarDarkModeFlag: Int? by lazy { findMiuiDarkModeFlag(BarType.NAVBAR) }
+    private val flymeStatusBarDarkModeFlag: Int? by lazy { findFlymeDarkModeFlag(BarType.STATUSBAR) }
+    private val flymeNavBarDarkModeFlag: Int? by lazy { findFlymeDarkModeFlag(BarType.NAVBAR) }
 
     init {
         SYSTEM_UI_FLAG_LIGHT_STATUS_BAR = try {
@@ -46,8 +50,8 @@ object StatusBarIconsDarkMode {
         }
     }
 
-    private fun setMiuiIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
-        try {
+    private fun findMiuiDarkModeFlag(type: BarType): Int? {
+        return try {
             //constants for MIUI similar to "SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR" stored in separate class
             val layoutParams = Class.forName("android.view.MiuiWindowManager\$LayoutParams")
             val allFields = layoutParams.fields
@@ -60,17 +64,24 @@ object StatusBarIconsDarkMode {
                 if (type == BarType.NAVBAR && !name.lowercase(Locale.ROOT).contains("nav")) {
                     continue
                 }
-                val darkModeFlag =
-                    field.getInt(null) //because its static fields - access without object
-                return HelperTool.setMIUIFlag(window, lightBars, darkModeFlag)
+                return field.getInt(null) //because its static fields - access without object
             }
+            null
         } catch (e: Throwable) {
+            null
         }
-        return false
     }
 
-    private fun setFlymeIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
-        try {
+    private fun setMiuiIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
+        val darkModeFlag = when (type) {
+            BarType.STATUSBAR -> miuiStatusBarDarkModeFlag
+            BarType.NAVBAR -> miuiNavBarDarkModeFlag
+        } ?: return false
+        return HelperTool.setMIUIFlag(window, lightBars, darkModeFlag)
+    }
+
+    private fun findFlymeDarkModeFlag(type: BarType): Int? {
+        return try {
             //FlymeOS expand WindowManager.LayoutParams class and add some private fields
             val allFields = WindowManager.LayoutParams::class.java.declaredFields
             for (field in allFields) {
@@ -83,12 +94,20 @@ object StatusBarIconsDarkMode {
                     continue
                 }
                 field.isAccessible = true
-                val bits = field.getInt(null)
-                return HelperTool.setFlameFlag(window, lightBars, bits)
+                return field.getInt(null)
             }
+            null
         } catch (e: Throwable) {
+            null
         }
-        return false
+    }
+
+    private fun setFlymeIconDarkMode(window: Window, lightBars: Boolean, type: BarType): Boolean {
+        val bits = when (type) {
+            BarType.STATUSBAR -> flymeStatusBarDarkModeFlag
+            BarType.NAVBAR -> flymeNavBarDarkModeFlag
+        } ?: return false
+        return HelperTool.setFlameFlag(window, lightBars, bits)
     }
 
     fun setDarkIconMode(window: Window, lightBars: Boolean, type: BarType): Boolean {

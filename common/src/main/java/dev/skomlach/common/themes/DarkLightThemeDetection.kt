@@ -30,6 +30,7 @@ import android.graphics.Color
 import android.os.Build
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
+import java.lang.reflect.Method
 import kotlin.math.roundToInt
 
 // Decides when dark theme is optimal for this wallpaper
@@ -60,6 +61,13 @@ private const val HINT_SUPPORTS_DARK_TEXT = 1 shl 0
  * @hide
  */
 private const val HINT_SUPPORTS_DARK_THEME = 1 shl 1
+private val wallpaperColorHintsMethod: Method? by lazy {
+    runCatching {
+        WallpaperColors::class.java.getMethod("getColorHints").apply {
+            isAccessible = true
+        }
+    }.getOrNull()
+}
 
 fun getIsOsDarkTheme(context: Context): DarkThemeCheckResult {
     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O)
@@ -71,11 +79,7 @@ fun getIsOsDarkTheme(context: Context): DarkThemeCheckResult {
                 ?: return DarkThemeCheckResult.UNDEFINED
         var darkHints: Int
         try {
-            val m = WallpaperColors::class.java.getMethod("getColorHints")
-            val isAccessible = m.isAccessible
-            if (!isAccessible) m.isAccessible = true
-            darkHints = m.invoke(wallpaperColors) as Int
-            if (!isAccessible) m.isAccessible = false
+            darkHints = wallpaperColorHintsMethod?.invoke(wallpaperColors) as Int
         } catch (e: Throwable) {
             val primaryColor = wallpaperColors.primaryColor.toArgb()
             val secondaryColor = wallpaperColors.secondaryColor?.toArgb() ?: primaryColor

@@ -69,6 +69,7 @@ import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.misc.Utils.isAtLeastR
 import dev.skomlach.common.themes.monet.SystemColorScheme
 import dev.skomlach.common.themes.monet.toArgb
+import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
@@ -91,6 +92,17 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     IBiometricPromptImpl, AuthCallback {
     companion object {
         private const val PROMPT_CRYPTO_KEY = "BiometricPromptCompat"
+        private val biometricFragmentMethod: Method? by lazy {
+            runCatching {
+                BiometricPrompt::class.java.declaredMethods.first {
+                    it.parameterTypes.size == 1 &&
+                            it.parameterTypes[0] == FragmentManager::class.java &&
+                            it.returnType == BiometricFragment::class.java
+                }.apply {
+                    isAccessible = true
+                }
+            }.getOrNull()
+        }
     }
 
     private val isOpened = AtomicBoolean(false)
@@ -520,23 +532,14 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             ExecutorHelper.startOnBackground {
                 //fallback - sometimes we are not able to cancel BiometricPrompt properly
                 try {
-                    val m = BiometricPrompt::class.java.declaredMethods.first {
-                        it.parameterTypes.size == 1 && it.parameterTypes[0] == FragmentManager::class.java && it.returnType == BiometricFragment::class.java
-                    }
-                    val isAccessible = m.isAccessible
                     try {
-                        if (!isAccessible)
-                            m.isAccessible = true
                         biometricFragment.set(
-                            m.invoke(
+                            biometricFragmentMethod?.invoke(
                                 null,
                                 builder.getActivity()?.supportFragmentManager
                             ) as BiometricFragment?
                         )
                     } finally {
-                        if (!isAccessible)
-                            m.isAccessible = false
-
                         if (biometricFragment.get() == null) {
                             callback?.onFailed(builder.getAllAvailableTypes().map {
                                 AuthenticationResult(

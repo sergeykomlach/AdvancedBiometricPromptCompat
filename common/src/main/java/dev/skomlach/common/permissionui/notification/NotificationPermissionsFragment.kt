@@ -50,6 +50,7 @@ import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
+import java.lang.reflect.Field
 
 class NotificationPermissionsFragment : Fragment() {
     companion object {
@@ -57,6 +58,13 @@ class NotificationPermissionsFragment : Fragment() {
         private const val PERMISSION_KEY = "permissions_type"
         private const val CHANNEL_ID = "channelId"
         private const val INTENT_KEY = "NotificationPermissionsFragment.intent_key"
+        private val semPlatformIntField: Field? by lazy {
+            runCatching {
+                VERSION::class.java.getDeclaredField("SEM_PLATFORM_INT").apply {
+                    isAccessible = true
+                }
+            }.getOrNull()
+        }
 
         //Also channels permission can't be toggled properly
         //https://www.reddit.com/r/Android/comments/1aezehk/one_ui_61_disables_one_of_androids_best/
@@ -66,9 +74,7 @@ class NotificationPermissionsFragment : Fragment() {
                 if (!isSemAvailable(AndroidContext.appContext)) {
                     return "" // was "1.0" originally but probably just a dummy value for one UI devices
                 }
-                val semPlatformIntField =
-                    VERSION::class.java.getDeclaredField("SEM_PLATFORM_INT")
-                val version: Int = semPlatformIntField.getInt(null) - 90000
+                val version: Int = (semPlatformIntField?.getInt(null) ?: return "") - 90000
                 if (version < 0) {
                     // not one ui (could be previous Samsung OS)
                     return ""

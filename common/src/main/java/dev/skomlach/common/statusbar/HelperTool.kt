@@ -23,9 +23,23 @@ import android.graphics.Rect
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.util.concurrent.ConcurrentHashMap
 
 
 object HelperTool {
+    private val meizuFlagsField: Field? by lazy {
+        runCatching {
+            WindowManager.LayoutParams::class.java.getDeclaredField("meizuFlags").apply {
+                isAccessible = true
+            }
+        }.getOrNull()
+    }
+    private val clearExtraFlagsMethods = ConcurrentHashMap<Class<out Window>, Method>()
+    private val addExtraFlagsMethods = ConcurrentHashMap<Class<out Window>, Method>()
+    private val setExtraFlagsMethods = ConcurrentHashMap<Class<out Window>, Method>()
+
     /**
      * Whether the view is at least certain % visible
      */
@@ -107,8 +121,7 @@ object HelperTool {
     fun setFlameFlag(window: Window, set: Boolean, bits: Int): Boolean {
         try {
             val lp = window.attributes
-            val meizuFlags = WindowManager.LayoutParams::class.java.getDeclaredField("meizuFlags")
-            meizuFlags.isAccessible = true
+            val meizuFlags = meizuFlagsField ?: return false
             val oldVis = meizuFlags.getInt(lp)
             var newVis = oldVis
             newVis = if (set) {
@@ -138,10 +151,16 @@ object HelperTool {
         //I found that clearExtraFlags/addExtraFlags available at least for MIUI10, not sure about older
         try {
             val clazz: Class<out Window> = window.javaClass
-            val extraFlagField1 = clazz.getMethod("clearExtraFlags", Int::class.javaPrimitiveType)
+            val extraFlagField1 = clearExtraFlagsMethods[clazz]
+                ?: clazz.getMethod("clearExtraFlags", Int::class.javaPrimitiveType).also {
+                    clearExtraFlagsMethods[clazz] = it
+                }
             extraFlagField1.invoke(window, bits)
             if (set) {
-                val extraFlagField2 = clazz.getMethod("addExtraFlags", Int::class.javaPrimitiveType)
+                val extraFlagField2 = addExtraFlagsMethods[clazz]
+                    ?: clazz.getMethod("addExtraFlags", Int::class.javaPrimitiveType).also {
+                        addExtraFlagsMethods[clazz] = it
+                    }
                 extraFlagField2.invoke(window, bits)
             }
             return true
@@ -150,11 +169,14 @@ object HelperTool {
         //try to use solution from https://dev.mi.com/doc/p=4769/
         try {
             val clazz: Class<out Window> = window.javaClass
-            val extraFlagField = clazz.getMethod(
-                "setExtraFlags",
-                Int::class.javaPrimitiveType,
-                Int::class.javaPrimitiveType
-            )
+            val extraFlagField = setExtraFlagsMethods[clazz]
+                ?: clazz.getMethod(
+                    "setExtraFlags",
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
+                ).also {
+                    setExtraFlagsMethods[clazz] = it
+                }
             extraFlagField.invoke(window, if (set) bits else 0, bits)
             return true
         } catch (ignore: Throwable) {

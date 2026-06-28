@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal fun BiometricAuthRequest.stateCacheKey(name: String): String {
@@ -104,6 +105,21 @@ internal fun aggregateTypedAutoBiometricState(
         lockedOut = detectedStates.any { it.lockedOut },
         permanentlyLocked = detectedStates.all { it.permanentlyLocked }
     )
+}
+
+internal fun isSetupRouteSelectable(
+    routeState: BiometricAuthState,
+    moduleState: BiometricModuleState?,
+    preferModule: Boolean
+): Boolean {
+    if (preferModule && moduleState != null) {
+        return moduleState.hardwarePresent &&
+                !moduleState.lockedOut &&
+                !moduleState.permanentlyLocked
+    }
+    return routeState.hardwareDetected &&
+            !routeState.lockedOut &&
+            !routeState.permanentlyLocked
 }
 
 /**

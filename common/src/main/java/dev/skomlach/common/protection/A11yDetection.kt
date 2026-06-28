@@ -36,6 +36,7 @@ import dev.skomlach.common.logging.LogCat
 import dev.skomlach.common.misc.ExecutorHelper
 import kotlinx.coroutines.launch
 import org.xmlpull.v1.XmlPullParser
+import java.lang.reflect.Method
 
 object A11yDetection {
     private val trustedA11yPackages = setOf(
@@ -71,6 +72,13 @@ object A11yDetection {
     private var whiteListCache: Pair<Long, Boolean> = Pair(0, false)
     private var trustedListCache: Pair<Long, Boolean> = Pair(0, false)
     private const val CACHE_TTL_MS = 10_000L
+    private val isAccessibilityToolMethod: Method? by lazy {
+        runCatching {
+            AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool").apply {
+                isAccessible = true
+            }
+        }.getOrNull()
+    }
 
     class A11ySettingsObserver(handler: Handler, private val context: Context) :
         ContentObserver(handler) {
@@ -198,10 +206,7 @@ object A11yDetection {
                 if ("${it.resolveInfo.serviceInfo.packageName}/${it.resolveInfo.serviceInfo.name}" == componentName.flattenToString()) {
                     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         it.isAccessibilityTool
-                    } else AccessibilityServiceInfo::class.java.getDeclaredMethod("isAccessibilityTool")
-                        .apply {
-                            this.isAccessible = true
-                        }.invoke(it) as Boolean
+                    } else isAccessibilityToolMethod?.invoke(it) as? Boolean == true
                 }
             }
         } catch (e: Throwable) {

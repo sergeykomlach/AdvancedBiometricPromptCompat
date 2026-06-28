@@ -34,13 +34,22 @@ import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.HexUtils
 import dev.skomlach.common.storage.SharedPreferenceProvider.getPreferences
 import java.nio.charset.Charset
+import java.lang.reflect.Method
 import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : BiometricModule {
     companion object {
         private const val ENROLLED_PREF = "enrolled_"
         internal var DEBUG_MANAGERS = false
+        private val managerEnrollmentMethods = ConcurrentHashMap<Class<*>, List<Method>>()
+        private val uniqueIdMethods = ConcurrentHashMap<Class<*>, Set<Method>>()
+        private val myUserIdMethod: Method? by lazy {
+            runCatching {
+                UserHandle::class.java.methods.firstOrNull { it.name == "myUserId" }
+            }.getOrNull()
+        }
     }
 
 
@@ -75,7 +84,7 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     protected fun getUserId(): Int {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                UserHandle::class.java.methods.filter { it.name == "myUserId" }[0].invoke(null) as Int
+                myUserIdMethod?.invoke(null) as? Int ?: 0
             } else {
                 0
             }
@@ -124,67 +133,66 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
     private fun getIds(manager: Any): List<String> {
         val ids = ArrayList<String?>()
         try {
-            val methods = manager.javaClass.declaredMethods.filter {
-                (it.name.contains(
-                    "enrolled",
-                    ignoreCase = true
-                ) || it.name.contains(
-                    "registered",
-                    ignoreCase = true
-                )) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()
+            val methods = managerEnrollmentMethods.getOrPut(manager.javaClass) {
+                val clazz = manager.javaClass
+                clazz.declaredMethods.filter {
+                    (it.name.contains(
+                        "enrolled",
+                        ignoreCase = true
+                    ) || it.name.contains(
+                        "registered",
+                        ignoreCase = true
+                    )) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()
+                }.onEach { method ->
+                    if (!method.isAccessible) {
+                        method.isAccessible = true
+                    }
+                }
             }
             methods.forEach { method ->
-                val isAccessible = method?.isAccessible != false
-                try {
-                    if (!isAccessible)
-                        method?.isAccessible = true
-                    method?.invoke(manager)?.let { result ->
-                        when (result) {
-                            is List<*> -> {
-                                for (i in result) {
-                                    i?.let {
-                                        ids.add(getUniqueId(it))
-                                    }
+                method.invoke(manager)?.let { result ->
+                    when (result) {
+                        is List<*> -> {
+                            for (i in result) {
+                                i?.let {
+                                    ids.add(getUniqueId(it))
                                 }
-                            }
-
-                            is Collection<*> -> {
-                                for (i in result) {
-                                    i?.let {
-                                        ids.add(getUniqueId(it))
-                                    }
-                                }
-                            }
-
-                            is IntArray -> {
-                                for (i in result) {
-                                    e("$name: Int ids $i")
-                                    ids.add(getUniqueId(i))
-                                }
-                            }
-
-                            is LongArray -> {
-                                for (i in result) {
-                                    e("$name: Long ids $i")
-                                    ids.add(getUniqueId(i))
-                                }
-                            }
-
-                            is Array<*> -> {
-                                for (i in result)
-                                    i?.let {
-                                        ids.add(getUniqueId(it))
-                                    }
-                            }
-
-                            else -> {
-                                ids.add(getUniqueId(result))
                             }
                         }
+
+                        is Collection<*> -> {
+                            for (i in result) {
+                                i?.let {
+                                    ids.add(getUniqueId(it))
+                                }
+                            }
+                        }
+
+                        is IntArray -> {
+                            for (i in result) {
+                                e("$name: Int ids $i")
+                                ids.add(getUniqueId(i))
+                            }
+                        }
+
+                        is LongArray -> {
+                            for (i in result) {
+                                e("$name: Long ids $i")
+                                ids.add(getUniqueId(i))
+                            }
+                        }
+
+                        is Array<*> -> {
+                            for (i in result)
+                                i?.let {
+                                    ids.add(getUniqueId(it))
+                                }
+                        }
+
+                        else -> {
+                            ids.add(getUniqueId(result))
+                        }
                     }
-                } finally {
-                    if (!isAccessible)
-                        method?.isAccessible = false
                 }
                 if (ids.filterNotNull().isNotEmpty()) return ids.filterNotNull()
             }
@@ -193,6 +201,35 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
                 e("$name", e)
         }
         return emptyList()
+    }
+
+    private fun uniqueIdMethods(result: Any): Set<Method> {
+        return uniqueIdMethods.getOrPut(result.javaClass) {
+            val clazz = result.javaClass
+            val methods = clazz.declaredMethods.filter {
+                (it.name.endsWith(
+                    "id",
+                    ignoreCase = true
+                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()) || (it.name.endsWith(
+                    "name",
+                    ignoreCase = true
+                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
+            }.toMutableList()
+            clazz.superclass?.declaredMethods?.filterTo(methods) {
+                (it.name.endsWith(
+                    "id",
+                    ignoreCase = true
+                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()) || (it.name.endsWith(
+                    "name",
+                    ignoreCase = true
+                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
+            }
+            methods.onEach { method ->
+                if (!method.isAccessible) {
+                    method.isAccessible = true
+                }
+            }.toSet()
+        }
     }
 
     @Deprecated("Starts from Android 9 method return empty list due to Reflection restrictions")
@@ -240,40 +277,12 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
 
         try {
             val stringBuilder = StringBuilder()
-            val methods = result.javaClass.declaredMethods.filter {
-                (it.name.endsWith(
-                    "id",
-                    ignoreCase = true
-                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()) || (it.name.endsWith(
-                    "name",
-                    ignoreCase = true
-                ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
-            }.toMutableList().apply {
-                this.addAll(result.javaClass.superclass.declaredMethods.filter {
-                    (it.name.endsWith(
-                        "id",
-                        ignoreCase = true
-                    ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty()) || (it.name.endsWith(
-                        "name",
-                        ignoreCase = true
-                    ) && it.returnType != Void.TYPE && it.parameterTypes.isEmpty())
-                })
-            }.toSet()
-
-            for (f in methods) {
-                val isAccessible = f.isAccessible
-                if (!isAccessible)
-                    f.isAccessible = true
-                try {
-                    f.invoke(result) ?: continue
-                    if (stringBuilder.isEmpty())
-                        stringBuilder.append(result.javaClass.simpleName).append("; ")
-                    stringBuilder.append(f.name).append("=")
-                        .append(f.invoke(result)).append("; ")
-                } finally {
-                    if (!isAccessible)
-                        f.isAccessible = false
-                }
+            for (f in uniqueIdMethods(result)) {
+                val value = f.invoke(result) ?: continue
+                if (stringBuilder.isEmpty())
+                    stringBuilder.append(result.javaClass.simpleName).append("; ")
+                stringBuilder.append(f.name).append("=")
+                    .append(value).append("; ")
             }
             val s = stringBuilder.toString().trim()
             if (s.isNotEmpty())
