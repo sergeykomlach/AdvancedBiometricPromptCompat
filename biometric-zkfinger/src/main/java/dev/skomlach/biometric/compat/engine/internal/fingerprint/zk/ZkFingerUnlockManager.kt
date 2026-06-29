@@ -36,6 +36,13 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
+internal fun resolveZkHardwareDetected(
+    usbHostAvailable: Boolean,
+    supportedDeviceConnected: Boolean
+): Boolean {
+    return usbHostAvailable && supportedDeviceConnected
+}
+
 class ZkFingerUnlockManager(
     private val context: Context
 ) : AbstractSoftwareBiometricManager() {
@@ -180,7 +187,10 @@ class ZkFingerUnlockManager(
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_FINGERPRINT
 
     override fun isHardwareDetected(): Boolean {
-        return isUsbHostAvailable()
+        return resolveZkHardwareDetected(
+            usbHostAvailable = isUsbHostAvailable(),
+            supportedDeviceConnected = findSupportedDevice() != null
+        )
     }
 
     override fun hasEnrolledBiometric(): Boolean = getEnrolls().isNotEmpty()

@@ -27,6 +27,7 @@ dependencies {
     implementation project(":" + libArtifactId_biometric)
     implementation libs.androidx.core.ktx
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    testImplementation libs.junit
 }
 
 // Publishing
