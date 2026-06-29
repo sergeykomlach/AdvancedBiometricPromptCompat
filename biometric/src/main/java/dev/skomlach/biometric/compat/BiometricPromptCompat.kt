@@ -558,6 +558,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 }
             }
             ExecutorHelper.post {
+                if (failIfNoEffectiveBiometrics(callback)) {
+                    return@post
+                }
                 if (timeout) {
                     callback.onFailed(builder.getAllAvailableTypes().map {
                         AuthenticationResult(
@@ -970,6 +973,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 checkPermissions(callbackOuter) {
                     checkModulePreparation(callbackOuter) {
                         if (!failIfNoActiveBiometrics(callbackOuter)) {
+                            if (failIfNoEffectiveBiometrics(callbackOuter)) {
+                                return@checkModulePreparation
+                            }
                             checkSensor(callbackOuter) {
                                 authTask.invoke()
                             }
@@ -980,6 +986,9 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         } else {
             checkModulePreparation(callbackOuter) {
                 if (!failIfNoActiveBiometrics(callbackOuter)) {
+                    if (failIfNoEffectiveBiometrics(callbackOuter)) {
+                        return@checkModulePreparation
+                    }
                     authTask.invoke()
                 }
             }
@@ -998,6 +1007,17 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     description = getMissingPermissionsDescription()
                 )
             )
+        )
+        authFlowInProgress.set(false)
+        return true
+    }
+
+    private fun failIfNoEffectiveBiometrics(callback: AuthenticationCallback): Boolean {
+        if (builder.getEffectiveAvailableTypes().isNotEmpty()) {
+            return false
+        }
+        callback.onCanceled(
+            emptyEffectiveBiometricCancellationResults(builder.getAllAvailableTypes())
         )
         authFlowInProgress.set(false)
         return true

@@ -161,3 +161,19 @@ internal fun resolveEffectiveEnrollTypes(
         .filter { type -> keepSystemType(type) || !hasSystemHardware(type) }
         .filter(isActive)
 }
+
+internal fun emptyEffectiveBiometricCancellationResults(
+    allTypes: Collection<BiometricType>
+): Set<AuthenticationResult> {
+    val sourceTypes = if (allTypes.isEmpty()) {
+        listOf(BiometricType.BIOMETRIC_ANY)
+    } else {
+        allTypes.toList()
+    }
+    return sourceTypes.mapTo(LinkedHashSet()) { type ->
+        AuthenticationResult(
+            type,
+            reason = AuthenticationFailureReason.CANCELED
+        )
+    }
+}
