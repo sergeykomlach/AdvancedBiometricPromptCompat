@@ -2095,6 +2095,34 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             }
         }
 
+        internal fun getSelectedTypePermissions(type: BiometricType): List<String> {
+            if (getPrimaryAvailableTypes().contains(type) && hasBiometricPromptHardwareType(type)) {
+                val request = biometricAuthRequest.withType(type)
+                    .withProvider(BiometricProviderType.HARDWARE)
+                return BiometricManagerCompat.getUsedPermissions(
+                    listOf(type),
+                    request,
+                    enroll
+                )
+            }
+
+            val selectedModule = LegacyBiometric.getSelectedBiometricModule(
+                type,
+                biometricAuthRequest.provider,
+                enroll,
+                getDisabledModuleTags()
+            ) ?: return emptyList()
+
+            return BiometricManagerCompat.getUsedPermissions(selectedModule)
+        }
+
+        internal fun isSelectedTypeAvailable(type: BiometricType, ignoreCameraCheck: Boolean): Boolean {
+            val snapshot = selectedTypeSnapshot(type, ignoreCameraCheck)
+            return snapshot.available &&
+                    !snapshot.state.lockedOut &&
+                    !snapshot.state.permanentlyLocked
+        }
+
         internal fun getDisabledModuleTags(): Set<Int> {
             return HashSet(disabledModuleTags)
         }

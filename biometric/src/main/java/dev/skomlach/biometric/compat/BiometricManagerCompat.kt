@@ -29,6 +29,8 @@ import android.provider.Settings
 import androidx.core.content.edit
 import dev.skomlach.biometric.compat.engine.BiometricMethod
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
+import dev.skomlach.biometric.compat.engine.internal.AbstractBiometricModule
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricErrorLockoutPermanentFix
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
@@ -397,6 +399,14 @@ object BiometricManagerCompat {
         return ArrayList(permission)
     }
 
+    internal fun getUsedPermissions(module: BiometricModule): List<String> {
+        return when (module) {
+            is SoftwareBiometricModule -> module.manager?.getPermissions() ?: emptyList()
+            is AbstractBiometricModule -> getHardwarePermissions(module.biometricMethod)
+            else -> emptyList()
+        }.distinct()
+    }
+
     internal fun getUsedPermissions(
         types: Collection<BiometricType>,
         biometricAuthRequest: BiometricAuthRequest,
@@ -427,7 +437,6 @@ object BiometricManagerCompat {
     private fun getHardwarePermissions(
         types: Collection<BiometricType>
     ): MutableSet<String> {
-
         val permission: MutableSet<String> = java.util.HashSet()
         types.forEach {
             if (Build.VERSION.SDK_INT >= 28 && it == BiometricType.BIOMETRIC_ANY) {
@@ -435,39 +444,33 @@ object BiometricManagerCompat {
             } else {
                 for (m in LegacyBiometric.availableBiometricMethods) {
                     if (it == m.biometricType) {
-                        when (m) {
-                            BiometricMethod.DUMMY_BIOMETRIC -> permission.add("android.permission.CAMERA")
-                            BiometricMethod.IRIS_ANDROIDAPI -> permission.add("android.permission.USE_IRIS")
-                            BiometricMethod.IRIS_SAMSUNG -> permission.add("com.samsung.android.camera.iris.permission.USE_IRIS")
-                            BiometricMethod.FACELOCK -> permission.add("android.permission.WAKE_LOCK")
-
-                            BiometricMethod.FACE_HIHONOR, BiometricMethod.FACE_HIHONOR3D -> permission.add(
-                                "com.hihonor.permission.USE_FACERECOGNITION"
-                            )
-
-                            BiometricMethod.FACE_HUAWEI, BiometricMethod.FACE_HUAWEI3D -> permission.add(
-                                "com.huawei.permission.USE_FACERECOGNITION"
-                            )
-
-                            BiometricMethod.FACE_SOTERAPI -> permission.add("android.permission.USE_FACERECOGNITION")
-
-                            BiometricMethod.FACE_ANDROIDAPI -> permission.add("android.permission.USE_FACE_AUTHENTICATION")
-                            BiometricMethod.FACE_SAMSUNG -> permission.add("com.samsung.android.bio.face.permission.USE_FACE")
-                            BiometricMethod.FACE_OPPO -> permission.add("oppo.permission.USE_FACE")
-                            BiometricMethod.FINGERPRINT_API23, BiometricMethod.FINGERPRINT_SUPPORT -> permission.add(
-                                "android.permission.USE_FINGERPRINT"
-                            )
-
-                            else -> {
-                                //no-op
-                            }
-                        }
+                        permission.addAll(getHardwarePermissions(m))
                     }
                 }
 
             }
         }
         return permission
+    }
+
+    internal fun getHardwarePermissions(method: BiometricMethod): List<String> {
+        return when (method) {
+            BiometricMethod.DUMMY_BIOMETRIC -> listOf("android.permission.CAMERA")
+            BiometricMethod.IRIS_ANDROIDAPI -> listOf("android.permission.USE_IRIS")
+            BiometricMethod.IRIS_SAMSUNG -> listOf("com.samsung.android.camera.iris.permission.USE_IRIS")
+            BiometricMethod.FACELOCK -> listOf("android.permission.WAKE_LOCK")
+            BiometricMethod.FACE_HIHONOR,
+            BiometricMethod.FACE_HIHONOR3D -> listOf("com.hihonor.permission.USE_FACERECOGNITION")
+            BiometricMethod.FACE_HUAWEI,
+            BiometricMethod.FACE_HUAWEI3D -> listOf("com.huawei.permission.USE_FACERECOGNITION")
+            BiometricMethod.FACE_SOTERAPI -> listOf("android.permission.USE_FACERECOGNITION")
+            BiometricMethod.FACE_ANDROIDAPI -> listOf("android.permission.USE_FACE_AUTHENTICATION")
+            BiometricMethod.FACE_SAMSUNG -> listOf("com.samsung.android.bio.face.permission.USE_FACE")
+            BiometricMethod.FACE_OPPO -> listOf("oppo.permission.USE_FACE")
+            BiometricMethod.FINGERPRINT_API23,
+            BiometricMethod.FINGERPRINT_SUPPORT -> listOf("android.permission.USE_FINGERPRINT")
+            else -> emptyList()
+        }
     }
 
     private fun isCameraNotAvailable(

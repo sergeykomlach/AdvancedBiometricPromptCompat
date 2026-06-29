@@ -39,7 +39,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.palette.graphics.Palette
 import dev.skomlach.biometric.compat.BiometricAuthRequest
-import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
@@ -88,9 +87,9 @@ class WindowForegroundBlurring(
                 val typesList = if (compatBuilder.isBackgroundBiometricIconsEnabled()) {
                     if (compatBuilder.enroll) {
                         compatBuilder.getEffectiveAvailableTypes().toList()
-                    } else{
+                    } else {
                         compatBuilder.getAllAvailableTypes().filter {
-                            val list = BiometricManagerCompat.getUsedPermissions(listOf(it))
+                            val list = compatBuilder.getSelectedTypePermissions(it)
                             list.isEmpty() || PermissionUtils.INSTANCE.hasSelfPermissions(list)
                         }
                     }
@@ -99,16 +98,7 @@ class WindowForegroundBlurring(
                     if (compatBuilder.enroll) {
                         return@filter true
                     }
-                    val api = compatBuilder.getBiometricAuthRequest().withType(
-                        type = it
-                    )
-                    val snapshot = BiometricManagerCompat.getAuthSnapshot(api, false)
-                    val active = if (compatBuilder.enroll) {
-                        snapshot.state.hardwareDetected
-                    } else {
-                        snapshot.available
-                    }
-                    active && !snapshot.state.lockedOut && !snapshot.state.permanentlyLocked
+                    compatBuilder.isSelectedTypeAvailable(it, ignoreCameraCheck = false)
                 }
             }
         }
