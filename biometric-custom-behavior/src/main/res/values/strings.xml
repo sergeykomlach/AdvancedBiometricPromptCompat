@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_behavior_help_timeout">Behavior authentication timed out</string>
+    <string name="biometriccompat_behavior_help_unavailable">Behavior authentication is unavailable</string>
+    <string name="biometriccompat_behavior_help_sample_missing">Behavior sample is missing or incomplete</string>
+    <string name="biometriccompat_behavior_help_not_registered">No behavior biometric is enrolled</string>
+    <string name="biometriccompat_behavior_help_enrolled">Behavior template enrolled: %1$s</string>
+    <string name="biometriccompat_behavior_help_accepted">Behavior biometric accepted</string>
+    <string name="biometriccompat_behavior_help_not_matched">Behavior biometric did not match</string>
+    <string name="biometriccompat_behavior_help_lockout">Behavior authentication is temporarily locked</string>
+    <string name="biometriccompat_behavior_help_lockout_permanent">Behavior authentication is permanently locked</string>
+    <string name="biometriccompat_behavior_help_sample_valid">Behavior sample is valid</string>
+    <string name="biometriccompat_behavior_help_typing_phrase_short">Typing phrase is too short</string>
+    <string name="biometriccompat_behavior_help_typing_sample_short">Typing sample is too short</string>
+    <string name="biometriccompat_behavior_help_typing_event_mismatch">Typing sample does not match the phrase. Type the phrase manually.</string>
+    <string name="biometriccompat_behavior_help_typing_too_fast">Typing sample is too fast. Type the phrase naturally.</string>
+    <string name="biometriccompat_behavior_help_typing_too_uniform">Typing sample has too little timing variation</string>
+    <string name="biometriccompat_behavior_help_signature_sample_short">Signature sample is too short</string>
+    <string name="biometriccompat_behavior_help_signature_path_short">Signature path is too short</string>
+    <string name="biometriccompat_behavior_help_signature_shape_small">Signature shape is too small</string>
+    <string name="biometriccompat_behavior_help_signature_shape_simple">Signature shape is too simple. Draw your normal signature.</string>
+    <string name="biometriccompat_behavior_help_signature_duplicate_points">Signature sample has too many repeated points. Draw the signature naturally.</string>
+</resources>

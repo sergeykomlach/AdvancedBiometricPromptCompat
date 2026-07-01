@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
+import dev.skomlach.common.translate.LocalizationHelper
 import kotlin.math.max
 
 internal class BehaviorCaptureController(
@@ -83,7 +84,7 @@ internal class BehaviorCaptureController(
 
     private fun prepareInputs(context: android.content.Context) {
         phraseInput = builder.getBehaviorTypingView() ?: EditText(context).apply {
-            hint = "Type phrase"
+            hint = localized(R.string.biometriccompat_behavior_phrase_hint)
             isSingleLine = true
             inputType = InputType.TYPE_NULL
             isFocusable = false
@@ -127,7 +128,7 @@ internal class BehaviorCaptureController(
             text = "B"
             textSize = 18f
             gravity = Gravity.CENTER
-            contentDescription = "Behavior"
+            contentDescription = localized(R.string.biometriccompat_behavior_button_content_description)
             setTextColor(ContextCompat.getColor(context, android.R.color.white))
             background = rounded(
                 color = ContextCompat.getColor(context, R.color.material_deep_teal_500),
@@ -159,23 +160,27 @@ internal class BehaviorCaptureController(
             gravity = Gravity.CENTER
             addView(RadioButton(context).apply {
                 id = MODE_TYPING_ID
-                text = "Typing"
+                text = localized(R.string.biometriccompat_behavior_mode_typing)
             })
             addView(RadioButton(context).apply {
                 id = MODE_SIGNATURE_ID
-                text = "Signature"
+                text = localized(R.string.biometriccompat_behavior_mode_signature)
             })
             addView(RadioButton(context).apply {
                 id = MODE_COMBINED_ID
-                text = "Combined"
+                text = localized(R.string.biometriccompat_behavior_mode_combined)
             })
             check(MODE_COMBINED_ID)
             setOnCheckedChangeListener { _, _ -> updateModeVisibility() }
         }
 
         actionButton = Button(context).apply {
-            text = if (builder.enroll) "Enroll" else "Verify"
-            contentDescription = if (builder.enroll) "Enroll behavior sample" else "Verify behavior sample"
+            text = if (builder.enroll) {
+                localized(R.string.biometriccompat_behavior_action_enroll)
+            } else {
+                localized(R.string.biometriccompat_behavior_action_verify)
+            }
+            contentDescription = text
             setOnClickListener { prepareExtras() }
         }
         hintText = TextView(context).apply {
@@ -194,13 +199,14 @@ internal class BehaviorCaptureController(
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER_HORIZONTAL
             setPadding((16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt(), (16 * density).toInt())
-            background = rounded(
-                color = ContextCompat.getColor(context, android.R.color.white),
-                radius = 18 * density
-            )
+            background = ContextCompat.getDrawable(context, R.drawable.biometric_capture_panel_bg)
             elevation = 10f * density
             addView(TextView(context).apply {
-                text = if (builder.enroll) "Create behavior sample" else "Confirm behavior"
+                text = if (builder.enroll) {
+                    localized(R.string.biometriccompat_behavior_overlay_title_enroll)
+                } else {
+                    localized(R.string.biometriccompat_behavior_overlay_title_auth)
+                }
                 gravity = Gravity.CENTER
                 textSize = 16f
                 setTextColor(ContextCompat.getColor(context, R.color.textColor))
@@ -228,7 +234,7 @@ internal class BehaviorCaptureController(
             }
             if (builder.getBehaviorSignatureContainer() == null) {
                 addView(TextView(context).apply {
-                    text = "Draw signature"
+                    text = localized(R.string.biometriccompat_behavior_signature_label)
                     gravity = Gravity.CENTER
                     setTextColor(ContextCompat.getColor(context, R.color.textColor))
                 })
@@ -320,9 +326,9 @@ internal class BehaviorCaptureController(
         }
         signaturePad.visibility = if (mode != MODE_TYPING) View.VISIBLE else View.GONE
         hintText.text = when (mode) {
-            MODE_TYPING -> "Type at least 5 characters with a natural rhythm."
-            MODE_SIGNATURE -> "Draw a clear signature with enough length and shape."
-            else -> "Type a short phrase and draw a clear signature."
+            MODE_TYPING -> localized(R.string.biometriccompat_behavior_hint_typing)
+            MODE_SIGNATURE -> localized(R.string.biometriccompat_behavior_hint_signature)
+            else -> localized(R.string.biometriccompat_behavior_hint_combined)
         }
         clearInputError()
     }
@@ -361,18 +367,18 @@ internal class BehaviorCaptureController(
         val density = context.resources.displayMetrics.density
         return TextView(context).apply {
             text = when (key) {
-                KEY_SPACE -> "space"
-                KEY_BACKSPACE -> "<"
+                KEY_SPACE -> localized(R.string.biometriccompat_behavior_key_space)
+                KEY_BACKSPACE -> localized(R.string.biometriccompat_behavior_key_backspace)
                 else -> key
             }
             gravity = Gravity.CENTER
             textSize = 14f
             setTextColor(ContextCompat.getColor(context, R.color.textColor))
-            background = rounded(0x11000000, 8 * density)
+            background = ContextCompat.getDrawable(context, R.drawable.biometric_capture_surface_bg)
             filterTouchesWhenObscured = true
             setOnTouchListener { _, event ->
                 if (!event.isTrustedBehaviorTouch()) {
-                    showInputError("Touch input is obscured. Remove screen overlays and try again.")
+                    showInputError(localized(R.string.biometriccompat_behavior_error_touch_obscured))
                     return@setOnTouchListener true
                 }
                 when (event.actionMasked) {
@@ -402,7 +408,7 @@ internal class BehaviorCaptureController(
         if (phraseInput.text?.length ?: 0 >= MAX_CAPTURED_TYPING_CHARS ||
             keyDowns.size >= MAX_CAPTURED_TYPING_EVENTS
         ) {
-            showInputError("Behavior phrase is too long. Use a shorter phrase.")
+            showInputError(localized(R.string.biometriccompat_behavior_error_phrase_too_long))
             return
         }
         phraseInput.append(if (key == KEY_SPACE) " " else key)
@@ -422,7 +428,7 @@ internal class BehaviorCaptureController(
         val mode = selectedMode()
         val phrase = phraseInput.text?.toString().orEmpty()
         if (phrase.length > MAX_CAPTURED_TYPING_CHARS) {
-            showInputError("Behavior phrase is too long. Use a shorter phrase.")
+            showInputError(localized(R.string.biometriccompat_behavior_error_phrase_too_long))
             return
         }
         val hasTyping = phrase.trim().length >= MIN_TYPING_CHARS &&
@@ -430,15 +436,15 @@ internal class BehaviorCaptureController(
             keyDowns.size == keyUps.size
         val hasSignature = points.size >= POINT_STRIDE * MIN_SIGNATURE_POINTS
         if ((mode == MODE_TYPING || mode == MODE_COMBINED) && !hasTyping) {
-            showInputError("Type at least 5 characters before continuing.")
+            showInputError(localized(R.string.biometriccompat_behavior_error_need_typing))
             return
         }
         if ((mode == MODE_SIGNATURE || mode == MODE_COMBINED) && !hasSignature) {
-            showInputError("Draw a longer signature before continuing.")
+            showInputError(localized(R.string.biometriccompat_behavior_error_need_signature))
             return
         }
 
-        val extras = Bundle().apply {
+        val extras = Bundle(builder.getExtras() ?: Bundle()).apply {
             putString(EXTRA_BEHAVIOR_MODE, mode)
             putString(EXTRA_BEHAVIOR_PHRASE, phrase)
             putLongArray(EXTRA_BEHAVIOR_KEY_DOWNS, keyDowns.toLongArray())
@@ -450,7 +456,8 @@ internal class BehaviorCaptureController(
         prepared = true
         builder.setExtras(extras)
         actionButton.isEnabled = false
-        rootView.findViewById<TextView>(R.id.status)?.text = "Checking behavior"
+        rootView.findViewById<TextView>(R.id.status)?.text =
+            localized(R.string.biometriccompat_behavior_status_checking)
         hideOverlay()
         onReady()
     }
@@ -494,9 +501,9 @@ internal class BehaviorCaptureController(
         init {
             filterTouchesWhenObscured = true
             ScreenProtection.applyProtectionInView(this)
-            background = rounded(
-                color = 0x11ffffff,
-                radius = 12 * context.resources.displayMetrics.density
+            background = ContextCompat.getDrawable(
+                context,
+                R.drawable.biometric_capture_surface_bg
             )
         }
 
@@ -575,6 +582,10 @@ internal class BehaviorCaptureController(
                 cornerRadius = radius
             }
         }
+    }
+
+    private fun localized(id: Int, vararg formatArgs: Any?): String {
+        return LocalizationHelper.getLocalizedString(rootView.context, id, *formatArgs)
     }
 }
 

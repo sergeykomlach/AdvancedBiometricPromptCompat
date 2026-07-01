@@ -10,8 +10,10 @@ import android.os.Handler
 import android.os.Looper
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
+import dev.skomlach.biometric.custom.voice.R
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.storage.SharedPreferenceProvider
+import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
 class VoiceBiometricManager(
@@ -30,7 +32,8 @@ class VoiceBiometricManager(
         SharedPreferenceProvider.getProtectedPreferences(LOCKOUT_STORAGE_NAME)
     }
 
-    override fun getTimeoutMessage(): CharSequence = "Voice authentication timed out"
+    override fun getTimeoutMessage(): CharSequence =
+        localized(R.string.biometriccompat_voice_help_timeout)
 
     override fun resetLockOut() {
         resetTemporaryLockoutState(prefs)
@@ -92,7 +95,7 @@ class VoiceBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                "Voice authentication is unavailable"
+                localized(R.string.biometriccompat_voice_help_unavailable)
             )
             return
         }
@@ -101,7 +104,7 @@ class VoiceBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_NO_PERMISSIONS,
-                "Microphone permission is required for voice authentication"
+                localized(R.string.biometriccompat_voice_help_permission_required)
             )
             return
         }
@@ -112,7 +115,7 @@ class VoiceBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                "Voice sample is required. Provide a recorded voice sample or precomputed voice embedding."
+                localized(R.string.biometriccompat_voice_help_sample_required)
             )
             return
         }
@@ -168,7 +171,11 @@ class VoiceBiometricManager(
                     "featureBatches=${featureBatches.size} featureFrames=${featureBatches.sumOf { it.size }} " +
                     "metrics=$preprocessMetrics"
             )
-            finishWithSuccess(callback, crypto, "Voice template enrolled: $tag")
+            finishWithSuccess(
+                callback,
+                crypto,
+                localized(R.string.biometriccompat_voice_help_enrolled, tag)
+            )
             return
         }
 
@@ -181,7 +188,7 @@ class VoiceBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                "No voice biometric is enrolled. Record and enroll voice samples before authentication."
+                localized(R.string.biometriccompat_voice_help_not_registered)
             )
             return
         }
@@ -208,7 +215,11 @@ class VoiceBiometricManager(
         )
         if (bestMatch.score >= MATCH_THRESHOLD) {
             resetTemporaryLockoutState(prefs)
-            finishWithSuccess(callback, crypto, "Voice biometric accepted")
+            finishWithSuccess(
+                callback,
+                crypto,
+                localized(R.string.biometriccompat_voice_help_accepted)
+            )
         } else {
             recordFailedAttempt(prefs, LOCKOUT_POLICY)
             val updatedLockout = getLockoutError()
@@ -218,7 +229,7 @@ class VoiceBiometricManager(
                 finishWithError(
                     callback,
                     CUSTOM_BIOMETRIC_ERROR_VENDOR,
-                    "Voice biometric did not match"
+                    localized(R.string.biometriccompat_voice_help_not_matched)
                 )
             }
         }
@@ -238,25 +249,25 @@ class VoiceBiometricManager(
 
     private fun qualityMessage(issue: VoiceQualityIssue): CharSequence {
         return when (issue) {
-            VoiceQualityIssue.NONE -> "Voice sample is valid"
+            VoiceQualityIssue.NONE -> localized(R.string.biometriccompat_voice_help_sample_valid)
             VoiceQualityIssue.SAMPLE_MISSING ->
-                "Voice sample is missing or incomplete. Provide PCM audio or a valid embedding."
+                localized(R.string.biometriccompat_voice_help_sample_missing)
             VoiceQualityIssue.SAMPLE_RATE_TOO_LOW ->
-                "Voice sample rate is too low. Use 16 kHz mono PCM when possible."
+                localized(R.string.biometriccompat_voice_help_sample_rate_low)
             VoiceQualityIssue.SAMPLE_TOO_SHORT ->
-                "Voice sample is too short. Speak naturally for at least one second."
+                localized(R.string.biometriccompat_voice_help_sample_short)
             VoiceQualityIssue.SAMPLE_TOO_LONG ->
-                "Voice sample is too long. Keep the voice sample under eight seconds."
+                localized(R.string.biometriccompat_voice_help_sample_long)
             VoiceQualityIssue.SAMPLE_TOO_QUIET ->
-                "Voice sample is too quiet. Move closer to the microphone and try again."
+                localized(R.string.biometriccompat_voice_help_sample_quiet)
             VoiceQualityIssue.SAMPLE_TOO_FLAT ->
-                "Voice sample has too little variation. Speak a clear phrase and try again."
+                localized(R.string.biometriccompat_voice_help_sample_flat)
             VoiceQualityIssue.SAMPLE_CLIPPED ->
-                "Voice sample is clipped. Lower microphone gain or move slightly farther away."
+                localized(R.string.biometriccompat_voice_help_sample_clipped)
             VoiceQualityIssue.SAMPLE_REPLAY_RISK ->
-                "Voice sample looks repeated or synthetic. Record a fresh natural phrase."
+                localized(R.string.biometriccompat_voice_help_sample_replay_risk)
             VoiceQualityIssue.EMBEDDING_INVALID ->
-                "Voice embedding is invalid. Provide a finite non-empty speaker embedding."
+                localized(R.string.biometriccompat_voice_help_embedding_invalid)
         }
     }
 
@@ -293,10 +304,16 @@ class VoiceBiometricManager(
 
     private fun lockoutMessage(error: Int): CharSequence {
         return when (error) {
-            CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> "Voice authentication is permanently locked"
-            CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> "Voice authentication is temporarily locked"
-            else -> "Voice authentication is unavailable"
+            CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT ->
+                localized(R.string.biometriccompat_voice_help_lockout_permanent)
+            CUSTOM_BIOMETRIC_ERROR_LOCKOUT ->
+                localized(R.string.biometriccompat_voice_help_lockout)
+            else -> localized(R.string.biometriccompat_voice_help_unavailable)
         }
+    }
+
+    private fun localized(id: Int, vararg formatArgs: Any?): String {
+        return LocalizationHelper.getLocalizedString(context, id, *formatArgs)
     }
 
     private companion object {

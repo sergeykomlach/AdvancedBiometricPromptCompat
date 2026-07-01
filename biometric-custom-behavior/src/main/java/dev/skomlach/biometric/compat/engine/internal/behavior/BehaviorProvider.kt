@@ -6,6 +6,6 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
 
 class BehaviorProvider : SoftwareBiometricProvider() {
     override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
-        return BehaviorBiometricManager()
+        return BehaviorBiometricManager(context.applicationContext)
     }
 }

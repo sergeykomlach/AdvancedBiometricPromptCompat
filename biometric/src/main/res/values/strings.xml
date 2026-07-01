@@ -107,5 +107,45 @@
 
     <string name="biometriccompat_fingerprint_error_lockout">Too many attempts. Please try again later.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Not recognized</string>
+    <string name="biometriccompat_behavior_button_content_description">Behavior capture</string>
+    <string name="biometriccompat_behavior_overlay_title_enroll">Create behavior sample</string>
+    <string name="biometriccompat_behavior_overlay_title_auth">Confirm behavior</string>
+    <string name="biometriccompat_behavior_mode_typing">Typing</string>
+    <string name="biometriccompat_behavior_mode_signature">Signature</string>
+    <string name="biometriccompat_behavior_mode_combined">Combined</string>
+    <string name="biometriccompat_behavior_phrase_hint">Type phrase</string>
+    <string name="biometriccompat_behavior_signature_label">Draw signature</string>
+    <string name="biometriccompat_behavior_action_enroll">Enroll</string>
+    <string name="biometriccompat_behavior_action_verify">Verify</string>
+    <string name="biometriccompat_behavior_hint_typing">Type at least 5 characters with a natural rhythm.</string>
+    <string name="biometriccompat_behavior_hint_signature">Draw a clear signature with enough length and shape.</string>
+    <string name="biometriccompat_behavior_hint_combined">Type a short phrase and draw a clear signature.</string>
+    <string name="biometriccompat_behavior_error_touch_obscured">Touch input is obscured. Remove screen overlays and try again.</string>
+    <string name="biometriccompat_behavior_error_phrase_too_long">Behavior phrase is too long. Use a shorter phrase.</string>
+    <string name="biometriccompat_behavior_error_need_typing">Type at least 5 characters before continuing.</string>
+    <string name="biometriccompat_behavior_error_need_signature">Draw a longer signature before continuing.</string>
+    <string name="biometriccompat_behavior_key_space">space</string>
+    <string name="biometriccompat_behavior_key_backspace">&lt;</string>
+    <string name="biometriccompat_behavior_status_checking">Checking behavior</string>
+    <string name="biometriccompat_voice_button_content_description">Voice capture</string>
+    <string name="biometriccompat_voice_overlay_title_enroll">Record voice sample</string>
+    <string name="biometriccompat_voice_overlay_title_auth">Confirm your voice</string>
+    <string name="biometriccompat_voice_overlay_hint_enroll">Record %1$d natural samples of your voice. Speak for 2 to 4 seconds each time.</string>
+    <string name="biometriccompat_voice_overlay_hint_auth">Record one natural voice sample. Speak for 2 to 4 seconds.</string>
+    <string name="biometriccompat_voice_overlay_phrase">Phrase: %1$s</string>
+    <string name="biometriccompat_voice_record_start">Start recording</string>
+    <string name="biometriccompat_voice_record_stop">Stop recording</string>
+    <string name="biometriccompat_voice_record_ready">Sample ready</string>
+    <string name="biometriccompat_voice_progress_enroll">Samples recorded: %1$d/%2$d</string>
+    <string name="biometriccompat_voice_progress_auth_ready">Voice sample ready</string>
+    <string name="biometriccompat_voice_progress_auth_missing">No voice sample recorded yet</string>
+    <string name="biometriccompat_voice_action_enroll">Enroll</string>
+    <string name="biometriccompat_voice_action_verify">Verify</string>
+    <string name="biometriccompat_voice_error_recorder_unavailable">Voice recorder is unavailable on this device.</string>
+    <string name="biometriccompat_voice_error_sample_too_short">Voice sample is too short. Speak naturally for at least one second.</string>
+    <string name="biometriccompat_voice_error_sample_missing">Record a voice sample before continuing.</string>
+    <string name="biometriccompat_voice_error_recording_failed">Voice recording failed. Try again.</string>
+    <string name="biometriccompat_voice_status_recording">Recording voice sample...</string>
+    <string name="biometriccompat_voice_status_checking">Checking voice</string>
 
 </resources>

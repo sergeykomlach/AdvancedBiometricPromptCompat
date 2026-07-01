@@ -1,5 +1,6 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
+import android.content.Context
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
@@ -7,9 +8,12 @@ import android.os.Looper
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
+import dev.skomlach.biometric.custom.behavior.R
+import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BehaviorBiometricManager(
+    private val context: Context,
     private val store: BehaviorTemplateStore = BehaviorTemplateStore()
 ) : AbstractSoftwareBiometricManager() {
 
@@ -25,7 +29,8 @@ class BehaviorBiometricManager(
         )
     }
 
-    override fun getTimeoutMessage(): CharSequence = "Behavior authentication timed out"
+    override fun getTimeoutMessage(): CharSequence =
+        localized(R.string.biometriccompat_behavior_help_timeout)
 
     override fun resetLockOut() {
         resetTemporaryLockoutState(prefs)
@@ -84,7 +89,7 @@ class BehaviorBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                "Behavior authentication is unavailable"
+                localized(R.string.biometriccompat_behavior_help_unavailable)
             )
             return
         }
@@ -95,7 +100,7 @@ class BehaviorBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                "Behavior sample is missing or incomplete"
+                localized(R.string.biometriccompat_behavior_help_sample_missing)
             )
             return
         }
@@ -115,7 +120,11 @@ class BehaviorBiometricManager(
             val tag = store.save(extra.getString(ENROLLMENT_TAG_KEY), sample)
             resetTemporaryLockoutState(prefs)
             e("BehaviorBiometricManager.enroll quality=OK metrics=$metrics")
-            finishWithSuccess(callback, crypto, "Behavior template enrolled: $tag")
+            finishWithSuccess(
+                callback,
+                crypto,
+                localized(R.string.biometriccompat_behavior_help_enrolled, tag)
+            )
             return
         }
 
@@ -125,7 +134,7 @@ class BehaviorBiometricManager(
             finishWithError(
                 callback,
                 CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                "No behavior biometric is enrolled"
+                localized(R.string.biometriccompat_behavior_help_not_registered)
             )
             return
         }
@@ -144,7 +153,11 @@ class BehaviorBiometricManager(
         )
         if (bestMatch.score >= threshold) {
             resetTemporaryLockoutState(prefs)
-            finishWithSuccess(callback, crypto, "Behavior biometric accepted")
+            finishWithSuccess(
+                callback,
+                crypto,
+                localized(R.string.biometriccompat_behavior_help_accepted)
+            )
         } else {
             recordFailedAttempt(prefs, LOCKOUT_POLICY)
             val updatedLockout = getLockoutError()
@@ -154,7 +167,7 @@ class BehaviorBiometricManager(
                 finishWithError(
                     callback,
                     CUSTOM_BIOMETRIC_ERROR_VENDOR,
-                    "Behavior biometric did not match"
+                    localized(R.string.biometriccompat_behavior_help_not_matched)
                 )
             }
         }
@@ -189,21 +202,27 @@ class BehaviorBiometricManager(
 
     private fun qualityMessage(issue: BehaviorQualityIssue): CharSequence {
         return when (issue) {
-            BehaviorQualityIssue.NONE -> "Behavior sample is valid"
-            BehaviorQualityIssue.TYPING_PHRASE_TOO_SHORT -> "Typing phrase is too short"
-            BehaviorQualityIssue.TYPING_SAMPLE_TOO_SHORT -> "Typing sample is too short"
+            BehaviorQualityIssue.NONE -> localized(R.string.biometriccompat_behavior_help_sample_valid)
+            BehaviorQualityIssue.TYPING_PHRASE_TOO_SHORT ->
+                localized(R.string.biometriccompat_behavior_help_typing_phrase_short)
+            BehaviorQualityIssue.TYPING_SAMPLE_TOO_SHORT ->
+                localized(R.string.biometriccompat_behavior_help_typing_sample_short)
             BehaviorQualityIssue.TYPING_EVENT_MISMATCH ->
-                "Typing sample does not match the phrase. Type the phrase manually."
+                localized(R.string.biometriccompat_behavior_help_typing_event_mismatch)
             BehaviorQualityIssue.TYPING_TIMING_TOO_FAST ->
-                "Typing sample is too fast. Type the phrase naturally."
-            BehaviorQualityIssue.TYPING_TIMING_TOO_UNIFORM -> "Typing sample has too little timing variation"
-            BehaviorQualityIssue.SIGNATURE_SAMPLE_TOO_SHORT -> "Signature sample is too short"
-            BehaviorQualityIssue.SIGNATURE_PATH_TOO_SHORT -> "Signature path is too short"
-            BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SMALL -> "Signature shape is too small"
+                localized(R.string.biometriccompat_behavior_help_typing_too_fast)
+            BehaviorQualityIssue.TYPING_TIMING_TOO_UNIFORM ->
+                localized(R.string.biometriccompat_behavior_help_typing_too_uniform)
+            BehaviorQualityIssue.SIGNATURE_SAMPLE_TOO_SHORT ->
+                localized(R.string.biometriccompat_behavior_help_signature_sample_short)
+            BehaviorQualityIssue.SIGNATURE_PATH_TOO_SHORT ->
+                localized(R.string.biometriccompat_behavior_help_signature_path_short)
+            BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SMALL ->
+                localized(R.string.biometriccompat_behavior_help_signature_shape_small)
             BehaviorQualityIssue.SIGNATURE_SHAPE_TOO_SIMPLE ->
-                "Signature shape is too simple. Draw your normal signature."
+                localized(R.string.biometriccompat_behavior_help_signature_shape_simple)
             BehaviorQualityIssue.SIGNATURE_DUPLICATE_POINTS ->
-                "Signature sample has too many repeated points. Draw the signature naturally."
+                localized(R.string.biometriccompat_behavior_help_signature_duplicate_points)
         }
     }
 
@@ -240,10 +259,16 @@ class BehaviorBiometricManager(
 
     private fun lockoutMessage(error: Int): CharSequence {
         return when (error) {
-            CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> "Behavior authentication is permanently locked"
-            CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> "Behavior authentication is temporarily locked"
-            else -> "Behavior authentication is unavailable"
+            CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT ->
+                localized(R.string.biometriccompat_behavior_help_lockout_permanent)
+            CUSTOM_BIOMETRIC_ERROR_LOCKOUT ->
+                localized(R.string.biometriccompat_behavior_help_lockout)
+            else -> localized(R.string.biometriccompat_behavior_help_unavailable)
         }
+    }
+
+    private fun localized(id: Int, vararg formatArgs: Any?): String {
+        return LocalizationHelper.getLocalizedString(context, id, *formatArgs)
     }
 
     private companion object {

@@ -61,6 +61,7 @@ class BiometricPromptCompatDialogImpl(
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
     private var behaviorCaptureController: BehaviorCaptureController? = null
+    private var voiceCaptureController: VoiceCaptureController? = null
 
 
     init {
@@ -92,6 +93,8 @@ class BiometricPromptCompatDialogImpl(
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. dismissed.")
             behaviorCaptureController?.dispose()
             behaviorCaptureController = null
+            voiceCaptureController?.dispose()
+            voiceCaptureController = null
             detachWindowListeners()
             if (inProgress.get()) {
                 inProgress.set(false)
@@ -110,6 +113,8 @@ class BiometricPromptCompatDialogImpl(
 
             behaviorCaptureController?.dispose()
             behaviorCaptureController = null
+            voiceCaptureController?.dispose()
+            voiceCaptureController = null
             authCallback?.cancelAuth()
             detachWindowListeners()
             if (inProgress.get()) {
@@ -165,6 +170,16 @@ class BiometricPromptCompatDialogImpl(
                     startAuth()
                 }.also {
                     it.install()
+                }
+            } else if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE) {
+                voiceCaptureController = VoiceCaptureController(
+                    dialog.rootView ?: return@setOnShowListener,
+                    compatBuilder
+                ) {
+                    startAuth()
+                }.takeIf { it.shouldHandleViaOverlay() }?.also {
+                    it.install()
+                    it.showCaptureUi()
                 }
             }
 
@@ -282,6 +297,11 @@ class BiometricPromptCompatDialogImpl(
             if (primaryBiometricType == BiometricType.BIOMETRIC_BEHAVIOR &&
                 compatBuilder.getBehaviorAuthMode() == BehaviorAuthMode.EXPLICIT &&
                 behaviorCaptureController?.consumePrepared() != true
+            ) {
+                return
+            }
+            if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE &&
+                voiceCaptureController?.consumePrepared() != true
             ) {
                 return
             }

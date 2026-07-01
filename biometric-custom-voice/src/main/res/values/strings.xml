@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_voice_help_timeout">Voice authentication timed out</string>
+    <string name="biometriccompat_voice_help_unavailable">Voice authentication is unavailable</string>
+    <string name="biometriccompat_voice_help_permission_required">Microphone permission is required for voice authentication</string>
+    <string name="biometriccompat_voice_help_sample_required">Voice sample is required. Provide a recorded voice sample or precomputed voice embedding.</string>
+    <string name="biometriccompat_voice_help_not_registered">No voice biometric is enrolled. Record and enroll voice samples before authentication.</string>
+    <string name="biometriccompat_voice_help_enrolled">Voice template enrolled: %1$s</string>
+    <string name="biometriccompat_voice_help_accepted">Voice biometric accepted</string>
+    <string name="biometriccompat_voice_help_not_matched">Voice biometric did not match</string>
+    <string name="biometriccompat_voice_help_lockout">Voice authentication is temporarily locked</string>
+    <string name="biometriccompat_voice_help_lockout_permanent">Voice authentication is permanently locked</string>
+    <string name="biometriccompat_voice_help_sample_valid">Voice sample is valid</string>
+    <string name="biometriccompat_voice_help_sample_missing">Voice sample is missing or incomplete. Provide PCM audio or a valid embedding.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Voice sample rate is too low. Use 16 kHz mono PCM when possible.</string>
+    <string name="biometriccompat_voice_help_sample_short">Voice sample is too short. Speak naturally for at least one second.</string>
+    <string name="biometriccompat_voice_help_sample_long">Voice sample is too long. Keep the voice sample under eight seconds.</string>
+    <string name="biometriccompat_voice_help_sample_quiet">Voice sample is too quiet. Move closer to the microphone and try again.</string>
+    <string name="biometriccompat_voice_help_sample_flat">Voice sample has too little variation. Speak a clear phrase and try again.</string>
+    <string name="biometriccompat_voice_help_sample_clipped">Voice sample is clipped. Lower microphone gain or move slightly farther away.</string>
+    <string name="biometriccompat_voice_help_sample_replay_risk">Voice sample looks repeated or synthetic. Record a fresh natural phrase.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Voice embedding is invalid. Provide a finite non-empty speaker embedding.</string>
+</resources>

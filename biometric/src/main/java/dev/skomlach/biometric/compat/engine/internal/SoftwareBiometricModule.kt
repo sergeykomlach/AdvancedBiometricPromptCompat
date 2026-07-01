@@ -47,6 +47,22 @@ import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.misc.ExecutorHelper
 
+internal fun resolveSoftwareFailureReason(
+    baseReason: AuthenticationFailureReason,
+    managerLockoutError: Int?
+): AuthenticationFailureReason {
+    if (baseReason != AuthenticationFailureReason.AUTHENTICATION_FAILED &&
+        baseReason != AuthenticationFailureReason.SENSOR_FAILED
+    ) {
+        return baseReason
+    }
+
+    return when (managerLockoutError) {
+        CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+        CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> AuthenticationFailureReason.LOCKED_OUT
+        else -> baseReason
+    }
+}
 
 class SoftwareBiometricModule(
     private val method: BiometricMethod,
@@ -394,13 +410,12 @@ class SoftwareBiometricModule(
                         authenticateInternal(biometricCryptoObject, listener, restartPredicate)
                     }, skipTimeout.toLong())
                 } else {
-                    if (mutableListOf(
-                            AuthenticationFailureReason.SENSOR_FAILED,
-                            AuthenticationFailureReason.AUTHENTICATION_FAILED
-                        ).contains(failureReason)
-                    ) {
+                    failureReason = resolveSoftwareFailureReason(
+                        failureReason,
+                        manager?.getLockoutError()
+                    )
+                    if (failureReason == AuthenticationFailureReason.LOCKED_OUT) {
                         lockout()
-                        failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
                     listener?.onFailure(tag(), failureReason, errString)
                     postCancelTask {
