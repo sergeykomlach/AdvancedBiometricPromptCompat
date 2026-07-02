@@ -143,15 +143,20 @@ class VoiceAudioPreprocessorTest {
         val differentResult = engine.extractEmbedding(differentProbe)
 
         val enrolledEmbedding = requireNotNull(enrolledResult).embedding
+        val enrolledEmbeddingResult = requireNotNull(enrolledResult)
         val quietEmbeddingResult = requireNotNull(quietResult)
-        val differentEmbedding = requireNotNull(differentResult).embedding
+        val differentEmbeddingResult = requireNotNull(differentResult)
 
+        assertEquals(VoiceQualityIssue.NONE, enrolledEmbeddingResult.qualityIssue)
+        assertTrue(enrolledEmbeddingResult.embedding.isValidEmbedding())
         assertEquals(VoiceQualityIssue.NONE, quietEmbeddingResult.qualityIssue)
         assertTrue(quietEmbeddingResult.embedding.isValidEmbedding())
+        assertEquals(VoiceQualityIssue.NONE, differentEmbeddingResult.qualityIssue)
+        assertTrue(differentEmbeddingResult.embedding.isValidEmbedding())
         assertTrue(quietEmbeddingResult.preprocessMetrics?.voicedDurationMs ?: 0L >= 1500L)
 
         val quietScore = VoiceScorer.score(enrolledEmbedding, quietEmbeddingResult.embedding)
-        val differentScore = VoiceScorer.score(enrolledEmbedding, differentEmbedding)
+        val differentScore = VoiceScorer.score(enrolledEmbedding, differentEmbeddingResult.embedding)
 
         assertTrue(quietScore > 0.90f)
         assertTrue(quietScore > differentScore + 0.05f)
