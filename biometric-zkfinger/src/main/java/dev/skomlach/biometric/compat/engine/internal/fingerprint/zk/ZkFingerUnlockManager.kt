@@ -36,13 +36,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
-internal fun resolveZkHardwareDetected(
-    usbHostAvailable: Boolean,
-    supportedDeviceConnected: Boolean
-): Boolean {
-    return usbHostAvailable && supportedDeviceConnected
-}
-
 class ZkFingerUnlockManager(
     private val context: Context
 ) : AbstractSoftwareBiometricManager() {
@@ -211,7 +204,7 @@ class ZkFingerUnlockManager(
     override fun getEnrollBundle(name: String?): Bundle {
         return Bundle().apply {
             putBoolean(IS_ENROLLMENT_KEY, true)
-            putString(ENROLLMENT_TAG_KEY, sanitizeTag(name) ?: nextEnrollmentTag())
+            putString(ENROLLMENT_TAG_KEY, sanitizeZkEnrollmentTag(name) ?: nextEnrollmentTag())
         }
     }
 
@@ -245,7 +238,7 @@ class ZkFingerUnlockManager(
         }
 
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
-        enrollmentTag = sanitizeTag(extra?.getString(ENROLLMENT_TAG_KEY)) ?: nextEnrollmentTag()
+        enrollmentTag = sanitizeZkEnrollmentTag(extra?.getString(ENROLLMENT_TAG_KEY)) ?: nextEnrollmentTag()
         enrollmentSamples.clear()
 
         if (!isEnrolling && !hasEnrolledBiometric()) {
@@ -379,8 +372,12 @@ class ZkFingerUnlockManager(
                 }
         val permissionIntent = PendingIntent.getBroadcast(
             context,
-            permissionRequestCode(targetDevice),
-            Intent(permissionAction()).setPackage(context.packageName),
+            resolveZkPermissionRequestCode(
+                vendorId = targetDevice.vendorId,
+                productId = targetDevice.productId,
+                deviceIndex = effectiveConfig.deviceIndex
+            ),
+            Intent(resolveZkPermissionAction(context.packageName)).setPackage(context.packageName),
             flags
         )
         manager.requestPermission(targetDevice, permissionIntent)
@@ -402,7 +399,7 @@ class ZkFingerUnlockManager(
     ) {
         unregisterUsbReceiver()
         val filter = IntentFilter().apply {
-            addAction(permissionAction())
+            addAction(resolveZkPermissionAction(context.packageName))
             addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
         }
         usbReceiver = object : BroadcastReceiver() {
@@ -419,7 +416,7 @@ class ZkFingerUnlockManager(
                     return
                 }
                 when (intent.action) {
-                    permissionAction() -> {
+                    resolveZkPermissionAction(context.packageName) -> {
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                             onGranted(device)
                         } else {
@@ -794,30 +791,10 @@ class ZkFingerUnlockManager(
         return usbManager()?.hasPermission(device) == true
     }
 
-    private fun permissionAction(): String {
-        return "${context.packageName}.dev.skomlach.biometric.zkfinger.USB_PERMISSION"
-    }
-
-    private fun permissionRequestCode(device: UsbDevice): Int {
-        var result = 17
-        result = 31 * result + device.vendorId
-        result = 31 * result + device.productId
-        result = 31 * result + effectiveConfig.deviceIndex
-        return result
-    }
-
     private fun unregisterUsbReceiver() {
         val receiver = usbReceiver ?: return
         runCatching { context.unregisterReceiver(receiver) }
         usbReceiver = null
-    }
-
-    private fun sanitizeTag(tag: String?): String? {
-        val sanitized = tag
-            ?.trim()
-            ?.replace(Regex("[^A-Za-z0-9_.-]"), "_")
-            ?.take(64)
-        return sanitized?.takeIf { it.isNotBlank() }
     }
 
     private fun nextEnrollmentTag(): String {

@@ -7,6 +7,11 @@ import org.junit.Test
 class ZkFingerHardwareDetectionTest {
 
     @Test
+    fun `hardware is not detected when usb host support is missing`() {
+        assertFalse(resolveZkHardwareDetected(usbHostAvailable = false, supportedDeviceConnected = true))
+    }
+
+    @Test
     fun `hardware is not detected when usb host exists but supported device is absent`() {
         assertFalse(resolveZkHardwareDetected(usbHostAvailable = true, supportedDeviceConnected = false))
     }
