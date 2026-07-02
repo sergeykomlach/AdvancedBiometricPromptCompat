@@ -10,5 +10,7 @@ class ZkFingerProvider : SoftwareBiometricProvider() {
         return ZkFingerUnlockManager(context.applicationContext)
     }
 
-    override fun getPromptFactory(): SoftwareBiometricPromptFactory? = null
+    override fun getPromptFactory(): SoftwareBiometricPromptFactory {
+        return ZkFingerPromptFactory()
+    }
 }

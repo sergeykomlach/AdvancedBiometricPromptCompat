@@ -38,4 +38,6 @@
     <string name="biometriccompat_tf_face_help_too_many_attempts_permanent">Face Unlock is locked out permanently</string>
     <string name="biometriccompat_tf_face_help_model_already_registered">This face is already registered</string>
     <string name="biometriccompat_tf_face_help_model_not_detected">Can\u2019t see your face. Hold your phone at eye level</string>
+    <string name="biometriccompat_tf_face_prompt_start_auth">Align your face with the camera</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Align your face to enroll FaceTF</string>
 </resources>

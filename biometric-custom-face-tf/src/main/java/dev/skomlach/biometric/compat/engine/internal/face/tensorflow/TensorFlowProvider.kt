@@ -30,5 +30,7 @@ class TensorFlowProvider : SoftwareBiometricProvider() {
         return TensorFlowFaceUnlockManager(context.applicationContext)
     }
 
-    override fun getPromptFactory(): SoftwareBiometricPromptFactory? = null
+    override fun getPromptFactory(): SoftwareBiometricPromptFactory {
+        return TensorFlowFacePromptFactory()
+    }
 }

@@ -15,4 +15,6 @@
     <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
     <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>
     <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK fingerprint reader is locked out permanently</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Place your finger on the ZK reader</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Place your finger on the ZK reader to enroll</string>
 </resources>
