@@ -72,6 +72,28 @@ class VoiceStreamingDetectorTest {
     }
 
     @Test
+    fun detectMarksEndedUtteranceCompleteEvenWhenSampleIsTooShort() {
+        val detector = VoiceStreamingDetector(sampleRateHz = SAMPLE_RATE)
+
+        val completed = detector.detect(
+            buildList {
+                repeat(6) { add(silenceChunk()) }
+                repeat(10) { add(voiceChunk(180.0, amplitude = 0.08f)) }
+                repeat(14) { add(silenceChunk()) }
+            }
+        )
+
+        assertTrue(completed.detectedSpeech)
+        assertTrue(completed.isComplete)
+        assertNotNull(completed.completedSample)
+        val completedSample = completed.completedSample!!
+        assertEquals(CHUNK_SIZE * 10, completedSample.size)
+        assertTrue(completedSample.size < MINIMUM_SAMPLE_COUNT)
+        assertNotNull(completed.activeSample)
+        assertEquals(completedSample.size, completed.activeSample!!.size)
+    }
+
+    @Test
     fun detectKeepsAllowedShortPauseInSameUtteranceButRestartsAfterLongerPause() {
         val shortPauseDetector = VoiceStreamingDetector(
             sampleRateHz = SAMPLE_RATE,

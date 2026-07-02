@@ -70,11 +70,10 @@ internal class VoiceStreamingDetector(
 
         val activeSample = sampleSlice(chunks, speechWindow)
         if (speechWindow.isComplete) {
-            val completedSample = activeSample?.takeIf { it.size >= minimumSampleCount() }
             return VoiceStreamingDetection(
                 detectedSpeech = true,
-                isComplete = completedSample != null,
-                completedSample = completedSample,
+                isComplete = true,
+                completedSample = activeSample,
                 activeSample = activeSample
             )
         }
