@@ -599,7 +599,14 @@ class TensorFlowFaceUnlockManager(
             }
         }
 
+        if (!canStartAuthenticationSession()) {
+            return
+        }
         startBackgroundThread()
+        if (!canStartAuthenticationSession()) {
+            stopBackgroundThread()
+            return
+        }
         frameProvider.start(
             faceDetector!!,
             { bitmap, faces -> if (isSessionActive.get()) onFrameReceived(bitmap, faces) },
@@ -709,6 +716,10 @@ class TensorFlowFaceUnlockManager(
         if (isErrorActive()) return
         setErrorActive()
         authCallback?.onAuthenticationError(code, msg)
+    }
+
+    private fun canStartAuthenticationSession(): Boolean {
+        return shouldStartTensorFlowFaceSession(isSessionActive = isSessionActive.get())
     }
 
     private fun maybeHandleMismatchFailure(distance: Float) {

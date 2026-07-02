@@ -52,6 +52,20 @@ class TensorFlowFacePreflightTest {
     }
 
     @Test
+    fun resolveTensorFlowFacePreflightIssueIgnoresCameraStateWithoutRealCameraProvider() {
+        assertNull(
+            resolveTensorFlowFacePreflightIssue(
+                isHardwareDetected = true,
+                usesRealCameraProvider = false,
+                isCameraBlocked = true,
+                isCameraInUse = true,
+                isEnrolling = false,
+                hasEnrolledBiometric = true
+            )
+        )
+    }
+
+    @Test
     fun resolveTensorFlowFacePreflightIssueReturnsNoEnrolledBiometricForAuthWithoutTemplates() {
         assertEquals(
             TensorFlowFacePreflightIssue.NO_ENROLLED_BIOMETRIC,
@@ -78,5 +92,15 @@ class TensorFlowFacePreflightTest {
                 hasEnrolledBiometric = false
             )
         )
+    }
+
+    @Test
+    fun shouldStartTensorFlowFaceSessionReturnsFalseForInactiveSession() {
+        assertEquals(false, shouldStartTensorFlowFaceSession(isSessionActive = false))
+    }
+
+    @Test
+    fun shouldStartTensorFlowFaceSessionReturnsTrueForActiveSession() {
+        assertEquals(true, shouldStartTensorFlowFaceSession(isSessionActive = true))
     }
 }

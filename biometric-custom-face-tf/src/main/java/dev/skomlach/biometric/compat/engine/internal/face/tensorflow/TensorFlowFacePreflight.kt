@@ -29,3 +29,7 @@ internal fun resolveTensorFlowFacePreflightIssue(
     }
     return null
 }
+
+internal fun shouldStartTensorFlowFaceSession(isSessionActive: Boolean): Boolean {
+    return isSessionActive
+}
