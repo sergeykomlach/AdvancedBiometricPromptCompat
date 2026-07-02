@@ -10,6 +10,20 @@ import kotlin.math.sin
 
 class VoiceStreamingDetectorTest {
     @Test
+    fun detectHandlesImmediateSpeechStartWithoutSilentPrefix() {
+        val detector = VoiceStreamingDetector(sampleRateHz = SAMPLE_RATE)
+
+        val result = detector.detect(
+            List(30) { voiceChunk(180.0, amplitude = 0.08f) }
+        )
+
+        assertTrue(result.detectedSpeech)
+        assertFalse(result.isComplete)
+        assertNotNull(result.activeSample)
+        assertEquals(CHUNK_SIZE * 30, result.activeSample!!.size)
+    }
+
+    @Test
     fun detectIgnoresShortNoisyWarmupBeforeStableSpeechStart() {
         val detector = VoiceStreamingDetector(sampleRateHz = SAMPLE_RATE)
 
@@ -95,6 +109,32 @@ class VoiceStreamingDetectorTest {
         val longerPauseSample = longerPause.activeSample!!
         assertEquals(CHUNK_SIZE * 10, longerPauseSample.size)
         assertChunkEquals(secondVoice, longerPauseSample, destinationOffset = 0)
+    }
+
+    @Test
+    fun detectExposesOnlyRestartCandidateAfterLongPauseWhenRestartDoesNotStabilize() {
+        val detector = VoiceStreamingDetector(
+            sampleRateHz = SAMPLE_RATE,
+            shortPauseFrames = 4
+        )
+        val firstVoice = voiceChunk(frequencyHz = 180.0, amplitude = 0.08f)
+        val restartCandidate = voiceChunk(frequencyHz = 220.0, amplitude = 0.08f)
+
+        val result = detector.detect(
+            buildList {
+                repeat(6) { add(silenceChunk()) }
+                repeat(10) { add(firstVoice.copyOf()) }
+                repeat(5) { add(silenceChunk(scale = 0.003f)) }
+                repeat(2) { add(restartCandidate.copyOf()) }
+            }
+        )
+
+        assertTrue(result.detectedSpeech)
+        assertFalse(result.isComplete)
+        assertNotNull(result.activeSample)
+        val activeSample = result.activeSample!!
+        assertEquals(CHUNK_SIZE * 2, activeSample.size)
+        assertChunkEquals(restartCandidate, activeSample, destinationOffset = 0)
     }
 
     @Test

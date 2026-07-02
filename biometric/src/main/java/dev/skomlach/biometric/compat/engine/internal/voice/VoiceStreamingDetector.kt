@@ -3,14 +3,14 @@ package dev.skomlach.biometric.compat.engine.internal.voice
 import kotlin.math.max
 import kotlin.math.min
 
-data class VoiceStreamingDetection(
+internal data class VoiceStreamingDetection(
     val detectedSpeech: Boolean,
     val isComplete: Boolean,
     val completedSample: FloatArray?,
     val activeSample: FloatArray?
 )
 
-class VoiceStreamingDetector(
+internal class VoiceStreamingDetector(
     private val sampleRateHz: Int,
     private val minVoiceRms: Float = 0.012f,
     private val noiseMultiplier: Float = 2.5f,
@@ -25,6 +25,7 @@ class VoiceStreamingDetector(
     private val cachedConditionedRmsValues = ArrayList<Float>()
     private val cachedChunkEndOffsets = ArrayList<Int>()
     private val sortedInputRmsValues = ArrayList<Float>()
+    private val sortedConditionedRmsValues = ArrayList<Float>()
     private var cachedSampleStart = -1
     private var cachedSampleEndExclusive = -1
     private var cachedSample: FloatArray? = null
@@ -42,11 +43,17 @@ class VoiceStreamingDetector(
         syncChunkAnalysis(chunks)
 
         val quietFrameCount = max(1, sortedInputRmsValues.size / 5)
-        val noiseFloor = averageQuietRms(quietFrameCount)
-        val voicedThreshold = max(minVoiceRms, noiseFloor * noiseMultiplier)
+        val rawNoiseFloor = averageQuietRms(sortedInputRmsValues, quietFrameCount)
+        val conditionedNoiseFloor = averageQuietRms(sortedConditionedRmsValues, quietFrameCount)
+        val hasReliableQuietFloor = rawNoiseFloor <= conditioner.silenceRmsThreshold * RELIABLE_QUIET_FLOOR_MULTIPLIER
+        val voicedThreshold = if (hasReliableQuietFloor) {
+            max(minVoiceRms, conditionedNoiseFloor * noiseMultiplier)
+        } else {
+            minVoiceRms
+        }
         val speechEvidenceThreshold = max(
             conditioner.silenceRmsThreshold,
-            noiseFloor * SPEECH_EVIDENCE_MULTIPLIER
+            if (hasReliableQuietFloor) rawNoiseFloor * SPEECH_EVIDENCE_MULTIPLIER else 0f
         )
         val voiced = BooleanArray(chunks.size) { index ->
             cachedInputRmsValues[index] >= speechEvidenceThreshold &&
@@ -61,16 +68,13 @@ class VoiceStreamingDetector(
                 activeSample = null
             )
 
-        val activeSample = sampleSlice(
-            chunks = chunks,
-            startIndex = speechWindow.startIndex,
-            endExclusive = speechWindow.endExclusive
-        )
+        val activeSample = sampleSlice(chunks, speechWindow)
         if (speechWindow.isComplete) {
+            val completedSample = activeSample?.takeIf { it.size >= minimumSampleCount() }
             return VoiceStreamingDetection(
                 detectedSpeech = true,
-                isComplete = activeSample.size >= minimumSampleCount(),
-                completedSample = activeSample.takeIf { it.size >= minimumSampleCount() },
+                isComplete = completedSample != null,
+                completedSample = completedSample,
                 activeSample = activeSample
             )
         }
@@ -90,6 +94,7 @@ class VoiceStreamingDetector(
         var currentSilenceRun = 0
         var restartVoicedRun = 0
         var restartCandidateStart = -1
+        var restartLastVoicedIndex = -1
 
         for (index in initialSpeechStart until voiced.size) {
             if (voiced[index]) {
@@ -98,12 +103,14 @@ class VoiceStreamingDetector(
                         restartCandidateStart = index
                     }
                     restartVoicedRun += 1
+                    restartLastVoicedIndex = index
                     if (restartVoicedRun >= speechStartFrames) {
                         activeSpeechStart = restartCandidateStart
-                        lastVoicedIndex = index
+                        lastVoicedIndex = restartLastVoicedIndex
                         currentSilenceRun = 0
                         restartVoicedRun = 0
                         restartCandidateStart = -1
+                        restartLastVoicedIndex = -1
                     }
                     continue
                 }
@@ -111,12 +118,14 @@ class VoiceStreamingDetector(
                 currentSilenceRun = 0
                 restartVoicedRun = 0
                 restartCandidateStart = -1
+                restartLastVoicedIndex = -1
                 continue
             }
 
             currentSilenceRun += 1
             restartVoicedRun = 0
             restartCandidateStart = -1
+            restartLastVoicedIndex = -1
             if (currentSilenceRun >= endSilenceFrames) {
                 return SpeechWindow(
                     startIndex = activeSpeechStart,
@@ -124,6 +133,21 @@ class VoiceStreamingDetector(
                     isComplete = true
                 )
             }
+        }
+
+        if (currentSilenceRun > shortPauseFrames) {
+            if (restartCandidateStart >= 0 && restartLastVoicedIndex >= restartCandidateStart) {
+                return SpeechWindow(
+                    startIndex = restartCandidateStart,
+                    endExclusive = restartLastVoicedIndex + 1,
+                    isComplete = false
+                )
+            }
+            return SpeechWindow(
+                startIndex = -1,
+                endExclusive = -1,
+                isComplete = false
+            )
         }
 
         return SpeechWindow(
@@ -178,6 +202,7 @@ class VoiceStreamingDetector(
             cachedConditionedRmsValues += conditioned.conditionedRms
             cachedChunkEndOffsets += (cachedChunkEndOffsets.lastOrNull() ?: 0) + chunk.size
             insertSortedInputRms(conditioned.inputRms)
+            insertSortedConditionedRms(conditioned.conditionedRms)
         }
     }
 
@@ -197,6 +222,7 @@ class VoiceStreamingDetector(
         cachedConditionedRmsValues.clear()
         cachedChunkEndOffsets.clear()
         sortedInputRmsValues.clear()
+        sortedConditionedRmsValues.clear()
         cachedSampleStart = -1
         cachedSampleEndExclusive = -1
         cachedSample = null
@@ -208,26 +234,35 @@ class VoiceStreamingDetector(
         sortedInputRmsValues.add(insertionPoint, value)
     }
 
-    private fun averageQuietRms(quietFrameCount: Int): Float {
+    private fun insertSortedConditionedRms(value: Float) {
+        val index = sortedConditionedRmsValues.binarySearch(value)
+        val insertionPoint = if (index >= 0) index else -index - 1
+        sortedConditionedRmsValues.add(insertionPoint, value)
+    }
+
+    private fun averageQuietRms(sortedValues: List<Float>, quietFrameCount: Int): Float {
         var sum = 0.0
         for (index in 0 until quietFrameCount) {
-            sum += sortedInputRmsValues[index]
+            sum += sortedValues[index]
         }
         return (sum / quietFrameCount).toFloat()
     }
 
-    private fun sampleSlice(chunks: List<FloatArray>, startIndex: Int, endExclusive: Int): FloatArray {
-        if (startIndex < 0 || endExclusive <= startIndex) {
-            return FloatArray(0)
+    private fun sampleSlice(chunks: List<FloatArray>, speechWindow: SpeechWindow): FloatArray? {
+        if (speechWindow.startIndex < 0 || speechWindow.endExclusive <= speechWindow.startIndex) {
+            cachedSampleStart = -1
+            cachedSampleEndExclusive = -1
+            cachedSample = null
+            return null
         }
         cachedSample?.let { sample ->
-            if (cachedSampleStart == startIndex && cachedSampleEndExclusive == endExclusive) {
+            if (cachedSampleStart == speechWindow.startIndex && cachedSampleEndExclusive == speechWindow.endExclusive) {
                 return sample
             }
         }
-        val flattened = flattenChunks(chunks, startIndex, endExclusive)
-        cachedSampleStart = startIndex
-        cachedSampleEndExclusive = endExclusive
+        val flattened = flattenChunks(chunks, speechWindow.startIndex, speechWindow.endExclusive)
+        cachedSampleStart = speechWindow.startIndex
+        cachedSampleEndExclusive = speechWindow.endExclusive
         cachedSample = flattened
         return flattened
     }
@@ -270,5 +305,6 @@ class VoiceStreamingDetector(
 
     private companion object {
         const val SPEECH_EVIDENCE_MULTIPLIER = 1.4f
+        const val RELIABLE_QUIET_FLOOR_MULTIPLIER = 1.5f
     }
 }

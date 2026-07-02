@@ -4,13 +4,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 
-data class VoiceConditionedChunk(
+internal data class VoiceConditionedChunk(
     val samples: FloatArray,
     val inputRms: Float,
     val conditionedRms: Float
 )
 
-class VoiceSignalConditioner(
+internal class VoiceSignalConditioner(
     private val targetRms: Float = 0.045f,
     val silenceRmsThreshold: Float = 0.0035f,
     private val maxGain: Float = 4f
