@@ -20,6 +20,7 @@
     <string name="biometriccompat_behavior_help_signature_shape_small">Signature shape is too small</string>
     <string name="biometriccompat_behavior_help_signature_shape_simple">Signature shape is too simple. Draw your normal signature.</string>
     <string name="biometriccompat_behavior_help_signature_duplicate_points">Signature sample has too many repeated points. Draw the signature naturally.</string>
+    <string name="biometriccompat_behavior_button_label">B</string>
     <string name="biometriccompat_behavior_button_content_description">Behavior capture</string>
     <string name="biometriccompat_behavior_overlay_title_enroll">Create behavior sample</string>
     <string name="biometriccompat_behavior_overlay_title_auth">Confirm behavior</string>

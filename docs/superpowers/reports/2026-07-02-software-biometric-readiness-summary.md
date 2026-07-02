@@ -24,14 +24,14 @@
 
 ## Behavior
 - Architecture: `BehaviorCaptureController` owns the explicit prompt-side collection flow for typing, signature, and combined modes, builds the shared extras payload through `buildBehaviorExtras(...)`, and only signals readiness after local validation passes.
-- User-Facing UX / Localization: Overlay titles, hints, action labels, and validation errors are localized and theme-backed, but the floating launcher button still hardcodes the visible label `"B"` in `createBehaviorButton(...)`.
+- User-Facing UX / Localization: Overlay titles, launcher copy, hints, action labels, and validation errors are resource-backed and theme-backed inside the behavior module.
 - Failure Semantics: Invalid phrase/signature states are blocked locally with targeted error text before auth starts, and successful preparation writes the shared status text to the checking state before calling `onReady`.
 - Lifecycle / Cancellation: `dispose()` removes listeners, clears screen-protection hooks, detaches owned views, and tears down the temporary overlay/button without touching unrelated host UI.
 - Lockout / Retry: The controller itself does not own lockout accounting; it enforces sample completeness locally and leaves actual attempt counting to manager-side code.
 - Test Coverage: Behavior coverage exists in `BehaviorPromptDataTest.kt`, `BehaviorPromptDelegateTest.kt`, `BehaviorProviderTest.kt`, and `BehaviorScorerTest.kt`; the controller UI flow itself is compile-covered rather than directly unit-tested.
-- Compile / Verification: The requested compile sweep passed for `:biometric-custom-behavior:compileDebugKotlin` and `:biometric-custom-behavior:compileDebugUnitTestKotlin`; the requested string scan plus manual review isolated the remaining scoped UX literal to the launcher label `"B"`.
-- Residual Risks: The launcher badge is still not localized or descriptive, and direct controller-runtime tests are absent from the scoped coverage.
-- Status: Ready with minor UX follow-up.
+- Compile / Verification: The requested compile sweep passed for `:biometric-custom-behavior:compileDebugKotlin` and `:biometric-custom-behavior:compileDebugUnitTestKotlin`; the scoped string scan plus manual review no longer showed a remaining behavior-module user-facing literal in code.
+- Residual Risks: Direct controller-runtime tests are still absent from the scoped coverage, so prompt-UI behavior remains compile-backed plus helper-test-backed rather than interaction-tested.
+- Status: Ready.
 
 ## FaceTF
 - Architecture: `TensorFlowFaceUnlockManager` remains a manager-owned flow with no prompt factory, combining preflight checks, backend selection, anti-spoofing, enrollment/auth session ownership, and lockout policy in one place.

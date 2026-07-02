@@ -124,7 +124,7 @@ internal class BehaviorCaptureController(
         val context = container.context
         val size = (48 * context.resources.displayMetrics.density).toInt()
         return TextView(context).apply {
-            text = "B"
+            text = localized(R.string.biometriccompat_behavior_button_label)
             textSize = 18f
             gravity = Gravity.CENTER
             contentDescription = localized(R.string.biometriccompat_behavior_button_content_description)
