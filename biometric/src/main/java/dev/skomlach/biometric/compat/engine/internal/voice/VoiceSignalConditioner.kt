@@ -38,7 +38,7 @@ class VoiceSignalConditioner(
         }
 
         val desiredGain = targetRms / inputRms
-        val gain = min(max(desiredGain, 1f), maxGain)
+        val gain = desiredGain.coerceIn(1f / maxGain, maxGain)
         val conditioned = FloatArray(centered.size) { index ->
             (centered[index] * gain).coerceIn(-1f, 1f)
         }

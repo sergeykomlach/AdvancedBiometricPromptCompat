@@ -1,6 +1,7 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -67,10 +68,39 @@ class VoiceStreamingDetectionTest {
         assertTrue(result.completedSample == null)
     }
 
-    private fun voiceChunk(frequencyHz: Double, amplitude: Float): FloatArray {
+    @Test
+    fun detectPreservesRawPayloadSamplesWhileScoringConditionedChunks() {
+        val detector = VoiceStreamingDetector(sampleRateHz = SAMPLE_RATE)
+        val firstVoice = voiceChunk(frequencyHz = 180.0, amplitude = 0.08f, dcOffset = 0.12f)
+        val secondVoice = voiceChunk(frequencyHz = 220.0, amplitude = 0.09f, dcOffset = 0.12f)
+
+        val result = detector.detect(
+            buildList {
+                repeat(6) { add(silenceChunk()) }
+                repeat(24) { add(firstVoice.copyOf()) }
+                repeat(4) { add(silenceChunk(scale = 0.003f)) }
+                repeat(24) { add(secondVoice.copyOf()) }
+                repeat(14) { add(silenceChunk()) }
+            }
+        )
+
+        assertTrue(result.detectedSpeech)
+        assertTrue(result.isComplete)
+        assertNotNull(result.completedSample)
+        val payload = result.completedSample!!
+        assertEquals(firstVoice.size * 48, payload.size)
+        assertChunkEquals(firstVoice, payload, destinationOffset = 0)
+        assertChunkEquals(secondVoice, payload, destinationOffset = firstVoice.size * 24)
+    }
+
+    private fun voiceChunk(
+        frequencyHz: Double,
+        amplitude: Float,
+        dcOffset: Float = 0f
+    ): FloatArray {
         return FloatArray(CHUNK_SIZE) { index ->
             val time = index.toDouble() / SAMPLE_RATE
-            (amplitude * sin(2.0 * PI * frequencyHz * time)).toFloat()
+            (dcOffset + amplitude * sin(2.0 * PI * frequencyHz * time)).toFloat()
         }
     }
 
@@ -87,9 +117,16 @@ class VoiceStreamingDetectionTest {
         }
     }
 
+    private fun assertChunkEquals(expected: FloatArray, actual: FloatArray, destinationOffset: Int) {
+        expected.forEachIndexed { index, value ->
+            assertEquals(value, actual[destinationOffset + index], FLOAT_DELTA)
+        }
+    }
+
     private companion object {
         const val SAMPLE_RATE = 16_000
         const val CHUNK_SIZE = 320
         const val MINIMUM_SAMPLE_COUNT = 14_400
+        const val FLOAT_DELTA = 0.000001f
     }
 }

@@ -52,6 +52,29 @@ class VoiceSignalConditionerTest {
         assertTrue(maxAbs(conditioned.samples) < 0.01f)
     }
 
+    @Test
+    fun conditionAttenuatesLoudVoiceTowardTargetRms() {
+        val conditioner = VoiceSignalConditioner(
+            targetRms = 0.05f,
+            silenceRmsThreshold = 0.0025f,
+            maxGain = 6f
+        )
+
+        val conditioned = conditioner.condition(
+            voiceChunk(
+                frequencyHz = 210.0,
+                amplitude = 0.18f,
+                dcOffset = 0.11f
+            )
+        )
+
+        assertTrue(conditioned.inputRms > 0.1f)
+        assertTrue(conditioned.conditionedRms < conditioned.inputRms)
+        assertTrue(conditioned.conditionedRms in 0.045f..0.055f)
+        assertTrue(abs(conditioned.samples.average().toFloat()) < 0.01f)
+        assertTrue(maxAbs(conditioned.samples) < 0.2f)
+    }
+
     private fun voiceChunk(
         frequencyHz: Double,
         amplitude: Float,

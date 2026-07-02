@@ -2,7 +2,6 @@ package dev.skomlach.biometric.compat.engine.internal.voice
 
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 data class VoiceStreamingDetection(
     val detectedSpeech: Boolean,
@@ -66,7 +65,7 @@ class VoiceStreamingDetector(
             }
             currentSilenceRun += 1
             if (currentSilenceRun >= endSilenceFrames) {
-                val completed = flattenChunks(conditionedChunks.map { it.samples }, speechStart, lastVoicedIndex + 1)
+                val completed = flattenChunks(chunks, speechStart, lastVoicedIndex + 1)
                 return VoiceStreamingDetection(
                     detectedSpeech = true,
                     isComplete = completed.size >= minimumSampleCount(),
@@ -79,7 +78,7 @@ class VoiceStreamingDetector(
             }
         }
 
-        val activeSample = flattenChunks(conditionedChunks.map { it.samples }, speechStart, lastVoicedIndex + 1)
+        val activeSample = flattenChunks(chunks, speechStart, lastVoicedIndex + 1)
         return VoiceStreamingDetection(
             detectedSpeech = true,
             isComplete = false,
