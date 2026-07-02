@@ -41,7 +41,7 @@ data class BehaviorSample(
         const val EXTRA_BEHAVIOR_POINTS_STRIDE = "behavior.points_stride"
 
         private const val LEGACY_POINT_STRIDE = 5
-        private const val POINT_STRIDE = 6
+        internal const val POINT_STRIDE = 6
         private const val MAX_PHRASE_LENGTH = 256
         private const val MAX_TYPING_EVENTS = 512
         private const val MAX_SIGNATURE_POINTS = 2048

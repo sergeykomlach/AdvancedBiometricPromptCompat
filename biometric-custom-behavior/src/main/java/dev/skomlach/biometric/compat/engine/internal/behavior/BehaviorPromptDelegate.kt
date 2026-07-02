@@ -1,6 +1,5 @@
 package dev.skomlach.biometric.compat.engine.internal.behavior
 
-import dev.skomlach.biometric.compat.BehaviorAuthMode
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptDelegate
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
 
@@ -18,7 +17,10 @@ internal class BehaviorPromptDelegate(
     }
 
     override fun shouldInstall(): Boolean =
-        host.builder.getBehaviorAuthMode() == BehaviorAuthMode.EXPLICIT && controller != null
+        shouldInstallBehaviorPrompt(
+            authMode = host.builder.getBehaviorAuthMode(),
+            hasController = controller != null
+        )
 
     override fun install() {
         controller?.install()
@@ -33,6 +35,10 @@ internal class BehaviorPromptDelegate(
     }
 
     override fun isReadyToStartAuth(): Boolean {
-        return !shouldInstall() || controller?.consumePrepared() == true
+        return isBehaviorPromptReady(
+            authMode = host.builder.getBehaviorAuthMode(),
+            hasController = controller != null,
+            hasPreparedPayload = controller?.consumePrepared() == true
+        )
     }
 }

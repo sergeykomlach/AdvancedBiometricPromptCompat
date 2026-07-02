@@ -5,7 +5,6 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
-import android.os.Bundle
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -23,7 +22,6 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
-import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.custom.behavior.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.common.translate.LocalizationHelper
@@ -104,7 +102,7 @@ internal class BehaviorCaptureController(
             externalSignatureContainer?.context ?: context,
             lineColor = ContextCompat.getColor(context, R.color.material_deep_teal_500)
         ) { x, y, timestamp, pressure, size, strokeId ->
-            if (points.size + POINT_STRIDE <= MAX_CAPTURED_POINT_FLOATS) {
+            if (points.size + BehaviorSample.POINT_STRIDE <= MAX_CAPTURED_POINT_FLOATS) {
                 points.add(x)
                 points.add(y)
                 points.add(timestamp.toFloat())
@@ -322,14 +320,14 @@ internal class BehaviorCaptureController(
     private fun updateModeVisibility() {
         val mode = selectedMode()
         if (ownsTypingView) {
-            phraseInput.visibility = if (mode != MODE_SIGNATURE) View.VISIBLE else View.GONE
-            typingKeyboard?.visibility = if (mode != MODE_SIGNATURE) View.VISIBLE else View.GONE
+            phraseInput.visibility = if (mode != BehaviorMode.SIGNATURE) View.VISIBLE else View.GONE
+            typingKeyboard?.visibility = if (mode != BehaviorMode.SIGNATURE) View.VISIBLE else View.GONE
         }
-        signaturePad.visibility = if (mode != MODE_TYPING) View.VISIBLE else View.GONE
+        signaturePad.visibility = if (mode != BehaviorMode.TYPING) View.VISIBLE else View.GONE
         hintText.text = when (mode) {
-            MODE_TYPING -> localized(R.string.biometriccompat_behavior_hint_typing)
-            MODE_SIGNATURE -> localized(R.string.biometriccompat_behavior_hint_signature)
-            else -> localized(R.string.biometriccompat_behavior_hint_combined)
+            BehaviorMode.TYPING -> localized(R.string.biometriccompat_behavior_hint_typing)
+            BehaviorMode.SIGNATURE -> localized(R.string.biometriccompat_behavior_hint_signature)
+            BehaviorMode.COMBINED -> localized(R.string.biometriccompat_behavior_hint_combined)
         }
         clearInputError()
     }
@@ -435,25 +433,25 @@ internal class BehaviorCaptureController(
         val hasTyping = phrase.trim().length >= MIN_TYPING_CHARS &&
             keyDowns.size >= MIN_TYPING_EVENTS &&
             keyDowns.size == keyUps.size
-        val hasSignature = points.size >= POINT_STRIDE * MIN_SIGNATURE_POINTS
-        if ((mode == MODE_TYPING || mode == MODE_COMBINED) && !hasTyping) {
+        val hasSignature = points.size >= BehaviorSample.POINT_STRIDE * MIN_SIGNATURE_POINTS
+        if ((mode == BehaviorMode.TYPING || mode == BehaviorMode.COMBINED) && !hasTyping) {
             showInputError(localized(R.string.biometriccompat_behavior_error_need_typing))
             return
         }
-        if ((mode == MODE_SIGNATURE || mode == MODE_COMBINED) && !hasSignature) {
+        if ((mode == BehaviorMode.SIGNATURE || mode == BehaviorMode.COMBINED) && !hasSignature) {
             showInputError(localized(R.string.biometriccompat_behavior_error_need_signature))
             return
         }
 
-        val extras = Bundle(builder.getExtras() ?: Bundle()).apply {
-            putString(EXTRA_BEHAVIOR_MODE, mode)
-            putString(EXTRA_BEHAVIOR_PHRASE, phrase)
-            putLongArray(EXTRA_BEHAVIOR_KEY_DOWNS, keyDowns.toLongArray())
-            putLongArray(EXTRA_BEHAVIOR_KEY_UPS, keyUps.toLongArray())
-            putFloatArray(EXTRA_BEHAVIOR_POINTS, points.toFloatArray())
-            putInt(EXTRA_BEHAVIOR_POINTS_STRIDE, POINT_STRIDE)
-            putBoolean(BundleBuilder.ENROLL, enroll)
-        }
+        val extras = buildBehaviorExtras(
+            existing = builder.getExtras(),
+            mode = mode,
+            phrase = phrase,
+            keyDownTimesMs = keyDowns.toLongArray(),
+            keyUpTimesMs = keyUps.toLongArray(),
+            strokePoints = points.toFloatArray(),
+            enroll = enroll
+        )
         prepared = true
         builder.setExtras(extras)
         actionButton.isEnabled = false
@@ -476,11 +474,11 @@ internal class BehaviorCaptureController(
         }
     }
 
-    private fun selectedMode(): String {
+    private fun selectedMode(): BehaviorMode {
         return when (modeGroup.checkedRadioButtonId) {
-            MODE_TYPING_ID -> MODE_TYPING
-            MODE_SIGNATURE_ID -> MODE_SIGNATURE
-            else -> MODE_COMBINED
+            MODE_TYPING_ID -> BehaviorMode.TYPING
+            MODE_SIGNATURE_ID -> BehaviorMode.SIGNATURE
+            else -> BehaviorMode.COMBINED
         }
     }
 
@@ -546,24 +544,14 @@ internal class BehaviorCaptureController(
     }
 
     private companion object {
-        const val EXTRA_BEHAVIOR_MODE = "behavior.mode"
-        const val EXTRA_BEHAVIOR_PHRASE = "behavior.phrase"
-        const val EXTRA_BEHAVIOR_KEY_DOWNS = "behavior.key_downs"
-        const val EXTRA_BEHAVIOR_KEY_UPS = "behavior.key_ups"
-        const val EXTRA_BEHAVIOR_POINTS = "behavior.points"
-        const val EXTRA_BEHAVIOR_POINTS_STRIDE = "behavior.points_stride"
-
-        const val MODE_TYPING = "TYPING"
-        const val MODE_SIGNATURE = "SIGNATURE"
-        const val MODE_COMBINED = "COMBINED"
         const val MODE_TYPING_ID = 0x510001
         const val MODE_SIGNATURE_ID = 0x510002
         const val MODE_COMBINED_ID = 0x510003
-        const val POINT_STRIDE = 6
         const val MAX_CAPTURED_TYPING_CHARS = 256
         const val MAX_CAPTURED_TYPING_EVENTS = 512
         const val MAX_CAPTURED_SIGNATURE_POINTS = 2048
-        const val MAX_CAPTURED_POINT_FLOATS = MAX_CAPTURED_SIGNATURE_POINTS * POINT_STRIDE
+        const val MAX_CAPTURED_POINT_FLOATS =
+            MAX_CAPTURED_SIGNATURE_POINTS * BehaviorSample.POINT_STRIDE
         const val TEXT_EVENT_DWELL_MS = 60L
         const val MIN_TYPING_CHARS = 5
         const val MIN_TYPING_EVENTS = 5
