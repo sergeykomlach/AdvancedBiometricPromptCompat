@@ -110,7 +110,8 @@ internal object VoiceAudioPreprocessor {
         if (dynamicRange(trimmed) < MIN_DYNAMIC_RANGE_AFTER_TRIM) {
             return VoicePreprocessResult(trimmed, VoiceQualityIssue.SAMPLE_TOO_FLAT, metrics)
         }
-        return VoicePreprocessResult(trimmed, VoiceQualityIssue.NONE, metrics)
+        val conditionedTrimmed = conditionVoicedSegment(trimmed)
+        return VoicePreprocessResult(conditionedTrimmed, VoiceQualityIssue.NONE, metrics)
     }
 
     private fun removeDcOffset(pcm: FloatArray): FloatArray {
@@ -197,6 +198,34 @@ internal object VoiceAudioPreprocessor {
         return repeated.toFloat() / comparisons.coerceAtLeast(1)
     }
 
+    private fun conditionVoicedSegment(trimmed: FloatArray): FloatArray {
+        val dcFree = removeDcOffset(trimmed)
+        if (dcFree.isEmpty()) return dcFree
+        val trimmedRms = rms(dcFree)
+        if (trimmedRms <= 0f || trimmedRms >= TARGET_VOICED_RMS) {
+            return dcFree
+        }
+        val peak = peakAbs(dcFree)
+        if (peak <= 0f) return dcFree
+
+        val targetGain = TARGET_VOICED_RMS / trimmedRms
+        val clippingGuardGain = MAX_CONDITIONED_PEAK / peak
+        val appliedGain = min(MAX_NORMALIZATION_GAIN, min(targetGain, clippingGuardGain))
+        if (appliedGain <= 1f) return dcFree
+
+        return FloatArray(dcFree.size) { index ->
+            (dcFree[index] * appliedGain).coerceIn(-MAX_CONDITIONED_PEAK, MAX_CONDITIONED_PEAK)
+        }
+    }
+
+    private fun peakAbs(pcm: FloatArray): Float {
+        var peak = 0f
+        for (value in pcm) {
+            peak = max(peak, kotlin.math.abs(value))
+        }
+        return peak
+    }
+
     private const val FRAME_MS = 20
     private const val MIN_FRAME_LENGTH = 160
     private const val PADDING_FRAMES = 2
@@ -211,4 +240,7 @@ internal object VoiceAudioPreprocessor {
     private const val MIN_REPLAY_CHUNKS = 6
     private const val REPEATED_CHUNK_MAX_DELTA = 1.0E-4
     private const val MAX_REPEATED_CHUNK_RATIO = 0.60f
+    private const val TARGET_VOICED_RMS = 0.08f
+    private const val MAX_NORMALIZATION_GAIN = 3.0f
+    private const val MAX_CONDITIONED_PEAK = 0.96f
 }
