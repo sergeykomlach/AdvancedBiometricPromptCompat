@@ -22,10 +22,13 @@ package dev.skomlach.biometric.compat.engine.internal.face.tensorflow
 import android.content.Context
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.SoftwareBiometricProvider
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptFactory
 
 class TensorFlowProvider : SoftwareBiometricProvider() {
 
     override fun getCustomManager(context: Context): AbstractSoftwareBiometricManager {
-        return TensorFlowFaceUnlockManager(context)
+        return TensorFlowFaceUnlockManager(context.applicationContext)
     }
+
+    override fun getPromptFactory(): SoftwareBiometricPromptFactory? = null
 }
