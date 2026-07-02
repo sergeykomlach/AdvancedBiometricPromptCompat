@@ -34,7 +34,13 @@ internal class VoiceAutoCaptureController(
         messages = VoiceAutoCaptureSession.Messages(
             authStart = localized(R.string.biometriccompat_voice_auto_auth_start),
             voiceDetected = localized(R.string.biometriccompat_voice_auto_detected),
-            processing = localized(R.string.biometriccompat_voice_status_checking)
+            processing = localized(R.string.biometriccompat_voice_status_checking),
+            enrollRecordingStarted = { current, total ->
+                localized(R.string.biometriccompat_voice_auto_enroll_recording_started, current, total)
+            },
+            sampleSavedTemplate = { current, total ->
+                localized(R.string.biometriccompat_voice_auto_sample_saved, current, total)
+            }
         )
     )
 

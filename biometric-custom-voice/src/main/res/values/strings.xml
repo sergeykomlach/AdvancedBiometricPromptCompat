@@ -43,6 +43,8 @@
     <string name="biometriccompat_voice_error_recording_failed">Voice recording failed. Try again.</string>
     <string name="biometriccompat_voice_auto_auth_start">Listening for voice</string>
     <string name="biometriccompat_voice_auto_detected">Voice detected</string>
+    <string name="biometriccompat_voice_auto_enroll_recording_started">Voice sample %1$d of %2$d: recording started</string>
+    <string name="biometriccompat_voice_auto_sample_saved">Voice sample %1$d of %2$d saved</string>
     <string name="biometriccompat_voice_status_recording">Recording voice sample...</string>
     <string name="biometriccompat_voice_status_checking">Checking voice</string>
 

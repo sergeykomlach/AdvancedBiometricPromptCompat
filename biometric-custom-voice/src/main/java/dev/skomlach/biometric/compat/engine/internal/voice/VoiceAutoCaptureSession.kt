@@ -11,7 +11,7 @@ internal class VoiceAutoCaptureSession(
     private val phrase: CharSequence?,
     private val callback: Callback,
     private val sampleRateHz: Int = DEFAULT_SAMPLE_RATE_HZ,
-    private val messages: Messages = Messages()
+    private val messages: Messages
 ) {
     interface Callback {
         fun onHelp(message: CharSequence)
@@ -21,19 +21,21 @@ internal class VoiceAutoCaptureSession(
     }
 
     class Messages(
-        private val authStart: CharSequence = "Listening for voice",
-        private val voiceDetected: CharSequence = "Voice detected",
-        private val processing: CharSequence = "Processing voice sample"
+        private val authStart: CharSequence,
+        private val voiceDetected: CharSequence,
+        private val processing: CharSequence,
+        private val enrollRecordingStarted: (Int, Int) -> CharSequence,
+        private val sampleSavedTemplate: (Int, Int) -> CharSequence
     ) {
         fun recordingStarted(current: Int, total: Int, enroll: Boolean): CharSequence {
             return if (enroll) {
-                "Voice sample $current of $total: recording started"
+                enrollRecordingStarted(current, total)
             } else {
                 authStart
             }
         }
 
-        fun sampleSaved(current: Int, total: Int): CharSequence = "Voice sample $current of $total saved"
+        fun sampleSaved(current: Int, total: Int): CharSequence = sampleSavedTemplate(current, total)
 
         fun voiceDetected(): CharSequence = voiceDetected
 
