@@ -20,6 +20,14 @@ class VoiceStreamingDetector(
     private val minimumSampleMs: Long = 900L
 ) {
     private val conditioner = VoiceSignalConditioner()
+    private val cachedChunks = ArrayList<FloatArray>()
+    private val cachedInputRmsValues = ArrayList<Float>()
+    private val cachedConditionedRmsValues = ArrayList<Float>()
+    private val cachedChunkEndOffsets = ArrayList<Int>()
+    private val sortedInputRmsValues = ArrayList<Float>()
+    private var cachedSampleStart = -1
+    private var cachedSampleEndExclusive = -1
+    private var cachedSample: FloatArray? = null
 
     fun detect(chunks: List<FloatArray>): VoiceStreamingDetection {
         if (chunks.isEmpty() || sampleRateHz <= 0) {
@@ -31,23 +39,21 @@ class VoiceStreamingDetector(
             )
         }
 
-        val conditionedChunks = chunks.map { chunk -> conditioner.condition(chunk) }
-        val inputRmsValues = conditionedChunks.map { chunk -> chunk.inputRms }
-        val conditionedRmsValues = conditionedChunks.map { chunk -> chunk.conditionedRms }
-        val sorted = inputRmsValues.sorted()
-        val quietFrameCount = max(1, sorted.size / 5)
-        val noiseFloor = sorted.take(quietFrameCount).average().toFloat()
+        syncChunkAnalysis(chunks)
+
+        val quietFrameCount = max(1, sortedInputRmsValues.size / 5)
+        val noiseFloor = averageQuietRms(quietFrameCount)
         val voicedThreshold = max(minVoiceRms, noiseFloor * noiseMultiplier)
         val speechEvidenceThreshold = max(
             conditioner.silenceRmsThreshold,
             noiseFloor * SPEECH_EVIDENCE_MULTIPLIER
         )
-        val voiced = conditionedChunks.mapIndexed { index, chunk ->
-            chunk.inputRms >= speechEvidenceThreshold &&
-                conditionedRmsValues[index] >= voicedThreshold
+        val voiced = BooleanArray(chunks.size) { index ->
+            cachedInputRmsValues[index] >= speechEvidenceThreshold &&
+                cachedConditionedRmsValues[index] >= voicedThreshold
         }
 
-        val speechStart = firstSpeechStart(voiced)
+        val speechWindow = detectSpeechWindow(voiced)
             ?: return VoiceStreamingDetection(
                 detectedSpeech = false,
                 isComplete = false,
@@ -55,30 +61,20 @@ class VoiceStreamingDetector(
                 activeSample = null
             )
 
-        var lastVoicedIndex = speechStart
-        var currentSilenceRun = 0
-        for (index in speechStart until voiced.size) {
-            if (voiced[index]) {
-                lastVoicedIndex = index
-                currentSilenceRun = 0
-                continue
-            }
-            currentSilenceRun += 1
-            if (currentSilenceRun >= endSilenceFrames) {
-                val completed = flattenChunks(chunks, speechStart, lastVoicedIndex + 1)
-                return VoiceStreamingDetection(
-                    detectedSpeech = true,
-                    isComplete = completed.size >= minimumSampleCount(),
-                    completedSample = completed.takeIf { it.size >= minimumSampleCount() },
-                    activeSample = completed
-                )
-            }
-            if (currentSilenceRun > shortPauseFrames) {
-                continue
-            }
+        val activeSample = sampleSlice(
+            chunks = chunks,
+            startIndex = speechWindow.startIndex,
+            endExclusive = speechWindow.endExclusive
+        )
+        if (speechWindow.isComplete) {
+            return VoiceStreamingDetection(
+                detectedSpeech = true,
+                isComplete = activeSample.size >= minimumSampleCount(),
+                completedSample = activeSample.takeIf { it.size >= minimumSampleCount() },
+                activeSample = activeSample
+            )
         }
 
-        val activeSample = flattenChunks(chunks, speechStart, lastVoicedIndex + 1)
         return VoiceStreamingDetection(
             detectedSpeech = true,
             isComplete = false,
@@ -87,7 +83,57 @@ class VoiceStreamingDetector(
         )
     }
 
-    private fun firstSpeechStart(voiced: List<Boolean>): Int? {
+    private fun detectSpeechWindow(voiced: BooleanArray): SpeechWindow? {
+        val initialSpeechStart = firstSpeechStart(voiced) ?: return null
+        var activeSpeechStart = initialSpeechStart
+        var lastVoicedIndex = initialSpeechStart
+        var currentSilenceRun = 0
+        var restartVoicedRun = 0
+        var restartCandidateStart = -1
+
+        for (index in initialSpeechStart until voiced.size) {
+            if (voiced[index]) {
+                if (currentSilenceRun > shortPauseFrames) {
+                    if (restartVoicedRun == 0) {
+                        restartCandidateStart = index
+                    }
+                    restartVoicedRun += 1
+                    if (restartVoicedRun >= speechStartFrames) {
+                        activeSpeechStart = restartCandidateStart
+                        lastVoicedIndex = index
+                        currentSilenceRun = 0
+                        restartVoicedRun = 0
+                        restartCandidateStart = -1
+                    }
+                    continue
+                }
+                lastVoicedIndex = index
+                currentSilenceRun = 0
+                restartVoicedRun = 0
+                restartCandidateStart = -1
+                continue
+            }
+
+            currentSilenceRun += 1
+            restartVoicedRun = 0
+            restartCandidateStart = -1
+            if (currentSilenceRun >= endSilenceFrames) {
+                return SpeechWindow(
+                    startIndex = activeSpeechStart,
+                    endExclusive = lastVoicedIndex + 1,
+                    isComplete = true
+                )
+            }
+        }
+
+        return SpeechWindow(
+            startIndex = activeSpeechStart,
+            endExclusive = lastVoicedIndex + 1,
+            isComplete = false
+        )
+    }
+
+    private fun firstSpeechStart(voiced: BooleanArray): Int? {
         var index = 0
         while (index < voiced.size) {
             if (!voiced[index]) {
@@ -120,8 +166,76 @@ class VoiceStreamingDetector(
         return null
     }
 
+    private fun syncChunkAnalysis(chunks: List<FloatArray>) {
+        if (!sharesCachedPrefix(chunks)) {
+            clearAnalysisCache()
+        }
+        for (index in cachedChunks.size until chunks.size) {
+            val chunk = chunks[index]
+            val conditioned = conditioner.condition(chunk)
+            cachedChunks += chunk
+            cachedInputRmsValues += conditioned.inputRms
+            cachedConditionedRmsValues += conditioned.conditionedRms
+            cachedChunkEndOffsets += (cachedChunkEndOffsets.lastOrNull() ?: 0) + chunk.size
+            insertSortedInputRms(conditioned.inputRms)
+        }
+    }
+
+    private fun sharesCachedPrefix(chunks: List<FloatArray>): Boolean {
+        if (chunks.size < cachedChunks.size) return false
+        for (index in cachedChunks.indices) {
+            if (cachedChunks[index] !== chunks[index]) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun clearAnalysisCache() {
+        cachedChunks.clear()
+        cachedInputRmsValues.clear()
+        cachedConditionedRmsValues.clear()
+        cachedChunkEndOffsets.clear()
+        sortedInputRmsValues.clear()
+        cachedSampleStart = -1
+        cachedSampleEndExclusive = -1
+        cachedSample = null
+    }
+
+    private fun insertSortedInputRms(value: Float) {
+        val index = sortedInputRmsValues.binarySearch(value)
+        val insertionPoint = if (index >= 0) index else -index - 1
+        sortedInputRmsValues.add(insertionPoint, value)
+    }
+
+    private fun averageQuietRms(quietFrameCount: Int): Float {
+        var sum = 0.0
+        for (index in 0 until quietFrameCount) {
+            sum += sortedInputRmsValues[index]
+        }
+        return (sum / quietFrameCount).toFloat()
+    }
+
+    private fun sampleSlice(chunks: List<FloatArray>, startIndex: Int, endExclusive: Int): FloatArray {
+        if (startIndex < 0 || endExclusive <= startIndex) {
+            return FloatArray(0)
+        }
+        cachedSample?.let { sample ->
+            if (cachedSampleStart == startIndex && cachedSampleEndExclusive == endExclusive) {
+                return sample
+            }
+        }
+        val flattened = flattenChunks(chunks, startIndex, endExclusive)
+        cachedSampleStart = startIndex
+        cachedSampleEndExclusive = endExclusive
+        cachedSample = flattened
+        return flattened
+    }
+
     private fun flattenChunks(chunks: List<FloatArray>, startIndex: Int, endExclusive: Int): FloatArray {
-        val length = (startIndex until endExclusive).sumOf { index -> chunks[index].size }
+        val prefixEnd = cachedChunkEndOffsets[endExclusive - 1]
+        val prefixStart = if (startIndex > 0) cachedChunkEndOffsets[startIndex - 1] else 0
+        val length = prefixEnd - prefixStart
         val flattened = FloatArray(length)
         var offset = 0
         for (index in startIndex until endExclusive) {
@@ -147,6 +261,12 @@ class VoiceStreamingDetector(
     private fun maxStartGapFrames(): Int {
         return max(1, shortPauseFrames / 3)
     }
+
+    private data class SpeechWindow(
+        val startIndex: Int,
+        val endExclusive: Int,
+        val isComplete: Boolean
+    )
 
     private companion object {
         const val SPEECH_EVIDENCE_MULTIPLIER = 1.4f

@@ -1,14 +1,14 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.PI
 import kotlin.math.sin
 
-class VoiceStreamingDetectionTest {
+class VoiceStreamingDetectorTest {
     @Test
     fun detectIgnoresShortNoisyWarmupBeforeStableSpeechStart() {
         val detector = VoiceStreamingDetector(sampleRateHz = SAMPLE_RATE)
@@ -55,6 +55,46 @@ class VoiceStreamingDetectionTest {
         assertTrue(completed.isComplete)
         assertNotNull(completed.completedSample)
         assertTrue(completed.completedSample!!.size >= MINIMUM_SAMPLE_COUNT)
+    }
+
+    @Test
+    fun detectKeepsAllowedShortPauseInSameUtteranceButRestartsAfterLongerPause() {
+        val shortPauseDetector = VoiceStreamingDetector(
+            sampleRateHz = SAMPLE_RATE,
+            shortPauseFrames = 4
+        )
+        val firstVoice = voiceChunk(frequencyHz = 180.0, amplitude = 0.08f)
+        val secondVoice = voiceChunk(frequencyHz = 220.0, amplitude = 0.08f)
+
+        val allowedPause = shortPauseDetector.detect(
+            buildList {
+                repeat(6) { add(silenceChunk()) }
+                repeat(10) { add(firstVoice.copyOf()) }
+                repeat(4) { add(silenceChunk(scale = 0.003f)) }
+                repeat(10) { add(secondVoice.copyOf()) }
+            }
+        )
+
+        assertTrue(allowedPause.detectedSpeech)
+        assertFalse(allowedPause.isComplete)
+        assertNotNull(allowedPause.activeSample)
+        assertEquals(CHUNK_SIZE * 20, allowedPause.activeSample!!.size)
+
+        val longerPause = shortPauseDetector.detect(
+            buildList {
+                repeat(6) { add(silenceChunk()) }
+                repeat(10) { add(firstVoice.copyOf()) }
+                repeat(5) { add(silenceChunk(scale = 0.003f)) }
+                repeat(10) { add(secondVoice.copyOf()) }
+            }
+        )
+
+        assertTrue(longerPause.detectedSpeech)
+        assertFalse(longerPause.isComplete)
+        assertNotNull(longerPause.activeSample)
+        val longerPauseSample = longerPause.activeSample!!
+        assertEquals(CHUNK_SIZE * 10, longerPauseSample.size)
+        assertChunkEquals(secondVoice, longerPauseSample, destinationOffset = 0)
     }
 
     @Test
