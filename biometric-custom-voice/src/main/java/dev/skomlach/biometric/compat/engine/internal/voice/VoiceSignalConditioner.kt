@@ -1,7 +1,5 @@
 package dev.skomlach.biometric.compat.engine.internal.voice
 
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sqrt
 
 internal data class VoiceConditionedChunk(

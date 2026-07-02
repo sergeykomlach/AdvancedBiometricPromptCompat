@@ -1,4 +1,4 @@
-package dev.skomlach.biometric.compat.impl.dialogs
+package dev.skomlach.biometric.compat.engine.internal.behavior
 
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -24,7 +24,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BundleBuilder
-import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.custom.behavior.R
 import dev.skomlach.biometric.compat.utils.ScreenProtection
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlin.math.max
@@ -32,6 +32,7 @@ import kotlin.math.max
 internal class BehaviorCaptureController(
     private val rootView: View,
     private val builder: BiometricPromptCompat.Builder,
+    private val enroll: Boolean,
     private val onReady: () -> Unit
 ) {
     private var prepared = false
@@ -175,7 +176,7 @@ internal class BehaviorCaptureController(
         }
 
         actionButton = Button(context).apply {
-            text = if (builder.enroll) {
+            text = if (enroll) {
                 localized(R.string.biometriccompat_behavior_action_enroll)
             } else {
                 localized(R.string.biometriccompat_behavior_action_verify)
@@ -202,7 +203,7 @@ internal class BehaviorCaptureController(
             background = ContextCompat.getDrawable(context, R.drawable.biometric_capture_panel_bg)
             elevation = 10f * density
             addView(TextView(context).apply {
-                text = if (builder.enroll) {
+                text = if (enroll) {
                     localized(R.string.biometriccompat_behavior_overlay_title_enroll)
                 } else {
                     localized(R.string.biometriccompat_behavior_overlay_title_auth)
@@ -451,7 +452,7 @@ internal class BehaviorCaptureController(
             putLongArray(EXTRA_BEHAVIOR_KEY_UPS, keyUps.toLongArray())
             putFloatArray(EXTRA_BEHAVIOR_POINTS, points.toFloatArray())
             putInt(EXTRA_BEHAVIOR_POINTS_STRIDE, POINT_STRIDE)
-            putBoolean(BundleBuilder.ENROLL, builder.enroll)
+            putBoolean(BundleBuilder.ENROLL, enroll)
         }
         prepared = true
         builder.setExtras(extras)

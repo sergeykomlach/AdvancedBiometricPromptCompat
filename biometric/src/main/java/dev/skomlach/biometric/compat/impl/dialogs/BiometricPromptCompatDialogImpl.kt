@@ -33,6 +33,9 @@ import dev.skomlach.biometric.compat.BehaviorAuthMode
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptDelegate
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.impl.AuthCallback
 import dev.skomlach.biometric.compat.impl.AuthResult
@@ -60,8 +63,7 @@ class BiometricPromptCompatDialogImpl(
     val WHAT_RESTORE_NORMAL_STATE = 0
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
-    private var behaviorCaptureController: BehaviorCaptureController? = null
-    private var voiceAutoCaptureController: VoiceAutoCaptureController? = null
+    private var softwarePromptDelegate: SoftwareBiometricPromptDelegate? = null
 
 
     init {
@@ -91,10 +93,8 @@ class BiometricPromptCompatDialogImpl(
         dialog = BiometricPromptCompatDialog.getFragment(isInScreen)
         dialog.setOnDismissListener {
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. dismissed.")
-            behaviorCaptureController?.dispose()
-            behaviorCaptureController = null
-            voiceAutoCaptureController?.dispose()
-            voiceAutoCaptureController = null
+            softwarePromptDelegate?.dispose()
+            softwarePromptDelegate = null
             detachWindowListeners()
             if (inProgress.get()) {
                 inProgress.set(false)
@@ -111,10 +111,9 @@ class BiometricPromptCompatDialogImpl(
         dialog.setOnCancelListener {
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. canceled.")
 
-            behaviorCaptureController?.dispose()
-            behaviorCaptureController = null
-            voiceAutoCaptureController?.dispose()
-            voiceAutoCaptureController = null
+            softwarePromptDelegate?.cancel()
+            softwarePromptDelegate?.dispose()
+            softwarePromptDelegate = null
             authCallback?.cancelAuth()
             detachWindowListeners()
             if (inProgress.get()) {
@@ -160,42 +159,36 @@ class BiometricPromptCompatDialogImpl(
                 false,
                 primaryBiometricType
             )
-            if (primaryBiometricType == BiometricType.BIOMETRIC_BEHAVIOR &&
-                compatBuilder.getBehaviorAuthMode() == BehaviorAuthMode.EXPLICIT
-            ) {
-                behaviorCaptureController = BehaviorCaptureController(
-                    dialog.rootView ?: return@setOnShowListener,
-                    compatBuilder
-                ) {
-                    startAuth()
-                }.also {
-                    it.install()
-                }
-            } else if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE) {
-                voiceAutoCaptureController = VoiceAutoCaptureController(
-                    dialog.rootView?.context ?: compatBuilder.getContext(),
-                    compatBuilder
-                ,
-                    object : VoiceAutoCaptureSession.Callback {
-                        override fun onHelp(message: CharSequence) {
-                            this@BiometricPromptCompatDialogImpl.onHelp(message)
-                        }
+            softwarePromptDelegate = SoftwareBiometricPromptRegistry.resolve(primaryBiometricType)
+                ?.create(
+                    SoftwareBiometricPromptHost(
+                        context = dialog.rootView?.context ?: compatBuilder.getContext(),
+                        builder = compatBuilder,
+                        enroll = compatBuilder.enroll,
+                        rootView = dialog.rootView,
+                        callbacks = object : SoftwareBiometricPromptHost.Callbacks {
+                            override fun onHelp(message: CharSequence) {
+                                this@BiometricPromptCompatDialogImpl.onHelp(message)
+                            }
 
-                        override fun onReady(extras: android.os.Bundle) {
-                            compatBuilder.setExtras(extras)
-                            startAuth()
-                        }
+                            override fun onReady(extras: android.os.Bundle?) {
+                                extras?.let { compatBuilder.setExtras(it) }
+                                startAuth()
+                            }
 
-                        override fun onError(result: dev.skomlach.biometric.compat.AuthenticationResult) {
-                            authCallback?.onPreAuthFailure(result)
-                        }
+                            override fun onFailure(result: dev.skomlach.biometric.compat.AuthenticationResult) {
+                                authCallback?.onPreAuthFailure(result)
+                            }
 
-                        override fun isPromptActive(): Boolean = dialog.isShowing
+                            override fun isPromptActive(): Boolean = dialog.isShowing
+                        }
+                    )
+                )?.also { delegate ->
+                    if (delegate.shouldInstall()) {
+                        delegate.install()
                     }
-                ).takeIf { it.shouldAutoCapture() }?.also {
-                    it.start()
+                    delegate.start()
                 }
-            }
 
             checkInScreenVisibility()
             attachWindowListeners()
@@ -308,15 +301,7 @@ class BiometricPromptCompatDialogImpl(
 
     private fun startAuth() {
         if (!inProgress.get() && dialog.isShowing) {
-            if (primaryBiometricType == BiometricType.BIOMETRIC_BEHAVIOR &&
-                compatBuilder.getBehaviorAuthMode() == BehaviorAuthMode.EXPLICIT &&
-                behaviorCaptureController?.consumePrepared() != true
-            ) {
-                return
-            }
-            if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE &&
-                voiceAutoCaptureController?.isReadyToStartAuth() == false
-            ) {
+            if (softwarePromptDelegate?.isReadyToStartAuth() == false) {
                 return
             }
             inProgress.set(true)

@@ -23,4 +23,6 @@ import android.content.Context
 
 abstract class SoftwareBiometricProvider {
     abstract fun getCustomManager(context: Context): AbstractSoftwareBiometricManager
+
+    open fun getPromptFactory(): SoftwareBiometricPromptFactory? = null
 }
