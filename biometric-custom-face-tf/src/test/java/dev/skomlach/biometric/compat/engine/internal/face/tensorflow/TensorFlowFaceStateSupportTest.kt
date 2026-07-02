@@ -12,6 +12,7 @@ class TensorFlowFaceStateSupportTest {
         assertEquals(0, countRegisteredTemplates(null))
         assertEquals(0, countRegisteredTemplates(""))
         assertEquals(0, countRegisteredTemplates("{}"))
+        assertFalse(hasRegisteredTemplates("{}"))
     }
 
     @Test

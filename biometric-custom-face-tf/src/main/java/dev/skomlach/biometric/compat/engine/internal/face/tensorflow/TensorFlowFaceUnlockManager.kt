@@ -496,6 +496,20 @@ class TensorFlowFaceUnlockManager(
         extra: Bundle?
     ) {
         requestActiveSession(this)
+        isSessionActive.set(true)
+        spoofScoresWindow.clear()
+        processedFrameCounter = 0
+        consecutiveMatchCounter = 0
+        lastMatchedId = null
+        authCallback = callback
+        cancellationSignal = cancel
+        cancellationSignal?.setOnCancelListener {
+            if (isSessionActive.get()) {
+                authCallback?.onAuthenticationCancelled()
+                stopAuthentication()
+            }
+        }
+
         val lockoutError = checkLockoutState()
         if (lockoutError != null) {
             val msg = if (lockoutError == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
@@ -510,15 +524,10 @@ class TensorFlowFaceUnlockManager(
                 )
             }
             onAuthenticationError(lockoutError, msg)
-            releaseSession(this)
+            stopAuthentication()
             return
         }
 
-        isSessionActive.set(true)
-        spoofScoresWindow.clear()
-        processedFrameCounter = 0
-        consecutiveMatchCounter = 0
-        lastMatchedId = null
         isEnrolling = extra?.getBoolean(IS_ENROLLMENT_KEY, false) ?: false
         val registeredTemplates = countRegisteredTemplates(
             getProtectedPreferences(TFLiteObjectDetectionAPIModel.STORAGE_NAME)
@@ -527,67 +536,66 @@ class TensorFlowFaceUnlockManager(
         enrollmentTag = sanitizeEnrollmentTag(extra?.getString(ENROLLMENT_TAG_KEY))
             ?: "face${registeredTemplates + 1}"
 
-        if (!isHardwareDetected()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_not_available
-                )
+        val usesRealCameraProvider = frameProvider is RealCameraProvider
+        when (
+            resolveTensorFlowFacePreflightIssue(
+                isHardwareDetected = isHardwareDetected(),
+                usesRealCameraProvider = usesRealCameraProvider,
+                isCameraBlocked = usesRealCameraProvider && SensorPrivacyCheck.isCameraBlocked(),
+                isCameraInUse = usesRealCameraProvider && SensorPrivacyCheck.isCameraInUse(),
+                isEnrolling = isEnrolling,
+                hasEnrolledBiometric = hasEnrolledBiometric()
             )
-            stopAuthentication()
-            return
-        }
-        if (frameProvider is RealCameraProvider && SensorPrivacyCheck.isCameraBlocked()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_camera_disabled
+        ) {
+            TensorFlowFacePreflightIssue.HARDWARE_MISSING -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_not_available
+                    )
                 )
-            )
-            stopAuthentication()
-            return
-        }
-        if (frameProvider is RealCameraProvider && SensorPrivacyCheck.isCameraInUse()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_camera_locked_out
-                )
-            )
-            stopAuthentication()
-            return
-        }
-        if (isEnrolling && enrollmentTag.isEmpty()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_enrollment_tag_not_provided
-                )
-            )
-            stopAuthentication()
-            return
-        } else if (!isEnrolling && !hasEnrolledBiometric()) {
-            onAuthenticationError(
-                CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_tf_face_help_model_not_registered
-                )
-            )
-            stopAuthentication()
-            return
-        }
-
-        authCallback = callback
-        cancellationSignal = cancel
-        cancellationSignal?.setOnCancelListener {
-            if (isSessionActive.get()) {
-                authCallback?.onAuthenticationCancelled()
                 stopAuthentication()
+                return
+            }
+
+            TensorFlowFacePreflightIssue.CAMERA_BLOCKED -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_camera_disabled
+                    )
+                )
+                stopAuthentication()
+                return
+            }
+
+            TensorFlowFacePreflightIssue.CAMERA_IN_USE -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_LOCKOUT,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_camera_locked_out
+                    )
+                )
+                stopAuthentication()
+                return
+            }
+
+            TensorFlowFacePreflightIssue.NO_ENROLLED_BIOMETRIC -> {
+                onAuthenticationError(
+                    CUSTOM_BIOMETRIC_ERROR_NO_BIOMETRIC,
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_tf_face_help_model_not_registered
+                    )
+                )
+                stopAuthentication()
+                return
+            }
+
+            null -> {
             }
         }
 
