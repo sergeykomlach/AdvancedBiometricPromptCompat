@@ -28,7 +28,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
-import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.ViewTreeObserver
@@ -36,11 +35,9 @@ import dev.skomlach.biometric.app.databinding.FragmentFirstBinding
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricAuthRequest
 import dev.skomlach.biometric.compat.BiometricManagerCompat
-import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -188,21 +185,6 @@ class FirstFragment : Fragment() {
                 inflater.inflate(R.layout.button, buttonsList, false) as FrameLayout
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
-            button.setOnLongClickListener {
-                startBiometric(
-                    BiometricAuthRequest.default().withApi(authRequest.api).withType(authRequest.type),
-                    SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("silent", false),
-                    SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("crypto", false),
-                    SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean(
-                            "allowDeviceCredentials",
-                            BiometricManagerCompat.isDeviceSecureAvailable()
-                        ), true
-                )
-                true
-            }
             button.setOnClickListener {
                 startBiometric(
                     BiometricAuthRequest.default().withApi(authRequest.api).withType(authRequest.type),

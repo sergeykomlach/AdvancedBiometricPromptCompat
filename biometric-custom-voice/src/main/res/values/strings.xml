@@ -20,4 +20,30 @@
     <string name="biometriccompat_voice_help_sample_clipped">Voice sample is clipped. Lower microphone gain or move slightly farther away.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Voice sample looks repeated or synthetic. Record a fresh natural phrase.</string>
     <string name="biometriccompat_voice_help_embedding_invalid">Voice embedding is invalid. Provide a finite non-empty speaker embedding.</string>
+
+
+    <string name="biometriccompat_voice_button_content_description">Voice capture</string>
+    <string name="biometriccompat_voice_overlay_title_enroll">Record voice sample</string>
+    <string name="biometriccompat_voice_overlay_title_auth">Confirm your voice</string>
+    <string name="biometriccompat_voice_overlay_hint_enroll">Record %1$d natural samples of your voice. Speak for 2 to 4 seconds each time.</string>
+    <string name="biometriccompat_voice_overlay_hint_auth">Record one natural voice sample. Speak for 2 to 4 seconds.</string>
+    <string name="biometriccompat_voice_overlay_phrase">Phrase: %1$s</string>
+    <string name="biometriccompat_voice_record_start">Start recording</string>
+    <string name="biometriccompat_voice_record_stop">Stop recording</string>
+    <string name="biometriccompat_voice_record_ready">Sample ready</string>
+    <string name="biometriccompat_voice_progress_enroll">Samples recorded: %1$d/%2$d</string>
+    <string name="biometriccompat_voice_progress_auth_ready">Voice sample ready</string>
+    <string name="biometriccompat_voice_progress_auth_missing">No voice sample recorded yet</string>
+    <string name="biometriccompat_voice_action_enroll">Enroll</string>
+    <string name="biometriccompat_voice_action_verify">Verify</string>
+    <string name="biometriccompat_voice_error_recorder_unavailable">Voice recorder is unavailable on this device.</string>
+    <string name="biometriccompat_voice_error_no_speech">No speech detected. Speak clearly and try again.</string>
+    <string name="biometriccompat_voice_error_sample_too_short">Voice sample is too short. Speak naturally for at least one second.</string>
+    <string name="biometriccompat_voice_error_sample_missing">Record a voice sample before continuing.</string>
+    <string name="biometriccompat_voice_error_recording_failed">Voice recording failed. Try again.</string>
+    <string name="biometriccompat_voice_auto_auth_start">Listening for voice</string>
+    <string name="biometriccompat_voice_auto_detected">Voice detected</string>
+    <string name="biometriccompat_voice_status_recording">Recording voice sample...</string>
+    <string name="biometriccompat_voice_status_checking">Checking voice</string>
+
 </resources>

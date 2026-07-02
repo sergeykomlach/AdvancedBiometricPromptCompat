@@ -160,6 +160,11 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         isOpened.set(false)
     }
 
+    override fun onPreAuthFailure(result: AuthenticationResult) {
+        callback?.onFailed(setOf(result))
+        cancelAuthentication()
+    }
+
     private fun checkAuthResult(
         module: AuthenticationResult?,
         authResult: AuthResult.AuthResultState

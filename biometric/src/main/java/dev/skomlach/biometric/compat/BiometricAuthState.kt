@@ -19,6 +19,7 @@
 
 package dev.skomlach.biometric.compat
 
+import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModuleState
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -67,6 +68,15 @@ data class BiometricAuthSnapshot(
     val readyForEnroll: Boolean
         get() = state.readyForEnroll
 }
+
+internal data class SelectedBiometricRoute(
+    val type: BiometricType,
+    val provider: BiometricProviderType,
+    val usesBiometricPromptHardware: Boolean,
+    val permissions: List<String>,
+    val api: BiometricApi = BiometricApi.AUTO,
+    val module: BiometricModule? = null
+)
 
 internal fun aggregateAnyBiometricState(states: Collection<BiometricAuthState>): BiometricAuthState {
     val detectedStates = states.filter { it.hardwareDetected }
@@ -120,6 +130,32 @@ internal fun isSetupRouteSelectable(
     return routeState.hardwareDetected &&
             !routeState.lockedOut &&
             !routeState.permanentlyLocked
+}
+
+internal fun pickSelectedBiometricRoute(
+    requestApi: BiometricApi,
+    preferSystemFaceHardware: Boolean,
+    preferHighPrioritySoftware: Boolean,
+    biometricPromptRoute: SelectedBiometricRoute?,
+    legacyHardwareRoute: SelectedBiometricRoute?,
+    fallbackRoute: SelectedBiometricRoute?
+): SelectedBiometricRoute? {
+    return when (requestApi) {
+        BiometricApi.BIOMETRIC_API -> biometricPromptRoute
+        BiometricApi.LEGACY_API -> legacyHardwareRoute ?: fallbackRoute
+        BiometricApi.AUTO -> when {
+            preferSystemFaceHardware -> biometricPromptRoute ?: legacyHardwareRoute ?: fallbackRoute
+            preferHighPrioritySoftware &&
+                    fallbackRoute?.provider == BiometricProviderType.SOFTWARE -> fallbackRoute
+
+            else -> biometricPromptRoute ?: legacyHardwareRoute ?: fallbackRoute
+        }
+    }
+}
+
+internal fun shouldKeepSystemEnrollType(route: SelectedBiometricRoute?): Boolean {
+    return route?.type == BiometricType.BIOMETRIC_FACE &&
+            route.provider == BiometricProviderType.HARDWARE
 }
 
 /**

@@ -19,10 +19,13 @@
 
 package dev.skomlach.biometric.compat.impl
 
+import dev.skomlach.biometric.compat.AuthenticationResult
+
 interface AuthCallback {
     fun startAuth()
     fun stopAuth()
     fun cancelAuth()
     fun onUiOpened()
     fun onUiClosed()
+    fun onPreAuthFailure(result: AuthenticationResult) {}
 }

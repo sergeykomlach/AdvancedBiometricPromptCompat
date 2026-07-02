@@ -37,22 +37,27 @@ class EffectiveEnrollTypesTest {
     }
 
     @Test
-    fun `keeps system hardware type during enroll when higher priority route owns modality`() {
+    fun `keeps system hardware face during enroll when selected route stays on hardware`() {
+        val hardwareRoute = SelectedBiometricRoute(
+            type = BiometricType.BIOMETRIC_FACE,
+            provider = BiometricProviderType.HARDWARE,
+            usesBiometricPromptHardware = true,
+            permissions = emptyList()
+        )
         val effectiveTypes = resolveEffectiveEnrollTypes(
             types = listOf(
-                BiometricType.BIOMETRIC_FINGERPRINT,
                 BiometricType.BIOMETRIC_FACE
             ),
-            hasSystemHardware = { type -> type == BiometricType.BIOMETRIC_FINGERPRINT },
-            keepSystemType = { type -> type == BiometricType.BIOMETRIC_FINGERPRINT },
+            hasSystemHardware = { type -> type == BiometricType.BIOMETRIC_FACE },
+            keepSystemType = { type ->
+                type == BiometricType.BIOMETRIC_FACE &&
+                        shouldKeepSystemEnrollType(hardwareRoute)
+            },
             isActive = { true }
         )
 
         assertEquals(
-            listOf(
-                BiometricType.BIOMETRIC_FINGERPRINT,
-                BiometricType.BIOMETRIC_FACE
-            ),
+            listOf(BiometricType.BIOMETRIC_FACE),
             effectiveTypes
         )
     }

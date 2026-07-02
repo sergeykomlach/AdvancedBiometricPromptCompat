@@ -61,7 +61,7 @@ class BiometricPromptCompatDialogImpl(
 
     var authFinishedCopy: MutableMap<BiometricType?, AuthResult> = mutableMapOf()
     private var behaviorCaptureController: BehaviorCaptureController? = null
-    private var voiceCaptureController: VoiceCaptureController? = null
+    private var voiceAutoCaptureController: VoiceAutoCaptureController? = null
 
 
     init {
@@ -93,8 +93,8 @@ class BiometricPromptCompatDialogImpl(
             e("BiometricPromptGenericImpl.AbstractBiometricPromptCompat. dismissed.")
             behaviorCaptureController?.dispose()
             behaviorCaptureController = null
-            voiceCaptureController?.dispose()
-            voiceCaptureController = null
+            voiceAutoCaptureController?.dispose()
+            voiceAutoCaptureController = null
             detachWindowListeners()
             if (inProgress.get()) {
                 inProgress.set(false)
@@ -113,8 +113,8 @@ class BiometricPromptCompatDialogImpl(
 
             behaviorCaptureController?.dispose()
             behaviorCaptureController = null
-            voiceCaptureController?.dispose()
-            voiceCaptureController = null
+            voiceAutoCaptureController?.dispose()
+            voiceAutoCaptureController = null
             authCallback?.cancelAuth()
             detachWindowListeners()
             if (inProgress.get()) {
@@ -172,14 +172,28 @@ class BiometricPromptCompatDialogImpl(
                     it.install()
                 }
             } else if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE) {
-                voiceCaptureController = VoiceCaptureController(
-                    dialog.rootView ?: return@setOnShowListener,
+                voiceAutoCaptureController = VoiceAutoCaptureController(
+                    dialog.rootView?.context ?: compatBuilder.getContext(),
                     compatBuilder
-                ) {
-                    startAuth()
-                }.takeIf { it.shouldHandleViaOverlay() }?.also {
-                    it.install()
-                    it.showCaptureUi()
+                ,
+                    object : VoiceAutoCaptureSession.Callback {
+                        override fun onHelp(message: CharSequence) {
+                            this@BiometricPromptCompatDialogImpl.onHelp(message)
+                        }
+
+                        override fun onReady(extras: android.os.Bundle) {
+                            compatBuilder.setExtras(extras)
+                            startAuth()
+                        }
+
+                        override fun onError(result: dev.skomlach.biometric.compat.AuthenticationResult) {
+                            authCallback?.onPreAuthFailure(result)
+                        }
+
+                        override fun isPromptActive(): Boolean = dialog.isShowing
+                    }
+                ).takeIf { it.shouldAutoCapture() }?.also {
+                    it.start()
                 }
             }
 
@@ -301,7 +315,7 @@ class BiometricPromptCompatDialogImpl(
                 return
             }
             if (primaryBiometricType == BiometricType.BIOMETRIC_VOICE &&
-                voiceCaptureController?.consumePrepared() != true
+                voiceAutoCaptureController?.isReadyToStartAuth() == false
             ) {
                 return
             }

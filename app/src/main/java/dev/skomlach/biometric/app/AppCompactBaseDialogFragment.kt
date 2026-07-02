@@ -19,6 +19,9 @@
 
 package dev.skomlach.biometric.app
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -26,17 +29,17 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import dev.skomlach.biometric.app.utils.startBiometric
 import dev.skomlach.biometric.compat.BiometricManagerCompat
-import dev.skomlach.biometric.compat.BiometricPromptCompat
+import dev.skomlach.common.blur.BlurUtil
 import dev.skomlach.common.contextprovider.AndroidContext
 import dev.skomlach.common.device.DeviceInfo
 import dev.skomlach.common.device.DeviceInfoManager
-import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.network.Connection
 import dev.skomlach.common.network.NetworkApi
 import dev.skomlach.common.storage.SharedPreferenceProvider
@@ -45,6 +48,8 @@ import dev.skomlach.common.storage.SharedPreferenceProvider
 class AppCompactBaseDialogFragment : DialogFragment() {
     private var initListener: App.OnInitFinished? = null
     private var networkListener: Connection.NetworkListener? = null
+    private var blurBackgroundView: ImageView? = null
+    private var blurScrimView: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +68,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             container,
             false
         )
+        installBlurBackground(view)
 
         val buttonsList = view.findViewById<LinearLayout>(R.id.buttons_list)
         view.findViewById<LinearLayout>(R.id.buttons).visibility = View.GONE
@@ -148,7 +154,7 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                 inflater.inflate(R.layout.button, buttonsList, false) as FrameLayout
             val button = container.findViewById<Button>(R.id.button)
             button.text = "${authRequest.api}/${authRequest.type}"
-            button.setOnLongClickListener {
+            button.setOnClickListener {
                 startBiometric(
                     authRequest,
                     SharedPreferenceProvider.getPreferences("app_settings")
@@ -161,23 +167,48 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                             BiometricManagerCompat.isDeviceSecureAvailable()
                         ), true
                 )
-                true
-            }
-            button.setOnClickListener {
-                startBiometric(
-                    authRequest,
-                    SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("silent", false),
-                    SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean("crypto", false),
-                    SharedPreferenceProvider.getPreferences("app_settings")
-                        .getBoolean(
-                            "allowDeviceCredentials",
-                            BiometricManagerCompat.isDeviceSecureAvailable()
-                        ), false
-                )
             }
             buttonsList.addView(container)
+        }
+    }
+
+    private fun installBlurBackground(root: View) {
+        val rootGroup = root as? ViewGroup ?: return
+        val context = root.context
+        val backgroundView = ImageView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+        val scrimView = View(context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            setBackgroundColor(0x66000000)
+        }
+        rootGroup.addView(backgroundView, 0)
+        rootGroup.addView(scrimView, 1)
+        blurBackgroundView = backgroundView
+        blurScrimView = scrimView
+        root.post {
+            val activityContent = activity?.findViewById<View>(android.R.id.content) ?: return@post
+            BlurUtil.takeScreenshotAndBlur(activityContent) { originalBitmap, blurredBitmap ->
+                backgroundView.post {
+                    backgroundView.setImageBitmap(blurredBitmap ?: originalBitmap)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        backgroundView.setRenderEffect(
+                            RenderEffect.createBlurEffect(
+                                20f,
+                                20f,
+                                Shader.TileMode.DECAL
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -200,6 +231,9 @@ class AppCompactBaseDialogFragment : DialogFragment() {
             Connection.removeNetworkListener(it)
             networkListener = null
         }
+        blurBackgroundView?.setImageDrawable(null)
+        blurBackgroundView = null
+        blurScrimView = null
         super.onDestroyView()
     }
 }

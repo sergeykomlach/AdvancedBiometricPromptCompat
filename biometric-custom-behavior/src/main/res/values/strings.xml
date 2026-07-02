@@ -20,4 +20,25 @@
     <string name="biometriccompat_behavior_help_signature_shape_small">Signature shape is too small</string>
     <string name="biometriccompat_behavior_help_signature_shape_simple">Signature shape is too simple. Draw your normal signature.</string>
     <string name="biometriccompat_behavior_help_signature_duplicate_points">Signature sample has too many repeated points. Draw the signature naturally.</string>
+    <string name="biometriccompat_behavior_button_content_description">Behavior capture</string>
+    <string name="biometriccompat_behavior_overlay_title_enroll">Create behavior sample</string>
+    <string name="biometriccompat_behavior_overlay_title_auth">Confirm behavior</string>
+    <string name="biometriccompat_behavior_mode_typing">Typing</string>
+    <string name="biometriccompat_behavior_mode_signature">Signature</string>
+    <string name="biometriccompat_behavior_mode_combined">Combined</string>
+    <string name="biometriccompat_behavior_phrase_hint">Type phrase</string>
+    <string name="biometriccompat_behavior_signature_label">Draw signature</string>
+    <string name="biometriccompat_behavior_action_enroll">Enroll</string>
+    <string name="biometriccompat_behavior_action_verify">Verify</string>
+    <string name="biometriccompat_behavior_hint_typing">Type at least 5 characters with a natural rhythm.</string>
+    <string name="biometriccompat_behavior_hint_signature">Draw a clear signature with enough length and shape.</string>
+    <string name="biometriccompat_behavior_hint_combined">Type a short phrase and draw a clear signature.</string>
+    <string name="biometriccompat_behavior_error_touch_obscured">Touch input is obscured. Remove screen overlays and try again.</string>
+    <string name="biometriccompat_behavior_error_phrase_too_long">Behavior phrase is too long. Use a shorter phrase.</string>
+    <string name="biometriccompat_behavior_error_need_typing">Type at least 5 characters before continuing.</string>
+    <string name="biometriccompat_behavior_error_need_signature">Draw a longer signature before continuing.</string>
+    <string name="biometriccompat_behavior_key_space">space</string>
+    <string name="biometriccompat_behavior_key_backspace">&lt;</string>
+    <string name="biometriccompat_behavior_status_checking">Checking behavior</string>
+
 </resources>

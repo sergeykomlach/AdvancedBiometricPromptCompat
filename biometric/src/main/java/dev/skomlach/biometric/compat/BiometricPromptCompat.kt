@@ -1298,48 +1298,23 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun isHigherPrioritySoftwareSelectedThanBiometricPrompt(): Boolean {
-        val selectedModules = builder.getEffectiveAvailableTypes()
-            .mapNotNull { type ->
-                getSelectedBiometricModule(type)?.let { module -> Pair(type, module) }
-            }
-        val bestSoftwarePriority = selectedModules
-            .map { it.second }
-            .filterIsInstance<SoftwareBiometricModule>()
-            .maxOfOrNull { it.priority } ?: return false
-        val bestBiometricPromptPriority = selectedModules
-            .filter { (type, module) ->
-                builder.getPrimaryAvailableTypes().contains(type) &&
-                        module !is SoftwareBiometricModule &&
-                        isBiometricPromptHardwareAvailable(type)
-            }
-            .maxOfOrNull { it.second.priority }
+        val selectedRoutes = builder.getEffectiveAvailableTypes()
+            .mapNotNull { type -> builder.selectedRoute(type) }
+        val bestSoftwarePriority = selectedRoutes
+            .filter { it.provider == BiometricProviderType.SOFTWARE }
+            .mapNotNull { it.module?.priority }
+            .maxOrNull() ?: return false
+        val hasBiometricPromptHardwareRoute = selectedRoutes.any { route ->
+            route.usesBiometricPromptHardware
+        }
 
-        return bestBiometricPromptPriority == null ||
-                bestSoftwarePriority > bestBiometricPromptPriority
+        return hasBiometricPromptHardwareRoute &&
+                bestSoftwarePriority > BiometricModule.PRIORITY_SYSTEM_HARDWARE
     }
 
     private fun getUsedPermissionsMapForSelectedModules(): List<Pair<BiometricType, List<String>>> {
         return builder.getAllAvailableTypes().map { type ->
-            val selectedModule = getSelectedBiometricModule(type)
-            val permissions = if (isSelectedBiometricPromptHardwareType(type)) {
-                val request = builder.getBiometricAuthRequest().withType(type)
-                    .withProvider(BiometricProviderType.HARDWARE)
-                BiometricManagerCompat.getUsedPermissions(
-                    listOf(type),
-                    request,
-                    builder.enroll
-                )
-            } else if (selectedModule is SoftwareBiometricModule) {
-                selectedModule.manager?.getPermissions() ?: emptyList()
-            } else {
-                val request = builder.getBiometricAuthRequest().withType(type)
-                    .withProvider(getProviderForSelectedModule(type))
-                BiometricManagerCompat.getUsedPermissions(
-                    listOf(type),
-                    request,
-                    builder.enroll
-                )
-            }
+            val permissions = builder.getSelectedTypePermissions(type)
             Pair(
                 type,
                 permissions
@@ -1355,16 +1330,12 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
 
     private fun getSoftwarePreparationTypes(): Set<BiometricType> {
         return builder.getEffectiveAvailableTypes()
-            .filterNot { type -> isPrimaryBiometricPromptHardwareType(type) }
+            .filter { type -> isSelectedSoftwareType(type) }
             .toSet()
     }
 
     private fun getProviderForSelectedModule(type: BiometricType): BiometricProviderType {
-        return when {
-            isSelectedBiometricPromptHardwareType(type) -> BiometricProviderType.HARDWARE
-            isSelectedSoftwareType(type) -> BiometricProviderType.SOFTWARE
-            else -> builder.getBiometricAuthRequest().provider
-        }
+        return builder.selectedRoute(type)?.provider ?: builder.getBiometricAuthRequest().provider
     }
 
     private fun isPrimaryBiometricPromptHardwareType(type: BiometricType): Boolean {
@@ -1374,8 +1345,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun isSelectedBiometricPromptHardwareType(type: BiometricType): Boolean {
-        return builder.getPrimaryAvailableTypes().contains(type) &&
-                isBiometricPromptHardwareAvailable(type)
+        return builder.selectedRoute(type)?.usesBiometricPromptHardware == true
     }
 
     private fun isBiometricPromptHardwareAvailable(type: BiometricType): Boolean {
@@ -1407,16 +1377,11 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
     }
 
     private fun isSelectedSoftwareType(type: BiometricType): Boolean {
-        return getSelectedBiometricModule(type) is SoftwareBiometricModule
+        return builder.selectedRoute(type)?.provider == BiometricProviderType.SOFTWARE
     }
 
     private fun getSelectedBiometricModule(type: BiometricType): BiometricModule? {
-        return LegacyBiometric.getSelectedBiometricModule(
-            type,
-            builder.getBiometricAuthRequest().provider,
-            builder.enroll,
-            builder.getDisabledModuleTags()
-        )
+        return builder.selectedRoute(type)?.module
     }
 
 
@@ -2072,7 +2037,8 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     ).state.hardwareDetected
                 },
                 keepSystemType = { type ->
-                    shouldRouteLegacyBeforeSystemHardware(type)
+                    shouldKeepSystemEnrollType(selectedRoute(type)) ||
+                            shouldRouteLegacyBeforeSystemHardware(type)
                 },
                 isActive = { type ->
                     val snapshot = selectedTypeSnapshot(type, ignoreCameraCheck = false)
@@ -2096,24 +2062,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         internal fun getSelectedTypePermissions(type: BiometricType): List<String> {
-            if (getPrimaryAvailableTypes().contains(type) && hasBiometricPromptHardwareType(type)) {
-                val request = biometricAuthRequest.withType(type)
-                    .withProvider(BiometricProviderType.HARDWARE)
-                return BiometricManagerCompat.getUsedPermissions(
-                    listOf(type),
-                    request,
-                    enroll
-                )
-            }
-
-            val selectedModule = LegacyBiometric.getSelectedBiometricModule(
-                type,
-                biometricAuthRequest.provider,
-                enroll,
-                getDisabledModuleTags()
-            ) ?: return emptyList()
-
-            return BiometricManagerCompat.getUsedPermissions(selectedModule)
+            return selectedRoute(type)?.permissions ?: emptyList()
         }
 
         internal fun isSelectedTypeAvailable(type: BiometricType, ignoreCameraCheck: Boolean): Boolean {
@@ -2137,12 +2086,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 return false
             }
             val type = result.type ?: return false
-            val module = LegacyBiometric.getSelectedBiometricModule(
-                type,
-                biometricAuthRequest.provider,
-                enroll,
-                getDisabledModuleTags()
-            ) ?: return false
+            val module = selectedRoute(type)?.module ?: return false
             disableBiometricModule(module)
             return true
         }
@@ -2195,19 +2139,105 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         }
 
         private fun routeAwareRequest(type: BiometricType): BiometricAuthRequest {
-            val request = biometricAuthRequest.withType(type)
-            return when {
-                getPrimaryAvailableTypes().contains(type) && hasBiometricPromptHardwareType(type) -> {
-                    request.withApi(BiometricApi.BIOMETRIC_API)
-                        .withProvider(BiometricProviderType.HARDWARE)
-                }
+            val route = selectedRoute(type) ?: return biometricAuthRequest.withType(type)
+            return biometricAuthRequest.withType(type)
+                .withApi(route.api)
+                .withProvider(route.provider)
+        }
 
-                getSecondaryAvailableTypes().contains(type) &&
-                        biometricAuthRequest.provider != BiometricProviderType.HARDWARE -> {
-                    request.withApi(BiometricApi.LEGACY_API)
-                }
+        internal fun selectedRoute(type: BiometricType): SelectedBiometricRoute? {
+            val biometricPromptRoute = biometricPromptRoute(type)
+            val legacyHardwareRoute = legacyHardwareRoute(type)
+            val fallbackRoute = fallbackRoute(type)
+            return pickSelectedBiometricRoute(
+                requestApi = biometricAuthRequest.api,
+                preferSystemFaceHardware = shouldPreferSystemHardwareFace(type),
+                preferHighPrioritySoftware = shouldRouteLegacyBeforeSystemHardware(type),
+                biometricPromptRoute = biometricPromptRoute,
+                legacyHardwareRoute = legacyHardwareRoute,
+                fallbackRoute = fallbackRoute
+            )
+        }
 
-                else -> request
+        private fun biometricPromptRoute(type: BiometricType): SelectedBiometricRoute? {
+            if (!hasBiometricPromptHardwareType(type)) {
+                return null
+            }
+            val request = biometricAuthRequest
+                .withApi(BiometricApi.BIOMETRIC_API)
+                .withType(type)
+                .withProvider(BiometricProviderType.HARDWARE)
+            return SelectedBiometricRoute(
+                type = type,
+                provider = BiometricProviderType.HARDWARE,
+                usesBiometricPromptHardware = true,
+                permissions = BiometricManagerCompat.getUsedPermissions(listOf(type), request, enroll),
+                api = BiometricApi.BIOMETRIC_API
+            )
+        }
+
+        private fun legacyHardwareRoute(type: BiometricType): SelectedBiometricRoute? {
+            if (biometricAuthRequest.api == BiometricApi.BIOMETRIC_API ||
+                biometricAuthRequest.provider == BiometricProviderType.SOFTWARE
+            ) {
+                return null
+            }
+            val module = LegacyBiometric.getSelectedBiometricModule(
+                type,
+                BiometricProviderType.HARDWARE,
+                enroll,
+                getDisabledModuleTags()
+            ) ?: return null
+            if (!isLegacyModuleRouteAvailable(module)) {
+                return null
+            }
+            return SelectedBiometricRoute(
+                type = type,
+                provider = BiometricProviderType.HARDWARE,
+                usesBiometricPromptHardware = false,
+                permissions = BiometricManagerCompat.getUsedPermissions(module),
+                api = BiometricApi.LEGACY_API,
+                module = module
+            )
+        }
+
+        private fun fallbackRoute(type: BiometricType): SelectedBiometricRoute? {
+            if (biometricAuthRequest.provider == BiometricProviderType.HARDWARE) {
+                return legacyHardwareRoute(type)
+            }
+            val module = LegacyBiometric.getSelectedBiometricModule(
+                type,
+                biometricAuthRequest.provider,
+                enroll,
+                getDisabledModuleTags()
+            ) ?: return null
+            if (!isLegacyModuleRouteAvailable(module)) {
+                return null
+            }
+            val provider = if (module is SoftwareBiometricModule) {
+                BiometricProviderType.SOFTWARE
+            } else {
+                BiometricProviderType.HARDWARE
+            }
+            return SelectedBiometricRoute(
+                type = type,
+                provider = provider,
+                usesBiometricPromptHardware = false,
+                permissions = BiometricManagerCompat.getUsedPermissions(module),
+                api = BiometricApi.LEGACY_API,
+                module = module
+            )
+        }
+
+        private fun isLegacyModuleRouteAvailable(module: BiometricModule): Boolean {
+            val state = module.getModuleState()
+            return if (enroll) {
+                state.hardwarePresent && !state.lockedOut && !state.permanentlyLocked
+            } else {
+                state.hardwarePresent &&
+                        state.enrolled &&
+                        !state.lockedOut &&
+                        !state.permanentlyLocked
             }
         }
 

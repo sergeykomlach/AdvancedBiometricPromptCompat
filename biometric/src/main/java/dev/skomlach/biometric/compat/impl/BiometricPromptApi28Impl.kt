@@ -370,6 +370,11 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 )
             }
         }
+
+    override fun onPreAuthFailure(result: AuthenticationResult) {
+        callback?.onFailed(setOf(result))
+        cancelAuthentication()
+    }
     private fun getFixedString(str: CharSequence?, @ColorInt color: Int): CharSequence {
         val wordtoSpan: Spannable = SpannableString(str)
         wordtoSpan.setSpan(
@@ -748,6 +753,10 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
 
                             override fun onUiClosed() {
                                 this@BiometricPromptApi28Impl.onUiClosed()
+                            }
+
+                            override fun onPreAuthFailure(result: AuthenticationResult) {
+                                this@BiometricPromptApi28Impl.onPreAuthFailure(result)
                             }
                         },
                         shouldUseUnderDisplayFingerprintLayout(builder.getSecondaryAvailableTypes())
