@@ -112,17 +112,63 @@ class VoiceAudioPreprocessorTest {
         assertEquals(0, clippedSamples)
     }
 
+    @Test
+    fun quietValidSampleRemainsUsableThroughEngineScoringPath() {
+        val engine = BasicVoiceEngine()
+        val enrolled = VoiceSample(
+            sampleRateHz = SAMPLE_RATE,
+            pcmFloat = voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.45f, baseFrequency = 180.0),
+            embedding = null,
+            phrase = null
+        )
+        val quietProbe = VoiceSample(
+            sampleRateHz = SAMPLE_RATE,
+            pcmFloat = FloatArray(SAMPLE_RATE / 2) +
+                voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.08f, baseFrequency = 180.0) +
+                FloatArray(SAMPLE_RATE / 2),
+            embedding = null,
+            phrase = null
+        )
+        val differentProbe = VoiceSample(
+            sampleRateHz = SAMPLE_RATE,
+            pcmFloat = FloatArray(SAMPLE_RATE / 2) +
+                voiceLikeTone(durationSeconds = 1.5, amplitudeScale = 0.08f, baseFrequency = 420.0) +
+                FloatArray(SAMPLE_RATE / 2),
+            embedding = null,
+            phrase = null
+        )
+
+        val enrolledResult = engine.extractEmbedding(enrolled)
+        val quietResult = engine.extractEmbedding(quietProbe)
+        val differentResult = engine.extractEmbedding(differentProbe)
+
+        val enrolledEmbedding = requireNotNull(enrolledResult).embedding
+        val quietEmbeddingResult = requireNotNull(quietResult)
+        val differentEmbedding = requireNotNull(differentResult).embedding
+
+        assertEquals(VoiceQualityIssue.NONE, quietEmbeddingResult.qualityIssue)
+        assertTrue(quietEmbeddingResult.embedding.isValidEmbedding())
+        assertTrue(quietEmbeddingResult.preprocessMetrics?.voicedDurationMs ?: 0L >= 1500L)
+
+        val quietScore = VoiceScorer.score(enrolledEmbedding, quietEmbeddingResult.embedding)
+        val differentScore = VoiceScorer.score(enrolledEmbedding, differentEmbedding)
+
+        assertTrue(quietScore > 0.90f)
+        assertTrue(quietScore > differentScore + 0.05f)
+    }
+
     private fun voiceLikeTone(
         durationSeconds: Double,
         dcOffset: Float = 0f,
-        amplitudeScale: Float = 1f
+        amplitudeScale: Float = 1f,
+        baseFrequency: Double = 180.0
     ): FloatArray {
         val size = (SAMPLE_RATE * durationSeconds).toInt()
         return FloatArray(size) { index ->
             val time = index.toDouble() / SAMPLE_RATE
-            val harmonic = 0.32 * sin(2.0 * PI * 180.0 * time) +
-                0.16 * sin(2.0 * PI * 360.0 * time) +
-                0.07 * sin(2.0 * PI * 540.0 * time)
+            val harmonic = 0.32 * sin(2.0 * PI * baseFrequency * time) +
+                0.16 * sin(2.0 * PI * baseFrequency * 2.0 * time) +
+                0.07 * sin(2.0 * PI * baseFrequency * 3.0 * time)
             ((harmonic + 0.01 * sin(index * 0.19)) * amplitudeScale + dcOffset)
                 .toFloat()
                 .coerceIn(-0.95f, 0.95f)
