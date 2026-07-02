@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">AdvancedBiometricPrompt Test</string>
+  <string name="action_settings">Настройки</string>
+  <string name="first_fragment_label">Первый фрагмент</string>
+  <string name="second_fragment_label">Второй фрагмент</string>
+  <string name="send_logs">Отправить логи</string>
+  <string name="dialog">Диалог</string>
+  <string name="previous">Назад</string>
+  <string name="hello_first_fragment">Привет, первый фрагмент</string>
+  <string name="hello_second_fragment">Привет, второй фрагмент. Arg: %1$s</string>
+  <string name="initialization_in_progress">Инициализация выполняется...</string>
+  <string name="changes_applied">Изменения применены</string>
+  <string name="network_status">Сеть: %1$s\n%2$s</string>
+  <string name="looking_for_apis">Поиск API</string>
+  <string name="please_wait">Пожалуйста, подождите...</string>
+  <string name="unexpected_error_happens">Произошла непредвиденная ошибка</string>
+  <string name="advanced_biometric_logs_subject">Логи Advanced BiometricPromptCompat</string>
+  <string name="advanced_biometric_report_subject">Отчёт Advanced BiometricPromptCompat</string>
+  <string name="see_attachment">См. вложение</string>
+  <string name="send_email">Отправить письмо</string>
+  <string name="file_selector">Выбор файла</string>
+  <string name="selected_file_cant_be_shared">Выбранный файл нельзя отправить: %1$s</string>
+  <string name="biometric_demo_title">Биометрия для фрагмента: BlaBlablabla Очень длинный текст BlaBlablabla и ещё текст и ещё и ещё и ещё</string>
+  <string name="biometric_demo_subtitle">Подзаголовок биометрии: BlaBlablabla Очень длинный текст BlaBlablabla и ещё текст и ещё и ещё и ещё</string>
+  <string name="biometric_demo_description">Описание биометрии: BlaBlablabla Очень длинный текст BlaBlablabla и ещё текст и ещё и ещё и ещё</string>
+  <string name="biometric_demo_cancel">Отмена: BlaBlablabla Очень длинный текст BlaBlablabla и ещё текст и ещё и ещё и ещё</string>
+  <string name="crypto_disabled">Криптография не работает или отключена</string>
+  <string name="crypto_encryption_result">Результат шифрования=%1$s</string>
+  <string name="crypto_decryption_result">Результат расшифровки=%1$s</string>
+  <string name="biometric_demo_success">Успешно - %1$s; %2$s</string>
+  <string name="biometric_demo_canceled">Отменено %1$s</string>
+  <string name="biometric_demo_failure">Ошибка: %1$s</string>
+  <string name="biometric_demo_ui_opened">UI открыт</string>
+  <string name="biometric_demo_ui_closed">UI закрыт</string>
+  <string name="biometric_demo_start_setup">Начать настройку %1$s/%2$s</string>
+  <string name="biometric_demo_start_authenticate">Начать аутентификацию %1$s/%2$s</string>
+  <string name="biometric_demo_no_hardware">Нет оборудования для %1$s</string>
+  <string name="biometric_demo_not_enrolled">Нет зарегистрированной биометрии для - %1$s</string>
+  <string name="biometric_demo_temp_lockout">Биометрический датчик временно заблокирован для %1$s\nПопробуйте позже</string>
+  <string name="biometric_demo_perm_lockout">Биометрический датчик заблокирован навсегда для %1$s</string>
+  <string name="biometric_demo_unexpected_error_state">Неожиданное состояние ошибки для %1$s</string>
+  <string name="biometric_demo_error_title">Биометрическая ошибка</string>
+  <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+  <string name="allow_device_credentials">Allow device credentials</string>
+  <string name="fullscreen">Fullscreen</string>
+  <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+  <string name="window_secured">Window Secured</string>
+  <string name="no_data">No data</string>
+</resources>

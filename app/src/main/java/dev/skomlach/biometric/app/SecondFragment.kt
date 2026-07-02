@@ -73,7 +73,7 @@ class SecondFragment : Fragment(), LogCat.Log2ViewCallback {
             MailTo.startMailClient(
                 requireActivity(),
                 "s.komlach@gmail.com",
-                "Advanced BiometricPromptCompat Logs",
+                getString(R.string.advanced_biometric_logs_subject),
                 logs?.text.toString()
             )
             true

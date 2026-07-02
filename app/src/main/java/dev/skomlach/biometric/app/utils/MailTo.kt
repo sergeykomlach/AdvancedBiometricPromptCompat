@@ -26,6 +26,7 @@ import android.os.AsyncTask
 import android.os.Build
 import androidx.core.app.ShareCompat
 import androidx.core.content.FileProvider
+import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.device.DeviceInfoManager
@@ -169,8 +170,8 @@ object MailTo {
             } catch (e: IllegalArgumentException) {
                 LogCat.logException(
                     e,
-                    "File Selector",
-                    "The selected file can't be shared: $file"
+                    ctx.getString(R.string.file_selector),
+                    ctx.getString(R.string.selected_file_cant_be_shared, file)
                 )
                 null
             }
@@ -178,11 +179,11 @@ object MailTo {
             val builder: ShareCompat.IntentBuilder = ShareCompat.IntentBuilder(ctx)
             builder.setType("message/rfc822")
             builder.addEmailTo(to)
-            builder.setText("See attachment")
+            builder.setText(ctx.getString(R.string.see_attachment))
             builder.setStream(fileUri)
             builder.setSubject(subject)
 
-            builder.setChooserTitle("Send e-mail")
+            builder.setChooserTitle(ctx.getString(R.string.send_email))
 
             if (ctx.packageManager.queryIntentActivities(builder.intent, 0).isNotEmpty()) {
                 builder.startChooser()

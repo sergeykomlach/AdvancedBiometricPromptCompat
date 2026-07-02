@@ -25,7 +25,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -325,21 +324,7 @@ class PermissionsFragment : Fragment() {
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
-        val title = try {
-            val appInfo =
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
-                getString(appInfo.labelRes)
-            }
-        } catch (e: Throwable) {
-            "Unknown"
-        }
+        val title = resolveApplicationTitle(this)
         if (textEnd.isNullOrEmpty() || title.isEmpty()) {
             closeFragment()
         }
@@ -379,21 +364,7 @@ class PermissionsFragment : Fragment() {
         val textEnd = extractDescriptionsForPermissions(permissions)
         val text = (if (isLeftToRight) "$textStart:" else ":$textStart") + "\n" + textEnd
 
-        val title = try {
-            val appInfo =
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
-                getString(appInfo.labelRes)
-            }
-        } catch (e: Throwable) {
-            "Unknown"
-        }
+        val title = resolveApplicationTitle(this)
         if (textEnd.isNullOrEmpty() || title.isEmpty()) {
             try {
                 val future: ListenableFuture<Int> =

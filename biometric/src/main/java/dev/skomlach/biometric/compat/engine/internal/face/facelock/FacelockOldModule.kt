@@ -203,7 +203,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
     }
 
@@ -254,7 +254,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -286,7 +286,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                     selfCanceled = true
                     stopAuth()
                     ExecutorHelper.postDelayed({
@@ -306,7 +306,7 @@ class FacelockOldModule(private var listener: LegacyBiometricInitListener?) :
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true

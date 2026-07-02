@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">Biyometri</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">Bildirim kanallarını göstermeye izin ver</string>
+    <string name="biometriccompat_allow_notifications_perm">Bildirimleri göstermeye izin ver</string>
+    <string name="biometriccompat_permissions_request_failed">Gerekli izin verilmediği için işlem gerçekleştirilemiyor.</string>
+    <string name="biometriccompat_camera_permission_required">Bu özelliği kullanmak için kamera izni gereklidir.</string>
+    <string name="biometriccompat_request_perm">%1$s aşağıdaki izne ihtiyaç duyuyor:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">Erişim isteği</string>
+    <string name="biometriccompat_global_action_settings">Ayarlar</string>
+    <string name="biometriccompat_turn_on_settings_action">Ayarlarda aç</string>
+    <string name="biometriccompat_error_message_change_not_allowed">Bu değişikliğe yöneticiniz izin vermiyor</string>
+</resources>

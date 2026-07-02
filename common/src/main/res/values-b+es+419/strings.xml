@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">Biometría</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">Permitir mostrar canales de notificación</string>
+    <string name="biometriccompat_allow_notifications_perm">Permitir mostrar notificaciones</string>
+    <string name="biometriccompat_permissions_request_failed">No se puede realizar la acción porque no se otorgó el permiso requerido.</string>
+    <string name="biometriccompat_camera_permission_required">Se requiere permiso de cámara para usar esta función.</string>
+    <string name="biometriccompat_request_perm">%1$s necesita el siguiente permiso:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">Solicitud de acceso</string>
+    <string name="biometriccompat_global_action_settings">Configuración</string>
+    <string name="biometriccompat_turn_on_settings_action">Activar en Configuración</string>
+    <string name="biometriccompat_error_message_change_not_allowed">Este cambio no está permitido por tu administrador</string>
+</resources>

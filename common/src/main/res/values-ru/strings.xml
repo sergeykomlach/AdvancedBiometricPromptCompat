@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">Биометрия</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">Разрешить показывать каналы уведомлений</string>
+    <string name="biometriccompat_allow_notifications_perm">Разрешить показывать уведомления</string>
+    <string name="biometriccompat_permissions_request_failed">Действие нельзя выполнить, так как не выдано необходимое разрешение.</string>
+    <string name="biometriccompat_camera_permission_required">Для использования этой функции требуется разрешение на камеру.</string>
+    <string name="biometriccompat_request_perm">%1$s требуется следующее разрешение:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">Запрос доступа</string>
+    <string name="biometriccompat_global_action_settings">Настройки</string>
+    <string name="biometriccompat_turn_on_settings_action">Включить в настройках</string>
+    <string name="biometriccompat_error_message_change_not_allowed">Это изменение не разрешено вашим администратором</string>
+</resources>

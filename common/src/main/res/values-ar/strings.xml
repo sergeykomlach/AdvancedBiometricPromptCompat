@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">القياسات الحيوية</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">السماح بعرض قنوات الإشعارات</string>
+    <string name="biometriccompat_allow_notifications_perm">السماح بعرض الإشعارات</string>
+    <string name="biometriccompat_permissions_request_failed">لا يمكن تنفيذ الإجراء لأن الإذن المطلوب لم يتم منحه.</string>
+    <string name="biometriccompat_camera_permission_required">إذن الكاميرا مطلوب لاستخدام هذه الميزة.</string>
+    <string name="biometriccompat_request_perm">يحتاج %1$s إلى الإذن التالي:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">طلب وصول</string>
+    <string name="biometriccompat_global_action_settings">الإعدادات</string>
+    <string name="biometriccompat_turn_on_settings_action">التشغيل من الإعدادات</string>
+    <string name="biometriccompat_error_message_change_not_allowed">هذا التغيير غير مسموح به من قِبل المسؤول</string>
+</resources>

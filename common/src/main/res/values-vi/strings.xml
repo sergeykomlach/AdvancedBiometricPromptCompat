@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">Sinh trắc học</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">Cho phép hiển thị kênh thông báo</string>
+    <string name="biometriccompat_allow_notifications_perm">Cho phép hiển thị thông báo</string>
+    <string name="biometriccompat_permissions_request_failed">Không thể thực hiện thao tác vì quyền cần thiết chưa được cấp.</string>
+    <string name="biometriccompat_camera_permission_required">Cần có quyền máy ảnh để sử dụng tính năng này.</string>
+    <string name="biometriccompat_request_perm">%1$s cần quyền sau:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">Yêu cầu truy cập</string>
+    <string name="biometriccompat_global_action_settings">Cài đặt</string>
+    <string name="biometriccompat_turn_on_settings_action">Bật trong Cài đặt</string>
+    <string name="biometriccompat_error_message_change_not_allowed">Quản trị viên của bạn không cho phép thay đổi này</string>
+</resources>

@@ -119,7 +119,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
         return
     }
@@ -192,7 +192,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
     }
 
@@ -230,7 +230,7 @@ class HuaweiFaceUnlockModule(listener: LegacyBiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, "$name - $errMsgId")
+                        listener?.onFailure(tag(), failureReason, authenticationErrorWithCodeDescription(errMsgId))
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true

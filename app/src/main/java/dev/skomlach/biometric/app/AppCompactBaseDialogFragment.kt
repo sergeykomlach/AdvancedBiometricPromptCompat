@@ -95,8 +95,11 @@ class AppCompactBaseDialogFragment : DialogFragment() {
                 SharedPreferenceProvider.getPreferences("app_settings").edit()
                     .putBoolean("checkboxWindowSecure", isChecked).apply()
                 (activity as MainActivity).updateUI()
-                Toast.makeText(AndroidContext.appContext, "Changes applied", Toast.LENGTH_LONG)
-                    .show()
+                Toast.makeText(
+                    AndroidContext.appContext,
+                    getString(R.string.changes_applied),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         view.findViewById<CheckBox>(R.id.checkboxCrypto)?.let {
             it.isChecked =
@@ -142,7 +145,11 @@ class AppCompactBaseDialogFragment : DialogFragment() {
     private fun checkDeviceInfo() {
         DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
             override fun onReady(deviceInfo: DeviceInfo?) {
-                view?.findViewById<TextView>(R.id.text)?.text = "Network: ${NetworkApi.hasInternet()}\n"+ deviceInfo.toString()
+                view?.findViewById<TextView>(R.id.text)?.text = getString(
+                    R.string.network_status,
+                    NetworkApi.hasInternet().toString(),
+                    deviceInfo.toString()
+                )
             }
         })
     }

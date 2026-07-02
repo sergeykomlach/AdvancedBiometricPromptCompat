@@ -105,7 +105,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
         return
     }
@@ -165,7 +165,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
         return
     }
@@ -213,7 +213,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -240,7 +240,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -255,7 +255,7 @@ class SoterFaceUnlockModule @SuppressLint("WrongConstant") constructor(private v
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true

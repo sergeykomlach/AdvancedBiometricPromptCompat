@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
                     android:layout_centerInParent="true"
-                    android:text="No data"
+                    android:text="@string/no_data"
                     android:gravity="center"
                     />
 
@@ -51,7 +51,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/text"
-                    android:text="Fullscreen"
+                    android:text="@string/fullscreen"
                     />
 
             <androidx.appcompat.widget.AppCompatCheckBox
@@ -59,7 +59,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/checkboxFullscreen"
-                    android:text="Window Secured"
+                    android:text="@string/window_secured"
                     />
 
             <androidx.appcompat.widget.AppCompatCheckBox
@@ -67,7 +67,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/checkboxWindowSecure"
-                    android:text="Silent Auth (No UI)"
+                    android:text="@string/silent_auth_no_ui"
                     />
 
             <androidx.appcompat.widget.AppCompatCheckBox
@@ -75,7 +75,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/checkboxSilent"
-                    android:text="Crypto (Data Encryption)"
+                    android:text="@string/crypto_data_encryption"
                     />
 
             <androidx.appcompat.widget.AppCompatCheckBox
@@ -83,7 +83,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/checkboxCrypto"
-                    android:text="Allow device credentials"
+                    android:text="@string/allow_device_credentials"
                     />
 
             <LinearLayout

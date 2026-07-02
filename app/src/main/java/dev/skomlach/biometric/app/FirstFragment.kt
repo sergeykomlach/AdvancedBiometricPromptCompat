@@ -69,7 +69,7 @@ class FirstFragment : Fragment() {
         if (!App.isReady) {
             val dialog = ProgressDialog.show(
                 activity, "",
-                "Initialization in progress...", true
+                getString(R.string.initialization_in_progress), true
             )
             progressDialog = dialog
             initListener = object : App.OnInitFinished {
@@ -116,7 +116,11 @@ class FirstFragment : Fragment() {
             SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxFullscreen", isChecked).apply()
             (activity as MainActivity).updateUI()
-            Toast.makeText(AndroidContext.appContext, "Changes applied", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                AndroidContext.appContext,
+                getString(R.string.changes_applied),
+                Toast.LENGTH_LONG
+            ).show()
         }
 
         binding?.checkboxWindowSecure?.isChecked =
@@ -127,7 +131,11 @@ class FirstFragment : Fragment() {
             SharedPreferenceProvider.getPreferences("app_settings").edit()
                 .putBoolean("checkboxWindowSecure", isChecked).apply()
             (activity as MainActivity).updateUI()
-            Toast.makeText(AndroidContext.appContext, "Changes applied", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                AndroidContext.appContext,
+                getString(R.string.changes_applied),
+                Toast.LENGTH_LONG
+            ).show()
         }
         binding?.checkboxCrypto?.isChecked =
             SharedPreferenceProvider.getPreferences("app_settings")
@@ -172,7 +180,11 @@ class FirstFragment : Fragment() {
     private fun checkDeviceInfo() {
         DeviceInfoManager.getDeviceInfo(object : DeviceInfoManager.OnDeviceInfoListener {
             override fun onReady(deviceInfo: DeviceInfo?) {
-                binding?.text?.text ="Network: ${NetworkApi.hasInternet()}\n"+ deviceInfo.toString()
+                binding?.text?.text = getString(
+                    R.string.network_status,
+                    NetworkApi.hasInternet().toString(),
+                    deviceInfo.toString()
+                )
 
             }
         })

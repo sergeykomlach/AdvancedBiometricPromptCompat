@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">AdvancedBiometricPrompt Test</string>
+  <string name="action_settings">الإعدادات</string>
+  <string name="first_fragment_label">الجزء الأول</string>
+  <string name="second_fragment_label">الجزء الثاني</string>
+  <string name="send_logs">إرسال السجلات</string>
+  <string name="dialog">حوار</string>
+  <string name="previous">السابق</string>
+  <string name="hello_first_fragment">مرحبًا، الجزء الأول</string>
+  <string name="hello_second_fragment">مرحبًا، الجزء الثاني. Arg: %1$s</string>
+  <string name="initialization_in_progress">جارٍ التهيئة...</string>
+  <string name="changes_applied">تم تطبيق التغييرات</string>
+  <string name="network_status">الشبكة: %1$s\n%2$s</string>
+  <string name="looking_for_apis">جارٍ البحث عن واجهات API</string>
+  <string name="please_wait">يرجى الانتظار...</string>
+  <string name="unexpected_error_happens">حدث خطأ غير متوقع</string>
+  <string name="advanced_biometric_logs_subject">سجلات Advanced BiometricPromptCompat</string>
+  <string name="advanced_biometric_report_subject">تقرير Advanced BiometricPromptCompat</string>
+  <string name="see_attachment">انظر المرفق</string>
+  <string name="send_email">إرسال بريد إلكتروني</string>
+  <string name="file_selector">منتقي الملفات</string>
+  <string name="selected_file_cant_be_shared">لا يمكن مشاركة الملف المحدد: %1$s</string>
+  <string name="biometric_demo_title">القياسات الحيوية للجزء: BlaBlablabla نص طويل جدًا BlaBlablabla والمزيد من النص والمزيد والمزيد والمزيد</string>
+  <string name="biometric_demo_subtitle">العنوان الفرعي للقياسات الحيوية: BlaBlablabla نص طويل جدًا BlaBlablabla والمزيد من النص والمزيد والمزيد والمزيد</string>
+  <string name="biometric_demo_description">وصف القياسات الحيوية: BlaBlablabla نص طويل جدًا BlaBlablabla والمزيد من النص والمزيد والمزيد والمزيد</string>
+  <string name="biometric_demo_cancel">إلغاء: BlaBlablabla نص طويل جدًا BlaBlablabla والمزيد من النص والمزيد والمزيد والمزيد</string>
+  <string name="crypto_disabled">التشفير لا يعمل أو تم تعطيله</string>
+  <string name="crypto_encryption_result">نتيجة التشفير=%1$s</string>
+  <string name="crypto_decryption_result">نتيجة فك التشفير=%1$s</string>
+  <string name="biometric_demo_success">نجاح - %1$s; %2$s</string>
+  <string name="biometric_demo_canceled">تم الإلغاء %1$s</string>
+  <string name="biometric_demo_failure">فشل: %1$s</string>
+  <string name="biometric_demo_ui_opened">تم فتح الواجهة</string>
+  <string name="biometric_demo_ui_closed">تم إغلاق الواجهة</string>
+  <string name="biometric_demo_start_setup">ابدأ الإعداد %1$s/%2$s</string>
+  <string name="biometric_demo_start_authenticate">ابدأ المصادقة %1$s/%2$s</string>
+  <string name="biometric_demo_no_hardware">لا توجد عتاد لـ %1$s</string>
+  <string name="biometric_demo_not_enrolled">لا توجد قياسات حيوية مسجلة لـ %1$s</string>
+  <string name="biometric_demo_temp_lockout">مستشعر القياسات الحيوية مقفل مؤقتًا لـ %1$s\nحاول مرة أخرى لاحقًا</string>
+  <string name="biometric_demo_perm_lockout">مستشعر القياسات الحيوية مقفل نهائيًا لـ %1$s</string>
+  <string name="biometric_demo_unexpected_error_state">حالة خطأ غير متوقعة لـ %1$s</string>
+  <string name="biometric_demo_error_title">خطأ في القياسات الحيوية</string>
+  <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+  <string name="allow_device_credentials">Allow device credentials</string>
+  <string name="fullscreen">Fullscreen</string>
+  <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+  <string name="window_secured">Window Secured</string>
+  <string name="no_data">No data</string>
+</resources>

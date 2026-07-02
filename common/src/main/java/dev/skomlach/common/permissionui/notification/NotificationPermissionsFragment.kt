@@ -25,7 +25,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.os.Build.VERSION
 import android.os.Bundle
 import android.provider.Settings
@@ -46,6 +45,7 @@ import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
 import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.permissions.PermissionUtils
+import dev.skomlach.common.permissionui.resolveApplicationTitle
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 import kotlinx.coroutines.Runnable
@@ -184,21 +184,7 @@ class NotificationPermissionsFragment : Fragment() {
 
     private val generalNotification = {
         val activity = requireActivity()
-        val title = try {
-            val appInfo =
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
-                getString(appInfo.labelRes)
-            }
-        } catch (e: Throwable) {
-            "Unknown"
-        }
+        val title = resolveApplicationTitle(this)
         alert = SystemMonetDialogs.showAlertDialog(
             requireActivity(), title = title, message = LocalizationHelper.getLocalizedString(
                 activity,
@@ -261,21 +247,7 @@ class NotificationPermissionsFragment : Fragment() {
 
         val activity = requireActivity()
 
-        val title = try {
-            val appInfo =
-                (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    PackageManager.ApplicationInfoFlags.of(0L)
-                ) else requireActivity().packageManager.getApplicationInfo(
-                    requireActivity().application.packageName,
-                    0
-                ))
-            requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
-                getString(appInfo.labelRes)
-            }
-        } catch (e: Throwable) {
-            "Unknown"
-        }
+        val title = resolveApplicationTitle(this)
         alert = SystemMonetDialogs.showAlertDialog(
             requireActivity(),
             title = title,

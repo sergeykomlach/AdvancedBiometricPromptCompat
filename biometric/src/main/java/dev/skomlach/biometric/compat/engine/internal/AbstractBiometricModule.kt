@@ -25,7 +25,9 @@ import android.os.Bundle
 import android.os.UserHandle
 import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
+import dev.skomlach.biometric.compat.biometricErrorWithCodeDescription
 import dev.skomlach.biometric.compat.engine.BiometricMethod
+import dev.skomlach.biometric.compat.biometricStartAuthenticationDescription
 import dev.skomlach.biometric.compat.engine.core.interfaces.BiometricModule
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
@@ -97,6 +99,14 @@ abstract class AbstractBiometricModule(val biometricMethod: BiometricMethod) : B
         if (!isLockOut) {
             BiometricLockoutFix.lockout(biometricMethod.biometricType)
         }
+    }
+
+    protected fun startAuthenticationFailureDescription(): String {
+        return biometricStartAuthenticationDescription()
+    }
+
+    protected fun authenticationErrorWithCodeDescription(errorCode: Int): String {
+        return biometricErrorWithCodeDescription(errorCode)
     }
 
     override fun tag(): Int {

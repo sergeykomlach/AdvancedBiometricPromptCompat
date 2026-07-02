@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">Biometrik</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">Izinkan menampilkan saluran notifikasi</string>
+    <string name="biometriccompat_allow_notifications_perm">Izinkan menampilkan notifikasi</string>
+    <string name="biometriccompat_permissions_request_failed">Tindakan tidak dapat dilakukan karena izin yang diperlukan belum diberikan.</string>
+    <string name="biometriccompat_camera_permission_required">Izin kamera diperlukan untuk menggunakan fitur ini.</string>
+    <string name="biometriccompat_request_perm">%1$s memerlukan izin berikut:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">Permintaan akses</string>
+    <string name="biometriccompat_global_action_settings">Setelan</string>
+    <string name="biometriccompat_turn_on_settings_action">Aktifkan di Setelan</string>
+    <string name="biometriccompat_error_message_change_not_allowed">Perubahan ini tidak diizinkan oleh admin Anda</string>
+</resources>

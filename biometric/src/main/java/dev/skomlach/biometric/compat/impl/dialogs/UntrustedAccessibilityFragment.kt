@@ -25,7 +25,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableStringBuilder
@@ -41,7 +40,7 @@ import dev.skomlach.common.misc.BroadcastTools
 import dev.skomlach.common.misc.BroadcastTools.registerGlobalBroadcastIntent
 import dev.skomlach.common.misc.BroadcastTools.unregisterGlobalBroadcastIntent
 import dev.skomlach.common.misc.ExecutorHelper
-import dev.skomlach.common.misc.Utils
+import dev.skomlach.common.permissionui.resolveApplicationTitle
 import dev.skomlach.common.themes.SystemMonetDialogs
 import dev.skomlach.common.translate.LocalizationHelper
 
@@ -104,21 +103,7 @@ class UntrustedAccessibilityFragment : Fragment() {
         lifecycleScope.launchWhenResumed {
             if (alert == null)
                 try {
-                    val title = try {
-                        val appInfo =
-                            (if (Utils.isAtLeastT) requireActivity().packageManager.getApplicationInfo(
-                                requireActivity().application.packageName,
-                                PackageManager.ApplicationInfoFlags.of(0L)
-                            ) else requireActivity().packageManager.getApplicationInfo(
-                                requireActivity().application.packageName,
-                                0
-                            ))
-                        requireActivity().packageManager.getApplicationLabel(appInfo).ifEmpty {
-                            getString(appInfo.labelRes)
-                        }
-                    } catch (e: Throwable) {
-                        "Unknown"
-                    }
+                    val title = resolveApplicationTitle(this@UntrustedAccessibilityFragment)
                     val shortText = LocalizationHelper.getLocalizedString(
                         requireActivity(),
                         R.string.biometriccompat_use_devicecredentials

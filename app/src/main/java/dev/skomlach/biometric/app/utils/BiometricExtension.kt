@@ -23,6 +23,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import dev.skomlach.biometric.app.R
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.AuthenticationResult
 import dev.skomlach.biometric.compat.BiometricAuthException
@@ -53,7 +54,14 @@ fun Fragment.startBiometric(
     if (isRegister) {
         val readyForEnroll = authSnapshot.readyForEnroll
         if (!readyForEnroll && !allowCredentials) {
-            showAlertDialog(requireActivity(), biometricUnavailableMessage(authSnapshot, forEnroll = true))
+            showAlertDialog(
+                requireActivity(),
+                biometricUnavailableMessage(
+                    authSnapshot,
+                    forEnroll = true,
+                    context = requireActivity()
+                )
+            )
             return
         }
     } else {
@@ -66,7 +74,14 @@ fun Fragment.startBiometric(
 //
 //                )
 //        else
-            showAlertDialog(requireActivity(), biometricUnavailableMessage(authSnapshot, forEnroll = false))
+            showAlertDialog(
+                requireActivity(),
+                biometricUnavailableMessage(
+                    authSnapshot,
+                    forEnroll = false,
+                    context = requireActivity()
+                )
+            )
             return
         }
     }
@@ -76,11 +91,11 @@ fun Fragment.startBiometric(
         biometricAuthRequest,
         requireActivity()
     )
-        .setTitle("Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setSubtitle("Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
-        .setDescription("Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+        .setTitle(getString(R.string.biometric_demo_title))
+        .setSubtitle(getString(R.string.biometric_demo_subtitle))
+        .setDescription(getString(R.string.biometric_demo_description))
         .apply {
-            setNegativeButtonText("Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more")
+            setNegativeButtonText(getString(R.string.biometric_demo_cancel))
             setDeviceCredentialFallbackAllowed(allowCredentials)
         }
         .also {
@@ -105,18 +120,19 @@ fun Fragment.startBiometric(
     val callback = object : BiometricPromptCompat.AuthenticationCallback() {
         override fun onSucceeded(confirmed: Set<AuthenticationResult>) {
             super.onSucceeded(confirmed)
-            var cryptoText = "Crypto doesn't work or disabled"
+            var cryptoText = this@startBiometric.getString(R.string.crypto_disabled)
             if (cryptoTests[biometricAuthRequest]?.type == BiometricCryptographyPurpose.ENCRYPT) {
                 CryptographyManager.encryptData(
                     cryptoTests[biometricAuthRequest]?.byteArray,
                     confirmed
                 )?.let {
-                    cryptoText = "Crypto encryption result=${
+                    cryptoText = this@startBiometric.getString(
+                        R.string.crypto_encryption_result,
                         String(
                             it.data,
                             Charset.forName("UTF-8")
                         )
-                    }"
+                    )
                     cryptoTests[biometricAuthRequest] = CryptoTest(
                         it.data,
                         it.initializationVector,
@@ -129,12 +145,13 @@ fun Fragment.startBiometric(
                     cryptoTests[biometricAuthRequest]?.byteArray,
                     confirmed
                 )?.let {
-                    cryptoText = "Crypto decryption result=${
+                    cryptoText = this@startBiometric.getString(
+                        R.string.crypto_decryption_result,
                         String(
                             it.data,
                             Charset.forName("UTF-8")
                         )
-                    }"
+                    )
                     cryptoTests[biometricAuthRequest] =
                         CryptoTest(testString.toByteArray(Charset.forName("UTF-8")))
                 }
@@ -143,7 +160,11 @@ fun Fragment.startBiometric(
             BiometricLoggerImpl.e("CheckBiometric.onSucceeded() for $confirmed; $cryptoText")
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
-                "Succeeded - $confirmed; $cryptoText",
+                this@startBiometric.getString(
+                    R.string.biometric_demo_success,
+                    confirmed.toString(),
+                    cryptoText
+                ),
                 Toast.LENGTH_LONG
             )
                 .show()
@@ -153,7 +174,10 @@ fun Fragment.startBiometric(
             BiometricLoggerImpl.e("CheckBiometric.onCanceled() $canceled")
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
-                "Canceled $canceled",
+                this@startBiometric.getString(
+                    R.string.biometric_demo_canceled,
+                    canceled.toString()
+                ),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -168,30 +192,51 @@ fun Fragment.startBiometric(
                 when (reason) {
                     AuthenticationFailureReason.NO_HARDWARE -> showAlertDialog(
                         requireActivity(),
-                        "No hardware for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                        this@startBiometric.getString(
+                            R.string.biometric_demo_no_hardware,
+                            "${biometricAuthRequest.api}/${biometricAuthRequest.type}"
+                        ),
                     )
 
                     AuthenticationFailureReason.NO_BIOMETRICS_REGISTERED -> showAlertDialog(
                         requireActivity(),
-                        "No enrolled biometric for - ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                        this@startBiometric.getString(
+                            R.string.biometric_demo_not_enrolled,
+                            "${biometricAuthRequest.api}/${biometricAuthRequest.type}"
+                        ),
                     )
 
                     AuthenticationFailureReason.LOCKED_OUT -> showAlertDialog(
                         requireActivity(),
-                        "Biometric sensor temporary locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}\nTry again later",
+                        this@startBiometric.getString(
+                            R.string.biometric_demo_temp_lockout,
+                            "${biometricAuthRequest.api}/${biometricAuthRequest.type}"
+                        ),
                     )
 
                     AuthenticationFailureReason.HARDWARE_UNAVAILABLE -> showAlertDialog(
                         requireActivity(),
-                        "Biometric sensor permanently locked for ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+                        this@startBiometric.getString(
+                            R.string.biometric_demo_perm_lockout,
+                            "${biometricAuthRequest.api}/${biometricAuthRequest.type}"
+                        ),
                     )
 
-                    else -> showAlertDialog(requireActivity(), "Failure: ${canceled.toString()}")
+                    else -> showAlertDialog(
+                        requireActivity(),
+                        this@startBiometric.getString(
+                            R.string.biometric_demo_failure,
+                            canceled.toString()
+                        )
+                    )
                 }
             } catch (ignore: Throwable) {
                 Toast.makeText(
                     AndroidContext.appContext.getFixedContext(),
-                    "Failure: ${canceled.toString()}",
+                    this@startBiometric.getString(
+                        R.string.biometric_demo_failure,
+                        canceled.toString()
+                    ),
                     Toast.LENGTH_LONG
                 )
                     .show()
@@ -202,7 +247,7 @@ fun Fragment.startBiometric(
             BiometricLoggerImpl.e("CheckBiometric.onUIOpened()")
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
-                "onUIOpened",
+                this@startBiometric.getString(R.string.biometric_demo_ui_opened),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -211,7 +256,7 @@ fun Fragment.startBiometric(
             BiometricLoggerImpl.e("CheckBiometric.onUIClosed()")
             Toast.makeText(
                 AndroidContext.appContext.getFixedContext(),
-                "onUIClosed",
+                this@startBiometric.getString(R.string.biometric_demo_ui_closed),
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -222,7 +267,11 @@ fun Fragment.startBiometric(
 
         Toast.makeText(
             AndroidContext.appContext.getFixedContext(),
-            "Start setup ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            this@startBiometric.getString(
+                R.string.biometric_demo_start_setup,
+                biometricAuthRequest.api.toString(),
+                biometricAuthRequest.type.toString()
+            ),
             Toast.LENGTH_SHORT
         ).show()
     } else {
@@ -231,7 +280,11 @@ fun Fragment.startBiometric(
 
         Toast.makeText(
             AndroidContext.appContext.getFixedContext(),
-            "Start authenticate ${biometricAuthRequest.api}/${biometricAuthRequest.type}",
+            this@startBiometric.getString(
+                R.string.biometric_demo_start_authenticate,
+                biometricAuthRequest.api.toString(),
+                biometricAuthRequest.type.toString()
+            ),
             Toast.LENGTH_SHORT
         ).show()
     }
@@ -239,30 +292,33 @@ fun Fragment.startBiometric(
 
 private fun biometricUnavailableMessage(
     authSnapshot: BiometricAuthSnapshot,
-    forEnroll: Boolean
+    forEnroll: Boolean,
+    context: Context
 ): String {
     val biometricAuthRequest = authSnapshot.request
     val state = authSnapshot.state
     val route = "${biometricAuthRequest.api}/${biometricAuthRequest.type}"
     return when {
         !state.hardwareDetected ->
-            "No hardware for $route"
+            context.getString(R.string.biometric_demo_no_hardware, route)
 
         !forEnroll && !state.enrolled ->
-            "No enrolled biometric for - $route"
+            context.getString(R.string.biometric_demo_not_enrolled, route)
 
         state.lockedOut ->
-            "Biometric sensor temporary locked for $route\nTry again later"
+            context.getString(R.string.biometric_demo_temp_lockout, route)
 
         state.permanentlyLocked ->
-            "Biometric sensor permanently locked for $route"
+            context.getString(R.string.biometric_demo_perm_lockout, route)
 
-        else -> "Unexpected error state for $route"
+        else -> context.getString(R.string.biometric_demo_unexpected_error_state, route)
     }
 }
 
 private fun showAlertDialog(context: Context, msg: String) {
-    AlertDialog.Builder(context, androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert).setTitle("Biometric Error").setMessage(msg)
+    AlertDialog.Builder(context, androidx.appcompat.R.style.ThemeOverlay_AppCompat_Dialog_Alert)
+        .setTitle(context.getString(R.string.biometric_demo_error_title))
+        .setMessage(msg)
         .setNegativeButton(android.R.string.cancel, null).show()
 }
 

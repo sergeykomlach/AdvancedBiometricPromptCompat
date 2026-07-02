@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">AdvancedBiometricPrompt Test</string>
+  <string name="action_settings">설정</string>
+  <string name="first_fragment_label">첫 번째 프래그먼트</string>
+  <string name="second_fragment_label">두 번째 프래그먼트</string>
+  <string name="send_logs">로그 보내기</string>
+  <string name="dialog">대화상자</string>
+  <string name="previous">이전</string>
+  <string name="hello_first_fragment">안녕하세요, 첫 번째 프래그먼트</string>
+  <string name="hello_second_fragment">안녕하세요, 두 번째 프래그먼트. Arg: %1$s</string>
+  <string name="initialization_in_progress">초기화 진행 중...</string>
+  <string name="changes_applied">변경 사항이 적용되었습니다</string>
+  <string name="network_status">네트워크: %1$s\n%2$s</string>
+  <string name="looking_for_apis">API 검색 중</string>
+  <string name="please_wait">잠시만 기다려 주세요...</string>
+  <string name="unexpected_error_happens">예상치 못한 오류가 발생했습니다</string>
+  <string name="advanced_biometric_logs_subject">Advanced BiometricPromptCompat 로그</string>
+  <string name="advanced_biometric_report_subject">Advanced BiometricPromptCompat 보고서</string>
+  <string name="see_attachment">첨부 파일 보기</string>
+  <string name="send_email">이메일 보내기</string>
+  <string name="file_selector">파일 선택기</string>
+  <string name="selected_file_cant_be_shared">선택한 파일을 공유할 수 없습니다: %1$s</string>
+  <string name="biometric_demo_title">프래그먼트용 생체 인증: BlaBlablabla 매우 긴 텍스트 BlaBlablabla 및 더 많은 텍스트와 더 많이 더 많이 더 많이</string>
+  <string name="biometric_demo_subtitle">생체 인증 부제목: BlaBlablabla 매우 긴 텍스트 BlaBlablabla 및 더 많은 텍스트와 더 많이 더 많이 더 많이</string>
+  <string name="biometric_demo_description">생체 인증 설명: BlaBlablabla 매우 긴 텍스트 BlaBlablabla 및 더 많은 텍스트와 더 많이 더 많이 더 많이</string>
+  <string name="biometric_demo_cancel">취소: BlaBlablabla 매우 긴 텍스트 BlaBlablabla 및 더 많은 텍스트와 더 많이 더 많이 더 많이</string>
+  <string name="crypto_disabled">암호화가 작동하지 않거나 비활성화되었습니다</string>
+  <string name="crypto_encryption_result">암호화 결과=%1$s</string>
+  <string name="crypto_decryption_result">복호화 결과=%1$s</string>
+  <string name="biometric_demo_success">성공 - %1$s; %2$s</string>
+  <string name="biometric_demo_canceled">취소됨 %1$s</string>
+  <string name="biometric_demo_failure">실패: %1$s</string>
+  <string name="biometric_demo_ui_opened">UI 열림</string>
+  <string name="biometric_demo_ui_closed">UI 닫힘</string>
+  <string name="biometric_demo_start_setup">설정 시작 %1$s/%2$s</string>
+  <string name="biometric_demo_start_authenticate">인증 시작 %1$s/%2$s</string>
+  <string name="biometric_demo_no_hardware">%1$s용 하드웨어가 없습니다</string>
+  <string name="biometric_demo_not_enrolled">%1$s에 등록된 생체 인증이 없습니다</string>
+  <string name="biometric_demo_temp_lockout">%1$s의 생체 센서가 일시적으로 잠겼습니다\n나중에 다시 시도하세요</string>
+  <string name="biometric_demo_perm_lockout">%1$s의 생체 센서가 영구적으로 잠겼습니다</string>
+  <string name="biometric_demo_unexpected_error_state">%1$s에 대해 예상치 못한 오류 상태</string>
+  <string name="biometric_demo_error_title">생체 인증 오류</string>
+  <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+  <string name="allow_device_credentials">Allow device credentials</string>
+  <string name="fullscreen">Fullscreen</string>
+  <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+  <string name="window_secured">Window Secured</string>
+  <string name="no_data">No data</string>
+</resources>

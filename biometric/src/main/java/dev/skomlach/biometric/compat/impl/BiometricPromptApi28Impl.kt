@@ -46,6 +46,12 @@ import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.R
+import dev.skomlach.biometric.compat.biometricActivityDestroyedDescription
+import dev.skomlach.biometric.compat.biometricErrorWithCodeDescription
+import dev.skomlach.biometric.compat.biometricInternalErrorDescription
+import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
+import dev.skomlach.biometric.compat.biometricRequiredCryptoRejectedDescription
+import dev.skomlach.biometric.compat.biometricStartAuthenticationDescription
 import dev.skomlach.biometric.compat.crypto.AppFlowCryptoRegistry
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoException
 import dev.skomlach.biometric.compat.crypto.BiometricCryptoObjectHelper
@@ -309,7 +315,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                         BiometricType.BIOMETRIC_ANY,
                                         reason = failureReason,
                                         description = errString.ifEmpty {
-                                            "$errorCode-$errString"
+                                            biometricErrorWithCodeDescription(errorCode)
                                         }
                                     )
                                 )
@@ -334,7 +340,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 BiometricType.BIOMETRIC_ANY,
                                 reason = failureReason,
                                 description = errString.ifEmpty {
-                                    "$errorCode-$errString"
+                                    biometricErrorWithCodeDescription(errorCode)
                                 }
                             )
                         )
@@ -423,7 +429,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = "Can't start authenticate for BiometricPromptApi28Impl"
+                    description = biometricStartAuthenticationDescription()
                 )
             }.toSet())
             return
@@ -521,7 +527,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                             AuthenticationResult(
                                 BiometricType.BIOMETRIC_ANY,
                                 reason = AuthenticationFailureReason.CRYPTO_ERROR,
-                                description = "BiometricPrompt rejected required CryptoObject: ${e.message}"
+                                description = biometricRequiredCryptoRejectedDescription()
                             )
                         )
                         return
@@ -550,7 +556,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                                 AuthenticationResult(
                                     it,
                                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                                    description = "Action called on activity that already destroyed"
+                                    description = biometricActivityDestroyedDescription()
                                 )
                             }.toSet())
                         }
@@ -565,7 +571,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = e.message
+                    description = biometricInternalErrorDescription()
                 )
             }.toSet())
         }
@@ -780,7 +786,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
         return AuthenticationResult(
             module?.type ?: BiometricType.BIOMETRIC_ANY,
             reason = AuthenticationFailureReason.CRYPTO_ERROR,
-            description = "Biometric module ${module?.type ?: BiometricType.BIOMETRIC_ANY} completed without required CryptoObject"
+            description = biometricRequiredCryptoMissingDescription()
         )
     }
 

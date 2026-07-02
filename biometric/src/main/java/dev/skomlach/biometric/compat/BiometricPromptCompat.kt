@@ -364,7 +364,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AuthenticationResult(
                         it,
                         reason = AuthenticationFailureReason.NO_HARDWARE,
-                        description = "API disabled"
+                        description = biometricApiDisabledDescription()
                     )
                 }.toSet()
             )
@@ -431,7 +431,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                     AuthenticationResult(
                         it,
                         reason = AuthenticationFailureReason.NO_HARDWARE,
-                        description = "API disabled"
+                        description = biometricApiDisabledDescription()
                     )
                 }.toSet()
             )
@@ -1545,7 +1545,7 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                 AuthenticationResult(
                     it,
                     reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = e.message
+                    description = biometricInternalErrorDescription()
                 )
             }.toSet())
         }

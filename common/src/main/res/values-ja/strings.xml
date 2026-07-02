@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">生体認証</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">通知チャンネルの表示を許可</string>
+    <string name="biometriccompat_allow_notifications_perm">通知の表示を許可</string>
+    <string name="biometriccompat_permissions_request_failed">必要な権限が付与されていないため、この操作は実行できません。</string>
+    <string name="biometriccompat_camera_permission_required">この機能を使用するにはカメラ権限が必要です。</string>
+    <string name="biometriccompat_request_perm">%1$s には次の権限が必要です:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">アクセス要求</string>
+    <string name="biometriccompat_global_action_settings">設定</string>
+    <string name="biometriccompat_turn_on_settings_action">設定で有効にする</string>
+    <string name="biometriccompat_error_message_change_not_allowed">この変更は管理者によって許可されていません</string>
+</resources>

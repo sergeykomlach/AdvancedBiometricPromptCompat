@@ -122,7 +122,7 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
     }
 
@@ -235,3 +235,4 @@ class FaceunlockLavaModule(private var listener: LegacyBiometricInitListener?) :
         }
     }
 }
+

@@ -29,4 +29,42 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="no_data">No data</string>
+    <string name="fullscreen">Fullscreen</string>
+    <string name="window_secured">Window Secured</string>
+    <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+    <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+    <string name="allow_device_credentials">Allow device credentials</string>
+    <string name="initialization_in_progress">Initialization in progress...</string>
+    <string name="changes_applied">Changes applied</string>
+    <string name="network_status">Network: %1$s\n%2$s</string>
+    <string name="looking_for_apis">Looking for APIs</string>
+    <string name="please_wait">Please wait...</string>
+    <string name="unexpected_error_happens">Unexpected error happens</string>
+    <string name="advanced_biometric_logs_subject">Advanced BiometricPromptCompat Logs</string>
+    <string name="advanced_biometric_report_subject">Advanced BiometricPromptCompat Report</string>
+    <string name="see_attachment">See attachment</string>
+    <string name="send_email">Send e-mail</string>
+    <string name="file_selector">File Selector</string>
+    <string name="selected_file_cant_be_shared">The selected file can\'t be shared: %1$s</string>
+    <string name="biometric_demo_title">Biometric for Fragment: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more</string>
+    <string name="biometric_demo_subtitle">Biometric Subtitle: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more</string>
+    <string name="biometric_demo_description">Biometric Description: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more</string>
+    <string name="biometric_demo_cancel">Cancel: BlaBlablabla Some very long text BlaBlablabla and more text and more and more and more</string>
+    <string name="crypto_disabled">Crypto doesn\'t work or disabled</string>
+    <string name="crypto_encryption_result">Crypto encryption result=%1$s</string>
+    <string name="crypto_decryption_result">Crypto decryption result=%1$s</string>
+    <string name="biometric_demo_success">Succeeded - %1$s; %2$s</string>
+    <string name="biometric_demo_canceled">Canceled %1$s</string>
+    <string name="biometric_demo_failure">Failure: %1$s</string>
+    <string name="biometric_demo_ui_opened">onUIOpened</string>
+    <string name="biometric_demo_ui_closed">onUIClosed</string>
+    <string name="biometric_demo_start_setup">Start setup %1$s/%2$s</string>
+    <string name="biometric_demo_start_authenticate">Start authenticate %1$s/%2$s</string>
+    <string name="biometric_demo_no_hardware">No hardware for %1$s</string>
+    <string name="biometric_demo_not_enrolled">No enrolled biometric for - %1$s</string>
+    <string name="biometric_demo_temp_lockout">Biometric sensor temporary locked for %1$s\nTry again later</string>
+    <string name="biometric_demo_perm_lockout">Biometric sensor permanently locked for %1$s</string>
+    <string name="biometric_demo_unexpected_error_state">Unexpected error state for %1$s</string>
+    <string name="biometric_demo_error_title">Biometric Error</string>
 </resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">生物辨識</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">允許顯示通知管道</string>
+    <string name="biometriccompat_allow_notifications_perm">允許顯示通知</string>
+    <string name="biometriccompat_permissions_request_failed">由於未授予所需權限，無法執行此操作。</string>
+    <string name="biometriccompat_camera_permission_required">使用此功能需要相機權限。</string>
+    <string name="biometriccompat_request_perm">%1$s 需要以下權限：\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">存取要求</string>
+    <string name="biometriccompat_global_action_settings">設定</string>
+    <string name="biometriccompat_turn_on_settings_action">在設定中啟用</string>
+    <string name="biometriccompat_error_message_change_not_allowed">您的管理員不允許此變更</string>
+</resources>

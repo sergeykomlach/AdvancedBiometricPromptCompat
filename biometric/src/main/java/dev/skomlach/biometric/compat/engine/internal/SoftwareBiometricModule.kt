@@ -219,7 +219,7 @@ class SoftwareBiometricModule(
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
         return
     }
@@ -292,7 +292,7 @@ class SoftwareBiometricModule(
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
         return
     }
@@ -464,3 +464,4 @@ class SoftwareBiometricModule(
     }
 
 }
+

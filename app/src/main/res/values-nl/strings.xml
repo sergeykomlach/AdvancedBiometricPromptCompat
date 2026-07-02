@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">AdvancedBiometricPrompt Test</string>
+  <string name="action_settings">Instellingen</string>
+  <string name="first_fragment_label">Eerste fragment</string>
+  <string name="second_fragment_label">Tweede fragment</string>
+  <string name="send_logs">Logboeken verzenden</string>
+  <string name="dialog">Dialoog</string>
+  <string name="previous">Vorige</string>
+  <string name="hello_first_fragment">Hallo eerste fragment</string>
+  <string name="hello_second_fragment">Hallo tweede fragment. Arg: %1$s</string>
+  <string name="initialization_in_progress">Initialisatie wordt uitgevoerd...</string>
+  <string name="changes_applied">Wijzigingen toegepast</string>
+  <string name="network_status">Netwerk: %1$s\n%2$s</string>
+  <string name="looking_for_apis">API’s zoeken</string>
+  <string name="please_wait">Even geduld...</string>
+  <string name="unexpected_error_happens">Er is een onverwachte fout opgetreden</string>
+  <string name="advanced_biometric_logs_subject">Advanced BiometricPromptCompat-logboeken</string>
+  <string name="advanced_biometric_report_subject">Advanced BiometricPromptCompat-rapport</string>
+  <string name="see_attachment">Zie bijlage</string>
+  <string name="send_email">E-mail verzenden</string>
+  <string name="file_selector">Bestandskiezer</string>
+  <string name="selected_file_cant_be_shared">Het geselecteerde bestand kan niet worden gedeeld: %1$s</string>
+  <string name="biometric_demo_title">Biometrie voor fragment: BlaBlablabla Een zeer lange tekst BlaBlablabla en meer tekst en nog meer en meer en meer</string>
+  <string name="biometric_demo_subtitle">Biometrische ondertitel: BlaBlablabla Een zeer lange tekst BlaBlablabla en meer tekst en nog meer en meer en meer</string>
+  <string name="biometric_demo_description">Biometrische beschrijving: BlaBlablabla Een zeer lange tekst BlaBlablabla en meer tekst en nog meer en meer en meer</string>
+  <string name="biometric_demo_cancel">Annuleren: BlaBlablabla Een zeer lange tekst BlaBlablabla en meer tekst en nog meer en meer en meer</string>
+  <string name="crypto_disabled">Cryptografie werkt niet of is uitgeschakeld</string>
+  <string name="crypto_encryption_result">Resultaat van versleuteling=%1$s</string>
+  <string name="crypto_decryption_result">Resultaat van ontsleuteling=%1$s</string>
+  <string name="biometric_demo_success">Geslaagd - %1$s; %2$s</string>
+  <string name="biometric_demo_canceled">Geannuleerd %1$s</string>
+  <string name="biometric_demo_failure">Fout: %1$s</string>
+  <string name="biometric_demo_ui_opened">UI geopend</string>
+  <string name="biometric_demo_ui_closed">UI gesloten</string>
+  <string name="biometric_demo_start_setup">Instellen starten %1$s/%2$s</string>
+  <string name="biometric_demo_start_authenticate">Authenticatie starten %1$s/%2$s</string>
+  <string name="biometric_demo_no_hardware">Geen hardware voor %1$s</string>
+  <string name="biometric_demo_not_enrolled">Geen biometrie geregistreerd voor - %1$s</string>
+  <string name="biometric_demo_temp_lockout">Biometrische sensor tijdelijk vergrendeld voor %1$s\nProbeer het later opnieuw</string>
+  <string name="biometric_demo_perm_lockout">Biometrische sensor permanent vergrendeld voor %1$s</string>
+  <string name="biometric_demo_unexpected_error_state">Onverwachte foutstatus voor %1$s</string>
+  <string name="biometric_demo_error_title">Biometrische fout</string>
+  <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+  <string name="allow_device_credentials">Allow device credentials</string>
+  <string name="fullscreen">Fullscreen</string>
+  <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+  <string name="window_secured">Window Secured</string>
+  <string name="no_data">No data</string>
+</resources>

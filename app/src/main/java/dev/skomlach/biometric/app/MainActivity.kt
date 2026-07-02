@@ -115,8 +115,10 @@ class MainActivity : AppCompatActivity() {
 
         binding.fab.setOnClickListener { _ ->
             val dialog = ProgressDialog.show(
-                this@MainActivity, "Looking for API's",
-                "Please wait...", true
+                this@MainActivity,
+                getString(R.string.looking_for_apis),
+                getString(R.string.please_wait),
+                true
             )
 
             val scanTask = @SuppressLint("StaticFieldLeak")
@@ -137,7 +139,7 @@ class MainActivity : AppCompatActivity() {
                     if (result.isNullOrEmpty()) {
                         Toast.makeText(
                             AndroidContext.appContext,
-                            "Unexpected error happens",
+                            getString(R.string.unexpected_error_happens),
                             Toast.LENGTH_LONG
                         ).show()
                         return
@@ -146,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                         MailTo.startMailClient(
                             this@MainActivity,
                             "s.komlach@gmail.com",
-                            "Advanced BiometricPromptCompat Report",
+                            getString(R.string.advanced_biometric_report_subject),
                             it
                         )
 
@@ -203,7 +205,7 @@ class MainActivity : AppCompatActivity() {
                 MailTo.startMailClient(
                     this@MainActivity,
                     "s.komlach@gmail.com",
-                    "Advanced BiometricPromptCompat Logs",
+                    getString(R.string.advanced_biometric_logs_subject),
                     log
                 )
             }

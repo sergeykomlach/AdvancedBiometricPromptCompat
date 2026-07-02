@@ -27,6 +27,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.RemoteException
 import android.view.View
+import dev.skomlach.biometric.compat.biometricErrorWithCodeDescription
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.e
 import dev.skomlach.common.contextprovider.AndroidContext
@@ -63,7 +64,7 @@ class FaceLockHelper(private val faceLockInterface: FaceLockInterface) {
                 FACELOCK_NO_FACE_FOUND -> "No face found"
                 FACELOCK_FAILED_ATTEMPT -> "Failed attempt"
                 FACELOCK_TIMEOUT -> "Timeout"
-                else -> "Unknown error ($code)"
+                else -> biometricErrorWithCodeDescription(code)
             }
         }
     }

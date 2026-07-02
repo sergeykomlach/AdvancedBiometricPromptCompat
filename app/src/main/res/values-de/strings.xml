@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">AdvancedBiometricPrompt Test</string>
+  <string name="action_settings">Einstellungen</string>
+  <string name="first_fragment_label">Erstes Fragment</string>
+  <string name="second_fragment_label">Zweites Fragment</string>
+  <string name="send_logs">Protokolle senden</string>
+  <string name="dialog">Dialog</string>
+  <string name="previous">Zurück</string>
+  <string name="hello_first_fragment">Hallo erstes Fragment</string>
+  <string name="hello_second_fragment">Hallo zweites Fragment. Arg: %1$s</string>
+  <string name="initialization_in_progress">Initialisierung läuft...</string>
+  <string name="changes_applied">Änderungen übernommen</string>
+  <string name="network_status">Netzwerk: %1$s\n%2$s</string>
+  <string name="looking_for_apis">Suche nach APIs</string>
+  <string name="please_wait">Bitte warten...</string>
+  <string name="unexpected_error_happens">Ein unerwarteter Fehler ist aufgetreten</string>
+  <string name="advanced_biometric_logs_subject">Advanced BiometricPromptCompat-Protokolle</string>
+  <string name="advanced_biometric_report_subject">Advanced BiometricPromptCompat-Bericht</string>
+  <string name="see_attachment">Siehe Anhang</string>
+  <string name="send_email">E-Mail senden</string>
+  <string name="file_selector">Dateiauswahl</string>
+  <string name="selected_file_cant_be_shared">Die ausgewählte Datei kann nicht geteilt werden: %1$s</string>
+  <string name="biometric_demo_title">Biometrie für Fragment: BlaBlablabla Ein sehr langer Text BlaBlablabla und mehr Text und noch mehr und mehr und mehr</string>
+  <string name="biometric_demo_subtitle">Biometrie-Untertitel: BlaBlablabla Ein sehr langer Text BlaBlablabla und mehr Text und noch mehr und mehr und mehr</string>
+  <string name="biometric_demo_description">Biometriebeschreibung: BlaBlablabla Ein sehr langer Text BlaBlablabla und mehr Text und noch mehr und mehr und mehr</string>
+  <string name="biometric_demo_cancel">Abbrechen: BlaBlablabla Ein sehr langer Text BlaBlablabla und mehr Text und noch mehr und mehr und mehr</string>
+  <string name="crypto_disabled">Kryptografie funktioniert nicht oder ist deaktiviert</string>
+  <string name="crypto_encryption_result">Ergebnis der Verschlüsselung=%1$s</string>
+  <string name="crypto_decryption_result">Ergebnis der Entschlüsselung=%1$s</string>
+  <string name="biometric_demo_success">Erfolgreich - %1$s; %2$s</string>
+  <string name="biometric_demo_canceled">Abgebrochen %1$s</string>
+  <string name="biometric_demo_failure">Fehler: %1$s</string>
+  <string name="biometric_demo_ui_opened">UI geöffnet</string>
+  <string name="biometric_demo_ui_closed">UI geschlossen</string>
+  <string name="biometric_demo_start_setup">Setup starten %1$s/%2$s</string>
+  <string name="biometric_demo_start_authenticate">Authentifizierung starten %1$s/%2$s</string>
+  <string name="biometric_demo_no_hardware">Keine Hardware für %1$s</string>
+  <string name="biometric_demo_not_enrolled">Keine Biometrie eingerichtet für - %1$s</string>
+  <string name="biometric_demo_temp_lockout">Biometrischer Sensor für %1$s vorübergehend gesperrt\nBitte versuchen Sie es später erneut</string>
+  <string name="biometric_demo_perm_lockout">Biometrischer Sensor für %1$s dauerhaft gesperrt</string>
+  <string name="biometric_demo_unexpected_error_state">Unerwarteter Fehlerzustand für %1$s</string>
+  <string name="biometric_demo_error_title">Biometriefehler</string>
+  <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+  <string name="allow_device_credentials">Allow device credentials</string>
+  <string name="fullscreen">Fullscreen</string>
+  <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+  <string name="window_secured">Window Secured</string>
+  <string name="no_data">No data</string>
+</resources>

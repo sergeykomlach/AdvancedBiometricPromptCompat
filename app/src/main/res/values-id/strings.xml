@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">AdvancedBiometricPrompt Test</string>
+  <string name="action_settings">Setelan</string>
+  <string name="first_fragment_label">Fragmen pertama</string>
+  <string name="second_fragment_label">Fragmen kedua</string>
+  <string name="send_logs">Kirim log</string>
+  <string name="dialog">Dialog</string>
+  <string name="previous">Sebelumnya</string>
+  <string name="hello_first_fragment">Halo fragmen pertama</string>
+  <string name="hello_second_fragment">Halo fragmen kedua. Arg: %1$s</string>
+  <string name="initialization_in_progress">Inisialisasi sedang berlangsung...</string>
+  <string name="changes_applied">Perubahan diterapkan</string>
+  <string name="network_status">Jaringan: %1$s\n%2$s</string>
+  <string name="looking_for_apis">Mencari API</string>
+  <string name="please_wait">Harap tunggu...</string>
+  <string name="unexpected_error_happens">Terjadi kesalahan tak terduga</string>
+  <string name="advanced_biometric_logs_subject">Log Advanced BiometricPromptCompat</string>
+  <string name="advanced_biometric_report_subject">Laporan Advanced BiometricPromptCompat</string>
+  <string name="see_attachment">Lihat lampiran</string>
+  <string name="send_email">Kirim e-mail</string>
+  <string name="file_selector">Pemilih file</string>
+  <string name="selected_file_cant_be_shared">File yang dipilih tidak dapat dibagikan: %1$s</string>
+  <string name="biometric_demo_title">Biometrik untuk fragmen: BlaBlablabla Teks yang sangat panjang BlaBlablabla dan lebih banyak teks dan lebih banyak lagi dan lagi dan lagi</string>
+  <string name="biometric_demo_subtitle">Subjudul biometrik: BlaBlablabla Teks yang sangat panjang BlaBlablabla dan lebih banyak teks dan lebih banyak lagi dan lagi dan lagi</string>
+  <string name="biometric_demo_description">Deskripsi biometrik: BlaBlablabla Teks yang sangat panjang BlaBlablabla dan lebih banyak teks dan lebih banyak lagi dan lagi dan lagi</string>
+  <string name="biometric_demo_cancel">Batal: BlaBlablabla Teks yang sangat panjang BlaBlablabla dan lebih banyak teks dan lebih banyak lagi dan lagi dan lagi</string>
+  <string name="crypto_disabled">Kriptografi tidak berfungsi atau dinonaktifkan</string>
+  <string name="crypto_encryption_result">Hasil enkripsi=%1$s</string>
+  <string name="crypto_decryption_result">Hasil dekripsi=%1$s</string>
+  <string name="biometric_demo_success">Berhasil - %1$s; %2$s</string>
+  <string name="biometric_demo_canceled">Dibatalkan %1$s</string>
+  <string name="biometric_demo_failure">Gagal: %1$s</string>
+  <string name="biometric_demo_ui_opened">UI dibuka</string>
+  <string name="biometric_demo_ui_closed">UI ditutup</string>
+  <string name="biometric_demo_start_setup">Mulai penyiapan %1$s/%2$s</string>
+  <string name="biometric_demo_start_authenticate">Mulai autentikasi %1$s/%2$s</string>
+  <string name="biometric_demo_no_hardware">Tidak ada perangkat keras untuk %1$s</string>
+  <string name="biometric_demo_not_enrolled">Tidak ada biometrik yang terdaftar untuk - %1$s</string>
+  <string name="biometric_demo_temp_lockout">Sensor biometrik terkunci sementara untuk %1$s\nCoba lagi nanti</string>
+  <string name="biometric_demo_perm_lockout">Sensor biometrik terkunci permanen untuk %1$s</string>
+  <string name="biometric_demo_unexpected_error_state">Status kesalahan tak terduga untuk %1$s</string>
+  <string name="biometric_demo_error_title">Kesalahan biometrik</string>
+  <string name="silent_auth_no_ui">Silent Auth (No UI)</string>
+  <string name="allow_device_credentials">Allow device credentials</string>
+  <string name="fullscreen">Fullscreen</string>
+  <string name="crypto_data_encryption">Crypto (Data Encryption)</string>
+  <string name="window_secured">Window Secured</string>
+  <string name="no_data">No data</string>
+</resources>

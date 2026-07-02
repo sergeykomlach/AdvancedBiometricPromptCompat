@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">Biometrie</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">Weergeven van meldingskanalen toestaan</string>
+    <string name="biometriccompat_allow_notifications_perm">Weergeven van meldingen toestaan</string>
+    <string name="biometriccompat_permissions_request_failed">De actie kan niet worden uitgevoerd omdat de vereiste toestemming niet is verleend.</string>
+    <string name="biometriccompat_camera_permission_required">Cameratoestemming is vereist om deze functie te gebruiken.</string>
+    <string name="biometriccompat_request_perm">%1$s heeft de volgende toestemming nodig:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">Toegangsverzoek</string>
+    <string name="biometriccompat_global_action_settings">Instellingen</string>
+    <string name="biometriccompat_turn_on_settings_action">In Instellingen inschakelen</string>
+    <string name="biometriccompat_error_message_change_not_allowed">Deze wijziging is niet toegestaan door uw beheerder</string>
+</resources>

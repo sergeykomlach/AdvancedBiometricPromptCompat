@@ -111,7 +111,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
         return
     }
@@ -169,7 +169,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
         listener?.onFailure(
             tag(),
             AuthenticationFailureReason.INTERNAL_ERROR,
-            "Can't start authenticate for $name"
+            startAuthenticationFailureDescription()
         )
     }
 
@@ -208,7 +208,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
 
                 else -> {
                     if (!selfCanceled) {
-                        listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                        listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                         postCancelTask {
                             if (cancellationSignal?.isCanceled == false) {
                                 selfCanceled = true
@@ -235,7 +235,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                         failureReason
                     ) == true
                 ) {
-                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                     selfCanceled = true
                     cancellationSignal?.cancel()
                     ExecutorHelper.postDelayed({
@@ -250,7 +250,7 @@ class Huawei3DFaceUnlockModule(listener: LegacyBiometricInitListener?) :
                         lockout()
                         failureReason = AuthenticationFailureReason.LOCKED_OUT
                     }
-                    listener?.onFailure(tag(), failureReason, errString ?: "Error $errMsgId")
+                    listener?.onFailure(tag(), failureReason, errString ?: authenticationErrorWithCodeDescription(errMsgId))
                     postCancelTask {
                         if (cancellationSignal?.isCanceled == false) {
                             selfCanceled = true

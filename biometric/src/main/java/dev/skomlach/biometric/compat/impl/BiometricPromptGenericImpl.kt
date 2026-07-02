@@ -26,6 +26,7 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
+import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.engine.internal.SoftwareBiometricModule
@@ -272,7 +273,7 @@ class BiometricPromptGenericImpl(override val builder: BiometricPromptCompat.Bui
         return AuthenticationResult(
             module?.type ?: BiometricType.BIOMETRIC_ANY,
             reason = AuthenticationFailureReason.CRYPTO_ERROR,
-            description = "Biometric module ${module?.type ?: BiometricType.BIOMETRIC_ANY} completed without required CryptoObject"
+            description = biometricRequiredCryptoMissingDescription()
         )
     }
 

@@ -195,7 +195,11 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
                     cameraDevice = null
                     onError?.invoke(
                         AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_UNABLE_TO_PROCESS,
-                        "Camera Error: $error"
+                        LocalizationHelper.getLocalizedString(
+                            context,
+                            R.string.biometriccompat_tf_face_help_camera_error,
+                            error
+                        )
                     )
                 }
             }, backgroundHandler)
@@ -204,7 +208,10 @@ class RealCameraProvider(private val context: Context) : IFrameProvider,
             LogCat.logException(e)
             onError?.invoke(
                 AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE,
-                e.message ?: "Error"
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_tf_face_help_model_error_generic
+                )
             )
         }
     }

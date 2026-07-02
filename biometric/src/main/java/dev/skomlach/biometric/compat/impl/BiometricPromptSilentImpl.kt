@@ -29,6 +29,7 @@ import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
+import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
@@ -257,7 +258,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         return AuthenticationResult(
             module?.type ?: BiometricType.BIOMETRIC_ANY,
             reason = AuthenticationFailureReason.CRYPTO_ERROR,
-            description = "Biometric module ${module?.type ?: BiometricType.BIOMETRIC_ANY} completed without required CryptoObject"
+            description = biometricRequiredCryptoMissingDescription()
         )
     }
 

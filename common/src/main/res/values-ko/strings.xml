@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">생체 인증</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">알림 채널 표시 허용</string>
+    <string name="biometriccompat_allow_notifications_perm">알림 표시 허용</string>
+    <string name="biometriccompat_permissions_request_failed">필수 권한이 부여되지 않아 작업을 수행할 수 없습니다.</string>
+    <string name="biometriccompat_camera_permission_required">이 기능을 사용하려면 카메라 권한이 필요합니다.</string>
+    <string name="biometriccompat_request_perm">%1$s에는 다음 권한이 필요합니다:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">액세스 요청</string>
+    <string name="biometriccompat_global_action_settings">설정</string>
+    <string name="biometriccompat_turn_on_settings_action">설정에서 켜기</string>
+    <string name="biometriccompat_error_message_change_not_allowed">이 변경은 관리자가 허용하지 않습니다</string>
+</resources>

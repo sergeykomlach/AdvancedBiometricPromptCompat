@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometriccompat_channel_id">बायोमेट्रिक्स</string>
+    <string name="biometriccompat_allow_notifications_channel_perm">सूचना चैनल दिखाने की अनुमति दें</string>
+    <string name="biometriccompat_allow_notifications_perm">सूचनाएँ दिखाने की अनुमति दें</string>
+    <string name="biometriccompat_permissions_request_failed">आवश्यक अनुमति न मिलने के कारण यह कार्रवाई नहीं की जा सकती।</string>
+    <string name="biometriccompat_camera_permission_required">इस सुविधा का उपयोग करने के लिए कैमरा अनुमति आवश्यक है।</string>
+    <string name="biometriccompat_request_perm">%1$s को निम्न अनुमति चाहिए:\n%2$s</string>
+    <string name="biometriccompat_grant_permissions_header_text">पहुंच अनुरोध</string>
+    <string name="biometriccompat_global_action_settings">सेटिंग्स</string>
+    <string name="biometriccompat_turn_on_settings_action">सेटिंग्स में चालू करें</string>
+    <string name="biometriccompat_error_message_change_not_allowed">यह बदलाव आपके एडमिन द्वारा अनुमत नहीं है</string>
+</resources>
