@@ -27,9 +27,11 @@ import dev.skomlach.biometric.compat.BiometricManagerCompat
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.EnrollTerminalStatus
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
+import dev.skomlach.biometric.compat.resolveEnrollTerminalOutcome
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
@@ -83,6 +85,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     override fun authenticate(callback: BiometricPromptCompat.AuthenticationCallback?) {
         d("BiometricPromptSilentImpl.authenticate():")
         this.authFinished.clear()
+        seedPreSatisfiedEnrollResults()
         this.callback = callback
         onUiOpened()
         startAuth()
@@ -98,7 +101,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
         d("BiometricPromptSilentImpl.startAuth():")
         val types: List<BiometricType?> = ArrayList(
-            builder.getAllAvailableTypes()
+            executionTypes()
         )
         ExecutorHelper.postDelayed({
             LegacyBiometric.authenticate(
@@ -121,10 +124,32 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
     override fun cancelAuth() {
         try {
-            val success =
-                authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
-            if (success != null)
+            if (builder.enroll) {
+                val outcome = resolveEnrollTerminalOutcome(
+                    confirmation = builder.getBiometricAuthRequest().confirmation,
+                    scopeTypes = completionTypes(),
+                    successResults = successfulResults(),
+                    failureResults = fatalErrorResults(),
+                    canceledResults = canceled,
+                    terminal = true
+                )
+                when (outcome.status) {
+                    EnrollTerminalStatus.SUCCEEDED -> callback?.onSucceeded(
+                        buildSuccessCallbackResults(outcome.results)
+                    )
+
+                    EnrollTerminalStatus.FAILED -> callback?.onFailed(outcome.results)
+                    EnrollTerminalStatus.CONTINUE -> callback?.onFailed(canceled)
+                }
                 return
+            }
+
+            val success = authFinished.values.firstOrNull {
+                it.authResultState == AuthResult.AuthResultState.SUCCESS
+            }
+            if (success != null) {
+                return
+            }
             callback.dispatchCanceledOrFailed(if (canceled.isEmpty()) builder.getAllAvailableTypes().map {
                 AuthenticationResult(
                     it,
@@ -190,52 +215,52 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
         val authFinishedList: List<BiometricType?> = ArrayList(authFinished.keys)
         val allList: MutableList<BiometricType?> = ArrayList(
-            builder.getAllAvailableTypes()
+            completionTypes()
         )
         allList.removeAll(authFinishedList)
-        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${builder.getAllAvailableTypes()})")
+        d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $allList; ($authFinished / ${completionTypes()})")
         val error =
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
         val success =
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
+        if (builder.enroll) {
+            val outcome = resolveEnrollTerminalOutcome(
+                confirmation = builder.getBiometricAuthRequest().confirmation,
+                scopeTypes = completionTypes(),
+                successResults = successfulResults(),
+                failureResults = fatalErrorResults(),
+                canceledResults = canceled,
+                terminal = error != null || allList.isEmpty()
+            )
+            when (outcome.status) {
+                EnrollTerminalStatus.CONTINUE -> return
+                EnrollTerminalStatus.SUCCEEDED -> {
+                    callback?.onSucceeded(buildSuccessCallbackResults(outcome.results))
+                    cancelAuthentication()
+                }
+
+                EnrollTerminalStatus.FAILED -> {
+                    callback?.onFailed(outcome.results)
+                    cancelAuthentication()
+                }
+            }
+            return
+        }
         if (((success != null || error != null || allList.isEmpty()) && builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ANY) ||
             (builder.getBiometricAuthRequest().confirmation == BiometricConfirmation.ALL && allList.isEmpty())
         ) {
 
             if (success != null) {
-                val onlySuccess = authFinished.filter {
-                    it.value.authResultState == AuthResult.AuthResultState.SUCCESS
-                }
-                val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
-
-                callback?.onSucceeded(onlySuccess.keys.toList().mapNotNull {
-                    var result: AuthenticationResult? = null
-                    onlySuccess[it]?.result?.let { r ->
-                        result = AuthenticationResult(
-                            r.type,
-                            if (fixCryptoObjects) null else r.cryptoObject,
-                            r.reason,
-                            r.description,
-                            if (fixCryptoObjects) CryptoSecurityLevel.NONE else r.cryptoSecurityLevel
-                        )
-                    }
-                    result
-                }.toSet())
+                callback?.onSucceeded(buildSuccessCallbackResults(successfulResults()))
                 cancelAuthentication()
             } else if (error != null && allList.isEmpty()) {
                 if (failureCounter.get() == 1 || error.result?.reason !== AuthenticationFailureReason.LOCKED_OUT || DevicesWithKnownBugs.isHideDialogInstantly) {
-                    callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
-                        .mapNotNull {
-                            it.result
-                        }.toSet())
+                    callback?.onFailed(fatalErrorResults())
                     cancelAuthentication()
                 } else {
                     ExecutorHelper.postDelayed({
-                        callback?.onFailed(authFinished.values.filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
-                            .mapNotNull {
-                                it.result
-                            }.toSet())
+                        callback?.onFailed(fatalErrorResults())
                         cancelAuthentication()
                     }, 2000)
                 }
@@ -270,6 +295,63 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
                         )
     }
 
+    private fun executionTypes(): Set<BiometricType> {
+        return if (builder.enroll) {
+            builder.getPendingEnrollTypes()
+        } else {
+            builder.getAllAvailableTypes()
+        }
+    }
+
+    private fun completionTypes(): Set<BiometricType> {
+        return if (builder.enroll) {
+            builder.getEnrollScopeTypes()
+        } else {
+            builder.getAllAvailableTypes()
+        }
+    }
+
+    private fun seedPreSatisfiedEnrollResults() {
+        if (!builder.enroll) {
+            return
+        }
+        builder.getPreSatisfiedEnrollResults().forEach { result ->
+            authFinished[result.type] = AuthResult(
+                AuthResult.AuthResultState.SUCCESS,
+                result
+            )
+        }
+    }
+
+    private fun successfulResults(): Set<AuthenticationResult> {
+        return authFinished.values
+            .filter { it.authResultState == AuthResult.AuthResultState.SUCCESS }
+            .mapNotNull { it.result }
+            .toSet()
+    }
+
+    private fun fatalErrorResults(): Set<AuthenticationResult> {
+        return authFinished.values
+            .filter { it.authResultState == AuthResult.AuthResultState.FATAL_ERROR }
+            .mapNotNull { it.result }
+            .toSet()
+    }
+
+    private fun buildSuccessCallbackResults(
+        results: Collection<AuthenticationResult>
+    ): Set<AuthenticationResult> {
+        val fixCryptoObjects = builder.getCryptographyPurpose()?.purpose == null
+        return results.mapTo(LinkedHashSet()) { result ->
+            AuthenticationResult(
+                result.type,
+                if (fixCryptoObjects) null else result.cryptoObject,
+                result.reason,
+                result.description,
+                if (fixCryptoObjects) CryptoSecurityLevel.NONE else result.cryptoSecurityLevel
+            )
+        }
+    }
+
     private inner class LegacyBiometricAuthenticationCallbackImpl :
         LegacyBiometricAuthenticationListener {
 
@@ -283,7 +365,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
         override fun onFailure(result: AuthenticationResult) {
             if (builder.disableBiometricForPermissionFailure(result)) {
                 BiometricNotificationManager.dismiss(result.type)
-                if (builder.getAllAvailableTypes().isEmpty()) {
+                if (executionTypes().isEmpty()) {
                     checkAuthResult(result, AuthResult.AuthResultState.FATAL_ERROR)
                 } else {
                     stopAuth()

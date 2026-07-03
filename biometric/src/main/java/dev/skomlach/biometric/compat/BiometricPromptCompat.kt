@@ -375,24 +375,30 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
             authFlowInProgress.set(false)
             if (enrollNewHardwareBiometric) {
                 val newHardwareEnroll = isHardwareEnrollmentNeeded(builder.getBiometricAuthRequest())
-                if (!builder.getSecondaryAvailableTypes().isEmpty()) {
+                if (builder.getPendingEnrollTypes().isNotEmpty()) {
                     authenticate(callback)
-                } else if (!newHardwareEnroll) {
-                    callback.onSucceeded(builder.getAllAvailableTypes().map {
-                        AuthenticationResult(
-                            it
-                        )
-                    }.toSet())
                 } else {
-                    callback.onCanceled(builder.getAllAvailableTypes().map {
-                        AuthenticationResult(
-                            it,
-                            reason = AuthenticationFailureReason.CANCELED_BY_USER
-                        )
-                    }.toSet())
+                    val canceledResults = if (newHardwareEnroll) {
+                        builder.getEnrollScopeTypes().mapTo(LinkedHashSet()) { type ->
+                            AuthenticationResult(
+                                type,
+                                reason = AuthenticationFailureReason.CANCELED_BY_USER
+                            )
+                        }
+                    } else {
+                        emptySet()
+                    }
+                    dispatchEnrollTerminalOutcome(
+                        callback = callback,
+                        canceledResults = canceledResults
+                    )
                 }
             } else {
-                authenticate(callback)
+                if (builder.getPendingEnrollTypes().isEmpty()) {
+                    dispatchEnrollTerminalOutcome(callback = callback)
+                } else {
+                    authenticate(callback)
+                }
             }
         }
         if (enrollNewHardwareBiometric) {
@@ -408,6 +414,26 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         } else
             softwareSetup.invoke()
 
+    }
+
+    private fun dispatchEnrollTerminalOutcome(
+        callback: AuthenticationCallback,
+        failureResults: Set<AuthenticationResult> = emptySet(),
+        canceledResults: Set<AuthenticationResult> = emptySet()
+    ) {
+        val outcome = resolveEnrollTerminalOutcome(
+            confirmation = builder.getBiometricAuthRequest().confirmation,
+            scopeTypes = builder.getEnrollScopeTypes(),
+            successResults = builder.getPreSatisfiedEnrollResults(),
+            failureResults = failureResults,
+            canceledResults = canceledResults,
+            terminal = true
+        )
+        when (outcome.status) {
+            EnrollTerminalStatus.SUCCEEDED -> callback.onSucceeded(outcome.results)
+            EnrollTerminalStatus.FAILED -> callback.onFailed(outcome.results)
+            EnrollTerminalStatus.CONTINUE -> callback.onFailed(canceledResults)
+        }
     }
 
     fun authenticate(callbackOuter: AuthenticationCallback) {
@@ -1016,9 +1042,16 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
         if (builder.getEffectiveAvailableTypes().isNotEmpty()) {
             return false
         }
-        callback.onCanceled(
-            emptyEffectiveBiometricCancellationResults(builder.getAllAvailableTypes())
-        )
+        if (builder.enroll) {
+            dispatchEnrollTerminalOutcome(
+                callback = callback,
+                canceledResults = emptyEffectiveBiometricCancellationResults(builder.getEnrollScopeTypes())
+            )
+        } else {
+            callback.onCanceled(
+                emptyEffectiveBiometricCancellationResults(builder.getAllAvailableTypes())
+            )
+        }
         authFlowInProgress.set(false)
         return true
     }
@@ -2047,6 +2080,30 @@ class BiometricPromptCompat private constructor(private val builder: Builder) {
                             !snapshot.state.permanentlyLocked
                 }
             ).toHashSet()
+        }
+
+        internal fun getEnrollScopeTypes(): Set<BiometricType> {
+            return getAllAvailableTypes()
+        }
+
+        internal fun getPendingEnrollTypes(): Set<BiometricType> {
+            return if (enroll) {
+                getEffectiveAvailableTypes()
+            } else {
+                getAllAvailableTypes()
+            }
+        }
+
+        internal fun getPreSatisfiedEnrollResults(): Set<AuthenticationResult> {
+            if (!enroll) {
+                return emptySet()
+            }
+            return resolvePreSatisfiedEnrollResults(
+                scopeTypes = getEnrollScopeTypes(),
+                pendingTypes = getPendingEnrollTypes()
+            ) { type ->
+                selectedTypeSnapshot(type, ignoreCameraCheck = false).state.enrolled
+            }
         }
 
         internal fun areSelectedTypesLockedOut(ignoreCameraCheck: Boolean = true): Boolean {

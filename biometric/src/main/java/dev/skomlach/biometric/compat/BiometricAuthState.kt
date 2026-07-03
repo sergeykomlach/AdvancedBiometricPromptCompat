@@ -198,6 +198,72 @@ internal fun resolveEffectiveEnrollTypes(
         .filter(isActive)
 }
 
+internal enum class EnrollTerminalStatus {
+    CONTINUE,
+    SUCCEEDED,
+    FAILED
+}
+
+internal data class EnrollTerminalOutcome(
+    val status: EnrollTerminalStatus,
+    val results: Set<AuthenticationResult>
+)
+
+internal fun resolvePreSatisfiedEnrollResults(
+    scopeTypes: Collection<BiometricType>,
+    pendingTypes: Collection<BiometricType>,
+    isEnrolled: (BiometricType) -> Boolean
+): Set<AuthenticationResult> {
+    val pendingSet = pendingTypes.toHashSet()
+    return scopeTypes
+        .asSequence()
+        .filterNot { type -> pendingSet.contains(type) }
+        .filter(isEnrolled)
+        .mapTo(LinkedHashSet()) { type ->
+            AuthenticationResult(type)
+        }
+}
+
+internal fun resolveEnrollTerminalOutcome(
+    confirmation: BiometricConfirmation,
+    scopeTypes: Collection<BiometricType>,
+    successResults: Collection<AuthenticationResult>,
+    failureResults: Collection<AuthenticationResult> = emptySet(),
+    canceledResults: Collection<AuthenticationResult> = emptySet(),
+    terminal: Boolean
+): EnrollTerminalOutcome {
+    val scopeSet = scopeTypes.toCollection(LinkedHashSet())
+    val successSet = successResults
+        .filter { result -> result.type != null && scopeSet.contains(result.type) }
+        .toCollection(LinkedHashSet())
+    val successTypes = successSet.mapNotNull { it.type }.toHashSet()
+    val isSatisfied = when (confirmation) {
+        BiometricConfirmation.ANY -> successSet.isNotEmpty()
+        BiometricConfirmation.ALL -> scopeSet.isNotEmpty() && successTypes.containsAll(scopeSet)
+    }
+    if (isSatisfied) {
+        return EnrollTerminalOutcome(
+            status = EnrollTerminalStatus.SUCCEEDED,
+            results = successSet
+        )
+    }
+    if (!terminal) {
+        return EnrollTerminalOutcome(
+            status = EnrollTerminalStatus.CONTINUE,
+            results = emptySet()
+        )
+    }
+    val failureSet = when {
+        failureResults.isNotEmpty() -> failureResults.toCollection(LinkedHashSet())
+        canceledResults.isNotEmpty() -> canceledResults.toCollection(LinkedHashSet())
+        else -> emptyEffectiveBiometricCancellationResults(scopeSet)
+    }
+    return EnrollTerminalOutcome(
+        status = EnrollTerminalStatus.FAILED,
+        results = failureSet
+    )
+}
+
 internal fun emptyEffectiveBiometricCancellationResults(
     allTypes: Collection<BiometricType>
 ): Set<AuthenticationResult> {
