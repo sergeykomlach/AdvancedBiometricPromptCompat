@@ -11,6 +11,7 @@ import android.os.SystemClock
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.utils.Vibro
+import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl.d
 import dev.skomlach.biometric.custom.voice.R
 import dev.skomlach.common.translate.LocalizationHelper
 import java.util.concurrent.atomic.AtomicBoolean
@@ -72,7 +73,6 @@ internal class VoiceAutoCaptureController(
         if (disposed.get() || !callback.isPromptActive() || session.isReadyToStartAuth() || isRecording.get()) {
             return
         }
-        attemptsForCurrentSample += 1
         Vibro.start()
 
         val minBufferSize = AudioRecord.getMinBufferSize(
@@ -152,13 +152,25 @@ internal class VoiceAutoCaptureController(
                     return@post
                 }
                 if (fatalReadError) {
-                    handleRecoverable(localized(R.string.biometriccompat_voice_error_recording_failed))
+                    handleRecoverable(
+                        localized(R.string.biometriccompat_voice_error_recording_failed),
+                        countTowardsLockout = true
+                    )
                     return@post
                 }
                 val captureDecision = decideVoiceCaptureSample(detection, SAMPLE_RATE_HZ)
                 if (captureDecision.acceptedSample == null) {
                     val message = recoverableMessage(captureDecision)
-                    handleRecoverable(message)
+                    val countTowardsLockout = shouldCountTowardsAutoCaptureLockout(captureDecision)
+                    d(
+                        "VoiceAutoCaptureController.reject reason=${captureDecision.rejectReason} " +
+                            "quality=${captureDecision.qualityIssue} speech=${captureDecision.hadSpeechActivity} " +
+                            "countTowardsLockout=$countTowardsLockout attempts=$attemptsForCurrentSample"
+                    )
+                    handleRecoverable(
+                        message,
+                        countTowardsLockout = countTowardsLockout
+                    )
                     return@post
                 }
 
@@ -177,7 +189,13 @@ internal class VoiceAutoCaptureController(
         }
     }
 
-    private fun handleRecoverable(message: CharSequence) {
+    private fun handleRecoverable(
+        message: CharSequence,
+        countTowardsLockout: Boolean
+    ) {
+        if (countTowardsLockout) {
+            attemptsForCurrentSample += 1
+        }
         if (attemptsForCurrentSample >= MAX_ATTEMPTS_PER_SAMPLE) {
             val outcome = onMaxAttemptsExceeded()
             session.onFatalError(outcome.reason, localized(outcome.messageResId))
