@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Час очікування автентифікації голосом вичерпано</string>
     <string name="biometriccompat_voice_help_unavailable">Автентифікація голосом недоступна</string>
     <string name="biometriccompat_voice_help_permission_required">Для автентифікації голосом потрібен дозвіл на мікрофон</string>
-    <string name="biometriccompat_voice_help_sample_required">Потрібен голосовий зразок. Надайте записаний голосовий зразок або попередньо обчислений голосовий вектор.</string>
-    <string name="biometriccompat_voice_help_not_registered">Не зареєстровано жодної голосової біометрії. Запишіть і зареєструйте голосові зразки перед автентифікацією.</string>
-    <string name="biometriccompat_voice_help_enrolled">Голосовий шаблон зареєстровано: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Потрібен голосовий зразок. Запишіть голос, щоб продовжити.</string>
+    <string name="biometriccompat_voice_help_not_registered">Голосовий вхід ще не налаштовано. Спочатку запишіть свій голос.</string>
+    <string name="biometriccompat_voice_help_enrolled">Голосовий профіль збережено: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Голосову біометрію підтверджено</string>
     <string name="biometriccompat_voice_help_not_matched">Голосова біометрія не збіглася</string>
     <string name="biometriccompat_voice_help_lockout">Автентифікацію голосом тимчасово заблоковано</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Автентифікацію голосом заблоковано назавжди</string>
     <string name="biometriccompat_voice_help_sample_valid">Голосовий зразок коректний</string>
-    <string name="biometriccompat_voice_help_sample_missing">Голосовий зразок відсутній або неповний. Надайте PCM-аудіо або коректний голосовий вектор.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">Частота дискретизації голосового зразка надто низька. За можливості використовуйте моно PCM 16 кГц.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Голосовий зразок відсутній або неповний. Запишіть новий голосовий зразок.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Якість голосового зразка надто низька. Запишіть чіткіший голосовий зразок.</string>
     <string name="biometriccompat_voice_help_sample_short">Голосовий зразок надто короткий. Говоріть природно щонайменше одну секунду.</string>
     <string name="biometriccompat_voice_help_sample_long">Голосовий зразок надто довгий. Тримайте голосовий зразок коротшим за вісім секунд.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Голосовий зразок надто тихий. Підійдіть ближче до мікрофона й спробуйте ще раз.</string>
     <string name="biometriccompat_voice_help_sample_flat">У голосовому зразку замало варіації. Скажіть чітку фразу й спробуйте ще раз.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Голосовий зразок перевантажений. Зменште чутливість мікрофона або трохи відсуньтеся.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Голосовий зразок схожий на повторений або синтетичний. Запишіть нову природну фразу.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Голосовий вектор некоректний. Надайте непорожній вектор диктора зі скінченними значеннями.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Цей голосовий зразок не вдалося використати. Запишіть новий голосовий зразок.</string>
     <string name="biometriccompat_voice_button_content_description">Захоплення голосу</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Запишіть голосовий зразок</string>
     <string name="biometriccompat_voice_overlay_title_auth">Підтвердьте свій голос</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Запис голосового зразка...</string>
     <string name="biometriccompat_voice_status_checking">Перевірка голосу</string>
 </resources>
+
+
+
+
+
+

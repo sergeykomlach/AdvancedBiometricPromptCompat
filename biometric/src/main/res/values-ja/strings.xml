@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">生体認証センサーは現在利用できません。\n本人確認のため、PIN、パターン、または端末のパスワードを使用してください。</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\n警告: %2$s はアクセシビリティ サービスの 1 つの安全性を確認できませんでした。PIN、パターン、または端末のパスワードを記録する可能性があります。\n操作が安全であると完全に確信できる場合にのみ続行してください。</string>
-    <string name="biometriccompat_widegamut_error">WideGamut により光学センサーが正常に動作できません</string>
+    <string name="biometriccompat_widegamut_error">現在の画面設定では光学センサーが正常に動作しません</string>
     <string name="biometriccompat_permession_error">必要な権限が付与されていません</string>
     <string name="biometriccompat_camera_blocked">カメラセンサーがプライバシー切り替えでブロックされています</string>
-    <string name="biometriccompat_cryptography_not_supported_error">DeviceCredential フォールバックでは暗号化はサポートされていません</string>
+    <string name="biometriccompat_cryptography_not_supported_error">この安全な操作は画面ロックの代替では利用できません</string>
     <string name="biometriccompat_credentials_error">認証情報が要求されましたが、ユーザーが確認をキャンセルしました</string>
-    <string name="biometriccompat_cryptography_failed_error">暗号化の検証中にエラーが発生しました</string>
+    <string name="biometriccompat_cryptography_failed_error">安全な確認中にエラーが発生しました</string>
     <string name="biometriccompat_long_init_error">初期化に時間がかかりすぎています</string>
     <string name="biometriccompat_untrusted_a11y_error">疑わしいアクセシビリティ サービスが検出されました。ユーザーは生体認証の確認を中断することにしました</string>
     <string name="biometriccompat_window_error">アプリのウィンドウが前面にないため、生体認証を開始できません</string>
-    <string name="biometriccompat_api_disabled_error">生体認証 API は無効です</string>
+    <string name="biometriccompat_api_disabled_error">生体認証は利用できません</string>
     <string name="biometriccompat_start_authentication_error">生体認証を開始できません</string>
     <string name="biometriccompat_generic_error">生体認証中に問題が発生しました</string>
     <string name="biometriccompat_generic_error_with_code">認証エラー (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">必要な暗号オブジェクトが拒否されました</string>
     <string name="biometriccompat_required_crypto_missing_error">必要な暗号結果なしで生体認証が完了しました</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">ソフトウェア生体認証モジュール %1$s はハードウェア保護されたCryptoObjectを使用できません</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">この生体認証方法ではこの安全な操作を完了できません</string>
     <string name="biometriccompat_activity_destroyed_error">アクティビティが破棄されたため、生体認証が中断されました</string>
     <string name="biometriccompat_internal_error">内部生体認証エラーが発生しました</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">デバイスのマイクのブロックを解除</string>
@@ -114,3 +114,8 @@
     <string name="biometriccompat_fingerprint_error_lockout">試行回数が多すぎます。後でもう一度お試しください。</string>
     <string name="biometriccompat_fingerprint_not_recognized">認識されませんでした</string>
 </resources>
+
+
+
+
+

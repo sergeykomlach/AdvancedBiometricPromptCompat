@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Time-out bij spraakauthenticatie</string>
     <string name="biometriccompat_voice_help_unavailable">Spraakauthenticatie is niet beschikbaar</string>
     <string name="biometriccompat_voice_help_permission_required">Microfoontoestemming is vereist voor spraakauthenticatie</string>
-    <string name="biometriccompat_voice_help_sample_required">Er is een stemmonster vereist. Geef een opgenomen stemmonster of een vooraf berekende stem-embedding op.</string>
-    <string name="biometriccompat_voice_help_not_registered">Er is geen stembiometrie geregistreerd. Neem stemmonsters op en registreer ze voordat je je aanmeldt.</string>
-    <string name="biometriccompat_voice_help_enrolled">Stemsjabloon geregistreerd: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Er is een stemmonster nodig. Neem je stem op om door te gaan.</string>
+    <string name="biometriccompat_voice_help_not_registered">Stemontgrendeling is nog niet ingesteld. Neem eerst je stem op.</string>
+    <string name="biometriccompat_voice_help_enrolled">Stemprofiel opgeslagen: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Stembiometrie geaccepteerd</string>
     <string name="biometriccompat_voice_help_not_matched">Stembiometrie kwam niet overeen</string>
     <string name="biometriccompat_voice_help_lockout">Spraakauthenticatie is tijdelijk vergrendeld</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Spraakauthenticatie is permanent vergrendeld</string>
     <string name="biometriccompat_voice_help_sample_valid">Stemmonster is geldig</string>
-    <string name="biometriccompat_voice_help_sample_missing">Het stemmonster ontbreekt of is onvolledig. Geef PCM-audio of een geldige stem-embedding op.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">De samplefrequentie van het stemmonster is te laag. Gebruik indien mogelijk 16 kHz mono PCM.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Het stemmonster ontbreekt of is onvolledig. Neem een nieuw stemmonster op.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">De kwaliteit van het stemmonster is te laag. Neem een duidelijker stemmonster op.</string>
     <string name="biometriccompat_voice_help_sample_short">Het stemmonster is te kort. Spreek natuurlijk gedurende minstens één seconde.</string>
     <string name="biometriccompat_voice_help_sample_long">Het stemmonster is te lang. Houd het stemmonster onder acht seconden.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Het stemmonster is te zacht. Ga dichter bij de microfoon staan en probeer het opnieuw.</string>
     <string name="biometriccompat_voice_help_sample_flat">Het stemmonster bevat te weinig variatie. Spreek een duidelijke zin uit en probeer het opnieuw.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Het stemmonster is overstuurd. Verlaag de microfoonversterking of ga iets verder weg staan.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Het stemmonster lijkt herhaald of synthetisch. Neem een nieuwe natuurlijke zin op.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">De stem-embedding is ongeldig. Geef een niet-lege spreker-embedding met eindige waarden op.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Dit stemmonster kon niet worden gebruikt. Neem een nieuw stemmonster op.</string>
     <string name="biometriccompat_voice_button_content_description">Spraakopname</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Stemmonster opnemen</string>
     <string name="biometriccompat_voice_overlay_title_auth">Bevestig je stem</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Stemmonster opnemen...</string>
     <string name="biometriccompat_voice_status_checking">Stem controleren</string>
 </resources>
+
+
+
+
+
+

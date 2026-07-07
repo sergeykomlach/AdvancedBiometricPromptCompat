@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Davranış kimlik doğrulama zaman aşımına uğradı</string>
     <string name="biometriccompat_behavior_help_unavailable">Davranış kimlik doğrulama kullanılamıyor</string>
     <string name="biometriccompat_behavior_help_sample_missing">Davranış örneği eksik veya tamamlanmamış</string>
-    <string name="biometriccompat_behavior_help_not_registered">Davranış biyometrisi kayıtlı değil</string>
-    <string name="biometriccompat_behavior_help_enrolled">Davranış şablonu kaydedildi: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Henüz bir davranış profili ayarlanmadı</string>
+    <string name="biometriccompat_behavior_help_enrolled">Davranış profili kaydedildi: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Davranış biyometrisi kabul edildi</string>
     <string name="biometriccompat_behavior_help_not_matched">Davranış biyometrisi eşleşmedi</string>
     <string name="biometriccompat_behavior_help_lockout">Davranış kimlik doğrulama geçici olarak kilitli</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Davranış kontrol ediliyor</string>
 </resources>
+
+

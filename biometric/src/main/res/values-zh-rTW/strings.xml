@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">生物辨識感測器目前無法使用。\n請使用您的 PIN 碼、圖案或裝置密碼來確認您的身分。</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\n警告：%2$s 無法驗證其中一項無障礙服務的安全性。它可能會記錄您的 PIN 碼、圖案或裝置密碼。\n只有在您完全確定自己的操作是安全的情況下才繼續。</string>
-    <string name="biometriccompat_widegamut_error">WideGamut 會阻止光學感測器正常運作</string>
+    <string name="biometriccompat_widegamut_error">目前的螢幕設定會影響光學感測器正常運作</string>
     <string name="biometriccompat_permession_error">未授予所需權限</string>
     <string name="biometriccompat_camera_blocked">相機感測器已被隱私開關封鎖</string>
-    <string name="biometriccompat_cryptography_not_supported_error">使用 DeviceCredential 備援時不支援密碼學功能</string>
+    <string name="biometriccompat_cryptography_not_supported_error">使用螢幕鎖作為備援方式時，無法執行這項安全操作</string>
     <string name="biometriccompat_credentials_error">已要求憑證，但使用者取消了驗證</string>
-    <string name="biometriccompat_cryptography_failed_error">密碼學驗證期間發生錯誤</string>
+    <string name="biometriccompat_cryptography_failed_error">安全驗證期間發生錯誤</string>
     <string name="biometriccompat_long_init_error">初始化耗時過長</string>
     <string name="biometriccompat_untrusted_a11y_error">偵測到可疑的無障礙服務。使用者決定中斷生物辨識驗證</string>
     <string name="biometriccompat_window_error">無法啟動生物辨識驗證，因為應用程式視窗不在前景</string>
-    <string name="biometriccompat_api_disabled_error">生物辨識 API 已停用</string>
+    <string name="biometriccompat_api_disabled_error">生物辨識驗證無法使用</string>
     <string name="biometriccompat_start_authentication_error">無法啟動生物辨識驗證</string>
     <string name="biometriccompat_generic_error">生物辨識驗證期間發生問題</string>
     <string name="biometriccompat_generic_error_with_code">驗證錯誤 (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">所需的密碼物件已被拒絕</string>
     <string name="biometriccompat_required_crypto_missing_error">生物辨識驗證已完成，但沒有所需的密碼結果</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">軟體生物辨識模組 %1$s 無法使用硬體支援的CryptoObject</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">此生物辨識方式無法完成這項安全操作</string>
     <string name="biometriccompat_activity_destroyed_error">由於目前畫面已被銷毀，生物辨識驗證已中斷</string>
     <string name="biometriccompat_internal_error">發生內部生物辨識錯誤</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">解除裝置麥克風限制</string>
@@ -114,3 +114,8 @@
     <string name="biometriccompat_fingerprint_error_lockout">嘗試次數過多。請稍後再試。</string>
     <string name="biometriccompat_fingerprint_not_recognized">無法辨識</string>
 </resources>
+
+
+
+
+

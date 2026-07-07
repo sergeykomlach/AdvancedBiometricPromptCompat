@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Zeitüberschreitung bei der Fingerabdruckauthentifizierung</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Durch neuen Vorgang abgebrochen</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK-Fingerabdruckleser nicht verbunden</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB-Berechtigung für ZK-Fingerabdruckleser verweigert</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK-Fingerabdruckleser nicht verfügbar</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Fingerabdruckleser nicht verbunden</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB-Berechtigung für den Fingerabdruckleser verweigert</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Fingerabdruckleser nicht verfügbar</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Fingerabdruck nicht registriert</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Dieser Fingerabdruck ist bereits registriert</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Verwenden Sie für alle Registrierungsscans denselben Finger</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Legen Sie den Finger erneut auf</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Erforderliche ZK-Leserscans: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Erforderliche Fingerabdruck-Scans: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Akzeptierte Scans: %1$d/%2$d. Heben Sie denselben Finger an und legen Sie ihn erneut auf</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Fingerabdruckregistrierung wird abgeschlossen</string>
     <string name="biometriccompat_zkfinger_help_template_error">Fingerabdruckvorlage konnte nicht verarbeitet werden</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK-Fingerabdruckleser ist gesperrt. Versuchen Sie es später erneut</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK-Fingerabdruckleser ist dauerhaft gesperrt</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Legen Sie Ihren Finger auf den ZK-Leser</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Legen Sie Ihren Finger zum Registrieren auf den ZK-Leser</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Fingerabdruckleser ist gesperrt. Versuchen Sie es später erneut</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Fingerabdruckleser ist dauerhaft gesperrt</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Legen Sie Ihren Finger auf den Fingerabdruckleser</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Legen Sie Ihren Finger zum Registrieren auf den Fingerabdruckleser</string>
 </resources>

@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">बायोमेट्रिक सेंसर अभी उपलब्ध नहीं हैं।\nअपनी पहचान की पुष्टि करने के लिए कृपया अपना PIN, पैटर्न या डिवाइस पासवर्ड इस्तेमाल करें।</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nचेतावनी: %2$s एक्सेसिबिलिटी सेवाओं में से एक की सुरक्षा सत्यापित नहीं कर सका। यह आपका PIN, पैटर्न या डिवाइस पासवर्ड रिकॉर्ड कर सकता है।\nकेवल तभी आगे बढ़ें जब आपको पूरी तरह यकीन हो कि आपकी कार्रवाई सुरक्षित है।</string>
-    <string name="biometriccompat_widegamut_error">WideGamut ऑप्टिकल सेंसर को सही तरह से काम करने से रोकता है</string>
+    <string name="biometriccompat_widegamut_error">वर्तमान स्क्रीन सेटिंग्स ऑप्टिकल सेंसर को सही तरह से काम करने से रोकती हैं</string>
     <string name="biometriccompat_permession_error">आवश्यक अनुमतियाँ प्रदान नहीं की गईं</string>
     <string name="biometriccompat_camera_blocked">कैमरा सेंसर गोपनीयता स्विच द्वारा अवरुद्ध है</string>
-    <string name="biometriccompat_cryptography_not_supported_error">DeviceCredential फ़ॉलबैक के साथ क्रिप्टोग्राफी समर्थित नहीं है</string>
+    <string name="biometriccompat_cryptography_not_supported_error">स्क्रीन लॉक फ़ॉलबैक के साथ यह सुरक्षित कार्रवाई उपलब्ध नहीं है</string>
     <string name="biometriccompat_credentials_error">क्रेडेंशियल्स मांगे गए, लेकिन उपयोगकर्ता ने सत्यापन रद्द कर दिया</string>
-    <string name="biometriccompat_cryptography_failed_error">क्रिप्टोग्राफ़िक सत्यापन के दौरान त्रुटि हुई</string>
+    <string name="biometriccompat_cryptography_failed_error">सुरक्षित सत्यापन के दौरान त्रुटि हुई</string>
     <string name="biometriccompat_long_init_error">आरंभ करने में बहुत समय लग रहा है</string>
     <string name="biometriccompat_untrusted_a11y_error">संदिग्ध एक्सेसिबिलिटी सेवा का पता चला। उपयोगकर्ता ने बायोमेट्रिक सत्यापन रोकने का निर्णय लिया</string>
     <string name="biometriccompat_window_error">बायोमेट्रिक प्रमाणीकरण शुरू नहीं किया जा सकता क्योंकि ऐप विंडो अग्रभूमि में नहीं है</string>
-    <string name="biometriccompat_api_disabled_error">बायोमेट्रिक API अक्षम है</string>
+    <string name="biometriccompat_api_disabled_error">बायोमेट्रिक प्रमाणीकरण उपलब्ध नहीं है</string>
     <string name="biometriccompat_start_authentication_error">बायोमेट्रिक प्रमाणीकरण शुरू नहीं किया जा सकता</string>
     <string name="biometriccompat_generic_error">बायोमेट्रिक प्रमाणीकरण के दौरान कुछ गलत हुआ</string>
     <string name="biometriccompat_generic_error_with_code">प्रमाणीकरण त्रुटि (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">आवश्यक क्रिप्टोग्राफ़िक ऑब्जेक्ट अस्वीकार कर दिया गया</string>
     <string name="biometriccompat_required_crypto_missing_error">आवश्यक क्रिप्टोग्राफ़िक परिणाम के बिना बायोमेट्रिक प्रमाणीकरण पूरा हुआ</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">सॉफ़्टवेयर बायोमेट्रिक मॉड्यूल %1$s हार्डवेयर-समर्थित CryptoObject का उपयोग नहीं कर सकता</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">यह बायोमेट्रिक तरीका इस सुरक्षित कार्रवाई को पूरा नहीं कर सकता</string>
     <string name="biometriccompat_activity_destroyed_error">ऐक्टिविटी नष्ट होने के कारण बायोमेट्रिक प्रमाणीकरण बाधित हो गया</string>
     <string name="biometriccompat_internal_error">आंतरिक बायोमेट्रिक त्रुटि हुई</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">डिवाइस माइक्रोफ़ोन अनब्लॉक करें</string>
@@ -114,3 +114,8 @@
     <string name="biometriccompat_fingerprint_error_lockout">बहुत अधिक प्रयास। कृपया बाद में फिर से कोशिश करें।</string>
     <string name="biometriccompat_fingerprint_not_recognized">पहचाना नहीं गया</string>
 </resources>
+
+
+
+
+

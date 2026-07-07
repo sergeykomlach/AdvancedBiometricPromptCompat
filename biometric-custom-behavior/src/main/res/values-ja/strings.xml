@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">行動認証がタイムアウトしました</string>
     <string name="biometriccompat_behavior_help_unavailable">行動認証は利用できません</string>
     <string name="biometriccompat_behavior_help_sample_missing">行動サンプルが不足しているか不完全です</string>
-    <string name="biometriccompat_behavior_help_not_registered">行動生体認証が登録されていません</string>
-    <string name="biometriccompat_behavior_help_enrolled">行動テンプレートを登録しました: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">行動プロフィールはまだ設定されていません</string>
+    <string name="biometriccompat_behavior_help_enrolled">行動プロフィールを保存しました: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">行動生体認証が受け入れられました</string>
     <string name="biometriccompat_behavior_help_not_matched">行動生体認証が一致しませんでした</string>
     <string name="biometriccompat_behavior_help_lockout">行動認証は一時的にロックされています</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">行動を確認しています</string>
 </resources>
+
+

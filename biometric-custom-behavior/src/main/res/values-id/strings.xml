@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Waktu autentikasi perilaku habis</string>
     <string name="biometriccompat_behavior_help_unavailable">Autentikasi perilaku tidak tersedia</string>
     <string name="biometriccompat_behavior_help_sample_missing">Sampel perilaku tidak ada atau tidak lengkap</string>
-    <string name="biometriccompat_behavior_help_not_registered">Biometrik perilaku belum terdaftar</string>
-    <string name="biometriccompat_behavior_help_enrolled">Template perilaku terdaftar: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Profil perilaku belum disiapkan</string>
+    <string name="biometriccompat_behavior_help_enrolled">Profil perilaku disimpan: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Biometrik perilaku diterima</string>
     <string name="biometriccompat_behavior_help_not_matched">Biometrik perilaku tidak cocok</string>
     <string name="biometriccompat_behavior_help_lockout">Autentikasi perilaku dikunci sementara</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Memeriksa perilaku</string>
 </resources>
+
+

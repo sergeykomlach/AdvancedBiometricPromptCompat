@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">फ़िंगरप्रिंट प्रमाणीकरण का समय समाप्त हो गया</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">नए ऑपरेशन द्वारा रद्द किया गया</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK फ़िंगरप्रिंट रीडर कनेक्ट नहीं है</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">ZK फ़िंगरप्रिंट रीडर के लिए USB अनुमति अस्वीकृत</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK फ़िंगरप्रिंट रीडर उपलब्ध नहीं है</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">फिंगरप्रिंट रीडर कनेक्ट नहीं है</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">फिंगरप्रिंट रीडर के लिए USB अनुमति अस्वीकृत</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">फिंगरप्रिंट रीडर उपलब्ध नहीं है</string>
     <string name="biometriccompat_zkfinger_help_not_registered">फ़िंगरप्रिंट पंजीकृत नहीं है</string>
     <string name="biometriccompat_zkfinger_help_already_registered">यह फ़िंगरप्रिंट पहले से पंजीकृत है</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">नामांकन के सभी स्कैन के लिए वही उंगली उपयोग करें</string>
     <string name="biometriccompat_zkfinger_help_scan_again">अपनी उंगली फिर से स्कैन करें</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">आवश्यक ZK रीडर स्कैन: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">आवश्यक फिंगरप्रिंट स्कैन: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">स्वीकृत स्कैन: %1$d/%2$d। उसी उंगली को उठाकर फिर से रखें</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">फ़िंगरप्रिंट नामांकन पूरा किया जा रहा है</string>
     <string name="biometriccompat_zkfinger_help_template_error">फ़िंगरप्रिंट टेम्पलेट संसाधित नहीं किया जा सका</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK फ़िंगरप्रिंट रीडर लॉक है। बाद में फिर से प्रयास करें</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK फ़िंगरप्रिंट रीडर स्थायी रूप से लॉक है</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">अपनी उंगली ZK रीडर पर रखें</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">पंजीकरण के लिए अपनी उंगली ZK रीडर पर रखें</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">फिंगरप्रिंट रीडर लॉक है। बाद में फिर से प्रयास करें</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">फिंगरप्रिंट रीडर स्थायी रूप से लॉक है</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">अपनी उंगली फिंगरप्रिंट रीडर पर रखें</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">पंजीकरण के लिए अपनी उंगली फिंगरप्रिंट रीडर पर रखें</string>
 </resources>

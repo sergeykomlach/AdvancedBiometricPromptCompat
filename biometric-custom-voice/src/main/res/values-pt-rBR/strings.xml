@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Tempo esgotado na autenticação por voz</string>
     <string name="biometriccompat_voice_help_unavailable">A autenticação por voz não está disponível</string>
     <string name="biometriccompat_voice_help_permission_required">A permissão do microfone é obrigatória para a autenticação por voz</string>
-    <string name="biometriccompat_voice_help_sample_required">É necessária uma amostra de voz. Forneça uma amostra gravada ou um embedding de voz pré-calculado.</string>
-    <string name="biometriccompat_voice_help_not_registered">Nenhuma biometria de voz está cadastrada. Grave e cadastre amostras de voz antes de se autenticar.</string>
-    <string name="biometriccompat_voice_help_enrolled">Modelo de voz cadastrado: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">É necessária uma amostra de voz. Grave sua voz para continuar.</string>
+    <string name="biometriccompat_voice_help_not_registered">O desbloqueio por voz ainda não está configurado. Grave sua voz primeiro.</string>
+    <string name="biometriccompat_voice_help_enrolled">Perfil de voz salvo: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Biometria de voz aceita</string>
     <string name="biometriccompat_voice_help_not_matched">A biometria de voz não correspondeu</string>
     <string name="biometriccompat_voice_help_lockout">A autenticação por voz está temporariamente bloqueada</string>
     <string name="biometriccompat_voice_help_lockout_permanent">A autenticação por voz está permanentemente bloqueada</string>
     <string name="biometriccompat_voice_help_sample_valid">A amostra de voz é válida</string>
-    <string name="biometriccompat_voice_help_sample_missing">A amostra de voz está ausente ou incompleta. Forneça áudio PCM ou um embedding de voz válido.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">A taxa de amostragem da amostra de voz está muito baixa. Use PCM mono de 16 kHz quando possível.</string>
+    <string name="biometriccompat_voice_help_sample_missing">A amostra de voz está ausente ou incompleta. Grave uma nova amostra de voz.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">A qualidade da amostra de voz está muito baixa. Grave uma amostra mais nítida.</string>
     <string name="biometriccompat_voice_help_sample_short">A amostra de voz está muito curta. Fale naturalmente por pelo menos um segundo.</string>
     <string name="biometriccompat_voice_help_sample_long">A amostra de voz está muito longa. Mantenha a amostra de voz abaixo de oito segundos.</string>
     <string name="biometriccompat_voice_help_sample_quiet">A amostra de voz está muito baixa. Aproxime-se do microfone e tente novamente.</string>
     <string name="biometriccompat_voice_help_sample_flat">A amostra de voz tem pouca variação. Diga uma frase clara e tente novamente.</string>
     <string name="biometriccompat_voice_help_sample_clipped">A amostra de voz está estourada. Reduza o ganho do microfone ou afaste-se um pouco.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">A amostra de voz parece repetida ou sintética. Grave uma nova frase natural.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">O embedding de voz é inválido. Forneça um embedding de locutor não vazio com valores finitos.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Não foi possível usar esta amostra de voz. Grave uma nova amostra de voz.</string>
     <string name="biometriccompat_voice_button_content_description">Captura de voz</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Gravar amostra de voz</string>
     <string name="biometriccompat_voice_overlay_title_auth">Confirme sua voz</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Gravando amostra de voz...</string>
     <string name="biometriccompat_voice_status_checking">Verificando a voz</string>
 </resources>
+
+
+
+
+
+

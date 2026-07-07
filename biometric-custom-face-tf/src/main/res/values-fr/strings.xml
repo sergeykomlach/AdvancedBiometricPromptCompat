@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Erreur de caméra (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">La caméra faciale n’est pas disponible</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Alignez votre visage avec la caméra</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Alignez votre visage pour enregistrer FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Alignez votre visage pour configurer le déverrouillage facial</string>
 </resources>

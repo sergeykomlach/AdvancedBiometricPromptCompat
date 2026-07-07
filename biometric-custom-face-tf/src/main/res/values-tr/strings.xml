@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Kamera hatası (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Yüz kamerası kullanılamıyor</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Yüzünüzü kamerayla hizalayın</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">FaceTF kaydı için yüzünüzü hizalayın</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Yüzünüzü hizalayarak yüzle kilit açmayı ayarlayın</string>
 </resources>

@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Time-out bij gedragsauthenticatie</string>
     <string name="biometriccompat_behavior_help_unavailable">Gedragsauthenticatie is niet beschikbaar</string>
     <string name="biometriccompat_behavior_help_sample_missing">Gedragsmonster ontbreekt of is onvolledig</string>
-    <string name="biometriccompat_behavior_help_not_registered">Gedragsbiometrie is niet geregistreerd</string>
-    <string name="biometriccompat_behavior_help_enrolled">Gedragssjabloon geregistreerd: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Er is geen gedragsprofiel ingesteld</string>
+    <string name="biometriccompat_behavior_help_enrolled">Gedragsprofiel opgeslagen: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Gedragsbiometrie geaccepteerd</string>
     <string name="biometriccompat_behavior_help_not_matched">Gedragsbiometrie kwam niet overeen</string>
     <string name="biometriccompat_behavior_help_lockout">Gedragsauthenticatie is tijdelijk vergrendeld</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Gedrag controleren</string>
 </resources>
+
+

@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">व्यवहार प्रमाणीकरण का समय समाप्त हो गया</string>
     <string name="biometriccompat_behavior_help_unavailable">व्यवहार प्रमाणीकरण उपलब्ध नहीं है</string>
     <string name="biometriccompat_behavior_help_sample_missing">व्यवहार नमूना गायब है या अधूरा है</string>
-    <string name="biometriccompat_behavior_help_not_registered">व्यवहार बायोमेट्रिक पंजीकृत नहीं है</string>
-    <string name="biometriccompat_behavior_help_enrolled">व्यवहार टेम्पलेट पंजीकृत: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">व्यवहार प्रोफ़ाइल अभी सेट नहीं है</string>
+    <string name="biometriccompat_behavior_help_enrolled">व्यवहार प्रोफ़ाइल सहेजी गई: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">व्यवहार बायोमेट्रिक स्वीकार किया गया</string>
     <string name="biometriccompat_behavior_help_not_matched">व्यवहार बायोमेट्रिक मेल नहीं खाया</string>
     <string name="biometriccompat_behavior_help_lockout">व्यवहार प्रमाणीकरण अस्थायी रूप से लॉक है</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">व्यवहार जाँचा जा रहा है</string>
 </resources>
+
+

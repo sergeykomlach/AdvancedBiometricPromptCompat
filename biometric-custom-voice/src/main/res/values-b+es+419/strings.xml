@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Se agotó el tiempo de autenticación por voz</string>
     <string name="biometriccompat_voice_help_unavailable">La autenticación por voz no está disponible</string>
     <string name="biometriccompat_voice_help_permission_required">Se requiere permiso de micrófono para la autenticación por voz</string>
-    <string name="biometriccompat_voice_help_sample_required">Se requiere una muestra de voz. Proporciona una muestra grabada o una incrustación de voz calculada previamente.</string>
-    <string name="biometriccompat_voice_help_not_registered">No hay ninguna biometría de voz registrada. Graba y registra muestras de voz antes de autenticarte.</string>
-    <string name="biometriccompat_voice_help_enrolled">Plantilla de voz registrada: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Se requiere una muestra de voz. Graba tu voz para continuar.</string>
+    <string name="biometriccompat_voice_help_not_registered">Aún no hay desbloqueo por voz configurado. Graba tu voz primero.</string>
+    <string name="biometriccompat_voice_help_enrolled">Perfil de voz guardado: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Biometría de voz aceptada</string>
     <string name="biometriccompat_voice_help_not_matched">La biometría de voz no coincidió</string>
     <string name="biometriccompat_voice_help_lockout">La autenticación por voz está bloqueada temporalmente</string>
     <string name="biometriccompat_voice_help_lockout_permanent">La autenticación por voz está bloqueada permanentemente</string>
     <string name="biometriccompat_voice_help_sample_valid">La muestra de voz es válida</string>
-    <string name="biometriccompat_voice_help_sample_missing">La muestra de voz falta o está incompleta. Proporciona audio PCM o una incrustación de voz válida.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">La frecuencia de muestreo de la muestra de voz es demasiado baja. Usa PCM mono de 16 kHz cuando sea posible.</string>
+    <string name="biometriccompat_voice_help_sample_missing">La muestra de voz falta o está incompleta. Graba una nueva muestra de voz.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">La calidad de la muestra de voz es demasiado baja. Graba una muestra más clara.</string>
     <string name="biometriccompat_voice_help_sample_short">La muestra de voz es demasiado corta. Habla de forma natural durante al menos un segundo.</string>
     <string name="biometriccompat_voice_help_sample_long">La muestra de voz es demasiado larga. Mantén la muestra de voz por debajo de ocho segundos.</string>
     <string name="biometriccompat_voice_help_sample_quiet">La muestra de voz es demasiado baja. Acércate al micrófono e inténtalo de nuevo.</string>
     <string name="biometriccompat_voice_help_sample_flat">La muestra de voz tiene muy poca variación. Di una frase clara e inténtalo de nuevo.</string>
     <string name="biometriccompat_voice_help_sample_clipped">La muestra de voz está saturada. Baja la ganancia del micrófono o aléjate un poco.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">La muestra de voz parece repetida o sintética. Graba una frase natural nueva.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">La incrustación de voz no es válida. Proporciona una incrustación de hablante no vacía con valores finitos.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">No se pudo usar esta muestra de voz. Graba una nueva muestra de voz.</string>
     <string name="biometriccompat_voice_button_content_description">Captura de voz</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Grabar muestra de voz</string>
     <string name="biometriccompat_voice_overlay_title_auth">Confirma tu voz</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Grabando muestra de voz...</string>
     <string name="biometriccompat_voice_status_checking">Comprobando la voz</string>
 </resources>
+
+
+
+
+
+

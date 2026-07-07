@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Se agotó el tiempo de autenticación de comportamiento</string>
     <string name="biometriccompat_behavior_help_unavailable">La autenticación de comportamiento no está disponible</string>
     <string name="biometriccompat_behavior_help_sample_missing">La muestra de comportamiento falta o está incompleta</string>
-    <string name="biometriccompat_behavior_help_not_registered">No hay biometría de comportamiento registrada</string>
-    <string name="biometriccompat_behavior_help_enrolled">Plantilla de comportamiento registrada: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">No hay un perfil de comportamiento configurado</string>
+    <string name="biometriccompat_behavior_help_enrolled">Perfil de comportamiento guardado: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Biometría de comportamiento aceptada</string>
     <string name="biometriccompat_behavior_help_not_matched">La biometría de comportamiento no coincidió</string>
     <string name="biometriccompat_behavior_help_lockout">La autenticación de comportamiento está bloqueada temporalmente</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Comprobando el comportamiento</string>
 </resources>
+
+

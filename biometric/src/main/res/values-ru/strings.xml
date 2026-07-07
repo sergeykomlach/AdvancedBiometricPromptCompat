@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Биометрические датчики сейчас недоступны.\nПожалуйста, используйте PIN-код, графический ключ или пароль устройства, чтобы подтвердить свою личность.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nВнимание: %2$s не смог проверить безопасность одной из служб специальных возможностей. Она может записывать ваш PIN-код, графический ключ или пароль устройства.\nПродолжайте, только если вы полностью уверены, что ваши действия безопасны.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut мешает корректной работе оптического датчика</string>
+    <string name="biometriccompat_widegamut_error">Текущие настройки экрана мешают корректной работе оптического датчика</string>
     <string name="biometriccompat_permession_error">Не предоставлены необходимые разрешения</string>
     <string name="biometriccompat_camera_blocked">Датчик камеры заблокирован переключателем конфиденциальности</string>
-    <string name="biometriccompat_cryptography_not_supported_error">Криптография не поддерживается при резервном использовании DeviceCredential</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Это защищённое действие недоступно с резервным входом через блокировку экрана</string>
     <string name="biometriccompat_credentials_error">Учётные данные были запрошены, но пользователь отменил проверку</string>
-    <string name="biometriccompat_cryptography_failed_error">Во время криптографической проверки произошла ошибка</string>
+    <string name="biometriccompat_cryptography_failed_error">Во время защищённой проверки произошла ошибка</string>
     <string name="biometriccompat_long_init_error">Инициализация занимает слишком много времени</string>
     <string name="biometriccompat_untrusted_a11y_error">Обнаружена подозрительная служба специальных возможностей. Пользователь решил прервать биометрическую проверку</string>
     <string name="biometriccompat_window_error">Не удалось запустить биометрическую аутентификацию, потому что окно приложения не находится на переднем плане</string>
-    <string name="biometriccompat_api_disabled_error">Биометрический API отключён</string>
+    <string name="biometriccompat_api_disabled_error">Биометрическая аутентификация недоступна</string>
     <string name="biometriccompat_start_authentication_error">Не удалось запустить биометрическую аутентификацию</string>
     <string name="biometriccompat_generic_error">Во время биометрической аутентификации что-то пошло не так</string>
     <string name="biometriccompat_generic_error_with_code">Ошибка аутентификации (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">Требуемый криптографический объект был отклонён</string>
     <string name="biometriccompat_required_crypto_missing_error">Биометрическая аутентификация завершилась без требуемого криптографического результата</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Программный биометрический модуль %1$s не может использовать аппаратно-защищенный CryptoObject</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Этот биометрический метод не может выполнить это защищённое действие</string>
     <string name="biometriccompat_activity_destroyed_error">Биометрическая аутентификация была прервана, поскольку активность была уничтожена</string>
     <string name="biometriccompat_internal_error">Произошла внутренняя биометрическая ошибка</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Разблокировать микрофон устройства</string>
@@ -114,3 +114,7 @@
     <string name="biometriccompat_fingerprint_error_lockout">Слишком много попыток. Повторите позже.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Не распознано</string>
 </resources>
+
+
+
+

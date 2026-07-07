@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Lỗi camera (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Không thể dùng camera khuôn mặt</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Căn khuôn mặt của bạn với camera</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Căn khuôn mặt để đăng ký FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Căn khuôn mặt để thiết lập mở khóa khuôn mặt</string>
 </resources>

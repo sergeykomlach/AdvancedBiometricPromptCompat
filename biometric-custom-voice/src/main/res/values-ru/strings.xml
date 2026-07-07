@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Время ожидания аутентификации по голосу истекло</string>
     <string name="biometriccompat_voice_help_unavailable">Аутентификация по голосу недоступна</string>
     <string name="biometriccompat_voice_help_permission_required">Для аутентификации по голосу требуется разрешение на микрофон</string>
-    <string name="biometriccompat_voice_help_sample_required">Требуется голосовой образец. Предоставьте записанный голосовой образец или заранее вычисленный голосовой вектор.</string>
-    <string name="biometriccompat_voice_help_not_registered">Не зарегистрировано ни одной голосовой биометрии. Запишите и зарегистрируйте голосовые образцы перед аутентификацией.</string>
-    <string name="biometriccompat_voice_help_enrolled">Голосовой шаблон зарегистрирован: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Требуется голосовой образец. Запишите свой голос, чтобы продолжить.</string>
+    <string name="biometriccompat_voice_help_not_registered">Разблокировка по голосу ещё не настроена. Сначала запишите свой голос.</string>
+    <string name="biometriccompat_voice_help_enrolled">Голосовой профиль сохранён: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Голосовая биометрия подтверждена</string>
     <string name="biometriccompat_voice_help_not_matched">Голосовая биометрия не совпала</string>
     <string name="biometriccompat_voice_help_lockout">Аутентификация по голосу временно заблокирована</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Аутентификация по голосу заблокирована навсегда</string>
     <string name="biometriccompat_voice_help_sample_valid">Голосовой образец корректен</string>
-    <string name="biometriccompat_voice_help_sample_missing">Голосовой образец отсутствует или неполон. Предоставьте PCM-аудио или корректный голосовой вектор.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">Частота дискретизации голосового образца слишком низкая. По возможности используйте моно PCM 16 кГц.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Голосовой образец отсутствует или неполон. Запишите новый голосовой образец.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Качество голосового образца слишком низкое. Запишите более чёткий голосовой образец.</string>
     <string name="biometriccompat_voice_help_sample_short">Голосовой образец слишком короткий. Говорите естественно не менее одной секунды.</string>
     <string name="biometriccompat_voice_help_sample_long">Голосовой образец слишком длинный. Держите голосовой образец короче восьми секунд.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Голосовой образец слишком тихий. Подойдите ближе к микрофону и попробуйте снова.</string>
     <string name="biometriccompat_voice_help_sample_flat">В голосовом образце слишком мало вариации. Произнесите четкую фразу и попробуйте снова.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Голосовой образец перегружен. Уменьшите усиление микрофона или немного отодвиньтесь.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Голосовой образец похож на повторенный или синтетический. Запишите новую естественную фразу.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Голосовой вектор некорректен. Предоставьте непустой вектор диктора с конечными значениями.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Этот голосовой образец не удалось использовать. Запишите новый голосовой образец.</string>
     <string name="biometriccompat_voice_button_content_description">Захват голоса</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Записать голосовой образец</string>
     <string name="biometriccompat_voice_overlay_title_auth">Подтвердите свой голос</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Запись голосового образца...</string>
     <string name="biometriccompat_voice_status_checking">Проверка голоса</string>
 </resources>
+
+
+
+
+
+

@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">خطأ في الكاميرا (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">كاميرا الوجه غير متاحة</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">حاذِ وجهك مع الكاميرا</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">حاذِ وجهك لتسجيل FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">حاذِ وجهك لإعداد إلغاء القفل بالوجه</string>
 </resources>

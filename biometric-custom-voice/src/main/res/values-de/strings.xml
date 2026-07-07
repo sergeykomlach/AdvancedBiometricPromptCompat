@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Zeitüberschreitung bei der Sprachauthentifizierung</string>
     <string name="biometriccompat_voice_help_unavailable">Sprachauthentifizierung ist nicht verfügbar</string>
     <string name="biometriccompat_voice_help_permission_required">Für die Sprachauthentifizierung ist die Mikrofonberechtigung erforderlich</string>
-    <string name="biometriccompat_voice_help_sample_required">Eine Sprachprobe ist erforderlich. Stellen Sie eine aufgezeichnete Sprachprobe oder ein vorab berechnetes Stimme-Embedding bereit.</string>
-    <string name="biometriccompat_voice_help_not_registered">Es ist keine Sprachbiometrie registriert. Nehmen Sie vor der Authentifizierung Sprachproben auf und registrieren Sie sie.</string>
-    <string name="biometriccompat_voice_help_enrolled">Sprachvorlage registriert: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Eine Sprachprobe ist erforderlich. Nehmen Sie Ihre Stimme auf, um fortzufahren.</string>
+    <string name="biometriccompat_voice_help_not_registered">Sprachentsperrung ist noch nicht eingerichtet. Nehmen Sie zuerst Ihre Stimme auf.</string>
+    <string name="biometriccompat_voice_help_enrolled">Sprachprofil gespeichert: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Sprachbiometrie akzeptiert</string>
     <string name="biometriccompat_voice_help_not_matched">Sprachbiometrie stimmte nicht überein</string>
     <string name="biometriccompat_voice_help_lockout">Sprachauthentifizierung ist vorübergehend gesperrt</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Sprachauthentifizierung ist dauerhaft gesperrt</string>
     <string name="biometriccompat_voice_help_sample_valid">Sprachprobe ist gültig</string>
-    <string name="biometriccompat_voice_help_sample_missing">Die Sprachprobe fehlt oder ist unvollständig. Stellen Sie PCM-Audio oder ein gültiges Stimme-Embedding bereit.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">Die Abtastrate der Sprachprobe ist zu niedrig. Verwenden Sie nach Möglichkeit 16-kHz-Mono-PCM.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Die Sprachprobe fehlt oder ist unvollständig. Nehmen Sie eine neue Sprachprobe auf.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Die Qualität der Sprachprobe ist zu niedrig. Nehmen Sie eine deutlichere Sprachprobe auf.</string>
     <string name="biometriccompat_voice_help_sample_short">Die Sprachprobe ist zu kurz. Sprechen Sie natürlich mindestens eine Sekunde lang.</string>
     <string name="biometriccompat_voice_help_sample_long">Die Sprachprobe ist zu lang. Halten Sie die Sprachprobe unter acht Sekunden.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Die Sprachprobe ist zu leise. Gehen Sie näher an das Mikrofon heran und versuchen Sie es erneut.</string>
     <string name="biometriccompat_voice_help_sample_flat">Die Sprachprobe hat zu wenig Variation. Sprechen Sie eine klare Phrase und versuchen Sie es erneut.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Die Sprachprobe ist übersteuert. Verringern Sie die Mikrofonverstärkung oder gehen Sie etwas weiter weg.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Die Sprachprobe wirkt wiederholt oder synthetisch. Nehmen Sie eine neue natürliche Phrase auf.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Das Stimme-Embedding ist ungültig. Stellen Sie ein nicht leeres Sprecher-Embedding mit endlichen Werten bereit.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Diese Sprachprobe konnte nicht verwendet werden. Nehmen Sie eine neue Sprachprobe auf.</string>
     <string name="biometriccompat_voice_button_content_description">Spracherfassung</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Sprachprobe aufnehmen</string>
     <string name="biometriccompat_voice_overlay_title_auth">Bestätigen Sie Ihre Stimme</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Sprachprobe wird aufgenommen...</string>
     <string name="biometriccompat_voice_status_checking">Stimme wird geprüft</string>
 </resources>
+
+
+
+
+
+

@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Le délai d’authentification comportementale est dépassé</string>
     <string name="biometriccompat_behavior_help_unavailable">L’authentification comportementale n’est pas disponible</string>
     <string name="biometriccompat_behavior_help_sample_missing">L’échantillon comportemental est manquant ou incomplet</string>
-    <string name="biometriccompat_behavior_help_not_registered">La biométrie comportementale n’est pas enregistrée</string>
-    <string name="biometriccompat_behavior_help_enrolled">Modèle comportemental enregistré : %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Aucun profil comportemental n’est configuré</string>
+    <string name="biometriccompat_behavior_help_enrolled">Profil comportemental enregistré : %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Biométrie comportementale acceptée</string>
     <string name="biometriccompat_behavior_help_not_matched">La biométrie comportementale ne correspond pas</string>
     <string name="biometriccompat_behavior_help_lockout">L’authentification comportementale est temporairement verrouillée</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Vérification du comportement</string>
 </resources>
+
+

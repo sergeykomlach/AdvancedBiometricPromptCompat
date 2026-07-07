@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">行為驗證逾時</string>
     <string name="biometriccompat_behavior_help_unavailable">行為驗證無法使用</string>
     <string name="biometriccompat_behavior_help_sample_missing">行為樣本缺失或不完整</string>
-    <string name="biometriccompat_behavior_help_not_registered">行為生物辨識未註冊</string>
-    <string name="biometriccompat_behavior_help_enrolled">行為範本已註冊：%1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">尚未設定行為資料</string>
+    <string name="biometriccompat_behavior_help_enrolled">行為資料已儲存：%1$s</string>
     <string name="biometriccompat_behavior_help_accepted">行為生物辨識已接受</string>
     <string name="biometriccompat_behavior_help_not_matched">行為生物辨識不相符</string>
     <string name="biometriccompat_behavior_help_lockout">行為驗證已暫時鎖定</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">正在檢查行為</string>
 </resources>
+
+

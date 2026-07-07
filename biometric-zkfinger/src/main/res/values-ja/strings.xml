@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">指紋認証がタイムアウトしました</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">新しい操作によってキャンセルされました</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK 指紋リーダーが接続されていません</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">ZK 指紋リーダーの USB 権限が拒否されました</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK 指紋リーダーを利用できません</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">指紋リーダーが接続されていません</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">指紋リーダーの USB 権限が拒否されました</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">指紋リーダーを利用できません</string>
     <string name="biometriccompat_zkfinger_help_not_registered">指紋が登録されていません</string>
     <string name="biometriccompat_zkfinger_help_already_registered">この指紋はすでに登録されています</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">登録中のすべてのスキャンで同じ指を使用してください</string>
     <string name="biometriccompat_zkfinger_help_scan_again">もう一度指をスキャンしてください</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">必要な ZK リーダースキャン数: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">必要な指紋スキャン数: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">受け付けたスキャン: %1$d/%2$d。同じ指を離して再度置いてください</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">指紋登録を完了しています</string>
     <string name="biometriccompat_zkfinger_help_template_error">指紋テンプレートを処理できませんでした</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK 指紋リーダーはロックされています。後でもう一度お試しください</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK 指紋リーダーは永久にロックされています</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">ZK リーダーに指を置いてください</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">登録するには ZK リーダーに指を置いてください</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">指紋リーダーがロックされています。後でもう一度お試しください</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">指紋リーダーが恒久的にロックされています</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">指紋リーダーに指を置いてください</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">登録するには指紋リーダーに指を置いてください</string>
 </resources>

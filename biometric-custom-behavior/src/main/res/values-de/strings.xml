@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Zeitüberschreitung bei der Verhaltensauthentifizierung</string>
     <string name="biometriccompat_behavior_help_unavailable">Verhaltensauthentifizierung ist nicht verfügbar</string>
     <string name="biometriccompat_behavior_help_sample_missing">Verhaltensprobe fehlt oder ist unvollständig</string>
-    <string name="biometriccompat_behavior_help_not_registered">Verhaltensbiometrie ist nicht registriert</string>
-    <string name="biometriccompat_behavior_help_enrolled">Verhaltensvorlage registriert: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Es ist kein Verhaltensprofil eingerichtet</string>
+    <string name="biometriccompat_behavior_help_enrolled">Verhaltensprofil gespeichert: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Verhaltensbiometrie akzeptiert</string>
     <string name="biometriccompat_behavior_help_not_matched">Verhaltensbiometrie stimmte nicht überein</string>
     <string name="biometriccompat_behavior_help_lockout">Verhaltensauthentifizierung ist vorübergehend gesperrt</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Verhalten wird geprüft</string>
 </resources>
+
+

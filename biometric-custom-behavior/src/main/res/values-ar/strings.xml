@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">انتهت مهلة المصادقة السلوكية</string>
     <string name="biometriccompat_behavior_help_unavailable">المصادقة السلوكية غير متاحة</string>
     <string name="biometriccompat_behavior_help_sample_missing">عينة السلوك مفقودة أو غير مكتملة</string>
-    <string name="biometriccompat_behavior_help_not_registered">القياسات الحيوية السلوكية غير مسجلة</string>
-    <string name="biometriccompat_behavior_help_enrolled">تم تسجيل قالب السلوك: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">لم يتم إعداد ملف السلوك بعد</string>
+    <string name="biometriccompat_behavior_help_enrolled">تم حفظ ملف السلوك: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">تم قبول القياسات الحيوية السلوكية</string>
     <string name="biometriccompat_behavior_help_not_matched">لم تتطابق القياسات الحيوية السلوكية</string>
     <string name="biometriccompat_behavior_help_lockout">المصادقة السلوكية مقفلة مؤقتًا</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">جارٍ التحقق من السلوك</string>
 </resources>
+
+

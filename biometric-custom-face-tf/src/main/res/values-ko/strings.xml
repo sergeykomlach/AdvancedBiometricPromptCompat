@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">카메라 오류 (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">얼굴 카메라를 사용할 수 없습니다</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">얼굴을 카메라에 맞추세요</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">FaceTF 등록을 위해 얼굴을 맞추세요</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">얼굴 잠금 해제를 설정하려면 얼굴을 맞추세요</string>
 </resources>

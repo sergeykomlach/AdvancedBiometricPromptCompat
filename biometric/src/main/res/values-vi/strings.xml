@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Cảm biến sinh trắc học hiện không khả dụng.\nVui lòng dùng mã PIN, hình mở khóa hoặc mật khẩu thiết bị để xác nhận danh tính của bạn.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nCảnh báo: %2$s không thể xác minh mức độ an toàn của một trong các dịch vụ trợ năng. Dịch vụ đó có thể ghi lại mã PIN, hình mở khóa hoặc mật khẩu thiết bị của bạn.\nChỉ tiếp tục nếu bạn hoàn toàn chắc chắn rằng các thao tác của mình là an toàn.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut cản trở cảm biến quang học hoạt động đúng cách</string>
+    <string name="biometriccompat_widegamut_error">Cài đặt màn hình hiện tại cản trở cảm biến quang học hoạt động đúng cách</string>
     <string name="biometriccompat_permession_error">Chưa được cấp các quyền cần thiết</string>
     <string name="biometriccompat_camera_blocked">Cảm biến camera bị chặn bởi công tắc riêng tư</string>
-    <string name="biometriccompat_cryptography_not_supported_error">Không hỗ trợ mật mã học với phương án dự phòng DeviceCredential</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Không thể thực hiện thao tác bảo mật này bằng phương án dự phòng khóa màn hình</string>
     <string name="biometriccompat_credentials_error">Đã yêu cầu thông tin xác thực nhưng người dùng đã hủy xác minh</string>
-    <string name="biometriccompat_cryptography_failed_error">Đã xảy ra lỗi trong quá trình xác minh mật mã học</string>
+    <string name="biometriccompat_cryptography_failed_error">Đã xảy ra lỗi trong quá trình xác minh bảo mật</string>
     <string name="biometriccompat_long_init_error">Quá trình khởi tạo mất quá nhiều thời gian</string>
     <string name="biometriccompat_untrusted_a11y_error">Phát hiện dịch vụ trợ năng đáng ngờ. Người dùng đã quyết định dừng xác minh sinh trắc học</string>
     <string name="biometriccompat_window_error">Không thể bắt đầu xác thực sinh trắc học vì cửa sổ ứng dụng không ở nền trước</string>
-    <string name="biometriccompat_api_disabled_error">API sinh trắc học đã bị tắt</string>
+    <string name="biometriccompat_api_disabled_error">Không thể dùng xác thực sinh trắc học</string>
     <string name="biometriccompat_start_authentication_error">Không thể bắt đầu xác thực sinh trắc học</string>
     <string name="biometriccompat_generic_error">Đã xảy ra sự cố trong quá trình xác thực sinh trắc học</string>
     <string name="biometriccompat_generic_error_with_code">Lỗi xác thực (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">Đối tượng mật mã bắt buộc đã bị từ chối</string>
     <string name="biometriccompat_required_crypto_missing_error">Xác thực sinh trắc học đã hoàn tất mà không có kết quả mật mã bắt buộc</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Mô-đun sinh trắc học phần mềm %1$s không thể dùng CryptoObject được phần cứng bảo vệ</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Phương thức sinh trắc học này không thể hoàn thành thao tác bảo mật này</string>
     <string name="biometriccompat_activity_destroyed_error">Xác thực sinh trắc học đã bị gián đoạn vì màn hình hiện tại đã bị hủy</string>
     <string name="biometriccompat_internal_error">Đã xảy ra lỗi sinh trắc học nội bộ</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Bỏ chặn micrô của thiết bị</string>
@@ -114,3 +114,7 @@
     <string name="biometriccompat_fingerprint_error_lockout">Quá nhiều lần thử. Vui lòng thử lại sau.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Không nhận ra</string>
 </resources>
+
+
+
+

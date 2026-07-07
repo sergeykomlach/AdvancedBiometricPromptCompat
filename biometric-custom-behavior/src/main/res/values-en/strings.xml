@@ -3,10 +3,10 @@
     <string name="biometriccompat_behavior_help_timeout">Behavior authentication timed out</string>
     <string name="biometriccompat_behavior_help_unavailable">Behavior authentication is unavailable</string>
     <string name="biometriccompat_behavior_help_sample_missing">Behavior sample is missing or incomplete</string>
-    <string name="biometriccompat_behavior_help_not_registered">No behavior biometric is enrolled</string>
-    <string name="biometriccompat_behavior_help_enrolled">Behavior template enrolled: %1$s</string>
-    <string name="biometriccompat_behavior_help_accepted">Behavior biometric accepted</string>
-    <string name="biometriccompat_behavior_help_not_matched">Behavior biometric did not match</string>
+    <string name="biometriccompat_behavior_help_not_registered">No behavior profile is set up</string>
+    <string name="biometriccompat_behavior_help_enrolled">Behavior profile saved: %1$s</string>
+    <string name="biometriccompat_behavior_help_accepted">Behavior confirmed</string>
+    <string name="biometriccompat_behavior_help_not_matched">Behavior didn't match</string>
     <string name="biometriccompat_behavior_help_lockout">Behavior authentication is temporarily locked</string>
     <string name="biometriccompat_behavior_help_lockout_permanent">Behavior authentication is permanently locked</string>
     <string name="biometriccompat_behavior_help_sample_valid">Behavior sample is valid</string>
@@ -43,3 +43,8 @@
     <string name="biometriccompat_behavior_status_checking">Checking behavior</string>
 
 </resources>
+
+
+
+
+

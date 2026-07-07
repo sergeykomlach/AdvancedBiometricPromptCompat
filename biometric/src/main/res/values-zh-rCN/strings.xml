@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">生物识别传感器当前不可用。\n请使用您的 PIN 码、图案或设备密码来确认您的身份。</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\n警告：%2$s 无法验证其中一项无障碍服务的安全性。它可能会记录您的 PIN 码、图案或设备密码。\n只有在您完全确定自己的操作是安全的情况下才继续。</string>
-    <string name="biometriccompat_widegamut_error">WideGamut 会阻止光学传感器正常工作</string>
+    <string name="biometriccompat_widegamut_error">当前屏幕设置会影响光学传感器正常工作</string>
     <string name="biometriccompat_permession_error">未授予所需权限</string>
     <string name="biometriccompat_camera_blocked">摄像头传感器已被隐私开关阻止</string>
-    <string name="biometriccompat_cryptography_not_supported_error">使用 DeviceCredential 回退时不支持加密功能</string>
+    <string name="biometriccompat_cryptography_not_supported_error">使用屏幕锁作为后备方式时，无法执行此安全操作</string>
     <string name="biometriccompat_credentials_error">已请求凭据，但用户取消了验证</string>
-    <string name="biometriccompat_cryptography_failed_error">加密验证期间发生错误</string>
+    <string name="biometriccompat_cryptography_failed_error">安全验证期间发生错误</string>
     <string name="biometriccompat_long_init_error">初始化耗时过长</string>
     <string name="biometriccompat_untrusted_a11y_error">检测到可疑的无障碍服务。用户决定中断生物识别验证</string>
     <string name="biometriccompat_window_error">无法启动生物识别身份验证，因为应用窗口不在前台</string>
-    <string name="biometriccompat_api_disabled_error">生物识别 API 已被禁用</string>
+    <string name="biometriccompat_api_disabled_error">生物识别身份验证不可用</string>
     <string name="biometriccompat_start_authentication_error">无法启动生物识别身份验证</string>
     <string name="biometriccompat_generic_error">生物识别身份验证期间出现问题</string>
     <string name="biometriccompat_generic_error_with_code">身份验证错误 (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">所需的加密对象已被拒绝</string>
     <string name="biometriccompat_required_crypto_missing_error">生物识别身份验证已完成，但没有所需的加密结果</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">软件生物识别模块 %1$s 无法使用硬件支持的CryptoObject</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">此生物识别方式无法完成此安全操作</string>
     <string name="biometriccompat_activity_destroyed_error">由于当前界面已销毁，生物识别身份验证被中断</string>
     <string name="biometriccompat_internal_error">发生了内部生物识别错误</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">解除设备麦克风限制</string>
@@ -114,3 +114,8 @@
     <string name="biometriccompat_fingerprint_error_lockout">尝试次数过多。请稍后再试。</string>
     <string name="biometriccompat_fingerprint_not_recognized">无法识别</string>
 </resources>
+
+
+
+
+

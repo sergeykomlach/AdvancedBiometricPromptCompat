@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Error de cámara (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">La cámara facial no está disponible</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Alinea tu cara con la cámara</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Alinea tu cara para registrar FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Alinea tu cara para configurar el desbloqueo facial</string>
 </resources>

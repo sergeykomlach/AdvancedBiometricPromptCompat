@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Đã hết thời gian xác thực hành vi</string>
     <string name="biometriccompat_behavior_help_unavailable">Xác thực hành vi không khả dụng</string>
     <string name="biometriccompat_behavior_help_sample_missing">Mẫu hành vi thiếu hoặc chưa đầy đủ</string>
-    <string name="biometriccompat_behavior_help_not_registered">Sinh trắc học hành vi chưa được đăng ký</string>
-    <string name="biometriccompat_behavior_help_enrolled">Mẫu hành vi đã đăng ký: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Chưa thiết lập hồ sơ hành vi</string>
+    <string name="biometriccompat_behavior_help_enrolled">Đã lưu hồ sơ hành vi: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Đã chấp nhận sinh trắc học hành vi</string>
     <string name="biometriccompat_behavior_help_not_matched">Sinh trắc học hành vi không khớp</string>
     <string name="biometriccompat_behavior_help_lockout">Xác thực hành vi tạm thời bị khóa</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Đang kiểm tra hành vi</string>
 </resources>
+
+

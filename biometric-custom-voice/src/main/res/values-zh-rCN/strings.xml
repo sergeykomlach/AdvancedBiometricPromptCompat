@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">语音认证超时</string>
     <string name="biometriccompat_voice_help_unavailable">语音认证不可用</string>
     <string name="biometriccompat_voice_help_permission_required">语音认证需要麦克风权限</string>
-    <string name="biometriccompat_voice_help_sample_required">需要语音样本。请提供已录制的语音样本或预先计算的语音嵌入。</string>
-    <string name="biometriccompat_voice_help_not_registered">尚未注册任何语音生物识别。请先录制并注册语音样本，然后再进行认证。</string>
-    <string name="biometriccompat_voice_help_enrolled">语音模板已注册：%1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">需要语音样本。请先录制您的声音再继续。</string>
+    <string name="biometriccompat_voice_help_not_registered">尚未设置语音解锁。请先录制您的声音。</string>
+    <string name="biometriccompat_voice_help_enrolled">语音资料已保存：%1$s</string>
     <string name="biometriccompat_voice_help_accepted">语音生物识别已接受</string>
     <string name="biometriccompat_voice_help_not_matched">语音生物识别不匹配</string>
     <string name="biometriccompat_voice_help_lockout">语音认证已被临时锁定</string>
     <string name="biometriccompat_voice_help_lockout_permanent">语音认证已被永久锁定</string>
     <string name="biometriccompat_voice_help_sample_valid">语音样本有效</string>
-    <string name="biometriccompat_voice_help_sample_missing">语音样本缺失或不完整。请提供PCM音频或有效的语音嵌入。</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">语音样本的采样率过低。请尽可能使用16 kHz单声道PCM。</string>
+    <string name="biometriccompat_voice_help_sample_missing">语音样本缺失或不完整。请重新录制语音样本。</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">语音样本质量过低。请录制更清晰的语音样本。</string>
     <string name="biometriccompat_voice_help_sample_short">语音样本过短。请至少自然说话一秒钟。</string>
     <string name="biometriccompat_voice_help_sample_long">语音样本过长。请将语音样本控制在八秒以内。</string>
     <string name="biometriccompat_voice_help_sample_quiet">语音样本声音过小。请靠近麦克风后重试。</string>
     <string name="biometriccompat_voice_help_sample_flat">语音样本变化过少。请说出清晰短语后重试。</string>
     <string name="biometriccompat_voice_help_sample_clipped">语音样本发生削波。请降低麦克风增益或稍微远离一些。</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">语音样本看起来像重复或合成内容。请录制一段新的自然短语。</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">语音嵌入无效。请提供包含有限值的非空说话人嵌入。</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">此语音样本无法使用。请重新录制语音样本。</string>
     <string name="biometriccompat_voice_button_content_description">语音采集</string>
     <string name="biometriccompat_voice_overlay_title_enroll">录制语音样本</string>
     <string name="biometriccompat_voice_overlay_title_auth">确认你的声音</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">正在录制语音样本...</string>
     <string name="biometriccompat_voice_status_checking">正在检查语音</string>
 </resources>
+
+
+
+
+
+

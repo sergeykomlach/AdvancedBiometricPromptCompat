@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">カメラエラー (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">顔用カメラを利用できません</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">顔をカメラに合わせてください</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">FaceTF を登録するために顔を合わせてください</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">顔認証を設定するために顔を合わせてください</string>
 </resources>

@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">कैमरा त्रुटि (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">फेस कैमरा उपलब्ध नहीं है</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">अपने चेहरे को कैमरे के साथ संरेखित करें</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">FaceTF नामांकन के लिए चेहरे को संरेखित करें</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">फेस अनलॉक सेट करने के लिए चेहरे को संरेखित करें</string>
 </resources>

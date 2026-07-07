@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">相機錯誤 (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">人臉相機無法使用</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">將你的臉對準相機</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">將你的臉對準以註冊 FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">將臉對準以設定臉部解鎖</string>
 </resources>

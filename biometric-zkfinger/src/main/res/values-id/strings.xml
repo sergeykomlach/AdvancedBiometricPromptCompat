@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Waktu autentikasi sidik jari habis</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Dibatalkan oleh operasi baru</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">Pembaca sidik jari ZK tidak terhubung</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Izin USB ditolak untuk pembaca sidik jari ZK</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Pembaca sidik jari ZK tidak tersedia</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Pembaca sidik jari tidak terhubung</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Izin USB ditolak untuk pembaca sidik jari</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Pembaca sidik jari tidak tersedia</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Sidik jari belum terdaftar</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Sidik jari ini sudah terdaftar</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Gunakan jari yang sama untuk semua pemindaian pendaftaran</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Pindai jari Anda lagi</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Jumlah pemindaian pembaca ZK yang diperlukan: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Pemindaian sidik jari yang diperlukan: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Pemindaian diterima: %1$d/%2$d. Angkat lalu letakkan kembali jari yang sama</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Menyelesaikan pendaftaran sidik jari</string>
     <string name="biometriccompat_zkfinger_help_template_error">Tidak dapat memproses template sidik jari</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Pembaca sidik jari ZK terkunci. Coba lagi nanti</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Pembaca sidik jari ZK terkunci permanen</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Letakkan jari Anda pada pembaca ZK</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Letakkan jari Anda pada pembaca ZK untuk mendaftar</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Pembaca sidik jari terkunci. Coba lagi nanti</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Pembaca sidik jari terkunci permanen</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Letakkan jari Anda pada pembaca sidik jari</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Letakkan jari Anda pada pembaca sidik jari untuk mendaftar</string>
 </resources>

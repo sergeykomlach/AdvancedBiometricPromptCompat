@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">指纹认证超时</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">已被新操作取消</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK 指纹读取器未连接</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">ZK 指纹读取器的 USB 权限被拒绝</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK 指纹读取器不可用</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">指纹读取器未连接</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">指纹读取器的 USB 权限被拒绝</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">指纹读取器不可用</string>
     <string name="biometriccompat_zkfinger_help_not_registered">指纹未注册</string>
     <string name="biometriccompat_zkfinger_help_already_registered">该指纹已注册</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">注册时请始终使用同一根手指</string>
     <string name="biometriccompat_zkfinger_help_scan_again">请再次扫描手指</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">所需 ZK 读取器扫描次数：%1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">所需指纹扫描次数：%1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">已接受扫描：%1$d/%2$d。抬起并再次放下同一根手指</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">正在完成指纹注册</string>
     <string name="biometriccompat_zkfinger_help_template_error">无法处理指纹模板</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK 指纹读取器已锁定。请稍后重试</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK 指纹读取器已被永久锁定</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">请将手指放在 ZK 读取器上</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">请将手指放在 ZK 读取器上进行注册</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">指纹读取器已锁定。请稍后再试</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">指纹读取器已被永久锁定</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">请将手指放在指纹读取器上</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">请将手指放在指纹读取器上进行注册</string>
 </resources>

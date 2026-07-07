@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Parmak izi kimlik doğrulama zaman aşımına uğradı</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Yeni işlem nedeniyle iptal edildi</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK parmak izi okuyucu bağlı değil</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">ZK parmak izi okuyucu için USB izni reddedildi</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK parmak izi okuyucu kullanılamıyor</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Parmak izi okuyucu bağlı değil</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Parmak izi okuyucu için USB izni reddedildi</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Parmak izi okuyucu kullanılamıyor</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Parmak izi kayıtlı değil</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Bu parmak izi zaten kayıtlı</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Kayıt taramalarının tümünde aynı parmağı kullanın</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Parmağınızı tekrar tarayın</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Gerekli ZK okuyucu taramaları: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Gerekli parmak izi taraması: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Kabul edilen taramalar: %1$d/%2$d. Aynı parmağı kaldırıp tekrar yerleştirin</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Parmak izi kaydı tamamlanıyor</string>
     <string name="biometriccompat_zkfinger_help_template_error">Parmak izi şablonu işlenemedi</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK parmak izi okuyucu kilitlendi. Daha sonra tekrar deneyin</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK parmak izi okuyucu kalıcı olarak kilitlendi</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Parmağınızı ZK okuyucuya yerleştirin</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Kaydolmak için parmağınızı ZK okuyucuya yerleştirin</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Parmak izi okuyucu kilitlendi. Daha sonra tekrar deneyin</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Parmak izi okuyucu kalıcı olarak kilitlendi</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Parmağınızı parmak izi okuyucuya yerleştirin</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Kayıt için parmağınızı parmak izi okuyucuya yerleştirin</string>
 </resources>

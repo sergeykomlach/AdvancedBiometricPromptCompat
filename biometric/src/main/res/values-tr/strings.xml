@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Biyometrik sensörler şu anda kullanılamıyor.\nKimliğinizi doğrulamak için lütfen PIN’inizi, deseninizi veya cihaz parolanızı kullanın.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nUyarı: %2$s, erişilebilirlik hizmetlerinden birinin güvenliğini doğrulayamadı. PIN’inizi, deseninizi veya cihaz parolanızı kaydedebilir.\nYalnızca yaptıklarınızın güvenli olduğundan tamamen eminseniz devam edin.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut optik sensörün düzgün çalışmasını engelliyor</string>
+    <string name="biometriccompat_widegamut_error">Geçerli ekran ayarları optik sensörün düzgün çalışmasını engelliyor</string>
     <string name="biometriccompat_permession_error">Gerekli izinler verilmedi</string>
     <string name="biometriccompat_camera_blocked">Kamera sensörü gizlilik anahtarı tarafından engellendi</string>
-    <string name="biometriccompat_cryptography_not_supported_error">DeviceCredential geri dönüşüyle kriptografi desteklenmiyor</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Bu güvenli işlem, ekran kilidi yedeğiyle kullanılamıyor</string>
     <string name="biometriccompat_credentials_error">Kimlik bilgileri istendi, ancak kullanıcı doğrulamayı iptal etti</string>
-    <string name="biometriccompat_cryptography_failed_error">Kriptografik doğrulama sırasında bir hata oluştu</string>
+    <string name="biometriccompat_cryptography_failed_error">Güvenli doğrulama sırasında bir hata oluştu</string>
     <string name="biometriccompat_long_init_error">Başlatma çok uzun sürüyor</string>
     <string name="biometriccompat_untrusted_a11y_error">Şüpheli bir erişilebilirlik hizmeti algılandı. Kullanıcı biyometrik doğrulamayı kesmeye karar verdi</string>
     <string name="biometriccompat_window_error">Uygulama penceresi ön planda olmadığı için biyometrik doğrulama başlatılamıyor</string>
-    <string name="biometriccompat_api_disabled_error">Biyometrik API devre dışı</string>
+    <string name="biometriccompat_api_disabled_error">Biyometrik kimlik doğrulama kullanılamıyor</string>
     <string name="biometriccompat_start_authentication_error">Biyometrik doğrulama başlatılamıyor</string>
     <string name="biometriccompat_generic_error">Biyometrik doğrulama sırasında bir sorun oluştu</string>
     <string name="biometriccompat_generic_error_with_code">Kimlik doğrulama hatası (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">Gerekli kriptografik nesne reddedildi</string>
     <string name="biometriccompat_required_crypto_missing_error">Biyometrik doğrulama gerekli kriptografik sonuç olmadan tamamlandı</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Yazılım biyometri modülü %1$s donanım destekli bir CryptoObject kullanamaz</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Bu biyometrik yöntem bu güvenli işlemi tamamlayamaz</string>
     <string name="biometriccompat_activity_destroyed_error">Etkinlik yok edildiği için biyometrik doğrulama kesildi</string>
     <string name="biometriccompat_internal_error">Dahili bir biyometrik hata oluştu</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Cihaz mikrofonunun engelini kaldır</string>
@@ -114,3 +114,7 @@
     <string name="biometriccompat_fingerprint_error_lockout">Çok fazla deneme. Lütfen daha sonra tekrar deneyin.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Tanınmadı</string>
 </resources>
+
+
+
+

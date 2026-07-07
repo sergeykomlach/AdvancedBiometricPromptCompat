@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Đã hết thời gian xác thực vân tay</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Đã bị hủy bởi thao tác mới</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">Đầu đọc vân tay ZK chưa được kết nối</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Quyền USB cho đầu đọc vân tay ZK bị từ chối</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Đầu đọc vân tay ZK không khả dụng</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Đầu đọc vân tay chưa được kết nối</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Quyền USB cho đầu đọc vân tay bị từ chối</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Đầu đọc vân tay không khả dụng</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Vân tay chưa được đăng ký</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Vân tay này đã được đăng ký</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Hãy dùng cùng một ngón tay cho mọi lần quét đăng ký</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Hãy quét lại ngón tay của bạn</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Số lần quét đầu đọc ZK cần có: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Số lần quét vân tay cần thiết: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Đã chấp nhận: %1$d/%2$d. Nhấc lên rồi đặt lại cùng một ngón tay</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Đang hoàn tất đăng ký vân tay</string>
     <string name="biometriccompat_zkfinger_help_template_error">Không thể xử lý mẫu vân tay</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Đầu đọc vân tay ZK đã bị khóa. Hãy thử lại sau</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Đầu đọc vân tay ZK đã bị khóa vĩnh viễn</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Đặt ngón tay của bạn lên đầu đọc ZK</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Đặt ngón tay lên đầu đọc ZK để đăng ký</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Đầu đọc vân tay đã bị khóa. Vui lòng thử lại sau</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Đầu đọc vân tay đã bị khóa vĩnh viễn</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Đặt ngón tay lên đầu đọc vân tay</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Đặt ngón tay lên đầu đọc vân tay để đăng ký</string>
 </resources>

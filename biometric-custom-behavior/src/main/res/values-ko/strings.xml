@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">행동 인증 시간이 초과되었습니다</string>
     <string name="biometriccompat_behavior_help_unavailable">행동 인증을 사용할 수 없습니다</string>
     <string name="biometriccompat_behavior_help_sample_missing">행동 샘플이 없거나 불완전합니다</string>
-    <string name="biometriccompat_behavior_help_not_registered">행동 생체 정보가 등록되지 않았습니다</string>
-    <string name="biometriccompat_behavior_help_enrolled">행동 템플릿이 등록되었습니다: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">행동 프로필이 아직 설정되지 않았습니다</string>
+    <string name="biometriccompat_behavior_help_enrolled">행동 프로필이 저장되었습니다: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">행동 생체 정보가 승인되었습니다</string>
     <string name="biometriccompat_behavior_help_not_matched">행동 생체 정보가 일치하지 않았습니다</string>
     <string name="biometriccompat_behavior_help_lockout">행동 인증이 일시적으로 잠겼습니다</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">행동을 확인하는 중</string>
 </resources>
+
+

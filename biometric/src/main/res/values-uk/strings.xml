@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Біометричні сенсори зараз недоступні.\nБудь ласка, використайте PIN-код, графічний ключ або пароль пристрою, щоб підтвердити свою особу.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nУвага: %2$s не зміг перевірити безпеку однієї зі служб спеціальних можливостей. Вона може записувати ваш PIN-код, графічний ключ або пароль пристрою.\nПродовжуйте, лише якщо ви повністю впевнені, що ваші дії безпечні.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut заважає коректній роботі оптичного сенсора</string>
+    <string name="biometriccompat_widegamut_error">Поточні налаштування екрана заважають коректній роботі оптичного сенсора</string>
     <string name="biometriccompat_permession_error">Не надано потрібні дозволи</string>
     <string name="biometriccompat_camera_blocked">Сенсор камери заблоковано перемикачем конфіденційності</string>
-    <string name="biometriccompat_cryptography_not_supported_error">Криптографія не підтримується при резервному використанні DeviceCredential</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Цю захищену дію неможливо виконати з резервним входом через блокування екрана</string>
     <string name="biometriccompat_credentials_error">Було запитано облікові дані, але користувач скасував перевірку</string>
-    <string name="biometriccompat_cryptography_failed_error">Під час криптографічної перевірки сталася помилка</string>
+    <string name="biometriccompat_cryptography_failed_error">Під час захищеної перевірки сталася помилка</string>
     <string name="biometriccompat_long_init_error">Ініціалізація триває надто довго</string>
     <string name="biometriccompat_untrusted_a11y_error">Виявлено підозрілу службу спеціальних можливостей. Користувач вирішив перервати біометричну перевірку</string>
     <string name="biometriccompat_window_error">Не вдалося запустити біометричну автентифікацію, оскільки вікно застосунку не перебуває на передньому плані</string>
-    <string name="biometriccompat_api_disabled_error">Біометричний API вимкнено</string>
+    <string name="biometriccompat_api_disabled_error">Біометрична автентифікація недоступна</string>
     <string name="biometriccompat_start_authentication_error">Не вдалося запустити біометричну автентифікацію</string>
     <string name="biometriccompat_generic_error">Під час біометричної автентифікації щось пішло не так</string>
     <string name="biometriccompat_generic_error_with_code">Помилка автентифікації (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">Потрібний криптографічний об’єкт було відхилено</string>
     <string name="biometriccompat_required_crypto_missing_error">Біометричну автентифікацію завершено без потрібного криптографічного результату</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Програмний біометричний модуль %1$s не може використовувати апаратно-захищений CryptoObject</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Цей біометричний метод не може виконати цю захищену дію</string>
     <string name="biometriccompat_activity_destroyed_error">Біометричну автентифікацію перервано, оскільки активність було знищено</string>
     <string name="biometriccompat_internal_error">Сталася внутрішня біометрична помилка</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Розблокувати мікрофон пристрою</string>
@@ -114,3 +114,7 @@
     <string name="biometriccompat_fingerprint_error_lockout">Надто багато спроб. Спробуйте пізніше.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Не розпізнано</string>
 </resources>
+
+
+
+

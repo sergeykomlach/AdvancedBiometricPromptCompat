@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">音声認証がタイムアウトしました</string>
     <string name="biometriccompat_voice_help_unavailable">音声認証は利用できません</string>
     <string name="biometriccompat_voice_help_permission_required">音声認証にはマイクの権限が必要です</string>
-    <string name="biometriccompat_voice_help_sample_required">音声サンプルが必要です。録音済みの音声サンプル、または事前計算済みの音声埋め込みを指定してください。</string>
-    <string name="biometriccompat_voice_help_not_registered">登録された音声生体認証がありません。認証の前に音声サンプルを録音して登録してください。</string>
-    <string name="biometriccompat_voice_help_enrolled">音声テンプレートを登録しました: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">音声サンプルが必要です。続行するには声を録音してください。</string>
+    <string name="biometriccompat_voice_help_not_registered">音声によるロック解除はまだ設定されていません。先に声を録音してください。</string>
+    <string name="biometriccompat_voice_help_enrolled">音声プロフィールを保存しました: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">音声生体認証が受け入れられました</string>
     <string name="biometriccompat_voice_help_not_matched">音声生体認証が一致しませんでした</string>
     <string name="biometriccompat_voice_help_lockout">音声認証は一時的にロックされています</string>
     <string name="biometriccompat_voice_help_lockout_permanent">音声認証は恒久的にロックされています</string>
     <string name="biometriccompat_voice_help_sample_valid">音声サンプルは有効です</string>
-    <string name="biometriccompat_voice_help_sample_missing">音声サンプルが不足しているか不完全です。PCM音声または有効な音声埋め込みを指定してください。</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">音声サンプルのサンプルレートが低すぎます。可能であれば16 kHzのモノラルPCMを使用してください。</string>
+    <string name="biometriccompat_voice_help_sample_missing">音声サンプルが不足しているか不完全です。新しい音声サンプルを録音してください。</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">音声サンプルの品質が低すぎます。より明瞭な音声サンプルを録音してください。</string>
     <string name="biometriccompat_voice_help_sample_short">音声サンプルが短すぎます。少なくとも1秒は自然に話してください。</string>
     <string name="biometriccompat_voice_help_sample_long">音声サンプルが長すぎます。音声サンプルは8秒未満にしてください。</string>
     <string name="biometriccompat_voice_help_sample_quiet">音声サンプルが小さすぎます。マイクに近づいてもう一度お試しください。</string>
     <string name="biometriccompat_voice_help_sample_flat">音声サンプルの変化が少なすぎます。はっきりしたフレーズを話してもう一度お試しください。</string>
     <string name="biometriccompat_voice_help_sample_clipped">音声サンプルがクリップしています。マイクのゲインを下げるか、少し離れてください。</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">音声サンプルが繰り返しまたは合成のように見えます。新しい自然なフレーズを録音してください。</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">音声埋め込みが無効です。有限値を持つ空でない話者埋め込みを指定してください。</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">この音声サンプルは使用できませんでした。新しい音声サンプルを録音してください。</string>
     <string name="biometriccompat_voice_button_content_description">音声キャプチャ</string>
     <string name="biometriccompat_voice_overlay_title_enroll">音声サンプルを録音</string>
     <string name="biometriccompat_voice_overlay_title_auth">声を確認してください</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">音声サンプルを録音しています...</string>
     <string name="biometriccompat_voice_status_checking">音声を確認しています</string>
 </resources>
+
+
+
+
+
+

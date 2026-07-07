@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Time-out bij vingerafdrukauthenticatie</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Geannuleerd door een nieuwe bewerking</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK-vingerafdruklezer niet verbonden</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB-toestemming geweigerd voor ZK-vingerafdruklezer</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK-vingerafdruklezer niet beschikbaar</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Vingerafdruklezer niet verbonden</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB-toestemming geweigerd voor de vingerafdruklezer</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Vingerafdruklezer niet beschikbaar</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Vingerafdruk niet geregistreerd</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Deze vingerafdruk is al geregistreerd</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Gebruik dezelfde vinger voor alle registratiescans</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Scan uw vinger opnieuw</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Vereiste ZK-lezerscans: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Vereiste vingerafdrukscans: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Geaccepteerde scans: %1$d/%2$d. Til dezelfde vinger op en plaats deze opnieuw</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Registratie van vingerafdruk wordt afgerond</string>
     <string name="biometriccompat_zkfinger_help_template_error">Vingerafdruksjabloon kon niet worden verwerkt</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK-vingerafdruklezer is vergrendeld. Probeer het later opnieuw</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK-vingerafdruklezer is permanent vergrendeld</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Plaats uw vinger op de ZK-lezer</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Plaats uw vinger op de ZK-lezer om te registreren</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">De vingerafdruklezer is vergrendeld. Probeer het later opnieuw</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">De vingerafdruklezer is permanent vergrendeld</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Plaats uw vinger op de vingerafdruklezer</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Plaats uw vinger op de vingerafdruklezer om te registreren</string>
 </resources>

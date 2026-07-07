@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Sensor biometrik saat ini tidak tersedia.\nGunakan PIN, pola, atau kata sandi perangkat Anda untuk mengonfirmasi identitas Anda.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nPeringatan: %2$s tidak dapat memverifikasi keamanan salah satu layanan aksesibilitas. Layanan tersebut mungkin merekam PIN, pola, atau kata sandi perangkat Anda.\nLanjutkan hanya jika Anda benar-benar yakin bahwa tindakan Anda aman.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut menghambat kerja sensor optik dengan benar</string>
+    <string name="biometriccompat_widegamut_error">Pengaturan layar saat ini menghambat kerja sensor optik dengan benar</string>
     <string name="biometriccompat_permession_error">Izin yang diperlukan tidak diberikan</string>
     <string name="biometriccompat_camera_blocked">Sensor kamera diblokir oleh sakelar privasi</string>
-    <string name="biometriccompat_cryptography_not_supported_error">Kriptografi tidak didukung dengan cadangan DeviceCredential</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Tindakan aman ini tidak tersedia dengan cadangan kunci layar</string>
     <string name="biometriccompat_credentials_error">Kredensial diminta, tetapi pengguna membatalkan verifikasi</string>
-    <string name="biometriccompat_cryptography_failed_error">Terjadi kesalahan selama verifikasi kriptografi</string>
+    <string name="biometriccompat_cryptography_failed_error">Terjadi kesalahan selama verifikasi aman</string>
     <string name="biometriccompat_long_init_error">Inisialisasi memakan waktu terlalu lama</string>
     <string name="biometriccompat_untrusted_a11y_error">Layanan aksesibilitas yang mencurigakan terdeteksi. Pengguna memutuskan untuk menghentikan verifikasi biometrik</string>
     <string name="biometriccompat_window_error">Tidak dapat memulai autentikasi biometrik karena jendela aplikasi tidak berada di latar depan</string>
-    <string name="biometriccompat_api_disabled_error">API biometrik dinonaktifkan</string>
+    <string name="biometriccompat_api_disabled_error">Autentikasi biometrik tidak tersedia</string>
     <string name="biometriccompat_start_authentication_error">Tidak dapat memulai autentikasi biometrik</string>
     <string name="biometriccompat_generic_error">Terjadi masalah saat autentikasi biometrik</string>
     <string name="biometriccompat_generic_error_with_code">Kesalahan autentikasi (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">Objek kriptografi yang diperlukan ditolak</string>
     <string name="biometriccompat_required_crypto_missing_error">Autentikasi biometrik selesai tanpa hasil kriptografi yang diperlukan</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Modul biometrik perangkat lunak %1$s tidak dapat menggunakan CryptoObject yang didukung perangkat keras</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Metode biometrik ini tidak dapat menyelesaikan tindakan aman ini</string>
     <string name="biometriccompat_activity_destroyed_error">Autentikasi biometrik terhenti karena aktivitas dihancurkan</string>
     <string name="biometriccompat_internal_error">Terjadi kesalahan biometrik internal</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Buka blokir mikrofon perangkat</string>
@@ -114,3 +114,7 @@
     <string name="biometriccompat_fingerprint_error_lockout">Terlalu banyak percobaan. Silakan coba lagi nanti.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Tidak dikenali</string>
 </resources>
+
+
+
+

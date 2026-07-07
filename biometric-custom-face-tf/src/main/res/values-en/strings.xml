@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Camera error (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Face camera is unavailable</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Align your face with the camera</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Align your face to enroll FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Align your face to set up face unlock</string>
 </resources>

@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Sesle kimlik doğrulama zaman aşımına uğradı</string>
     <string name="biometriccompat_voice_help_unavailable">Sesle kimlik doğrulama kullanılamıyor</string>
     <string name="biometriccompat_voice_help_permission_required">Sesle kimlik doğrulama için mikrofon izni gerekiyor</string>
-    <string name="biometriccompat_voice_help_sample_required">Bir ses örneği gerekiyor. Kaydedilmiş bir ses örneği veya önceden hesaplanmış bir ses gömme vektörü sağlayın.</string>
-    <string name="biometriccompat_voice_help_not_registered">Kayıtlı bir ses biyometrisi yok. Kimlik doğrulamadan önce ses örneklerinizi kaydedin.</string>
-    <string name="biometriccompat_voice_help_enrolled">Ses şablonu kaydedildi: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Devam etmek için bir ses örneği gerekiyor. Sesinizi kaydedin.</string>
+    <string name="biometriccompat_voice_help_not_registered">Sesle kilit açma henüz ayarlanmadı. Önce sesinizi kaydedin.</string>
+    <string name="biometriccompat_voice_help_enrolled">Ses profili kaydedildi: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Ses biyometrisi kabul edildi</string>
     <string name="biometriccompat_voice_help_not_matched">Ses biyometrisi eşleşmedi</string>
     <string name="biometriccompat_voice_help_lockout">Sesle kimlik doğrulama geçici olarak kilitli</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Sesle kimlik doğrulama kalıcı olarak kilitli</string>
     <string name="biometriccompat_voice_help_sample_valid">Ses örneği geçerli</string>
-    <string name="biometriccompat_voice_help_sample_missing">Ses örneği eksik veya tamamlanmamış. PCM ses veya geçerli bir ses gömme vektörü sağlayın.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">Ses örneğinin örnekleme hızı çok düşük. Mümkünse 16 kHz mono PCM kullanın.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Ses örneği eksik veya tamamlanmamış. Yeni bir ses örneği kaydedin.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Ses örneğinin kalitesi çok düşük. Daha net bir ses örneği kaydedin.</string>
     <string name="biometriccompat_voice_help_sample_short">Ses örneği çok kısa. En az bir saniye doğal şekilde konuşun.</string>
     <string name="biometriccompat_voice_help_sample_long">Ses örneği çok uzun. Ses örneğini sekiz saniyenin altında tutun.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Ses örneği çok sessiz. Mikrofona yaklaşın ve tekrar deneyin.</string>
     <string name="biometriccompat_voice_help_sample_flat">Ses örneğinde çok az çeşitlilik var. Net bir ifade söyleyin ve tekrar deneyin.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Ses örneği kırpılmış. Mikrofon kazancını azaltın veya biraz uzaklaşın.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Ses örneği tekrar edilmiş ya da sentetik görünüyor. Yeni, doğal bir ifade kaydedin.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Ses gömme vektörü geçersiz. Sonlu değerlere sahip boş olmayan bir konuşmacı vektörü sağlayın.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Bu ses örneği kullanılamadı. Yeni bir ses örneği kaydedin.</string>
     <string name="biometriccompat_voice_button_content_description">Ses yakalama</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Ses örneği kaydet</string>
     <string name="biometriccompat_voice_overlay_title_auth">Sesinizi doğrulayın</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Ses örneği kaydediliyor...</string>
     <string name="biometriccompat_voice_status_checking">Ses kontrol ediliyor</string>
 </resources>
+
+
+
+
+
+

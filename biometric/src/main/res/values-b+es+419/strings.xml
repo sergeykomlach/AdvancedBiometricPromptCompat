@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">Los sensores biométricos no están disponibles en este momento.\nUsa tu PIN, patrón o contraseña del dispositivo para confirmar tu identidad.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nAdvertencia: %2$s no pudo verificar la seguridad de uno de los servicios de accesibilidad. Puede registrar tu PIN, patrón o contraseña del dispositivo.\nContinúa solo si estás completamente seguro de que tus acciones son seguras.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut impide el funcionamiento correcto del sensor óptico</string>
+    <string name="biometriccompat_widegamut_error">La configuración actual de la pantalla impide que el sensor óptico funcione correctamente</string>
     <string name="biometriccompat_permession_error">No se concedieron los permisos requeridos</string>
     <string name="biometriccompat_camera_blocked">El sensor de la cámara está bloqueado por el interruptor de privacidad</string>
-    <string name="biometriccompat_cryptography_not_supported_error">La criptografía no es compatible con el respaldo DeviceCredential</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Esta acción segura no está disponible con el respaldo de bloqueo de pantalla</string>
     <string name="biometriccompat_credentials_error">Se solicitaron credenciales, pero el usuario canceló la verificación</string>
-    <string name="biometriccompat_cryptography_failed_error">Se produjo un error durante la verificación criptográfica</string>
+    <string name="biometriccompat_cryptography_failed_error">Se produjo un error durante la verificación segura</string>
     <string name="biometriccompat_long_init_error">La inicialización tarda demasiado</string>
     <string name="biometriccompat_untrusted_a11y_error">Se detectó un servicio de accesibilidad sospechoso. El usuario decidió interrumpir la biometría</string>
     <string name="biometriccompat_window_error">No se puede iniciar la autenticación biométrica porque la ventana de la aplicación no está en primer plano</string>
-    <string name="biometriccompat_api_disabled_error">La API biométrica está deshabilitada</string>
+    <string name="biometriccompat_api_disabled_error">La autenticación biométrica no está disponible</string>
     <string name="biometriccompat_start_authentication_error">No se puede iniciar la autenticación biométrica</string>
     <string name="biometriccompat_generic_error">Algo salió mal durante la autenticación biométrica</string>
     <string name="biometriccompat_generic_error_with_code">Error de autenticación (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">Se rechazó el objeto criptográfico requerido</string>
     <string name="biometriccompat_required_crypto_missing_error">La autenticación biométrica finalizó sin el resultado criptográfico requerido</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">El módulo biométrico por software %1$s no puede usar un CryptoObject respaldado por hardware</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Este método biométrico no puede completar esta acción segura</string>
     <string name="biometriccompat_activity_destroyed_error">La autenticación biométrica se interrumpió porque la actividad fue destruida</string>
     <string name="biometriccompat_internal_error">Se produjo un error biométrico interno</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Desbloquear el micrófono del dispositivo</string>

@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Le délai d’authentification vocale est dépassé</string>
     <string name="biometriccompat_voice_help_unavailable">L’authentification vocale n’est pas disponible</string>
     <string name="biometriccompat_voice_help_permission_required">L’autorisation du microphone est requise pour l’authentification vocale</string>
-    <string name="biometriccompat_voice_help_sample_required">Un échantillon vocal est requis. Fournissez un échantillon vocal enregistré ou une empreinte vocale précalculée.</string>
-    <string name="biometriccompat_voice_help_not_registered">Aucune biométrie vocale n’est enregistrée. Enregistrez des échantillons vocaux avant de vous authentifier.</string>
-    <string name="biometriccompat_voice_help_enrolled">Modèle vocal enregistré : %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Un échantillon vocal est requis. Enregistrez votre voix pour continuer.</string>
+    <string name="biometriccompat_voice_help_not_registered">Le déverrouillage vocal n’est pas encore configuré. Enregistrez d’abord votre voix.</string>
+    <string name="biometriccompat_voice_help_enrolled">Profil vocal enregistré : %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Biométrie vocale acceptée</string>
     <string name="biometriccompat_voice_help_not_matched">La biométrie vocale ne correspond pas</string>
     <string name="biometriccompat_voice_help_lockout">L’authentification vocale est temporairement verrouillée</string>
     <string name="biometriccompat_voice_help_lockout_permanent">L’authentification vocale est verrouillée de façon permanente</string>
     <string name="biometriccompat_voice_help_sample_valid">L’échantillon vocal est valide</string>
-    <string name="biometriccompat_voice_help_sample_missing">L’échantillon vocal est manquant ou incomplet. Fournissez un audio PCM ou une empreinte vocale valide.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">La fréquence d’échantillonnage de l’échantillon vocal est trop basse. Utilisez si possible du PCM mono 16 kHz.</string>
+    <string name="biometriccompat_voice_help_sample_missing">L’échantillon vocal est manquant ou incomplet. Enregistrez un nouvel échantillon vocal.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">La qualité de l’échantillon vocal est trop faible. Enregistrez un échantillon plus clair.</string>
     <string name="biometriccompat_voice_help_sample_short">L’échantillon vocal est trop court. Parlez naturellement pendant au moins une seconde.</string>
     <string name="biometriccompat_voice_help_sample_long">L’échantillon vocal est trop long. Gardez l’échantillon vocal en dessous de huit secondes.</string>
     <string name="biometriccompat_voice_help_sample_quiet">L’échantillon vocal est trop faible. Rapprochez-vous du microphone et réessayez.</string>
     <string name="biometriccompat_voice_help_sample_flat">L’échantillon vocal manque de variation. Prononcez une phrase claire et réessayez.</string>
     <string name="biometriccompat_voice_help_sample_clipped">L’échantillon vocal est saturé. Réduisez le gain du microphone ou éloignez-vous légèrement.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">L’échantillon vocal semble répété ou synthétique. Enregistrez une nouvelle phrase naturelle.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">L’empreinte vocale n’est pas valide. Fournissez une empreinte vocale non vide avec des valeurs finies.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Cet échantillon vocal n’a pas pu être utilisé. Enregistrez un nouvel échantillon vocal.</string>
     <string name="biometriccompat_voice_button_content_description">Capture vocale</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Enregistrer un échantillon vocal</string>
     <string name="biometriccompat_voice_overlay_title_auth">Confirmez votre voix</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Enregistrement de l’échantillon vocal...</string>
     <string name="biometriccompat_voice_status_checking">Vérification de la voix</string>
 </resources>
+
+
+
+
+
+

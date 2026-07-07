@@ -20,22 +20,22 @@
 <resources>
     <string name="biometriccompat_use_devicecredentials">I sensori biometrici non sono al momento disponibili.\nUsa il PIN, la sequenza o la password del dispositivo per confermare la tua identità.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nAvviso: %2$s non è riuscito a verificare la sicurezza di uno dei servizi di accessibilità: potrebbe registrare il PIN, la sequenza o la password del dispositivo.\nContinua solo se sei assolutamente sicuro che le tue azioni siano sicure.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut impedisce il corretto funzionamento del sensore ottico</string>
+    <string name="biometriccompat_widegamut_error">Le impostazioni attuali dello schermo impediscono il corretto funzionamento del sensore ottico</string>
     <string name="biometriccompat_permession_error">Le autorizzazioni richieste non sono state concesse</string>
     <string name="biometriccompat_camera_blocked">Il sensore della fotocamera è bloccato dall’interruttore della privacy</string>
-    <string name="biometriccompat_cryptography_not_supported_error">La crittografia non è supportata con il fallback DeviceCredential</string>
+    <string name="biometriccompat_cryptography_not_supported_error">Questa azione protetta non è disponibile con il fallback del blocco schermo</string>
     <string name="biometriccompat_credentials_error">Sono state richieste le credenziali, ma l’utente ha annullato la verifica</string>
-    <string name="biometriccompat_cryptography_failed_error">Si è verificato un errore durante la verifica crittografica</string>
+    <string name="biometriccompat_cryptography_failed_error">Si è verificato un errore durante la verifica protetta</string>
     <string name="biometriccompat_long_init_error">L’inizializzazione richiede troppo tempo</string>
     <string name="biometriccompat_untrusted_a11y_error">Rilevato un servizio di accessibilità sospetto. L’utente ha deciso di interrompere la verifica biometrica</string>
     <string name="biometriccompat_window_error">Impossibile avviare l’autenticazione biometrica perché la finestra dell’app non è in primo piano</string>
-    <string name="biometriccompat_api_disabled_error">L’API biometrica è disabilitata</string>
+    <string name="biometriccompat_api_disabled_error">L’autenticazione biometrica non è disponibile</string>
     <string name="biometriccompat_start_authentication_error">Impossibile avviare l’autenticazione biometrica</string>
     <string name="biometriccompat_generic_error">Si è verificato un problema durante l’autenticazione biometrica</string>
     <string name="biometriccompat_generic_error_with_code">Errore di autenticazione (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">L’oggetto crittografico richiesto è stato rifiutato</string>
     <string name="biometriccompat_required_crypto_missing_error">L’autenticazione biometrica è stata completata senza il risultato crittografico richiesto</string>
-    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Il modulo biometrico software %1$s non può usare un CryptoObject supportato dall’hardware</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Questo metodo biometrico non può completare questa azione protetta</string>
     <string name="biometriccompat_activity_destroyed_error">L’autenticazione biometrica è stata interrotta perché l’attività è stata distrutta</string>
     <string name="biometriccompat_internal_error">Si è verificato un errore biometrico interno</string>
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Sblocca il microfono del dispositivo</string>
@@ -114,3 +114,7 @@
     <string name="biometriccompat_fingerprint_error_lockout">Troppi tentativi. Riprova più tardi.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Non riconosciuto</string>
 </resources>
+
+
+
+

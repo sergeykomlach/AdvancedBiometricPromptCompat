@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Camerafout (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Gezichtscamera is niet beschikbaar</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Lijn je gezicht uit met de camera</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Lijn je gezicht uit om FaceTF te registreren</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Lijn je gezicht uit om gezichtsontgrendeling in te stellen</string>
 </resources>

@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Tempo esgotado na autenticação por impressão digital</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelado por uma nova operação</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">Leitor de impressão digital ZK não conectado</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Permissão USB negada para o leitor de impressão digital ZK</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Leitor de impressão digital ZK indisponível</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Leitor de impressão digital não conectado</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Permissão USB negada para o leitor de impressão digital</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Leitor de impressão digital indisponível</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Impressão digital não cadastrada</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Esta impressão digital já está cadastrada</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Use o mesmo dedo em todas as leituras do cadastro</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Leia seu dedo novamente</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Leituras necessárias do leitor ZK: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Leituras de impressão digital necessárias: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Leituras aceitas: %1$d/%2$d. Levante e coloque o mesmo dedo novamente</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizando o cadastro da impressão digital</string>
     <string name="biometriccompat_zkfinger_help_template_error">Não foi possível processar o modelo de impressão digital</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">O leitor de impressão digital ZK está bloqueado. Tente novamente mais tarde</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">O leitor de impressão digital ZK está bloqueado permanentemente</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Coloque o dedo no leitor ZK</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Coloque o dedo no leitor ZK para cadastrar</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">O leitor de impressão digital está bloqueado. Tente novamente mais tarde</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">O leitor de impressão digital está bloqueado permanentemente</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Coloque o dedo no leitor de impressão digital</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Coloque o dedo no leitor de impressão digital para cadastrar</string>
 </resources>

@@ -3,8 +3,8 @@
     <string name="biometriccompat_behavior_help_timeout">Время аутентификации по поведению истекло</string>
     <string name="biometriccompat_behavior_help_unavailable">Аутентификация по поведению недоступна</string>
     <string name="biometriccompat_behavior_help_sample_missing">Поведенческий образец отсутствует или неполон</string>
-    <string name="biometriccompat_behavior_help_not_registered">Биометрия поведения не зарегистрирована</string>
-    <string name="biometriccompat_behavior_help_enrolled">Шаблон поведения зарегистрирован: %1$s</string>
+    <string name="biometriccompat_behavior_help_not_registered">Профиль поведения не настроен</string>
+    <string name="biometriccompat_behavior_help_enrolled">Профиль поведения сохранён: %1$s</string>
     <string name="biometriccompat_behavior_help_accepted">Биометрия поведения подтверждена</string>
     <string name="biometriccompat_behavior_help_not_matched">Биометрия поведения не совпала</string>
     <string name="biometriccompat_behavior_help_lockout">Аутентификация по поведению временно заблокирована</string>
@@ -42,3 +42,5 @@
     <string name="biometriccompat_behavior_key_backspace">&lt;</string>
     <string name="biometriccompat_behavior_status_checking">Проверка поведения</string>
 </resources>
+
+

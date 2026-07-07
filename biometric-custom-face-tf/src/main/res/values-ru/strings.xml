@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Ошибка камеры (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Камера для распознавания лица недоступна</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Совместите лицо с камерой</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Совместите лицо, чтобы зарегистрировать FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Совместите лицо, чтобы настроить разблокировку по лицу</string>
 </resources>

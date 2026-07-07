@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Timeout dell’autenticazione con impronta digitale</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Annullato da una nuova operazione</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">Lettore di impronte ZK non collegato</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Autorizzazione USB negata per il lettore di impronte ZK</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Lettore di impronte ZK non disponibile</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Lettore di impronte non collegato</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Autorizzazione USB negata per il lettore di impronte</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Lettore di impronte non disponibile</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Impronta non registrata</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Questa impronta è già registrata</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Usa lo stesso dito per tutte le scansioni di registrazione</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Scansiona di nuovo il dito</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Scansioni richieste del lettore ZK: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Scansioni dell’impronta richieste: %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Scansioni accettate: %1$d/%2$d. Solleva e riappoggia lo stesso dito</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizzazione della registrazione dell’impronta</string>
     <string name="biometriccompat_zkfinger_help_template_error">Impossibile elaborare il modello di impronta</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Il lettore di impronte ZK è bloccato. Riprova più tardi</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Il lettore di impronte ZK è bloccato in modo permanente</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Posiziona il dito sul lettore ZK</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Posiziona il dito sul lettore ZK per registrarlo</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Il lettore di impronte è bloccato. Riprova più tardi</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Il lettore di impronte è bloccato in modo permanente</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Posiziona il dito sul lettore di impronte</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Posiziona il dito sul lettore di impronte per registrarlo</string>
 </resources>

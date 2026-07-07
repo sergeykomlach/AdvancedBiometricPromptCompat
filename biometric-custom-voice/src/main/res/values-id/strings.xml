@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Waktu autentikasi suara habis</string>
     <string name="biometriccompat_voice_help_unavailable">Autentikasi suara tidak tersedia</string>
     <string name="biometriccompat_voice_help_permission_required">Izin mikrofon diperlukan untuk autentikasi suara</string>
-    <string name="biometriccompat_voice_help_sample_required">Sampel suara diperlukan. Berikan sampel suara yang direkam atau embedding suara yang sudah dihitung sebelumnya.</string>
-    <string name="biometriccompat_voice_help_not_registered">Belum ada biometrik suara yang terdaftar. Rekam dan daftarkan sampel suara sebelum autentikasi.</string>
-    <string name="biometriccompat_voice_help_enrolled">Template suara terdaftar: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Sampel suara diperlukan. Rekam suara Anda untuk melanjutkan.</string>
+    <string name="biometriccompat_voice_help_not_registered">Pembukaan kunci dengan suara belum disiapkan. Rekam suara Anda terlebih dahulu.</string>
+    <string name="biometriccompat_voice_help_enrolled">Profil suara disimpan: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Biometrik suara diterima</string>
     <string name="biometriccompat_voice_help_not_matched">Biometrik suara tidak cocok</string>
     <string name="biometriccompat_voice_help_lockout">Autentikasi suara dikunci sementara</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Autentikasi suara dikunci permanen</string>
     <string name="biometriccompat_voice_help_sample_valid">Sampel suara valid</string>
-    <string name="biometriccompat_voice_help_sample_missing">Sampel suara tidak ada atau tidak lengkap. Berikan audio PCM atau embedding suara yang valid.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">Laju sampel suara terlalu rendah. Gunakan PCM mono 16 kHz jika memungkinkan.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Sampel suara tidak ada atau tidak lengkap. Rekam sampel suara baru.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Kualitas sampel suara terlalu rendah. Rekam sampel suara yang lebih jelas.</string>
     <string name="biometriccompat_voice_help_sample_short">Sampel suara terlalu pendek. Bicaralah secara alami setidaknya selama satu detik.</string>
     <string name="biometriccompat_voice_help_sample_long">Sampel suara terlalu panjang. Jaga agar sampel suara tetap di bawah delapan detik.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Sampel suara terlalu pelan. Dekatkan diri ke mikrofon lalu coba lagi.</string>
     <string name="biometriccompat_voice_help_sample_flat">Variasi pada sampel suara terlalu sedikit. Ucapkan frasa yang jelas lalu coba lagi.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Sampel suara terpotong. Kurangi penguatan mikrofon atau menjauhlah sedikit.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Sampel suara tampak berulang atau sintetis. Rekam frasa alami yang baru.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Embedding suara tidak valid. Berikan embedding pembicara yang tidak kosong dengan nilai terhingga.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Sampel suara ini tidak dapat digunakan. Rekam sampel suara baru.</string>
     <string name="biometriccompat_voice_button_content_description">Pengambilan suara</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Rekam sampel suara</string>
     <string name="biometriccompat_voice_overlay_title_auth">Konfirmasikan suara Anda</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Merekam sampel suara...</string>
     <string name="biometriccompat_voice_status_checking">Memeriksa suara</string>
 </resources>
+
+
+
+
+
+

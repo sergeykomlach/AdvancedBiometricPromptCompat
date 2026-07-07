@@ -2,19 +2,19 @@
 <resources>
     <string name="biometriccompat_zkfinger_help_timeout">Le délai d’authentification par empreinte digitale est dépassé</string>
     <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Annulé par une nouvelle opération</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">Le lecteur d’empreintes ZK n’est pas connecté</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Autorisation USB refusée pour le lecteur d’empreintes ZK</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Le lecteur d’empreintes ZK n’est pas disponible</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Lecteur d’empreintes non connecté</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Autorisation USB refusée pour le lecteur d’empreintes</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Lecteur d’empreintes indisponible</string>
     <string name="biometriccompat_zkfinger_help_not_registered">Empreinte non enregistrée</string>
     <string name="biometriccompat_zkfinger_help_already_registered">Cette empreinte est déjà enregistrée</string>
     <string name="biometriccompat_zkfinger_help_same_finger_required">Utilisez le même doigt pour tous les scans d’inscription</string>
     <string name="biometriccompat_zkfinger_help_scan_again">Scannez à nouveau votre doigt</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Scans ZK requis : %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Nombre de scans d’empreinte requis : %1$d</string>
     <string name="biometriccompat_zkfinger_help_enroll_progress">Scans acceptés : %1$d/%2$d. Soulevez puis reposez le même doigt</string>
     <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalisation de l’inscription de l’empreinte</string>
     <string name="biometriccompat_zkfinger_help_template_error">Impossible de traiter le modèle d’empreinte</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Le lecteur d’empreintes ZK est verrouillé. Réessayez plus tard</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Le lecteur d’empreintes ZK est verrouillé de façon permanente</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Placez votre doigt sur le lecteur ZK</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Placez votre doigt sur le lecteur ZK pour l’inscription</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">Le lecteur d’empreintes est verrouillé. Réessayez plus tard</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">Le lecteur d’empreintes est verrouillé définitivement</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Placez votre doigt sur le lecteur d’empreintes</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Placez votre doigt sur le lecteur d’empreintes pour l’inscription</string>
 </resources>

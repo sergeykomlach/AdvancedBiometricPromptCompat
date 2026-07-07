@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">انتهت مهلة المصادقة الصوتية</string>
     <string name="biometriccompat_voice_help_unavailable">المصادقة الصوتية غير متاحة</string>
     <string name="biometriccompat_voice_help_permission_required">يتطلب استخدام المصادقة الصوتية إذن الميكروفون</string>
-    <string name="biometriccompat_voice_help_sample_required">مطلوب عينة صوتية. قدّم عينة صوتية مسجلة أو تضمينًا صوتيًا محسوبًا مسبقًا.</string>
-    <string name="biometriccompat_voice_help_not_registered">لا توجد أي قياسات حيوية صوتية مسجلة. سجّل عينات صوتية قبل المصادقة.</string>
-    <string name="biometriccompat_voice_help_enrolled">تم تسجيل قالب صوتي: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">مطلوب عينة صوتية. سجّل صوتك للمتابعة.</string>
+    <string name="biometriccompat_voice_help_not_registered">لم يتم إعداد فتح القفل بالصوت بعد. سجّل صوتك أولاً.</string>
+    <string name="biometriccompat_voice_help_enrolled">تم حفظ ملف الصوت: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">تم قبول القياسات الحيوية الصوتية</string>
     <string name="biometriccompat_voice_help_not_matched">لم تتطابق القياسات الحيوية الصوتية</string>
     <string name="biometriccompat_voice_help_lockout">المصادقة الصوتية مقفلة مؤقتًا</string>
     <string name="biometriccompat_voice_help_lockout_permanent">المصادقة الصوتية مقفلة بشكل دائم</string>
     <string name="biometriccompat_voice_help_sample_valid">العينة الصوتية صالحة</string>
-    <string name="biometriccompat_voice_help_sample_missing">العينة الصوتية مفقودة أو غير مكتملة. قدّم صوت PCM أو تضمينًا صوتيًا صالحًا.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">معدل أخذ العينات للعينة الصوتية منخفض جدًا. استخدم PCM أحاديًا بتردد 16 كيلوهرتز متى أمكن.</string>
+    <string name="biometriccompat_voice_help_sample_missing">العينة الصوتية مفقودة أو غير مكتملة. سجّل عينة صوتية جديدة.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">جودة العينة الصوتية منخفضة جدًا. سجّل عينة أوضح.</string>
     <string name="biometriccompat_voice_help_sample_short">العينة الصوتية قصيرة جدًا. تحدث بشكل طبيعي لمدة ثانية واحدة على الأقل.</string>
     <string name="biometriccompat_voice_help_sample_long">العينة الصوتية طويلة جدًا. أبقِ العينة الصوتية أقل من ثماني ثوانٍ.</string>
     <string name="biometriccompat_voice_help_sample_quiet">العينة الصوتية منخفضة جدًا. اقترب من الميكрофون وحاول مرة أخرى.</string>
     <string name="biometriccompat_voice_help_sample_flat">العينة الصوتية تفتقر إلى التنوع. انطق عبارة واضحة وحاول مرة أخرى.</string>
     <string name="biometriccompat_voice_help_sample_clipped">العينة الصوتية مشوشة. خفّض كسب الميكروفون أو ابتعد قليلًا.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">تبدو العينة الصوتية مكررة أو مصطنعة. سجّل عبارة طبيعية جديدة.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">تضمين الصوت غير صالح. قدّم تضمين متحدث غير فارغ بقيم منتهية.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">تعذر استخدام هذه العينة الصوتية. سجّل عينة صوتية جديدة.</string>
     <string name="biometriccompat_voice_button_content_description">التقاط الصوت</string>
     <string name="biometriccompat_voice_overlay_title_enroll">تسجيل عينة صوتية</string>
     <string name="biometriccompat_voice_overlay_title_auth">أكّد صوتك</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">جارٍ تسجيل العينة الصوتية...</string>
     <string name="biometriccompat_voice_status_checking">جارٍ التحقق من الصوت</string>
 </resources>
+
+
+
+
+
+

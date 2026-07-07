@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">Đã hết thời gian xác thực bằng giọng nói</string>
     <string name="biometriccompat_voice_help_unavailable">Xác thực bằng giọng nói không khả dụng</string>
     <string name="biometriccompat_voice_help_permission_required">Cần quyền micro để xác thực bằng giọng nói</string>
-    <string name="biometriccompat_voice_help_sample_required">Cần có mẫu giọng nói. Hãy cung cấp mẫu giọng nói đã ghi hoặc embedding giọng nói đã tính sẵn.</string>
-    <string name="biometriccompat_voice_help_not_registered">Chưa có sinh trắc học giọng nói nào được đăng ký. Hãy ghi và đăng ký mẫu giọng nói trước khi xác thực.</string>
-    <string name="biometriccompat_voice_help_enrolled">Đã đăng ký mẫu giọng nói: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">Cần có mẫu giọng nói. Hãy ghi giọng nói để tiếp tục.</string>
+    <string name="biometriccompat_voice_help_not_registered">Mở khóa bằng giọng nói chưa được thiết lập. Hãy ghi giọng nói của bạn trước.</string>
+    <string name="biometriccompat_voice_help_enrolled">Đã lưu hồ sơ giọng nói: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Đã chấp nhận sinh trắc học giọng nói</string>
     <string name="biometriccompat_voice_help_not_matched">Sinh trắc học giọng nói không khớp</string>
     <string name="biometriccompat_voice_help_lockout">Xác thực bằng giọng nói tạm thời bị khóa</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Xác thực bằng giọng nói bị khóa vĩnh viễn</string>
     <string name="biometriccompat_voice_help_sample_valid">Mẫu giọng nói hợp lệ</string>
-    <string name="biometriccompat_voice_help_sample_missing">Mẫu giọng nói thiếu hoặc chưa đầy đủ. Hãy cung cấp âm thanh PCM hoặc embedding giọng nói hợp lệ.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">Tần số lấy mẫu của mẫu giọng nói quá thấp. Hãy dùng PCM mono 16 kHz nếu có thể.</string>
+    <string name="biometriccompat_voice_help_sample_missing">Mẫu giọng nói thiếu hoặc chưa đầy đủ. Hãy ghi một mẫu giọng nói mới.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">Chất lượng mẫu giọng nói quá thấp. Hãy ghi mẫu giọng nói rõ hơn.</string>
     <string name="biometriccompat_voice_help_sample_short">Mẫu giọng nói quá ngắn. Hãy nói tự nhiên trong ít nhất một giây.</string>
     <string name="biometriccompat_voice_help_sample_long">Mẫu giọng nói quá dài. Hãy giữ mẫu giọng nói dưới tám giây.</string>
     <string name="biometriccompat_voice_help_sample_quiet">Mẫu giọng nói quá nhỏ. Hãy lại gần micro hơn và thử lại.</string>
     <string name="biometriccompat_voice_help_sample_flat">Mẫu giọng nói có quá ít biến thiên. Hãy nói một câu rõ ràng và thử lại.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Mẫu giọng nói bị méo do quá lớn. Hãy giảm gain micro hoặc lùi ra xa hơn một chút.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Mẫu giọng nói có vẻ lặp lại hoặc tổng hợp. Hãy ghi một câu tự nhiên mới.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Embedding giọng nói không hợp lệ. Hãy cung cấp embedding người nói không rỗng với các giá trị hữu hạn.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Không thể dùng mẫu giọng nói này. Hãy ghi một mẫu giọng nói mới.</string>
     <string name="biometriccompat_voice_button_content_description">Thu giọng nói</string>
     <string name="biometriccompat_voice_overlay_title_enroll">Ghi mẫu giọng nói</string>
     <string name="biometriccompat_voice_overlay_title_auth">Xác nhận giọng nói của bạn</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">Đang ghi mẫu giọng nói...</string>
     <string name="biometriccompat_voice_status_checking">Đang kiểm tra giọng nói</string>
 </resources>
+
+
+
+
+
+

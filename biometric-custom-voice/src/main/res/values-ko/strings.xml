@@ -3,23 +3,23 @@
     <string name="biometriccompat_voice_help_timeout">음성 인증 시간이 초과되었습니다</string>
     <string name="biometriccompat_voice_help_unavailable">음성 인증을 사용할 수 없습니다</string>
     <string name="biometriccompat_voice_help_permission_required">음성 인증에는 마이크 권한이 필요합니다</string>
-    <string name="biometriccompat_voice_help_sample_required">음성 샘플이 필요합니다. 녹음된 음성 샘플 또는 미리 계산된 음성 임베딩을 제공하세요.</string>
-    <string name="biometriccompat_voice_help_not_registered">등록된 음성 생체 정보가 없습니다. 인증 전에 음성 샘플을 녹음하고 등록하세요.</string>
-    <string name="biometriccompat_voice_help_enrolled">음성 템플릿이 등록되었습니다: %1$s</string>
+    <string name="biometriccompat_voice_help_sample_required">음성 샘플이 필요합니다. 계속하려면 목소리를 녹음하세요.</string>
+    <string name="biometriccompat_voice_help_not_registered">음성 잠금 해제가 아직 설정되지 않았습니다. 먼저 목소리를 녹음하세요.</string>
+    <string name="biometriccompat_voice_help_enrolled">음성 프로필이 저장되었습니다: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">음성 생체 정보가 승인되었습니다</string>
     <string name="biometriccompat_voice_help_not_matched">음성 생체 정보가 일치하지 않았습니다</string>
     <string name="biometriccompat_voice_help_lockout">음성 인증이 일시적으로 잠겼습니다</string>
     <string name="biometriccompat_voice_help_lockout_permanent">음성 인증이 영구적으로 잠겼습니다</string>
     <string name="biometriccompat_voice_help_sample_valid">음성 샘플이 유효합니다</string>
-    <string name="biometriccompat_voice_help_sample_missing">음성 샘플이 없거나 불완전합니다. PCM 오디오 또는 유효한 음성 임베딩을 제공하세요.</string>
-    <string name="biometriccompat_voice_help_sample_rate_low">음성 샘플의 샘플링 속도가 너무 낮습니다. 가능하면 16kHz 모노 PCM을 사용하세요.</string>
+    <string name="biometriccompat_voice_help_sample_missing">음성 샘플이 없거나 불완전합니다. 새 음성 샘플을 녹음하세요.</string>
+    <string name="biometriccompat_voice_help_sample_rate_low">음성 샘플 품질이 너무 낮습니다. 더 선명한 음성 샘플을 녹음하세요.</string>
     <string name="biometriccompat_voice_help_sample_short">음성 샘플이 너무 짧습니다. 최소 1초 이상 자연스럽게 말하세요.</string>
     <string name="biometriccompat_voice_help_sample_long">음성 샘플이 너무 깁니다. 음성 샘플을 8초 미만으로 유지하세요.</string>
     <string name="biometriccompat_voice_help_sample_quiet">음성 샘플이 너무 작습니다. 마이크에 더 가까이 가서 다시 시도하세요.</string>
     <string name="biometriccompat_voice_help_sample_flat">음성 샘플의 변화가 너무 적습니다. 분명한 문구를 말하고 다시 시도하세요.</string>
     <string name="biometriccompat_voice_help_sample_clipped">음성 샘플이 클리핑되었습니다. 마이크 게인을 낮추거나 조금 더 멀리 떨어지세요.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">음성 샘플이 반복되었거나 합성된 것처럼 보입니다. 새로운 자연스러운 문구를 녹음하세요.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">음성 임베딩이 올바르지 않습니다. 유한한 값을 가진 비어 있지 않은 화자 임베딩을 제공하세요.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">이 음성 샘플은 사용할 수 없습니다. 새 음성 샘플을 녹음하세요.</string>
     <string name="biometriccompat_voice_button_content_description">음성 캡처</string>
     <string name="biometriccompat_voice_overlay_title_enroll">음성 샘플 녹음</string>
     <string name="biometriccompat_voice_overlay_title_auth">음성을 확인하세요</string>
@@ -46,3 +46,9 @@
     <string name="biometriccompat_voice_status_recording">음성 샘플 녹음 중...</string>
     <string name="biometriccompat_voice_status_checking">음성을 확인하는 중</string>
 </resources>
+
+
+
+
+
+

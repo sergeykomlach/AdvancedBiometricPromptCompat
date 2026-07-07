@@ -41,5 +41,5 @@
     <string name="biometriccompat_tf_face_help_camera_error">Kesalahan kamera (%1$d)</string>
     <string name="biometriccompat_tf_face_help_model_error_generic">Kamera wajah tidak tersedia</string>
     <string name="biometriccompat_tf_face_prompt_start_auth">Sejajarkan wajah Anda dengan kamera</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Sejajarkan wajah Anda untuk mendaftarkan FaceTF</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">Sejajarkan wajah Anda untuk menyiapkan buka kunci wajah</string>
 </resources>
