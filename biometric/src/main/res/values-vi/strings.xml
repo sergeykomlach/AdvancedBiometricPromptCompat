@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">Dùng sinh trắc học để tiếp tục</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">Dùng vân tay của bạn để tiếp tục</string>
     <string name="biometriccompat_face_dialog_default_subtitle">Dùng khuôn mặt của bạn để tiếp tục</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">Dùng giọng nói của bạn để tiếp tục</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">Dùng mẫu hành vi của bạn để tiếp tục</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">Dùng lòng bàn tay của bạn để tiếp tục</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">Dùng nhịp tim của bạn để tiếp tục</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">Không thể tạo mô hình khuôn mặt của bạn. Hãy thử lại.</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->

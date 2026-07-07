@@ -7,7 +7,7 @@
     <string name="biometriccompat_voice_help_not_registered">No voice unlock is set up yet. Record your voice first.</string>
     <string name="biometriccompat_voice_help_enrolled">Voice profile saved: %1$s</string>
     <string name="biometriccompat_voice_help_accepted">Voice matched</string>
-    <string name="biometriccompat_voice_help_not_matched">Voice didn't match</string>
+    <string name="biometriccompat_voice_help_not_matched">Voice did not match</string>
     <string name="biometriccompat_voice_help_lockout">Voice authentication is temporarily locked</string>
     <string name="biometriccompat_voice_help_lockout_permanent">Voice authentication is permanently locked</string>
     <string name="biometriccompat_voice_help_sample_valid">Voice sample is valid</string>
@@ -19,7 +19,7 @@
     <string name="biometriccompat_voice_help_sample_flat">Voice sample has too little variation. Speak a clear phrase and try again.</string>
     <string name="biometriccompat_voice_help_sample_clipped">Voice sample is clipped. Lower microphone gain or move slightly farther away.</string>
     <string name="biometriccompat_voice_help_sample_replay_risk">Voice sample looks repeated or synthetic. Record a fresh natural phrase.</string>
-    <string name="biometriccompat_voice_help_embedding_invalid">Voice sample couldn't be used. Record a new voice sample.</string>
+    <string name="biometriccompat_voice_help_embedding_invalid">Voice sample could not be used. Record a new voice sample.</string>
 
 
     <string name="biometriccompat_voice_button_content_description">Voice capture</string>

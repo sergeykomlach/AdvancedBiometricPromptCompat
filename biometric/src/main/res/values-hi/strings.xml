@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">जारी रखने के लिए अपनी बायोमेट्रिक का उपयोग करें</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">जारी रखने के लिए अपनी उंगली की छाप इस्तेमाल करें</string>
     <string name="biometriccompat_face_dialog_default_subtitle">जारी रखने के लिए अपना चेहरा इस्तेमाल करें</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">जारी रखने के लिए अपनी आवाज़ इस्तेमाल करें</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">जारी रखने के लिए अपना व्यवहार पैटर्न इस्तेमाल करें</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">जारी रखने के लिए अपनी हथेली इस्तेमाल करें</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">जारी रखने के लिए अपनी हृदय गति इस्तेमाल करें</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">आपके चेहरे का मॉडल नहीं बनाया जा सकता। फिर से कोशिश करें।</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->

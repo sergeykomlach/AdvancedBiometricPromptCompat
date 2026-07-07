@@ -34,6 +34,7 @@ import dev.skomlach.biometric.compat.BiometricAuthState
 import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricProviderType
 import dev.skomlach.biometric.compat.BiometricType
+import dev.skomlach.biometric.compat.isSamsungDeviceModel
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.utils.BiometricLockoutFix
 import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
@@ -59,6 +60,21 @@ import java.util.Locale
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+
+internal fun shouldTrustSystemFaceHardwareSignal(
+    model: String?,
+    hasFaceSensorHint: Boolean,
+    modalityResult: BiometricPromptHardware.BiometricModalityDetector.Result
+): Boolean {
+    val systemConfirmed = modalityResult.hardwarePresent &&
+            modalityResult.confidence != BiometricPromptHardware.BiometricModalityDetector.Confidence.NONE
+    if (systemConfirmed) {
+        return true
+    }
+    return isSamsungDeviceModel(model) &&
+            hasFaceSensorHint &&
+            modalityResult.enrolledLikely
+}
 
 @TargetApi(Build.VERSION_CODES.P)
 
@@ -249,8 +265,12 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             if (it.sensors.isNotEmpty()) {
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
-                        if (it.model.startsWith("Samsung", ignoreCase = true)) {
-                            (it.hasFaceID() && checkDeviceFeature(type, modalityResult)) ||
+                        if (isSamsungDeviceModel(it.model)) {
+                            shouldTrustSystemFaceHardwareSignal(
+                                model = it.model,
+                                hasFaceSensorHint = it.hasFaceID(),
+                                modalityResult = modalityResult
+                            ) ||
                                     SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                         it.model
                                     )
@@ -263,7 +283,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     }
 
                     BiometricType.BIOMETRIC_IRIS -> {
-                        if (it.model.startsWith("Samsung", ignoreCase = true)) {
+                        if (isSamsungDeviceModel(it.model)) {
                             (it.hasIrisScanner() && checkDeviceFeature(type, modalityResult)) ||
                                     SamsungLegacyBiometricDevices.hasSamsungFaceAndIris(
                                         it.model
@@ -334,7 +354,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
             if (it.sensors.isNotEmpty()) {
                 return when (type) {
                     BiometricType.BIOMETRIC_FACE -> {
-                        if (it.model.startsWith("Samsung", ignoreCase = true)) {
+                        if (isSamsungDeviceModel(it.model)) {
                             result.enrolledLikely || isAnyBiometricEnrolled(canAuthenticate)
                         } else if (it.model.startsWith("Google Pixel", ignoreCase = true)) {
                             result.enrolledLikely || isAnyBiometricEnrolled(canAuthenticate)
@@ -343,7 +363,7 @@ class BiometricPromptHardware(authRequest: BiometricAuthRequest) :
                     }
 
                     BiometricType.BIOMETRIC_IRIS -> {
-                        if (it.model.startsWith("Samsung", ignoreCase = true)) {
+                        if (isSamsungDeviceModel(it.model)) {
                             result.enrolledLikely || isAnyBiometricEnrolled(canAuthenticate)
                         } else
                             result.enrolledLikely

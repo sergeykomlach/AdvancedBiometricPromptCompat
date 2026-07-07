@@ -22,88 +22,96 @@ package dev.skomlach.biometric.compat.utils
 import android.content.Context
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.R
-import dev.skomlach.biometric.compat.utils.logging.BiometricLoggerImpl
 import dev.skomlach.common.misc.SystemStringsHelper
-import dev.skomlach.common.misc.Utils
 import dev.skomlach.common.translate.LocalizationHelper
 
+internal fun modalitySpecificPromptType(types: Set<BiometricType>): BiometricType? {
+    val normalized = types.toMutableSet().apply {
+        remove(BiometricType.BIOMETRIC_ANY)
+    }
+    if (normalized.size != 1) {
+        return null
+    }
+    return when (val type = normalized.first()) {
+        BiometricType.BIOMETRIC_FACE,
+        BiometricType.BIOMETRIC_FINGERPRINT,
+        BiometricType.BIOMETRIC_IRIS,
+        BiometricType.BIOMETRIC_VOICE,
+        BiometricType.BIOMETRIC_PALMPRINT,
+        BiometricType.BIOMETRIC_HEARTRATE,
+        BiometricType.BIOMETRIC_BEHAVIOR -> type
+
+        else -> null
+    }
+}
 
 object BiometricTitle {
     fun getRelevantTitle(context: Context, types: Set<BiometricType>): String {
-        //Attempt#1
-        val set = types.toMutableSet().apply {
-            remove(BiometricType.BIOMETRIC_ANY)
-        }
-        if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FACE)) {
-            return try {
-                context
-                    .getString(androidx.biometric.R.string.face_prompt_message)
-            } catch (_: Exception) {
+        return when (modalitySpecificPromptType(types)) {
+            BiometricType.BIOMETRIC_FACE -> {
+                try {
+                    context.getString(androidx.biometric.R.string.face_prompt_message)
+                } catch (_: Exception) {
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_face_dialog_default_subtitle
+                    )
+                }
+            }
+
+            BiometricType.BIOMETRIC_FINGERPRINT -> {
+                try {
+                    context.getString(androidx.biometric.R.string.fingerprint_prompt_message)
+                } catch (_: Exception) {
+                    LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_fingerprint_dialog_default_subtitle
+                    )
+                }
+            }
+
+            BiometricType.BIOMETRIC_IRIS -> {
+                getSystemTitle(context, "iris")
+                    ?: LocalizationHelper.getLocalizedString(
+                        context,
+                        R.string.biometriccompat_biometric_dialog_default_subtitle
+                    )
+            }
+
+            BiometricType.BIOMETRIC_VOICE -> {
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_voice_dialog_default_subtitle
+                )
+            }
+
+            BiometricType.BIOMETRIC_PALMPRINT -> {
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_palmprint_dialog_default_subtitle
+                )
+            }
+
+            BiometricType.BIOMETRIC_HEARTRATE -> {
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_heartrate_dialog_default_subtitle
+                )
+            }
+
+            BiometricType.BIOMETRIC_BEHAVIOR -> {
+                LocalizationHelper.getLocalizedString(
+                    context,
+                    R.string.biometriccompat_behavior_dialog_default_subtitle
+                )
+            }
+
+            else -> {
                 LocalizationHelper.getLocalizedString(
                     context,
                     R.string.biometriccompat_biometric_dialog_default_subtitle
                 )
             }
-        } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_IRIS))
-            getSystemTitle(context, "iris")?.let {
-                return it
-            }
-        else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_FINGERPRINT)) {
-            return try {
-                context
-                    .getString(androidx.biometric.R.string.fingerprint_prompt_message)
-            } catch (_: Exception) {
-                LocalizationHelper.getLocalizedString(
-                    context,
-                    R.string.biometriccompat_fingerprint_dialog_default_subtitle
-                )
-            }
-        } else if (set.size == 1 && set.contains(BiometricType.BIOMETRIC_VOICE))
-            getSystemTitle(context, "voice")?.let {
-                return it
-            }
-
-        //Attempt#2
-        try {
-            if (Utils.isAtLeastS) {
-                var biometricManager: android.hardware.biometrics.BiometricManager? =
-                    context.getSystemService(
-                        android.hardware.biometrics.BiometricManager::class.java
-                    )
-
-                if (biometricManager == null) {
-                    biometricManager = context.getSystemService(
-                        Context.BIOMETRIC_SERVICE
-                    ) as android.hardware.biometrics.BiometricManager?
-                }
-
-                val authenticators = arrayOf(
-                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK
-                            or android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG,
-                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_WEAK,
-                    android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
-                )
-                for (authenticator in authenticators) {
-                    val strings =
-                        biometricManager?.getStrings(authenticator)
-                    val prompt = strings?.promptMessage
-                    if (!prompt.isNullOrEmpty())
-                        return prompt.toString()
-                }
-            }
-        } catch (e: Throwable) {
-            BiometricLoggerImpl.e(e)
-        }
-        //Give up
-
-        return try {
-            context
-                .getString(androidx.biometric.R.string.biometric_prompt_message)
-        } catch (_: Exception) {
-            LocalizationHelper.getLocalizedString(
-                context,
-                R.string.biometriccompat_biometric_dialog_default_subtitle
-            )
         }
     }
 

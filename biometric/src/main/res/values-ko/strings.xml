@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">계속하려면 생체 인식을 사용하세요</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">계속하려면 지문을 사용하세요</string>
     <string name="biometriccompat_face_dialog_default_subtitle">계속하려면 얼굴을 사용하세요</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">계속하려면 음성을 사용하세요</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">계속하려면 행동 패턴을 사용하세요</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">계속하려면 손바닥을 사용하세요</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">계속하려면 심박수를 사용하세요</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">얼굴 모델을 만들 수 없습니다. 다시 시도하세요.</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->

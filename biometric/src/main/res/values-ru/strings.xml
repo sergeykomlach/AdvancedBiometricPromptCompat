@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">Используйте биометрию, чтобы продолжить</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">Используйте отпечаток пальца, чтобы продолжить</string>
     <string name="biometriccompat_face_dialog_default_subtitle">Используйте лицо, чтобы продолжить</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">Используйте голос, чтобы продолжить</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">Используйте поведенческий шаблон, чтобы продолжить</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">Используйте ладонь, чтобы продолжить</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">Используйте сердечный ритм, чтобы продолжить</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">Не удаётся создать модель вашего лица. Повторите попытку.</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->

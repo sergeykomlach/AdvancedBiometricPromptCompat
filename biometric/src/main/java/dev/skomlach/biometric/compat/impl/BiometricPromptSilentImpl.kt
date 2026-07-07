@@ -31,7 +31,7 @@ import dev.skomlach.biometric.compat.EnrollTerminalStatus
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
 import dev.skomlach.biometric.compat.biometricRequiredCryptoMissingDescription
-import dev.skomlach.biometric.compat.resolveEnrollTerminalOutcome
+import dev.skomlach.biometric.compat.resolveEnrollSessionOutcome
 import dev.skomlach.biometric.compat.engine.LegacyBiometric
 import dev.skomlach.biometric.compat.engine.LegacyBiometricAuthenticationListener
 import dev.skomlach.biometric.compat.utils.DevicesWithKnownBugs
@@ -125,12 +125,14 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
     override fun cancelAuth() {
         try {
             if (builder.enroll) {
-                val outcome = resolveEnrollTerminalOutcome(
+                val outcome = resolveEnrollSessionOutcome(
                     confirmation = builder.getBiometricAuthRequest().confirmation,
                     scopeTypes = completionTypes(),
                     successResults = successfulResults(),
+                    confirmedTypes = builder.getConfirmedEnrollTypes(),
                     failureResults = fatalErrorResults(),
                     canceledResults = canceled,
+                    rollbackEligibleTypes = builder.getRollbackEligibleEnrollTypes(),
                     terminal = true
                 )
                 when (outcome.status) {
@@ -198,6 +200,12 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             authResult
         }
         val failureReason = normalizedModule?.reason
+        if (builder.enroll &&
+            normalizedAuthResult == AuthResult.AuthResultState.SUCCESS &&
+            normalizedModule != null
+        ) {
+            builder.markEnrollConfirmedResults(setOf(normalizedModule))
+        }
         if (normalizedAuthResult == AuthResult.AuthResultState.FATAL_ERROR) {
             failureCounter.incrementAndGet()
         }
@@ -225,12 +233,14 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
             authFinished.values.firstOrNull { it.authResultState == AuthResult.AuthResultState.SUCCESS }
         d("checkAuthResult.authFinished - ${builder.getBiometricAuthRequest()}: $error/$success")
         if (builder.enroll) {
-            val outcome = resolveEnrollTerminalOutcome(
+            val outcome = resolveEnrollSessionOutcome(
                 confirmation = builder.getBiometricAuthRequest().confirmation,
                 scopeTypes = completionTypes(),
                 successResults = successfulResults(),
+                confirmedTypes = builder.getConfirmedEnrollTypes(),
                 failureResults = fatalErrorResults(),
                 canceledResults = canceled,
+                rollbackEligibleTypes = builder.getRollbackEligibleEnrollTypes(),
                 terminal = error != null || allList.isEmpty()
             )
             when (outcome.status) {
@@ -305,7 +315,7 @@ class BiometricPromptSilentImpl(override val builder: BiometricPromptCompat.Buil
 
     private fun completionTypes(): Set<BiometricType> {
         return if (builder.enroll) {
-            builder.getEnrollScopeTypes()
+            builder.getCurrentEnrollCompletionTypes()
         } else {
             builder.getAllAvailableTypes()
         }

@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">Use sua biometria para continuar</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">Use sua impressão digital para continuar</string>
     <string name="biometriccompat_face_dialog_default_subtitle">Use seu rosto para continuar</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">Use sua voz para continuar</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">Use seu padrão comportamental para continuar</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">Use a palma da sua mão para continuar</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">Use seu ritmo cardíaco para continuar</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">Não foi possível criar o modelo do seu rosto. Tente novamente.</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->

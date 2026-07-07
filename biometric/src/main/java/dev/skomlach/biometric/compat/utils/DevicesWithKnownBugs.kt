@@ -73,7 +73,7 @@ object DevicesWithKnownBugs {
         }
 
 
-    private val isSamsung: Boolean
+    private val isSamsungVendorDevice: Boolean
         get() {
             return checkForVendor("Samsung", ignoreCase = true)
         }
@@ -198,7 +198,7 @@ object DevicesWithKnownBugs {
                 return true
             else
                 if (isChromeBook) return true
-                else if (isSamsung) {
+                else if (isSamsungVendorDevice) {
                     val model = BiometricPromptCompat.deviceInfo?.model
                         ?: DeviceModelManager.getDeviceModel().deviceName
                     return model.contains("Flip") || model.contains("Fold")

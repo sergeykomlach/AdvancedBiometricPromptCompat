@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">使用生物识别以继续</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">使用您的指纹继续</string>
     <string name="biometriccompat_face_dialog_default_subtitle">使用您的面容继续</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">使用您的语音继续</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">使用您的行为模式继续</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">使用您的手掌继续</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">使用您的心率继续</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">无法创建您的人脸模型。请重试。</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->

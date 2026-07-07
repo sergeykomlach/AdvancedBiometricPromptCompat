@@ -1,6 +1,8 @@
 package dev.skomlach.biometric.compat
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EnrollOutcomeResolverTest {
@@ -97,5 +99,74 @@ class EnrollOutcomeResolverTest {
             setOf(AuthenticationResult(BiometricType.BIOMETRIC_FACE)),
             outcome.results
         )
+    }
+
+    @Test
+    fun `permission filtering alone does not satisfy enroll confirmation`() {
+        val outcome = resolveEnrollSessionOutcome(
+            confirmation = BiometricConfirmation.ANY,
+            scopeTypes = listOf(BiometricType.BIOMETRIC_VOICE),
+            successResults = emptySet(),
+            confirmedTypes = emptySet(),
+            terminal = true
+        )
+
+        assertEquals(EnrollTerminalStatus.FAILED, outcome.status)
+        assertFalse(outcome.confirmedThisRun)
+    }
+
+    @Test
+    fun `hardware fallback confirmation satisfies any after software becomes unavailable`() {
+        val outcome = resolveEnrollSessionOutcome(
+            confirmation = BiometricConfirmation.ANY,
+            scopeTypes = listOf(
+                BiometricType.BIOMETRIC_VOICE,
+                BiometricType.BIOMETRIC_FINGERPRINT
+            ),
+            successResults = setOf(AuthenticationResult(BiometricType.BIOMETRIC_FINGERPRINT)),
+            confirmedTypes = setOf(BiometricType.BIOMETRIC_FINGERPRINT),
+            terminal = true
+        )
+
+        assertEquals(EnrollTerminalStatus.SUCCEEDED, outcome.status)
+        assertTrue(outcome.confirmedThisRun)
+        assertFalse(outcome.rollbackSuccessfulEnrolls)
+    }
+
+    @Test
+    fun `already enrolled hardware alone does not satisfy current enroll session`() {
+        val outcome = resolveEnrollSessionOutcome(
+            confirmation = BiometricConfirmation.ANY,
+            scopeTypes = listOf(BiometricType.BIOMETRIC_FINGERPRINT),
+            successResults = setOf(AuthenticationResult(BiometricType.BIOMETRIC_FINGERPRINT)),
+            confirmedTypes = emptySet(),
+            terminal = true
+        )
+
+        assertEquals(EnrollTerminalStatus.FAILED, outcome.status)
+        assertFalse(outcome.confirmedThisRun)
+    }
+
+    @Test
+    fun `all requires rollback when one prior software enroll succeeded and later one fails`() {
+        val outcome = resolveEnrollSessionOutcome(
+            confirmation = BiometricConfirmation.ALL,
+            scopeTypes = listOf(
+                BiometricType.BIOMETRIC_VOICE,
+                BiometricType.BIOMETRIC_BEHAVIOR
+            ),
+            successResults = setOf(AuthenticationResult(BiometricType.BIOMETRIC_VOICE)),
+            confirmedTypes = setOf(BiometricType.BIOMETRIC_VOICE),
+            canceledResults = setOf(
+                AuthenticationResult(
+                    BiometricType.BIOMETRIC_BEHAVIOR,
+                    reason = AuthenticationFailureReason.CANCELED_BY_USER
+                )
+            ),
+            terminal = true
+        )
+
+        assertEquals(EnrollTerminalStatus.FAILED, outcome.status)
+        assertTrue(outcome.rollbackSuccessfulEnrolls)
     }
 }

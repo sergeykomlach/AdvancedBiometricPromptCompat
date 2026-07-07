@@ -158,6 +158,12 @@ internal fun shouldKeepSystemEnrollType(route: SelectedBiometricRoute?): Boolean
             route.provider == BiometricProviderType.HARDWARE
 }
 
+internal fun isSamsungDeviceModel(model: String?): Boolean {
+    val normalized = model?.trim()?.lowercase() ?: return false
+    return normalized.startsWith("samsung") ||
+            normalized.startsWith("galaxy") ||
+            normalized.startsWith("sm-")
+}
 /**
  * Starts a single authentication flow exactly once for a shared in-progress flag.
  */
@@ -209,6 +215,13 @@ internal data class EnrollTerminalOutcome(
     val results: Set<AuthenticationResult>
 )
 
+internal data class EnrollSessionOutcome(
+    val status: EnrollTerminalStatus,
+    val results: Set<AuthenticationResult>,
+    val confirmedThisRun: Boolean,
+    val rollbackSuccessfulEnrolls: Boolean
+)
+
 internal fun resolvePreSatisfiedEnrollResults(
     scopeTypes: Collection<BiometricType>,
     pendingTypes: Collection<BiometricType>,
@@ -232,25 +245,63 @@ internal fun resolveEnrollTerminalOutcome(
     canceledResults: Collection<AuthenticationResult> = emptySet(),
     terminal: Boolean
 ): EnrollTerminalOutcome {
+    val outcome = resolveEnrollSessionOutcome(
+        confirmation = confirmation,
+        scopeTypes = scopeTypes,
+        successResults = successResults,
+        confirmedTypes = successResults.mapNotNull { it.type }.toSet(),
+        failureResults = failureResults,
+        canceledResults = canceledResults,
+        rollbackEligibleTypes = emptySet(),
+        terminal = terminal
+    )
+    return EnrollTerminalOutcome(
+        status = outcome.status,
+        results = outcome.results
+    )
+}
+
+internal fun resolveEnrollSessionOutcome(
+    confirmation: BiometricConfirmation,
+    scopeTypes: Collection<BiometricType>,
+    successResults: Collection<AuthenticationResult>,
+    confirmedTypes: Collection<BiometricType>,
+    failureResults: Collection<AuthenticationResult> = emptySet(),
+    canceledResults: Collection<AuthenticationResult> = emptySet(),
+    rollbackEligibleTypes: Collection<BiometricType> = confirmedTypes,
+    terminal: Boolean
+): EnrollSessionOutcome {
     val scopeSet = scopeTypes.toCollection(LinkedHashSet())
     val successSet = successResults
         .filter { result -> result.type != null && scopeSet.contains(result.type) }
         .toCollection(LinkedHashSet())
     val successTypes = successSet.mapNotNull { it.type }.toHashSet()
+    val confirmedSet = confirmedTypes
+        .filter { type -> scopeSet.contains(type) }
+        .toCollection(LinkedHashSet())
+    val confirmedThisRun = confirmedSet.isNotEmpty()
     val isSatisfied = when (confirmation) {
-        BiometricConfirmation.ANY -> successSet.isNotEmpty()
-        BiometricConfirmation.ALL -> scopeSet.isNotEmpty() && successTypes.containsAll(scopeSet)
+        BiometricConfirmation.ANY -> successSet.isNotEmpty() && confirmedThisRun
+        BiometricConfirmation.ALL -> {
+            scopeSet.isNotEmpty() &&
+                    successTypes.containsAll(scopeSet) &&
+                    confirmedThisRun
+        }
     }
     if (isSatisfied) {
-        return EnrollTerminalOutcome(
+        return EnrollSessionOutcome(
             status = EnrollTerminalStatus.SUCCEEDED,
-            results = successSet
+            results = successSet,
+            confirmedThisRun = true,
+            rollbackSuccessfulEnrolls = false
         )
     }
     if (!terminal) {
-        return EnrollTerminalOutcome(
+        return EnrollSessionOutcome(
             status = EnrollTerminalStatus.CONTINUE,
-            results = emptySet()
+            results = emptySet(),
+            confirmedThisRun = confirmedThisRun,
+            rollbackSuccessfulEnrolls = false
         )
     }
     val failureSet = when {
@@ -258,9 +309,15 @@ internal fun resolveEnrollTerminalOutcome(
         canceledResults.isNotEmpty() -> canceledResults.toCollection(LinkedHashSet())
         else -> emptyEffectiveBiometricCancellationResults(scopeSet)
     }
-    return EnrollTerminalOutcome(
+    val rollbackSet = rollbackEligibleTypes
+        .filter { type -> confirmedSet.contains(type) && successTypes.contains(type) }
+        .toSet()
+    return EnrollSessionOutcome(
         status = EnrollTerminalStatus.FAILED,
-        results = failureSet
+        results = failureSet,
+        confirmedThisRun = confirmedThisRun,
+        rollbackSuccessfulEnrolls = confirmation == BiometricConfirmation.ALL &&
+                rollbackSet.isNotEmpty(),
     )
 }
 

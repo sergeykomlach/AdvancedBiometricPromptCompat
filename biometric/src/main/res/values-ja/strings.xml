@@ -59,6 +59,10 @@
     <string name="biometriccompat_biometric_dialog_default_subtitle">続行するには生体認証を使用してください</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">続行するには指紋を使用してください</string>
     <string name="biometriccompat_face_dialog_default_subtitle">続行するには顔を使用してください</string>
+    <string name="biometriccompat_voice_dialog_default_subtitle">続行するには声を使用してください</string>
+    <string name="biometriccompat_behavior_dialog_default_subtitle">続行するには行動パターンを使用してください</string>
+    <string name="biometriccompat_palmprint_dialog_default_subtitle">続行するには手のひらを使用してください</string>
+    <string name="biometriccompat_heartrate_dialog_default_subtitle">続行するには心拍数を使用してください</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">顔モデルを作成できません。もう一度お試しください。</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->
