@@ -20,7 +20,8 @@ internal class VoiceAutoCaptureController(
     private val context: Context,
     private val builder: BiometricPromptCompat.Builder,
     enroll: Boolean,
-    private val callback: VoiceAutoCaptureSession.Callback
+    private val callback: VoiceAutoCaptureSession.Callback,
+    private val onMaxAttemptsExceeded: () -> VoiceLockoutOutcome
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val disposed = AtomicBoolean(false)
@@ -114,7 +115,6 @@ internal class VoiceAutoCaptureController(
             val detector = VoiceStreamingDetector(sampleRateHz = SAMPLE_RATE_HZ)
             var detection = VoiceStreamingDetection(false, false, null, null)
             var fatalReadError = false
-            var preparedSample: FloatArray? = null
             val startedAt = SystemClock.elapsedRealtime()
 
             try {
@@ -131,16 +131,11 @@ internal class VoiceAutoCaptureController(
                     chunks += chunk
 
                     val nextDetection = detector.detect(chunks)
-                    if (nextDetection.detectedSpeech && !detection.detectedSpeech) {
-                        mainHandler.post { session.onSpeechDetected() }
-                    }
                     detection = nextDetection
                     if (nextDetection.isComplete) {
-                        preparedSample = nextDetection.completedSample
                         break
                     }
                     if (SystemClock.elapsedRealtime() - startedAt >= MAX_CAPTURE_WINDOW_MS) {
-                        preparedSample = nextDetection.activeSample
                         break
                     }
                 }
@@ -160,18 +155,18 @@ internal class VoiceAutoCaptureController(
                     handleRecoverable(localized(R.string.biometriccompat_voice_error_recording_failed))
                     return@post
                 }
-                if (preparedSample == null || preparedSample.size < MIN_CAPTURE_SAMPLE_COUNT) {
-                    val message = if (detection.detectedSpeech) {
-                        localized(R.string.biometriccompat_voice_error_sample_too_short)
-                    } else {
-                        localized(R.string.biometriccompat_voice_error_no_speech)
-                    }
+                val captureDecision = decideVoiceCaptureSample(detection, SAMPLE_RATE_HZ)
+                if (captureDecision.acceptedSample == null) {
+                    val message = recoverableMessage(captureDecision)
                     handleRecoverable(message)
                     return@post
                 }
 
                 attemptsForCurrentSample = 0
-                session.onSampleCaptured(preparedSample)
+                if (captureDecision.shouldNotifySpeechDetected) {
+                    session.onSpeechDetected()
+                }
+                session.onSampleCaptured(captureDecision.acceptedSample)
                 if (!session.isReadyToStartAuth()) {
                     startNextAttempt()
                 }
@@ -184,7 +179,8 @@ internal class VoiceAutoCaptureController(
 
     private fun handleRecoverable(message: CharSequence) {
         if (attemptsForCurrentSample >= MAX_ATTEMPTS_PER_SAMPLE) {
-            session.onFatalError(AuthenticationFailureReason.TIMEOUT, message)
+            val outcome = onMaxAttemptsExceeded()
+            session.onFatalError(outcome.reason, localized(outcome.messageResId))
             return
         }
         session.onRecoverableError(message)
@@ -203,12 +199,46 @@ internal class VoiceAutoCaptureController(
         return LocalizationHelper.getLocalizedString(context, id, *formatArgs)
     }
 
+    private fun recoverableMessage(decision: VoiceCaptureDecision): CharSequence {
+        return when (decision.rejectReason) {
+            VoiceCaptureRejectReason.NO_SPEECH -> {
+                localized(R.string.biometriccompat_voice_error_no_speech)
+            }
+
+            VoiceCaptureRejectReason.INCOMPLETE_SAMPLE -> {
+                localized(R.string.biometriccompat_voice_error_sample_too_short)
+            }
+
+            VoiceCaptureRejectReason.QUALITY_ISSUE -> {
+                qualityMessage(decision.qualityIssue)
+            }
+
+            VoiceCaptureRejectReason.NONE -> {
+                localized(R.string.biometriccompat_voice_error_recording_failed)
+            }
+        }
+    }
+
+    private fun qualityMessage(issue: VoiceQualityIssue): CharSequence {
+        return when (issue) {
+            VoiceQualityIssue.NONE -> localized(R.string.biometriccompat_voice_help_sample_valid)
+            VoiceQualityIssue.SAMPLE_MISSING -> localized(R.string.biometriccompat_voice_help_sample_missing)
+            VoiceQualityIssue.SAMPLE_RATE_TOO_LOW -> localized(R.string.biometriccompat_voice_help_sample_rate_low)
+            VoiceQualityIssue.SAMPLE_TOO_SHORT -> localized(R.string.biometriccompat_voice_help_sample_short)
+            VoiceQualityIssue.SAMPLE_TOO_LONG -> localized(R.string.biometriccompat_voice_help_sample_long)
+            VoiceQualityIssue.SAMPLE_TOO_QUIET -> localized(R.string.biometriccompat_voice_help_sample_quiet)
+            VoiceQualityIssue.SAMPLE_TOO_FLAT -> localized(R.string.biometriccompat_voice_help_sample_flat)
+            VoiceQualityIssue.SAMPLE_CLIPPED -> localized(R.string.biometriccompat_voice_help_sample_clipped)
+            VoiceQualityIssue.SAMPLE_REPLAY_RISK -> localized(R.string.biometriccompat_voice_help_sample_replay_risk)
+            VoiceQualityIssue.EMBEDDING_INVALID -> localized(R.string.biometriccompat_voice_help_embedding_invalid)
+        }
+    }
+
     private companion object {
         const val SAMPLE_RATE_HZ = 16_000
         const val STREAM_CHUNK_SIZE = 320
         const val MAX_CAPTURE_WINDOW_MS = 8_000L
         const val MAX_ATTEMPTS_PER_SAMPLE = 3
-        const val MIN_CAPTURE_SAMPLE_COUNT = 14_400
         const val PCM_SCALE = 32768f
     }
 }

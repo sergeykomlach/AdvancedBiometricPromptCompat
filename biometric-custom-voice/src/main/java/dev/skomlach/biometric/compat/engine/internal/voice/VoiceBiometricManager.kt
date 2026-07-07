@@ -47,6 +47,12 @@ class VoiceBiometricManager(
 
     override fun getLockoutError(): Int? = getStoredLockoutError(prefs, LOCKOUT_POLICY)
 
+    internal fun triggerAutoCaptureLockout(): VoiceLockoutOutcome {
+        forceLockout(prefs, LOCKOUT_POLICY)
+        val error = getLockoutError() ?: CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+        return voiceLockoutOutcomeForError(error)
+    }
+
     override fun isHardwareDetected(): Boolean {
         return context.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE) &&
             engine.isAvailable()

@@ -149,6 +149,25 @@ abstract class AbstractSoftwareBiometricManager {
         }
     }
 
+    protected fun forceLockout(
+        prefs: SharedPreferences,
+        policy: LockoutPolicy
+    ) {
+        var permanentLockoutCount = prefs.getInt(KEY_PERMANENT_LOCKOUT_COUNT, 0) + 1
+        prefs.edit {
+            putInt(KEY_FAILED_ATTEMPTS, 0)
+            if (permanentLockoutCount < policy.maxTemporaryLockoutsBeforePermanent) {
+                putLong(
+                    KEY_LOCKOUT_END_TIMESTAMP,
+                    System.currentTimeMillis() + policy.lockoutDurationMs
+                )
+            } else {
+                remove(KEY_LOCKOUT_END_TIMESTAMP)
+            }
+            putInt(KEY_PERMANENT_LOCKOUT_COUNT, permanentLockoutCount)
+        }
+    }
+
     abstract val biometricType: BiometricType
     abstract fun isHardwareDetected(): Boolean
     abstract fun hasEnrolledBiometric(): Boolean

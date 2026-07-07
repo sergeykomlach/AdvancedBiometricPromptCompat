@@ -8,6 +8,7 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
 internal class VoicePromptDelegate(
     private val host: SoftwareBiometricPromptHost
 ) : SoftwareBiometricPromptDelegate {
+    private val lockoutManager = VoiceBiometricManager(host.context)
     private val controller = VoiceAutoCaptureController(
         context = host.context,
         builder = host.builder,
@@ -26,7 +27,8 @@ internal class VoicePromptDelegate(
             }
 
             override fun isPromptActive(): Boolean = host.callbacks.isPromptActive()
-        }
+        },
+        onMaxAttemptsExceeded = { lockoutManager.triggerAutoCaptureLockout() }
     )
 
     override fun start() {

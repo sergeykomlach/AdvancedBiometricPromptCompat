@@ -6,6 +6,25 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class SoftwareBiometricFailureReasonTest {
+    @Test
+    fun `maps temporary lockout error to locked out failure reason`() {
+        assertEquals(
+            AuthenticationFailureReason.LOCKED_OUT,
+            resolveSoftwareLockoutFailureReason(
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_LOCKOUT
+            )
+        )
+    }
+
+    @Test
+    fun `maps permanent lockout error to hardware unavailable failure reason`() {
+        assertEquals(
+            AuthenticationFailureReason.HARDWARE_UNAVAILABLE,
+            resolveSoftwareLockoutFailureReason(
+                AbstractSoftwareBiometricManager.CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+            )
+        )
+    }
 
     @Test
     fun `keeps authentication failed when manager is not locked out`() {

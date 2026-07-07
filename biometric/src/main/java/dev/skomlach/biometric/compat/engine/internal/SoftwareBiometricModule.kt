@@ -59,9 +59,18 @@ internal fun resolveSoftwareFailureReason(
     }
 
     return when (managerLockoutError) {
-        CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> AuthenticationFailureReason.HARDWARE_UNAVAILABLE
-        CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> AuthenticationFailureReason.LOCKED_OUT
+        CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT,
+        CUSTOM_BIOMETRIC_ERROR_LOCKOUT -> resolveSoftwareLockoutFailureReason(managerLockoutError)
         else -> baseReason
+    }
+}
+
+internal fun resolveSoftwareLockoutFailureReason(
+    managerLockoutError: Int
+): AuthenticationFailureReason {
+    return when (managerLockoutError) {
+        CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT -> AuthenticationFailureReason.HARDWARE_UNAVAILABLE
+        else -> AuthenticationFailureReason.LOCKED_OUT
     }
 }
 

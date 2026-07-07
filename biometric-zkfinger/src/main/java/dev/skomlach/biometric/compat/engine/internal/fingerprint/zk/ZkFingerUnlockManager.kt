@@ -705,11 +705,7 @@ class ZkFingerUnlockManager(
     }
 
     private fun lockoutMessage(error: Int): String {
-        return if (error == CUSTOM_BIOMETRIC_ERROR_LOCKOUT_PERMANENT) {
-            localized(R.string.biometriccompat_zkfinger_help_too_many_attempts_permanent)
-        } else {
-            localized(R.string.biometriccompat_zkfinger_help_too_many_attempts_try_later)
-        }
+        return localized(zkFingerLockoutOutcomeForError(error).messageResId)
     }
 
     private fun startBackgroundThread() {
