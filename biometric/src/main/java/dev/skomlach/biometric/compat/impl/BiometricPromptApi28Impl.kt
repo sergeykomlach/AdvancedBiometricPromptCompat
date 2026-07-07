@@ -45,6 +45,8 @@ import dev.skomlach.biometric.compat.BiometricPromptCompat
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.BundleBuilder
 import dev.skomlach.biometric.compat.CryptoSecurityLevel
+import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptRegistry
+import dev.skomlach.biometric.compat.planApi28StartAuthStage
 import dev.skomlach.biometric.compat.R
 import dev.skomlach.biometric.compat.biometricActivityDestroyedDescription
 import dev.skomlach.biometric.compat.biometricErrorWithCodeDescription
@@ -422,27 +424,40 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
     }
 
     override fun startAuth() {
-        val prompt = biometricPrompt
-        d("BiometricPromptApi28Impl.startAuth(): ${builder.getPrimaryAvailableTypes()}")
-        if (prompt == null) {
-            callback?.onFailed(builder.getAllAvailableTypes().map {
-                AuthenticationResult(
-                    it,
-                    reason = AuthenticationFailureReason.INTERNAL_ERROR,
-                    description = biometricStartAuthenticationDescription()
-                )
-            }.toSet())
-            return
+        val remainingPrimaryTypes = remainingPrimaryTypes()
+        val remainingSecondaryTypes = remainingSecondaryTypes()
+        val stagePlan = planApi28StartAuthStage(
+            remainingPrimaryTypes = remainingPrimaryTypes,
+            remainingSecondaryTypes = remainingSecondaryTypes,
+            routeForType = builder::selectedRoute,
+            requiresReadyExtrasBeforeAuthentication = ::requiresReadyExtrasBeforeAuthentication
+        )
+        d(
+            "BiometricPromptApi28Impl.startAuth(): primary=$remainingPrimaryTypes " +
+                    "secondary=$remainingSecondaryTypes plan=$stagePlan"
+        )
+        val prompt = if (stagePlan.shouldShowSystemPrompt) {
+            biometricPrompt ?: run {
+                callback?.onFailed(builder.getAllAvailableTypes().map {
+                    AuthenticationResult(
+                        it,
+                        reason = AuthenticationFailureReason.INTERNAL_ERROR,
+                        description = biometricStartAuthenticationDescription()
+                    )
+                }.toSet())
+                return
+            }
+        } else {
+            null
         }
-        val secondary = ArrayList<BiometricType>(builder.getSecondaryAvailableTypes())
         onUiOpened()
-        showSystemUi(prompt)
-        if (secondary.isNotEmpty()) {
+        prompt?.let(::showSystemUi)
+        if (stagePlan.legacyAuthTypes.isNotEmpty()) {
             ExecutorHelper.postDelayed({
                 LegacyBiometric.authenticate(
                     builder.getCryptographyPurpose(),
                     dialog?.authPreview,
-                    secondary,
+                    stagePlan.legacyAuthTypes,
                     fmAuthCallback,
                     BundleBuilder.create(builder),
                     builder.getBiometricAuthRequest().provider,
@@ -452,6 +467,21 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
             }, 500)
         }
 
+    }
+
+    private fun remainingPrimaryTypes(): Set<BiometricType> {
+        return builder.getPrimaryAvailableTypes()
+            .filterNotTo(LinkedHashSet()) { type -> authFinished.containsKey(type) }
+    }
+
+    private fun remainingSecondaryTypes(): Set<BiometricType> {
+        return builder.getSecondaryAvailableTypes()
+            .filterNotTo(LinkedHashSet()) { type -> authFinished.containsKey(type) }
+    }
+
+    private fun requiresReadyExtrasBeforeAuthentication(type: BiometricType): Boolean {
+        return SoftwareBiometricPromptRegistry.resolve(type)
+            ?.requiresReadyExtrasBeforeAuthentication == true
     }
 
     @SuppressLint("RestrictedApi")
@@ -738,10 +768,7 @@ class BiometricPromptApi28Impl(override val builder: BiometricPromptCompat.Build
                 dialog =
                     BiometricPromptCompatDialogImpl(
                         builder, object : AuthCallback {
-                            private val ignoreFirstOpen = AtomicBoolean(true)
                             override fun startAuth() {
-                                if (ignoreFirstOpen.getAndSet(false))
-                                    return
                                 this@BiometricPromptApi28Impl.startAuth()
                             }
 

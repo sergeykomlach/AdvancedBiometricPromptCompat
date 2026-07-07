@@ -7,6 +7,7 @@ import dev.skomlach.biometric.compat.custom.SoftwareBiometricPromptHost
 
 class VoicePromptFactory : SoftwareBiometricPromptFactory {
     override val biometricType: BiometricType = BiometricType.BIOMETRIC_VOICE
+    override val requiresReadyExtrasBeforeAuthentication: Boolean = true
 
     override fun create(host: SoftwareBiometricPromptHost): SoftwareBiometricPromptDelegate? {
         return VoicePromptDelegate(host)

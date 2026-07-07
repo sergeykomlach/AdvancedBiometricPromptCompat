@@ -158,6 +158,33 @@ internal fun shouldKeepSystemEnrollType(route: SelectedBiometricRoute?): Boolean
             route.provider == BiometricProviderType.HARDWARE
 }
 
+internal data class Api28StartAuthStagePlan(
+    val shouldShowSystemPrompt: Boolean,
+    val legacyAuthTypes: List<BiometricType>
+)
+
+internal fun planApi28StartAuthStage(
+    remainingPrimaryTypes: Collection<BiometricType>,
+    remainingSecondaryTypes: Collection<BiometricType>,
+    routeForType: (BiometricType) -> SelectedBiometricRoute?,
+    requiresReadyExtrasBeforeAuthentication: (BiometricType) -> Boolean
+): Api28StartAuthStagePlan {
+    val shouldShowSystemPrompt = remainingPrimaryTypes.isNotEmpty()
+    val legacyAuthTypes = if (!shouldShowSystemPrompt) {
+        remainingSecondaryTypes.toList()
+    } else {
+        remainingSecondaryTypes.filterNot { type ->
+            val route = routeForType(type)
+            route?.provider == BiometricProviderType.SOFTWARE &&
+                    requiresReadyExtrasBeforeAuthentication(type)
+        }
+    }
+    return Api28StartAuthStagePlan(
+        shouldShowSystemPrompt = shouldShowSystemPrompt,
+        legacyAuthTypes = legacyAuthTypes
+    )
+}
+
 internal fun isSamsungDeviceModel(model: String?): Boolean {
     val normalized = model?.trim()?.lowercase() ?: return false
     return normalized.startsWith("samsung") ||
