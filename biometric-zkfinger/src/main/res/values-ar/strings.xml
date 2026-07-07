@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="biometriccompat_zkfinger_help_timeout">Fingerprint authentication timed out</string>
-    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelled by new operation</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK fingerprint reader not connected</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB permission denied for ZK fingerprint reader</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK fingerprint reader unavailable</string>
-    <string name="biometriccompat_zkfinger_help_not_registered">Fingerprint not registered</string>
-    <string name="biometriccompat_zkfinger_help_already_registered">This fingerprint is already registered</string>
-    <string name="biometriccompat_zkfinger_help_same_finger_required">Use the same finger for all enrollment scans</string>
-    <string name="biometriccompat_zkfinger_help_scan_again">Scan your finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Required ZK reader scans: %1$d</string>
-    <string name="biometriccompat_zkfinger_help_enroll_progress">Accepted scans: %1$d/%2$d. Lift and place the same finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizing fingerprint enrollment</string>
-    <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK fingerprint reader is locked out permanently</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Place your finger on the ZK reader</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Place your finger on the ZK reader to enroll</string>
+    <string name="biometriccompat_zkfinger_help_timeout">انتهت مهلة مصادقة بصمة الإصبع</string>
+    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">أُلغي بسبب عملية جديدة</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">قارئ بصمات ZK غير متصل</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">تم رفض إذن USB لقارئ بصمات ZK</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">قارئ بصمات ZK غير متاح</string>
+    <string name="biometriccompat_zkfinger_help_not_registered">بصمة الإصبع غير مسجلة</string>
+    <string name="biometriccompat_zkfinger_help_already_registered">بصمة الإصبع هذه مسجلة بالفعل</string>
+    <string name="biometriccompat_zkfinger_help_same_finger_required">استخدم الإصبع نفسه في جميع عمليات المسح أثناء التسجيل</string>
+    <string name="biometriccompat_zkfinger_help_scan_again">امسح إصبعك مرة أخرى</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">عدد عمليات المسح المطلوبة لقارئ ZK: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_progress">عمليات المسح المقبولة: %1$d/%2$d. ارفع الإصبع نفسه ثم ضعه مرة أخرى</string>
+    <string name="biometriccompat_zkfinger_help_enroll_finalizing">يتم إنهاء تسجيل بصمة الإصبع</string>
+    <string name="biometriccompat_zkfinger_help_template_error">تعذر معالجة قالب بصمة الإصبع</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">قارئ بصمات ZK مقفل. حاول مرة أخرى لاحقًا</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">قارئ بصمات ZK مقفل بشكل دائم</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">ضع إصبعك على قارئ ZK</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">ضع إصبعك على قارئ ZK للتسجيل</string>
 </resources>

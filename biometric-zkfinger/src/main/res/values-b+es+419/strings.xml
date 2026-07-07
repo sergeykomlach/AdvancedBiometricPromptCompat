@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="biometriccompat_zkfinger_help_timeout">Fingerprint authentication timed out</string>
-    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelled by new operation</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK fingerprint reader not connected</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB permission denied for ZK fingerprint reader</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK fingerprint reader unavailable</string>
-    <string name="biometriccompat_zkfinger_help_not_registered">Fingerprint not registered</string>
-    <string name="biometriccompat_zkfinger_help_already_registered">This fingerprint is already registered</string>
-    <string name="biometriccompat_zkfinger_help_same_finger_required">Use the same finger for all enrollment scans</string>
-    <string name="biometriccompat_zkfinger_help_scan_again">Scan your finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Required ZK reader scans: %1$d</string>
-    <string name="biometriccompat_zkfinger_help_enroll_progress">Accepted scans: %1$d/%2$d. Lift and place the same finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizing fingerprint enrollment</string>
-    <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK fingerprint reader is locked out permanently</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Place your finger on the ZK reader</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Place your finger on the ZK reader to enroll</string>
+    <string name="biometriccompat_zkfinger_help_timeout">Se agotó el tiempo de autenticación de huella digital</string>
+    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelado por una nueva operación</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">El lector de huellas ZK no está conectado</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Permiso USB denegado para el lector de huellas ZK</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">El lector de huellas ZK no está disponible</string>
+    <string name="biometriccompat_zkfinger_help_not_registered">Huella no registrada</string>
+    <string name="biometriccompat_zkfinger_help_already_registered">Esta huella ya está registrada</string>
+    <string name="biometriccompat_zkfinger_help_same_finger_required">Usa el mismo dedo para todos los escaneos de registro</string>
+    <string name="biometriccompat_zkfinger_help_scan_again">Vuelve a escanear tu dedo</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Escaneos requeridos del lector ZK: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_progress">Escaneos aceptados: %1$d/%2$d. Levanta y vuelve a colocar el mismo dedo</string>
+    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizando el registro de la huella</string>
+    <string name="biometriccompat_zkfinger_help_template_error">No se pudo procesar la plantilla de huella</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">El lector de huellas ZK está bloqueado. Inténtalo más tarde</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">El lector de huellas ZK está bloqueado permanentemente</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Coloca tu dedo en el lector ZK</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Coloca tu dedo en el lector ZK para registrarlo</string>
 </resources>

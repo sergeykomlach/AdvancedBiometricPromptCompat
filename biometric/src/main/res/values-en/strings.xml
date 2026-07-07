@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -16,7 +17,6 @@
   ~   See the License for the specific language governing permissions and
   ~   limitations under the License.
   -->
-
 <resources>
     <string name="biometriccompat_use_devicecredentials">Biometric sensors are not available right now.\nPlease, use your PIN, graphic key, or device password to confirm your identity.</string>
     <string name="biometriccompat_untrusted_a11y">%1$s\n\nWarning: %2$s could not verify the security of one of the accessibility services - it may record your PIN, graphic key, or device password.\nContinue only if you are completely sure that your actions are safe.</string>
@@ -35,13 +35,13 @@
     <string name="biometriccompat_generic_error_with_code">Authentication error (%1$d)</string>
     <string name="biometriccompat_required_crypto_rejected_error">The required cryptographic object was rejected</string>
     <string name="biometriccompat_required_crypto_missing_error">Biometric authentication completed without the required cryptographic result</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">Software biometric module %1$s cannot satisfy a hardware-backed CryptoObject</string>
     <string name="biometriccompat_activity_destroyed_error">Biometric authentication was interrupted because the activity was destroyed</string>
     <string name="biometriccompat_internal_error">An internal biometric error occurred</string>
-
     <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Unblock device microphone</string>
     <string name="biometriccompat_sensor_privacy_start_use_camera_notification_content_title">Unblock device camera</string>
     <string name="biometriccompat_sensor_privacy_start_use_dialog_turn_on_button">Unblock</string>
-    <string name="biometriccompat_face_sensor_privacy_enabled">To use Face Unlock, turn on <b>Camera access</b> in Settings > Privacy</string>
+    <string name="biometriccompat_face_sensor_privacy_enabled">To use Face Unlock, turn on <b>Camera access</b> in Settings &gt; Privacy</string>
     <string name="biometriccompat_face_error_canceled">Face operation canceled.</string>
     <string name="biometriccompat_face_error_hw_not_available">Can’t verify face. Hardware not available.</string>
     <string name="biometriccompat_face_error_hw_not_present">Face Unlock isn’t supported on this device</string>
@@ -55,11 +55,10 @@
     <string name="biometriccompat_face_error_unable_to_process">Can’t verify face. Try again.</string>
     <string name="biometriccompat_face_error_user_canceled">Face Unlock canceled by user</string>
     <string name="biometriccompat_face_error_vendor_unknown">Something went wrong. Try again.</string>
-    <string name="biometriccompat_biometric_dialog_default_title">Verify it\u2019s you</string>
+    <string name="biometriccompat_biometric_dialog_default_title">Verify it’s you</string>
     <string name="biometriccompat_biometric_dialog_default_subtitle">Use your biometric to continue</string>
     <string name="biometriccompat_fingerprint_dialog_default_subtitle">Use your fingerprint to continue</string>
     <string name="biometriccompat_face_dialog_default_subtitle">Use your face to continue</string>
-
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
     <string name="biometriccompat_face_acquired_insufficient">Can\u2019t create your face model. Try again.</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->
@@ -112,8 +111,6 @@
     <string name="biometriccompat_face_acquired_mouth_covering_detected_alt">Face covering detected. Your face must be fully visible.</string>
     <string name="biometriccompat_use_screen_lock_label">Use screen lock</string>
     <string name="biometriccompat_screen_lock_prompt_message">Enter your screen lock to continue</string>
-
     <string name="biometriccompat_fingerprint_error_lockout">Too many attempts. Please try again later.</string>
     <string name="biometriccompat_fingerprint_not_recognized">Not recognized</string>
-
 </resources>

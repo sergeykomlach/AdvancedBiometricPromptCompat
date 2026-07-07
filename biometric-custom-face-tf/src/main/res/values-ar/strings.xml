@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~  Copyright (c) 2025 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -16,30 +17,29 @@
   ~   See the License for the specific language governing permissions and
   ~   limitations under the License.
   -->
-
 <resources>
-    <string name="biometriccompat_tf_face_help_timeout">Authentication timed out</string>
-    <string name="biometriccompat_tf_face_help_canceled_by_new_operation">Cancelled by new operation</string>
-    <string name="biometriccompat_tf_face_help_model_not_available">Face detection models not available</string>
-    <string name="biometriccompat_tf_face_help_model_enrollment_tag_not_provided">Enrollment tag not provided</string>
-    <string name="biometriccompat_tf_face_help_model_not_registered">Biometric not registered</string>
-    <string name="biometriccompat_tf_face_help_model_image_is_blurry">Face is blurry, hold still</string>
-    <string name="biometriccompat_tf_face_help_model_fake_face_detected">Fake face detected</string>
-    <string name="biometriccompat_tf_face_help_model_retry">Face not recognized. Try again</string>
-    <string name="biometriccompat_tf_face_help_model_too_many_faces">Too many faces. There should only be one face</string>
-    <string name="biometriccompat_tf_face_help_model_look_straight_ahead">Look straight ahead</string>
-    <string name="biometriccompat_tf_face_help_model_too_dark">Too dark</string>
-    <string name="biometriccompat_tf_face_help_model_no_camera_permissions">Camera permission is required to use this feature.</string>
-    <string name="biometriccompat_tf_face_help_model_no_front_camera">No front camera</string>
-    <string name="biometriccompat_tf_face_help_model_camera_low_res">Camera resolution low</string>
-    <string name="biometriccompat_tf_face_help_model_camera_locked_out">Camera locked out</string>
-    <string name="biometriccompat_tf_face_help_model_camera_disabled">Camera disabled</string>
-    <string name="biometriccompat_tf_face_help_too_many_attempts_try_later">Face Unlock is locked out. Try again later</string>
-    <string name="biometriccompat_tf_face_help_too_many_attempts_permanent">Face Unlock is locked out permanently</string>
-    <string name="biometriccompat_tf_face_help_model_already_registered">This face is already registered</string>
-    <string name="biometriccompat_tf_face_help_model_not_detected">Can\u2019t see your face. Hold your phone at eye level</string>
-    <string name="biometriccompat_tf_face_help_camera_error">Camera error (%1$d)</string>
-    <string name="biometriccompat_tf_face_help_model_error_generic">Face camera is unavailable</string>
-    <string name="biometriccompat_tf_face_prompt_start_auth">Align your face with the camera</string>
-    <string name="biometriccompat_tf_face_prompt_start_enroll">Align your face to enroll FaceTF</string>
+    <string name="biometriccompat_tf_face_help_timeout">انتهت مهلة المصادقة</string>
+    <string name="biometriccompat_tf_face_help_canceled_by_new_operation">أُلغي بسبب عملية جديدة</string>
+    <string name="biometriccompat_tf_face_help_model_not_available">نماذج اكتشاف الوجه غير متاحة</string>
+    <string name="biometriccompat_tf_face_help_model_enrollment_tag_not_provided">لم يتم توفير وسم التسجيل</string>
+    <string name="biometriccompat_tf_face_help_model_not_registered">القياسات الحيوية غير مسجلة</string>
+    <string name="biometriccompat_tf_face_help_model_image_is_blurry">الوجه ضبابي، ابق ثابتًا</string>
+    <string name="biometriccompat_tf_face_help_model_fake_face_detected">تم اكتشاف وجه مزيف</string>
+    <string name="biometriccompat_tf_face_help_model_retry">لم يتم التعرف على الوجه. حاول مرة أخرى</string>
+    <string name="biometriccompat_tf_face_help_model_too_many_faces">هناك وجوه كثيرة جدًا. يجب أن يكون هناك وجه واحد فقط</string>
+    <string name="biometriccompat_tf_face_help_model_look_straight_ahead">انظر مباشرة إلى الأمام</string>
+    <string name="biometriccompat_tf_face_help_model_too_dark">مظلم جدًا</string>
+    <string name="biometriccompat_tf_face_help_model_no_camera_permissions">يلزم إذن الكاميرا لاستخدام هذه الميزة.</string>
+    <string name="biometriccompat_tf_face_help_model_no_front_camera">لا توجد كاميرا أمامية</string>
+    <string name="biometriccompat_tf_face_help_model_camera_low_res">دقة الكاميرا منخفضة</string>
+    <string name="biometriccompat_tf_face_help_model_camera_locked_out">الكاميرا مقفلة</string>
+    <string name="biometriccompat_tf_face_help_model_camera_disabled">الكاميرا معطلة</string>
+    <string name="biometriccompat_tf_face_help_too_many_attempts_try_later">Face Unlock مقفل. حاول مرة أخرى لاحقًا</string>
+    <string name="biometriccompat_tf_face_help_too_many_attempts_permanent">Face Unlock مقفل بشكل دائم</string>
+    <string name="biometriccompat_tf_face_help_model_already_registered">هذا الوجه مسجل بالفعل</string>
+    <string name="biometriccompat_tf_face_help_model_not_detected">لا يمكن رؤية وجهك. أمسك الهاتف على مستوى العين</string>
+    <string name="biometriccompat_tf_face_help_camera_error">خطأ في الكاميرا (%1$d)</string>
+    <string name="biometriccompat_tf_face_help_model_error_generic">كاميرا الوجه غير متاحة</string>
+    <string name="biometriccompat_tf_face_prompt_start_auth">حاذِ وجهك مع الكاميرا</string>
+    <string name="biometriccompat_tf_face_prompt_start_enroll">حاذِ وجهك لتسجيل FaceTF</string>
 </resources>

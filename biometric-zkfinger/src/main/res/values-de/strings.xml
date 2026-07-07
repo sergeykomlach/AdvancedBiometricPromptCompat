@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="biometriccompat_zkfinger_help_timeout">Fingerprint authentication timed out</string>
-    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelled by new operation</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK fingerprint reader not connected</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB permission denied for ZK fingerprint reader</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK fingerprint reader unavailable</string>
-    <string name="biometriccompat_zkfinger_help_not_registered">Fingerprint not registered</string>
-    <string name="biometriccompat_zkfinger_help_already_registered">This fingerprint is already registered</string>
-    <string name="biometriccompat_zkfinger_help_same_finger_required">Use the same finger for all enrollment scans</string>
-    <string name="biometriccompat_zkfinger_help_scan_again">Scan your finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Required ZK reader scans: %1$d</string>
-    <string name="biometriccompat_zkfinger_help_enroll_progress">Accepted scans: %1$d/%2$d. Lift and place the same finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizing fingerprint enrollment</string>
-    <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK fingerprint reader is locked out permanently</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Place your finger on the ZK reader</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Place your finger on the ZK reader to enroll</string>
+    <string name="biometriccompat_zkfinger_help_timeout">Zeitüberschreitung bei der Fingerabdruckauthentifizierung</string>
+    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Durch neuen Vorgang abgebrochen</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK-Fingerabdruckleser nicht verbunden</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB-Berechtigung für ZK-Fingerabdruckleser verweigert</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK-Fingerabdruckleser nicht verfügbar</string>
+    <string name="biometriccompat_zkfinger_help_not_registered">Fingerabdruck nicht registriert</string>
+    <string name="biometriccompat_zkfinger_help_already_registered">Dieser Fingerabdruck ist bereits registriert</string>
+    <string name="biometriccompat_zkfinger_help_same_finger_required">Verwenden Sie für alle Registrierungsscans denselben Finger</string>
+    <string name="biometriccompat_zkfinger_help_scan_again">Legen Sie den Finger erneut auf</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Erforderliche ZK-Leserscans: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_progress">Akzeptierte Scans: %1$d/%2$d. Heben Sie denselben Finger an und legen Sie ihn erneut auf</string>
+    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Fingerabdruckregistrierung wird abgeschlossen</string>
+    <string name="biometriccompat_zkfinger_help_template_error">Fingerabdruckvorlage konnte nicht verarbeitet werden</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK-Fingerabdruckleser ist gesperrt. Versuchen Sie es später erneut</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK-Fingerabdruckleser ist dauerhaft gesperrt</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Legen Sie Ihren Finger auf den ZK-Leser</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Legen Sie Ihren Finger zum Registrieren auf den ZK-Leser</string>
 </resources>

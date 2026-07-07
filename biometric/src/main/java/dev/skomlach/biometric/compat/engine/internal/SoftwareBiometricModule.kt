@@ -25,6 +25,7 @@ import androidx.core.os.CancellationSignal
 import dev.skomlach.biometric.compat.AuthenticationFailureReason
 import dev.skomlach.biometric.compat.BiometricCryptoObject
 import dev.skomlach.biometric.compat.BundleBuilder
+import dev.skomlach.biometric.compat.softwareBiometricHardwareBackedCryptoUnsupportedDescription
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_NOT_PRESENT
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager.Companion.CUSTOM_BIOMETRIC_ERROR_HW_UNAVAILABLE
@@ -237,7 +238,7 @@ class SoftwareBiometricModule(
                     listener?.onFailure(
                         tag(),
                         AuthenticationFailureReason.CRYPTO_ERROR,
-                        "Software biometric module $name cannot satisfy a hardware-backed CryptoObject"
+                        softwareBiometricHardwareBackedCryptoUnsupportedDescription(name)
                     )
                     originalCancellationSignal?.cancel()
                     return

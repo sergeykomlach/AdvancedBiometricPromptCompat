@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~  Copyright (c) 2023 Sergey Komlach aka Salat-Cx65; Original project https://github.com/Salat-Cx65/AdvancedBiometricPromptCompat
   ~  All rights reserved.
   ~
@@ -16,104 +17,100 @@
   ~   See the License for the specific language governing permissions and
   ~   limitations under the License.
   -->
-
 <resources>
-    <string name="biometriccompat_use_devicecredentials">Biometric sensors are not available right now.\nPlease, use your PIN, graphic key, or device password to confirm your identity.</string>
-    <string name="biometriccompat_untrusted_a11y">%1$s\n\nWarning: %2$s could not verify the security of one of the accessibility services - it may record your PIN, graphic key, or device password.\nContinue only if you are completely sure that your actions are safe.</string>
-    <string name="biometriccompat_widegamut_error">WideGamut prevent from proper optical sensor work</string>
-    <string name="biometriccompat_permession_error">Required permissions not granted</string>
-    <string name="biometriccompat_camera_blocked">Camera sensor blocked by privacy toggle</string>
-    <string name="biometriccompat_cryptography_not_supported_error">Cryptography not supported with DeviceCredential fallback</string>
-    <string name="biometriccompat_credentials_error">Credentials requested, but user cancel verification</string>
-    <string name="biometriccompat_cryptography_failed_error">Error occurred during Cryptography verification</string>
-    <string name="biometriccompat_long_init_error">Initialization takes too long</string>
-    <string name="biometriccompat_untrusted_a11y_error">Suspicious accessibility service detected, the user decides to interrupt the biometric</string>
-    <string name="biometriccompat_window_error">Unable to start biometric authentication cause of app window is not in the foreground</string>
-    <string name="biometriccompat_api_disabled_error">Biometric API is disabled</string>
-    <string name="biometriccompat_start_authentication_error">Unable to start biometric authentication</string>
-    <string name="biometriccompat_generic_error">Something went wrong during biometric authentication</string>
-    <string name="biometriccompat_generic_error_with_code">Authentication error (%1$d)</string>
-    <string name="biometriccompat_required_crypto_rejected_error">The required cryptographic object was rejected</string>
-    <string name="biometriccompat_required_crypto_missing_error">Biometric authentication completed without the required cryptographic result</string>
-    <string name="biometriccompat_activity_destroyed_error">Biometric authentication was interrupted because the activity was destroyed</string>
-    <string name="biometriccompat_internal_error">An internal biometric error occurred</string>
-
-    <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Unblock device microphone</string>
-    <string name="biometriccompat_sensor_privacy_start_use_camera_notification_content_title">Unblock device camera</string>
-    <string name="biometriccompat_sensor_privacy_start_use_dialog_turn_on_button">Unblock</string>
-    <string name="biometriccompat_face_sensor_privacy_enabled">To use Face Unlock, turn on <b>Camera access</b> in Settings > Privacy</string>
-    <string name="biometriccompat_face_error_canceled">Face operation canceled.</string>
-    <string name="biometriccompat_face_error_hw_not_available">Can’t verify face. Hardware not available.</string>
-    <string name="biometriccompat_face_error_hw_not_present">Face Unlock isn’t supported on this device</string>
-    <string name="biometriccompat_face_error_lockout">Too many attempts. Try again later.</string>
-    <string name="biometriccompat_face_error_lockout_permanent">Too many attempts. Face Unlock unavailable.</string>
-    <string name="biometriccompat_face_error_lockout_screen_lock">Too many attempts. Enter screen lock instead.</string>
-    <string name="biometriccompat_face_error_no_space">Can’t store new face data. Delete an old one first.</string>
-    <string name="biometriccompat_face_error_not_enrolled">You haven’t set up Face Unlock</string>
-    <string name="biometriccompat_face_error_security_update_required">Sensor temporarily disabled.</string>
-    <string name="biometriccompat_face_error_timeout">Try Face Unlock again</string>
-    <string name="biometriccompat_face_error_unable_to_process">Can’t verify face. Try again.</string>
-    <string name="biometriccompat_face_error_user_canceled">Face Unlock canceled by user</string>
-    <string name="biometriccompat_face_error_vendor_unknown">Something went wrong. Try again.</string>
-    <string name="biometriccompat_biometric_dialog_default_title">Verify it\u2019s you</string>
-    <string name="biometriccompat_biometric_dialog_default_subtitle">Use your biometric to continue</string>
-    <string name="biometriccompat_fingerprint_dialog_default_subtitle">Use your fingerprint to continue</string>
-    <string name="biometriccompat_face_dialog_default_subtitle">Use your face to continue</string>
-
+    <string name="biometriccompat_use_devicecredentials">Los sensores biométricos no están disponibles en este momento.\nUsa tu PIN, patrón o contraseña del dispositivo para confirmar tu identidad.</string>
+    <string name="biometriccompat_untrusted_a11y">%1$s\n\nAdvertencia: %2$s no pudo verificar la seguridad de uno de los servicios de accesibilidad. Puede registrar tu PIN, patrón o contraseña del dispositivo.\nContinúa solo si estás completamente seguro de que tus acciones son seguras.</string>
+    <string name="biometriccompat_widegamut_error">WideGamut impide el funcionamiento correcto del sensor óptico</string>
+    <string name="biometriccompat_permession_error">No se concedieron los permisos requeridos</string>
+    <string name="biometriccompat_camera_blocked">El sensor de la cámara está bloqueado por el interruptor de privacidad</string>
+    <string name="biometriccompat_cryptography_not_supported_error">La criptografía no es compatible con el respaldo DeviceCredential</string>
+    <string name="biometriccompat_credentials_error">Se solicitaron credenciales, pero el usuario canceló la verificación</string>
+    <string name="biometriccompat_cryptography_failed_error">Se produjo un error durante la verificación criptográfica</string>
+    <string name="biometriccompat_long_init_error">La inicialización tarda demasiado</string>
+    <string name="biometriccompat_untrusted_a11y_error">Se detectó un servicio de accesibilidad sospechoso. El usuario decidió interrumpir la biometría</string>
+    <string name="biometriccompat_window_error">No se puede iniciar la autenticación biométrica porque la ventana de la aplicación no está en primer plano</string>
+    <string name="biometriccompat_api_disabled_error">La API biométrica está deshabilitada</string>
+    <string name="biometriccompat_start_authentication_error">No se puede iniciar la autenticación biométrica</string>
+    <string name="biometriccompat_generic_error">Algo salió mal durante la autenticación biométrica</string>
+    <string name="biometriccompat_generic_error_with_code">Error de autenticación (%1$d)</string>
+    <string name="biometriccompat_required_crypto_rejected_error">Se rechazó el objeto criptográfico requerido</string>
+    <string name="biometriccompat_required_crypto_missing_error">La autenticación biométrica finalizó sin el resultado criptográfico requerido</string>
+    <string name="biometriccompat_software_hardware_backed_crypto_unsupported">El módulo biométrico por software %1$s no puede usar un CryptoObject respaldado por hardware</string>
+    <string name="biometriccompat_activity_destroyed_error">La autenticación biométrica se interrumpió porque la actividad fue destruida</string>
+    <string name="biometriccompat_internal_error">Se produjo un error biométrico interno</string>
+    <string name="biometriccompat_sensor_privacy_start_use_mic_notification_content_title">Desbloquear el micrófono del dispositivo</string>
+    <string name="biometriccompat_sensor_privacy_start_use_camera_notification_content_title">Desbloquear cámara del dispositivo</string>
+    <string name="biometriccompat_sensor_privacy_start_use_dialog_turn_on_button">Desbloquear</string>
+    <string name="biometriccompat_face_sensor_privacy_enabled">Para usar Face Unlock, activa <b>Acceso a la cámara</b> en Ajustes &gt; Privacidad</string>
+    <string name="biometriccompat_face_error_canceled">Operación facial cancelada.</string>
+    <string name="biometriccompat_face_error_hw_not_available">No se puede verificar el rostro. Hardware no disponible.</string>
+    <string name="biometriccompat_face_error_hw_not_present">Face Unlock no es compatible con este dispositivo</string>
+    <string name="biometriccompat_face_error_lockout">Demasiados intentos. Inténtalo de nuevo más tarde.</string>
+    <string name="biometriccompat_face_error_lockout_permanent">Demasiados intentos. Face Unlock no está disponible.</string>
+    <string name="biometriccompat_face_error_lockout_screen_lock">Demasiados intentos. Usa el bloqueo de pantalla en su lugar.</string>
+    <string name="biometriccompat_face_error_no_space">No se pueden almacenar nuevos datos faciales. Elimina primero los antiguos.</string>
+    <string name="biometriccompat_face_error_not_enrolled">No has configurado Face Unlock</string>
+    <string name="biometriccompat_face_error_security_update_required">Sensor deshabilitado temporalmente.</string>
+    <string name="biometriccompat_face_error_timeout">Vuelve a intentar Face Unlock</string>
+    <string name="biometriccompat_face_error_unable_to_process">No se puede verificar el rostro. Inténtalo de nuevo.</string>
+    <string name="biometriccompat_face_error_user_canceled">Face Unlock cancelado por el usuario</string>
+    <string name="biometriccompat_face_error_vendor_unknown">Algo salió mal. Inténtalo de nuevo.</string>
+    <string name="biometriccompat_biometric_dialog_default_title">Verifica que eres tú</string>
+    <string name="biometriccompat_biometric_dialog_default_subtitle">Usa tu biometría para continuar</string>
+    <string name="biometriccompat_fingerprint_dialog_default_subtitle">Usa tu huella digital para continuar</string>
+    <string name="biometriccompat_face_dialog_default_subtitle">Usa tu rostro para continuar</string>
     <!-- Message shown during face acquisition when the face cannot be recognized [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_insufficient">Can\u2019t create your face model. Try again.</string>
+    <string name="biometriccompat_face_acquired_insufficient">No se puede crear tu modelo facial. Inténtalo de nuevo.</string>
     <!-- Message shown during face acquisition when the image is too bright [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_bright">Too bright. Try gentler lighting.</string>
+    <string name="biometriccompat_face_acquired_too_bright">Demasiada luz. Prueba con una iluminación más suave.</string>
     <!-- Message shown during face acquisition when the image is too dark [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_dark">Not enough light</string>
+    <string name="biometriccompat_face_acquired_too_dark">No hay suficiente luz</string>
     <!-- Message shown during face acquisition when the user is too close to sensor [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_close">Move phone farther away</string>
+    <string name="biometriccompat_face_acquired_too_close">Aleja el teléfono</string>
     <!-- Message shown during face acquisition when the user is too far from sensor [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_far">Move phone closer</string>
+    <string name="biometriccompat_face_acquired_too_far">Acerca el teléfono</string>
     <!-- Message shown during face acquisition when the user is too high relatively to sensor [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_high">Move phone higher</string>
+    <string name="biometriccompat_face_acquired_too_high">Sube el teléfono</string>
     <!-- Message shown during face acquisition when the user is too low relatively to sensor [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_low">Move phone lower</string>
+    <string name="biometriccompat_face_acquired_too_low">Baja el teléfono</string>
     <!-- Message shown during face acquisition when only the right part of the user's face was detected [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_right">Move phone to your left</string>
+    <string name="biometriccompat_face_acquired_too_right">Mueve el teléfono hacia tu izquierda</string>
     <!-- Message shown during face acquisition when only the left part of the user's face was detected [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_left">Move phone to your right</string>
+    <string name="biometriccompat_face_acquired_too_left">Mueve el teléfono hacia tu derecha</string>
     <!-- Message shown during face acquisition when the user is not front facing the sensor [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_poor_gaze">Please look more directly at your device.</string>
+    <string name="biometriccompat_face_acquired_poor_gaze">Mira tu dispositivo más directamente.</string>
     <!-- Message shown during face acquisition when the user is not detected [CHAR LIMIT=75] -->
-    <string name="biometriccompat_face_acquired_not_detected">Can\u2019t see your face. Hold your phone at eye level.</string>
+    <string name="biometriccompat_face_acquired_not_detected">No se puede ver tu rostro. Mantén el teléfono a la altura de los ojos.</string>
     <!-- Message shown during face acquisition when the device is not steady [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_much_motion">Too much motion. Hold phone steady.</string>
+    <string name="biometriccompat_face_acquired_too_much_motion">Demasiado movimiento. Mantén el teléfono quieto.</string>
     <!-- Message shown during face acquisition when the sensor needs to be recalibrated [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_recalibrate">Please re-enroll your face.</string>
+    <string name="biometriccompat_face_acquired_recalibrate">Vuelve a registrar tu rostro.</string>
     <!-- Message shown during face enrollment when a different person's face is detected [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_different">Face not recognized. Try again.</string>
+    <string name="biometriccompat_face_acquired_too_different">Rostro no reconocido. Inténtalo de nuevo.</string>
     <!-- Message shown during face enrollment when the face is too similar to a previous acquisition [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_too_similar">Change the position of your head slightly</string>
+    <string name="biometriccompat_face_acquired_too_similar">Cambia ligeramente la posición de tu cabeza</string>
     <!-- Message shown during acqusition when the user's face is turned too far left or right [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_pan_too_extreme">Look more directly at your phone</string>
+    <string name="biometriccompat_face_acquired_pan_too_extreme">Mira el teléfono más directamente</string>
     <!-- Message shown during acqusition when the user's face is tilted too high or too low [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_tilt_too_extreme">Look more directly at your phone</string>
+    <string name="biometriccompat_face_acquired_tilt_too_extreme">Mira el teléfono más directamente</string>
     <!-- Message shown during acquisiton when the user's face is tilted too far left or right [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_roll_too_extreme">Look more directly at your phone</string>
+    <string name="biometriccompat_face_acquired_roll_too_extreme">Mira el teléfono más directamente</string>
     <!-- Message shown during acquisition when the user's face is obscured [CHAR LIMIT=50] -->
-    <string name="biometriccompat_face_acquired_obscured">Remove anything hiding your face.</string>
+    <string name="biometriccompat_face_acquired_obscured">Quita cualquier cosa que cubra tu rostro.</string>
     <!-- Message shown during acquisition when the sensor is dirty [CHAR LIMIT=100] -->
-    <string name="biometriccompat_face_acquired_sensor_dirty">Clean the top of your screen, including the black bar</string>
+    <string name="biometriccompat_face_acquired_sensor_dirty">Limpia la parte superior de la pantalla, incluida la barra negra</string>
     <!-- Message shown during acquisition when dark glasses were detected [CHAR LIMIT=75] -->
     <string name="biometriccompat_face_acquired_dark_glasses_detected">@string/biometriccompat_face_acquired_dark_glasses_detected_alt</string>
     <!-- Message shown during acquisition when a mouth covering was detected [CHAR LIMIT=75] -->
     <string name="biometriccompat_face_acquired_mouth_covering_detected">@string/biometriccompat_face_acquired_mouth_covering_detected_alt</string>
     <!-- Message shown during face acquisition when the sensor needs to be recalibrated [CHAR LIMIT=75] -->
-    <string name="biometriccompat_face_acquired_recalibrate_alt">Can\u2019t create your face model. Try again.</string>
+    <string name="biometriccompat_face_acquired_recalibrate_alt">No se puede crear tu modelo facial. Inténtalo de nuevo.</string>
     <!-- Message shown during acquisition when dark glasses were detected [CHAR LIMIT=100] -->
-    <string name="biometriccompat_face_acquired_dark_glasses_detected_alt">Dark glasses detected. Your face must be fully visible.</string>
+    <string name="biometriccompat_face_acquired_dark_glasses_detected_alt">Se detectaron gafas oscuras. Tu rostro debe estar totalmente visible.</string>
     <!-- Message shown during acquisition when a mouth covering was detected [CHAR LIMIT=100] -->
-    <string name="biometriccompat_face_acquired_mouth_covering_detected_alt">Face covering detected. Your face must be fully visible.</string>
-    <string name="biometriccompat_use_screen_lock_label">Use screen lock</string>
-    <string name="biometriccompat_screen_lock_prompt_message">Enter your screen lock to continue</string>
-
-    <string name="biometriccompat_fingerprint_error_lockout">Too many attempts. Please try again later.</string>
-    <string name="biometriccompat_fingerprint_not_recognized">Not recognized</string>
-
+    <string name="biometriccompat_face_acquired_mouth_covering_detected_alt">Se detectó una cubierta facial. Tu rostro debe estar totalmente visible.</string>
+    <string name="biometriccompat_use_screen_lock_label">Usar bloqueo de pantalla</string>
+    <string name="biometriccompat_screen_lock_prompt_message">Introduce tu bloqueo de pantalla para continuar</string>
+    <string name="biometriccompat_fingerprint_error_lockout">Demasiados intentos. Vuelve a intentarlo más tarde.</string>
+    <string name="biometriccompat_fingerprint_not_recognized">No reconocido</string>
 </resources>

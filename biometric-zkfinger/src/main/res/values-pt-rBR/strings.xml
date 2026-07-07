@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="biometriccompat_zkfinger_help_timeout">Fingerprint authentication timed out</string>
-    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelled by new operation</string>
-    <string name="biometriccompat_zkfinger_help_sensor_not_found">ZK fingerprint reader not connected</string>
-    <string name="biometriccompat_zkfinger_help_usb_permission_denied">USB permission denied for ZK fingerprint reader</string>
-    <string name="biometriccompat_zkfinger_help_sensor_unavailable">ZK fingerprint reader unavailable</string>
-    <string name="biometriccompat_zkfinger_help_not_registered">Fingerprint not registered</string>
-    <string name="biometriccompat_zkfinger_help_already_registered">This fingerprint is already registered</string>
-    <string name="biometriccompat_zkfinger_help_same_finger_required">Use the same finger for all enrollment scans</string>
-    <string name="biometriccompat_zkfinger_help_scan_again">Scan your finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_start">Required ZK reader scans: %1$d</string>
-    <string name="biometriccompat_zkfinger_help_enroll_progress">Accepted scans: %1$d/%2$d. Lift and place the same finger again</string>
-    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizing fingerprint enrollment</string>
-    <string name="biometriccompat_zkfinger_help_template_error">Could not process fingerprint template</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">ZK fingerprint reader is locked out. Try again later</string>
-    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">ZK fingerprint reader is locked out permanently</string>
-    <string name="biometriccompat_zkfinger_prompt_start_auth">Place your finger on the ZK reader</string>
-    <string name="biometriccompat_zkfinger_prompt_start_enroll">Place your finger on the ZK reader to enroll</string>
+    <string name="biometriccompat_zkfinger_help_timeout">Tempo esgotado na autenticação por impressão digital</string>
+    <string name="biometriccompat_zkfinger_help_canceled_by_new_operation">Cancelado por uma nova operação</string>
+    <string name="biometriccompat_zkfinger_help_sensor_not_found">Leitor de impressão digital ZK não conectado</string>
+    <string name="biometriccompat_zkfinger_help_usb_permission_denied">Permissão USB negada para o leitor de impressão digital ZK</string>
+    <string name="biometriccompat_zkfinger_help_sensor_unavailable">Leitor de impressão digital ZK indisponível</string>
+    <string name="biometriccompat_zkfinger_help_not_registered">Impressão digital não cadastrada</string>
+    <string name="biometriccompat_zkfinger_help_already_registered">Esta impressão digital já está cadastrada</string>
+    <string name="biometriccompat_zkfinger_help_same_finger_required">Use o mesmo dedo em todas as leituras do cadastro</string>
+    <string name="biometriccompat_zkfinger_help_scan_again">Leia seu dedo novamente</string>
+    <string name="biometriccompat_zkfinger_help_enroll_start">Leituras necessárias do leitor ZK: %1$d</string>
+    <string name="biometriccompat_zkfinger_help_enroll_progress">Leituras aceitas: %1$d/%2$d. Levante e coloque o mesmo dedo novamente</string>
+    <string name="biometriccompat_zkfinger_help_enroll_finalizing">Finalizando o cadastro da impressão digital</string>
+    <string name="biometriccompat_zkfinger_help_template_error">Não foi possível processar o modelo de impressão digital</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_try_later">O leitor de impressão digital ZK está bloqueado. Tente novamente mais tarde</string>
+    <string name="biometriccompat_zkfinger_help_too_many_attempts_permanent">O leitor de impressão digital ZK está bloqueado permanentemente</string>
+    <string name="biometriccompat_zkfinger_prompt_start_auth">Coloque o dedo no leitor ZK</string>
+    <string name="biometriccompat_zkfinger_prompt_start_enroll">Coloque o dedo no leitor ZK para cadastrar</string>
 </resources>

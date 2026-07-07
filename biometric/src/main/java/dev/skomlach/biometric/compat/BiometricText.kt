@@ -26,6 +26,9 @@ internal fun biometricRequiredCryptoRejectedDescription(): String =
 internal fun biometricRequiredCryptoMissingDescription(): String =
     biometricText(R.string.biometriccompat_required_crypto_missing_error)
 
+internal fun softwareBiometricHardwareBackedCryptoUnsupportedDescription(name: String): String =
+    biometricText(R.string.biometriccompat_software_hardware_backed_crypto_unsupported, name)
+
 internal fun biometricActivityDestroyedDescription(): String =
     biometricText(R.string.biometriccompat_activity_destroyed_error)
 
