@@ -58,7 +58,7 @@ class VoicePromptMessageResolverTest {
             stringResolver = { resId: Int, formatArgs: Array<out Any?> ->
                 when (resId) {
                     R.string.biometriccompat_voice_prompt_auth_instruction -> "Промовте кодову фразу."
-                    R.string.biometriccompat_voice_prompt_phrase -> "Фраза: ${formatArgs[0]}"
+                    R.string.biometriccompat_voice_overlay_phrase -> "Фраза: ${formatArgs[0]}"
                     R.string.biometriccompat_voice_prompt_retry_sample_too_short -> "Фраза була закороткою."
                     else -> null
                 }

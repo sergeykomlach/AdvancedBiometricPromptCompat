@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.Handler
-import android.os.Looper
 import dev.skomlach.biometric.compat.BiometricType
 import dev.skomlach.biometric.compat.custom.AbstractSoftwareBiometricManager
 import dev.skomlach.biometric.custom.voice.R
@@ -26,8 +25,6 @@ class VoiceBiometricManager(
     override val priority: Int = PRIORITY_BELOW_SYSTEM_HARDWARE
 
     private val sessionActive = AtomicBoolean(false)
-    private var currentHandler: Handler = Handler(Looper.getMainLooper())
-    private var resultRunnable: Runnable? = null
     private val prefs by lazy {
         SharedPreferenceProvider.getProtectedPreferences(LOCKOUT_STORAGE_NAME)
     }
@@ -85,7 +82,6 @@ class VoiceBiometricManager(
     ) {
         cancelActiveSession()
         sessionActive.set(true)
-        currentHandler = handler ?: Handler(Looper.getMainLooper())
         cancel?.setOnCancelListener {
             cancelActiveSession()
             callback?.onAuthenticationCancelled()
@@ -282,13 +278,9 @@ class VoiceBiometricManager(
         crypto: CryptoObject?,
         helpMessage: CharSequence
     ) {
-        resultRunnable = Runnable {
-            if (sessionActive.compareAndSet(true, false)) {
-                callback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_GOOD, helpMessage)
-                callback?.onAuthenticationSucceeded(AuthenticationResult(crypto))
-            }
-        }.also {
-            currentHandler.postDelayed(it, RESULT_DELAY_MS)
+        if (sessionActive.compareAndSet(true, false)) {
+            callback?.onAuthenticationHelp(CUSTOM_BIOMETRIC_ACQUIRED_GOOD, helpMessage)
+            callback?.onAuthenticationSucceeded(AuthenticationResult(crypto))
         }
     }
 
@@ -304,8 +296,6 @@ class VoiceBiometricManager(
 
     private fun cancelActiveSession() {
         sessionActive.set(false)
-        resultRunnable?.let { currentHandler.removeCallbacks(it) }
-        resultRunnable = null
     }
 
     private fun lockoutMessage(error: Int): CharSequence {
@@ -322,15 +312,16 @@ class VoiceBiometricManager(
         return LocalizationHelper.getLocalizedString(context, id, *formatArgs)
     }
 
-    private companion object {
-        const val IS_ENROLLMENT_KEY = "is_enrollment"
-        const val ENROLLMENT_TAG_KEY = "enrollment_tag"
-        const val LOCKOUT_STORAGE_NAME = "voice_lockout"
-        const val MATCH_THRESHOLD = 0.78f
-        const val TOP_K_TEMPLATES = 3
-        const val RESULT_DELAY_MS = 500L
+    internal companion object {
+        private const val IS_ENROLLMENT_KEY = "is_enrollment"
+        private const val ENROLLMENT_TAG_KEY = "enrollment_tag"
+        private const val LOCKOUT_STORAGE_NAME = "voice_lockout"
+        private const val MATCH_THRESHOLD = 0.78f
+        private const val TOP_K_TEMPLATES = 3
 
-        val LOCKOUT_POLICY = LockoutPolicy(
+        internal fun successResultDelayMsForTest(): Long = 0L
+
+        private val LOCKOUT_POLICY = LockoutPolicy(
             maxFailedAttemptsBeforeLockout = 5,
             maxTemporaryLockoutsBeforePermanent = 5,
             lockoutDurationMs = 30_000L
